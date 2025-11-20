@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.wiki-link-styling .wiki-link {
+  @apply text-blue-600 hover:text-blue-700 underline transition;
+}
+
+.wiki-link-styling .katex-display {
+  @apply my-4 overflow-x-auto;
+}
+
+.wiki-link-styling .katex {
+  @apply text-gray-900;
+}
+
+.wiki-link-styling h1,
+.wiki-link-styling h2,
+.wiki-link-styling h3 {
+  @apply mt-6 mb-4 font-bold;
+}
+
+.wiki-link-styling h1 {
+  @apply text-2xl;
+}
+
+.wiki-link-styling h2 {
+  @apply text-xl;
+}
+
+.wiki-link-styling h3 {
+  @apply text-lg;
+}
+
+.wiki-link-styling p {
+  @apply mb-4 leading-relaxed;
+}
+
+.wiki-link-styling ul,
+.wiki-link-styling ol {
+  @apply mb-4 ml-6;
+}
+
+.wiki-link-styling li {
+  @apply mb-2;
+}
+
+.wiki-link-styling code {
+  @apply bg-gray-100 px-2 py-1 rounded font-mono text-sm;
+}
+
+.wiki-link-styling pre {
+  @apply bg-gray-800 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4;
+}
+
+.wiki-link-styling blockquote {
+  @apply border-l-4 border-gray-300 pl-4 py-2 text-gray-700 italic;
+}
