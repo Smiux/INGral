@@ -24,8 +24,6 @@ export function ArticleEditor() {
   const [lastEdited, setLastEdited] = useState<Date | null>(null);
   // 文章列表抽屉状态
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedArticleSlug, setSelectedArticleSlug] = useState<string | undefined>(undefined);
-  const [selectedArticleTitle, setSelectedArticleTitle] = useState<string | undefined>(undefined);
   // 编辑视图状态
   const [viewMode, setViewMode] = useState<'split' | 'editor' | 'preview'>('split');
   const [isMobile, setIsMobile] = useState(false);
@@ -181,8 +179,6 @@ export function ArticleEditor() {
   // 关闭文章列表抽屉
   const closeArticleDrawer = () => {
     setDrawerOpen(false);
-    setSelectedArticleSlug(undefined);
-    setSelectedArticleTitle(undefined);
   };
   
   // 切换视图模式
@@ -703,8 +699,6 @@ export function ArticleEditor() {
       <ArticleDrawer 
         isOpen={drawerOpen} 
         onClose={closeArticleDrawer}
-        articleSlug={selectedArticleSlug}
-        articleTitle={selectedArticleTitle}
       />
       
       {/* LaTeX编辑器组件 */}

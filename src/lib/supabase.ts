@@ -1,13 +1,28 @@
+import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-// 由于项目将通过其他方式连接到真实数据库，这里直接导出null
-// 所有数据库操作将通过新的连接方式处理
-export const supabase: SupabaseClient | null = null;
+// 从环境变量获取Supabase配置
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-// 导出模拟数据模式标志，始终为true
-export const useMockData = true;
+// 验证环境变量是否已设置
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('错误: Supabase环境变量未配置，需要设置VITE_SUPABASE_URL和VITE_SUPABASE_ANON_KEY');
+  throw new Error('Supabase配置缺失');
+}
 
-// 移除测试连接函数，不再需要测试数据库连接
+// 创建并导出真实的Supabase客户端
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+// 测试Supabase连接的函数
 export async function testSupabaseConnection(): Promise<boolean> {
-  return false;
+  try {
+    // 尝试获取会话信息来测试连接
+    await supabase.auth.getSession();
+    console.log('数据库连接测试成功');
+    return true;
+  } catch (error) {
+    console.error('数据库连接测试失败:', error instanceof Error ? error.message : String(error));
+    return false;
+  }
 }

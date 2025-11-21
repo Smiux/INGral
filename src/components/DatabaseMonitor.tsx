@@ -22,46 +22,7 @@ export const DatabaseMonitor: React.FC = () => {
   const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetric[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // 模拟数据
-  const mockTableStats: TableStats[] = [
-    {
-      name: 'articles',
-      rowCount: 42,
-      lastUpdated: new Date().toLocaleString(),
-      status: 'ok'
-    },
-    {
-      name: 'article_links',
-      rowCount: 28,
-      lastUpdated: new Date().toLocaleString(),
-      status: 'ok'
-    },
-    {
-      name: 'tags',
-      rowCount: 15,
-      lastUpdated: new Date().toLocaleString(),
-      status: 'ok'
-    },
-    {
-      name: 'article_tags',
-      rowCount: 63,
-      lastUpdated: new Date().toLocaleString(),
-      status: 'ok'
-    },
-    {
-      name: 'user_graphs',
-      rowCount: 5,
-      lastUpdated: new Date().toLocaleString(),
-      status: 'ok'
-    }
-  ];
-
-  const mockPerformanceMetrics: PerformanceMetric[] = [
-    { name: 'Query Response Time', value: '124ms', trend: 'down' },
-    { name: 'Connection Pool', value: '4/10', trend: 'stable' },
-    { name: 'Cache Hit Rate', value: '87%', trend: 'up' },
-    { name: 'Memory Usage', value: '245MB', trend: 'stable' }
-  ];
+  // 使用空数组初始化，之后会从真实数据库获取数据
 
   const checkConnection = async () => {
     try {
@@ -83,15 +44,9 @@ export const DatabaseMonitor: React.FC = () => {
       // 检查连接
       await checkConnection();
       
-      // 更新模拟数据
-      const updatedTableStats = mockTableStats.map(stat => ({
-        ...stat,
-        lastUpdated: new Date().toLocaleString(),
-        rowCount: stat.rowCount + Math.floor(Math.random() * 5) - 2 // 随机波动数据
-      }));
-      
-      setTableStats(updatedTableStats);
-      setPerformanceMetrics(mockPerformanceMetrics);
+      // 暂时使用空数组，后续应从真实数据库获取数据
+      setTableStats([]);
+      setPerformanceMetrics([]);
     } catch (error) {
       console.error('Refresh failed:', error);
     } finally {
@@ -138,9 +93,9 @@ export const DatabaseMonitor: React.FC = () => {
             </h3>
             <p className="text-sm text-gray-600">
               {connectionStatus === 'connected' 
-                ? `Connected in ${connectionTime.toFixed(2)}ms using mock data` 
+                ? `Connected in ${connectionTime.toFixed(2)}ms` 
                 : connectionStatus === 'disconnected'
-                  ? 'Using fallback mock data for demonstration'
+                  ? 'Connection failed. Please check database settings.'
                   : 'Testing connection...'}
             </p>
           </div>

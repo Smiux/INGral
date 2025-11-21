@@ -48,11 +48,19 @@ export function ProfileEditor({ isOpen, onClose, profile, onProfileUpdate }: Pro
       }
 
       // 更新用户资料
-      const success = await updateUserProfile(profile.id, {
+      const profileUpdates: Partial<Pick<UserProfile, 'username' | 'bio' | 'avatar_url'>> = {
         username: formData.username.trim(),
-        bio: formData.bio.trim() || undefined,
-        avatar_url: formData.avatar_url.trim() || undefined,
-      });
+      };
+      
+      // 只添加非空的可选字段
+      if (formData.bio.trim()) {
+        profileUpdates.bio = formData.bio.trim();
+      }
+      if (formData.avatar_url.trim()) {
+        profileUpdates.avatar_url = formData.avatar_url.trim();
+      }
+      
+      const success = await updateUserProfile(profile.id, profileUpdates);
 
       if (success) {
         setSuccess('Profile updated successfully!');

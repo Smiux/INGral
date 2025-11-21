@@ -13,9 +13,15 @@ export function ArticlesPage() {
 
   useEffect(() => {
     const loadArticles = async () => {
-      const data = await fetchAllArticles();
-      setArticles(data);
-      setIsLoading(false);
+      try {
+        const data = await fetchAllArticles();
+        setArticles(data);
+      } catch (error) {
+        console.error('Failed to load articles:', error);
+        setArticles([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadArticles();

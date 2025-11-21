@@ -8,16 +8,19 @@ const md = new MarkdownIt({
   typographer: true,
 });
 
-md.renderer.rules.text = function(tokens: Array<{ content: string }>, idx: number) {
+md.renderer.rules.text = function(tokens: Array<{ content?: string }>, idx: number) {
   const token = tokens[idx];
-  const text = token.content;
+  // 添加类型安全检查，确保token和content存在
+  const text = token?.content || '';
 
   let result = text;
 
   result = result.replace(/\[\[([^\]]+)\]\]/g, (_match: string, p1: string) => {
-    const [title, displayText] = p1.split('|').map((s: string) => s.trim());
+    const parts = p1.split('|').map((s: string) => s.trim());
+    const title = parts[0] || '';
+    const displayText = parts[1] || title;
     const slug = titleToSlug(title || displayText);
-    return `<a href="/article/${slug}" class="wiki-link">${displayText || title}</a>`;
+    return `<a href="/article/${slug}" class="wiki-link">${displayText}</a>`;
   });
 
   result = result.replace(/\$\$([^$]+)\$\$/g, (_match: string, p1: string) => {
@@ -55,9 +58,10 @@ export function titleToSlug(title: string): string {
 }
 
 export function extractWikiLinks(content: string): string[] {
-  const matches = content.match(/\[\[([^\]]+)\]\]/g) || [];
-  return matches.map(match => {
-    const [title] = match.slice(2, -2).split('|').map(s => s.trim());
+  const matches: string[] = content.match(/\[\[([^\]]+)\]\]/g) || [];
+  return matches.map((match: string) => {
+    const parts = match.slice(2, -2).split('|');
+    const title = parts[0]?.trim() || '';
     return title;
   });
 }

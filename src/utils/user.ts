@@ -35,14 +35,29 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
       }
 
       // 获取用户创建的文章 - 添加错误处理
-      let createdArticles: any[] = [];
+      let createdArticles: Article[] = [];
       let articlesError = null;
       if (supabase) {
         const { data, error } = await supabase
           .from('articles')
           .select('id, view_count')
           .eq('author_id', userId);
-        createdArticles = data || [];
+        // 确保数据格式正确，满足Article接口要求
+        createdArticles = (data || []).map(article => ({
+          ...article,
+          id: article.id,
+          view_count: article.view_count,
+          title: '',
+          slug: '',
+          content: '',
+          author_id: userId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          tags: [],
+          status: 'published',
+          visibility: 'public',
+          allow_contributions: false
+        }));
         articlesError = error;
       } else {
         console.error('Supabase client is not available');
@@ -54,15 +69,31 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
       }
 
       // 获取用户贡献的文章 - 添加错误处理
-      let contributedArticles: any[] = [];
+      let contributedArticles: Article[] = [];
       let contributionsError = null;
       if (supabase) {
         const { data, error } = await supabase
-          .from('articles')
-          .select('id, view_count')
-          .filter('contributors', 'cs', `{${userId}}`); // 使用contains操作符
-        contributedArticles = data || [];
-        contributionsError = error;
+        .from('articles')
+        .select('id, view_count')
+        .filter('contributors', 'cs', `{${userId}}`); // 使用contains操作符
+      
+      // 转换数据格式以匹配Article接口
+      contributedArticles = (data || []).map(item => ({
+        id: item.id,
+        view_count: item.view_count,
+        // 添加所有必要的字段以满足Article接口
+        title: '',
+        slug: '',
+        content: '',
+        author_id: '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        tags: [],
+        status: 'published',
+        visibility: 'public',
+        allow_contributions: false
+      }));
+      contributionsError = error;
       } else {
         console.error('Supabase client is not available');
       }
@@ -99,7 +130,7 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
 
       return profile;
     } catch (error) {
-      console.error(`Attempt ${attempt + 1}: Error fetching user profile:`, error instanceof Error ? error.message : 'Unknown error');
+      console.error(`Attempt ${attempt + 1}: Error fetching user profile:`, error instanceof Error ? error.message : String(error));
       if (attempt === maxRetries - 1) {
         return null;
       }
@@ -131,7 +162,7 @@ export async function fetchUserArticles(userId: string): Promise<Article[]> {
 
     return data || [];
   } catch (error) {
-    console.error('Error fetching user articles:', error);
+    console.error('Error fetching user articles:', error instanceof Error ? error.message : String(error));
     return [];
   }
 }
@@ -157,7 +188,7 @@ export async function fetchUserContributions(userId: string): Promise<Article[]>
 
     return data || [];
   } catch (error) {
-    console.error('Error fetching user contributions:', error);
+    console.error('Error fetching user contributions:', error instanceof Error ? error.message : String(error));
     return [];
   }
 }
@@ -211,7 +242,7 @@ export async function updateUserProfile(
 
       return true;
     } catch (error) {
-      console.error(`Attempt ${attempt + 1}: Error updating user profile:`, error instanceof Error ? error.message : 'Unknown error');
+      console.error(`Attempt ${attempt + 1}: Error updating user profile:`, error instanceof Error ? error.message : String(error));
       if (attempt === maxRetries - 1) {
         return false;
       }

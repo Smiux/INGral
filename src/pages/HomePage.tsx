@@ -10,9 +10,15 @@ export function HomePage() {
 
   useEffect(() => {
     const loadArticles = async () => {
-      const data = await fetchAllArticles();
-      setArticles(data.slice(0, 6));
-      setIsLoading(false);
+      try {
+        const data = await fetchAllArticles();
+        setArticles(data.slice(0, 6));
+      } catch (error) {
+        console.error('Failed to load articles:', error);
+        setArticles([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadArticles();

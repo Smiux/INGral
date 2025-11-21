@@ -17,7 +17,6 @@ export function ArticleViewer() {
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
   // 引用抽屉状态
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [activeRef, setActiveRef] = useState<{ slug: string; title: string } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   // 第一个useEffect - 加载文章
@@ -96,10 +95,6 @@ export function ArticleViewer() {
         if (href) {
           const match = href.match(/\/article\/(.*)$/);
           if (match) {
-            setActiveRef({
-              slug: match[1],
-              title: target.textContent || match[1]
-            });
             setDrawerOpen(true);
           }
         }
@@ -121,7 +116,6 @@ export function ArticleViewer() {
   // 处理函数
   const handleCloseDrawer = () => {
     setDrawerOpen(false);
-    setActiveRef(null);
   };
 
   if (isLoading) {
@@ -210,10 +204,6 @@ export function ArticleViewer() {
               <div
                 key={related.id}
                 onClick={() => {
-                  setActiveRef({
-                    slug: related.slug,
-                    title: related.title
-                  });
                   setDrawerOpen(true);
                 }}
                 className="p-4 border border-gray-200 rounded-lg hover:border-blue-600 hover:shadow-md transition group cursor-pointer relative overflow-hidden"
@@ -249,8 +239,6 @@ export function ArticleViewer() {
       <ArticleDrawer 
         isOpen={drawerOpen}
         onClose={handleCloseDrawer}
-        articleSlug={activeRef?.slug}
-        articleTitle={activeRef?.title}
       />
     </article>
   );
