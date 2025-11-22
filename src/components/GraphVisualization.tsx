@@ -2,9 +2,38 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as d3 from 'd3';
 import { Plus, Edit, Save, Trash2, ChevronDown, User, List, ArrowUpRight, Upload, Home } from 'lucide-react';
-import { saveGraphData, fetchGraphById, deleteGraph, getUserGraphs } from '@/utils/article';
-import { GraphLink } from '@/types';
-import { useAuth } from '@/hooks/useAuth';
+import { saveGraphData, fetchGraphById, deleteGraph, getUserGraphs } from '../utils/article';
+import { GraphLink } from '../types';
+import { useAuth } from '../hooks/useAuth';
+
+// 节点数据接口
+interface NodeData {
+  id?: string | number;
+  name?: string;
+  title?: string; // 添加title属性
+  created_by?: string;
+  connections?: number;
+  created_at?: string;
+}
+
+// 链接数据接口
+interface LinkData {
+  id?: string | number;
+  source?: string | number | NodeData;
+  target?: string | number | NodeData;
+  type?: string;
+  created_at?: string;
+}
+
+// 图表数据接口
+interface GraphData {
+  id?: string | number;
+  name?: string; // 修改为可选属性
+  nodes: NodeData[];
+  links: LinkData[];
+  is_template?: boolean;
+  created_at?: string; // 添加创建时间属性
+}
 
 
 interface EnhancedNode extends d3.SimulationNodeDatum {
@@ -215,7 +244,7 @@ export function GraphVisualization() {
     };
 
     loadData();
-  }, []); // 移除showNotification依赖，避免hook错误
+  }, [showNotification]); // 移除不必要的loadData依赖，loadData是useEffect内部定义的
 
 
 
@@ -233,21 +262,31 @@ export function GraphVisualization() {
       // 获取用户创建的图表
       const graphs = await getUserGraphs(user['id']);
       // 转换格式以适应UI显示需求
-      const formattedGraphs = graphs
-        .filter(graph => !graph['is_template'])
-        .map(graph => ({
-          id: graph['id'],
-          name: graph['name'],
-          nodes: graph['nodes'].length,
-          edges: graph['links'].length,
-          created_at: graph['created_at'] || new Date().toISOString()
-        }));
+      const formattedGraphs = (graphs || []).filter(graph => {
+        // 类型保护
+        const g = graph as GraphData;
+        return !g.is_template && Array.isArray(g.nodes) && Array.isArray(g.links);
+      }).map(graph => {
+        const g = graph as GraphData;
+        return {
+          id: String(g.id || ''),
+          name: String(g.name || '未命名图表'),
+          nodes: g.nodes.length || 0,
+          edges: g.links.length || 0,
+          created_at: String(g.created_at || new Date().toISOString())
+        };
+      });
       setUserGraphs(formattedGraphs);
+      
+      // 显示加载成功通知
+      if (typeof showNotification === 'function') {
+        showNotification('用户图表加载成功', 'success');
+      }
     } catch (error) {
       console.error('Error loading user graphs:', error);
       showNotification('加载用户图表失败', 'error');
     }
-  }, [user, showNotification]);
+  }, [user, showNotification, setUserGraphs]);
   
   // 加载图表模板
   const loadTemplates = useCallback(async () => {
@@ -403,7 +442,7 @@ export function GraphVisualization() {
     // 重置选择状态
     setSelectedNode(null);
     setSelectedNodes([]);
-  }, [selectedNodes]);
+  }, [selectedNodes, setNodes, setLinks, setSelectedNode, setSelectedNodes]); // 添加所有必要的依赖项
 
   const removeNode = useCallback((nodeOrId: string | number | EnhancedNode) => {
     const nodeId = typeof nodeOrId === 'object' ? (nodeOrId as EnhancedNode).id : nodeOrId;
@@ -423,7 +462,7 @@ export function GraphVisualization() {
       setSelectedNode(null);
       setSelectedNodes([]);
     }
-  }, [selectedNode]);
+  }, [selectedNode, setNodes, setLinks, setSelectedNode, setSelectedNodes]);
 
   const copySelectedNodes = useCallback(() => {
     if (selectedNodes.length > 0 || selectedNode) {
@@ -474,7 +513,7 @@ export function GraphVisualization() {
     if (newNodes.length > 0) {
       setSelectedNode(newNodes[0] as EnhancedNode | null);
     }
-  }, [user?.['id'], copiedNodes]);
+  }, [copiedNodes, copiedNode, user]); // 添加必要的依赖项
 
   const connectSelectedNodes = useCallback(() => {
     if (selectedNodes.length !== 2) return;
@@ -512,7 +551,7 @@ export function GraphVisualization() {
         return node;
       }));
     }
-  }, [selectedNodes, links]);
+  }, [selectedNodes, links, setLinks, setNodes]);
 
   // 键盘事件处理函数在后面定义
 
@@ -753,9 +792,9 @@ export function GraphVisualization() {
           type: link['type'] || 'default'
         }));
         
-        setNodes(allNodes);
+        setNodes(allNodes as EnhancedNode[]);
         setLinks([...enhancedBaseLinks, ...graphLinks]);
-        setGraphName(graph['name']);
+        setGraphName((graph as GraphData).name || '未命名图表');
         showNotification('图表加载成功', 'success');
       } else {
         showNotification('图表不存在或已被删除', 'error');
@@ -793,8 +832,9 @@ export function GraphVisualization() {
         
         // 创建新的节点ID，避免冲突
         const nodeIdMap: Record<string, string> = {};
-        const newNodes = template['nodes'].map((node: EnhancedNode) => {
-          const newId = `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const templateData = template as GraphData;
+        const newNodes = (templateData.nodes || []).map((node: NodeData) => {
+          const newId = `custom-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
           nodeIdMap[String(node['id'])] = newId;
           return {
             ...node,
@@ -807,10 +847,10 @@ export function GraphVisualization() {
         });
 
         // 更新链接的节点ID
-        const newLinks = template['links'].map((link: GraphLink) => ({
-          id: `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        const newLinks = (templateData.links || []).map((link: LinkData) => ({
+          id: `link-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
           source: nodeIdMap[typeof link['source'] === 'string' ? link['source'] : String(link['source'])] || String(link['source']),
-            target: nodeIdMap[typeof link['target'] === 'string' ? link['target'] : String(link['target'])] || String(link['target']),
+          target: nodeIdMap[typeof link['target'] === 'string' ? link['target'] : String(link['target'])] || String(link['target']),
           type: link['type'] || 'default',
           // 添加链接创建时间
           created_at: new Date().toISOString()
@@ -835,11 +875,13 @@ export function GraphVisualization() {
               return sourceId === String(node['id']) || targetId === String(node['id']);
             }
           ).length;
+          // 确保每个节点都有title属性
+          node['title'] = node['title'] || node['name'] || String(node['id']) || '未命名节点';
         });
 
-        setNodes(allNodes);
+        setNodes(allNodes as EnhancedNode[]);
         setLinks(allLinks);
-        setGraphName(`${template['name']} (副本)`);
+        setGraphName(`${templateData['name'] || '未命名模板'} (副本)`);
         setIsEditMode(true);
         showNotification('成功从模板创建图表', 'success');
       } else {
@@ -1149,7 +1191,7 @@ export function GraphVisualization() {
       setCurrentTransform(newTransform);
       svg.setAttribute('transform', newTransform.toString());
     }
-  }, [isEditMode, currentTransform, addNode, batchSelectionMode, selectedNodes, selectedNode, deleteSelectedNodes, removeNode, isAddingLink, cancelAddLink, copySelectedNodes, pasteNodes, connectSelectedNodes, setShiftPressed, setNotification, setCopiedNode, simulationRef, containerRef]);
+  }, [isEditMode, currentTransform, addNode, batchSelectionMode, selectedNodes, selectedNode, deleteSelectedNodes, removeNode, isAddingLink, cancelAddLink, copySelectedNodes, pasteNodes, connectSelectedNodes, setShiftPressed, setNotification, setCopiedNode, simulationRef, containerRef, recentActions, resetView, showNotification]); // 添加缺少的依赖项
 
   const handleKeyUp = useCallback((event: KeyboardEvent) => {
     if (event.key === 'Shift') {
@@ -1739,7 +1781,7 @@ export function GraphVisualization() {
       window.removeEventListener('keydown', domKeyDownHandler);
       window.removeEventListener('keyup', domKeyUpHandler);
     };
-  }, [handleKeyDown, handleKeyUp]);
+  }, [handleKeyDown, handleKeyUp, showNotification]); // 添加缺少的依赖项
 
   if (isLoading) {
     return (

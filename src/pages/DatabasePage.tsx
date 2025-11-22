@@ -1,5 +1,5 @@
-import { Header } from '@/components/Header';
-import { DatabaseMonitor } from '@/components/DatabaseMonitor';
+import { Header } from '../components/Header';
+import { DatabaseMonitor } from '../components/DatabaseMonitor';
 
 export function DatabasePage() {
   return (

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, ArrowUpRight, BookOpen, ChevronLeft, ChevronRight, Search, Edit2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Article } from '@/types';
-import { fetchArticleBySlug, getUserArticles } from '@/utils/article';
-import { renderMarkdown } from '@/utils/markdown';
-import { useAuth } from '@/hooks/useAuth';
+import { Article } from '../types';
+import { fetchArticleBySlug, getUserArticles } from '../utils/article';
+import { renderMarkdown } from '../utils/markdown';
+import { useAuth } from '../hooks/useAuth';
 
 interface ArticleDrawerProps {
   isOpen: boolean;

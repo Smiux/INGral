@@ -1,0 +1,240 @@
+/* Select 组件样式文件 */
+.container {
+  position: relative;
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+/* 选择按钮 */
+.selectButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.selectButton:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.selectButton:hover:not(:disabled) {
+  border-color: var(--border-hover);
+  background-color: var(--bg-hover);
+}
+
+.selectButton.open {
+  border-color: var(--primary-color);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background-color: var(--bg-hover);
+}
+
+.selectText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  text-align: left;
+}
+
+.icon {
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  transition: transform 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.icon.open {
+  transform: rotate(180deg);
+}
+
+/* 下拉菜单 */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  background-color: var(--bg-elevated);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* 搜索框 */
+.searchContainer {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.searchInput:focus {
+  border-color: var(--primary-color);
+}
+
+/* 选项列表 */
+/* optionsList 不再需要单独的样式规则，因为它的样式直接通过内部元素（如option）定义 */
+
+.option {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: var(--text-primary);
+}
+
+.option:hover:not(.optionDisabled) {
+  background-color: var(--bg-hover);
+}
+
+.option.selected {
+  background-color: rgba(79, 70, 229, 0.1);
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.optionDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.noResults {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+/* 错误状态 */
+.error .selectButton {
+  border-color: var(--error-color);
+}
+
+.errorMessage {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--error-color);
+}
+
+/* 禁用状态 */
+.disabled {
+  opacity: 0.6;
+}
+
+.disabled .selectButton {
+  cursor: not-allowed;
+  background-color: var(--bg-disabled);
+}
+
+.disabled .selectButton:hover {
+  border-color: var(--border-color);
+  background-color: var(--bg-disabled);
+}
+
+/* 加载状态 */
+.loadingSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 滚动条样式 */
+.dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: var(--bg-disabled);
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.dropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .selectButton {
+    padding: 0.625rem 0.875rem;
+  }
+  
+  .option {
+    padding: 0.625rem 0.875rem;
+  }
+  
+  .searchContainer {
+    padding: 0.625rem;
+  }
+}
+
+/* 暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .dropdown {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .selectButton,
+  .option {
+    border-width: 2px;
+  }
+  
+  .selectButton:focus {
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+  }
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .selectButton,
+  .option {
+    transition: none;
+  }
+  
+  .icon {
+    transition: none;
+  }
+  
+  .loadingSpinner {
+    animation: none;
+  }
+}

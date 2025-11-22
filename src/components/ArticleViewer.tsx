@@ -1,12 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Edit2, ArrowLeft, Calendar, User, ExternalLink } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { Article } from '@/types';
-import { fetchArticleBySlug } from '@/utils/article';
-import { renderMarkdown } from '@/utils/markdown';
-import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '../lib/supabase';
+import { Article } from '../types';
+import { fetchArticleBySlug } from '../utils/article';
+import { renderMarkdown } from '../utils/markdown';
+import { useAuth } from '../hooks/useAuth';
 import { ArticleDrawer } from './ArticleDrawer';
+import CommentList from './comments/CommentList';
+import ExportButton from './ExportButton';
 
 export function ArticleViewer() {
   const { slug } = useParams<{ slug: string }>();
@@ -177,15 +179,18 @@ export function ArticleViewer() {
             </div>
           </div>
         </div>
-        {isAuthor && (
-          <button
-            onClick={() => navigate(`/edit/${article.slug}`)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap"
-          >
-            <Edit2 className="w-4 h-4" />
-            Edit
-          </button>
-        )}
+        <div className="flex gap-4">
+          <ExportButton article={article} />
+          {isAuthor && (
+            <button
+              onClick={() => navigate(`/edit/${article.slug}`)}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap"
+            >
+              <Edit2 className="w-4 h-4" />
+              Edit
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="prose prose-sm max-w-none bg-white rounded-lg p-8 shadow-sm border border-gray-200 mb-8">
@@ -195,6 +200,9 @@ export function ArticleViewer() {
           dangerouslySetInnerHTML={{ __html: renderMarkdown(article.content) }}
         />
       </div>
+
+      {/* 评论部分 */}
+      <CommentList articleId={article.id} />
 
       {relatedArticles.length > 0 && (
         <div className="mt-12">

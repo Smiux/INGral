@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Save, X, Globe, Lock, Users, Share2, Calendar, BookOpen, Bold, Italic, List, ListOrdered, Link2, Heading1, Heading2, Heading3, Quote, Code, Image, Table, Strikethrough, FileText } from 'lucide-react';
-import { Article } from '@/types';
-import { fetchArticleBySlug, createArticle, updateArticle } from '@/utils/article';
-import { renderMarkdown } from '@/utils/markdown';
-import { useAuth } from '@/hooks/useAuth';
+import { Article } from '../types';
+import { fetchArticleBySlug, createArticle, updateArticle } from '../utils/article';
+import { renderMarkdown } from '../utils/markdown';
+import { useAuth } from '../hooks/useAuth';
 import { ArticleDrawer } from './ArticleDrawer';
 import { LatexEditor } from './LatexEditor';
 

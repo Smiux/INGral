@@ -19,6 +19,9 @@ export interface Article {
   // 社区数据
   upvotes?: number;
   comment_count?: number;
+  // 标签数据
+  tags?: Tag[];
+  article_tags?: ArticleTag[];
 }
 
 export interface ArticleLink {
@@ -35,12 +38,23 @@ export interface ArticleLink {
 export interface Tag {
   id: string;
   name: string;
+  slug: string;
+  description?: string;
+  color: string;
   created_at: string;
+  created_by?: string;
+  is_system_tag: boolean;
+  usage_count: number;
+  // 前端使用的额外字段
+  is_selected?: boolean;
 }
 
 export interface ArticleTag {
   article_id: string;
   tag_id: string;
+  added_at: string;
+  added_by?: string;
+  tag?: Tag;
 }
 
 export interface AuthState {

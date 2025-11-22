@@ -1,0 +1,704 @@
+/* 版本差异查看器样式 */
+.container {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+}
+
+.container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 100vh;
+  border-radius: 0;
+  z-index: 1000;
+  background-color: #ffffff;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  flex-shrink: 0;
+}
+
+.versionInfo h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.versionDetails {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.versionPair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.arrow {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.versionLabel {
+  background-color: #e5e7eb;
+  color: #374151;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.timestamps {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.timestamp {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.actionButton:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.contentContainer {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  flex-shrink: 0;
+}
+
+.tabButton {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tabButton:hover:not(:disabled) {
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+.tabButton.activeTab {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  background-color: #ffffff;
+}
+
+.tabButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.changedIndicator {
+  color: #ef4444;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.diffContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.diffSection h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+/* 加载状态 */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  gap: 16px;
+  color: #6b7280;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 错误状态 */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px;
+  gap: 16px;
+}
+
+.errorText {
+  color: #ef4444;
+  font-size: 16px;
+  margin: 0;
+  text-align: center;
+}
+
+.retryButton {
+  padding: 8px 16px;
+  background-color: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.retryButton:hover {
+  background-color: #2563eb;
+}
+
+/* 空状态 */
+.emptyState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+/* 标题差异样式 */
+.titleDiff {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.oldValue,
+.newValue {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 6px;
+  background-color: #f9fafb;
+}
+
+.oldValue {
+  border-left: 3px solid #ef4444;
+}
+
+.newValue {
+  border-left: 3px solid #10b981;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #374151;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 元数据差异样式 */
+.metadataDiff {
+  overflow-x: auto;
+}
+
+.metadataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.metadataTable th,
+.metadataTable td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.metadataTable th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.metadataKey {
+  font-weight: 500;
+  color: #374151;
+  background-color: #f9fafb;
+  width: 200px;
+  min-width: 150px;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.metadataOldValue pre,
+.metadataNewValue pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.metadataOldValue {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+
+.metadataNewValue {
+  background-color: #f0fdf4;
+  color: #166534;
+}
+
+.noChanges {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 20px;
+  margin: 0;
+}
+
+/* 差异表格样式 */
+.diffTableContainer {
+  overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.diffTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  line-height: 1.5;
+}
+
+.diffTable th {
+  background-color: #f9fafb;
+  color: #374151;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  min-width: 80px;
+}
+
+.oldHeader {
+  border-right: 1px solid #e5e7eb;
+}
+
+.newHeader {
+  border-right: 1px solid #e5e7eb;
+}
+
+.contentHeader {
+  width: 100%;
+  min-width: 400px;
+}
+
+.diffTable td {
+  padding: 4px 12px;
+  vertical-align: top;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.lineNumber {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  font-size: 13px;
+  text-align: right;
+  min-width: 80px;
+  border-right: 1px solid #e5e7eb;
+  user-select: none;
+}
+
+.lineContent {
+  color: #374151;
+  background-color: #ffffff;
+}
+
+.sameLine td {
+  background-color: #ffffff;
+}
+
+.deletedLine td {
+  background-color: #fee2e2;
+}
+
+.deletedContent {
+  color: #b91c1c;
+  background-color: #fee2e2;
+  text-decoration: line-through;
+}
+
+.addedLine td {
+  background-color: #dcfce7;
+}
+
+.addedContent {
+  color: #166534;
+  background-color: #dcfce7;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .container {
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  
+  .versionDetails {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .actions {
+    justify-content: flex-end;
+  }
+  
+  .diffContent {
+    padding: 16px;
+  }
+  
+  .tabs {
+    overflow-x: auto;
+  }
+  
+  .tabButton {
+    min-width: 140px;
+  }
+  
+  .metadataKey {
+    width: 120px;
+    min-width: 120px;
+    font-size: 13px;
+  }
+  
+  .diffTable th,
+  .diffTable td {
+    padding: 6px 8px;
+  }
+  
+  .lineNumber {
+    min-width: 60px;
+    font-size: 12px;
+  }
+}
+
+/* 暗色主题支持 */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+  
+  .container.fullscreen {
+    background-color: #1f2937;
+  }
+  
+  .header {
+    background-color: #111827;
+    border-color: #374151;
+  }
+  
+  .versionInfo h2 {
+    color: #f3f4f6;
+  }
+  
+  .versionPair {
+    color: #f3f4f6;
+  }
+  
+  .versionLabel {
+    background-color: #374151;
+    color: #f3f4f6;
+  }
+  
+  .arrow {
+    color: #9ca3af;
+  }
+  
+  .timestamps {
+    color: #9ca3af;
+  }
+  
+  .actionButton {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
+  }
+  
+  .actionButton:hover {
+    background-color: #4b5563;
+    border-color: #6b7280;
+    color: #f3f4f6;
+  }
+  
+  .tabs {
+    background-color: #111827;
+    border-color: #374151;
+  }
+  
+  .tabButton {
+    color: #9ca3af;
+  }
+  
+  .tabButton:hover:not(:disabled) {
+    color: #f3f4f6;
+    background-color: #374151;
+  }
+  
+  .tabButton.activeTab {
+    color: #60a5fa;
+    border-bottom-color: #60a5fa;
+    background-color: #1f2937;
+  }
+  
+  .diffContent {
+    background-color: #1f2937;
+  }
+  
+  .diffSection h3 {
+    color: #f3f4f6;
+  }
+  
+  .loadingContainer {
+    color: #9ca3af;
+  }
+  
+  .loadingSpinner {
+    border-color: #374151;
+    border-top-color: #60a5fa;
+  }
+  
+  .errorText {
+    color: #f87171;
+  }
+  
+  .emptyState {
+    color: #9ca3af;
+  }
+  
+  .oldValue,
+  .newValue {
+    background-color: #374151;
+  }
+  
+  .label {
+    color: #9ca3af;
+  }
+  
+  .value {
+    color: #f3f4f6;
+  }
+  
+  .metadataTable th {
+    background-color: #111827;
+    color: #f3f4f6;
+  }
+  
+  .metadataKey {
+    color: #f3f4f6;
+    background-color: #111827;
+  }
+  
+  .metadataOldValue {
+    background-color: #7f1d1d;
+    color: #fca5a5;
+  }
+  
+  .metadataNewValue {
+    background-color: #166534;
+    color: #86efac;
+  }
+  
+  .noChanges {
+    color: #9ca3af;
+  }
+  
+  .diffTableContainer {
+    border-color: #374151;
+  }
+  
+  .diffTable th {
+    background-color: #111827;
+    color: #f3f4f6;
+  }
+  
+  .lineNumber {
+    background-color: #374151;
+    color: #9ca3af;
+  }
+  
+  .lineContent {
+    color: #d1d5db;
+    background-color: #1f2937;
+  }
+  
+  .sameLine td {
+    background-color: #1f2937;
+  }
+  
+  .deletedLine td {
+    background-color: #7f1d1d;
+  }
+  
+  .deletedContent {
+    color: #fca5a5;
+    background-color: #7f1d1d;
+  }
+  
+  .addedLine td {
+    background-color: #166534;
+  }
+  
+  .addedContent {
+    color: #86efac;
+    background-color: #166534;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .container {
+    border-width: 2px;
+  }
+  
+  .header {
+    border-width: 2px;
+  }
+  
+  .tabs {
+    border-width: 2px;
+  }
+  
+  .tabButton.activeTab {
+    border-bottom-width: 3px;
+  }
+  
+  .oldValue {
+    border-left-width: 4px;
+  }
+  
+  .newValue {
+    border-left-width: 4px;
+  }
+  
+  .diffTableContainer {
+    border-width: 2px;
+  }
+  
+  .lineNumber {
+    border-right-width: 2px;
+  }
+}
+
+/* 减少动画的用户偏好支持 */
+@media (prefers-reduced-motion: reduce) {
+  .loadingSpinner {
+    animation: none;
+  }
+  
+  .actionButton,
+  .tabButton,
+  .retryButton {
+    transition: none;
+  }
+}

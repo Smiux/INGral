@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabase';
-import { UserProfile, Article } from '@/types';
+import { supabase } from '../lib/supabase';
+import { UserProfile, Article } from '../types';
 
 // 获取用户档案
 export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {

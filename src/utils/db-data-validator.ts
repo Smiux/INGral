@@ -432,33 +432,27 @@ export class TransactionManager {
       // 在真实环境中，这里应该使用supabase的事务API
       // 由于这是模拟环境，我们使用简单的try-catch来模拟事务
       
-      // 模拟开始事务
-      const mockTransaction = {
-        ...supabase,
-        from: (table: string) => {
+      // 执行事务操作
+      // 构造符合 TransactionObject 接口的事务对象
+      const tx: TransactionObject = {
+        from: <T = Record<string, unknown>>(table: string): TableOperations<T> => {
           const tableOps = supabase.from(table);
-          // 确保所有操作都记录在同一事务中
-          // 移除自定义接口，直接使用TableOperations类型
-          // 由于这是代理实现，我们需要使用as any来处理类型兼容性问题
-          return new Proxy(tableOps as any, {
-              get(target: any, prop: string | symbol) {
-                const value = target[prop];
-                if (typeof value === 'function') {
-                  return function(this: any, ...args: unknown[]) {
-                    dbLogger.debug(`事务操作 [${transactionId}] ${table}.${String(prop)}`, {
-                      params: args
-                    });
-                    return (value as (...args: unknown[]) => unknown).apply(this, args);
-                  };
-                }
-                return value;
+          return new Proxy(tableOps as unknown as TableOperations<T>, {
+            get(target, prop: string | symbol) {
+              const value = (target as any)[prop];
+              if (typeof value === 'function') {
+                return function (this: unknown, ...args: unknown[]) {
+                  dbLogger.debug(`事务操作 [${transactionId}] ${table}.${String(prop)}`, { params: args });
+                  return value.apply(this, args);
+                };
               }
-            });
+              return value;
+            }
+          });
         }
       };
-      
-      // 执行事务操作
-      const result = await operations(mockTransaction);
+
+      const result = await operations(tx);
       
       // 记录事务提交
       dbLogger.logTransaction(transactionId, 'commit', tables);

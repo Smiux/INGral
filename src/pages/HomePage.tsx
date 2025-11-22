@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Network, Users, ExternalLink } from 'lucide-react';
-import { Article } from '@/types';
-import { fetchAllArticles } from '@/utils/article';
+import { Article } from '../types';
+import { fetchAllArticles } from '../utils/article';
 
 export function HomePage() {
   const [articles, setArticles] = useState<Article[]>([]);

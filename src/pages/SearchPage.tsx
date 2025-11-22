@@ -1,79 +1,109 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { Article } from '@/types';
-import { searchArticles } from '@/utils/article';
+import SearchBox from '../components/search/SearchBox';
+import SearchResults from '../components/search/SearchResults';
+import { TagSelector } from '../components/tags/TagSelector';
+const styles = require('./SearchPage.module.css');
 
 export function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-  const [results, setResults] = useState<Article[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    searchParams.get('tag') ? [searchParams.get('tag') as string] : []
+  );
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const performSearch = async () => {
-      if (query.trim()) {
-        const data = await searchArticles(query);
-        setResults(data);
-      }
-      setIsLoading(false);
-    };
+  // 处理搜索提交
+  const handleSearch = (newQuery: string) => {
+    setIsLoading(true);
+    
+    // 更新URL参数
+    const params = new URLSearchParams(searchParams);
+    if (newQuery) {
+      params.set('q', newQuery);
+    } else {
+      params.delete('q');
+    }
+    
+    window.location.search = params.toString();
+    setIsLoading(false);
+  };
 
-    performSearch();
-  }, [query]);
+  // 处理标签选择
+  const handleTagSelect = (tags: string[]) => {
+    setIsLoading(true);
+    // 过滤掉undefined的标签，确保类型安全
+    const validTags = tags.filter(tag => tag !== undefined);
+    setSelectedTags(validTags);
+    
+    // 更新URL参数
+    const params = new URLSearchParams(searchParams);
+    if (validTags.length > 0 && validTags[0]) {
+      params.set('tag', validTags[0]);
+    } else {
+      params.delete('tag');
+    }
+    
+    window.location.search = params.toString();
+    setIsLoading(false);
+  };
+
+  // 清除标签过滤
+  const clearTagFilter = () => {
+    handleTagSelect([]);
+  };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className={styles.container}>
       <Link
         to="/"
-        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 mb-8 transition"
+        className={styles.backLink}
       >
         <ArrowLeft className="w-4 h-4" />
-        Back
+        返回首页
       </Link>
-
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Search Results</h1>
-      <p className="text-gray-600 mb-8">
-        {query && <>Results for "{query}"</>}
-      </p>
-
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      ) : results.length > 0 ? (
-        <div className="space-y-4">
-          {results.map((article) => (
-            <Link
-              key={article.id}
-              to={`/article/${article.slug}`}
-              className="block p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg hover:border-blue-300 transition group"
+      
+      <div className={styles.header}>
+        <h1 className={styles.pageTitle}>搜索{isLoading && ' (加载中...)'}</h1>
+        <p className={styles.pageDescription}>查找您感兴趣的文章内容</p>
+      </div>
+      
+      <div className={styles.searchSection}>
+        <SearchBox
+          placeholder="输入关键词搜索文章..."
+          onSearch={handleSearch}
+          defaultValue={query}
+        />
+        
+        <div className={styles.filterSection}>
+          <h3 className={styles.filterTitle}>按标签筛选</h3>
+          <div className={styles.tagSelectorWrapper}>
+            <TagSelector
+              selectedTags={selectedTags}
+              onChange={handleTagSelect}
+              maxTags={1} // 只允许选择一个标签进行筛选
+            />
+          </div>
+          
+          {selectedTags.length > 0 && (
+            <button
+              className={styles.clearFilterButton}
+              onClick={clearTagFilter}
             >
-              <h2 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition mb-2">
-                {article.title}
-              </h2>
-              <p className="text-gray-600 mb-4 line-clamp-2">
-                {article.content.substring(0, 150)}...
-              </p>
-              <div className="flex gap-4 text-sm text-gray-500">
-                <span>{article.view_count} views</span>
-                <span>
-                  {new Date(article.updated_at).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </span>
-              </div>
-            </Link>
-          ))}
+              清除标签筛选
+            </button>
+          )}
         </div>
-      ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">
-            {query ? 'No articles found. Try a different search.' : 'Enter a search query.'}
-          </p>
-        </div>
-      )}
+      </div>
+      
+      <div className={styles.resultsSection}>
+        <SearchResults
+          query={query}
+          tagId={selectedTags[0] || ''}
+          limit={10}
+        />
+      </div>
     </div>
   );
 }

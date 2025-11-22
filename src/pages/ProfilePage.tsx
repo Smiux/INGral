@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, Users, Eye, Edit3, ChevronLeft, Grid, User as UserIcon } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { fetchUserProfile, fetchUserArticles, fetchUserContributions } from '@/utils/user';
-import { UserProfile, Article } from '@/types';
-import { ProfileEditor } from '@/components/ProfileEditor';
+import { useAuth } from '../hooks/useAuth';
+import { fetchUserProfile, fetchUserArticles, fetchUserContributions } from '../utils/user';
+import { UserProfile, Article } from '../types';
+import { ProfileEditor } from '../components/ProfileEditor';
 
 export function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();

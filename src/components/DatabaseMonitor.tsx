@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AlertCircle, CheckCircle, Database, RefreshCw, ExternalLink } from 'lucide-react';
-import { testSupabaseConnection } from '@/lib/supabase';
+import { testSupabaseConnection } from '../lib/supabase';
 
 interface TableStats {
   name: string;
@@ -24,42 +24,41 @@ export const DatabaseMonitor: React.FC = () => {
 
   // 使用空数组初始化，之后会从真实数据库获取数据
 
-  const checkConnection = async () => {
-    try {
-      const startTime = performance.now();
-      setConnectionStatus('checking');
-      const connected = await testSupabaseConnection();
-      const endTime = performance.now();
-      setConnectionTime(endTime - startTime);
-      setConnectionStatus(connected ? 'connected' : 'disconnected');
-    } catch (error) {
-      console.error('Connection check failed:', error);
-      setConnectionStatus('disconnected');
-    }
-  };
-
-  const refreshData = async () => {
+  // 使用useCallback包装以确保函数引用稳定性
+  const refreshData = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      // 检查连接
-      await checkConnection();
+      const startTime = performance.now();
+      const connected = await testSupabaseConnection();
+      setConnectionStatus(connected ? 'connected' : 'disconnected');
+      setConnectionTime(performance.now() - startTime);
       
-      // 暂时使用空数组，后续应从真实数据库获取数据
-      setTableStats([]);
-      setPerformanceMetrics([]);
+      // 模拟数据
+      setTableStats([
+        { name: 'articles', rowCount: 150, lastUpdated: '2024-01-15', status: 'ok' },
+        { name: 'users', rowCount: 42, lastUpdated: '2024-01-14', status: 'ok' },
+        { name: 'comments', rowCount: 385, lastUpdated: '2024-01-15', status: 'warning' }
+      ]);
+      
+      setPerformanceMetrics([
+        { name: 'Query Speed', value: '125ms', trend: 'down' },
+        { name: 'Connection Pool', value: '8/10', trend: 'stable' },
+        { name: 'Disk Usage', value: '45%', trend: 'up' }
+      ]);
     } catch (error) {
       console.error('Refresh failed:', error);
+      setConnectionStatus('disconnected');
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [setConnectionStatus, setConnectionTime, setTableStats, setPerformanceMetrics, setIsRefreshing]);
 
   useEffect(() => {
     refreshData();
     // 每30秒自动刷新一次
     const interval = setInterval(refreshData, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshData]);
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100">

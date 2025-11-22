@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowUpDown, Database, Eye, Trash2, Plus, Filter, Search, Settings, LogOut, Download } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../lib/supabase';
 
 // 定义表格结构接口
 interface TableColumn {

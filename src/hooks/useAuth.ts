@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { AuthState } from '@/types';
-import { supabase } from '@/lib/supabase';
+import { AuthState } from '../types';
+import { supabase } from '../lib/supabase';
 import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 export function useAuth() {

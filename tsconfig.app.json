@@ -13,6 +13,8 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
 
     /* Path aliases */
     "baseUrl": ".",
@@ -32,6 +34,7 @@
     "alwaysStrict": true,
 
     /* 额外的类型检查 */
+    "downlevelIteration": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,

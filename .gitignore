@@ -69,3 +69,18 @@ coverage
 .env.development
 .env.test
 .env.production
+
+# Supabase
+*.temp/
+.temp/
+
+# OS generated files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Additional temporary directories
+.tmp/
+temp/
+out/

@@ -6,7 +6,9 @@ const CACHE_TTL = {
   articles: 5 * 60 * 1000, // 5分钟
   articleLinks: 10 * 60 * 1000, // 10分钟
   userGraphs: 3 * 60 * 1000, // 3分钟
-  userProfiles: 15 * 60 * 1000 // 15分钟
+  userProfiles: 15 * 60 * 1000, // 15分钟
+  searchResults: 1 * 60 * 1000, // 1分钟
+  searchSuggestions: 2 * 60 * 1000 // 2分钟
 };
 
 // 批量操作配置
@@ -14,7 +16,7 @@ const BATCH_SIZE = 100;
 
 // 缓存工具类
 class DatabaseCache {
-  private cacheStore: Map<string, { data: unknown; timestamp: number }>;
+  private cacheStore: Map<string, { data: unknown; timestamp: number; customTtl?: number }>;
   
   constructor() {
     this.cacheStore = new Map();
@@ -27,12 +29,24 @@ class DatabaseCache {
     const cachedItem = this.cacheStore.get(key);
     if (!cachedItem) return null;
 
+    // 优先使用自定义TTL
+    if (cachedItem.customTtl) {
+      const now = Date.now();
+      if (now - cachedItem.timestamp > cachedItem.customTtl) {
+        this.cacheStore.delete(key);
+        return null;
+      }
+      return cachedItem.data as T;
+    }
+
     // 尝试从key中推断缓存类型和对应的TTL
     let ttl = 5 * 60 * 1000; // 默认5分钟
     if (key.includes('articles')) ttl = CACHE_TTL.articles;
     else if (key.includes('article_links')) ttl = CACHE_TTL.articleLinks;
     else if (key.includes('user_graphs')) ttl = CACHE_TTL.userGraphs;
     else if (key.includes('profiles')) ttl = CACHE_TTL.userProfiles;
+    else if (key.includes('search:')) ttl = CACHE_TTL.searchResults;
+    else if (key.includes('suggest:')) ttl = CACHE_TTL.searchSuggestions;
 
     const now = Date.now();
     if (now - cachedItem.timestamp > ttl) {
@@ -44,10 +58,11 @@ class DatabaseCache {
   }
 
   // 设置缓存数据
-  set<T>(key: string, data: T): void {
+  set<T>(key: string, data: T, ttl: number = 0): void {
     this.cacheStore.set(key, {
       data, // 移除any类型转换，让TypeScript推断类型
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      customTtl: ttl
     });
   }
 
@@ -66,12 +81,12 @@ class DatabaseCache {
     const regex = new RegExp(pattern.replace(/\*/g, '.*').replace(/\?/g, '.'));
     let clearedCount = 0;
     
-    for (const key of this.cacheStore.keys()) {
+    this.cacheStore.forEach((_, key) => {
       if (regex.test(key)) {
         this.cacheStore.delete(key);
         clearedCount++;
       }
-    }
+    });
     
     if (clearedCount > 0) {
       console.log(`已清除 ${clearedCount} 个匹配模式 '${pattern}' 的缓存项`);
@@ -81,18 +96,26 @@ class DatabaseCache {
   // 清理过期缓存
   private cleanupExpiredCache(): void {
     const now = Date.now();
-    for (const [key, item] of this.cacheStore.entries()) {
+    this.cacheStore.forEach((item, key) => {
+      // 优先使用自定义TTL
+      if (item.customTtl && now - item.timestamp > item.customTtl) {
+        this.cacheStore.delete(key);
+        return;
+      }
+      
       // 尝试从key中推断缓存类型和对应的TTL
       let ttl = 5 * 60 * 1000; // 默认5分钟
       if (key.includes('articles')) ttl = CACHE_TTL.articles;
       else if (key.includes('article_links')) ttl = CACHE_TTL.articleLinks;
       else if (key.includes('user_graphs')) ttl = CACHE_TTL.userGraphs;
       else if (key.includes('profiles')) ttl = CACHE_TTL.userProfiles;
+      else if (key.includes('search:')) ttl = CACHE_TTL.searchResults;
+      else if (key.includes('suggest:')) ttl = CACHE_TTL.searchSuggestions;
 
       if (now - item.timestamp > ttl) {
         this.cacheStore.delete(key);
       }
-    }
+    });
   }
 }
 

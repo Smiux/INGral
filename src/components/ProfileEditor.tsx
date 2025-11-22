@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Save } from 'lucide-react';
-import { UserProfile } from '@/types';
-import { updateUserProfile } from '@/utils/user';
+import { UserProfile } from '../types';
+import { updateUserProfile } from '../utils/user';
 
 interface ProfileEditorProps {
   isOpen: boolean;
