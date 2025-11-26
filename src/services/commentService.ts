@@ -5,10 +5,13 @@ class CommentService {
   // 获取文章的评论列表
   async getArticleComments(articleId: string): Promise<Comment[]> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data, error } = await supabase
         .from('comments')
         .select(`
-          *, 
+          *,
           user:user_id (
             id,
             email,
@@ -41,6 +44,9 @@ class CommentService {
   // 获取评论的回复
   private async getReplies(commentId: string): Promise<Comment[]> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data, error } = await supabase
         .from('comments')
         .select(`
@@ -67,20 +73,29 @@ class CommentService {
   // 创建评论
   async createComment(data: CreateCommentData): Promise<Comment> {
     try {
-      // 完全使用any类型绕过类型检查
-      const anySupabase: any = supabase;
-      const result = await anySupabase
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
+      // 获取当前用户
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        throw new Error('获取用户信息失败');
+      }
+      if (!user) {
+        throw new Error('用户未登录');
+      }
+      
+      const { data: newComment, error } = await supabase
         .from('comments')
         .insert({
           article_id: data.article_id,
           content: data.content,
           parent_id: data.parent_id || null,
-          user_id: anySupabase.auth.user()?.id
+          user_id: user.id
         })
         .select('*')
         .single();
-      
-      const { data: newComment, error } = result;
 
       if (error) throw error;
       return newComment;
@@ -93,6 +108,9 @@ class CommentService {
   // 更新评论
   async updateComment(commentId: string, data: UpdateCommentData): Promise<Comment> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data: updatedComment, error } = await supabase
         .from('comments')
         .update({
@@ -122,6 +140,9 @@ class CommentService {
   // 删除评论（软删除）
   async deleteComment(commentId: string): Promise<Comment> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data: deletedComment, error } = await supabase
         .from('comments')
         .update({
@@ -143,6 +164,9 @@ class CommentService {
   // 点赞/点踩评论
   async voteComment(commentId: string, voteType: 'up' | 'down'): Promise<Comment> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       // 这里可以添加更复杂的逻辑，比如记录用户的投票历史，防止重复投票
       // 目前只是简单地更新计数
       const updateField = voteType === 'up' ? 'upvotes' : 'downvotes';

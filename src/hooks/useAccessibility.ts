@@ -230,9 +230,11 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
 
 /**
  * 表单字段可访问性Hook
+ * 提供表单字段的可访问性支持，包括错误处理和必填字段标记
  * @param label 字段标签
  * @param error 错误消息
  * @param isRequired 是否必填
+ * @returns 表单字段的可访问性属性
  */
 export const useFormFieldAccessibility = (label: string, error?: string, isRequired: boolean = false) => {
   const [errorId] = useState(() => accessibilityUtils.generateAriaId('error'));
@@ -274,6 +276,8 @@ export const useFormFieldAccessibility = (label: string, error?: string, isRequi
 
 /**
  * 模态框可访问性Hook
+ * 提供模态框的可访问性支持，包括焦点管理和键盘导航
+ * @returns 模态框的可访问性属性和引用
  */
 export const useModalAccessibility = () => {
   const modalRef = useRef<HTMLElement>(null);
@@ -327,12 +331,19 @@ export const useModalAccessibility = () => {
 
 /**
  * 动态内容区域可访问性Hook
+ * 提供动态内容区域的可访问性支持，确保屏幕阅读器能够正确读取更新的内容
+ * @param initialText 初始文本内容
+ * @param mode 屏幕阅读器读取模式（polite：礼貌地读取，assertive：立即读取）
+ * @returns 动态内容区域的可访问性属性和更新方法
  */
 export const useLiveRegion = (initialText: string = '', mode: 'polite' | 'assertive' = 'polite') => {
   const [text, setText] = useState(initialText);
   const regionRef = useRef<HTMLElement>(null);
   
-  // 更新活动区域内容
+  /**
+   * 更新活动区域内容
+   * @param newText 新的文本内容
+   */
   const updateText = useCallback((newText: string) => {
     setText(newText);
     if (regionRef.current) {
@@ -343,7 +354,10 @@ export const useLiveRegion = (initialText: string = '', mode: 'polite' | 'assert
     }
   }, []);
   
-  // 获取活动区域的props
+  /**
+   * 获取活动区域的props
+   * @returns 活动区域的可访问性属性
+   */
   const getLiveRegionProps = useCallback(() => ({
     ref: regionRef,
     'aria-live': mode,

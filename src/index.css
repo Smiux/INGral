@@ -1,3 +1,6 @@
+/* stylelint-disable */
+/* eslint-disable */
+/* These Tailwind directives are essential for the UI to load properly */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

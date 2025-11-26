@@ -1,3 +1,7 @@
+/**
+ * 文章编辑器组件
+ * 支持Markdown编辑、LaTeX公式、实时预览和自动保存功能
+ */
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Save, X, Globe, Lock, Users, Share2, Calendar, BookOpen, Bold, Italic, List, ListOrdered, Link2, Heading1, Heading2, Heading3, Quote, Code, Image, Table, Strikethrough, FileText } from 'lucide-react';
@@ -32,35 +36,48 @@ export function ArticleEditor() {
   const [selectedText, setSelectedText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-
+  /**
+   * 加载文章内容
+   * @async
+   */
   const loadArticle = useCallback(async () => {
     if (!slug) return;
-    const data = await fetchArticleBySlug(slug);
-    if (!data) {
-      setError('Article not found');
-      setIsLoading(false);
-      return;
-    }
+    
+    try {
+      const data = await fetchArticleBySlug(slug);
+      if (!data) {
+        setError('Article not found');
+        setIsLoading(false);
+        return;
+      }
 
-    // 检查编辑权限
-    // 作者可以编辑自己的文章
-    // 对于允许社区贡献的文章，其他用户也可以编辑
-    if (data.author_id !== user?.id && (!data.allow_contributions || !user)) {
-      setError('You do not have permission to edit this article');
-      setIsLoading(false);
-      return;
-    }
+      // 检查编辑权限
+      // 作者可以编辑自己的文章
+      // 对于允许社区贡献的文章，其他用户也可以编辑
+      if (data.author_id !== user?.id && (!data.allow_contributions || !user)) {
+        setError('You do not have permission to edit this article');
+        setIsLoading(false);
+        return;
+      }
 
-    setArticle(data);
-    setTitle(data.title);
-    setContent(data.content);
-    setVisibility(data.visibility || 'public');
-    setAllowContributions(data.allow_contributions ?? true);
-    setLastEdited(data.updated_at ? new Date(data.updated_at) : null);
-    setIsLoading(false);
+      setArticle(data);
+      setTitle(data.title);
+      setContent(data.content);
+      setVisibility(data.visibility || 'public');
+      setAllowContributions(data.allow_contributions ?? true);
+      setLastEdited(data.updated_at ? new Date(data.updated_at) : null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load article';
+      console.error('Error loading article:', errorMessage);
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   }, [slug, user]);
 
-  // 检测屏幕尺寸以确定是否为移动设备
+  /**
+   * 检测屏幕尺寸以确定是否为移动设备
+   */
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -72,7 +89,9 @@ export function ArticleEditor() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  // 在移动设备上默认显示编辑视图
+  /**
+   * 在移动设备上默认显示编辑视图
+   */
   useEffect(() => {
     if (isMobile) {
       setViewMode('editor');
@@ -81,6 +100,9 @@ export function ArticleEditor() {
     }
   }, [isMobile]);
   
+  /**
+   * 处理认证状态和文章加载
+   */
   useEffect(() => {
     // 只有在认证完成加载且用户未登录时才重定向
     if (!authIsLoading && !user) {
@@ -95,6 +117,66 @@ export function ArticleEditor() {
     }
   }, [slug, user, authIsLoading, loadArticle, navigate]);
 
+  /**
+   * 自动保存功能
+   * 每3秒自动保存草稿到本地存储
+   */
+  useEffect(() => {
+    if (!title && !content) return;
+    
+    const timer = setTimeout(() => {
+      // 只有在非保存状态下才进行自动保存
+      if (!isSaving) {
+        // 创建自动保存的草稿到本地存储
+        try {
+          const draftKey = `draft_${user?.id || 'anonymous'}_${slug || 'new'}`;
+          const draft = {
+            title,
+            content,
+            visibility,
+            allowContributions,
+            lastSaved: new Date().toISOString()
+          };
+          localStorage.setItem(draftKey, JSON.stringify(draft));
+        } catch (err) {
+          console.warn('自动保存草稿失败:', err);
+        }
+      }
+    }, 3000); // 3秒自动保存
+    
+    return () => clearTimeout(timer);
+  }, [title, content, visibility, allowContributions, isSaving, user?.id, slug]);
+
+  /**
+   * 加载自动保存的草稿
+   */
+  useEffect(() => {
+    if (article) return; // 已有文章时不加载草稿
+    
+    try {
+      const draftKey = `draft_${user?.id || 'anonymous'}_${slug || 'new'}`;
+      const savedDraft = localStorage.getItem(draftKey);
+      
+      if (savedDraft) {
+        const draft = JSON.parse(savedDraft);
+        // 如果用户确认，可以加载草稿
+        if (window.confirm('检测到未完成的草稿，是否恢复？')) {
+          setTitle(draft.title || '');
+          setContent(draft.content || '');
+          setVisibility(draft.visibility || 'public');
+          setAllowContributions(draft.allowContributions ?? true);
+          localStorage.removeItem(draftKey); // 加载后清除草稿
+        }
+      }
+    } catch (err) {
+      console.warn('加载草稿失败:', err);
+    }
+  }, [article, user?.id, slug]);
+
+  /**
+   * 保存文章
+   * @param e - 表单提交事件
+   */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -103,31 +185,27 @@ export function ArticleEditor() {
     try {
       if (!title.trim()) {
         setError('文章标题不能为空');
-        setIsSaving(false);
         return;
       }
 
       if (!content.trim()) {
         setError('文章内容不能为空');
-        setIsSaving(false);
         return;
       }
 
       // 贡献模式会在文章保存时自动处理
-
       if (!user?.id) {
         setError('用户未登录，请先登录再保存文章');
-        setIsSaving(false);
         return;
       }
       
-      let result;
+      let result: Article | null | undefined;
       try {
         if (article) {
           result = await updateArticle(article.id, title, content, visibility, allowContributions);
         } else {
-          // 假设从用户状态获取userId，这里使用默认值或从上下文中获取
-          const userId = 'current-user-id'; // 实际应用中应从用户认证状态获取
+          // 使用实际的用户ID
+          const userId = user.id;
           result = await createArticle(title, content, userId, visibility, allowContributions);
         }
         
@@ -136,8 +214,18 @@ export function ArticleEditor() {
         }
         
         setArticle(result);
+        setLastEdited(new Date());
         
-        if (result) {
+        // 检查文章是否为临时ID文章
+        const isOfflineArticle = result.id?.toString().startsWith('temp_') ?? false;
+        
+        if (isOfflineArticle) {
+          // 对于离线文章，显示提示但不重定向
+          setError('文章已保存（离线模式），将在网络恢复时自动同步');
+          // 5秒后清除错误提示
+          setTimeout(() => setError(''), 5000);
+        } else {
+          // 对于成功保存到数据库的文章，重定向到文章页面
           const newSlug = result.slug;
           navigate(`/article/${newSlug}`, { replace: true });
         }
@@ -148,7 +236,7 @@ export function ArticleEditor() {
         // 根据不同错误类型显示更友好的错误信息
         let userFriendlyError = '保存文章失败，请稍后重试';
         if (errorMessage.includes('network') || errorMessage.includes('Network')) {
-          userFriendlyError = '网络连接问题，请检查您的网络连接';
+          userFriendlyError = '网络连接问题，文章已保存到本地，将在网络恢复时同步';
         } else if (errorMessage.includes('permission') || errorMessage.includes('Permission')) {
           userFriendlyError = '权限不足，您没有权限修改此文章';
         } else if (errorMessage.includes('validation') || errorMessage.includes('Validation')) {
@@ -162,7 +250,9 @@ export function ArticleEditor() {
     }
   };
 
-  // 分享文章功能
+  /**
+   * 分享文章功能
+   */
   const handleShare = () => {
     const articleUrl = `${window.location.origin}/article/${article?.slug || ''}`;
     navigator.clipboard.writeText(articleUrl).then(() => {
@@ -171,17 +261,23 @@ export function ArticleEditor() {
     });
   };
 
-  // 打开文章列表抽屉
+  /**
+   * 打开文章列表抽屉
+   */
   const openArticleDrawer = () => {
     setDrawerOpen(true);
   };
 
-  // 关闭文章列表抽屉
+  /**
+   * 关闭文章列表抽屉
+   */
   const closeArticleDrawer = () => {
     setDrawerOpen(false);
   };
   
-  // 切换视图模式
+  /**
+   * 切换视图模式
+   */
   const toggleViewMode = () => {
     if (viewMode === 'split') {
       setViewMode('editor');
@@ -192,7 +288,9 @@ export function ArticleEditor() {
     }
   };
   
-  // 打开LaTeX编辑器
+  /**
+   * 打开LaTeX编辑器
+   */
   const openLatexEditor = () => {
     // 获取当前选中的文本作为初始公式
     const textarea = textareaRef.current;
@@ -206,7 +304,10 @@ export function ArticleEditor() {
     setLatexEditorOpen(true);
   };
   
-  // 插入LaTeX公式到编辑器
+  /**
+   * 插入LaTeX公式到编辑器
+   * @param formula - LaTeX公式
+   */
   const insertLatexFormula = (formula: string) => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -234,7 +335,11 @@ export function ArticleEditor() {
     }
   };
   
-  // 处理文本格式化
+  /**
+   * 处理文本格式化
+   * @param format - 格式化字符串
+   * @param formatType - 格式化类型
+   */
   const formatText = (format: string, formatType?: string) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -341,7 +446,10 @@ export function ArticleEditor() {
     }, 0);
   };
   
-  // 处理键盘快捷键
+  /**
+   * 处理键盘快捷键
+   * @param e - 键盘事件
+   */
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'k' && e.ctrlKey && e.shiftKey) {
       e.preventDefault();

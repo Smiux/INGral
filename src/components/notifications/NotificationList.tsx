@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCircle, MessageCircle, RefreshCcw, UserPlus, Trash2 } from 'lucide-react';
 import { NotificationWithActor } from '../../types/notification';
@@ -18,7 +18,7 @@ const NotificationList: React.FC<NotificationListProps> = ({ userId }) => {
   const navigate = useNavigate();
 
   // 获取通知列表
-  const fetchNotifications = async (loadMore: boolean = false) => {
+  const fetchNotifications = useCallback(async (loadMore: boolean = false) => {
     try {
       if (loadMore) {
         setIsLoading(true);
@@ -48,17 +48,17 @@ const NotificationList: React.FC<NotificationListProps> = ({ userId }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId, offset]);
 
   // 加载更多
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (!isLoading && hasMore) {
       fetchNotifications(true);
     }
-  };
+  }, [isLoading, hasMore, fetchNotifications]);
 
   // 标记为已读
-  const handleMarkAsRead = async (notificationId: string) => {
+  const handleMarkAsRead = useCallback(async (notificationId: string) => {
     try {
       const success = await notificationService.markAsRead(notificationId, userId);
       if (success) {
@@ -69,10 +69,10 @@ const NotificationList: React.FC<NotificationListProps> = ({ userId }) => {
     } catch (err) {
       console.error('标记通知已读失败:', err);
     }
-  };
+  }, [userId]);
 
   // 标记全部已读
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = useCallback(async () => {
     try {
       const success = await notificationService.markAllAsRead(userId);
       if (success) {
@@ -81,10 +81,10 @@ const NotificationList: React.FC<NotificationListProps> = ({ userId }) => {
     } catch (err) {
       console.error('标记全部已读失败:', err);
     }
-  };
+  }, [userId]);
 
   // 删除通知
-  const handleDelete = async (notificationId: string) => {
+  const handleDelete = useCallback(async (notificationId: string) => {
     try {
       const success = await notificationService.deleteNotification(notificationId, userId);
       if (success) {
@@ -93,10 +93,10 @@ const NotificationList: React.FC<NotificationListProps> = ({ userId }) => {
     } catch (err) {
       console.error('删除通知失败:', err);
     }
-  };
+  }, [userId]);
 
   // 点击通知
-  const handleNotificationClick = (notification: NotificationWithActor) => {
+  const handleNotificationClick = useCallback((notification: NotificationWithActor) => {
     // 标记为已读
     if (!notification.is_read) {
       handleMarkAsRead(notification.id);
@@ -122,10 +122,10 @@ const NotificationList: React.FC<NotificationListProps> = ({ userId }) => {
       default:
         break;
     }
-  };
+  }, [navigate, handleMarkAsRead]);
 
   // 获取通知图标
-  const getNotificationIcon = (type: string, isRead: boolean) => {
+  const getNotificationIcon = useCallback((type: string, isRead: boolean) => {
     const iconProps = {
       className: `${styles.notificationIcon} ${!isRead ? styles.unreadIcon : ''}`
     };
@@ -142,11 +142,11 @@ const NotificationList: React.FC<NotificationListProps> = ({ userId }) => {
       default:
         return <Bell {...iconProps} />;
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
-  }, [userId]);
+  }, [fetchNotifications, userId]);
 
   return (
     <div className={styles.container}>
@@ -238,4 +238,5 @@ const NotificationList: React.FC<NotificationListProps> = ({ userId }) => {
   );
 };
 
-export default NotificationList;
+// 使用命名导出而不是默认导出，以符合ESLint的react-refresh/only-export-components规则
+export { NotificationList };

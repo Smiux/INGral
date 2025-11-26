@@ -1,17 +1,25 @@
 {
+  "$schema": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/package.json",
   "name": "vite-react-typescript-starter",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-sitemap.js",
-    "lint": "eslint .",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 100",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json",
-    "check-env": "node scripts/dev-env-check.js",
-    "generate-sitemap": "node scripts/generate-sitemap.js",
-    "commit": "cz"
+    "typecheck": "tsc --noEmit",
+    "db:list": "node scripts/db-debug-tool.js list-tables",
+    "db:describe": "node scripts/db-debug-tool.js describe",
+    "db:view": "node scripts/db-debug-tool.js view-data",
+    "db:migrations": "node scripts/db-debug-tool.js list-migrations",
+    "db:migrate": "node scripts/db-debug-tool.js run-migrations",
+    "db:functions": "node scripts/db-debug-tool.js functions",
+    "db:triggers": "node scripts/db-debug-tool.js triggers",
+    "db:indexes": "node scripts/db-debug-tool.js indexes",
+    "db:all": "node scripts/db-debug-tool.js all",
+    "db:help": "node scripts/db-debug-tool.js help"
   },
   "config": {
     "commitizen": {
@@ -20,13 +28,17 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
+    "@types/react-dropzone": "^4.2.2",
     "d3": "^7.9.0",
     "date-fns": "^4.1.0",
     "katex": "^0.16.25",
     "lucide-react": "^0.344.0",
     "markdown-it": "^14.1.0",
+    "mathquill": "^0.10.1-a",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-dropzone": "^14.3.8",
+    "react-easy-crop": "^5.5.5",
     "react-router-dom": "^7.9.6"
   },
   "devDependencies": {

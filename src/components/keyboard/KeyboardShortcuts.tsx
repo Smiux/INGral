@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { keyboardNavigationManager, KeyCode, ShortcutRegistration } from '../../utils/keyboardNavigation';
 import { screenReaderAnnouncer } from '../../utils/accessibility';
-import { X, HelpCircle, ChevronsDown, ChevronsUp } from 'lucide-react';
+import { X, ChevronsDown, ChevronsUp } from 'lucide-react';
 
 // 快捷键信息模态框组件
 export const KeyboardShortcuts: React.FC = () => {
@@ -102,183 +102,93 @@ export const KeyboardShortcuts: React.FC = () => {
 
   const groupedShortcuts = getGroupedShortcuts();
 
-  // 如果模态框未打开，渲染一个帮助按钮
-  if (!isOpen) {
-    return (
-      <button
-        onClick={() => {
-          setIsOpen(true);
-          screenReaderAnnouncer.announce('键盘快捷键帮助已打开。使用Tab键导航，Escape键关闭。', false);
-        }}
-        aria-label="查看键盘快捷键"
-        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-      >
-        <HelpCircle size={20} />
-      </button>
-    );
-  }
-
+  // 渲染键盘快捷键帮助按钮和模态框
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setIsOpen(false)}>
-      <div 
-        ref={modalRef}
-        className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col" 
-        onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="keyboard-shortcuts-title"
-      >
-        {/* 模态框标题 */}
-        <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-          <h2 id="keyboard-shortcuts-title" className="text-xl font-semibold">键盘快捷键</h2>
-          <button 
-            onClick={() => {
-              setIsOpen(false);
-              screenReaderAnnouncer.announce('键盘快捷键帮助已关闭。', false);
-            }}
-            aria-label="关闭"
-            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+    <>
+      {!isOpen && (
+        // 左下角的帮助按钮
+        <button
+          onClick={() => {
+            setIsOpen(true);
+            screenReaderAnnouncer.announce('键盘快捷键帮助已打开。使用Tab键导航，Escape键关闭。', false);
+          }}
+          aria-label="打开键盘快捷键帮助"
+          className="fixed bottom-4 left-4 z-40 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+        >
+          <span className="text-lg font-bold">?</span>
+        </button>
+      )}
+      
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setIsOpen(false)}>
+          <div 
+            ref={modalRef}
+            className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-3xl m-4 max-h-[80vh] overflow-hidden flex flex-col" 
+            onClick={e => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="keyboard-shortcuts-title"
           >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* 快捷键列表 */}
-        <div className="overflow-y-auto p-4 flex-grow">
-          {Object.entries(groupedShortcuts).map(([group, shortcuts]) => (
-            <div key={group} className="mb-6">
+            {/* 模态框标题 */}
+            <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+              <h2 id="keyboard-shortcuts-title" className="text-xl font-semibold">键盘快捷键</h2>
               <button 
-                onClick={() => toggleGroup(group)}
-                className="flex items-center justify-between w-full text-left mb-2 font-medium"
+                onClick={() => {
+                  setIsOpen(false);
+                  screenReaderAnnouncer.announce('键盘快捷键帮助已关闭。', false);
+                }}
+                aria-label="关闭"
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
               >
-                <span className="capitalize">{group}</span>
-                {expandedGroups[group] ? 
-                  <ChevronsUp size={16} /> : 
-                  <ChevronsDown size={16} />
-                }
+                <X size={20} />
               </button>
-              
-              {(expandedGroups[group] ?? true) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-2">
-                  {shortcuts.map((shortcut, index) => (
-                    <div key={index} className="flex justify-between items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded">
-                      <span className="text-sm">{shortcut.description}</span>
-                      {renderKeyBinding(shortcut)}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          ))}
-        </div>
 
-        {/* 提示信息 */}
-        <div className="p-3 bg-gray-50 dark:bg-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
-          按 Alt+K 键快速打开/关闭此帮助窗口
+            {/* 快捷键列表 */}
+            <div className="overflow-y-auto p-4 flex-grow">
+              {/* 使用说明部分 */}
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">使用说明</h3>
+                <p className="text-blue-700 dark:text-blue-200">按下以下键盘组合可快速访问功能。点击模态框外部或再次按下 Alt+K 键可关闭。</p>
+              </div>
+              
+              {Object.entries(groupedShortcuts).map(([group, shortcuts]) => (
+                <div key={group} className="mb-6">
+                  <button 
+                    onClick={() => toggleGroup(group)}
+                    className="flex items-center justify-between w-full text-left mb-2 font-medium"
+                  >
+                    <span className="capitalize">{group}</span>
+                    {expandedGroups[group] ? 
+                      <ChevronsUp size={16} /> : 
+                      <ChevronsDown size={16} />
+                    }
+                  </button>
+                  
+                  {(expandedGroups[group] ?? true) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-2">
+                      {shortcuts.map((shortcut, index) => (
+                        <div key={index} className="flex justify-between items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded">
+                          <span className="text-sm">{shortcut.description}</span>
+                          {renderKeyBinding(shortcut)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* 提示信息 */}
+            <div className="p-3 bg-gray-50 dark:bg-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
+              按 Alt+K 键快速打开/关闭此帮助窗口
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };
 
-// 注册应用全局快捷键的Hook
-export const useGlobalKeyboardShortcuts = () => {
-  useEffect(() => {
-    // 注册常用的导航快捷键
-    const registerGlobalShortcuts = () => {
-      // 页面导航快捷键
-      keyboardNavigationManager.registerShortcut(
-        'navigate-home',
-        { key: KeyCode.H, altKey: true },
-        () => window.location.href = '/',
-        '导航到首页',
-        '页面导航'
-      );
-
-      keyboardNavigationManager.registerShortcut(
-        'navigate-articles',
-        { key: KeyCode.A, altKey: true },
-        () => window.location.href = '/articles',
-        '导航到文章列表',
-        '页面导航'
-      );
-
-      keyboardNavigationManager.registerShortcut(
-        'navigate-search',
-        { key: KeyCode.F, altKey: true },
-        () => {
-          window.location.href = '/search';
-          // 尝试聚焦搜索输入框
-          setTimeout(() => {
-            const searchInput = document.querySelector('input[role="searchbox"]');
-            if (searchInput) {
-              (searchInput as HTMLInputElement).focus();
-            }
-          }, 100);
-        },
-        '导航到搜索页面',
-        '页面导航'
-      );
-
-      keyboardNavigationManager.registerShortcut(
-        'navigate-dashboard',
-        { key: KeyCode.D, altKey: true },
-        () => window.location.href = '/dashboard',
-        '导航到仪表板',
-        '页面导航'
-      );
-
-      // 内容创建快捷键
-      keyboardNavigationManager.registerShortcut(
-        'create-article',
-        { key: KeyCode.N, altKey: true },
-        () => window.location.href = '/create',
-        '创建新文章',
-        '内容操作'
-      );
-
-      // 焦点管理快捷键
-      keyboardNavigationManager.registerShortcut(
-        'focus-main-content',
-        { key: KeyCode.SPACE, altKey: true },
-        () => {
-          const mainContent = document.querySelector('main');
-          if (mainContent) {
-            const firstFocusable = mainContent.querySelector(
-              'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])' 
-            );
-            if (firstFocusable) {
-              (firstFocusable as HTMLElement).focus();
-            } else {
-              // 如果没有可聚焦元素，将main元素设为可聚焦并聚焦
-              if (mainContent.getAttribute('tabindex') === null) {
-                mainContent.setAttribute('tabindex', '-1');
-              }
-              (mainContent as HTMLElement).focus();
-            }
-          }
-        },
-        '聚焦到主内容区域',
-        '焦点管理'
-      );
-    };
-
-    // 注册快捷键
-    registerGlobalShortcuts();
-
-    // 添加全局键盘事件监听器
-    window.addEventListener('keydown', keyboardNavigationManager.handleKeyboardEvent);
-
-    // 清理
-    return () => {
-      // 移除所有注册的快捷键
-      ['navigate-home', 'navigate-articles', 'navigate-search', 'navigate-dashboard', 
-       'create-article', 'focus-main-content'].forEach(id => {
-        keyboardNavigationManager.unregisterShortcut(id);
-      });
-
-      // 移除事件监听器
-      window.removeEventListener('keydown', keyboardNavigationManager.handleKeyboardEvent);
-    };
-  }, []);
-};
+// useGlobalKeyboardShortcuts hook 已移至 keyboardUtils.ts 文件中
+// 请从 './keyboardUtils' 导入使用

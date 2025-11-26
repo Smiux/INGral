@@ -30,53 +30,53 @@ class VersionHistoryService {
     }
 
     try {
-      // 计算偏移量
-      const offset = (page - 1) * limit;
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       
-      // 查询总数
-      const { count, error: countError } = await supabase
-        .from('article_versions')
-        .select('*', { count: 'exact' })
-        .eq('article_id', articleId);
+      // 使用自定义函数获取版本历史，包含总数和作者信息
+      const { data: versionData, error: versionError } = await supabase
+        .rpc('get_article_versions', {
+          p_article_id: articleId,
+          page_number: page,
+          page_size: limit
+        });
+      
+      if (versionError) {
+        throw new Error(`获取版本历史失败: ${versionError.message}`);
+      }
+      
+      // 获取总数
+      const { data: countData, error: countError } = await supabase
+        .rpc('count_article_versions', {
+          p_article_id: articleId
+        });
       
       if (countError) {
         throw new Error(`获取版本总数失败: ${countError.message}`);
       }
       
-      // 查询版本列表，包含作者信息
-      const { data, error } = await supabase
-        .from('article_versions')
-        .select(`
-          id,
-          article_id,
-          title,
-          content,
-          excerpt,
-          tags,
-          author_id,
-          created_at,
-          version_number,
-          change_summary,
-          is_published,
-          author:author_id (
-            id,
-            name,
-            email,
-            avatar_url
-          )
-        `)
-        .eq('article_id', articleId)
-        .order('version_number', { ascending: order === 'asc' })
-        .range(offset, offset + limit - 1);
-      
-      if (error) {
-        throw new Error(`获取版本历史失败: ${error.message}`);
-      }
-      
-      const total = count || 0;
-      const versions: ArticleVersion[] = (data || []).map(item => ({
-        ...item,
-        author: item.author || undefined
+      const total = countData || 0;
+      const versions: ArticleVersion[] = (versionData || []).map((item: ArticleVersion) => ({
+        id: item.id,
+        article_id: item.article_id,
+        title: item.title,
+        content: item.content,
+        excerpt: item.excerpt,
+        tags: item.tags,
+        author_id: item.author_id,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        version_number: item.version_number,
+        change_summary: item.change_summary,
+        is_published: item.is_published,
+        metadata: item.metadata,
+        parent_version_id: item.parent_version_id,
+        author: {
+          id: item.author_id,
+          name: item.author_name,
+          avatar_url: item.author_avatar
+        }
       }));
       
       const result: VersionHistoryResult = {
@@ -112,6 +112,9 @@ class VersionHistoryService {
     }
 
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data, error } = await supabase
         .from('article_versions')
         .select(`
@@ -166,16 +169,26 @@ class VersionHistoryService {
    */
   async compareVersions(oldVersionId: string, newVersionId: string): Promise<VersionDiff> {
     try {
-      // 获取两个版本
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
+      // 使用数据库函数比较版本差异
+      const { error: diffError } = await supabase
+        .rpc('compare_article_versions', {
+          version1_id_param: oldVersionId,
+          version2_id_param: newVersionId
+        });
+      
+      if (diffError) {
+        throw new Error(`比较版本差异失败: ${diffError.message}`);
+      }
+      
+      // 获取两个版本的详细信息
       const [oldVersion, newVersion] = await Promise.all([
         this.getVersionById(oldVersionId),
         this.getVersionById(newVersionId)
       ]);
-      
-      // 检查是否为同一文章的版本
-      if (oldVersion.article_id !== newVersion.article_id) {
-        throw new Error('不能比较不同文章的版本');
-      }
       
       const diff: VersionDiff = {
         title: {
@@ -197,10 +210,6 @@ class VersionHistoryService {
         versionB: oldVersion
       };
       
-      // 标签比较已移除，因为新版接口不再包含标签差异
-      
-      // 内容差异将在前端使用diff库计算
-      
       return diff;
     } catch (error) {
       console.error('比较版本差异失败:', error);
@@ -214,82 +223,32 @@ class VersionHistoryService {
    * @returns 更新后的文章
    */
   async restoreVersion(options: RestoreVersionOptions): Promise<{ success: boolean; message?: string }> {
-    const { versionId, articleId, createNewVersion = true, restoreComment = '还原版本' } = options;
+    const { versionId, articleId, restoreComment = '还原版本' } = options;
     
     try {
-      // 获取要还原的版本
-      const version = await this.getVersionById(versionId);
-      
-      // 验证版本属于该文章
-      if (version.article_id !== articleId) {
-        throw new Error('版本不属于该文章');
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
       }
       
-      // 开启事务
-      await supabase.rpc('begin');
+      // 使用数据库函数还原版本，自动处理事务和版本创建
+      const { data, error } = await supabase
+        .rpc('restore_article_version', {
+          version_id_param: versionId,
+          user_id_param: 'auth.uid()',
+          restore_comment_param: restoreComment
+        });
       
-      try {
-        // 更新文章
-        const { data, error } = await supabase
-          .from('articles')
-          .update({
-            title: version.title,
-            content: version.content,
-            excerpt: version.excerpt,
-            tags: version.tags,
-            is_published: version.is_published
-          })
-          .eq('id', articleId)
-          .select()
-          .single();
-        
-        if (error) {
-          throw new Error(`更新文章失败: ${error.message}`);
-        }
-        
-        // 如果需要创建新版本记录
-        if (createNewVersion) {
-          // 获取当前最大版本号
-          const { data: maxVersionData } = await supabase
-            .from('article_versions')
-            .select('version_number')
-            .eq('article_id', articleId)
-            .order('version_number', { ascending: false })
-            .limit(1)
-            .single();
-          
-          const newVersionNumber = (maxVersionData?.version_number || 0) + 1;
-          
-          // 创建新的版本记录
-          await supabase
-            .from('article_versions')
-            .insert({
-              article_id: articleId,
-              title: version.title,
-              content: version.content,
-              excerpt: version.excerpt,
-              tags: version.tags,
-              version_number: newVersionNumber,
-              change_summary: `${restoreComment} (从版本 ${version.version_number} 还原)`,
-              is_published: version.is_published
-            });
-        }
-        
-        // 提交事务
-        await supabase.rpc('commit');
-        
-        // 清除相关缓存
-        this.clearArticleCache(articleId);
-        
-        return data;
-      } catch (err) {
-        // 回滚事务
-        await supabase.rpc('rollback');
-        throw err;
+      if (error) {
+        throw new Error(`还原版本失败: ${error.message}`);
       }
+      
+      // 清除相关缓存
+      this.clearArticleCache(articleId);
+      
+      return { success: data.success, message: data.message };
     } catch (error) {
       console.error('还原版本失败:', error);
-      throw error;
+      return { success: false, message: error instanceof Error ? error.message : '还原版本失败' };
     }
   }
 
@@ -305,6 +264,86 @@ class VersionHistoryService {
   }
 
   /**
+   * 创建分支版本
+   * @param versionId 基础版本ID
+   * @param branchName 分支名称
+   * @returns 新创建的分支版本
+   */
+  async createBranchVersion(versionId: string, branchName: string): Promise<{ success: boolean; message?: string; branchVersionId?: string }> {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
+      // 使用数据库函数创建分支版本
+      const { data, error } = await supabase
+        .rpc('create_branch_version', {
+          version_id_param: versionId,
+          author_id_param: 'auth.uid()',
+          branch_name_param: branchName
+        });
+      
+      if (error) {
+        throw new Error(`创建分支版本失败: ${error.message}`);
+      }
+      
+      // 清除相关缓存
+      // 获取版本所属文章ID以清除缓存
+      const version = await this.getVersionById(versionId);
+      this.clearArticleCache(version.article_id);
+      
+      return { 
+        success: data.success, 
+        message: data.message,
+        branchVersionId: data.branch_version_id 
+      };
+    } catch (error) {
+      console.error('创建分支版本失败:', error);
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : '创建分支版本失败' 
+      };
+    }
+  }
+
+  /**
+   * 获取版本的标签列表
+   * @param versionId 版本ID
+   * @returns 标签列表
+   */
+  async getVersionTags(versionId: string): Promise<{ id: string; name: string }[]> {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
+      // 查询版本标签
+      const { data, error } = await supabase
+        .from('article_version_tags')
+        .select(`
+          tag_id,
+          tag:tag_id (
+            id,
+            name
+          )
+        `)
+        .eq('article_version_id', versionId);
+      
+      if (error) {
+        throw new Error(`获取版本标签失败: ${error.message}`);
+      }
+      
+      return (data || []).map((item: { tag_id: string; tag: { id: string; name: string }[] }) => ({
+        id: item.tag_id,
+        name: Array.isArray(item.tag) && item.tag.length > 0 && item.tag[0] ? item.tag[0].name : ''
+      }));
+    } catch (error) {
+      console.error('获取版本标签失败:', error);
+      return [];
+    }
+  }
+
+  /**
    * 创建自定义版本记录
    * @param articleId 文章ID
    * @param changeSummary 变更摘要
@@ -312,6 +351,9 @@ class VersionHistoryService {
    */
   async createCustomVersion(articleId: string, changeSummary: string): Promise<ArticleVersion> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       // 获取当前文章
       const { data: articleData, error: articleError } = await supabase
         .from('articles')
@@ -328,6 +370,9 @@ class VersionHistoryService {
       }
       
       // 获取当前最大版本号
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data: maxVersionData } = await supabase
         .from('article_versions')
         .select('version_number')
@@ -339,6 +384,9 @@ class VersionHistoryService {
       const newVersionNumber = (maxVersionData?.version_number || 0) + 1;
       
       // 创建新版本记录
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data, error } = await supabase
         .from('article_versions')
         .insert({
@@ -349,7 +397,8 @@ class VersionHistoryService {
           tags: articleData.tags,
           version_number: newVersionNumber,
           change_summary: changeSummary,
-          is_published: articleData.is_published
+          is_published: articleData.published,
+          author_id: articleData.author_id
         })
         .select()
         .single();

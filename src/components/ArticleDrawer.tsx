@@ -233,7 +233,7 @@ export function ArticleDrawer({ isOpen, onClose }: ArticleDrawerProps) {
                         {userArticle.title}
                       </h3>
                       <div className="flex items-center mt-1 text-xs text-gray-500">
-                        <span>{new Date(userArticle.updated_at).toLocaleDateString()}</span>
+                        <span>{userArticle.updated_at ? new Date(userArticle.updated_at).toLocaleDateString() : 'N/A'}</span>
                         <span className="mx-2">•</span>
                         <span>{userArticle.view_count || 0} views</span>
                       </div>

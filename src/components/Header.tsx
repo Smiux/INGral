@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Menu, X, BookOpen, LogOut, LogIn, Users, Share2, Brain, Plus, User, Database } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import NotificationBell from './notifications/NotificationBell';
-import { KeyboardShortcuts } from './keyboard/KeyboardShortcuts';
+// KeyboardShortcuts组件不存在，已移除
+// import { KeyboardShortcuts } from './keyboard/KeyboardShortcuts';
 
 export function Header() {
   const navigate = useNavigate();
@@ -85,11 +85,8 @@ export function Header() {
                 
                 {/* 通知、快捷键帮助和用户菜单 */}
                 <div className="flex items-center gap-2">
-                  <NotificationBell 
-                    userId={user.id} 
-                    className="flex items-center justify-center p-2 rounded-full text-white hover:bg-white/10 transition-colors"
-                  />
-                  <KeyboardShortcuts />
+                  {/* 暂时移除NotificationBell组件以排查UI加载问题 */}
+                  {/* <KeyboardShortcuts /> 组件不存在，已移除 */}
                   <div className="relative">
                     <button 
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -137,7 +134,7 @@ export function Header() {
               </>
             ) : (
               <div className="flex items-center gap-2">
-                <KeyboardShortcuts />
+                {/* <KeyboardShortcuts /> 组件不存在，已移除 */}
                 <Link
                   to="/auth"
                   className="bg-white text-indigo-600 hover:bg-white/90 px-4 py-1.5 rounded-lg transition font-medium flex items-center gap-1"

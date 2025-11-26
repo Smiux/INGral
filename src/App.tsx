@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Loader } from './components/Loader';
-import { useGlobalKeyboardShortcuts } from './components/keyboard/KeyboardShortcuts';
+import { useGlobalKeyboardShortcuts } from './components/keyboard/keyboardUtils';
 import './styles/accessibility.css';
 import { screenReaderAnnouncer } from './utils/accessibility';
 
@@ -13,6 +13,7 @@ const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ default:
 const ArticleViewer = lazy(() => import('./components/ArticleViewer').then(m => ({ default: m.ArticleViewer })));
 const ArticleEditor = lazy(() => import('./components/ArticleEditor').then(m => ({ default: m.ArticleEditor })));
 const GraphVisualization = lazy(() => import('./components/lazy/LazyGraphVisualization').then(m => ({ default: m.LazyGraphVisualization })));
+const GraphListPage = lazy(() => import('./pages/GraphListPage').then(m => ({ default: m.GraphListPage })));
 const AuthPage = lazy(() => import('./pages/AuthPage').then(m => ({ default: m.AuthPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const DatabasePage = lazy(() => import('./pages/DatabasePage').then(m => ({ default: m.DatabasePage })));
@@ -63,7 +64,9 @@ function App() {
               <Route path="/article/:slug" element={<ArticleViewer />} />
               <Route path="/create" element={<ArticleEditor />} />
               <Route path="/edit/:slug" element={<ArticleEditor />} />
-              <Route path="/graph" element={<GraphVisualization />} />
+              <Route path="/graph" element={<GraphListPage />} />
+              <Route path="/graph/create" element={<GraphVisualization />} />
+              <Route path="/graph/:graphId" element={<GraphVisualization />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/profile/:userId" element={<ProfilePage />} />
               <Route path="/profile" element={<ProfilePage />} />

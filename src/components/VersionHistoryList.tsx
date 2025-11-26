@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowUpDown, Calendar, User, MoreHorizontal, RefreshCw } from 'lucide-react';
 import { VersionHistoryResult } from '../types/version';
 import versionHistoryService from '../services/versionHistoryService';
@@ -53,10 +53,34 @@ const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
     }
   };
 
+  // 将loadVersions函数使用useCallback包装以稳定依赖
+  const memoizedLoadVersions = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // 获取当前的page和limit值，避免循环依赖
+      const currentVersionHistory = versionHistory;
+      const result = await versionHistoryService.getArticleVersions({
+        articleId,
+        page: currentVersionHistory.page,
+        limit: currentVersionHistory.limit,
+        order: sortOrder
+      });
+      
+      setVersionHistory(result);
+    } catch (err) {
+      setError('加载版本历史失败');
+      console.error('加载版本历史失败:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [articleId, sortOrder]);
+
   // 初始加载
   useEffect(() => {
-    loadVersions();
-  }, [articleId, versionHistory.page, versionHistory.limit, sortOrder, loadVersions]);
+    memoizedLoadVersions();
+  }, [memoizedLoadVersions]);
 
   // 处理排序切换
   const handleSortToggle = () => {

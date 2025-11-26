@@ -102,7 +102,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             {comment.user?.name || '匿名用户'}
           </h4>
           <p className={styles.time}>
-            {new Date(comment.created_at).toLocaleString()}
+            {comment.created_at ? new Date(comment.created_at).toLocaleString() : 'N/A'}
           </p>
         </div>
       </div>

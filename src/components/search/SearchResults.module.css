@@ -39,6 +39,97 @@
 .resultCount {
   color: #6b7280;
   font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.resultCountDetail {
+  margin-left: 12px;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+/* 筛选选项 */
+.filterOptions {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filterLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.filterButtons {
+  display: flex;
+  gap: 8px;
+  background-color: #f3f4f6;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.filterButton {
+  padding: 8px 16px;
+  background-color: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterButton:hover {
+  color: #374151;
+}
+
+.filterButtonActive {
+  background-color: white;
+  color: #3b82f6;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* 结果区分 */
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 32px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sectionTitle:first-of-type {
+  margin-top: 0;
+}
+
+/* 评论结果样式 */
+.commentResultItem {
+  border-left: 4px solid #34d399;
+}
+
+.commentUser {
+  font-weight: 500;
+  color: #10b981;
+}
+
+.commentArticleLink {
+  color: #3b82f6;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.commentArticleLink:hover {
+  text-decoration: underline;
 }
 
 /* 加载状态 */

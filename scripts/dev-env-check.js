@@ -11,12 +11,18 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// 获取当前文件的目录路径（ES模块兼容方式）
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log('===== 开发环境检查 =====\n');
 
 // 检查结果对象
 const results = {
   dbConnection: { status: 'pending', message: '' },
+  auth: { status: 'pending', message: '' },
   typeCheck: { status: 'pending', message: '' },
   lintCheck: { status: 'pending', message: '' },
   overall: { status: 'pending', message: '' }
@@ -83,10 +89,10 @@ async function checkDatabaseConnection() {
         results.dbConnection.status = 'success';
         results.dbConnection.message = '数据库驱动已安装';
         printResult('success', '数据库连接: 数据库驱动已安装');
-      } catch (error) {
-        results.dbConnection.status = 'error';
-        results.dbConnection.message = '未安装PostgreSQL驱动，请运行: npm install pg';
-        printResult('error', `数据库连接: ${results.dbConnection.message}`);
+      } catch {
+          results.dbConnection.status = 'error';
+          results.dbConnection.message = '未安装PostgreSQL驱动，请运行: npm install pg';
+          printResult('error', `数据库连接: ${results.dbConnection.message}`);
       }
     } else {
       results.dbConnection.status = 'warning';
@@ -101,6 +107,55 @@ async function checkDatabaseConnection() {
 }
 
 /**
+ * 检查Supabase认证服务连接
+ */
+async function checkAuthService() {
+  console.log('\n检查认证服务...');
+  
+  try {
+    // 检查是否能导入并使用Supabase客户端
+    const dbCheckScript = path.join(__dirname, '..', 'src', 'lib', 'supabase.ts');
+    if (fs.existsSync(dbCheckScript)) {
+      try {
+        // 尝试动态导入Supabase客户端
+        const { createClient } = await import('@supabase/supabase-js');
+        const envFile = path.join(__dirname, '..', '.env');
+        const envContent = fs.readFileSync(envFile, 'utf8');
+        
+        // 提取环境变量
+        const supabaseUrl = envContent.match(/SUPABASE_URL=(.+)/)?.[1]?.trim();
+        const supabaseKey = envContent.match(/SUPABASE_ANON_KEY=(.+)/)?.[1]?.trim();
+        
+        if (!supabaseUrl || !supabaseKey) {
+          results.auth.status = 'error';
+          results.auth.message = '缺少SUPABASE_URL或SUPABASE_ANON_KEY环境变量';
+          printResult('error', `认证服务: ${results.auth.message}`);
+          return;
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        await supabase.auth.getSession();
+        results.auth.status = 'success';
+        results.auth.message = '认证服务可访问';
+        printResult('success', '认证服务: 认证服务可访问');
+      } catch {
+        results.auth.status = 'error';
+        results.auth.message = '认证服务不可访问，请检查SUPABASE_URL和SUPABASE_ANON_KEY';
+        printResult('error', `认证服务: ${results.auth.message}`);
+      }
+    } else {
+      results.auth.status = 'warning';
+      results.auth.message = '未找到Supabase连接模块，跳过认证服务测试';
+      printResult('warning', `认证服务: ${results.auth.message}`);
+    }
+  } catch {
+    results.auth.status = 'error';
+    results.auth.message = '认证服务检查失败';
+    printResult('error', `认证服务: ${results.auth.message}`);
+  }
+}
+
+/**
  * 执行TypeScript类型检查
  */
 function runTypeCheck() {
@@ -111,7 +166,7 @@ function runTypeCheck() {
     results.typeCheck.status = 'success';
     results.typeCheck.message = 'TypeScript类型检查通过';
     printResult('success', '类型检查: 通过');
-  } catch (error) {
+  } catch {
     results.typeCheck.status = 'error';
     results.typeCheck.message = 'TypeScript类型检查失败，请修复错误';
     printResult('error', `类型检查: 失败 - 请查看上面的错误信息`);
@@ -129,7 +184,7 @@ function runLintCheck() {
     results.lintCheck.status = 'success';
     results.lintCheck.message = 'ESLint代码质量检查通过';
     printResult('success', '代码质量: 通过');
-  } catch (error) {
+  } catch {
     results.lintCheck.status = 'error';
     results.lintCheck.message = 'ESLint代码质量检查失败，请修复错误';
     printResult('error', `代码质量: 失败 - 请查看上面的错误信息`);
@@ -140,10 +195,10 @@ function runLintCheck() {
  * 计算总体结果
  */
 function calculateOverallResult() {
-  const errors = [results.dbConnection, results.typeCheck, results.lintCheck]
+  const errors = [results.dbConnection, results.auth, results.typeCheck, results.lintCheck]
     .filter(result => result.status === 'error').length;
   
-  const warnings = [results.dbConnection, results.typeCheck, results.lintCheck]
+  const warnings = [results.dbConnection, results.auth, results.typeCheck, results.lintCheck]
     .filter(result => result.status === 'warning').length;
   
   if (errors > 0) {
@@ -170,6 +225,7 @@ function calculateOverallResult() {
 async function main() {
   try {
     await checkDatabaseConnection();
+    await checkAuthService();
     runTypeCheck();
     runLintCheck();
     const exitCode = calculateOverallResult();

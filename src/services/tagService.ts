@@ -13,30 +13,27 @@ export class TagService {
     sortOrder?: 'asc' | 'desc';
   }): Promise<Tag[]> {
     try {
-      // 显式类型断言以解决supabase查询构建器的类型问题
-      let query = supabase.from('tags').select('*') as any;
-
-      // 应用排序
-      if (options?.sortBy) {
-        query = query.order(options.sortBy, { ascending: options.sortOrder === 'asc' });
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
       }
-
-      // 应用分页
-      if (options?.limit) {
-        query = query.limit(options.limit);
-      }
-      if (options?.offset) {
-        query = query.offset(options.offset);
-      }
-
-      const { data, error } = await query as { data: Tag[], error: any };
+      // 使用更简单直接的方式处理查询，避免类型断言
+      let query = supabase.from('tags').select('*')
+        .order(options?.sortBy || 'created_at', { ascending: options?.sortOrder === 'asc' })
+        .limit(options?.limit || 1000);
       
-      if (error) {
-        console.error('获取标签列表失败:', error);
+      // 使用正确的方式处理offset
+      if (options?.offset && options.offset > 0) {
+        query = query.range(options.offset, options.offset + (options?.limit || 1000) - 1);
+      }
+      
+      const result = await query;
+
+      if (result.error) {
+        console.error('获取标签列表失败:', result.error);
         throw new Error('获取标签列表失败');
       }
 
-      return data;
+      return result.data || [];
     } catch (error) {
       console.error('获取标签列表错误:', error);
       throw error;
@@ -48,6 +45,12 @@ export class TagService {
    */
   static async getTagById(tagId: string): Promise<Tag | null> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data, error } = await supabase
         .from('tags')
         .select('*')
@@ -74,6 +77,9 @@ export class TagService {
    */
   static async getTagBySlug(slug: string): Promise<Tag | null> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data, error } = await supabase
         .from('tags')
         .select('*')
@@ -104,6 +110,9 @@ export class TagService {
     color?: string;
   }): Promise<Tag> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       // 生成slug（简单实现，实际项目中可能需要更复杂的slug生成逻辑）
       const slug = tagData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
       
@@ -140,6 +149,9 @@ export class TagService {
     color?: string;
   }): Promise<Tag> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data, error } = await supabase
         .from('tags')
         .update(tagData)
@@ -164,6 +176,9 @@ export class TagService {
    */
   static async deleteTag(tagId: string): Promise<boolean> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { error } = await supabase
         .from('tags')
         .delete()
@@ -186,8 +201,11 @@ export class TagService {
    */
   static async getArticleTags(articleId: string): Promise<Tag[]> {
     try {
-      // 使用any类型断言解决supabase查询的类型问题
-      const result = await (supabase as any)
+      // 使用正确的类型定义方式
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      const result = await supabase
         .from('article_tags')
         .select('tag:tag_id(*)')
         .eq('article_id', articleId);
@@ -197,8 +215,8 @@ export class TagService {
         throw new Error('获取文章标签失败');
       }
 
-      // 添加类型断言以解决映射操作中的类型问题
-      return (result.data as any)?.map((item: any) => item.tag) || [];
+      // 使用两步类型转换：先转换为unknown，再转换为目标类型
+      return result.data?.map(item => item.tag as unknown as Tag) || [];
     } catch (error) {
       console.error('获取文章标签错误:', error);
       throw error;
@@ -210,6 +228,9 @@ export class TagService {
    */
   static async addTagToArticle(articleId: string, tagId: string): Promise<ArticleTag> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data, error } = await supabase
         .from('article_tags')
         .insert({
@@ -236,6 +257,9 @@ export class TagService {
    */
   static async removeTagFromArticle(articleId: string, tagId: string): Promise<boolean> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { error } = await supabase
         .from('article_tags')
         .delete()
@@ -262,8 +286,12 @@ export class TagService {
     offset?: number;
   }): Promise<Article[]> {
     try {
-      // 使用any类型断言解决查询构建器的类型问题
-      let query: any = (supabase as any)
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
+      // 使用适当的类型定义
+      let query = supabase
         .from('article_tags')
         .select('article:article_id(*)')
         .eq('tag_id', tagId);
@@ -272,20 +300,20 @@ export class TagService {
       if (options?.limit) {
         query = query.limit(options.limit);
       }
-      if (options?.offset) {
-        query = query.offset(options.offset);
+      if (options?.offset && options.offset > 0) {
+        // 使用range替代offset，确保options.limit有默认值
+        query = query.range(options.offset, options.offset + (options.limit || 100) - 1);
       }
 
-      // 使用any类型断言解决查询结果的类型问题
-      const result = await query as any;
+      const result = await query;
 
       if (result.error) {
         console.error('根据标签获取文章失败:', result.error);
         throw new Error('根据标签获取文章失败');
       }
 
-      // 添加类型断言以解决映射操作中的类型问题
-      return (result.data as any)?.map((item: any) => item.article) || [];
+      // 使用两步类型转换：先转换为unknown，再转换为目标类型
+      return result.data?.map(item => item.article as unknown as Article) || [];
     } catch (error) {
       console.error('根据标签获取文章错误:', error);
       throw error;
@@ -297,6 +325,10 @@ export class TagService {
    */
   static async searchTags(query: string): Promise<Tag[]> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
       const { data, error } = await supabase
         .from('tags')
         .select('*')
@@ -320,6 +352,10 @@ export class TagService {
    */
   static async getPopularTags(limit: number = 10): Promise<Tag[]> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
       const { data, error } = await supabase
         .from('tags')
         .select('*')

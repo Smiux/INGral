@@ -34,12 +34,12 @@ export function DataTable<T>({
     
     if (typeof column.accessor === 'string' && column.accessor.includes('.')) {
       // 处理嵌套属性访问，如 'user.name'
-      return column.accessor.split('.').reduce((obj, key) => {
-        return obj && typeof obj === 'object' ? (obj as any)[key] : null;
-      }, row);
+      return column.accessor.split('.').reduce((obj: unknown, key: string) => {
+        return obj && typeof obj === 'object' ? (obj as Record<string, unknown>)[key] : null;
+      }, row as unknown);
     }
     
-    return (row as Record<string | number | symbol, unknown>)[column.accessor];
+    return row[column.accessor as keyof typeof row];
   };
 
   // 渲染表格内容

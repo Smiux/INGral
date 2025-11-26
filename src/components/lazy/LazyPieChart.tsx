@@ -9,10 +9,18 @@ interface PieChartData {
   color?: string;
 }
 
+// 定义更具体的PieChartOptions接口
+interface PieChartOptions {
+  colors?: string[];
+  responsive?: boolean;
+  maintainAspectRatio?: boolean;
+  [key: string]: unknown;
+}
+
 interface PieChartProps {
   data: PieChartData[];
   height?: number;
-  options?: Record<string, any>;
+  options?: PieChartOptions;
   className?: string;
   showLabels?: boolean;
   showPercentages?: boolean;

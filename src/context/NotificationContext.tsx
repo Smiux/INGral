@@ -1,34 +1,38 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+/**
+ * 通知上下文
+ * 提供应用内通知的管理和状态
+ */
+import React, { createContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import notificationService from '../services/notificationService';
 import { useAuth } from '../hooks/useAuth';
+import { type NotificationContextType } from './notificationUtils';
 
-interface NotificationContextType {
-  unreadCount: number;
-  refreshUnreadCount: () => Promise<void>;
-  markAsRead: (notificationId: string) => Promise<boolean>;
-  markAllAsRead: () => Promise<boolean>;
-}
+/**
+ * 通知上下文对象
+ */
+export const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
-
-export const useNotification = () => {
-  const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotification must be used within a NotificationProvider');
-  }
-  return context;
-};
-
+/**
+ * 通知提供者属性接口
+ */
 interface NotificationProviderProps {
+  /** 子组件 */
   children: ReactNode;
 }
 
+/**
+ * 通知提供者组件
+ * 管理应用内通知的状态和操作
+ * @param props - 组件属性
+ */
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // 获取未读通知数量
-  const refreshUnreadCount = async () => {
+  /**
+   * 刷新未读通知数量
+   */
+  const refreshUnreadCount = useCallback(async () => {
     if (!user) {
       setUnreadCount(0);
       return;
@@ -40,10 +44,14 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     } catch (error) {
       console.error('获取未读通知数量失败:', error);
     }
-  };
+  }, [user]);
 
-  // 标记通知为已读
-  const markAsRead = async (notificationId: string): Promise<boolean> => {
+  /**
+   * 标记单个通知为已读
+   * @param notificationId - 通知ID
+   * @returns 是否成功标记
+   */
+  const markAsRead = useCallback(async (notificationId: string): Promise<boolean> => {
     if (!user) return false;
 
     try {
@@ -56,10 +64,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       console.error('标记通知已读失败:', error);
       return false;
     }
-  };
+  }, [user, unreadCount]);
 
-  // 标记所有通知为已读
-  const markAllAsRead = async (): Promise<boolean> => {
+  /**
+   * 标记所有通知为已读
+   * @returns 是否成功标记
+   */
+  const markAllAsRead = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
 
     try {
@@ -72,14 +83,18 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       console.error('标记所有通知已读失败:', error);
       return false;
     }
-  };
-
-  // 当用户变化时，刷新未读通知数量
-  useEffect(() => {
-    refreshUnreadCount();
   }, [user]);
 
-  // 定期刷新未读通知数量
+  /**
+   * 当用户变化时，刷新未读通知数量
+   */
+  useEffect(() => {
+    refreshUnreadCount();
+  }, [user, refreshUnreadCount]);
+
+  /**
+   * 定期刷新未读通知数量（每分钟一次）
+   */
   useEffect(() => {
     if (!user) return;
 
@@ -88,7 +103,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     }, 60000); // 每分钟刷新一次
 
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, refreshUnreadCount]);
 
   return (
     <NotificationContext.Provider

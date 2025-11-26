@@ -15,7 +15,7 @@ interface PieChartData {
 interface PieChartProps {
   data: PieChartData[];
   height?: number;
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
   className?: string;
   showLabels?: boolean;
   showPercentages?: boolean;
@@ -89,14 +89,6 @@ const PieChartComponent: React.FC<PieChartProps> = ({
   );
 };
 
-// 导出命名和默认版本
+// 只导出组件，避免react-refresh警告
 export const PieChart = PieChartComponent;
 export default PieChartComponent;
-
-// 导出默认的mock数据供开发和测试使用
-export const pieChartMockData: PieDataItem[] = [
-  { name: '直接访问', value: 45, percentage: 45 },
-  { name: '搜索引擎', value: 30, percentage: 30 },
-  { name: '社交媒体', value: 15, percentage: 15 },
-  { name: '外部链接', value: 10, percentage: 10 }
-];

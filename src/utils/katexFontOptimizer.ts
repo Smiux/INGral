@@ -5,49 +5,58 @@
  * 这个函数会创建预加载链接，帮助浏览器提前缓存字体文件
  */
 export function preloadKaTeXFONTS() {
-  // KaTeX字体URL列表
-  const katexFontUrls = [
-    // 主字体文件
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Main-Regular.woff2',
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Main-Bold.woff2',
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Main-Italic.woff2',
-    // 数学符号字体
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Math-Italic.woff2',
-    // 加粗字体
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Bold.woff2',
-    // 脚本字体
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Script-Regular.woff2',
-    // 无衬线字体
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_SansSerif-Regular.woff2',
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_SansSerif-Bold.woff2',
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_SansSerif-Italic.woff2',
-    // 打字机字体
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Typewriter-Regular.woff2',
-    // 大小调整字体
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Size1-Regular.woff2',
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Size2-Regular.woff2',
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Size3-Regular.woff2',
-    'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Size4-Regular.woff2'
-  ];
+  try {
+    // KaTeX字体URL列表
+    const katexFontUrls = [
+      // 主字体文件
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Main-Regular.woff2',
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Main-Bold.woff2',
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Main-Italic.woff2',
+      // 数学符号字体
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Math-Italic.woff2',
+      // 加粗字体 - 注意：KaTeX_Bold.woff2可能不存在于所有版本中
+      // 脚本字体
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Script-Regular.woff2',
+      // 无衬线字体
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_SansSerif-Regular.woff2',
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_SansSerif-Bold.woff2',
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_SansSerif-Italic.woff2',
+      // 打字机字体
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Typewriter-Regular.woff2'
+    ];
 
-  // 检查浏览器支持
-  if (typeof document !== 'undefined' && 'fonts' in document) {
-    // 创建预加载链接
-    katexFontUrls.forEach(url => {
-      // 避免重复添加
-      if (!document.querySelector(`link[href="${url}"][rel="preload"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'font';
-        link.href = url;
-        link.type = 'font/woff2';
-        link.crossOrigin = 'anonymous';
-        document.head.appendChild(link);
-      }
-    });
+    // 检查浏览器支持
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      // 创建预加载链接 - 使用try-catch确保单个字体加载失败不影响整体
+      katexFontUrls.forEach(url => {
+        try {
+          // 避免重复添加
+          if (!document.querySelector(`link[href="${url}"][rel="preload"]`)) {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'font';
+            link.href = url;
+            link.type = 'font/woff2';
+            link.crossOrigin = 'anonymous';
+            
+            // 添加错误处理
+            link.onerror = () => {
+              console.warn(`字体预加载失败: ${url}`);
+              // 移除失败的链接
+              if (link.parentNode) {
+                link.parentNode.removeChild(link);
+              }
+            };
+            
+            document.head.appendChild(link);
+          }
+        } catch (error) {
+          console.warn(`添加字体预加载链接失败: ${url}`, error);
+        }
+      });
 
-    // 使用Font Loading API预加载关键字体
-    const criticalFonts = [
+        // 使用Font Loading API预加载关键字体
+        const criticalFonts = [
       'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Main-Regular.woff2',
       'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Math-Italic.woff2'
     ];
@@ -62,8 +71,11 @@ export function preloadKaTeXFONTS() {
         console.warn('KaTeX字体预加载失败:', error);
       });
     });
+      }
+    } catch (error) {
+      console.warn('KaTeX字体预加载过程中出错，但不会阻止UI渲染:', error);
+    }
   }
-}
 
 /**
  * 延迟加载KaTeX模块，避免阻塞初始渲染

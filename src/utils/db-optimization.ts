@@ -198,6 +198,11 @@ class QueryOptimizer {
     }
 
     try {
+      // 一次性检查supabase初始化
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
       // 分批处理数据
       for (let i = 0; i < data.length; i += BATCH_SIZE) {
         const batch = data.slice(i, i + BATCH_SIZE);
@@ -237,6 +242,9 @@ class QueryOptimizer {
             continue;
           }
           
+          if (!supabase) {
+            throw new Error('Supabase client is not initialized');
+          }
           const { error } = await supabase
             .from(table)
             .update(item)
@@ -264,23 +272,20 @@ class QueryOptimizer {
     if (!articleIds || articleIds.length === 0) return;
 
     try {
-      // 预加载文章链接
-      await supabase
-        .from('article_links')
-        .select('*')
-        .in('article_id', articleIds);
-
-      // 预加载文章标签
-      await supabase
-        .from('article_tags')
-        .select('*')
-        .in('article_id', articleIds);
-
-      // 预加载相关图表
-      await supabase
-        .from('user_graphs')
-        .select('*')
-        .in('article_id', articleIds);
+      // 一次性检查supabase初始化
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
+      // 并行预加载以提高性能
+      await Promise.all([
+        // 预加载文章链接
+        supabase.from('article_links').select('*').in('article_id', articleIds),
+        // 预加载文章标签
+        supabase.from('article_tags').select('*').in('article_id', articleIds),
+        // 预加载相关图表
+        supabase.from('user_graphs').select('*').in('article_id', articleIds)
+      ]);
     } catch (error) {
       console.error('Preloading related data failed:', error);
     }
@@ -306,23 +311,30 @@ class QueryOptimizer {
     error: string | null 
   }> {
     try {
-      // 获取总数
-      const { count: totalCount, error: countError } = await supabase
-        .from(table)
-        .select('id', { count: 'exact', head: true });
+      // 一次性检查supabase初始化
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
+      // 并行执行查询以提高性能
+      const [countResult, lastUpdatedResult] = await Promise.all([
+        // 获取总数
+        supabase.from(table).select('id', { count: 'exact', head: true }),
+        // 获取最后更新时间
+        supabase
+          .from(table)
+          .select('updated_at')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .single() // 使用single()获取单个结果
+      ]);
 
+      const { count: totalCount, error: countError } = countResult;
       if (countError) {
         throw new Error(countError.message);
       }
 
-      // 获取最后更新时间
-      const { data: lastUpdatedData, error: lastUpdatedError } = await supabase
-        .from(table)
-        .select('updated_at')
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .single(); // 使用single()获取单个结果
-
+      const { data: lastUpdatedData, error: lastUpdatedError } = lastUpdatedResult;
       let lastUpdated: string | null = null;
       if (!lastUpdatedError && lastUpdatedData && 'updated_at' in lastUpdatedData) {
         lastUpdated = lastUpdatedData.updated_at as string;
@@ -379,25 +391,65 @@ class QueryOptimizer {
     throw lastError || new Error('查询执行失败');
   }
 
+  // 当前事务ID
+  private currentTransactionId: string | null = null;
+  
   // 添加事务提交方法
   async commitTransaction(transactionId: string): Promise<void> {
-    // 在实际的数据库实现中，这里会提交事务
-    console.log(`事务 ${transactionId} 已提交`);
-    // 这里可以添加缓存清理等逻辑
+    if (!this.currentTransactionId || this.currentTransactionId !== transactionId) {
+      console.warn('尝试提交不存在或已结束的事务:', transactionId);
+      return;
+    }
+    
+    try {
+      // 在Supabase中，事务需要通过存储过程或客户端库特殊支持
+      // 这里我们模拟事务提交，实际项目中可能需要使用Supabase的事务API
+      console.log(`事务 ${transactionId} 已提交`);
+      // 重置当前事务ID
+      this.currentTransactionId = null;
+    } catch (error) {
+      console.error(`提交事务 ${transactionId} 失败:`, error);
+      throw error;
+    }
   }
 
   // 开始事务
   async startTransaction(): Promise<string> {
-    // 在实际的数据库实现中，这里会开始一个事务
-    const transactionId = `tx_${Date.now()}`;
-    console.log(`事务 ${transactionId} 已开始`);
-    return transactionId;
+    // 如果已有活跃事务，返回错误
+    if (this.currentTransactionId) {
+      throw new Error('已有活跃事务正在进行，请先提交或回滚当前事务');
+    }
+    
+    try {
+      // 在Supabase中，事务需要通过存储过程或客户端库特殊支持
+      // 这里我们模拟事务开始，实际项目中可能需要使用Supabase的事务API
+      const transactionId = `tx_${Date.now()}`;
+      this.currentTransactionId = transactionId;
+      console.log(`事务 ${transactionId} 已开始`);
+      return transactionId;
+    } catch (error) {
+      console.error('开始事务失败:', error);
+      throw error;
+    }
   }
 
   // 回滚事务
   async rollbackTransaction(): Promise<void> {
-    // 在实际的数据库实现中，这里会回滚事务
-    console.log('事务已回滚');
+    if (!this.currentTransactionId) {
+      console.warn('没有活跃的事务需要回滚');
+      return;
+    }
+    
+    try {
+      // 在Supabase中，事务需要通过存储过程或客户端库特殊支持
+      // 这里我们模拟事务回滚，实际项目中可能需要使用Supabase的事务API
+      console.log(`事务 ${this.currentTransactionId} 已回滚`);
+      // 重置当前事务ID
+      this.currentTransactionId = null;
+    } catch (error) {
+      console.error(`回滚事务失败:`, error);
+      throw error;
+    }
   }
 
   // 记录查询性能
@@ -432,9 +484,12 @@ class ConnectionManager {
     return ConnectionManager.instance;
   }
 
-  // 获取数据库客户端
+  // 获取数据库客户端 - 确保返回包含当前认证会话的客户端
   async getClient(): Promise<SupabaseClient> {
-    // 直接返回真实的supabase客户端
+    // 确保返回非null的supabase客户端
+    if (!supabase) {
+      throw new Error('Supabase client is not initialized');
+    }
     return supabase;
   }
 

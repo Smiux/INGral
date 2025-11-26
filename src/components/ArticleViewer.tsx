@@ -1,3 +1,7 @@
+/**
+ * 文章查看器组件
+ * 负责显示文章内容、相关文章、评论，并提供导出和编辑功能
+ */
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Edit2, ArrowLeft, Calendar, User, ExternalLink } from 'lucide-react';
@@ -17,27 +21,41 @@ export function ArticleViewer() {
   const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
+  const [relatedArticlesLoading, setRelatedArticlesLoading] = useState(false);
   // 引用抽屉状态
   const [drawerOpen, setDrawerOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // 第一个useEffect - 加载文章
+  /**
+   * 加载文章内容
+   * @async
+   */
   useEffect(() => {
     const loadArticle = async () => {
       if (!slug) return;
-      const data = await fetchArticleBySlug(slug);
-      setArticle(data);
-      setIsLoading(false);
+      
+      try {
+        const data = await fetchArticleBySlug(slug);
+        setArticle(data);
+      } catch (error) {
+        console.error('Failed to load article:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadArticle();
   }, [slug]);
 
-  // 第二个useEffect - 加载相关文章
+  /**
+   * 加载相关文章
+   * @async
+   */
   useEffect(() => {
     if (!article) return;
 
     const loadRelated = async () => {
+      setRelatedArticlesLoading(true);
       try {
         // 添加supabase空检查
         if (!supabase) {
@@ -45,32 +63,36 @@ export function ArticleViewer() {
           return;
         }
         
-        const { data, error } = await supabase
+        // 使用更安全的参数绑定方式查询相关文章链接
+        const { data: links, error: linksError } = await supabase
           .from('article_links')
           .select('target_id, source_id')
-          .or('source_id.eq.'+article.id+', target_id.eq.'+article.id)
+          .or(`source_id.eq.${article.id},target_id.eq.${article.id}`)
           .limit(5);
 
-        if (error) {
-          console.error('Error fetching related articles:', error);
+        if (linksError) {
+          console.error('Error fetching related articles:', linksError);
           return;
         }
 
-        if (data && data.length > 0) {
-          const relatedIds = data.map((link: { source_id: string; target_id: string }) =>
+        if (links && links.length > 0) {
+          const relatedIds = links.map(link => 
             link.source_id === article.id ? link.target_id : link.source_id
           );
 
-          // 再次检查supabase是否可用
-          if (!supabase) {
-            console.warn('Supabase client is not available');
+          // 去重并移除当前文章ID
+          const uniqueRelatedIds = [...new Set(relatedIds)].filter(id => id !== article.id);
+          
+          if (uniqueRelatedIds.length === 0) {
+            setRelatedArticles([]);
             return;
           }
-          
+
+          // 查询相关文章详情
           const { data: articles, error: articlesError } = await supabase
             .from('articles')
             .select('*')
-            .in('id', relatedIds);
+            .in('id', uniqueRelatedIds);
 
           if (articlesError) {
             console.error('Error fetching related article details:', articlesError);
@@ -81,13 +103,17 @@ export function ArticleViewer() {
         }
       } catch (err) {
         console.error('Exception in loadRelated:', err);
+      } finally {
+        setRelatedArticlesLoading(false);
       }
     };
 
     loadRelated();
   }, [article]);
 
-  // 第三个useEffect - 处理点击事件监听
+  /**
+   * 处理Wiki链接点击事件，打开文章抽屉
+   */
   useEffect(() => {
     const handleWikiLinkClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -147,11 +173,11 @@ export function ArticleViewer() {
   }
 
   const isAuthor = user?.id === article.author_id;
-  const formattedDate = new Date(article.updated_at).toLocaleDateString('en-US', {
+  const formattedDate = article.updated_at ? new Date(article.updated_at).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  });
+  }) : 'N/A';
 
   return (
     <article className="max-w-4xl mx-auto px-4 py-8">
@@ -204,9 +230,11 @@ export function ArticleViewer() {
       {/* 评论部分 */}
       <CommentList articleId={article.id} />
 
-      {relatedArticles.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h2>
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h2>
+        {relatedArticlesLoading ? (
+          <div className="text-center py-8 text-gray-500">Loading related articles...</div>
+        ) : relatedArticles.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {relatedArticles.map((related) => (
               <div
@@ -240,8 +268,10 @@ export function ArticleViewer() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500">No related articles</p>
+        )}
+      </div>
 
       {/* 文章引用抽屉 */}
       <ArticleDrawer 

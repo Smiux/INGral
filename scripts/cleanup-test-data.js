@@ -16,7 +16,7 @@ async function cleanupAndVerify() {
   try {
     // 1. 测试连接状态
     console.log('\n1. 验证数据库连接状态...');
-    const { data, error } = await supabase.from('articles').select('id').limit(1).maybeSingle();
+    const { error } = await supabase.from('articles').select('id').limit(1).maybeSingle();
     
     if (error) {
       console.log('⚠️  数据库连接状态：使用模拟模式');

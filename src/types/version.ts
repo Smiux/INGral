@@ -24,6 +24,8 @@ export interface ArticleVersion {
   author_id?: string;
   /** 创建时间 */
   created_at: string;
+  /** 更新时间 */
+  updated_at?: string;
   /** 版本号 */
   version_number: number;
   /** 变更摘要 */
@@ -32,6 +34,12 @@ export interface ArticleVersion {
   is_published: boolean;
   /** 元数据 */
   metadata?: Record<string, unknown>;
+  /** 父版本ID */
+  parent_version_id?: string;
+  /** 作者名称 */
+  author_name?: string;
+  /** 作者头像 */
+  author_avatar?: string;
 }
 
 /**

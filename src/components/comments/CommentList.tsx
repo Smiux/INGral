@@ -15,10 +15,6 @@ const CommentList: React.FC<CommentListProps> = ({ articleId }) => {
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    loadComments();
-  }, [articleId, refreshKey]);
-
   const loadComments = async () => {
     setLoading(true);
     setError(null);
@@ -32,6 +28,10 @@ const CommentList: React.FC<CommentListProps> = ({ articleId }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadComments();
+  }, [articleId, refreshKey]);
 
   const handleCommentCreated = () => {
     setRefreshKey(prev => prev + 1);

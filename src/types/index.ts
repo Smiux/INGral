@@ -110,3 +110,13 @@ export interface Graph {
   created_at: string;
   updated_at: string;
 }
+
+// 离线文章接口，扩展自Article并添加离线相关字段
+export interface OfflineArticle extends Article {
+  is_offline: boolean;
+  synced: boolean;
+  last_modified: string;
+}
+
+// 从comment.ts导出Comment类型
+export type { Comment, CreateCommentData, UpdateCommentData, DeleteCommentData } from './comment';

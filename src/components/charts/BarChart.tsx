@@ -8,7 +8,7 @@ import styles from './BarChart.module.css';
 interface BarChartProps {
   data: ChartData;
   height?: number;
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
   className?: string;
   horizontal?: boolean;
 }
@@ -40,18 +40,6 @@ const BarChartComponent: React.FC<BarChartProps> = ({
   );
 };
 
-// 导出命名和默认版本
+// 只导出组件，避免react-refresh警告
 export const BarChart = BarChartComponent;
 export default BarChartComponent;
-
-// 导出默认的mock数据供开发和测试使用
-export const barChartMockData: ChartData = {
-  labels: ['文章', '评论', '标签', '收藏', '点赞'],
-  datasets: [
-    {
-      label: '数量',
-      data: [150, 450, 80, 230, 520],
-      backgroundColor: 'rgba(79, 70, 229, 0.5)'
-    }
-  ]
-};

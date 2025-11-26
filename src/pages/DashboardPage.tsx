@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { analyticsService } from '../services/analyticsService';
 import { StatCard, ChartData, PopularContent, TrafficSource, UserEngagement, ContentStats } from '../types/analytics';
@@ -11,9 +11,13 @@ import { StatCard as StatCardComponent } from '../components/StatCard';
 import { DataTable } from '../components/DataTable';
 import { DateRangePicker } from '../components/DateRangePicker';
 import { Select } from '../components/Select';
-const styles = require('./DashboardPage.module.css');
+import styles from './DashboardPage.module.css';
 import { subDays } from 'date-fns';
 
+/**
+ * 仪表盘页面组件
+ * 展示系统使用情况和内容统计数据
+ */
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -36,8 +40,11 @@ export const DashboardPage: React.FC = () => {
   // 定时器引用，用于自动刷新
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 加载数据
-  const loadDashboardData = async () => {
+  /**
+   * 加载仪表盘数据
+   * 并行请求所有统计数据，包括卡片、图表、热门文章等
+   */
+  const loadDashboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -68,13 +75,12 @@ export const DashboardPage: React.FC = () => {
       setTrafficSources(sources);
       setUserEngagement(engagement);
       setContentStats(stats);
-    } catch (err) {
-      console.error('Failed to load dashboard data:', err);
+    } catch {
       setError('加载仪表板数据失败，请稍后再试。');
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedMetric, timePeriod, dateRange]);
 
   // 初始加载和依赖变化时重新加载
   useEffect(() => {
@@ -91,34 +97,52 @@ export const DashboardPage: React.FC = () => {
         clearInterval(refreshTimerRef.current);
       }
     };
-  }, [dateRange, timePeriod, selectedMetric]);
+  }, [loadDashboardData]);
 
-  // 手动刷新数据
+  /**
+   * 手动刷新数据
+   */
   const handleRefresh = () => {
     loadDashboardData();
   };
 
-  // 处理日期范围变化
+  /**
+   * 处理日期范围变化
+   * @param range - 新的日期范围
+   */
   const handleDateRangeChange = (range: { start: Date; end: Date }) => {
     setDateRange(range);
   };
 
-  // 处理时间周期变化
+  /**
+   * 处理时间周期变化
+   * @param period - 新的时间周期（日/周/月）
+   */
   const handlePeriodChange = (period: 'day' | 'week' | 'month') => {
     setTimePeriod(period);
   };
 
-  // 处理指标选择变化
+  /**
+   * 处理指标选择变化
+   * @param metric - 新的统计指标
+   */
   const handleMetricChange = (metric: string) => {
     setSelectedMetric(metric);
   };
 
-  // 查看文章详情
+  /**
+   * 查看文章详情
+   * @param articleId - 文章ID
+   */
   const handleViewArticle = (articleId: string) => {
     navigate(`/article/${articleId}`);
   };
 
-  // 格式化数字
+  /**
+   * 格式化数字为易读形式
+   * @param num - 要格式化的数字
+   * @returns 格式化后的字符串（如 1.2K, 3.4M）
+   */
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'M';
@@ -274,17 +298,17 @@ export const DashboardPage: React.FC = () => {
             <span className={styles.periodBadge}>最近7天</span>
           </div>
           <div className={styles.tableContainer}>
-            <DataTable
+            <DataTable<PopularContent>
               columns={[
                 {
                   header: '标题',
                   accessor: 'title',
-                  render: (value: any) => (
+                  render: (_value, row) => (
                     <button
                       className={styles.articleLink}
-                      onClick={() => handleViewArticle(value.id)}
+                      onClick={() => handleViewArticle(row.id)}
                     >
-                      {value.title}
+                      {row.title}
                     </button>
                   )
                 },
@@ -296,17 +320,15 @@ export const DashboardPage: React.FC = () => {
                   header: '浏览量',
                   accessor: 'view_count',
                   align: 'right',
-                  render: (value: any) => typeof value === 'number' ? formatNumber(value) : String(value)
+                  render: (value) => formatNumber(value as number)
                 },
                 {
                   header: '更新时间',
                   accessor: 'last_updated',
-                  render: (value: any) => {
-                    if (typeof value === 'string') {
-                      const d = new Date(value);
-                      return d.toLocaleDateString('zh-CN');
-                    }
-                    return String(value);
+                  render: (value) => {
+                    if (!value) return '';
+                    const date = new Date(value as string);
+                    return date.toLocaleDateString('zh-CN');
                   }
                 }
               ]}

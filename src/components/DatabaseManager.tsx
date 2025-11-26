@@ -33,10 +33,16 @@ const DatabaseManager: React.FC = () => {
     try {
       setLoading(true);
       // 对于Supabase，可以通过information_schema查询表信息
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data, error } = await supabase.rpc('list_tables');
       
       if (error) {
         // 如果rpc函数不可用，使用替代方法
+        if (!supabase) {
+          throw new Error('Supabase client is not initialized');
+        }
         const { data: articles } = await supabase.from('articles').select('*').limit(1);
         const { data: articleLinks } = await supabase.from('article_links').select('*').limit(1);
         const { data: userGraphs } = await supabase.from('user_graphs').select('*').limit(1);
@@ -69,6 +75,9 @@ const DatabaseManager: React.FC = () => {
       setPage(1);
 
       // 获取表数据
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data, error } = await supabase
         .from(tableName)
         .select('*')

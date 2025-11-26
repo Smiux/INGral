@@ -1,8 +1,13 @@
+/**
+ * 用户个人资料页面
+ * 展示用户的个人信息、文章、贡献和知识图谱
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, Users, Eye, Edit3, ChevronLeft, Grid, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { fetchUserProfile, fetchUserArticles, fetchUserContributions } from '../utils/user';
+import { getUserGraphs } from '../utils/article';
 import { UserProfile, Article } from '../types';
 import { ProfileEditor } from '../components/ProfileEditor';
 
@@ -18,7 +23,10 @@ export function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'created' | 'contributed' | 'graphs'>('created');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
 
-
+  /**
+   * 加载用户资料数据
+   * 包括用户基本信息、文章、贡献和知识图谱
+   */
   const loadProfileData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -30,19 +38,29 @@ export function ProfilePage() {
       setUserArticles(articlesData);
       setContributions(contributionsData);
       
-      // 模拟获取用户知识图表数据（实际项目中应该调用API）
-      setUserGraphs([
-        { id: '1', name: '个人知识库', nodes: 45, edges: 67, created_at: '2023-11-10' },
-        { id: '2', name: '项目规划图', nodes: 23, edges: 34, created_at: '2023-11-15' },
-        { id: '3', name: '学习路线图', nodes: 67, edges: 98, created_at: '2023-12-01' },
-      ]);
-    } catch (error) {
-      console.error('Error loading profile data:', error);
+      // 使用真实API获取用户知识图表数据
+      const graphsData = await getUserGraphs(userId!);
+      // 转换为ProfilePage需要的格式
+      const formattedGraphs = graphsData.map(graph => ({
+        id: graph.id || '',
+        name: graph.name || '未命名图表',
+        nodes: graph.nodes ? graph.nodes.length : 0,
+        edges: graph.links ? graph.links.length : 0,
+        created_at: graph.created_at || ''
+      }));
+      setUserGraphs(formattedGraphs);
+    } catch {
+      // 出错时使用空数组，避免UI崩溃
+      setUserGraphs([]);
     } finally {
       setIsLoading(false);
     }
   }, [userId]);
 
+  /**
+   * 初始化加载用户资料数据
+   * 如果没有提供userId，重定向到当前用户的档案或登录页面
+   */
   useEffect(() => {
     if (!userId) {
       // 如果没有提供userId，重定向到当前用户的档案（如果已登录）
@@ -115,7 +133,7 @@ export function ProfilePage() {
                   {profile.email}
                 </p>
                 <p className="mt-2 text-sm">
-                  Joined {new Date(profile.join_date).toLocaleDateString()}
+                  Joined {profile.join_date ? new Date(profile.join_date).toLocaleDateString() : 'N/A'}
                 </p>
                 {isOwnProfile && (
                   <button 
@@ -156,7 +174,7 @@ export function ProfilePage() {
                 <div className="flex justify-center">
                   <Eye className="w-6 h-6 text-yellow-300" />
                 </div>
-                <div className="mt-1 text-2xl font-bold">{profile.total_views.toLocaleString()}</div>
+                <div className="mt-1 text-2xl font-bold">{(profile.total_views || 0).toLocaleString()}</div>
                 <div className="text-xs text-white/70">Views</div>
               </div>
             </div>
@@ -237,7 +255,7 @@ export function ProfilePage() {
                         {article.content.replace(/[#*`]/g, '').substring(0, 150)}...
                       </p>
                       <div className="mt-4 flex flex-wrap items-center justify-between text-sm text-gray-500 gap-4">
-                        <span>Updated {new Date(article.updated_at).toLocaleDateString()}</span>
+                        <span>Updated {article.updated_at ? new Date(article.updated_at).toLocaleDateString() : 'N/A'}</span>
                         <div className="flex items-center gap-4">
                           <span className="flex items-center">
                             <Eye className="w-4 h-4 mr-1" />
@@ -295,7 +313,7 @@ export function ProfilePage() {
                             {graph.edges} edges
                           </span>
                           <span className="text-gray-500">
-                            Created {new Date(graph.created_at).toLocaleDateString()}
+                            Created {graph.created_at ? new Date(graph.created_at).toLocaleDateString() : 'N/A'}
                           </span>
                         </div>
                       </div>

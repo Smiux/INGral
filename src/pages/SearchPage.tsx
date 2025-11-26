@@ -1,10 +1,14 @@
+/**
+ * 搜索页面
+ * 提供文章搜索功能，支持关键词搜索和标签筛选
+ */
 import { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import SearchBox from '../components/search/SearchBox';
-import SearchResults from '../components/search/SearchResults';
+import { SearchResults } from '../components/search/SearchResults';
 import { TagSelector } from '../components/tags/TagSelector';
-const styles = require('./SearchPage.module.css');
+import styles from './SearchPage.module.css';
 
 export function SearchPage() {
   const [searchParams] = useSearchParams();
@@ -14,7 +18,10 @@ export function SearchPage() {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  // 处理搜索提交
+  /**
+   * 处理搜索提交
+   * @param newQuery - 新的搜索关键词
+   */
   const handleSearch = (newQuery: string) => {
     setIsLoading(true);
     
@@ -30,7 +37,10 @@ export function SearchPage() {
     setIsLoading(false);
   };
 
-  // 处理标签选择
+  /**
+   * 处理标签选择
+   * @param tags - 选中的标签数组
+   */
   const handleTagSelect = (tags: string[]) => {
     setIsLoading(true);
     // 过滤掉undefined的标签，确保类型安全
@@ -49,7 +59,9 @@ export function SearchPage() {
     setIsLoading(false);
   };
 
-  // 清除标签过滤
+  /**
+   * 清除标签过滤
+   */
   const clearTagFilter = () => {
     handleTagSelect([]);
   };

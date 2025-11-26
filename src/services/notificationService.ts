@@ -22,7 +22,22 @@ class NotificationService {
 
     try {
       // 创建查询对象并直接设置所有参数
-      const queryConfig: any = {
+      interface NotificationQueryConfig {
+        from: string;
+        select: string;
+        where: {
+          user_id: string;
+          is_read?: boolean;
+        };
+        order: { 
+          column: string;
+          ascending: boolean;
+        };
+        limit: number;
+        offset: number;
+      }
+      
+      const queryConfig: NotificationQueryConfig = {
         from: 'notifications',
         select: '*, actor:users!actor_id(id, username, avatar_url)',
         where: {
@@ -35,48 +50,73 @@ class NotificationService {
       };
 
       // 使用原始查询方法避免链式调用的类型问题
-      const result = await (supabase as any).from(queryConfig.from)
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      const result = await supabase.from(queryConfig.from)
         .select(queryConfig.select)
         .eq('user_id', queryConfig.where.user_id)
         .order(queryConfig.order.column, { ascending: queryConfig.order.ascending })
-        .limit(queryConfig.limit)
-        .offset(queryConfig.offset);
+        .limit(queryConfig.limit);
+
+
+      
+      // 定义通知项的接口
+      interface RawNotificationItem {
+        id?: string;
+        user_id?: string;
+        actor_id?: string;
+        notification_type?: string;
+        type?: string;
+        content?: string;
+        reference_id?: string | null;
+        is_read?: boolean;
+        created_at?: string;
+        updated_at?: string;
+        actor?: {
+          id?: string;
+          username?: string;
+          avatar_url?: string;
+          avatar?: string;
+        };
+      }
 
       // 如果需要筛选未读通知
-      const filteredResult = !includeRead ? 
-        result.data?.filter((item: any) => !item.is_read) : result.data;
+      const filteredResult = !includeRead && Array.isArray(result.data) ? 
+        (result.data as RawNotificationItem[]).filter(item => typeof item.is_read === 'boolean' && !item.is_read) : result.data;
 
       if (result.error) {
         console.error('获取通知失败:', result.error);
         throw new Error('获取通知失败');
       }
 
-      // 处理数据格式
-      // 使用any类型断言解决类型问题
-      const notifications = (filteredResult as any || []).map((item: any) => ({
-        id: item.id,
-        user_id: item.user_id,
-        actor_id: item.actor_id,
-        notification_type: item.notification_type || item.type,
-        content: item.content,
-        reference_id: item.reference_id || null,
-        is_read: typeof item.is_read === 'boolean' ? item.is_read : false,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        actor: item.actor ? {
-          id: item.actor.id,
-          username: item.actor.username,
-          avatar_url: item.actor.avatar_url || item.actor.avatar
-        } : undefined
-      }));
+      // 处理数据格式 - 安全类型转换
+        const data = filteredResult || [];
+        const notifications = Array.isArray(data) ? 
+          (data as RawNotificationItem[]).map(item => ({
+            id: item.id || '',
+            user_id: item.user_id || '',
+            actor_id: item.actor_id || '',
+            notification_type: item.notification_type || item.type || '',
+            content: item.content || '',
+            reference_id: item.reference_id || null,
+            is_read: typeof item.is_read === 'boolean' ? item.is_read : false,
+            created_at: item.created_at || new Date().toISOString(),
+            updated_at: item.updated_at || undefined,
+            actor: item.actor ? {
+              id: item.actor.id || '',
+              username: item.actor.username || '',
+              avatar_url: item.actor.avatar_url || item.actor.avatar || ''
+            } : undefined
+          })) : [];
 
       // 缓存最新的通知5秒
       if (offset === 0) {
         cache.set(cacheKey, notifications, 5);
       }
 
-      // 在返回时添加类型断言
-      return notifications as unknown as NotificationWithActor[];
+      // 确保返回类型正确
+      return notifications as NotificationWithActor[];
     } catch (error) {
       console.error('获取用户通知异常:', error);
       throw error;
@@ -94,6 +134,9 @@ class NotificationService {
     }
 
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { count, error } = await supabase
         .from('notifications')
         .select('id', { count: 'exact' })
@@ -118,6 +161,9 @@ class NotificationService {
   // 标记通知为已读
   async markAsRead(notificationId: string, userId: string): Promise<boolean> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
@@ -142,6 +188,12 @@ class NotificationService {
   // 标记所有通知为已读
   async markAllAsRead(userId: string): Promise<boolean> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
@@ -165,6 +217,10 @@ class NotificationService {
   // 删除通知
   async deleteNotification(notificationId: string, userId: string): Promise<boolean> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
       const { error } = await supabase
         .from('notifications')
         .delete()
@@ -195,6 +251,9 @@ class NotificationService {
     reference_id?: string;
   }): Promise<Notification | null> {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
       const { data: notification, error } = await supabase
         .from('notifications')
         .insert(data)

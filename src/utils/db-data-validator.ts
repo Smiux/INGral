@@ -436,10 +436,13 @@ export class TransactionManager {
       // 构造符合 TransactionObject 接口的事务对象
       const tx: TransactionObject = {
         from: <T = Record<string, unknown>>(table: string): TableOperations<T> => {
+          if (!supabase) {
+            throw new Error('Supabase client is not initialized');
+          }
           const tableOps = supabase.from(table);
           return new Proxy(tableOps as unknown as TableOperations<T>, {
             get(target, prop: string | symbol) {
-              const value = (target as any)[prop];
+              const value = Reflect.get(target, prop);
               if (typeof value === 'function') {
                 return function (this: unknown, ...args: unknown[]) {
                   dbLogger.debug(`事务操作 [${transactionId}] ${table}.${String(prop)}`, { params: args });

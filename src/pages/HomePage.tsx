@@ -1,4 +1,8 @@
-import { useEffect, useState } from 'react';
+/**
+ * 首页组件
+ * 展示网站的主要内容和最近文章
+ */
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Network, Users, ExternalLink } from 'lucide-react';
 import { Article } from '../types';
@@ -8,6 +12,9 @@ export function HomePage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  /**
+   * 加载最近文章
+   */
   useEffect(() => {
     const loadArticles = async () => {
       try {
@@ -114,10 +121,10 @@ export function HomePage() {
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>{article.view_count} views</span>
                       <span>
-                        {new Date(article.updated_at).toLocaleDateString('en-US', {
+                        {article.updated_at ? new Date(article.updated_at).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
-                        })}
+                        }) : 'N/A'}
                       </span>
                     </div>
                   </Link>

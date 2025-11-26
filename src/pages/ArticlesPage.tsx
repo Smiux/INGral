@@ -1,3 +1,7 @@
+/**
+ * 文章列表页面
+ * 展示所有文章，支持搜索功能
+ */
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
@@ -11,6 +15,9 @@ export function ArticlesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
+  /**
+   * 加载文章列表
+   */
   useEffect(() => {
     const loadArticles = async () => {
       try {
@@ -27,6 +34,9 @@ export function ArticlesPage() {
     loadArticles();
   }, []);
 
+  /**
+   * 根据搜索查询过滤文章
+   */
   const filteredArticles = articles.filter((article) =>
     article.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -88,13 +98,13 @@ export function ArticlesPage() {
                     <span>{article.view_count} views</span>
                     <span>
                       Updated{' '}
-                      {new Date(article.updated_at).toLocaleDateString('en-US', {
+                      {article.updated_at ? new Date(article.updated_at).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
-                        year: new Date(article.updated_at).getFullYear() !== new Date().getFullYear()
+                        year: article.updated_at && new Date(article.updated_at).getFullYear() !== new Date().getFullYear()
                           ? 'numeric'
                           : undefined,
-                      })}
+                      }) : 'N/A'}
                     </span>
                   </div>
                 </div>

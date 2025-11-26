@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Article } from '../../types';
 import { SearchService } from '../../services/searchService';
 import styles from './SearchResults.module.css';
@@ -14,23 +14,38 @@ interface SearchResultItem extends Article {
   search_rank: number;
 }
 
+interface CommentSearchResult {
+  id: string;
+  article_id: string;
+  content: string;
+  search_rank: number;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const SearchResults: React.FC<SearchResultsProps> = ({
   query,
   tagId,
   limit = 20,
   onArticleClick
 }) => {
-  const [results, setResults] = useState<SearchResultItem[]>([]);
+  const [articleResults, setArticleResults] = useState<SearchResultItem[]>([]);
+  const [commentResults, setCommentResults] = useState<CommentSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchType, setSearchType] = useState<'articles' | 'comments' | 'all'>('all');
+  const [sortBy, setSortBy] = useState<'relevance' | 'date'>('relevance');
 
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMoreArticles, setHasMoreArticles] = useState(true);
+  const [hasMoreComments, setHasMoreComments] = useState(true);
   const [searchKey, setSearchKey] = useState<string>(query); // 用于追踪搜索关键词变化
 
   // 搜索结果
-  const search = async (newQuery: string, newTagId?: string, resetResults: boolean = true) => {
+  const search = useCallback(async (newQuery: string, newTagId?: string, resetResults: boolean = true) => {
     if (!newQuery.trim()) {
-      setResults([]);
+      setArticleResults([]);
+      setCommentResults([]);
       setError(null);
       return;
     }
@@ -38,32 +53,51 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     setLoading(true);
     setError(null);
     try {
-      let searchResults;
-      // 只有当tagId有值时才调用带标签的搜索方法，避免undefined类型错误
-      if (newTagId && newTagId !== '') {
-        searchResults = await SearchService.searchArticlesByTag(newQuery, newTagId, limit);
-      } else {
-        searchResults = await SearchService.searchArticles(newQuery, limit);
-      }
+      // 搜索文章
+      const articleSearchResults = newTagId && newTagId !== ''
+        ? await SearchService.searchArticlesByTag(newQuery, newTagId, limit)
+        : await SearchService.searchArticles(newQuery, limit);
+      
+      // 搜索评论
+      const commentSearchResults = await SearchService.searchComments(newQuery, limit);
+      
+      // 处理排序
+      const sortResults = <T extends { search_rank: number; created_at?: string }>(results: T[]): T[] => {
+        if (sortBy === 'relevance') {
+          return [...results].sort((a, b) => b.search_rank - a.search_rank);
+        } else {
+          return [...results].sort((a, b) => {
+            const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return dateB - dateA;
+          });
+        }
+      };
+      
+      const sortedArticles = sortResults(articleSearchResults);
+      const sortedComments = sortResults(commentSearchResults);
       
       if (resetResults) {
-        setResults(searchResults);
-
+        setArticleResults(sortedArticles);
+        setCommentResults(sortedComments);
       } else {
         // 对于分页加载，追加结果
-        setResults(prev => [...prev, ...searchResults]);
+        setArticleResults(prev => [...prev, ...sortedArticles]);
+        setCommentResults(prev => [...prev, ...sortedComments]);
       }
       
       // 检查是否还有更多结果
-      setHasMore(searchResults.length === limit);
+      setHasMoreArticles(sortedArticles.length === limit);
+      setHasMoreComments(sortedComments.length === limit);
     } catch (err) {
       console.error('Search failed:', err);
       setError('搜索失败，请稍后重试');
-      setResults([]);
+      setArticleResults([]);
+      setCommentResults([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [limit, sortBy]);
 
   // 监听搜索关键词和标签变化
   useEffect(() => {
@@ -71,28 +105,46 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       setSearchKey(query);
       search(query, tagId, true);
     }
-  }, [query, tagId]);
+  }, [query, tagId, search, searchKey]);
 
-  // 加载更多结果
-  const loadMore = () => {
-    if (!loading && hasMore && query.trim()) {
-
+  // 加载更多文章结果
+  const loadMoreArticles = useCallback(() => {
+    if (!loading && hasMoreArticles && query.trim()) {
       search(query, tagId, false);
     }
-  };
+  }, [loading, hasMoreArticles, query, tagId, search]);
+
+  // 加载更多评论结果
+  const loadMoreComments = useCallback(() => {
+    if (!loading && hasMoreComments && query.trim()) {
+      search(query, tagId, false);
+    }
+  }, [loading, hasMoreComments, query, tagId, search]);
+
+  // 处理搜索类型切换
+  const handleSearchTypeChange = useCallback((type: 'articles' | 'comments' | 'all') => {
+    setSearchType(type);
+  }, []);
+
+  // 处理排序方式切换
+  const handleSortByChange = useCallback((sort: 'relevance' | 'date') => {
+    setSortBy(sort);
+    // 重新搜索以应用新的排序方式
+    search(query, tagId, true);
+  }, [search, query, tagId]);
 
   // 处理文章点击
-  const handleArticleClick = (article: Article) => {
+  const handleArticleClick = useCallback((article: Article) => {
     if (onArticleClick) {
       onArticleClick(article);
     } else {
       // 默认行为：导航到文章详情页
       window.location.href = `/article/${article.slug}`;
     }
-  };
+  }, []);
 
   // 高亮匹配的文本
-  const highlightText = (text: string, query: string) => {
+  const highlightText = useCallback((text: string, query: string) => {
     if (!query.trim()) return text;
     
     try {
@@ -108,39 +160,94 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           )}
         </>
       );
-    } catch (e) {
+    } catch {
       return text;
     }
-  };
+  }, []);
 
   // 转义正则表达式特殊字符
-  const escapeRegExp = (string: string) => {
+  const escapeRegExp = useCallback((string: string) => {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  };
+  }, []);
 
   // 截断文本
-  const truncateText = (text: string, maxLength: number = 150) => {
+  const truncateText = useCallback((text: string, maxLength: number = 150) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
-  };
+  }, []);
 
   return (
     <div className={styles.container}>
-      {/* 搜索信息 */}
+      {/* 搜索信息和筛选选项 */}
       {query.trim() && (
-        <div className={styles.searchInfo}>
-          <h2 className={styles.title}>
-            搜索结果: <span className={styles.query}>{query}</span>
-            {tagId && <span className={styles.tagFilter}>(已筛选标签)</span>}
-          </h2>
-          <p className={styles.resultCount}>
-            找到 {results.length} 条结果
-          </p>
-        </div>
+        <>
+          <div className={styles.searchInfo}>
+            <h2 className={styles.title}>
+              搜索结果: <span className={styles.query}>{query}</span>
+              {tagId && <span className={styles.tagFilter}>(已筛选标签)</span>}
+            </h2>
+            <div className={styles.filterOptions}>
+              {/* 搜索类型切换 */}
+              <div className={styles.filterGroup}>
+                <span className={styles.filterLabel}>搜索类型:</span>
+                <div className={styles.filterButtons}>
+                  <button 
+                    className={`${styles.filterButton} ${searchType === 'all' ? styles.filterButtonActive : ''}`}
+                    onClick={() => handleSearchTypeChange('all')}
+                  >
+                    全部
+                  </button>
+                  <button 
+                    className={`${styles.filterButton} ${searchType === 'articles' ? styles.filterButtonActive : ''}`}
+                    onClick={() => handleSearchTypeChange('articles')}
+                  >
+                    文章
+                  </button>
+                  <button 
+                    className={`${styles.filterButton} ${searchType === 'comments' ? styles.filterButtonActive : ''}`}
+                    onClick={() => handleSearchTypeChange('comments')}
+                  >
+                    评论
+                  </button>
+                </div>
+              </div>
+              
+              {/* 排序方式切换 */}
+              <div className={styles.filterGroup}>
+                <span className={styles.filterLabel}>排序方式:</span>
+                <div className={styles.filterButtons}>
+                  <button 
+                    className={`${styles.filterButton} ${sortBy === 'relevance' ? styles.filterButtonActive : ''}`}
+                    onClick={() => handleSortByChange('relevance')}
+                  >
+                    相关度
+                  </button>
+                  <button 
+                    className={`${styles.filterButton} ${sortBy === 'date' ? styles.filterButtonActive : ''}`}
+                    onClick={() => handleSortByChange('date')}
+                  >
+                    日期
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* 结果统计 */}
+          <div className={styles.resultCount}>
+            找到 {articleResults.length + (searchType !== 'articles' ? commentResults.length : 0)} 条结果
+            {(searchType === 'all' || searchType === 'articles') && (
+              <span className={styles.resultCountDetail}>文章: {articleResults.length} 条</span>
+            )}
+            {(searchType === 'all' || searchType === 'comments') && (
+              <span className={styles.resultCountDetail}>评论: {commentResults.length} 条</span>
+            )}
+          </div>
+        </>
       )}
 
       {/* 加载状态 */}
-      {loading && results.length === 0 && (
+      {loading && articleResults.length === 0 && commentResults.length === 0 && (
         <div className={styles.loadingContainer}>
           <div className={styles.loadingIndicator}></div>
           <p>搜索中，请稍候...</p>
@@ -168,7 +275,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       )}
 
       {/* 空结果状态 */}
-      {!loading && !error && query.trim() && results.length === 0 && (
+      {!loading && !error && query.trim() && articleResults.length === 0 && commentResults.length === 0 && (
         <div className={styles.emptyContainer}>
           <svg 
             className={styles.emptyIcon} 
@@ -188,55 +295,113 @@ const SearchResults: React.FC<SearchResultsProps> = ({
         </div>
       )}
 
-      {/* 搜索结果列表 */}
-      {results.length > 0 && (
-        <div className={styles.resultsList}>
-          {results.map((article) => (
-            <div 
-              key={article.id} 
-              className={styles.resultItem}
-              onClick={() => handleArticleClick(article)}
-            >
-              <div className={styles.resultHeader}>
-                <h3 className={styles.resultTitle}>
-                  {highlightText(article.title, query)}
-                </h3>
-                <span className={styles.resultDate}>
-                  {new Date(article.created_at).toLocaleDateString()}
-                </span>
+      {/* 文章搜索结果列表 */}
+      {(searchType === 'all' || searchType === 'articles') && articleResults.length > 0 && (
+        <>
+          <h3 className={styles.sectionTitle}>文章结果</h3>
+          <div className={styles.resultsList}>
+            {articleResults.map((article) => (
+              <div 
+                key={article.id} 
+                className={styles.resultItem}
+                onClick={() => handleArticleClick(article)}
+              >
+                <div className={styles.resultHeader}>
+                  <h3 className={styles.resultTitle}>
+                    {highlightText(article.title, query)}
+                  </h3>
+                  <span className={styles.resultDate}>
+                    {article.created_at ? new Date(article.created_at).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+                
+                <p className={styles.resultSummary}>
+                  {highlightText(truncateText(article.content || ''), query)}
+                </p>
+                
+                <div className={styles.resultFooter}>
+                  <span className={styles.resultAuthor}>作者: {article.author_id}</span>
+                  <span className={styles.resultRank}>相关度: {Math.round(article.search_rank * 100)}%</span>
+                </div>
               </div>
-              
-              <p className={styles.resultSummary}>
-                {highlightText(truncateText(article.content || ''), query)}
-              </p>
-              
-              <div className={styles.resultFooter}>
-                <span className={styles.resultAuthor}>作者: {article.author_id}</span>
-                <span className={styles.resultRank}>相关度: {Math.round(article.search_rank * 100)}%</span>
-              </div>
+            ))}
+          </div>
+          
+          {/* 加载更多文章按钮 */}
+          {hasMoreArticles && (
+            <div className={styles.loadMoreContainer}>
+              <button 
+                className={styles.loadMoreButton}
+                onClick={loadMoreArticles}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className={styles.smallLoadingIndicator}></div>
+                    加载中...
+                  </>
+                ) : (
+                  '加载更多文章'
+                )}
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
-      {/* 加载更多按钮 */}
-      {hasMore && results.length > 0 && (
-        <div className={styles.loadMoreContainer}>
-          <button 
-            className={styles.loadMoreButton}
-            onClick={loadMore}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <div className={styles.smallLoadingIndicator}></div>
-                加载中...
-              </>
-            ) : (
-              '加载更多结果'
-            )}
-          </button>
-        </div>
+      {/* 评论搜索结果列表 */}
+      {(searchType === 'all' || searchType === 'comments') && commentResults.length > 0 && (
+        <>
+          <h3 className={styles.sectionTitle}>评论结果</h3>
+          <div className={styles.resultsList}>
+            {commentResults.map((comment) => (
+              <div 
+                key={comment.id} 
+                className={`${styles.resultItem} ${styles.commentResultItem}`}
+                onClick={() => {
+                  // 点击评论跳转到对应文章
+                  window.location.href = `/article/${comment.article_id}#comment-${comment.id}`;
+                }}
+              >
+                <div className={styles.resultHeader}>
+                  <span className={styles.commentUser}>用户: {comment.user_id}</span>
+                  <span className={styles.resultDate}>
+                    {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+                
+                <p className={styles.resultSummary}>
+                  {highlightText(truncateText(comment.content || ''), query)}
+                </p>
+                
+                <div className={styles.resultFooter}>
+                  <span className={styles.commentArticleLink}>查看原文</span>
+                  <span className={styles.resultRank}>相关度: {Math.round(comment.search_rank * 100)}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* 加载更多评论按钮 */}
+          {hasMoreComments && (
+            <div className={styles.loadMoreContainer}>
+              <button 
+                className={styles.loadMoreButton}
+                onClick={loadMoreComments}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className={styles.smallLoadingIndicator}></div>
+                    加载中...
+                  </>
+                ) : (
+                  '加载更多评论'
+                )}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* 无搜索内容状态 */}
@@ -261,4 +426,5 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   );
 };
 
-export default SearchResults;
+// 使用命名导出而不是默认导出，以符合ESLint的react-refresh/only-export-components规则
+export { SearchResults };

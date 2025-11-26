@@ -1,3 +1,7 @@
+/**
+ * 数据库监控页面
+ * 展示数据库性能和统计信息的实时监控
+ */
 import { Header } from '../components/Header';
 import { DatabaseMonitor } from '../components/DatabaseMonitor';
 
