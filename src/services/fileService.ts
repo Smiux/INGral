@@ -1,13 +1,15 @@
-import { supabase } from '../lib/supabase';
-
 /**
  * 文件服务类
  * 提供统一的文件上传、下载和管理接口
  */
-export class FileService {
+import { BaseService } from './baseService';
+
+export class FileService extends BaseService {
   private static instance: FileService;
 
-  private constructor() {}
+  private constructor() {
+    super();
+  }
 
   /**
    * 获取单例实例
@@ -26,17 +28,17 @@ export class FileService {
    */
   private async checkBucketExists(bucketName: string): Promise<boolean> {
     try {
-      if (!supabase) return false;
-      
+      this.checkSupabaseClient();
+
       // 尝试列出存储桶内容，如果成功则说明存储桶存在
       // 注意：这将返回404错误如果存储桶不存在，而不是空数据
-      const { error } = await supabase.storage
+      const { error } = await this.supabase.storage
         .from(bucketName)
         .list('', {
           limit: 1,
-          offset: 0
+          offset: 0,
         });
-      
+
       return !error;
     } catch (error) {
       console.error('Error checking bucket existence:', error);
@@ -53,14 +55,11 @@ export class FileService {
    */
   async uploadFile(
     file: File,
-    bucketName: string = 'avatars',
-    folderPath: string = ''
+    bucketName = 'avatars',
+    folderPath = '',
   ): Promise<string | null> {
     try {
-      if (!supabase) {
-        console.error('Supabase client is not initialized');
-        return null;
-      }
+      this.checkSupabaseClient();
 
       // 检查存储桶是否存在
       const bucketExists = await this.checkBucketExists(bucketName);
@@ -79,7 +78,7 @@ export class FileService {
       const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
       // 上传文件
-      const { error } = await supabase.storage
+      const { error } = await this.supabase.storage
         .from(bucketName)
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -104,7 +103,7 @@ export class FileService {
       }
 
       // 获取公共URL
-      const { data: publicUrlData } = supabase.storage
+      const { data: publicUrlData } = this.supabase.storage
         .from(bucketName)
         .getPublicUrl(filePath);
 
@@ -133,15 +132,12 @@ export class FileService {
    */
   async deleteFile(
     filePath: string,
-    bucketName: string = 'avatars'
+    bucketName = 'avatars',
   ): Promise<boolean> {
     try {
-      if (!supabase) {
-        console.error('Supabase client is not initialized');
-        return false;
-      }
+      this.checkSupabaseClient();
 
-      const { error } = await supabase.storage
+      const { error } = await this.supabase.storage
         .from(bucketName)
         .remove([filePath]);
 
@@ -165,21 +161,22 @@ export class FileService {
    */
   getFileUrl(
     filePath: string,
-    bucketName: string = 'avatars'
+    bucketName = 'avatars',
   ): string | null {
-    if (!supabase) {
-      console.error('Supabase client is not initialized');
+    try {
+      this.checkSupabaseClient();
+
+      const { data } = this.supabase.storage
+        .from(bucketName)
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error in getFileUrl:', error);
       return null;
     }
-
-    const { data } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
   }
 }
 
 // 导出单例实例
 export const fileService = FileService.getInstance();
-

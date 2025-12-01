@@ -100,7 +100,7 @@ export class ArticleValidator {
       createdAt: articleData['createdAt'] || new Date().toISOString(),
       tags: [] as string[],
       publishDate: null,
-      slug: ''
+      slug: '',
     };
 
     // 可选字段
@@ -193,7 +193,7 @@ export class UserValidator {
    * @param userData 用户数据
    * @throws ValidationError 当数据验证失败时
    */
- static validate(userData: Record<string, unknown>): void {
+  static validate(userData: Record<string, unknown>): void {
     // 验证用户名
     if (!userData['username'] || typeof userData['username'] !== 'string') {
       throw new ValidationError('username', '用户名不能为空且必须是字符串');
@@ -247,7 +247,7 @@ export class UserValidator {
       email: userData['email'] ? String(userData['email']).trim().toLowerCase() : '',
       role: userData['role'] || 'viewer',
       createdAt: userData['createdAt'] || new Date().toISOString(),
-      avatar: ''
+      avatar: '',
     };
 
     // 可选字段
@@ -293,7 +293,7 @@ export class DataWriteGuard {
       // 记录失败
       dbLogger.error(`写入${dataType}数据失败`, {
         name: error instanceof Error ? error.name || 'Error' : 'Error',
-        message: error instanceof Error ? error.message : String(error)
+        message: error instanceof Error ? error.message : String(error),
       });
 
       // 重新抛出错误
@@ -309,7 +309,7 @@ export class DataWriteGuard {
    * @param maxRetries 最大重试次数，默认3次
    * @returns 操作结果
    */
-  static async writeWithRetry<T>(operation: () => Promise<T>, dataType: string, data: Record<string, unknown>, maxRetries: number = 3): Promise<T> {
+  static async writeWithRetry<T>(operation: () => Promise<T>, dataType: string, data: Record<string, unknown>, maxRetries = 3): Promise<T> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -320,9 +320,9 @@ export class DataWriteGuard {
         lastError = error instanceof Error ? error : new Error(String(error));
         dbLogger.error(`写入尝试 ${attempt}/${maxRetries} 失败，正在重试`, {
           name: lastError?.name || 'Error',
-          message: lastError?.message || '未知错误'
+          message: lastError?.message || '未知错误',
         });
-        
+
         // 指数退避策略
         if (attempt < maxRetries) {
           const delay = Math.pow(2, attempt) * 100;
@@ -330,12 +330,12 @@ export class DataWriteGuard {
         }
       }
     }
-    
+
     // 所有重试都失败
     dbLogger.error(`所有 ${maxRetries} 次写入尝试都失败`, {
-        name: lastError?.name || 'Error',
-        message: lastError?.message || '未知错误' 
-      });
+      name: lastError?.name || 'Error',
+      message: lastError?.message || '未知错误',
+    });
     throw lastError;
   }
 
@@ -344,12 +344,12 @@ export class DataWriteGuard {
    * @param operations 操作列表
    * @returns 所有操作的结果
    */
-  static async safeBatchWrite<T>(operations: Array<() => Promise<T>>): Promise<(T | null)[]> {
+  static async safeBatchWrite<T>(operations: (() => Promise<T>)[]): Promise<(T | null)[]> {
     const results: (T | null)[] = [];
     let successCount = 0;
-    
-    dbLogger.info(`开始批量写入操作`, { totalOperations: operations.length });
-    
+
+    dbLogger.info('开始批量写入操作', { totalOperations: operations.length });
+
     for (let i = 0; i < operations.length; i++) {
       try {
         // 添加额外的类型检查，确保operations[i]是一个有效的函数
@@ -366,18 +366,18 @@ export class DataWriteGuard {
       } catch (error) {
         dbLogger.error(`批量操作 ${i + 1}/${operations.length} 失败`, {
           name: error instanceof Error ? error.name || 'Error' : 'Error',
-          message: error instanceof Error ? error.message : String(error)
+          message: error instanceof Error ? error.message : String(error),
         });
         results.push(null); // 用null标记失败的操作
       }
     }
-    
-    dbLogger.info(`批量写入完成`, {
+
+    dbLogger.info('批量写入完成', {
       totalOperations: operations.length,
       successCount,
-      failureCount: operations.length - successCount
+      failureCount: operations.length - successCount,
     });
-    
+
     return results;
   }
 }
@@ -417,21 +417,21 @@ export class TransactionManager {
    * @returns 事务结果
    */
 
-    static async executeTransaction<T>(
-      operations: (tx: TransactionObject) => Promise<T>, 
-      tables: string[] = []
-    ): Promise<T> {
+  static async executeTransaction<T>(
+    operations: (tx: TransactionObject) => Promise<T>,
+    tables: string[] = [],
+  ): Promise<T> {
     const transactionId = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     // 导入supabase（仅在需要时导入以避免循环依赖）
     const { supabase } = await import('../lib/supabase');
-    
+
     dbLogger.logTransaction(transactionId, 'begin', tables);
-    
+
     try {
       // 在真实环境中，这里应该使用supabase的事务API
       // 由于这是模拟环境，我们使用简单的try-catch来模拟事务
-      
+
       // 执行事务操作
       // 构造符合 TransactionObject 接口的事务对象
       const tx: TransactionObject = {
@@ -450,22 +450,22 @@ export class TransactionManager {
                 };
               }
               return value;
-            }
+            },
           });
-        }
+        },
       };
 
       const result = await operations(tx);
-      
+
       // 记录事务提交
       dbLogger.logTransaction(transactionId, 'commit', tables);
-      
+
       return result;
     } catch (error) {
       // 记录事务回滚
       dbLogger.logTransaction(transactionId, 'rollback', tables);
       dbLogger.error(`事务失败 [${transactionId}]`, error instanceof Error ? error : new Error(String(error)));
-      
+
       throw error;
     }
   }
@@ -492,17 +492,17 @@ export class DataConsistencyChecker {
 
     // 安全地处理actualData
     const safeData = actualData || {};
-    
+
     Object.entries(expectedData).forEach(([field, expectedType]) => {
       if (!(field in safeData)) {
         // 移除any类型，使用更安全的方式检查required属性
         interface OptionalTypeDefinition {
           required?: boolean;
         }
-        const isOptional = 
-          typeof expectedType === 'object' && 
-          expectedType !== null && 
-          Object.prototype.hasOwnProperty.call(expectedType, 'required') && 
+        const isOptional =
+          typeof expectedType === 'object' &&
+          expectedType !== null &&
+          Object.prototype.hasOwnProperty.call(expectedType, 'required') &&
           (expectedType as OptionalTypeDefinition).required === false;
         if (!isOptional) { // 默认所有字段都是必需的
           missingFields.push(field);
@@ -518,18 +518,17 @@ export class DataConsistencyChecker {
             typeMismatches.push({
               field,
               expected: typeDef.type,
-              actual: actualType
+              actual: actualType,
             });
           }
         }
       }
     });
 
-
     return {
       consistent: missingFields.length === 0 && typeMismatches.length === 0,
       missingFields,
-      typeMismatches
+      typeMismatches,
     };
   }
 
@@ -541,23 +540,23 @@ export class DataConsistencyChecker {
    */
   static generateConsistencyReport(
     checkResult: ReturnType<typeof DataConsistencyChecker.checkConsistency>,
-    dataType: string
+    dataType: string,
   ): string {
     const report: string[] = [];
     report.push(`=== ${dataType} 数据一致性报告 ===`);
     report.push(`生成时间: ${new Date().toLocaleString()}`);
-    
+
     if (checkResult.consistent) {
       report.push('✅ 数据一致性检查通过');
     } else {
       report.push('❌ 数据一致性检查失败');
-      
+
       if (checkResult.missingFields.length > 0) {
         report.push('');
         report.push('缺失字段:');
         checkResult.missingFields.forEach(field => report.push(`- ${field}`));
       }
-      
+
       if (checkResult.typeMismatches.length > 0) {
         report.push('');
         report.push('类型不匹配:');
@@ -566,7 +565,7 @@ export class DataConsistencyChecker {
         });
       }
     }
-    
+
     return report.join('\n');
   }
 }

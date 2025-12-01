@@ -8,8 +8,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 100",
-    "preview": "vite preview",
+    "lint:fix": "eslint . --ext ts,tsx --fix --report-unused-disable-directives --max-warnings 100",
     "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint",
+    "check:fix": "npm run typecheck && npm run lint:fix",
+    "preview": "vite preview",
     "db:list": "node scripts/db-debug-tool.js list-tables",
     "db:describe": "node scripts/db-debug-tool.js describe",
     "db:view": "node scripts/db-debug-tool.js view-data",
@@ -29,6 +32,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
     "@types/react-dropzone": "^4.2.2",
+    "@types/three": "^0.181.0",
     "d3": "^7.9.0",
     "date-fns": "^4.1.0",
     "katex": "^0.16.25",
@@ -39,7 +43,8 @@
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.3.8",
     "react-easy-crop": "^5.5.5",
-    "react-router-dom": "^7.9.6"
+    "react-router-dom": "^7.9.6",
+    "three": "^0.181.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

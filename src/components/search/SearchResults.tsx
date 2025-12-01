@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Article } from '../../types';
-import { SearchService } from '../../services/searchService';
+import type { Article } from '../../types';
+import { searchService } from '../../services/searchService';
 import styles from './SearchResults.module.css';
+
+// 转义正则表达式特殊字符
+const escapeRegExp = (string: string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
 
 interface SearchResultsProps {
   query: string;
@@ -19,7 +24,7 @@ interface CommentSearchResult {
   article_id: string;
   content: string;
   search_rank: number;
-  user_id: string;
+  user_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -28,7 +33,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   query,
   tagId,
   limit = 20,
-  onArticleClick
+  onArticleClick,
 }) => {
   const [articleResults, setArticleResults] = useState<SearchResultItem[]>([]);
   const [commentResults, setCommentResults] = useState<CommentSearchResult[]>([]);
@@ -42,7 +47,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   const [searchKey, setSearchKey] = useState<string>(query); // 用于追踪搜索关键词变化
 
   // 搜索结果
-  const search = useCallback(async (newQuery: string, newTagId?: string, resetResults: boolean = true) => {
+  const search = useCallback(async (newQuery: string, newTagId?: string, resetResults = true) => {
     if (!newQuery.trim()) {
       setArticleResults([]);
       setCommentResults([]);
@@ -55,12 +60,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     try {
       // 搜索文章
       const articleSearchResults = newTagId && newTagId !== ''
-        ? await SearchService.searchArticlesByTag(newQuery, newTagId, limit)
-        : await SearchService.searchArticles(newQuery, limit);
-      
+        ? await searchService.searchArticlesByTag(newQuery, newTagId, limit)
+        : await searchService.searchArticles(newQuery, limit);
+
       // 搜索评论
-      const commentSearchResults = await SearchService.searchComments(newQuery, limit);
-      
+      const commentSearchResults = await searchService.searchComments(newQuery, limit);
+
       // 处理排序
       const sortResults = <T extends { search_rank: number; created_at?: string }>(results: T[]): T[] => {
         if (sortBy === 'relevance') {
@@ -73,19 +78,19 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           });
         }
       };
-      
+
       const sortedArticles = sortResults(articleSearchResults);
       const sortedComments = sortResults(commentSearchResults);
-      
+
       if (resetResults) {
-        setArticleResults(sortedArticles);
-        setCommentResults(sortedComments);
+        setArticleResults(sortedArticles as SearchResultItem[]);
+        setCommentResults(sortedComments as CommentSearchResult[]);
       } else {
         // 对于分页加载，追加结果
-        setArticleResults(prev => [...prev, ...sortedArticles]);
-        setCommentResults(prev => [...prev, ...sortedComments]);
+        setArticleResults(prev => [...prev, ...(sortedArticles as SearchResultItem[])]);
+        setCommentResults(prev => [...prev, ...(sortedComments as CommentSearchResult[])]);
       }
-      
+
       // 检查是否还有更多结果
       setHasMoreArticles(sortedArticles.length === limit);
       setHasMoreComments(sortedComments.length === limit);
@@ -141,22 +146,22 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       // 默认行为：导航到文章详情页
       window.location.href = `/article/${article.slug}`;
     }
-  }, []);
+  }, [onArticleClick]);
 
   // 高亮匹配的文本
   const highlightText = useCallback((text: string, query: string) => {
-    if (!query.trim()) return text;
-    
+    if (!query.trim()) {return text;}
+
     try {
       const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
       const parts = text.split(regex);
-      
+
       return (
         <>
-          {parts.map((part, index) => 
-            regex.test(part) ? 
-              <mark key={index} className={styles.highlight}>{part}</mark> : 
-              part
+          {parts.map((part, index) =>
+            regex.test(part) ?
+              <mark key={index} className={styles.highlight}>{part}</mark> :
+              part,
           )}
         </>
       );
@@ -165,14 +170,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     }
   }, []);
 
-  // 转义正则表达式特殊字符
-  const escapeRegExp = useCallback((string: string) => {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }, []);
-
   // 截断文本
-  const truncateText = useCallback((text: string, maxLength: number = 150) => {
-    if (text.length <= maxLength) return text;
+  const truncateText = useCallback((text: string, maxLength = 150) => {
+    if (text.length <= maxLength) {return text;}
     return text.substring(0, maxLength) + '...';
   }, []);
 
@@ -191,19 +191,19 @@ const SearchResults: React.FC<SearchResultsProps> = ({
               <div className={styles.filterGroup}>
                 <span className={styles.filterLabel}>搜索类型:</span>
                 <div className={styles.filterButtons}>
-                  <button 
+                  <button
                     className={`${styles.filterButton} ${searchType === 'all' ? styles.filterButtonActive : ''}`}
                     onClick={() => handleSearchTypeChange('all')}
                   >
                     全部
                   </button>
-                  <button 
+                  <button
                     className={`${styles.filterButton} ${searchType === 'articles' ? styles.filterButtonActive : ''}`}
                     onClick={() => handleSearchTypeChange('articles')}
                   >
                     文章
                   </button>
-                  <button 
+                  <button
                     className={`${styles.filterButton} ${searchType === 'comments' ? styles.filterButtonActive : ''}`}
                     onClick={() => handleSearchTypeChange('comments')}
                   >
@@ -211,18 +211,18 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                   </button>
                 </div>
               </div>
-              
+
               {/* 排序方式切换 */}
               <div className={styles.filterGroup}>
                 <span className={styles.filterLabel}>排序方式:</span>
                 <div className={styles.filterButtons}>
-                  <button 
+                  <button
                     className={`${styles.filterButton} ${sortBy === 'relevance' ? styles.filterButtonActive : ''}`}
                     onClick={() => handleSortByChange('relevance')}
                   >
                     相关度
                   </button>
-                  <button 
+                  <button
                     className={`${styles.filterButton} ${sortBy === 'date' ? styles.filterButtonActive : ''}`}
                     onClick={() => handleSortByChange('date')}
                   >
@@ -232,7 +232,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
               </div>
             </div>
           </div>
-          
+
           {/* 结果统计 */}
           <div className={styles.resultCount}>
             找到 {articleResults.length + (searchType !== 'articles' ? commentResults.length : 0)} 条结果
@@ -257,13 +257,13 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       {/* 错误状态 */}
       {error && (
         <div className={styles.errorContainer}>
-          <svg 
-            className={styles.errorIcon} 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={styles.errorIcon}
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
             strokeWidth="2"
           >
             <circle cx="12" cy="12" r="10"></circle>
@@ -277,13 +277,13 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       {/* 空结果状态 */}
       {!loading && !error && query.trim() && articleResults.length === 0 && commentResults.length === 0 && (
         <div className={styles.emptyContainer}>
-          <svg 
-            className={styles.emptyIcon} 
-            width="48" 
-            height="48" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={styles.emptyIcon}
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
             strokeWidth="1"
           >
             <circle cx="11" cy="11" r="8"></circle>
@@ -301,8 +301,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           <h3 className={styles.sectionTitle}>文章结果</h3>
           <div className={styles.resultsList}>
             {articleResults.map((article) => (
-              <div 
-                key={article.id} 
+              <div
+                key={article.id}
                 className={styles.resultItem}
                 onClick={() => handleArticleClick(article)}
               >
@@ -314,11 +314,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                     {article.created_at ? new Date(article.created_at).toLocaleDateString() : 'N/A'}
                   </span>
                 </div>
-                
+
                 <p className={styles.resultSummary}>
                   {highlightText(truncateText(article.content || ''), query)}
                 </p>
-                
+
                 <div className={styles.resultFooter}>
                   <span className={styles.resultAuthor}>作者: {article.author_id}</span>
                   <span className={styles.resultRank}>相关度: {Math.round(article.search_rank * 100)}%</span>
@@ -326,11 +326,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
               </div>
             ))}
           </div>
-          
+
           {/* 加载更多文章按钮 */}
           {hasMoreArticles && (
             <div className={styles.loadMoreContainer}>
-              <button 
+              <button
                 className={styles.loadMoreButton}
                 onClick={loadMoreArticles}
                 disabled={loading}
@@ -355,8 +355,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           <h3 className={styles.sectionTitle}>评论结果</h3>
           <div className={styles.resultsList}>
             {commentResults.map((comment) => (
-              <div 
-                key={comment.id} 
+              <div
+                key={comment.id}
                 className={`${styles.resultItem} ${styles.commentResultItem}`}
                 onClick={() => {
                   // 点击评论跳转到对应文章
@@ -369,11 +369,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                     {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : 'N/A'}
                   </span>
                 </div>
-                
+
                 <p className={styles.resultSummary}>
                   {highlightText(truncateText(comment.content || ''), query)}
                 </p>
-                
+
                 <div className={styles.resultFooter}>
                   <span className={styles.commentArticleLink}>查看原文</span>
                   <span className={styles.resultRank}>相关度: {Math.round(comment.search_rank * 100)}%</span>
@@ -381,11 +381,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
               </div>
             ))}
           </div>
-          
+
           {/* 加载更多评论按钮 */}
           {hasMoreComments && (
             <div className={styles.loadMoreContainer}>
-              <button 
+              <button
                 className={styles.loadMoreButton}
                 onClick={loadMoreComments}
                 disabled={loading}
@@ -407,13 +407,13 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       {/* 无搜索内容状态 */}
       {!query.trim() && !loading && !error && (
         <div className={styles.placeholderContainer}>
-          <svg 
-            className={styles.placeholderIcon} 
-            width="64" 
-            height="64" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={styles.placeholderIcon}
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
             strokeWidth="1"
           >
             <circle cx="11" cy="11" r="8"></circle>

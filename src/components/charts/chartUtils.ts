@@ -49,9 +49,9 @@ export const barChartMockData = {
     {
       label: '数量',
       data: [150, 450, 80, 230, 520],
-      backgroundColor: 'rgba(79, 70, 229, 0.5)'
-    }
-  ]
+      backgroundColor: 'rgba(79, 70, 229, 0.5)',
+    },
+  ],
 };
 
 export const lineChartMockData = {
@@ -61,9 +61,9 @@ export const lineChartMockData = {
       label: '页面访问量',
       data: [1200, 1900, 1500, 2400, 2100, 3000, 2700],
       borderColor: '#4f46e5',
-      backgroundColor: 'rgba(79, 70, 229, 0.1)'
-    }
-  ]
+      backgroundColor: 'rgba(79, 70, 229, 0.1)',
+    },
+  ],
 };
 
 // PieChart数据类型
@@ -78,5 +78,5 @@ export const pieChartMockData: PieDataItem[] = [
   { name: '直接访问', value: 45, percentage: 45 },
   { name: '搜索引擎', value: 30, percentage: 30 },
   { name: '社交媒体', value: 15, percentage: 15 },
-  { name: '外部链接', value: 10, percentage: 10 }
+  { name: '外部链接', value: 10, percentage: 10 },
 ];

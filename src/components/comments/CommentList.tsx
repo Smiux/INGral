@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Comment } from '../../types/comment';
+import type { Comment } from '../../types';
+import styles from './CommentList.module.css';
 import CommentItem from './CommentItem';
 import CommentForm from './CommentForm';
 import commentService from '../../services/commentService';
-import styles from './CommentList.module.css';
 
 interface CommentListProps {
   articleId: string;
@@ -11,52 +11,71 @@ interface CommentListProps {
 
 const CommentList: React.FC<CommentListProps> = ({ articleId }) => {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
 
+  // 加载评论数据
   const loadComments = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await commentService.getArticleComments(articleId);
-      setComments(data);
+      // 使用commentService获取文章评论
+      const articleComments = await commentService.getArticleComments(articleId);
+      setComments(articleComments);
     } catch (err) {
-      setError('加载评论失败');
-      console.error('加载评论失败:', err);
+      setError('加载评论失败，请稍后重试');
+      console.error('Failed to load comments:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  // 处理评论投票
+  const handleVote = async (commentId: string, voteType: 'up' | 'down') => {
+    try {
+      await commentService.voteComment(commentId, voteType);
+      // 重新加载评论数据
+      await loadComments();
+    } catch (err) {
+      console.error('Failed to vote comment:', err);
+    }
+  };
+
+  // 处理评论编辑
+  const handleEdit = async (commentId: string, content: string) => {
+    try {
+      await commentService.updateComment(commentId, { content });
+      // 重新加载评论数据
+      await loadComments();
+    } catch (err) {
+      console.error('Failed to edit comment:', err);
+    }
+  };
+
+  // 处理评论删除
+  const handleDelete = async (commentId: string) => {
+    try {
+      await commentService.deleteComment(commentId);
+      // 重新加载评论数据
+      await loadComments();
+    } catch (err) {
+      console.error('Failed to delete comment:', err);
+    }
+  };
+
   useEffect(() => {
     loadComments();
-  }, [articleId, refreshKey]);
-
-  const handleCommentCreated = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
-  const handleCommentUpdated = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
-  const handleCommentDeleted = () => {
-    setRefreshKey(prev => prev + 1);
-  };
+  }, [articleId, loadComments]);
 
   return (
     <div className={styles.container}>
       <h3 className={styles.title}>评论 ({comments.length})</h3>
-      
-      <CommentForm 
-        articleId={articleId} 
-        onCommentCreated={handleCommentCreated} 
-      />
+
+      <CommentForm articleId={articleId} onCommentCreated={loadComments} />
 
       {loading && <p className={styles.loading}>加载评论中...</p>}
       {error && <p className={styles.error}>{error}</p>}
-      
+
       {!loading && !error && comments.length === 0 && (
         <p className={styles.empty}>还没有评论，快来发表第一条评论吧！</p>
       )}
@@ -68,9 +87,9 @@ const CommentList: React.FC<CommentListProps> = ({ articleId }) => {
               key={comment.id}
               comment={comment}
               articleId={articleId}
-              onCommentUpdated={handleCommentUpdated}
-              onCommentDeleted={handleCommentDeleted}
-              onReplyCreated={handleCommentCreated}
+              onVote={handleVote}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           ))}
         </div>

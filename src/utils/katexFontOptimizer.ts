@@ -22,7 +22,7 @@ export function preloadKaTeXFONTS() {
       'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_SansSerif-Bold.woff2',
       'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_SansSerif-Italic.woff2',
       // 打字机字体
-      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Typewriter-Regular.woff2'
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Typewriter-Regular.woff2',
     ];
 
     // 检查浏览器支持
@@ -38,7 +38,7 @@ export function preloadKaTeXFONTS() {
             link.href = url;
             link.type = 'font/woff2';
             link.crossOrigin = 'anonymous';
-            
+
             // 添加错误处理
             link.onerror = () => {
               console.warn(`字体预加载失败: ${url}`);
@@ -47,7 +47,7 @@ export function preloadKaTeXFONTS() {
                 link.parentNode.removeChild(link);
               }
             };
-            
+
             document.head.appendChild(link);
           }
         } catch (error) {
@@ -55,27 +55,27 @@ export function preloadKaTeXFONTS() {
         }
       });
 
-        // 使用Font Loading API预加载关键字体
-        const criticalFonts = [
-      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Main-Regular.woff2',
-      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Math-Italic.woff2'
-    ];
+      // 使用Font Loading API预加载关键字体
+      const criticalFonts = [
+        'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Main-Regular.woff2',
+        'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Math-Italic.woff2',
+      ];
 
-    criticalFonts.forEach(fontUrl => {
-      const fontFace = new FontFace(
-        'KaTeX_Font',
-        `url(${fontUrl}) format('woff2')`,
-        { style: 'normal', weight: 'normal' }
-      );
-      fontFace.load().catch(error => {
-        console.warn('KaTeX字体预加载失败:', error);
+      criticalFonts.forEach(fontUrl => {
+        const fontFace = new FontFace(
+          'KaTeX_Font',
+          `url(${fontUrl}) format('woff2')`,
+          { style: 'normal', weight: 'normal' },
+        );
+        fontFace.load().catch(error => {
+          console.warn('KaTeX字体预加载失败:', error);
+        });
       });
-    });
-      }
-    } catch (error) {
-      console.warn('KaTeX字体预加载过程中出错，但不会阻止UI渲染:', error);
     }
+  } catch (error) {
+    console.warn('KaTeX字体预加载过程中出错，但不会阻止UI渲染:', error);
   }
+}
 
 /**
  * 延迟加载KaTeX模块，避免阻塞初始渲染
@@ -84,10 +84,10 @@ export function preloadKaTeXFONTS() {
 export async function loadKaTeX() {
   // 使用动态导入延迟加载KaTeX
   const katexModule = await import('katex');
-  
+
   return {
     katex: katexModule.default,
-    renderToString: katexModule.default.renderToString
+    renderToString: katexModule.default.renderToString,
   };
 }
 
@@ -114,7 +114,7 @@ export class LaTeXCache {
    */
   set(expression: string, displayMode: boolean, result: string): void {
     const key = this.getKey(expression, displayMode);
-    
+
     // 缓存满了，移除最早的条目
     if (this.cache.size >= this.maxSize) {
       // 删除最早的条目
@@ -123,7 +123,7 @@ export class LaTeXCache {
         this.cache.delete(firstKey);
       }
     }
-    
+
     this.cache.set(key, result);
   }
 

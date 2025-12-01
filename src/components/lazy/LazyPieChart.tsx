@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Loader } from '../Loader';
+import { Loader } from '../ui/Loader';
 
 // 定义PieChartProps接口
 interface PieChartData {

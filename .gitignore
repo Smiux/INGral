@@ -84,3 +84,6 @@ ehthumbs_vista.db
 .tmp/
 temp/
 out/
+
+# Trae AI
+.trae/

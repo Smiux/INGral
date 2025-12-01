@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
-import { useCanvas, PieDataItem } from '../../hooks/useCanvas';
-import { Canvas } from '../../components/Canvas';
-import type { CanvasRef } from '../../components/Canvas';
+import { useCanvas } from '../../hooks/useCanvasHook';
+import type { PieDataItem } from '../../hooks/canvasTypes';
+import { Canvas } from '../../components/canvas/Canvas';
+import type { CanvasRef } from '../../components/canvas/Canvas';
 // 移除不存在的ChartOptions导入
 import styles from './PieChart.module.css';
 
@@ -22,8 +23,8 @@ interface PieChartProps {
 }
 
 const defaultColors = [
-  '#4f46e5', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444', 
-  '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f97316'
+  '#4f46e5', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444',
+  '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f97316',
 ];
 
 const PieChartComponent: React.FC<PieChartProps> = ({
@@ -32,7 +33,7 @@ const PieChartComponent: React.FC<PieChartProps> = ({
   options = {},
   className = '',
   showLabels = true,
-  showPercentages = true
+  showPercentages = true,
 }) => {
   // 准备图表数据，使用类型断言确保color属性处理正确
   const chartData = data.map((item, index) => {
@@ -43,7 +44,7 @@ const PieChartComponent: React.FC<PieChartProps> = ({
       // 使用类型断言确保color被视为字符串
       color: (item?.color || defaultColors[index % defaultColors.length]) as string,
       // 只有当percentage存在时才添加
-      ...(item?.percentage !== undefined && { percentage: item.percentage })
+      ...(item?.percentage !== undefined && { percentage: item.percentage }),
     };
   });
 
@@ -53,14 +54,14 @@ const PieChartComponent: React.FC<PieChartProps> = ({
     height,
     showLabels,
     showPercentages,
-    ...options
+    ...options,
   });
-  
+
   // 创建一个正确类型的ref传递给Canvas组件
   const canvasRef = useRef<CanvasRef>(null);
 
   return (
-    <div 
+    <div
       className={`${styles.container} ${className}`}
       style={{ height: `${height}px` }}
     >
@@ -69,8 +70,8 @@ const PieChartComponent: React.FC<PieChartProps> = ({
         <div className={styles.legend}>
           {chartData.map((item, index) => (
             <div key={index} className={styles.legendItem}>
-              <div 
-                className={styles.legendColor} 
+              <div
+                className={styles.legendColor}
                 style={{ backgroundColor: item.color }}
               />
               <span className={styles.legendText}>

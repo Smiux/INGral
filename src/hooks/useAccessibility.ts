@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
-import { 
-  screenReaderAnnouncer, 
-  focusManager, 
-  accessibilityUtils, 
-  AriaRole 
+import type {
+  AriaRole } from '../utils/accessibility';
+import {
+  screenReaderAnnouncer,
+  focusManager,
+  accessibilityUtils,
 } from '../utils/accessibility';
 
 /**
@@ -14,42 +15,42 @@ export interface AccessibilityProps {
    * ARIA角色
    */
   role?: AriaRole;
-  
+
   /**
    * ARIA标签
    */
   ariaLabel?: string;
-  
+
   /**
    * ARIA描述
    */
   ariaDescription?: string;
-  
+
   /**
    * ARIA描述元素ID
    */
   ariaDescribedby?: string;
-  
+
   /**
    * ARIA标签元素ID
    */
   ariaLabelledby?: string;
-  
+
   /**
    * 是否为禁用状态
    */
   ariaDisabled?: boolean;
-  
+
   /**
    * 状态提示文本
    */
   statusText?: string;
-  
+
   /**
    * 是否为活动状态
    */
   isActive?: boolean;
-  
+
   /**
    * 额外的ARIA属性
    */
@@ -70,7 +71,7 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
     ariaDisabled,
     statusText,
     isActive = false,
-    ariaAttributes = {}
+    ariaAttributes = {},
   } = options;
 
   const ref = useRef<HTMLElement>(null);
@@ -87,7 +88,7 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
   // 设置元素的ARIA属性
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    if (!element) {return;}
 
     // 设置角色
     if (role) {
@@ -102,7 +103,7 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
     // 设置描述
     if (ariaDescription && !ariaDescribedby) {
       element.setAttribute('aria-describedby', descriptionIdRef.current);
-      
+
       // 创建或更新描述元素
       let descriptionElement = document.getElementById(descriptionIdRef.current);
       if (!descriptionElement) {
@@ -152,7 +153,7 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
   // 处理键盘焦点事件
   const handleFocus = useCallback(() => {
     setIsFocused(true);
-    
+
     // 如果有状态文本，在获取焦点时通知屏幕阅读器
     if (statusText) {
       screenReaderAnnouncer.announceStatus(statusText);
@@ -201,16 +202,16 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
     ref,
     onFocus: handleFocus,
     onBlur: handleBlur,
-    tabIndex: ariaDisabled ? -1 : undefined
+    tabIndex: ariaDisabled ? -1 : undefined,
   }), [handleFocus, handleBlur, ariaDisabled]);
 
   return {
     // 元素引用
     ref,
-    
+
     // 状态
     isFocused,
-    
+
     // 方法
     announce,
     announceStatus,
@@ -219,12 +220,12 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
     focus,
     saveFocus,
     restoreFocus,
-    
+
     // 工具函数
     getAccessibilityProps,
-    
+
     // 描述ID
-    descriptionId: descriptionIdRef.current
+    descriptionId: descriptionIdRef.current,
   };
 };
 
@@ -236,41 +237,41 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
  * @param isRequired 是否必填
  * @returns 表单字段的可访问性属性
  */
-export const useFormFieldAccessibility = (label: string, error?: string, isRequired: boolean = false) => {
+export const useFormFieldAccessibility = (label: string, error?: string, isRequired = false) => {
   const [errorId] = useState(() => accessibilityUtils.generateAriaId('error'));
-  
+
   const ariaAttributes: Record<string, string> = {};
   if (error) {
     ariaAttributes['aria-invalid'] = 'true';
     ariaAttributes['aria-describedby'] = errorId;
   }
-  
+
   if (isRequired) {
     ariaAttributes['aria-required'] = 'true';
   }
-  
+
   const { getAccessibilityProps, announceError } = useAccessibility({
     ariaLabel: label,
-    ariaAttributes
+    ariaAttributes,
   });
-  
+
   // 处理错误通知
   useEffect(() => {
     if (error) {
       announceError(error);
     }
   }, [error, announceError]);
-  
+
   return {
     inputProps: {
       ...getAccessibilityProps(),
-      ...(isRequired ? { required: true } : {})
+      ...(isRequired ? { required: true } : {}),
     },
     errorProps: {
       id: errorId,
       role: 'alert' as AriaRole,
-      'aria-live': 'assertive'
-    }
+      'aria-live': 'assertive',
+    },
   };
 };
 
@@ -282,19 +283,19 @@ export const useFormFieldAccessibility = (label: string, error?: string, isRequi
 export const useModalAccessibility = () => {
   const modalRef = useRef<HTMLElement>(null);
   const [initialFocusRef] = useState(() => React.createRef<HTMLElement>());
-  
+
   // 初始化模态框可访问性
   useEffect(() => {
     const modalElement = modalRef.current;
-    if (!modalElement) return;
-    
+    if (!modalElement) {return;}
+
     // 保存当前焦点
     focusManager.saveFocus();
-    
+
     // 设置模态框属性
     modalElement.setAttribute('role', 'dialog');
     modalElement.setAttribute('aria-modal', 'true');
-    
+
     // 聚焦到初始元素或模态框第一个可聚焦元素
     setTimeout(() => {
       if (initialFocusRef.current) {
@@ -303,7 +304,7 @@ export const useModalAccessibility = () => {
         focusManager.focusFirstElement(modalElement);
       }
     }, 100);
-    
+
     // 处理焦点陷阱
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -311,21 +312,21 @@ export const useModalAccessibility = () => {
         event.stopPropagation();
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
-    
+
     return () => {
       // 清理
       document.removeEventListener('keydown', handleKeyDown);
-      
+
       // 恢复焦点
       focusManager.restoreFocus();
     };
   }, [initialFocusRef]);
-  
+
   return {
     modalRef,
-    initialFocusRef
+    initialFocusRef,
   };
 };
 
@@ -336,10 +337,10 @@ export const useModalAccessibility = () => {
  * @param mode 屏幕阅读器读取模式（polite：礼貌地读取，assertive：立即读取）
  * @returns 动态内容区域的可访问性属性和更新方法
  */
-export const useLiveRegion = (initialText: string = '', mode: 'polite' | 'assertive' = 'polite') => {
+export const useLiveRegion = (initialText = '', mode: 'polite' | 'assertive' = 'polite') => {
   const [text, setText] = useState(initialText);
   const regionRef = useRef<HTMLElement>(null);
-  
+
   /**
    * 更新活动区域内容
    * @param newText 新的文本内容
@@ -353,7 +354,7 @@ export const useLiveRegion = (initialText: string = '', mode: 'polite' | 'assert
       regionRef.current.textContent = newText;
     }
   }, []);
-  
+
   /**
    * 获取活动区域的props
    * @returns 活动区域的可访问性属性
@@ -363,12 +364,12 @@ export const useLiveRegion = (initialText: string = '', mode: 'polite' | 'assert
     'aria-live': mode,
     'aria-atomic': 'true',
     className: 'sr-only',
-    role: 'status' as AriaRole
+    role: 'status' as AriaRole,
   }), [mode]);
-  
+
   return {
     text,
     updateText,
-    getLiveRegionProps
+    getLiveRegionProps,
   };
 };

@@ -59,7 +59,7 @@ export const useCanvas = <T>(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _data: T,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _options: UseCanvasOptions
+  _options: UseCanvasOptions,
 ): {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   drawChart: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void;
@@ -75,7 +75,7 @@ export const useCanvas = <T>(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _ctx: CanvasRenderingContext2D,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _canvas: HTMLCanvasElement
+    _canvas: HTMLCanvasElement,
   ) => {
     // 绘制逻辑将从useCanvas.tsx中移动过来
     // 暂时保留空实现
@@ -83,6 +83,6 @@ export const useCanvas = <T>(
 
   return {
     canvasRef,
-    drawChart
+    drawChart,
   };
 };

@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Supabase客户端配置和初始化
- * 
+ *
  * 安全注意事项：
  * - 客户端只能使用VITE_前缀的环境变量，确保敏感信息不会暴露
  * - 服务端密钥(SUPABASE_SERVICE_ROLE_KEY)绝对不应在客户端代码中访问
@@ -14,25 +14,25 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 const getSupabaseConfig = (): { url: string; anonKey: string } => {
   const url = import.meta.env.VITE_SUPABASE_URL as string;
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-  
+
   // 检查环境变量是否已设置
   if (!url || !anonKey) {
     console.warn('警告: Supabase环境变量未完全配置。应用将以有限功能模式运行。');
-    
+
     // 提供模拟值以避免应用崩溃
     return {
       url: url || 'https://mock-url.supabase.co',
-      anonKey: anonKey || 'mock-anon-key'
+      anonKey: anonKey || 'mock-anon-key',
     };
   }
-  
+
   return { url, anonKey };
 };
 
 // 创建模拟Supabase客户端，用于开发和测试环境
 const createMockSupabaseClient = (): SupabaseClient => {
   console.warn('使用模拟Supabase客户端以允许UI正常加载');
-  
+
   return {
     auth: {
       getSession: async () => ({ data: { session: null } }),
@@ -44,11 +44,11 @@ const createMockSupabaseClient = (): SupabaseClient => {
       refreshSession: async () => ({ data: { session: null }, error: null }),
     },
     from: () => ({
-      select: () => ({ 
-        eq: () => ({ 
+      select: () => ({
+        eq: () => ({
           limit: () => ({ data: [], error: null }),
           order: () => ({ data: [], error: null }),
-          single: () => Promise.resolve({ data: null, error: null })
+          single: () => Promise.resolve({ data: null, error: null }),
         }),
         in: () => ({ data: [], error: null }),
         range: () => ({ data: [], error: null }),
@@ -60,16 +60,16 @@ const createMockSupabaseClient = (): SupabaseClient => {
     }),
     functions: {
       invoke: async () => null,
-      createClient: () => ({ invoke: async () => null })
+      createClient: () => ({ invoke: async () => null }),
     },
     storage: {
       from: () => ({
         upload: async () => ({ data: null, error: null }),
         download: async () => ({ data: null, error: null }),
         remove: async () => ({ data: [], error: null }),
-        getPublicUrl: () => ({ publicUrl: '' })
-      })
-    }
+        getPublicUrl: () => ({ publicUrl: '' }),
+      }),
+    },
   } as unknown as SupabaseClient;
 };
 
@@ -91,8 +91,8 @@ try {
  */
 export async function testSupabaseConnection(): Promise<boolean> {
   try {
-    // 尝试获取会话信息来测试连接
-    await supabase.auth.getSession();
+    // 尝试查询articles表的计数来测试连接
+    await supabase.from('articles').select('id', { count: 'exact', head: true });
     console.log('数据库连接测试成功');
     return true;
   } catch (error) {
@@ -103,4 +103,3 @@ export async function testSupabaseConnection(): Promise<boolean> {
 
 // 导出Supabase客户端
 export { supabase };
-

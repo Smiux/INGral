@@ -1,41 +1,68 @@
-/**
- * 主题上下文
- * 提供应用的主题管理
- */
-import React, { createContext, ReactNode } from 'react';
-import { type Theme, defaultTheme } from './themeUtils';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-/**
- * 主题上下文对象
- */
-export const ThemeContext = createContext<Theme>(defaultTheme);
+// Define theme types
+type Theme = 'light' | 'dark';
 
-/**
- * 主题提供者属性接口
- */
-interface ThemeProviderProps {
-  /** 子组件 */
-  children: ReactNode;
-  /** 自定义主题（可选） */
-  theme?: Theme;
+// Define context type
+interface ThemeContextType {
+  theme: Theme;
+  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
 }
 
-/**
- * 主题提供者组件
- * 管理应用的主题状态
- * @param props - 组件属性
- */
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ 
-  children, 
-  theme = defaultTheme 
-}) => {
+// Create context with default values
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+// Theme provider component
+interface ThemeProviderProps {
+  children: ReactNode;
+}
+
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+  // Initialize theme from localStorage or system preference
+  const [theme, setTheme] = useState<Theme>(() => {
+    // Check localStorage for saved theme
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    if (savedTheme) {
+      return savedTheme;
+    }
+    // Check system preference
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    // Default to light theme
+    return 'light';
+  });
+
+  // Update document class when theme changes
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    // Save theme to localStorage
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  // Toggle theme function
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+  };
+
   return (
-    <ThemeContext.Provider value={theme}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-// 注意：为了符合ESLint的react-refresh/only-export-components规则，我们不导出非组件内容
-// 请通过命名导入使用ThemeContext
-// export default ThemeContext;
+// Custom hook to use theme context
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};

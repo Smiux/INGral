@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
-import { useCanvas } from '../../hooks/useCanvas';
-import { Canvas } from '../../components/Canvas';
-import type { CanvasRef } from '../../components/Canvas';
-import { ChartData } from '../../types/analytics';
+import { useCanvas } from '../../hooks/useCanvasHook';
+import { Canvas } from '../../components/canvas/Canvas';
+import type { CanvasRef } from '../../components/canvas/Canvas';
+import type { ChartData } from '../../types/analytics';
 import styles from './BarChart.module.css';
 
 interface BarChartProps {
@@ -18,20 +18,20 @@ const BarChartComponent: React.FC<BarChartProps> = ({
   height = 300,
   options = {},
   className = '',
-  horizontal = false
+  horizontal = false,
 }) => {
   const { drawChart } = useCanvas(data, {
     type: 'bar',
     height,
     horizontal,
-    ...options
+    ...options,
   });
-  
+
   // 创建一个正确类型的ref传递给Canvas组件
-   const canvasRef = useRef<CanvasRef>(null);
+  const canvasRef = useRef<CanvasRef>(null);
 
   return (
-    <div 
+    <div
       className={`${styles.container} ${className} ${horizontal ? styles.horizontal : ''}`}
       style={{ height: `${height || 300}px` }}
     >

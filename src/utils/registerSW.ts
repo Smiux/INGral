@@ -19,7 +19,7 @@ export function registerServiceWorker(): UpdateSWCallback | undefined {
     try {
       // 暂时使用模拟实现，避免PWA相关错误
       console.log('Service Worker 功能暂时禁用，用于构建测试');
-      
+
       // 创建一个模拟的回调函数
       const mockCallback = async (reloadPage?: boolean) => {
         console.log('模拟Service Worker更新检查');
@@ -27,13 +27,13 @@ export function registerServiceWorker(): UpdateSWCallback | undefined {
           window.location.reload();
         }
       };
-      
+
       updateSW = mockCallback;
     } catch (error) {
       console.error('Service Worker 注册过程出错:', error);
     }
   }
-  
+
   return updateSW;
 }
 

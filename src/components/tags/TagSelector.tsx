@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Tag } from '../../types';
-import { TagService } from '../../services/tagService';
+import type { Tag } from '../../types';
+import { tagService } from '../../services/tagService';
 import styles from './TagSelector.module.css';
 
 interface TagSelectorProps {
@@ -32,10 +32,10 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
       try {
         setLoading(true);
         setError(null);
-        const tags = await TagService.getAllTags({
-          sortBy: 'usage_count',
-          sortOrder: 'desc',
-        });
+        const tags = await tagService.getAllTags({
+        sortBy: 'usage_count',
+        sortOrder: 'desc',
+      });
         setAvailableTags(tags);
       } catch (err) {
         setError('获取标签失败');
@@ -52,9 +52,9 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   useEffect(() => {
     const filtered = availableTags
       .filter(tag => !selectedTags.includes(tag.id))
-      .filter(tag => 
-        searchQuery.trim() === '' || 
-        tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+      .filter(tag =>
+        searchQuery.trim() === '' ||
+        tag.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     setFilteredTags(filtered);
   }, [searchQuery, availableTags, selectedTags]);
@@ -76,7 +76,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     if (selectedTags.length >= maxTags) {
       return;
     }
-    
+
     if (!selectedTags.includes(tagId)) {
       onChange([...selectedTags, tagId]);
       setSearchQuery('');
@@ -97,13 +97,13 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
 
     try {
       setCreatingTag(true);
-      const newTag = await TagService.createTag({
+      const newTag = await tagService.createTag({
         name: newTagName.trim(),
       });
-      
+
       // 添加到选择的标签中
       handleTagSelect(newTag.id);
-      
+
       // 更新可用标签列表
       setAvailableTags([...availableTags, newTag]);
       setNewTagName('');
@@ -155,7 +155,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
 
   // 显示下拉框
   const renderDropdown = () => {
-    if (!showDropdown) return null;
+    if (!showDropdown) {return null;}
 
     return (
       <div className={styles.dropdown} ref={dropdownRef}>
@@ -174,7 +174,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                     className={styles.tagOption}
                     onClick={() => handleTagSelect(tag.id)}
                   >
-                    <div 
+                    <div
                       className={styles.tagColorIndicator}
                       style={{ backgroundColor: tag.color }}
                     />
@@ -186,7 +186,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                 ))}
               </div>
             )}
-            
+
             {/* 创建新标签选项 */}
             {searchQuery && filteredTags.length === 0 && !creatingTag && (
               <div className={styles.createTagOption}>
@@ -209,7 +209,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     <div className={styles.container}>
       {/* 已选择的标签 */}
       {renderSelectedTags()}
-      
+
       {/* 标签输入框 */}
       {!disabled && selectedTags.length < maxTags && (
         <div className={styles.inputContainer}>
@@ -225,7 +225,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
           {renderDropdown()}
         </div>
       )}
-      
+
       {/* 标签数量限制提示 */}
       {selectedTags.length >= maxTags && (
         <div className={styles.limitReached}>

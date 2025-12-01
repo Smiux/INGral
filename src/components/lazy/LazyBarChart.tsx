@@ -1,8 +1,8 @@
 import { lazy, Suspense } from 'react';
-import { Loader } from '../Loader';
+import { Loader } from '../ui/Loader';
 
 // 导入所需的类型定义
-import { ChartData } from '../../types/analytics';
+import type { ChartData } from '../../types/analytics';
 
 // 定义更具体的BarChartOptions接口
 interface BarChartOptions {

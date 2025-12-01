@@ -36,7 +36,7 @@ export class SitemapGenerator {
     const entry: SitemapEntry = {
       url,
     };
-    
+
     // 确保只有在值存在时才添加
     if (route.lastModified !== undefined) {
       entry.lastModified = route.lastModified;
@@ -47,7 +47,7 @@ export class SitemapGenerator {
     if (route.priority !== undefined) {
       entry.priority = route.priority;
     }
-    
+
     this.routes.push(entry);
   }
 
@@ -62,23 +62,23 @@ export class SitemapGenerator {
     const urlEntries = this.routes.map((route) => {
       let entry = `  <url>
     <loc>${route.url}</loc>`;
-      
+
       // 明确检查lastModified是否存在且不为空字符串
       if (route.lastModified !== undefined && route.lastModified !== '') {
         entry += `
     <lastmod>${route.lastModified}</lastmod>`;
       }
-      
+
       if (route.changeFrequency) {
         entry += `
     <changefreq>${route.changeFrequency}</changefreq>`;
       }
-      
+
       if (route.priority !== undefined) {
         entry += `
     <priority>${route.priority}</priority>`;
       }
-      
+
       entry += `
   </url>`;
       return entry;
@@ -86,7 +86,7 @@ export class SitemapGenerator {
 
     const xmlFooter = `
 </urlset>`;
-    
+
     return xmlHeader + '\n' + urlEntries + xmlFooter;
   }
 
@@ -132,17 +132,17 @@ function getStaticRoutes(): (Omit<SitemapEntry, 'url'> & { path: string })[] {
  * @param outputPath 输出文件路径
  */
 export async function generateSitemap(
-  baseUrl: string = 'http://localhost:3000',
-  outputPath: string = path.resolve(process.cwd(), 'dist', 'sitemap.xml')
+  baseUrl = 'http://localhost:3000',
+  outputPath: string = path.resolve(process.cwd(), 'dist', 'sitemap.xml'),
 ): Promise<void> {
   const generator = new SitemapGenerator(baseUrl);
   const staticRoutes = getStaticRoutes();
-  
+
   // 添加静态路由
   staticRoutes.forEach(route => {
     generator.addRoute(route);
   });
-  
+
   // 生成并保存站点地图
   await generator.saveToFile(outputPath);
 }
@@ -152,14 +152,14 @@ export async function generateSitemap(
  * @param baseUrl 网站基础URL
  * @returns XML格式的站点地图字符串
  */
-export function getSitemapXml(baseUrl: string = 'http://localhost:3000'): string {
+export function getSitemapXml(baseUrl = 'http://localhost:3000'): string {
   const generator = new SitemapGenerator(baseUrl);
   const staticRoutes = getStaticRoutes();
-  
+
   // 添加静态路由
   staticRoutes.forEach(route => {
     generator.addRoute(route);
   });
-  
+
   return generator.generateXml();
 }

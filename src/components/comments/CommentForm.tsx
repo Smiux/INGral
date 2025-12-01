@@ -1,99 +1,138 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-
 import commentService from '../../services/commentService';
 import styles from './CommentForm.module.css';
 
 interface CommentFormProps {
   articleId: string;
   parentId?: string | null;
-  onCommentCreated: () => void;
+  onCommentCreated?: () => void;
 }
 
-const CommentForm: React.FC<CommentFormProps> = ({ 
-  articleId, 
-  parentId = null,
-  onCommentCreated 
-}) => {
-  const authResult = useAuth();
-  const { user, isLoading: authIsLoading } = authResult;
+const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onCommentCreated }) => {
   const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAuthorInfo, setShowAuthorInfo] = useState(false);
+  const [authorName, setAuthorName] = useState('');
+  const [authorEmail, setAuthorEmail] = useState('');
+  const [authorUrl, setAuthorUrl] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      setError('请先登录');
-      return;
-    }
+    if (!content.trim()) return;
     
-    if (!content.trim()) {
-      setError('评论内容不能为空');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
+    setIsSubmitting(true);
     
     try {
-      await commentService.createComment({
-        article_id: articleId,
-        content: content.trim(),
-        parent_id: parentId
-      });
+      await commentService.createComment(
+        { article_id: articleId, content, parent_id: parentId || null },
+        authorName,
+        authorEmail,
+        authorUrl
+      );
       
+      // 重置表单
       setContent('');
-      onCommentCreated();
-    } catch (err) {
-      setError('发表评论失败');
-      console.error('发表评论失败:', err);
+      setAuthorName('');
+      setAuthorEmail('');
+      setAuthorUrl('');
+      
+      // 通知父组件评论已创建
+      if (onCommentCreated) {
+        onCommentCreated();
+      }
+    } catch (error) {
+      console.error('创建评论失败:', error);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (authIsLoading) {
-    return <p className={styles.loading}>加载中...</p>;
-  }
-
-  if (!user) {
-    return (
-      <div className={styles.loginPrompt}>
-        <p>请先登录后再发表评论</p>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder={parentId ? '写下你的回复...' : '写下你的评论...'}
-        className={styles.textarea}
-        rows={4}
-      />
+    <form onSubmit={handleSubmit} className={styles.commentForm}>
+      <div className="mb-4">
+        <textarea
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          rows={4}
+          placeholder="写下你的评论..."
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          disabled={isSubmitting}
+        />
+      </div>
       
-      {error && <p className={styles.error}>{error}</p>}
-      
-      <div className={styles.actions}>
-        <button 
-          type="submit" 
-          className={styles.submitButton}
-          disabled={loading || !content.trim()}
-        >
-          {loading ? '发表中...' : '发表评论'}
-        </button>
+      {/* 作者信息 */}
+      <div className={styles.authorInfo}>
+        <div className="flex items-center mb-2">
+          <button
+            type="button"
+            className="text-sm text-blue-500 hover:text-blue-700 flex items-center"
+            onClick={() => setShowAuthorInfo(!showAuthorInfo)}
+            disabled={isSubmitting}
+          >
+            <span className="mr-1">{showAuthorInfo ? '收起' : '展开'}</span>
+            作者信息
+          </button>
+          <span className="text-xs text-gray-500 ml-2">（可选）</span>
+        </div>
         
-        <button 
-          type="button" 
-          onClick={() => setContent('')}
-          className={styles.cancelButton}
-          disabled={loading}
+        {showAuthorInfo && (
+          <div className={styles.authorFields}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label htmlFor="authorName" className="block text-xs font-medium text-gray-700 mb-1">
+                  昵称
+                </label>
+                <input
+                  type="text"
+                  id="authorName"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="匿名用户"
+                  value={authorName}
+                  onChange={(e) => setAuthorName(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div>
+                <label htmlFor="authorEmail" className="block text-xs font-medium text-gray-700 mb-1">
+                  邮箱
+                </label>
+                <input
+                  type="email"
+                  id="authorEmail"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="your@email.com"
+                  value={authorEmail}
+                  onChange={(e) => setAuthorEmail(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div>
+                <label htmlFor="authorUrl" className="block text-xs font-medium text-gray-700 mb-1">
+                  网站
+                </label>
+                <input
+                  type="url"
+                  id="authorUrl"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="https://yourwebsite.com"
+                  value={authorUrl}
+                  onChange={(e) => setAuthorUrl(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isSubmitting || !content.trim()}
         >
-          取消
+          {isSubmitting ? '提交中...' : parentId ? '回复' : '发表评论'}
         </button>
       </div>
     </form>

@@ -1,5 +1,5 @@
 import { Suspense, useState, useEffect, memo } from 'react';
-import { Loader } from '../Loader';
+import { Loader } from '../ui/Loader';
 import { latexCache, loadKaTeX } from '../../utils/katexFontOptimizer';
 
 interface LatexRendererProps {
@@ -10,11 +10,11 @@ interface LatexRendererProps {
 }
 
 // 创建一个自定义的渲染组件，集成缓存机制
-const CachedLatexRenderer = ({ 
-  content, 
-  displayMode = false, 
+const CachedLatexRenderer = ({
+  content,
+  displayMode = false,
   throwOnError = false,
-  errorColor = '#cc0000'
+  errorColor = '#cc0000',
 }: LatexRendererProps) => {
   const [renderedHTML, setRenderedHTML] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,9 +38,9 @@ const CachedLatexRenderer = ({
           throwOnError,
           errorColor,
           strict: 'warn',
-          trust: false
+          trust: false,
         });
-        
+
         // 缓存结果
         latexCache.set(content, displayMode, result);
         setRenderedHTML(result);
@@ -71,8 +71,8 @@ const CachedLatexRenderer = ({
   }
 
   return (
-    <span 
-      className={displayMode ? 'block' : 'inline'} 
+    <span
+      className={displayMode ? 'block' : 'inline'}
       dangerouslySetInnerHTML={{ __html: renderedHTML || '' }}
     />
   );
@@ -87,11 +87,11 @@ const loadKaTeXCss = () => {
 };
 
 // 创建懒加载的LaTeX渲染组件
-export const LazyLatexRenderer = ({ 
-  content, 
+export const LazyLatexRenderer = ({
+  content,
   displayMode = false,
   throwOnError = false,
-  errorColor = '#cc0000'
+  errorColor = '#cc0000',
 }: LatexRendererProps) => {
   // 组件挂载时预加载KaTeX CSS
   useEffect(() => {
@@ -107,8 +107,8 @@ export const LazyLatexRenderer = ({
         </div>
       }
     >
-      <MemoizedLatexRenderer 
-        content={content} 
+      <MemoizedLatexRenderer
+        content={content}
         displayMode={displayMode}
         throwOnError={throwOnError}
         errorColor={errorColor}
@@ -116,4 +116,3 @@ export const LazyLatexRenderer = ({
     </Suspense>
   );
 };
-

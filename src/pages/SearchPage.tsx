@@ -14,7 +14,7 @@ export function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
   const [selectedTags, setSelectedTags] = useState<string[]>(
-    searchParams.get('tag') ? [searchParams.get('tag') as string] : []
+    searchParams.get('tag') ? [searchParams.get('tag') as string] : [],
   );
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,7 +24,7 @@ export function SearchPage() {
    */
   const handleSearch = (newQuery: string) => {
     setIsLoading(true);
-    
+
     // 更新URL参数
     const params = new URLSearchParams(searchParams);
     if (newQuery) {
@@ -32,7 +32,7 @@ export function SearchPage() {
     } else {
       params.delete('q');
     }
-    
+
     window.location.search = params.toString();
     setIsLoading(false);
   };
@@ -46,7 +46,7 @@ export function SearchPage() {
     // 过滤掉undefined的标签，确保类型安全
     const validTags = tags.filter(tag => tag !== undefined);
     setSelectedTags(validTags);
-    
+
     // 更新URL参数
     const params = new URLSearchParams(searchParams);
     if (validTags.length > 0 && validTags[0]) {
@@ -54,7 +54,7 @@ export function SearchPage() {
     } else {
       params.delete('tag');
     }
-    
+
     window.location.search = params.toString();
     setIsLoading(false);
   };
@@ -75,19 +75,19 @@ export function SearchPage() {
         <ArrowLeft className="w-4 h-4" />
         返回首页
       </Link>
-      
+
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>搜索{isLoading && ' (加载中...)'}</h1>
         <p className={styles.pageDescription}>查找您感兴趣的文章内容</p>
       </div>
-      
+
       <div className={styles.searchSection}>
         <SearchBox
           placeholder="输入关键词搜索文章..."
           onSearch={handleSearch}
           defaultValue={query}
         />
-        
+
         <div className={styles.filterSection}>
           <h3 className={styles.filterTitle}>按标签筛选</h3>
           <div className={styles.tagSelectorWrapper}>
@@ -97,7 +97,7 @@ export function SearchPage() {
               maxTags={1} // 只允许选择一个标签进行筛选
             />
           </div>
-          
+
           {selectedTags.length > 0 && (
             <button
               className={styles.clearFilterButton}
@@ -108,7 +108,7 @@ export function SearchPage() {
           )}
         </div>
       </div>
-      
+
       <div className={styles.resultsSection}>
         <SearchResults
           query={query}

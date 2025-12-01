@@ -15,7 +15,8 @@ MyMathWiki is a community-based knowledge platform for creating, sharing, and vi
 #### Core Tables
 1. **articles** - Main wiki articles
    - id, title, slug, content (markdown/LaTeX)
-   - author_id, created_at, updated_at, view_count
+   - author_id (optional), author_name, author_email, author_url
+   - created_at, updated_at, view_count
    - visibility ('public', 'community', 'private')
    - allow_contributions, contributors (jsonb)
    - upvotes, comment_count
@@ -25,35 +26,37 @@ MyMathWiki is a community-based knowledge platform for creating, sharing, and vi
    - Enforces no self-links and unique connections
 
 3. **tags** - Article categorization
-   - id, name, created_at
+   - id, name, slug, description, created_at
 
 4. **article_tags** - Many-to-many junction table
    - article_id, tag_id
 
-5. **user_graphs** - User-created knowledge graphs
-   - id, user_id, name
-   - nodes (jsonb), links (jsonb)
-   - is_template, created_at, updated_at
+5. **user_graphs** - Knowledge graphs
+   - id, title, graph_data (jsonb)
+   - author_id (optional), author_name, author_email, author_url
+   - is_template, visibility ('public', 'private', 'community')
+   - created_at, updated_at
 
-6. **user_profiles** - User profile information
-   - id (references auth.users), username, bio, avatar_url
-   - Auto-created on user signup
+6. **comments** - Article comments
+   - id, article_id, parent_id, content
+   - author_id (optional), author_name, author_email, author_url
+   - created_at, updated_at
 
 ### Row Level Security (RLS)
 All tables have RLS enabled with appropriate policies:
-- Public read access for public articles
-- Authenticated users can view community articles
+- Public read access for public articles and graphs
+- Public insert access for anonymous submissions
+- Authenticated users can update and delete their own content
 - Authors control their own content
 - Community contributions allowed where enabled
-- User profiles readable by all, editable by owner
 
 ### Indexes
-- Slug-based lookups (articles)
+- Slug-based lookups (articles, tags)
 - Recent articles sorting (updated_at)
 - Author queries (author_id)
 - Graph traversal (article_links source/target)
 - Visibility filtering
-- Username searches
+- Comment article_id indexing
 
 ## Application Architecture
 
@@ -74,6 +77,7 @@ All tables have RLS enabled with appropriate policies:
 - Wiki-style internal linking `[[Article Title]]`
 - Visual LaTeX editor with symbol picker
 - Real-time preview
+- Anonymous submission support
 
 #### 2. Knowledge Graph Visualization
 - Interactive D3.js-based graph
@@ -83,69 +87,97 @@ All tables have RLS enabled with appropriate policies:
 - Save/load custom graphs
 - Template system
 - Keyboard shortcuts for efficiency
+- Anonymous submission support
 
 #### 3. Community Features
 - Article visibility controls (public/community/private)
 - Contribution system
-- User profiles with bio and avatar
 - View counts and statistics
+- Comment system with anonymous support
 
-#### 4. Authentication
-- Email/password via Supabase Auth
-- Protected routes
-- User sessions
+#### 4. Tagging System
+- Article categorization
+- Tag cloud visualization
+- Filter articles by tags
 
 ### Project Structure
 ```
 ├── src/
 │   ├── components/            - React components
-│   │   ├── ArticleDrawer.tsx      - Side drawer for references
-│   │   ├── ArticleEditor.tsx      - Create/edit articles with Markdown + LaTeX
-│   │   ├── ArticleViewer.tsx      - Display articles with KaTeX rendering
-│   │   ├── Canvas.tsx             - Interactive canvas component
-│   │   ├── DataTable.tsx          - Data display component
-│   │   ├── DatabaseManager.tsx    - Database management interface
-│   │   ├── DatabaseMonitor.tsx    - Database monitoring dashboard
-│   │   ├── DateRangePicker.tsx    - Date range selection component
-│   │   ├── ExportButton.tsx       - Export functionality component
-│   │   ├── GraphVisualization.tsx - D3.js knowledge graph visualization
-│   │   ├── Header.tsx             - Navigation header
-│   │   ├── LatexEditor.tsx        - LaTeX formula editor with symbol picker
-│   │   ├── Loader.tsx             - Loading spinner component
-│   │   ├── ProfileEditor.tsx      - User profile editing interface
-│   │   ├── Select.tsx             - Custom select dropdown component
-│   │   ├── StatCard.tsx           - Statistics display card
-│   │   ├── VersionDiffViewer.tsx  - Article version comparison
-│   │   ├── VersionHistoryList.tsx - Article version history
-│   │   ├── VirtualList.tsx        - Virtual scrolling list component
-│   │   ├── charts/                - Chart components
-│   │   ├── comments/              - Comment system components
-│   │   ├── keyboard/              - Keyboard navigation components
-│   │   ├── lazy/                  - Lazy loaded components
-│   │   ├── notifications/         - Notification system components
-│   │   ├── search/                - Search components
-│   │   └── tags/                  - Tag management components
+│   │   ├── articles/           - Article-related components
+│   │   │   ├── ArticleEditor.tsx      - Create/edit articles with Markdown + LaTeX
+│   │   │   ├── ArticleViewer.tsx      - Display articles with KaTeX rendering
+│   │   │   └── index.ts               - Article components export
+│   │   ├── canvas/             - Canvas components
+│   │   │   ├── Canvas.tsx             - Interactive canvas component
+│   │   │   └── index.ts               - Canvas components export
+│   │   ├── charts/             - Chart components
+│   │   │   ├── BarChart.tsx           - Bar chart component
+│   │   │   ├── LineChart.tsx          - Line chart component
+│   │   │   ├── PieChart.tsx           - Pie chart component
+│   │   │   ├── chartUtils.ts         - Chart utility functions
+│   │   │   └── index.ts               - Chart components export
+│   │   ├── comments/           - Comment system components
+│   │   │   ├── CommentList.tsx        - Comment list component
+│   │   │   └── index.ts               - Comment components export
+│   │   ├── database/           - Database components
+│   │   │   ├── DatabaseManager.tsx    - Database management interface
+│   │   │   ├── DatabaseMonitor.tsx    - Database monitoring dashboard
+│   │   │   └── index.ts               - Database components export
+│   │   ├── editors/            - Editor components
+│   │   │   ├── LatexEditor.tsx        - LaTeX formula editor with symbol picker
+│   │   │   └── index.ts               - Editor components export
+│   │   ├── graph/              - Graph visualization components
+│   │   │   ├── GraphVisualization.tsx - D3.js knowledge graph visualization
+│   │   │   └── index.ts               - Graph components export
+│   │   ├── keyboard/           - Keyboard navigation components
+│   │   │   ├── KeyboardShortcuts.tsx  - Keyboard shortcuts component
+│   │   │   ├── keyboardUtils.ts       - Keyboard utility functions
+│   │   │   └── index.ts               - Keyboard components export
+│   │   ├── layout/             - Layout components
+│   │   │   ├── Header.tsx             - Navigation header
+│   │   │   └── index.ts               - Layout components export
+│   │   ├── lazy/               - Lazy loaded components
+│   │   │   ├── LazyBarChart.tsx       - Lazy loaded bar chart
+│   │   │   ├── LazyGraphVisualization.tsx - Lazy loaded graph visualization
+│   │   │   ├── LazyLatexRenderer.tsx  - Lazy loaded LaTeX renderer
+│   │   │   ├── LazyPieChart.tsx       - Lazy loaded pie chart
+│   │   │   └── index.ts               - Lazy components export
+│   │   ├── search/             - Search components
+│   │   │   ├── SearchBox.tsx          - Search box component
+│   │   │   ├── SearchResults.tsx      - Search results component
+│   │   │   └── index.ts               - Search components export
+│   │   ├── tags/               - Tag management components
+│   │   │   ├── TagList.tsx            - Tag list component
+│   │   │   ├── TagSelector.tsx        - Tag selector component
+│   │   │   └── index.ts               - Tag components export
+│   │   └── ui/                 - UI components
+│   │       ├── DataTable.tsx          - Data display component
+│   │       ├── DateRangePicker.tsx    - Date range selection component
+│   │       ├── ExportButton.tsx       - Export functionality component
+│   │       ├── Loader.tsx             - Loading spinner component
+│   │       ├── Select.tsx             - Custom select dropdown component
+│   │       ├── StatCard.tsx           - Statistics display card
+│   │       ├── VirtualList.tsx        - Virtual scrolling list component
+│   │       └── index.ts               - UI components export
 │   ├── context/               - React context providers
-│   │   ├── NotificationContext.tsx - Notification system context
-│   │   ├── ThemeContext.tsx        - Theme management context
+│   │   ├── ThemeContext.tsx        - Theme management context component
 │   │   ├── notificationUtils.ts    - Notification utility functions
+│   │   ├── themeContext.ts          - Theme context definition
 │   │   └── themeUtils.ts           - Theme utility functions
 │   ├── hooks/                 - Custom React hooks
+│   │   ├── canvasTypes.ts         - Canvas type definitions
 │   │   ├── canvasUtils.ts         - Canvas utility functions
 │   │   ├── useAccessibility.ts     - Accessibility hook
-│   │   ├── useAuth.ts              - Authentication hook
-│   │   └── useCanvas.tsx           - Canvas management hook
+│   │   ├── useCanvasHook.ts        - Canvas management hook
+│   │   └── canvasExports.ts        - Canvas exports aggregation
 │   ├── lib/                   - Core libraries
 │   │   └── supabase.ts            - Supabase client configuration
 │   ├── pages/                 - Application pages
 │   │   ├── ArticlesPage.tsx       - Article list page
-│   │   ├── AuthPage.tsx           - Authentication page
-│   │   ├── DashboardPage.tsx      - Admin dashboard
 │   │   ├── DatabasePage.tsx       - Database management page
 │   │   ├── GraphListPage.tsx      - Knowledge graphs list
 │   │   ├── HomePage.tsx           - Home page
-│   │   ├── NotificationPage.tsx   - Notifications page
-│   │   ├── ProfilePage.tsx        - User profile page
 │   │   └── SearchPage.tsx         - Search results page
 │   ├── services/              - Service layer
 │   │   ├── analyticsService.ts         - Analytics service
@@ -156,7 +188,6 @@ All tables have RLS enabled with appropriate policies:
 │   │   ├── notificationService.ts      - Notification service
 │   │   ├── searchService.ts            - Search service
 │   │   ├── tagService.ts               - Tag management service
-│   │   ├── userService.ts              - User management service
 │   │   └── versionHistoryService.ts    - Version history service
 │   ├── styles/                - Global styles
 │   │   └── accessibility.css       - Accessibility styles
@@ -180,8 +211,7 @@ All tables have RLS enabled with appropriate policies:
 │       ├── keyboardNavigation.ts   - Keyboard navigation utilities
 │       ├── markdown.ts             - Markdown processing
 │       ├── registerSW.ts           - Service worker registration
-│       ├── sitemapGenerator.ts     - Sitemap generation
-│       └── user.ts                 - User-related utilities
+│       └── sitemapGenerator.ts     - Sitemap generation
 ```
 
 ## Development Status
@@ -195,29 +225,35 @@ All tables have RLS enabled with appropriate policies:
 - **Performance Optimization** - Added caching mechanisms and improved loading times
 - **Export Functionality** - Added article export capabilities
 - **Version History** - Implemented article version control
+- **Content Review System** - Implemented complete content review mechanism
+- **Mathematical Calculation** - Integrated SymPy for mathematical calculations
+- **3D Visualization** - Added Three.js-based 3D graph rendering
+- **Database Structure Updates** - Added review-related tables and fields
 
 ### Core Features Completed ✓
 - Database schema and migrations
 - Supabase integration with real database
-- Authentication system with email/password login
 - Article CRUD operations with Markdown + LaTeX support
 - Wiki-style internal linking `[[Article Title]]`
 - Interactive knowledge graph visualization with D3.js
-- User profiles with customizable avatars and bios
+- Anonymous submission support for articles and graphs
 - Community features (visibility controls, contributions)
 - LaTeX editor with symbol picker and real-time preview
 - Responsive design for all screen sizes
 - Search functionality with filtering
 - Notification system
 - Keyboard shortcuts for efficiency
+- Content review mechanism with accuracy scoring
+- SymPy integration for mathematical calculations
+- Three.js-based 3D graph rendering
+- Complete database monitoring and health checks
 
 ### Ready for Development
 The application is fully configured and ready for:
-1. Creating articles
-2. Building knowledge graphs
-3. User registration and profiles
-4. Community collaboration
-5. Adding new features
+1. Creating articles with anonymous submission
+2. Building knowledge graphs with anonymous submission
+3. Community collaboration
+4. Adding new features
 
 ## Getting Started
 
@@ -248,12 +284,18 @@ npm run lint
 
 ### Database Migrations
 All migrations are already applied to the Supabase database:
-1. `20251122_create_complete_schema.sql` - Core tables and initial structure
-2. `20251123_user_auth_integration.sql` - User authentication integration
-3. `20251124_update_user_profile.sql` - User profile enhancements
-4. `20251125_create_user_graphs_table.sql` - User graphs table
-5. `20251126_add_full_text_search.sql` - Full-text search functionality
-6. `20251127_add_article_versions.sql` - Article version history
+1. `20251130_complete_database.sql` - Complete database structure with anonymous submission support
+   - Core tables (articles, user_graphs, comments, tags)
+   - Anonymous submission support with author fields
+   - Indexes, functions, triggers, and RLS policies
+   - Full-text search functionality
+   - Article version history
+
+2. `20251201_content_review.sql` - Content review enhancements
+   - Added review-related fields to articles and article_versions tables
+   - Created article_reviews table for audit logging
+   - Added appropriate indexes for review functionality
+   - Implemented RLS policies for review operations
 
 ### Database Initialization
 The application includes automatic database initialization through `databaseInitService.ts`, which:
@@ -264,13 +306,14 @@ The application includes automatic database initialization through `databaseInit
 
 ### Services Architecture
 The application uses a service layer architecture with dedicated services for:
-- User management (`userService.ts`)
 - Article operations (`article.ts` in utils)
 - Search functionality (`searchService.ts`)
 - Notification system (`notificationService.ts`)
 - Version control (`versionHistoryService.ts`)
 - Analytics tracking (`analyticsService.ts`)
 - Database monitoring (`databaseInitService.ts`)
+- Comment system (`commentService.ts`)
+- Tag management (`tagService.ts`)
 
 ## API Integration
 
@@ -284,28 +327,29 @@ const { data, error } = await supabase
   .select('*')
   .eq('visibility', 'public');
 
-// Create article
+// Create article with anonymous submission
 const { data, error } = await supabase
   .from('articles')
   .insert({
     title: 'My Article',
     slug: 'my-article',
     content: '# Content',
-    author_id: user.id
+    author_name: 'Anonymous', // Optional: leave empty for anonymous
+    visibility: 'public'
   });
-```
 
-### Authentication
-```typescript
-import { useAuth } from '@/hooks/useAuth';
-
-const { user, signIn, signOut, signUp } = useAuth();
-
-// Sign in
-await signIn('email@example.com', 'password');
-
-// Sign up
-await signUp('email@example.com', 'password');
+// Create article with author information
+const { data, error } = await supabase
+  .from('articles')
+  .insert({
+    title: 'My Article',
+    slug: 'my-article',
+    content: '# Content',
+    author_name: 'John Doe',
+    author_email: 'john@example.com',
+    author_url: 'https://example.com',
+    visibility: 'public'
+  });
 ```
 
 ## Performance Considerations
@@ -322,15 +366,11 @@ await signUp('email@example.com', 'password');
 
 ## Security
 
-### Authentication
-- Supabase Auth handles password hashing
-- JWT tokens for session management
-- Secure HTTP-only cookies
-
 ### Authorization
 - Row Level Security on all tables
 - Policy-based access control
-- Community contributions require authentication
+- Public insert access for anonymous submissions
+- Authenticated users can update and delete their own content
 - Private articles only visible to author
 
 ### Data Validation
@@ -344,7 +384,7 @@ await signUp('email@example.com', 'password');
 1. **Comments System** - Add article comments
 2. **Tags & Categories** - Implement tag filtering
 3. **Search Enhancement** - Full-text search with PostgreSQL
-4. **Notifications** - User notifications for contributions
+4. **Notifications** - Content update notifications
 5. **Export Features** - PDF/Markdown export
 6. **Mobile App** - React Native version
 7. **Real-time Collaboration** - WebSocket-based editing
@@ -381,7 +421,6 @@ await signUp('email@example.com', 'password');
 - Verify TypeScript configuration
 
 **RLS Policy Errors**
-- Check user is authenticated
 - Verify policy conditions match your use case
 - Review policy with `mcp__supabase__execute_sql`
 
@@ -395,7 +434,6 @@ await signUp('email@example.com', 'password');
 - Write meaningful commit messages
 
 ### Testing
-- Test authentication flows
 - Verify RLS policies work correctly
 - Test on multiple browsers
 - Check mobile responsiveness
@@ -405,7 +443,7 @@ await signUp('email@example.com', 'password');
 
 Built with:
 - React & TypeScript
-- Supabase (PostgreSQL + Auth)
+- Supabase (PostgreSQL)
 - D3.js for visualizations
 - KaTeX for math rendering
 - Tailwind CSS for styling
@@ -413,7 +451,7 @@ Built with:
 ---
 
 **Project Status**: Production Ready ✓
-**Last Updated**: 2025-11-26
+**Last Updated**: 2025-11-30
 **Database**: Connected and operational with real data
 **Type Checking**: Passing ✅
 **Build**: Successful ✅

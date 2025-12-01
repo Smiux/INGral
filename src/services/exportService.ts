@@ -1,10 +1,26 @@
-import { Article, Graph, GraphNode, GraphLink } from '../types';
+import type { Article, Graph, GraphNode, GraphLink } from '../types';
 import { renderMarkdown } from '../utils/markdown';
+import { BaseService } from './baseService';
 
 /**
  * 导出服务类，提供文章导出功能
  */
-class ExportService {
+export class ExportService extends BaseService {
+  private static instance: ExportService;
+
+  private constructor() {
+    super();
+  }
+
+  /**
+   * 获取单例实例
+   */
+  static getInstance(): ExportService {
+    if (!ExportService.instance) {
+      ExportService.instance = new ExportService();
+    }
+    return ExportService.instance;
+  }
   /**
    * 导出为Markdown格式
    * @param article 文章对象
@@ -287,17 +303,17 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
     try {
       // 创建Blob对象
       const blob = typeof content === 'string' ? new Blob([content], { type: mimeType }) : content;
-      
+
       // 创建下载链接
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
-      
+
       // 触发下载
       document.body.appendChild(link);
       link.click();
-      
+
       // 清理
       setTimeout(() => {
         document.body.removeChild(link);
@@ -348,17 +364,17 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
   async exportArticleToPdf(article: Article): Promise<void> {
     try {
       const htmlContent = await this.exportToHtml(article);
-      
+
       // 创建一个新窗口
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
         throw new Error('无法打开打印窗口，请检查浏览器设置');
       }
-      
+
       // 写入内容到新窗口
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-      
+
       // 等待内容加载完成后触发打印
       printWindow.onload = () => {
         // 设置打印选项（暂时注释，需要时启用）
@@ -367,7 +383,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
       //   pageSize: 'A4',
       //   printBackground: true
       // };
-        
+
         // 尝试使用现代的打印API
         if (printWindow.matchMedia) {
           printWindow.matchMedia('print').addListener((mql) => {
@@ -377,7 +393,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
             }
           });
         }
-        
+
         // 触发打印
         setTimeout(() => {
           printWindow.focus();
@@ -448,17 +464,17 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
     <node id="${node.id}">
       <data key="d0">${this.escapeXml(node.title)}</data>
       <data key="d1">${node.connections}</data>`;
-        
+
         if (node.type) {
           graphmlContent += `
       <data key="d2">${node.type}</data>`;
         }
-        
+
         if (node.description) {
           graphmlContent += `
       <data key="d3">${this.escapeXml(node.description)}</data>`;
         }
-        
+
         graphmlContent += `
     </node>`;
       });
@@ -468,17 +484,17 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
         graphmlContent += `
     <edge source="${link.source}" target="${link.target}">
       <data key="d4">${link.type}</data>`;
-        
+
         if (link.label) {
           graphmlContent += `
       <data key="d5">${this.escapeXml(link.label)}</data>`;
         }
-        
+
         if (link.weight) {
           graphmlContent += `
       <data key="d6">${link.weight}</data>`;
         }
-        
+
         graphmlContent += `
     </edge>`;
       });
@@ -528,7 +544,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
   async exportGraphAsJsonFile(graph: Graph): Promise<void> {
     try {
       const jsonContent = await this.exportGraphToJson(graph);
-      const safeFilename = this.sanitizeFilename(graph.name || 'knowledge-graph') + '.json';
+      const safeFilename = this.sanitizeFilename(graph.title || 'knowledge-graph') + '.json';
       this.triggerDownload(jsonContent, safeFilename, 'application/json;charset=utf-8');
     } catch (error) {
       console.error('导出图谱JSON文件失败:', error);
@@ -543,7 +559,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
   async exportGraphAsGraphmlFile(graph: Graph): Promise<void> {
     try {
       const graphmlContent = await this.exportGraphToGraphml(graph);
-      const safeFilename = this.sanitizeFilename(graph.name || 'knowledge-graph') + '.graphml';
+      const safeFilename = this.sanitizeFilename(graph.title || 'knowledge-graph') + '.graphml';
       this.triggerDownload(graphmlContent, safeFilename, 'application/xml;charset=utf-8');
     } catch (error) {
       console.error('导出图谱GraphML文件失败:', error);
@@ -558,16 +574,16 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
   async exportGraphAsCsvFiles(graph: Graph): Promise<void> {
     try {
       const { nodesCsv, linksCsv } = await this.exportGraphToCsv(graph);
-      const safeFilename = this.sanitizeFilename(graph.name || 'knowledge-graph');
-      
+      const safeFilename = this.sanitizeFilename(graph.title || 'knowledge-graph');
+
       // 检查浏览器是否支持CompressionStream API
       if (typeof CompressionStream !== 'undefined') {
         // 使用CompressionStream生成zip文件
         const zipContent = await this.generateZipFile({
           [`${safeFilename}_nodes.csv`]: nodesCsv,
-          [`${safeFilename}_links.csv`]: linksCsv
+          [`${safeFilename}_links.csv`]: linksCsv,
         });
-        
+
         this.triggerDownload(zipContent, `${safeFilename}_csv.zip`, 'application/zip');
       } else {
         // 不支持zip生成，分别下载两个文件
@@ -591,12 +607,12 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
       const fileContent = await this.readFileAsText(file);
 
       switch (fileExtension) {
-        case 'json':
-          return this.parseGraphJson(fileContent);
-        case 'graphml':
-          return this.parseGraphml(fileContent);
-        default:
-          throw new Error(`不支持的文件格式: ${fileExtension}`);
+      case 'json':
+        return this.parseGraphJson(fileContent);
+      case 'graphml':
+        return this.parseGraphml(fileContent);
+      default:
+        throw new Error(`不支持的文件格式: ${fileExtension}`);
       }
     } catch (error) {
       console.error('导入图谱失败:', error);
@@ -626,16 +642,16 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
   private parseGraphJson(jsonContent: string): Graph {
     try {
       const data = JSON.parse(jsonContent);
-      
+
       // 验证图谱数据结构
       if (!data.nodes || !Array.isArray(data.nodes)) {
         throw new Error('无效的图谱数据：缺少nodes数组');
       }
-      
+
       if (!data.links || !Array.isArray(data.links)) {
         throw new Error('无效的图谱数据：缺少links数组');
       }
-      
+
       return data as Graph;
     } catch (error) {
       console.error('解析JSON图谱失败:', error);
@@ -653,66 +669,67 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
       // 简单的GraphML解析，使用DOMParser
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(graphmlContent, 'application/xml');
-      
+
       const nodes: GraphNode[] = [];
       const links: GraphLink[] = [];
-      
+
       // 解析节点
       const nodeElements = xmlDoc.getElementsByTagName('node');
       for (let i = 0; i < nodeElements.length; i++) {
         const nodeElement = nodeElements[i];
-        if (!nodeElement) continue;
-        
+        if (!nodeElement) {continue;}
+
         const id = nodeElement.getAttribute('id') || '';
-        
+
         const node: GraphNode = {
           id,
           title: this.extractGraphmlData(nodeElement, 'd0') || id,
           connections: parseInt(this.extractGraphmlData(nodeElement, 'd1') || '0', 10),
           type: (this.extractGraphmlData(nodeElement, 'd2') || 'article') as 'article' | 'concept' | 'resource',
-          description: this.extractGraphmlData(nodeElement, 'd3') || ''
+          description: this.extractGraphmlData(nodeElement, 'd3') || '',
         };
-        
+
         nodes.push(node);
       }
-      
+
       // 解析链接
       const edgeElements = xmlDoc.getElementsByTagName('edge');
       for (let i = 0; i < edgeElements.length; i++) {
         const edgeElement = edgeElements[i];
-        if (!edgeElement) continue;
-        
+        if (!edgeElement) {continue;}
+
         const source = edgeElement.getAttribute('source') || '';
         const target = edgeElement.getAttribute('target') || '';
-        
+
         const link: GraphLink = {
           source,
           target,
           type: this.extractGraphmlData(edgeElement, 'd4') || 'related',
           label: this.extractGraphmlData(edgeElement, 'd5') || '',
-          weight: parseFloat(this.extractGraphmlData(edgeElement, 'd6') || '1.0')
+          weight: parseFloat(this.extractGraphmlData(edgeElement, 'd6') || '1.0'),
         };
-        
+
         links.push(link);
       }
-      
+
       // 更新节点连接数
       nodes.forEach(node => {
-        const connections = links.filter(link => 
-          link.source === node.id || link.target === node.id
+        const connections = links.filter(link =>
+          link.source === node.id || link.target === node.id,
         ).length;
         node.connections = connections;
       });
-      
+
       return {
         id: `imported-${Date.now()}`,
-        user_id: 'imported',
-        name: 'Imported Graph',
+        author_id: 'imported',
+        title: 'Imported Graph',
         nodes,
         links,
         is_template: false,
+        visibility: 'public',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
     } catch (error) {
       console.error('解析GraphML图谱失败:', error);
@@ -749,7 +766,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
         // 注意：这是一个简化实现，不支持完整的Zip规范
         let offset = 0;
         const centralDirectory: string[] = [];
-        
+
         for (const [filename, content] of Object.entries(files)) {
           // 文件头
           const fileHeader = new Uint8Array(30);
@@ -780,20 +797,20 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
           fileHeader[27] = (filename.length >> 8) & 0xFF; // 文件名长度
           fileHeader[28] = 0x00;
           fileHeader[29] = 0x00; // 额外字段长度
-          
+
           controller.enqueue(fileHeader);
           offset += fileHeader.length;
-          
+
           // 文件名
           const filenameBytes = new TextEncoder().encode(filename);
           controller.enqueue(filenameBytes);
           offset += filenameBytes.length;
-          
+
           // 文件内容
           const contentBytes = new TextEncoder().encode(content);
           controller.enqueue(contentBytes);
           offset += contentBytes.length;
-          
+
           // 记录到中央目录
           const centralDirRecord = new Uint8Array(46);
           centralDirRecord.set(new TextEncoder().encode('PK\x01\x02'), 0); // 签名
@@ -840,16 +857,16 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
           centralDirRecord[43] = (fileOffset >> 8) & 0xFF;
           centralDirRecord[44] = (fileOffset >> 16) & 0xFF;
           centralDirRecord[45] = (fileOffset >> 24) & 0xFF; // 本地文件头偏移
-          
+
           centralDirectory.push(Array.from(centralDirRecord).map(b => String.fromCharCode(b)).join(''));
           centralDirectory.push(filename);
         }
-        
+
         // 中央目录
         const centralDirectoryContent = centralDirectory.join('');
         const centralDirectoryBytes = new TextEncoder().encode(centralDirectoryContent);
         controller.enqueue(centralDirectoryBytes);
-        
+
         // 中央目录结束
         const endOfCentralDirectory = new Uint8Array(22);
         endOfCentralDirectory.set(new TextEncoder().encode('PK\x05\x06'), 0); // 签名
@@ -872,12 +889,12 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
         endOfCentralDirectory[19] = (offset >> 24) & 0xFF; // 中央目录偏移
         endOfCentralDirectory[20] = 0x00;
         endOfCentralDirectory[21] = 0x00; // 注释长度
-        
+
         controller.enqueue(endOfCentralDirectory);
         controller.close();
-      }
+      },
     });
-    
+
     return new Response(stream).blob();
   }
 
@@ -909,4 +926,4 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
 }
 
 // 导出单例
-export default new ExportService();
+export const exportService = ExportService.getInstance();

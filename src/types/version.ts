@@ -1,83 +1,79 @@
-
-
 /**
- * 文章版本相关类型定义
+ * 版本历史相关类型定义
  */
 
 /**
- * 文章版本历史接口
+ * 文章版本接口
  */
 export interface ArticleVersion {
   /** 版本ID */
   id: string;
-  /** 关联的文章ID */
+  /** 文章ID */
   article_id: string;
-  /** 版本标题 */
+  /** 版本号 */
+  version_number: number;
+  /** 标题 */
   title: string;
-  /** 版本内容 */
+  /** 内容 */
   content: string;
-  /** 版本摘要 */
-  excerpt?: string;
-  /** 标签数组 */
-  tags?: string[];
-  /** 版本作者ID */
-  author_id?: string;
+  /** 元数据 */
+  metadata: Record<string, unknown>;
+  /** 作者ID */
+  author_id: string;
   /** 创建时间 */
   created_at: string;
   /** 更新时间 */
-  updated_at?: string;
-  /** 版本号 */
-  version_number: number;
+  updated_at: string;
   /** 变更摘要 */
   change_summary?: string;
   /** 是否发布 */
   is_published: boolean;
-  /** 元数据 */
-  metadata?: Record<string, unknown>;
-  /** 父版本ID */
-  parent_version_id?: string;
-  /** 作者名称 */
-  author_name?: string;
-  /** 作者头像 */
-  author_avatar?: string;
 }
 
 /**
- * 版本比较结果接口
+ * 版本差异接口
  */
 export interface VersionDiff {
   /** 标题差异 */
-  title: { old: string; new: string; changed: boolean };
+  title: {
+    /** 旧值 */
+    old: string;
+    /** 新值 */
+    new: string;
+    /** 是否有变化 */
+    changed: boolean;
+  };
   /** 内容差异 */
-  content: { old: string; new: string; changed: boolean };
+  content: {
+    /** 旧值 */
+    old: string;
+    /** 新值 */
+    new: string;
+    /** 是否有变化 */
+    changed: boolean;
+  };
   /** 元数据差异 */
-  metadata: { old: Record<string, unknown>; new: Record<string, unknown>; changed: boolean };
-  /** 版本信息 */
+  metadata: {
+    /** 旧值 */
+    old: Record<string, unknown>;
+    /** 新值 */
+    new: Record<string, unknown>;
+    /** 是否有变化 */
+    changed: boolean;
+  };
+  /** 版本A */
   versionA: ArticleVersion;
-  versionB?: ArticleVersion;
+  /** 版本B */
+  versionB: ArticleVersion;
 }
 
 /**
- * 版本历史查询参数
- */
-export interface VersionHistoryQueryParams {
-  /** 文章ID */
-  articleId: string;
-  /** 页码 */
-  page?: number;
-  /** 每页数量 */
-  limit?: number;
-  /** 排序方向 */
-  order?: 'asc' | 'desc';
-}
-
-/**
- * 版本历史分页结果
+ * 版本历史结果接口
  */
 export interface VersionHistoryResult {
   /** 版本列表 */
   versions: ArticleVersion[];
-  /** 总数 */
+  /** 总数量 */
   total: number;
   /** 当前页码 */
   page: number;
@@ -88,15 +84,27 @@ export interface VersionHistoryResult {
 }
 
 /**
- * 还原版本选项
+ * 获取文章版本参数接口
  */
-export interface RestoreVersionOptions {
+export interface GetArticleVersionsParams {
+  /** 文章ID */
+  articleId: string;
+  /** 页码 */
+  page?: number;
+  /** 每页数量 */
+  limit?: number;
+  /** 排序方式 */
+  order?: 'asc' | 'desc';
+}
+
+/**
+ * 还原版本参数接口
+ */
+export interface RestoreVersionParams {
   /** 版本ID */
   versionId: string;
   /** 文章ID */
   articleId: string;
-  /** 是否创建新的版本记录 */
-  createNewVersion?: boolean;
-  /** 还原说明 */
+  /** 还原注释 */
   restoreComment?: string;
 }

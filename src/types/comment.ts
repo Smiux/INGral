@@ -1,7 +1,7 @@
 export interface Comment {
   id: string;
   article_id: string;
-  user_id: string;
+  user_id?: string;
   content: string;
   created_at: string;
   updated_at: string;
@@ -9,12 +9,6 @@ export interface Comment {
   upvotes: number;
   downvotes: number;
   is_deleted: boolean;
-  user?: {
-    id: string;
-    email?: string;
-    name?: string;
-    avatar_url?: string;
-  };
   replies?: Comment[];
 }
 
@@ -31,4 +25,3 @@ export interface UpdateCommentData {
 export interface DeleteCommentData {
   is_deleted: boolean;
 }
-

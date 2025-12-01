@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SearchService } from '../../services/searchService';
+import { searchService } from '../../services/searchService';
 import styles from './SearchBox.module.css';
 
 interface SearchBoxProps {
@@ -15,7 +15,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   onSearch,
   onFocus,
   onBlur,
-  defaultValue = ''
+  defaultValue = '',
 }) => {
   const [query, setQuery] = useState(defaultValue);
   const [suggestions, setSuggestions] = useState<{ title: string; id: string }[]>([]);
@@ -48,7 +48,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 
     setLoading(true);
     try {
-      const results = await SearchService.getSearchSuggestions(searchQuery);
+      const results = await searchService.getSearchSuggestions(searchQuery);
       setSuggestions(results);
       setShowSuggestions(true);
     } catch (error) {
@@ -126,13 +126,13 @@ const SearchBox: React.FC<SearchBoxProps> = ({
     <div className={styles.searchBoxContainer}>
       <form onSubmit={handleSubmit} className={styles.searchForm}>
         <div className={`${styles.inputWrapper} ${hasFocus ? styles.inputWrapperFocused : ''}`}>
-          <svg 
-            className={styles.searchIcon} 
-            width="20" 
-            height="20" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={styles.searchIcon}
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
             strokeWidth="2"
           >
             <circle cx="11" cy="11" r="8"></circle>
@@ -161,12 +161,12 @@ const SearchBox: React.FC<SearchBoxProps> = ({
               className={styles.clearButton}
               aria-label="清除搜索内容"
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
                 strokeWidth="2"
               >
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -175,18 +175,18 @@ const SearchBox: React.FC<SearchBoxProps> = ({
             </button>
           )}
         </div>
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className={styles.searchButton}
           aria-label="搜索"
         >
           搜索
         </button>
       </form>
-      
+
       {showSuggestions && (
-        <div 
-          ref={suggestionsRef} 
+        <div
+          ref={suggestionsRef}
           className={styles.suggestionsContainer}
         >
           {loading ? (

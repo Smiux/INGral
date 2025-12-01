@@ -5,18 +5,39 @@
 @tailwind components;
 @tailwind utilities;
 
-.wiki-link-styling .wiki-link {
-  @apply text-blue-600 hover:text-blue-700 underline transition;
+/* Base styles */
+body {
+  @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200;
 }
 
+/* Wiki link styling */
+.wiki-link-styling .wiki-link {
+  @apply text-blue-600 hover:text-blue-700 underline transition dark:text-blue-400 dark:hover:text-blue-300;
+}
+
+/* KaTeX styling */
 .wiki-link-styling .katex-display {
   @apply my-4 overflow-x-auto;
 }
 
 .wiki-link-styling .katex {
-  @apply text-gray-900;
+  @apply text-gray-900 dark:text-gray-100;
 }
 
+/* Dark mode KaTeX styles */
+.dark .katex {
+  color: #f3f4f6;
+}
+
+.dark .katex .katex-mathml {
+  color: #f3f4f6;
+}
+
+.dark .katex .katex-html {
+  color: #f3f4f6;
+}
+
+/* Headings */
 .wiki-link-styling h1,
 .wiki-link-styling h2,
 .wiki-link-styling h3 {
@@ -24,38 +45,60 @@
 }
 
 .wiki-link-styling h1 {
-  @apply text-2xl;
+  @apply text-2xl dark:text-white;
 }
 
 .wiki-link-styling h2 {
-  @apply text-xl;
+  @apply text-xl dark:text-gray-200;
 }
 
 .wiki-link-styling h3 {
-  @apply text-lg;
+  @apply text-lg dark:text-gray-300;
 }
 
+/* Paragraphs */
 .wiki-link-styling p {
-  @apply mb-4 leading-relaxed;
+  @apply mb-4 leading-relaxed dark:text-gray-300;
 }
 
+/* Lists */
 .wiki-link-styling ul,
 .wiki-link-styling ol {
-  @apply mb-4 ml-6;
+  @apply mb-4 ml-6 dark:text-gray-300;
 }
 
 .wiki-link-styling li {
   @apply mb-2;
 }
 
+/* Code */
 .wiki-link-styling code {
-  @apply bg-gray-100 px-2 py-1 rounded font-mono text-sm;
+  @apply bg-gray-100 px-2 py-1 rounded font-mono text-sm dark:bg-gray-800 dark:text-gray-200;
 }
 
 .wiki-link-styling pre {
   @apply bg-gray-800 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4;
 }
 
+/* Blockquotes */
 .wiki-link-styling blockquote {
-  @apply border-l-4 border-gray-300 pl-4 py-2 text-gray-700 italic;
+  @apply border-l-4 border-gray-300 pl-4 py-2 text-gray-700 italic dark:border-gray-700 dark:text-gray-400;
+}
+
+/* Tables */
+.wiki-link-styling table {
+  @apply w-full border-collapse mb-4;
+}
+
+.wiki-link-styling th,
+.wiki-link-styling td {
+  @apply border border-gray-300 px-4 py-2 dark:border-gray-700 dark:text-gray-300;
+}
+
+.wiki-link-styling th {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+.wiki-link-styling tr:nth-child(even) {
+  @apply bg-gray-50 dark:bg-gray-800;
 }

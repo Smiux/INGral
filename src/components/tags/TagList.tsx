@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Tag } from '../../types';
-import { TagService } from '../../services/tagService';
+import type { Tag } from '../../types';
+import { tagService } from '../../services/tagService';
 import styles from './TagList.module.css';
 
 interface TagListProps {
@@ -32,10 +32,10 @@ export const TagList: React.FC<TagListProps> = ({
       try {
         setLoading(true);
         setError(null);
-        const allTags = await TagService.getAllTags({
-          sortBy: 'usage_count',
-          sortOrder: 'desc',
-        });
+        const allTags = await tagService.getAllTags({
+        sortBy: 'usage_count',
+        sortOrder: 'desc',
+      });
         setTags(allTags);
       } catch (err) {
         setError('获取标签列表失败');
@@ -53,8 +53,8 @@ export const TagList: React.FC<TagListProps> = ({
     if (searchQuery.trim() === '') {
       setFilteredTags(tags);
     } else {
-      const filtered = tags.filter(tag => 
-        tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+      const filtered = tags.filter(tag =>
+        tag.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
       setFilteredTags(filtered);
     }
@@ -83,7 +83,7 @@ export const TagList: React.FC<TagListProps> = ({
   // 渲染标签项
   const renderTag = (tag: Tag) => {
     const isSelected = selectedTags.includes(tag.id);
-    
+
     return (
       <div
         key={tag.id}

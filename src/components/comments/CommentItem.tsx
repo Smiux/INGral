@@ -1,216 +1,201 @@
 import React, { useState } from 'react';
-import { Comment } from '../../types/comment';
+import type { Comment } from '../../types';
 import CommentForm from './CommentForm';
 import commentService from '../../services/commentService';
-import { useAuth } from '../../hooks/useAuth';
-import styles from './CommentItem.module.css';
 
 interface CommentItemProps {
   comment: Comment;
   articleId: string;
-  onCommentUpdated: () => void;
-  onCommentDeleted: () => void;
-  onReplyCreated: () => void;
+  depth?: number;
+  onVote?: ((commentId: string, voteType: 'up' | 'down') => void) | undefined;
+  onEdit?: ((commentId: string, content: string) => void) | undefined;
+  onDelete?: ((commentId: string) => void) | undefined;
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
   comment,
   articleId,
-  onCommentUpdated,
-  onCommentDeleted,
-  onReplyCreated
+  depth = 0,
+  onVote,
+  onEdit,
+  onDelete,
 }) => {
-  const { user } = useAuth();
-  const [showReplyForm, setShowReplyForm] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const isAuthor = user?.id === comment.user_id;
+  // 限制最大嵌套深度为3
+  const maxDepth = 3;
+  const isMaxDepth = depth >= maxDepth;
 
-  const handleDelete = async () => {
-    if (!window.confirm('确定要删除这条评论吗？')) return;
-    
-    setLoading(true);
-    setError(null);
+  const handleVote = async (voteType: 'up' | 'down') => {
     try {
-      await commentService.deleteComment(comment.id);
-      onCommentDeleted();
-    } catch (err) {
-      setError('删除评论失败');
-      console.error('删除评论失败:', err);
+      setIsLoading(true);
+      await commentService.voteComment(comment.id, voteType);
+      if (onVote) {
+        onVote(comment.id, voteType);
+      }
+    } catch (error) {
+      console.error('投票失败:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleEdit = async () => {
-    if (!editContent.trim()) {
-      setError('评论内容不能为空');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
+    if (!editContent.trim()) return;
+    
     try {
+      setIsLoading(true);
       await commentService.updateComment(comment.id, { content: editContent });
+      if (onEdit) {
+        onEdit(comment.id, editContent);
+      }
       setIsEditing(false);
-      onCommentUpdated();
-    } catch (err) {
-      setError('更新评论失败');
-      console.error('更新评论失败:', err);
+    } catch (error) {
+      console.error('编辑评论失败:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleVote = async (voteType: 'up' | 'down') => {
-    setLoading(true);
-    setError(null);
+  const handleDelete = async () => {
     try {
-      await commentService.voteComment(comment.id, voteType);
-      onCommentUpdated();
-    } catch (err) {
-      setError('投票失败');
-      console.error('投票失败:', err);
+      setIsLoading(true);
+      await commentService.deleteComment(comment.id);
+      if (onDelete) {
+        onDelete(comment.id);
+      }
+    } catch (error) {
+      console.error('删除评论失败:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-
-  if (comment.is_deleted) {
-    return (
-      <div className={`${styles.container} ${styles.deleted}`}>
-        <p className={styles.deletedText}>[已删除]</p>
-      </div>
-    );
-  }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        {comment.user?.avatar_url && (
-          <img 
-            src={comment.user.avatar_url} 
-            alt={comment.user.name || '用户头像'} 
-            className={styles.avatar}
-          />
-        )}
-        <div className={styles.userInfo}>
-          <h4 className={styles.username}>
-            {comment.user?.name || '匿名用户'}
-          </h4>
-          <p className={styles.time}>
-            {comment.created_at ? new Date(comment.created_at).toLocaleString() : 'N/A'}
-          </p>
-        </div>
-      </div>
-
-      <div className={styles.content}>
-        {isEditing ? (
-          <div className={styles.editForm}>
-            <textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className={styles.editTextarea}
-              placeholder="编辑你的评论..."
-            />
-            <div className={styles.editActions}>
-              <button 
-                onClick={handleEdit} 
-                className={styles.saveButton}
-                disabled={loading}
-              >
-                {loading ? '保存中...' : '保存'}
-              </button>
-              <button 
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditContent(comment.content);
-                }} 
-                className={styles.cancelButton}
-              >
-                取消
-              </button>
+    <div className={`mb-4 ${depth > 0 ? 'ml-6 border-l-2 border-gray-200 pl-4' : ''}`}>
+      <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <span className="text-sm font-medium text-gray-600">
+                  {comment.author_name?.charAt(0) || 'A'}
+                </span>
+              </div>
+            </div>
+            <div className="ml-3">
+              <div className="flex items-center">
+                <h4 className="text-sm font-medium text-gray-900">
+                  {comment.author_name || '匿名用户'}
+                </h4>
+                <span className="ml-2 text-xs text-gray-500">
+                  {new Date(comment.created_at).toLocaleString()}
+                </span>
+              </div>
+              {comment.is_deleted ? (
+                <p className="mt-1 text-sm text-gray-500 italic">[已删除]</p>
+              ) : isEditing ? (
+                <div className="mt-1">
+                  <textarea
+                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    rows={3}
+                    placeholder="编辑评论..."
+                  />
+                  <div className="flex justify-end mt-2 space-x-2">
+                    <button
+                      className="px-3 py-1 text-xs text-gray-500 bg-gray-100 rounded-md hover:bg-gray-200"
+                      onClick={() => setIsEditing(false)}
+                      disabled={isLoading}
+                    >
+                      取消
+                    </button>
+                    <button
+                      className="px-3 py-1 text-xs text-white bg-blue-500 rounded-md hover:bg-blue-600"
+                      onClick={handleEdit}
+                      disabled={isLoading}
+                    >
+                      保存
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-1 text-sm text-gray-700">{comment.content}</p>
+              )}
             </div>
           </div>
-        ) : (
-          <p>{comment.content}</p>
-        )}
-      </div>
-
-      <div className={styles.actions}>
-        <button 
-          onClick={() => handleVote('up')}
-          className={`${styles.voteButton} ${styles.upvote}`}
-          disabled={loading}
-        >
-          👍 {comment.upvotes}
-        </button>
-        <button 
-          onClick={() => handleVote('down')}
-          className={`${styles.voteButton} ${styles.downvote}`}
-          disabled={loading}
-        >
-          👎 {comment.downvotes}
-        </button>
-        
-        {user && (
-          <button 
-            onClick={() => setShowReplyForm(!showReplyForm)}
-            className={styles.replyButton}
-            disabled={loading}
-          >
-            {showReplyForm ? '取消回复' : '回复'}
-          </button>
-        )}
-        
-        {isAuthor && !isEditing && (
-          <>
-            <button 
-              onClick={() => setIsEditing(true)}
-              className={styles.editButton}
-              disabled={loading}
+          <div className="flex items-center space-x-2">
+            <button
+              className="text-xs text-gray-500 hover:text-blue-500 flex items-center"
+              onClick={() => handleVote('up')}
+              disabled={isLoading}
             >
-              编辑
+              <span className="mr-1">▲</span>
+              {comment.upvotes}
             </button>
-            <button 
-              onClick={handleDelete}
-              className={styles.deleteButton}
-              disabled={loading}
+            <button
+              className="text-xs text-gray-500 hover:text-red-500 flex items-center"
+              onClick={() => handleVote('down')}
+              disabled={isLoading}
             >
-              删除
+              <span className="mr-1">▼</span>
+              {comment.downvotes}
             </button>
-          </>
-        )}
-      </div>
-
-      {showReplyForm && user && (
-        <div className={styles.replyFormContainer}>
-          <CommentForm 
-            articleId={articleId} 
-            parentId={comment.id}
-            onCommentCreated={() => {
-              setShowReplyForm(false);
-              onReplyCreated();
-            }}
-          />
+            {!comment.is_deleted && (
+              <>
+                <button
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                  onClick={() => setIsEditing(true)}
+                  disabled={isLoading}
+                >
+                  编辑
+                </button>
+                <button
+                  className="text-xs text-gray-500 hover:text-red-500"
+                  onClick={handleDelete}
+                  disabled={isLoading}
+                >
+                  删除
+                </button>
+              </>
+            )}
+          </div>
         </div>
-      )}
-
-      {error && <p className={styles.error}>{error}</p>}
-
+        <div className="mt-3">
+          <button
+            className="text-xs text-blue-500 hover:text-blue-700"
+            onClick={() => setIsReplying(!isReplying)}
+            disabled={isLoading}
+          >
+            {isReplying ? '取消回复' : '回复'}
+          </button>
+          {isReplying && !isMaxDepth && (
+            <div className="mt-3">
+              <CommentForm
+                articleId={articleId}
+                parentId={comment.id}
+                onCommentCreated={() => setIsReplying(false)}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+      {/* 递归渲染回复 */}
       {comment.replies && comment.replies.length > 0 && (
-        <div className={styles.replies}>
-          {comment.replies.map(reply => (
+        <div className="mt-3">
+          {comment.replies.map((reply) => (
             <CommentItem
               key={reply.id}
               comment={reply}
               articleId={articleId}
-              onCommentUpdated={onCommentUpdated}
-              onCommentDeleted={onCommentDeleted}
-              onReplyCreated={onReplyCreated}
+              depth={depth + 1}
+              onVote={onVote}
+              onEdit={onEdit}
+              onDelete={onDelete}
             />
           ))}
         </div>

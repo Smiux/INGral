@@ -85,9 +85,7 @@ export interface KeyBinding {
   shiftKey?: boolean;
 }
 
-interface ShortcutHandler {
-  (event: KeyboardEvent): void;
-}
+type ShortcutHandler = (event: KeyboardEvent) => void;
 
 export interface ShortcutRegistration {
   binding: KeyBinding;
@@ -100,8 +98,8 @@ export interface ShortcutRegistration {
  * 键盘导航管理器类
  */
 export class KeyboardNavigationManager {
-  private shortcuts: Map<string, ShortcutRegistration> = new Map();
-  private isActive: boolean = true;
+  private shortcuts = new Map<string, ShortcutRegistration>();
+  private isActive = true;
   private focusTrapStack: HTMLElement[] = [];
 
   /**
@@ -116,8 +114,8 @@ export class KeyboardNavigationManager {
     id: string,
     binding: KeyBinding,
     handler: ShortcutHandler,
-    description: string = '',
-    group: string = 'general'
+    description = '',
+    group = 'general',
   ): void {
     this.shortcuts.set(id, {
       binding,
@@ -178,14 +176,14 @@ export class KeyboardNavigationManager {
    * @param event 键盘事件
    */
   handleKeyboardEvent(event: KeyboardEvent): void {
-    if (!this.isActive) return;
+    if (!this.isActive) {return;}
 
     // 忽略在输入框、文本域等元素中的快捷键（可以根据需要调整）
     const target = event.target as HTMLElement;
     const inputTypes = ['INPUT', 'TEXTAREA', 'SELECT', 'CONTENTEDITABLE'];
-    
+
     if (target && (
-      inputTypes.includes(target.tagName) || 
+      inputTypes.includes(target.tagName) ||
       target.isContentEditable
     )) {
       return;
@@ -194,7 +192,7 @@ export class KeyboardNavigationManager {
     // 查找匹配的快捷键
     this.shortcuts.forEach((shortcut) => {
       const { binding } = shortcut;
-      
+
       if (
         event.key === binding.key &&
         event.altKey === !!binding.altKey &&
@@ -205,7 +203,7 @@ export class KeyboardNavigationManager {
         // 阻止默认行为
         event.preventDefault();
         event.stopPropagation();
-        
+
         // 执行处理函数
         shortcut.handler(event);
       }
@@ -217,17 +215,17 @@ export class KeyboardNavigationManager {
    * @param element 要捕获焦点的元素
    */
   activateFocusTrap(element: HTMLElement): void {
-    if (!element) return;
-    
+    if (!element) {return;}
+
     // 将元素添加到焦点陷阱堆栈
     this.focusTrapStack.push(element);
-    
+
     // 找到第一个可聚焦的元素
     const firstFocusable = this.getFirstFocusableElement(element);
     if (firstFocusable) {
       firstFocusable.focus();
     }
-    
+
     // 添加键盘事件监听器
     element.addEventListener('keydown', this.handleFocusTrapNavigation);
   }
@@ -237,16 +235,16 @@ export class KeyboardNavigationManager {
    */
   deactivateFocusTrap(): void {
     const element = this.focusTrapStack.pop();
-    
+
     if (element) {
       element.removeEventListener('keydown', this.handleFocusTrapNavigation);
-      
+
       // 恢复焦点到上一个陷阱或文档主体
       if (this.focusTrapStack.length > 0) {
         const previousTrap = this.focusTrapStack[this.focusTrapStack.length - 1];
         if (previousTrap) {
           const firstFocusable = this.getFirstFocusableElement(previousTrap);
-          if (firstFocusable) firstFocusable.focus();
+          if (firstFocusable) {firstFocusable.focus();}
         }
       }
     }
@@ -258,23 +256,23 @@ export class KeyboardNavigationManager {
    */
   private handleFocusTrapNavigation = (event: KeyboardEvent): void => {
     // 只有在按Tab键且焦点陷阱堆栈不为空时才处理
-    if (event.key !== KeyCode.TAB || this.focusTrapStack.length === 0) return;
-    
+    if (event.key !== KeyCode.TAB || this.focusTrapStack.length === 0) {return;}
+
     // 确保currentTrap存在
     const currentTrap = this.focusTrapStack[this.focusTrapStack.length - 1];
-    if (!currentTrap) return;
-    
+    if (!currentTrap) {return;}
+
     const focusableElements = this.getFocusableElements(currentTrap);
-    
-    if (focusableElements.length === 0) return;
-    
+
+    if (focusableElements.length === 0) {return;}
+
     // 获取当前焦点元素在列表中的索引，并确保它存在
     const activeElement = document.activeElement as HTMLElement | null;
     let currentIndex = activeElement ? focusableElements.findIndex(el => el === activeElement) : -1;
-    
+
     // 如果当前元素不在列表中或不存在，默认为0
-    if (currentIndex === -1) currentIndex = 0;
-    
+    if (currentIndex === -1) {currentIndex = 0;}
+
     // 确定下一个要聚焦的元素
     let nextIndex: number;
     if (event.shiftKey) {
@@ -284,7 +282,7 @@ export class KeyboardNavigationManager {
       // Tab 向前导航
       nextIndex = currentIndex < focusableElements.length - 1 ? currentIndex + 1 : 0;
     }
-    
+
     // 阻止默认行为并设置焦点
     event.preventDefault();
     focusableElements[nextIndex]?.focus();
@@ -297,20 +295,20 @@ export class KeyboardNavigationManager {
    */
   private getFocusableElements(container: HTMLElement): HTMLElement[] {
     return Array.from(container.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     ))
-    .filter((el): el is HTMLElement => {
+      .filter((el): el is HTMLElement => {
       // 排除隐藏或禁用的元素
-      const isDisabled = (el as HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement).disabled;
-      const style = window.getComputedStyle(el);
-      
-      return (
-        el.offsetParent !== null &&
+        const isDisabled = (el as HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement).disabled;
+        const style = window.getComputedStyle(el);
+
+        return (
+          el.offsetParent !== null &&
         !isDisabled &&
         style.display !== 'none' &&
         style.visibility !== 'hidden'
-      );
-    });
+        );
+      });
   }
 
   /**
@@ -336,34 +334,34 @@ export const focusUtils = {
    * @param currentElement 当前元素
    */
   focusNextElement(currentElement: HTMLElement): void {
-    if (!currentElement) return;
-    
+    if (!currentElement) {return;}
+
     // 获取可聚焦元素
     const focusableElements = Array.from(document.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     ));
-    
+
     // 过滤出可见且未禁用的元素
     const visibleElements = focusableElements.filter(el => {
       const isDisabled = (el as HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement).disabled;
       const style = window.getComputedStyle(el);
       return !isDisabled && style.display !== 'none' && style.visibility !== 'hidden';
     });
-    
+
     // 排序元素
     visibleElements.sort((a, b) => {
       const aTabIndex = parseInt(a.getAttribute('tabindex') || '0', 10);
       const bTabIndex = parseInt(b.getAttribute('tabindex') || '0', 10);
       return aTabIndex - bTabIndex;
     });
-    
+
     // 找到当前元素在排序后列表中的索引
     const currentIndex = visibleElements.indexOf(currentElement);
-    
+
     // 如果找到，聚焦到下一个元素，使用可选链确保安全
-      if (currentIndex !== -1 && currentIndex < visibleElements.length - 1) {
-        visibleElements[currentIndex + 1]?.focus();
-      }
+    if (currentIndex !== -1 && currentIndex < visibleElements.length - 1) {
+      visibleElements[currentIndex + 1]?.focus();
+    }
   },
 
   /**
@@ -371,34 +369,34 @@ export const focusUtils = {
    * @param currentElement 当前元素
    */
   focusPreviousElement(currentElement: HTMLElement): void {
-    if (!currentElement) return;
-    
+    if (!currentElement) {return;}
+
     // 获取可聚焦元素
     const focusableElements = Array.from(document.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     ));
-    
+
     // 过滤出可见且未禁用的元素
     const visibleElements = focusableElements.filter(el => {
       const isDisabled = (el as HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement).disabled;
       const style = window.getComputedStyle(el);
       return !isDisabled && style.display !== 'none' && style.visibility !== 'hidden';
     });
-    
+
     // 排序元素
     visibleElements.sort((a, b) => {
       const aTabIndex = parseInt(a.getAttribute('tabindex') || '0', 10);
       const bTabIndex = parseInt(b.getAttribute('tabindex') || '0', 10);
       return aTabIndex - bTabIndex;
     });
-    
+
     // 找到当前元素在列表中的索引
     const currentIndex = visibleElements.indexOf(currentElement);
-    
+
     // 如果找到，聚焦到上一个元素，使用可选链确保安全
-      if (currentIndex > 0) {
-        visibleElements[currentIndex - 1]?.focus();
-      }
+    if (currentIndex > 0) {
+      visibleElements[currentIndex - 1]?.focus();
+    }
   },
 
   /**
@@ -406,12 +404,12 @@ export const focusUtils = {
    * @param container 容器元素
    */
   focusFirstElement(container: HTMLElement): void {
-    if (!container) return;
-    
+    if (!container) {return;}
+
     const firstFocusable = container.querySelector<HTMLElement>(
-      'button:enabled, a[href]:not([disabled]), input:enabled, select:enabled, textarea:enabled, [tabindex]:not([tabindex="-1"]):not([disabled])'
+      'button:enabled, a[href]:not([disabled]), input:enabled, select:enabled, textarea:enabled, [tabindex]:not([tabindex="-1"]):not([disabled])',
     );
-    
+
     if (firstFocusable) {
       firstFocusable.focus();
     }
@@ -422,29 +420,29 @@ export const focusUtils = {
    * @param container 容器元素
    */
   focusLastElement(container: HTMLElement): void {
-    if (!container) return;
-    
+    if (!container) {return;}
+
     const focusableElements = Array.from(container.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     ));
-    
+
     // 过滤出可见且未禁用的元素
     const visibleElements = focusableElements.filter(el => {
       // 安全地检查禁用状态
       let isDisabled = false;
-      if (el instanceof HTMLInputElement || 
-          el instanceof HTMLButtonElement || 
-          el instanceof HTMLSelectElement || 
+      if (el instanceof HTMLInputElement ||
+          el instanceof HTMLButtonElement ||
+          el instanceof HTMLSelectElement ||
           el instanceof HTMLTextAreaElement) {
         isDisabled = el.disabled;
       }
       const style = window.getComputedStyle(el);
       return !isDisabled && style.display !== 'none' && style.visibility !== 'hidden';
     });
-      
-      if (visibleElements.length > 0) {
-        const lastElement = visibleElements[visibleElements.length - 1];
-        lastElement?.focus();
-      }
-  }
+
+    if (visibleElements.length > 0) {
+      const lastElement = visibleElements[visibleElements.length - 1];
+      lastElement?.focus();
+    }
+  },
 };

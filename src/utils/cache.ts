@@ -1,6 +1,6 @@
 /**
  * 内存缓存实现
- * 
+ *
  * 功能特性：
  * - 支持设置过期时间
  * - 自动清理过期数据
@@ -23,7 +23,7 @@ class Cache {
    * @param value 缓存值
    * @param ttlInSeconds 过期时间（秒），默认5分钟
    */
-  set<T>(key: string, value: T, ttlInSeconds: number = 300): void {
+  set<T>(key: string, value: T, ttlInSeconds = 300): void {
     const expiry = Date.now() + ttlInSeconds * 1000;
     this.cache.set(key, { value, expiry });
   }
@@ -35,7 +35,7 @@ class Cache {
    */
   get<T>(key: string): T | undefined {
     const item = this.cache.get(key);
-    if (!item) return undefined;
+    if (!item) {return undefined;}
 
     // 检查是否过期
     if (Date.now() > item.expiry) {

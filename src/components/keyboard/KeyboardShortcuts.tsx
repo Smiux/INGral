@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { keyboardNavigationManager, KeyCode, ShortcutRegistration } from '../../utils/keyboardNavigation';
+import type { ShortcutRegistration } from '../../utils/keyboardNavigation';
+import { keyboardNavigationManager, KeyCode } from '../../utils/keyboardNavigation';
 import { screenReaderAnnouncer } from '../../utils/accessibility';
 import { X, ChevronsDown, ChevronsUp } from 'lucide-react';
 
@@ -20,14 +21,14 @@ export const KeyboardShortcuts: React.FC = () => {
       }
       return newValue;
     });
-    
+
     // 注册快捷键Alt+K用于打开/关闭快捷键帮助
     keyboardNavigationManager.registerShortcut(
       'toggle-shortcuts-help',
       { key: KeyCode.K, altKey: true },
       toggleShortcutsHelp,
       '打开/关闭快捷键帮助',
-      '界面导航'
+      '界面导航',
     );
 
     // 为ESC键添加关闭模态框的功能
@@ -51,7 +52,7 @@ export const KeyboardShortcuts: React.FC = () => {
   const getGroupedShortcuts = () => {
     const shortcuts = keyboardNavigationManager.getAllShortcuts();
     const grouped: Record<string, ShortcutRegistration[]> = {};
-    
+
     // 按组对快捷键进行分组
     shortcuts.forEach(shortcut => {
       if (shortcut.group) {
@@ -63,7 +64,7 @@ export const KeyboardShortcuts: React.FC = () => {
         grouped[groupKey].push(shortcut);
       }
     });
-    
+
     return grouped;
   };
 
@@ -71,7 +72,7 @@ export const KeyboardShortcuts: React.FC = () => {
   const toggleGroup = (group: string) => {
     setExpandedGroups(prev => ({
       ...prev,
-      [group]: !prev[group]
+      [group]: !prev[group],
     }));
   };
 
@@ -80,10 +81,10 @@ export const KeyboardShortcuts: React.FC = () => {
     const { binding } = shortcut;
     const keys: string[] = [];
 
-    if (binding.ctrlKey) keys.push('Ctrl');
-    if (binding.metaKey) keys.push('Cmd');
-    if (binding.altKey) keys.push('Alt');
-    if (binding.shiftKey) keys.push('Shift');
+    if (binding.ctrlKey) {keys.push('Ctrl');}
+    if (binding.metaKey) {keys.push('Cmd');}
+    if (binding.altKey) {keys.push('Alt');}
+    if (binding.shiftKey) {keys.push('Shift');}
     keys.push(binding.key.toUpperCase());
 
     return (
@@ -118,12 +119,12 @@ export const KeyboardShortcuts: React.FC = () => {
           <span className="text-lg font-bold">?</span>
         </button>
       )}
-      
+
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setIsOpen(false)}>
-          <div 
+          <div
             ref={modalRef}
-            className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-3xl m-4 max-h-[80vh] overflow-hidden flex flex-col" 
+            className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-3xl m-4 max-h-[80vh] overflow-hidden flex flex-col"
             onClick={e => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -132,7 +133,7 @@ export const KeyboardShortcuts: React.FC = () => {
             {/* 模态框标题 */}
             <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
               <h2 id="keyboard-shortcuts-title" className="text-xl font-semibold">键盘快捷键</h2>
-              <button 
+              <button
                 onClick={() => {
                   setIsOpen(false);
                   screenReaderAnnouncer.announce('键盘快捷键帮助已关闭。', false);
@@ -151,20 +152,20 @@ export const KeyboardShortcuts: React.FC = () => {
                 <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">使用说明</h3>
                 <p className="text-blue-700 dark:text-blue-200">按下以下键盘组合可快速访问功能。点击模态框外部或再次按下 Alt+K 键可关闭。</p>
               </div>
-              
+
               {Object.entries(groupedShortcuts).map(([group, shortcuts]) => (
                 <div key={group} className="mb-6">
-                  <button 
+                  <button
                     onClick={() => toggleGroup(group)}
                     className="flex items-center justify-between w-full text-left mb-2 font-medium"
                   >
                     <span className="capitalize">{group}</span>
-                    {expandedGroups[group] ? 
-                      <ChevronsUp size={16} /> : 
+                    {expandedGroups[group] ?
+                      <ChevronsUp size={16} /> :
                       <ChevronsDown size={16} />
                     }
                   </button>
-                  
+
                   {(expandedGroups[group] ?? true) && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-2">
                       {shortcuts.map((shortcut, index) => (
