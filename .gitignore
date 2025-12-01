@@ -87,3 +87,6 @@ out/
 
 # Trae AI
 .trae/
+
+# Documentation
+docs/
