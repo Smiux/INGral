@@ -293,25 +293,27 @@ export const VersionDiffViewer: React.FC<VersionDiffViewerProps> = ({
         } else {
           // 如果只提供了一个版本，则获取其完整内容作为基准比较
           const versionContent = await versionHistoryService.getVersionById(versionA.id);
-          setDiff({
-            title: {
-              old: '',
-              new: versionContent.title,
-              changed: true,
-            },
-            content: {
-              old: '',
-              new: versionContent.content,
-              changed: true,
-            },
-            metadata: {
-              old: {},
-              new: versionContent.metadata || {},
-              changed: true,
-            },
-            versionA,
-            versionB: versionContent,
-          });
+          if (versionContent) {
+            setDiff({
+              title: {
+                old: '',
+                new: versionContent.title,
+                changed: true,
+              },
+              content: {
+                old: '',
+                new: versionContent.content,
+                changed: true,
+              },
+              metadata: {
+                old: {},
+                new: versionContent.metadata || {},
+                changed: true,
+              },
+              versionA,
+              versionB: versionContent,
+            });
+          }
         }
       } catch (err) {
         console.error('Failed to fetch version diff:', err);

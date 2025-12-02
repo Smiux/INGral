@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Save, X, Globe, Lock, Users, Share2, Calendar, BookOpen, Bold, Italic, List, ListOrdered, Link2, Heading1, Heading2, Heading3, Quote, Code, Image, Table, Strikethrough, FileText, Calculator } from 'lucide-react';
 import type { Article } from '../../types';
-import { fetchArticleBySlug, createArticle, updateArticle } from '../../utils/article';
+import { articleService } from '../../services/articleService';
 import { renderMarkdown } from '../../utils/markdown';
 import { LatexEditor } from '../editors/LatexEditor';
 
@@ -20,8 +20,7 @@ export function ArticleEditor() {
   const [isLoading, setIsLoading] = useState(!!slug);
   const [error, setError] = useState('');
   // 社区和分享功能相关状态
-  const [visibility, setVisibility] = useState<'public' | 'private'>('public');
-  const [allowContributions, setAllowContributions] = useState(true);
+  const [visibility, setVisibility] = useState<'public' | 'unlisted'>('public');
   // 作者信息状态
   const [authorName, setAuthorName] = useState('');
   const [authorEmail, setAuthorEmail] = useState('');
@@ -43,7 +42,7 @@ export function ArticleEditor() {
     if (!slug) {return;}
 
     try {
-      const data = await fetchArticleBySlug(slug);
+      const data = await articleService.getArticleBySlug(slug);
       if (!data) {
         setError('Article not found');
         setIsLoading(false);
@@ -53,9 +52,8 @@ export function ArticleEditor() {
       setArticle(data);
       setTitle(data.title);
       setContent(data.content);
-      // 直接设置visibility，因为类型已经是'public'或'private'
+      // 直接设置visibility，因为类型已经是'public'或'unlisted'
       setVisibility(data.visibility || 'public');
-      setAllowContributions(data.allow_contributions ?? true);
       // 加载作者信息
       setAuthorName(data.author_name || '');
       setAuthorEmail(data.author_email || '');
@@ -123,7 +121,6 @@ export function ArticleEditor() {
             title,
             content,
             visibility,
-            allowContributions,
             lastSaved: new Date().toISOString(),
           };
           localStorage.setItem(draftKey, JSON.stringify(draft));
@@ -134,7 +131,7 @@ export function ArticleEditor() {
     }, 3000); // 3秒自动保存
 
     return () => clearTimeout(timer);
-  }, [title, content, visibility, allowContributions, isSaving, slug]);
+  }, [title, content, visibility, isSaving, slug]);
 
   /**
    * 加载自动保存的草稿
@@ -153,7 +150,6 @@ export function ArticleEditor() {
           setTitle(draft.title || '');
           setContent(draft.content || '');
           setVisibility(draft.visibility || 'public');
-          setAllowContributions(draft.allowContributions ?? true);
           localStorage.removeItem(draftKey); // 加载后清除草稿
         }
       }
@@ -185,10 +181,10 @@ export function ArticleEditor() {
       let result: Article | null | undefined;
       try {
         if (article) {
-          result = await updateArticle(article.id, title, content, visibility, allowContributions, authorName, authorEmail, authorUrl);
+          result = await articleService.updateArticle(article.id, title, content, visibility, authorName, authorEmail, authorUrl);
         } else {
           // 支持匿名提交
-          result = await createArticle(title, content, visibility, allowContributions, authorName, authorEmail, authorUrl);
+          result = await articleService.createArticle(title, content, visibility, authorName, authorEmail, authorUrl);
         }
 
         if (!result) {
@@ -618,39 +614,24 @@ export function ArticleEditor() {
                   <input
                     type="radio"
                     name="visibility"
-                    value="private"
-                    checked={visibility === 'private'}
-                    onChange={(e) => setVisibility(e.target.value as 'private')}
+                    value="unlisted"
+                    checked={visibility === 'unlisted'}
+                    onChange={(e) => setVisibility(e.target.value as 'unlisted')}
                     className="mr-2"
                   />
                   <div className="flex items-center gap-2">
                     <Lock className="w-4 h-4 text-gray-600" />
-                    <span>Private</span>
+                    <span>Unlisted</span>
                   </div>
                 </label>
               </div>
               <p className="mt-2 text-xs text-gray-500">
-                {visibility === 'public' && 'Anyone can view this article'}
-                {visibility === 'private' && 'Only you can view this article'}
+                {visibility === 'public' && 'Anyone can view and search this article'}
+                {visibility === 'unlisted' && 'Only accessible via direct link, hidden from search and lists'}
               </p>
             </div>
 
-            <div>
-              <label className="flex items-center justify-between cursor-pointer">
-                <span className="block text-sm font-medium text-gray-700">
-                  Allow Community Contributions
-                </span>
-                <input
-                  type="checkbox"
-                  checked={allowContributions}
-                  onChange={(e) => setAllowContributions(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
-                />
-              </label>
-              <p className="mt-2 text-xs text-gray-500">
-                When enabled, anyone can contribute to and improve your article
-              </p>
-            </div>
+
           </div>
         </div>
 

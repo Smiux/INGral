@@ -1,54 +1,71 @@
 import { BaseService } from './baseService';
 import type { Comment, CreateCommentData, UpdateCommentData } from '../types';
 
+
 export class CommentService extends BaseService {
-  // 获取文章的评论列表
+  private readonly TABLE_NAME = 'comments';
+  private readonly CACHE_PREFIX = 'comment';
+
+  /**
+   * 获取文章的评论列表（包括回复）
+   * @param articleId 文章ID
+   */
   async getArticleComments(articleId: string): Promise<Comment[]> {
-    try {
-      this.checkSupabaseClient();
-      
-      const { data, error } = await this.supabase
-        .from('comments')
-        .select(`
-          *,
-          user:user_id (
-            id,
-            email,
-            name,
-            avatar_url
-          )
-        `)
-        .eq('article_id', articleId)
-        .eq('parent_id', null)
-        .order('created_at', { ascending: false })
-        .returns<Comment[]>();
+    const cacheKey = `${this.CACHE_PREFIX}:article:${articleId}`;
+    
+    return this.queryWithCache<Comment[]>(cacheKey, 5 * 60 * 1000, async () => {
+      try {
+        this.checkSupabaseClient();
+        
+        const { data, error } = await this.supabase
+          .from(this.TABLE_NAME)
+          .select(`
+            *,
+            user:user_id (
+              id,
+              email,
+              name,
+              avatar_url
+            )
+          `)
+          .eq('article_id', articleId)
+          .eq('parent_id', null)
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        this.handleSupabaseError(error, '获取评论列表');
+        if (error) {
+          this.handleError(error, '获取评论列表', 'CommentService');
+        }
+
+        if (!data) {
+          return [];
+        }
+
+        // 为每个顶级评论获取回复
+        const commentsWithReplies = await Promise.all(
+          data.map(async (comment) => {
+            const replies = await this.getReplies(comment.id);
+            return { ...comment, replies };
+          }),
+        );
+
+        return commentsWithReplies as Comment[];
+      } catch (error) {
+        console.error('获取评论列表失败:', error);
+        return [];
       }
-
-      // 为每个顶级评论获取回复
-      const commentsWithReplies = await Promise.all(
-        data.map(async (comment) => {
-          const replies = await this.getReplies(comment.id);
-          return { ...comment, replies };
-        }),
-      );
-
-      return commentsWithReplies;
-    } catch (error) {
-      console.error('获取评论列表失败:', error);
-      throw error;
-    }
+    });
   }
 
-  // 获取评论的回复
+  /**
+   * 获取评论的回复
+   * @param commentId 评论ID
+   */
   private async getReplies(commentId: string): Promise<Comment[]> {
     try {
       this.checkSupabaseClient();
       
       const { data, error } = await this.supabase
-        .from('comments')
+        .from(this.TABLE_NAME)
         .select(`
           *,
           user:user_id (
@@ -59,27 +76,29 @@ export class CommentService extends BaseService {
           )
         `)
         .eq('parent_id', commentId)
-        .order('created_at', { ascending: true })
-        .returns<Comment[]>();
+        .order('created_at', { ascending: true });
 
       if (error) {
-        this.handleSupabaseError(error, '获取回复');
+        this.handleError(error, '获取回复', 'CommentService');
       }
-      return data;
+      
+      return data as Comment[] || [];
     } catch (error) {
       console.error('获取回复失败:', error);
       return [];
     }
   }
 
-  // 创建评论
-  async createComment(data: CreateCommentData, authorName?: string, authorEmail?: string, authorUrl?: string): Promise<Comment> {
+  /**
+   * 创建评论
+   * @param data 评论数据
+   * @param authorName 作者名称（匿名评论时使用）
+   * @param authorEmail 作者邮箱（匿名评论时使用）
+   * @param authorUrl 作者URL（匿名评论时使用）
+   */
+  async createComment(data: CreateCommentData, authorName?: string, authorEmail?: string, authorUrl?: string): Promise<Comment | null> {
     try {
-      this.checkSupabaseClient();
-      
       // 支持匿名评论和登录用户评论
-      const { data: { user } } = await this.supabase.auth.getUser();
-      
       const commentData: Partial<Comment> = {
         article_id: data.article_id,
         content: data.content,
@@ -88,6 +107,7 @@ export class CommentService extends BaseService {
       };
 
       // 如果用户已登录，使用用户信息
+      const { data: { user } } = await this.supabase.auth.getUser();
       if (user) {
         commentData.user_id = user.id;
       } else {
@@ -97,27 +117,21 @@ export class CommentService extends BaseService {
         commentData.author_url = authorUrl || null;
       }
 
-      const { data: newComment, error } = await this.supabase
-        .from('comments')
-        .insert(commentData)
-        .select('*')
-        .single();
-
-      if (error) {
-        this.handleSupabaseError(error, '创建评论');
-      }
-      return newComment;
+      return this.create<Comment>(this.TABLE_NAME, commentData, this.CACHE_PREFIX, 5 * 60 * 1000);
     } catch (error) {
       console.error('创建评论失败:', error);
-      throw error;
+      this.handleError(error, '创建评论', 'CommentService');
+      return null;
     }
   }
 
-  // 更新评论
-  async updateComment(commentId: string, data: UpdateCommentData): Promise<Comment> {
+  /**
+   * 更新评论
+   * @param commentId 评论ID
+   * @param data 更新数据
+   */
+  async updateComment(commentId: string, data: UpdateCommentData): Promise<Comment | null> {
     try {
-      this.checkSupabaseClient();
-      
       const updateData: Partial<Comment> = {
         content: data.content,
         updated_at: new Date().toISOString(),
@@ -128,99 +142,88 @@ export class CommentService extends BaseService {
         updateData.status = data.status;
       }
 
-      const { data: updatedComment, error } = await this.supabase
-        .from('comments')
-        .update(updateData)
-        .eq('id', commentId)
-        .select('*')
-        .single<Comment>();
-
-      if (error) {
-        this.handleSupabaseError(error, '更新评论');
-      }
-      return updatedComment;
+      return this.update<Comment>(this.TABLE_NAME, commentId, updateData, this.CACHE_PREFIX, 5 * 60 * 1000);
     } catch (error) {
       console.error('更新评论失败:', error);
-      throw error;
+      this.handleError(error, 'CommentService', '更新评论');
+      return null;
     }
   }
 
-  // 删除评论（软删除）
-  async deleteComment(commentId: string): Promise<Comment> {
+  /**
+   * 删除评论（软删除）
+   * @param commentId 评论ID
+   */
+  async deleteComment(commentId: string): Promise<Comment | null> {
     try {
-      this.checkSupabaseClient();
-      
-      const { data: deletedComment, error } = await this.supabase
-        .from('comments')
-        .update({
-          is_deleted: true,
-          content: '[已删除]',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', commentId)
-        .select()
-        .single<Comment>();
+      const deleteData: Partial<Comment> = {
+        is_deleted: true,
+        content: '[已删除]',
+        updated_at: new Date().toISOString(),
+      };
 
-      if (error) {
-        this.handleSupabaseError(error, '删除评论');
-      }
-      return deletedComment;
+      return this.update<Comment>(this.TABLE_NAME, commentId, deleteData, this.CACHE_PREFIX, 5 * 60 * 1000);
     } catch (error) {
       console.error('删除评论失败:', error);
-      throw error;
+      this.handleError(error, 'CommentService', '删除评论');
+      return null;
     }
   }
 
-  // 更新评论审核状态
-  async updateCommentStatus(commentId: string, status: Comment['status']): Promise<Comment> {
+  /**
+   * 更新评论审核状态
+   * @param commentId 评论ID
+   * @param status 审核状态
+   */
+  async updateCommentStatus(commentId: string, status: Comment['status']): Promise<Comment | null> {
     try {
-      this.checkSupabaseClient();
-      
-      const { data: updatedComment, error } = await this.supabase
-        .from('comments')
-        .update({
-          status,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', commentId)
-        .select('*')
-        .single<Comment>();
+      const updateData: Partial<Comment> = {
+        status,
+        updated_at: new Date().toISOString(),
+      };
 
-      if (error) {
-        this.handleSupabaseError(error, '更新评论审核状态');
-      }
-      return updatedComment;
+      return this.update<Comment>(this.TABLE_NAME, commentId, updateData, this.CACHE_PREFIX, 5 * 60 * 1000);
     } catch (error) {
       console.error('更新评论审核状态失败:', error);
-      throw error;
+      this.handleError(error, 'CommentService', '更新评论审核状态');
+      return null;
     }
   }
 
-  // 获取待审核评论
+  /**
+   * 获取待审核评论
+   */
   async getPendingComments(): Promise<Comment[]> {
-    try {
-      this.checkSupabaseClient();
-      
-      const { data, error } = await this.supabase
-        .from('comments')
-        .select('*')
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .returns<Comment[]>();
+    const cacheKey = `${this.CACHE_PREFIX}:pending`;
+    
+    return this.queryWithCache<Comment[]>(cacheKey, 5 * 60 * 1000, async () => {
+      try {
+        this.checkSupabaseClient();
+        
+        const { data, error } = await this.supabase
+          .from(this.TABLE_NAME)
+          .select('*')
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        this.handleSupabaseError(error, '获取待审核评论');
+        if (error) {
+          this.handleError(error, '获取待审核评论', 'CommentService');
+        }
+
+        return data as Comment[] || [];
+      } catch (error) {
+        console.error('获取待审核评论失败:', error);
+        return [];
       }
-
-      return data;
-    } catch (error) {
-      console.error('获取待审核评论失败:', error);
-      throw error;
-    }
+    });
   }
 
-  // 点赞/点踩评论
-  async voteComment(commentId: string, voteType: 'up' | 'down'): Promise<Comment> {
+  /**
+   * 点赞/点踩评论
+   * @param commentId 评论ID
+   * @param voteType 投票类型（up或down）
+   */
+  async voteComment(commentId: string, voteType: 'up' | 'down'): Promise<Comment | null> {
     try {
       this.checkSupabaseClient();
       
@@ -229,21 +232,26 @@ export class CommentService extends BaseService {
       const updateField = voteType === 'up' ? 'upvotes' : 'downvotes';
 
       const { data: updatedComment, error } = await this.supabase
-        .from('comments')
+        .from(this.TABLE_NAME)
         .update({
           [updateField]: `${updateField} + 1`,
         })
         .eq('id', commentId)
         .select()
-        .single<Comment>();
+        .single();
 
       if (error) {
-        this.handleSupabaseError(error, '评论投票');
+        this.handleError(error, '评论投票', 'CommentService');
       }
-      return updatedComment;
+      
+      // 清除相关缓存
+      this.invalidateCache(`${this.CACHE_PREFIX}:*`);
+      
+      return updatedComment as Comment;
     } catch (error) {
       console.error('投票失败:', error);
-      throw error;
+      this.handleError(error, '评论投票', 'CommentService');
+      return null;
     }
   }
 }

@@ -6,16 +6,9 @@ export type ArticleStatus = 'draft' | 'published' | 'archived';
 /**
  * 文章可见性类型
  */
-export type ArticleVisibility = 'public' | 'private';
+export type ArticleVisibility = 'public' | 'unlisted';
 
-/**
- * 贡献者信息接口
- */
-export interface Contributor {
-  contributor_id: string;
-  contributor_email: string;
-  contribution_date: string;
-}
+
 
 /**
  * 数学公式接口
@@ -26,6 +19,62 @@ export interface Formula {
   type: 'inline' | 'block';
   label?: string;
   position: number;
+}
+
+/**
+ * 讨论分类接口
+ */
+export interface DiscussionCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  created_at: string;
+}
+
+/**
+ * 讨论主题接口
+ */
+export interface DiscussionTopic {
+  id: number;
+  title: string;
+  content: string;
+  author_name: string;
+  author_email?: string;
+  category_id: number;
+  reply_count: number;
+  view_count: number;
+  is_pinned: boolean;
+  created_at: string;
+  updated_at: string;
+  category?: DiscussionCategory;
+  tags?: DiscussionTag[];
+}
+
+/**
+ * 讨论回复接口
+ */
+export interface DiscussionReply {
+  id: number;
+  topic_id: number;
+  content: string;
+  author_name: string;
+  author_email?: string;
+  parent_id?: number;
+  created_at: string;
+  replies?: DiscussionReply[];
+}
+
+/**
+ * 讨论标签接口
+ */
+export interface DiscussionTag {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  usage_count: number;
+  created_at: string;
 }
 
 /**
@@ -46,10 +95,7 @@ export interface Article {
   view_count: number;
   // 社区和可见性相关字段
   visibility: ArticleVisibility;
-  allow_contributions: boolean;
   status: ArticleStatus;
-  // 贡献者信息
-  contributors?: Contributor[];
   // 社区数据
   upvotes?: number;
   comment_count?: number;
@@ -69,6 +115,18 @@ export interface Article {
   is_verified?: boolean;
   verification_date?: string;
   verification_notes?: string;
+  // 编辑限制相关字段
+  edit_count_24h?: number;
+  edit_count_7d?: number;
+  last_edit_date?: string;
+  is_change公示?: boolean;
+  is_slow_mode?: boolean;
+  slow_mode_until?: string;
+  is_unstable?: boolean;
+  // 离线相关字段
+  is_offline?: boolean;
+  synced?: boolean;
+  last_modified?: string;
 }
 
 /**
@@ -168,7 +226,7 @@ export interface GraphLink {
 /**
  * 知识图谱可见性类型
  */
-export type GraphVisibility = 'public' | 'private' | 'community';
+export type GraphVisibility = 'public' | 'unlisted';
 
 /**
  * 知识图谱接口
@@ -186,6 +244,14 @@ export interface Graph {
   visibility: GraphVisibility;
   created_at: string;
   updated_at: string;
+  // 编辑限制相关字段
+  edit_count_24h?: number;
+  edit_count_7d?: number;
+  last_edit_date?: string;
+  is_change公示?: boolean;
+  is_slow_mode?: boolean;
+  slow_mode_until?: string;
+  is_unstable?: boolean;
 }
 
 /**

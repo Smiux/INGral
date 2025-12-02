@@ -101,12 +101,14 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
         name: newTagName.trim(),
       });
 
-      // 添加到选择的标签中
-      handleTagSelect(newTag.id);
+      if (newTag) {
+        // 添加到选择的标签中
+        handleTagSelect(newTag.id);
 
-      // 更新可用标签列表
-      setAvailableTags([...availableTags, newTag]);
-      setNewTagName('');
+        // 更新可用标签列表
+        setAvailableTags([...availableTags, newTag]);
+        setNewTagName('');
+      }
     } catch (err) {
       console.error('创建标签失败:', err);
     } finally {

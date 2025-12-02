@@ -11,10 +11,14 @@ import type {
 } from '../types/version';
 import { BaseService } from './baseService';
 
+
 /**
  * 版本历史服务类
  */
 export class VersionHistoryService extends BaseService {
+  private readonly VERSIONS_TABLE = 'article_versions';
+  private readonly CACHE_PREFIX = 'version';
+
   /**
    * 获取文章版本列表
    * @param params 获取文章版本参数
@@ -22,47 +26,53 @@ export class VersionHistoryService extends BaseService {
    */
   async getArticleVersions(params: GetArticleVersionsParams): Promise<VersionHistoryResult> {
     const { articleId, page = 1, limit = 20 } = params;
+    const cacheKey = `${this.CACHE_PREFIX}:article:${articleId}:${page}:${limit}`;
 
-    try {
-      this.checkSupabaseClient();
-      
-      // 计算偏移量
-      const offset = (page - 1) * limit;
-      
-      // 获取版本总数
-      const { count: total, error: countError } = await this.supabase
-        .from('article_versions')
-        .select('*', { count: 'exact', head: true })
-        .eq('article_id', articleId);
-      
-      if (countError) {
-        this.handleSupabaseError(countError, '获取版本总数');
+    return this.queryWithCache<VersionHistoryResult>(cacheKey, 5 * 60 * 1000, async () => {
+      try {
+        // 计算偏移量
+        const offset = (page - 1) * limit;
+        
+        // 获取版本总数
+        const countResult = await this.executeWithRetry(async () => {
+          return this.supabase
+            .from(this.VERSIONS_TABLE)
+            .select('*', { count: 'exact', head: true })
+            .eq('article_id', articleId);
+        }, 5 * 60 * 1000);
+        
+        const total = countResult.count || 0;
+        
+        // 获取版本列表
+        const versionsResult = await this.executeWithRetry(async () => {
+          return this.supabase
+            .from(this.VERSIONS_TABLE)
+            .select('*')
+            .eq('article_id', articleId)
+            .order('version_number', { ascending: false })
+            .range(offset, offset + limit - 1);
+        }, 5 * 60 * 1000);
+        
+        const versions = versionsResult.data || [];
+        
+        return {
+          versions,
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        };
+      } catch (error) {
+        this.handleError(error, '获取文章版本列表', 'VersionHistoryService');
+        return {
+          versions: [],
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+        };
       }
-      
-      // 获取版本列表
-      const { data: versions, error: versionsError } = await this.supabase
-        .from('article_versions')
-        .select('*')
-        .eq('article_id', articleId)
-        .order('version_number', { ascending: false })
-        .range(offset, offset + limit - 1)
-        .returns<ArticleVersion[]>();
-      
-      if (versionsError) {
-        this.handleSupabaseError(versionsError, '获取版本列表');
-      }
-      
-      return {
-        versions: versions || [],
-        total: total || 0,
-        page,
-        limit,
-        totalPages: Math.ceil((total || 0) / limit),
-      };
-    } catch (error) {
-      console.error('获取文章版本列表失败:', error);
-      throw error;
-    }
+    });
   }
 
   /**
@@ -70,25 +80,25 @@ export class VersionHistoryService extends BaseService {
    * @param versionId 版本ID
    * @returns 文章版本
    */
-  async getVersionById(versionId: string): Promise<ArticleVersion> {
-    try {
-      this.checkSupabaseClient();
-      
-      const { data, error } = await this.supabase
-        .from('article_versions')
-        .select('*')
-        .eq('id', versionId)
-        .single<ArticleVersion>();
-      
-      if (error) {
-        this.handleSupabaseError(error, '根据ID获取版本');
+  async getVersionById(versionId: string): Promise<ArticleVersion | null> {
+    const cacheKey = `${this.CACHE_PREFIX}:id:${versionId}`;
+
+    return this.queryWithCache<ArticleVersion | null>(cacheKey, 5 * 60 * 1000, async () => {
+      try {
+        const result = await this.executeWithRetry(async () => {
+          return this.supabase
+            .from(this.VERSIONS_TABLE)
+            .select('*')
+            .eq('id', versionId)
+            .single<ArticleVersion>();
+        }, 5 * 60 * 1000);
+        
+        return result.data;
+      } catch (error) {
+        this.handleError(error, '根据ID获取版本', 'VersionHistoryService');
+        return null;
       }
-      
-      return data;
-    } catch (error) {
-      console.error('根据ID获取版本失败:', error);
-      throw error;
-    }
+    });
   }
 
   /**
@@ -97,15 +107,17 @@ export class VersionHistoryService extends BaseService {
    * @param versionIdB 版本ID B
    * @returns 版本差异
    */
-  async compareVersions(versionIdA: string, versionIdB: string): Promise<VersionDiff> {
+  async compareVersions(versionIdA: string, versionIdB: string): Promise<VersionDiff | null> {
     try {
-      this.checkSupabaseClient();
-      
       // 获取两个版本的数据
       const [versionA, versionB] = await Promise.all([
         this.getVersionById(versionIdA),
         this.getVersionById(versionIdB)
       ]);
+      
+      if (!versionA || !versionB) {
+        throw new Error('无法找到要比较的版本');
+      }
       
       // 比较版本差异
       return {
@@ -128,8 +140,8 @@ export class VersionHistoryService extends BaseService {
         versionB,
       };
     } catch (error) {
-      console.error('比较版本差异失败:', error);
-      throw error;
+      this.handleError(error, '比较版本差异', 'VersionHistoryService');
+      return null;
     }
   }
 
@@ -142,67 +154,64 @@ export class VersionHistoryService extends BaseService {
     const { versionId, articleId, restoreComment = '手动还原' } = params;
 
     try {
-      this.checkSupabaseClient();
+      // 获取要还原的版本
+      const versionToRestore = await this.getVersionById(versionId);
       
-      // 开始事务
-      const { data: versionToRestore, error: versionError } = await this.supabase
-        .from('article_versions')
-        .select('*')
-        .eq('id', versionId)
-        .single<ArticleVersion>();
-      
-      if (versionError) {
-        this.handleSupabaseError(versionError, '获取要还原的版本');
+      if (!versionToRestore) {
+        throw new Error('无法找到要还原的版本');
       }
       
       // 1. 首先获取当前文章内容，创建一个新的版本作为还原前的快照
-      const { data: currentArticle, error: articleError } = await this.supabase
-        .from('articles')
-        .select('*')
-        .eq('id', articleId)
-        .single();
+      const currentArticleResult = await this.executeWithRetry(async () => {
+        return this.supabase
+          .from('articles')
+          .select('*')
+          .eq('id', articleId)
+          .single();
+      }, 5 * 60 * 1000);
       
-      if (articleError) {
-        this.handleSupabaseError(articleError, '获取当前文章');
+      const currentArticle = currentArticleResult.data;
+      
+      if (!currentArticle) {
+        throw new Error('无法找到要还原的文章');
       }
       
       // 创建还原前的快照版本
-      const { error: snapshotError } = await this.supabase
-        .from('article_versions')
-        .insert({
-          article_id: articleId,
-          version_number: (versionToRestore.version_number + 1),
-          title: currentArticle.title,
-          content: currentArticle.content,
-          metadata: currentArticle.metadata,
-          author_id: 'system',
-          change_summary: `还原前的快照 - ${restoreComment}`,
-          is_published: currentArticle.is_published,
-        });
-      
-      if (snapshotError) {
-        this.handleSupabaseError(snapshotError, '创建还原前快照');
-      }
+      await this.executeWithRetry(async () => {
+        return this.supabase
+          .from(this.VERSIONS_TABLE)
+          .insert({
+            article_id: articleId,
+            version_number: (versionToRestore.version_number + 1),
+            title: currentArticle.title,
+            content: currentArticle.content,
+            metadata: currentArticle.metadata,
+            author_id: 'system',
+            change_summary: `还原前的快照 - ${restoreComment}`,
+            is_published: currentArticle.is_published,
+          });
+      }, 5 * 60 * 1000);
       
       // 2. 还原版本到文章
-      const { error: restoreError } = await this.supabase
-        .from('articles')
-        .update({
-          title: versionToRestore.title,
-          content: versionToRestore.content,
-          metadata: versionToRestore.metadata,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', articleId);
+      await this.executeWithRetry(async () => {
+        return this.supabase
+          .from('articles')
+          .update({
+            title: versionToRestore.title,
+            content: versionToRestore.content,
+            metadata: versionToRestore.metadata,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', articleId);
+      }, 5 * 60 * 1000);
       
-      if (restoreError) {
-        this.handleSupabaseError(restoreError, '还原版本到文章');
-      }
+      // 清除相关缓存
+      this.invalidateCache(`${this.CACHE_PREFIX}:article:${articleId}:*`);
       
       return true;
     } catch (error) {
-      console.error('还原版本失败:', error);
-      throw error;
+      this.handleError(error, '还原版本', 'VersionHistoryService');
+      return false;
     }
   }
 }

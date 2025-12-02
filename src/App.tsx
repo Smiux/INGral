@@ -16,6 +16,9 @@ const ArticleEditor = lazy(() => import('./components/articles/ArticleEditor').t
 const GraphVisualization = lazy(() => import('./components/lazy/LazyGraphVisualization').then(m => ({ default: m.LazyGraphVisualization })));
 const GraphListPage = lazy(() => import('./pages/GraphListPage').then(m => ({ default: m.GraphListPage })));
 const DatabasePage = lazy(() => import('./pages/DatabasePage').then(m => ({ default: m.DatabasePage })));
+const DiscussionPage = lazy(() => import('./pages/DiscussionPage').then(m => ({ default: m.DiscussionPage })));
+const TopicDetailPage = lazy(() => import('./pages/TopicDetailPage').then(m => ({ default: m.TopicDetailPage })));
+const CreateTopicPage = lazy(() => import('./pages/CreateTopicPage').then(m => ({ default: m.CreateTopicPage })));
 
 function App() {
   // 初始化全局键盘快捷键
@@ -66,6 +69,11 @@ function App() {
                 <Route path="/graph/create" element={<GraphVisualization />} />
                 <Route path="/graph/:graphId" element={<GraphVisualization />} />
                 <Route path="/database" element={<DatabasePage />} />
+                {/* 讨论区路由 */}
+                <Route path="/discussions" element={<DiscussionPage />} />
+                <Route path="/discussions/:categorySlug" element={<DiscussionPage />} />
+                <Route path="/topic/:topicId" element={<TopicDetailPage />} />
+                <Route path="/create-topic" element={<CreateTopicPage />} />
                 {/* 404页面重定向到首页 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

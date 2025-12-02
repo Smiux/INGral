@@ -47,39 +47,39 @@ export function Header() {
 
           <div className="flex items-center gap-4">
             <nav className="hidden md:flex items-center gap-6" aria-label="主导航">
-              <Link
-                to="/graph"
-                className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5"
-                aria-label="知识图谱"
-              >
-                <Brain className="w-4 h-4" aria-hidden="true" />
-                <span className="text-sm">Knowledge Graph</span>
-              </Link>
-              <Link
-                to="/articles"
-                className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5"
-                aria-label="文章"
-              >
-                <BookOpen className="w-4 h-4" aria-hidden="true" />
-                <span className="text-sm">Articles</span>
-              </Link>
-              <Link
-                to="/community"
-                className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5"
-                aria-label="社区"
-              >
-                <Users className="w-4 h-4" aria-hidden="true" />
-                <span className="text-sm">Community</span>
-              </Link>
-              <Link
-                to="/create"
-                className="bg-white text-indigo-600 hover:bg-white/90 px-4 py-1.5 rounded-lg transition font-medium flex items-center gap-1"
-                aria-label="创建新内容"
-              >
-                <Plus className="w-4 h-4" aria-hidden="true" />
-                <span className="text-sm">Create</span>
-              </Link>
-            </nav>
+            <Link
+              to="/graph"
+              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5"
+              aria-label="知识图谱"
+            >
+              <Brain className="w-4 h-4" aria-hidden="true" />
+              <span className="text-sm">Knowledge Graph</span>
+            </Link>
+            <Link
+              to="/articles"
+              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5"
+              aria-label="文章"
+            >
+              <BookOpen className="w-4 h-4" aria-hidden="true" />
+              <span className="text-sm">Articles</span>
+            </Link>
+            <Link
+              to="/discussions"
+              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5"
+              aria-label="讨论"
+            >
+              <Users className="w-4 h-4" aria-hidden="true" />
+              <span className="text-sm">Discussions</span>
+            </Link>
+            <Link
+              to="/create"
+              className="bg-white text-indigo-600 hover:bg-white/90 px-4 py-1.5 rounded-lg transition font-medium flex items-center gap-1"
+              aria-label="创建新内容"
+            >
+              <Plus className="w-4 h-4" aria-hidden="true" />
+              <span className="text-sm">Create</span>
+            </Link>
+          </nav>
 
             {/* Theme Toggle */}
             <ThemeToggle />
@@ -116,9 +116,9 @@ export function Header() {
               <Database className="inline-block w-4 h-4 mr-2" aria-hidden="true" />
               Database Monitor
             </Link>
-            <Link to="/community" className="block text-white/90 hover:text-white font-medium py-1 px-2 rounded" aria-label="社区">
+            <Link to="/discussions" className="block text-white/90 hover:text-white font-medium py-1 px-2 rounded" aria-label="讨论">
               <Users className="inline-block w-4 h-4 mr-2" aria-hidden="true" />
-              Community
+              Discussions
             </Link>
             <Link to="/create" className="block bg-white text-indigo-600 hover:bg-white/90 text-center py-2 rounded-lg font-medium" aria-label="创建新内容">
               <Plus className="inline-block w-4 h-4 mr-2" aria-hidden="true" />

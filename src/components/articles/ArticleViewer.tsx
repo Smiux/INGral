@@ -7,7 +7,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, ExternalLink, Network } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { Article } from '../../types';
-import { fetchArticleBySlug } from '../../utils/article';
+import { articleService } from '../../services/articleService';
 import { renderMarkdown } from '../../utils/markdown';
 import ExportButton from '../ui/ExportButton';
 import { graphService } from '../../services/graphService';
@@ -34,7 +34,7 @@ export function ArticleViewer() {
       if (!slug) {return;}
 
       try {
-        const data = await fetchArticleBySlug(slug);
+        const data = await articleService.getArticleBySlug(slug);
         setArticle(data);
       } catch (error) {
         console.error('Failed to load article:', error);
@@ -291,6 +291,13 @@ export function ArticleViewer() {
               {article.view_count} {article.view_count === 1 ? 'view' : 'views'}
             </div>
           </div>
+          
+          {/* 不稳定内容警告 */}
+          {article.is_unstable && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-700">
+              <p className="text-sm">⚠️ 此内容最近被反复修改，可能尚未稳定。请谨慎参考。</p>
+            </div>
+          )}
         </div>
         <div className="flex gap-4">
           <ExportButton article={article} />

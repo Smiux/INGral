@@ -17,7 +17,7 @@ import type {
 
 export class AnalyticsService extends BaseService {
   private static instance: AnalyticsService;
-  private cache: Record<string, { data: unknown; timestamp: number }> = {};
+  private analyticsCache: Record<string, { data: unknown; timestamp: number }> = {};
 
   private constructor() {
     super();
@@ -32,13 +32,13 @@ export class AnalyticsService extends BaseService {
 
   // 缓存相关方法
   private getCached<T>(key: string): T | null {
-    const cached = this.cache[key];
+    const cached = this.analyticsCache[key];
     if (!cached) {return null;}
 
     // 检查缓存是否过期（10分钟）
     const now = Date.now();
     if (now - cached.timestamp > 10 * 60 * 1000) {
-      delete this.cache[key];
+      delete this.analyticsCache[key];
       return null;
     }
 
@@ -46,7 +46,7 @@ export class AnalyticsService extends BaseService {
   }
 
   private setCached<T>(key: string, data: T): void {
-    this.cache[key] = {
+    this.analyticsCache[key] = {
       data,
       timestamp: Date.now(),
     };
@@ -65,7 +65,7 @@ export class AnalyticsService extends BaseService {
         .single();
 
       if (error || !data) {
-        this.handleSupabaseError(error, '记录页面访问');
+        this.handleError(error, '记录页面访问', 'AnalyticsService');
       }
 
       // 清除相关缓存
@@ -88,7 +88,7 @@ export class AnalyticsService extends BaseService {
         .eq('id', viewId);
 
       if (error) {
-        this.handleSupabaseError(error, '更新页面访问持续时间');
+        this.handleError(error, '更新页面访问持续时间', 'AnalyticsService');
       }
 
       // 清除相关缓存
@@ -110,7 +110,7 @@ export class AnalyticsService extends BaseService {
         .single();
 
       if (error || !data) {
-        this.handleSupabaseError(error, '记录文章交互');
+        this.handleError(error, '记录文章交互', 'AnalyticsService');
       }
 
       // 清除相关缓存
@@ -717,7 +717,7 @@ export class AnalyticsService extends BaseService {
   // 清除仪表板相关缓存
   private clearDashboardCache(): void {
     // 清除所有缓存，简化实现
-    this.cache = {};
+    this.analyticsCache = {};
   }
 
   // 生成统计报告（异步）

@@ -1,4 +1,4 @@
-import type { Article, ArticleLink, Tag, OfflineArticle, Graph } from '../types/index';
+import type { Article, ArticleLink, Tag, OfflineArticle, Graph, GraphNode, GraphLink } from '../types/index';
 import { extractWikiLinks, titleToSlug, extractFormulas } from './markdown';
 import { supabase } from '../lib/supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -236,8 +236,7 @@ export async function fetchAllArticles(filterPublic = false, tagId?: string): Pr
 export async function createArticle(
   title: string,
   content: string,
-  visibility: 'public' | 'private' = 'public',
-  allowContributions = false,
+  visibility: 'public' | 'unlisted' = 'public',
   authorName?: string,
   authorEmail?: string,
   authorUrl?: string,
@@ -257,7 +256,6 @@ export async function createArticle(
     author_email: authorEmail || null,
     author_url: authorUrl || null,
     visibility,
-    allow_contributions: allowContributions,
     tags: [] as Tag[],
     article_tags: [] as { tag_id: string; article_id: string; added_at: string; tag?: Tag }[],
     created_at: new Date().toISOString(),
@@ -286,22 +284,21 @@ export async function createArticle(
       const finalSlug = existingArticle ? `${slug}-${Date.now().toString(36).substr(2, 9)}` : slug;
 
       // 创建文章 - 使用优化的插入
-      const createResult = await queryOptimizer.executeWithRetry(async () => {
-        // 添加类型断言解决supabase查询的类型问题
-        return await (dbClient as SupabaseClient).from('articles')
-          .insert({
-            title,
-            slug: finalSlug,
-            content,
-            'author_name': authorName || 'Anonymous',
-            'author_email': authorEmail,
-            'author_url': authorUrl,
-            'visibility': visibility,
-            'allow_contributions': allowContributions,
-          })
-          .select()
-          .single();
-      }, CACHE_TTL.articles);
+        const createResult = await queryOptimizer.executeWithRetry(async () => {
+          // 添加类型断言解决supabase查询的类型问题
+          return await (dbClient as SupabaseClient).from('articles')
+            .insert({
+              title,
+              slug: finalSlug,
+              content,
+              'author_name': authorName || 'Anonymous',
+              'author_email': authorEmail,
+              'author_url': authorUrl,
+              'visibility': visibility,
+            })
+            .select()
+            .single();
+        }, CACHE_TTL.articles);
 
       const { data: article } = createResult || {};
 
@@ -431,8 +428,7 @@ export async function updateArticle(
   id: string,
   title: string,
   content: string,
-  visibility?: 'public' | 'private',
-  allowContributions?: boolean,
+  visibility?: 'public' | 'unlisted',
   authorName?: string,
   authorEmail?: string,
   authorUrl?: string,
@@ -455,7 +451,6 @@ export async function updateArticle(
 
   // 添加可选字段
   if (visibility !== undefined) {updateData['visibility'] = visibility;}
-  if (allowContributions !== undefined) {updateData['allow_contributions'] = allowContributions;}
   if (authorName !== undefined) {updateData['author_name'] = authorName;}
   if (authorEmail !== undefined) {updateData['author_email'] = authorEmail;}
   if (authorUrl !== undefined) {updateData['author_url'] = authorUrl;}
@@ -1209,12 +1204,11 @@ export const createArticleFromGraph = async (
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // 直接使用现有createArticle函数创建文章，使用正确的参数顺序
-    return await createArticle(
-      articleTitle,
-      articleContent,
-      'public',
-      true,
-    );
+  return await createArticle(
+    articleTitle,
+    articleContent,
+    'public',
+  );
   } catch (error) {
     console.error('Error creating article from graph:', error);
     return null;
@@ -1222,25 +1216,7 @@ export const createArticleFromGraph = async (
 };
 
 // 从文章生成知识图表
-export interface GraphNode {
-  id: string;
-  title: string;
-  type?: string;
-  slug?: string;
-  x?: number;
-  y?: number;
-  content?: string;
-  created_by?: string;
-  connections?: number;
-  is_custom?: boolean;
-}
-
-export interface GraphLink {
-  id: string;
-  source: string | { id: string };
-  target: string | { id: string };
-  type: string;
-}
+// 注意：GraphNode和GraphLink接口已在types/index.ts中定义，此处不再重复定义
 
 export const generateGraphFromArticle = async (
   articleId: string,
