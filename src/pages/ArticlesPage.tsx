@@ -24,7 +24,8 @@ export function ArticlesPage() {
   useEffect(() => {
     const loadArticles = async () => {
       try {
-        const data = await fetchAllArticles();
+        // 只获取公开文章
+        const data = await fetchAllArticles(true);
         setArticles(data);
       } catch (error) {
         console.error('Failed to load articles:', error);

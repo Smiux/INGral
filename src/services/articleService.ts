@@ -216,18 +216,52 @@ export class ArticleService extends BaseService {
     authorUrl?: string,
     tags?: string[],
   ): Promise<Article | null> {
-    const now = new Date().toISOString();
+    const now = new Date();
+    const nowISO = now.toISOString();
     const isOfflineArticle = id.startsWith('temp_');
+
+    // 如果不是离线文章，获取当前文章信息以计算编辑限制
+    let currentArticle: Article | null = null;
+    if (!isOfflineArticle) {
+      currentArticle = await this.getArticleById(id);
+    }
+
+    // 计算编辑计数
+    const editCount24h = (currentArticle?.edit_count_24h || 0) + 1;
+    const editCount7d = (currentArticle?.edit_count_7d || 0) + 1;
+
+    // 计算是否在24小时内和7天内
+    const lastEditDate = currentArticle?.last_edit_date ? new Date(currentArticle.last_edit_date) : null;
+    const isWithin24h = lastEditDate && (now.getTime() - lastEditDate.getTime() < 24 * 60 * 60 * 1000);
+    const isWithin7d = lastEditDate && (now.getTime() - lastEditDate.getTime() < 7 * 24 * 60 * 60 * 1000);
+
+    // 重置计数逻辑
+    const finalEditCount24h = isWithin24h ? editCount24h : 1;
+    const finalEditCount7d = isWithin7d ? editCount7d : 1;
+
+    // 确定编辑限制状态
+    const isChangePublic = finalEditCount24h > 3;
+    const isSlowMode = finalEditCount24h > 3;
+    const isUnstable = finalEditCount7d > 10;
+    const slowModeUntil = isSlowMode ? new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString() : undefined;
 
     // 构建更新对象
     const updateData: Record<string, unknown> = {
       title,
       slug: titleToSlug(title),
       content,
-      updated_at: now,
+      updated_at: nowISO,
       is_offline: isOfflineArticle,
       synced: false,
-      last_modified: now,
+      last_modified: nowISO,
+      // 编辑限制相关字段
+      edit_count_24h: finalEditCount24h,
+      edit_count_7d: finalEditCount7d,
+      last_edit_date: nowISO,
+      is_change_public: isChangePublic,
+      is_slow_mode: isSlowMode,
+      slow_mode_until: slowModeUntil,
+      is_unstable: isUnstable,
     };
 
     // 添加可选字段

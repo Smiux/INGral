@@ -88,7 +88,46 @@ export class GraphService extends BaseService {
     visibility: 'public' | 'unlisted';
     graph_data: any;
   }>): Promise<Graph | null> {
-    return this.update<Graph>(this.TABLE_NAME, graphId, updates, this.CACHE_PREFIX, 3 * 60 * 1000);
+    const now = new Date();
+    const nowISO = now.toISOString();
+
+    // 获取当前图谱信息以计算编辑限制
+    const currentGraph = await this.getGraphById(graphId);
+
+    // 计算编辑计数
+    const editCount24h = (currentGraph?.edit_count_24h || 0) + 1;
+    const editCount7d = (currentGraph?.edit_count_7d || 0) + 1;
+
+    // 计算是否在24小时内和7天内
+    const lastEditDate = currentGraph?.last_edit_date ? new Date(currentGraph.last_edit_date) : null;
+    const isWithin24h = lastEditDate && (now.getTime() - lastEditDate.getTime() < 24 * 60 * 60 * 1000);
+    const isWithin7d = lastEditDate && (now.getTime() - lastEditDate.getTime() < 7 * 24 * 60 * 60 * 1000);
+
+    // 重置计数逻辑
+    const finalEditCount24h = isWithin24h ? editCount24h : 1;
+    const finalEditCount7d = isWithin7d ? editCount7d : 1;
+
+    // 确定编辑限制状态
+    const isChangePublic = finalEditCount24h > 3;
+    const isSlowMode = finalEditCount24h > 3;
+    const isUnstable = finalEditCount7d > 10;
+    const slowModeUntil = isSlowMode ? new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString() : undefined;
+
+    // 构建最终更新对象，包含编辑限制字段
+    const finalUpdates = {
+      ...updates,
+      updated_at: nowISO,
+      // 编辑限制相关字段
+      edit_count_24h: finalEditCount24h,
+      edit_count_7d: finalEditCount7d,
+      last_edit_date: nowISO,
+      is_change_public: isChangePublic,
+      is_slow_mode: isSlowMode,
+      slow_mode_until: slowModeUntil,
+      is_unstable: isUnstable,
+    };
+
+    return this.update<Graph>(this.TABLE_NAME, graphId, finalUpdates, this.CACHE_PREFIX, 3 * 60 * 1000);
   }
 
   /**

@@ -119,7 +119,7 @@ export interface Article {
   edit_count_24h?: number;
   edit_count_7d?: number;
   last_edit_date?: string;
-  is_change公示?: boolean;
+  is_change_public?: boolean;
   is_slow_mode?: boolean;
   slow_mode_until?: string;
   is_unstable?: boolean;
@@ -248,7 +248,7 @@ export interface Graph {
   edit_count_24h?: number;
   edit_count_7d?: number;
   last_edit_date?: string;
-  is_change公示?: boolean;
+  is_change_public?: boolean;
   is_slow_mode?: boolean;
   slow_mode_until?: string;
   is_unstable?: boolean;

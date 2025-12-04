@@ -7,11 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader } from '../components/ui/Loader';
 import type { Graph } from '../types';
 import { Plus, Grid, Star } from 'lucide-react';
-
-// 模拟getPublicGraphs函数，因为实际没有实现
-const getPublicGraphs = async (): Promise<Graph[]> => {
-  return [];
-};
+import { graphService } from '../services/graphService';
 
 /**
  * 图谱卡片属性接口
@@ -65,9 +61,9 @@ export const GraphListPage: React.FC = () => {
     const loadGraphs = async () => {
       setLoading(true);
       try {
-        // 只加载公共图谱
-        const publicGraphs = await getPublicGraphs();
-        setGraphs(publicGraphs);
+        // 只加载公开图谱
+        const allGraphs = await graphService.getAllGraphs('public');
+        setGraphs(allGraphs);
       } catch (error) {
         console.error('Error loading graphs:', error);
         setGraphs([]);

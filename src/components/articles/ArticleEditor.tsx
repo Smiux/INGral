@@ -4,7 +4,7 @@
  */
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Save, X, Globe, Lock, Users, Share2, Calendar, BookOpen, Bold, Italic, List, ListOrdered, Link2, Heading1, Heading2, Heading3, Quote, Code, Image, Table, Strikethrough, FileText, Calculator } from 'lucide-react';
+import { Save, X, Globe, Lock, Users, Share2, Calendar, BookOpen, Bold, Italic, List, ListOrdered, Link2, Heading1, Heading2, Heading3, Quote, Code, Image, Table, Strikethrough, FileText, Calculator, Settings } from 'lucide-react';
 import type { Article } from '../../types';
 import { articleService } from '../../services/articleService';
 import { renderMarkdown } from '../../utils/markdown';
@@ -32,6 +32,8 @@ export function ArticleEditor() {
   // LaTeX编辑器状态
   const [latexEditorOpen, setLatexEditorOpen] = useState(false);
   const [selectedText, setSelectedText] = useState('');
+  // 文章设置面板状态
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   /**
@@ -524,119 +526,177 @@ export function ArticleEditor() {
           </div>
         </div>
 
+        {/* 编辑限制状态提示 */}
+        {article && (
+          <>
+            {/* 慢速模式提示 */}
+            {article.is_slow_mode && (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <h3 className="flex items-center gap-2 font-medium text-amber-800 mb-2">
+                  <Calendar className="w-4 h-4" />
+                  文章已进入慢速模式
+                </h3>
+                <p className="text-amber-700 text-sm">
+                  该文章在过去24小时内已被修改超过3次，将进入24小时的慢速模式。
+                  {article.slow_mode_until && (
+                    <span className="block mt-1">
+                      下次可编辑时间：{new Date(article.slow_mode_until).toLocaleString()}
+                    </span>
+                  )}
+                </p>
+              </div>
+            )}
+
+            {/* 更改公示提示 */}
+            {article.is_change_public && !article.is_slow_mode && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="flex items-center gap-2 font-medium text-blue-800 mb-2">
+                  <div className="w-4 h-4 text-blue-600">i</div>
+                  文章已进入更改公示模式
+                </h3>
+                <p className="text-blue-700 text-sm">
+                  该文章在过去24小时内已被修改超过3次，所有更改将被公示。
+                </p>
+              </div>
+            )}
+
+            {/* 不稳定内容提示 */}
+            {article.is_unstable && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h3 className="flex items-center gap-2 font-medium text-red-800 mb-2">
+                  <span className="w-4 h-4">⚠️</span>
+                  警告：不稳定内容
+                </h3>
+                <p className="text-red-700 text-sm">
+                  该文章在过去一周内已被修改超过10次，内容可能不稳定。
+                </p>
+              </div>
+            )}
+          </>
+        )}
+
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
             {error}
           </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Article Title
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter article title..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-          />
-        </div>
-
-        {/* 作者信息设置 */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Author Information (Optional)</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Author Name (leave blank for Anonymous)
-              </label>
-              <input
-                type="text"
-                value={authorName}
-                onChange={(e) => setAuthorName(e.target.value)}
-                placeholder="Your name..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={authorEmail}
-                onChange={(e) => setAuthorEmail(e.target.value)}
-                placeholder="your.email@example.com"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Website URL
-              </label>
-              <input
-                type="url"
-                value={authorUrl}
-                onChange={(e) => setAuthorUrl(e.target.value)}
-                placeholder="https://yourwebsite.com"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              />
-            </div>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Article Title
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter article title..."
+              className="w-full max-w-3xl px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+            />
           </div>
+          <button
+            type="button"
+            onClick={() => setShowSettingsPanel(!showSettingsPanel)}
+            className="flex items-center gap-1 text-sm px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+          >
+            <Settings className="w-4 h-4" />
+            <span>Article Settings</span>
+          </button>
         </div>
 
-        {/* 社区分享和可见性设置 */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Community & Sharing Settings</h3>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Article Visibility
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="public"
-                    checked={visibility === 'public'}
-                    onChange={(e) => setVisibility(e.target.value as 'public')}
-                    className="mr-2"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-green-600" />
-                    <span>Public</span>
+        {/* 文章设置面板 - 可折叠 */}
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showSettingsPanel ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 作者信息设置 */}
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 mb-3">Author Information (Optional)</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Author Name (leave blank for Anonymous)
+                    </label>
+                    <input
+                      type="text"
+                      value={authorName}
+                      onChange={(e) => setAuthorName(e.target.value)}
+                      placeholder="Your name..."
+                      className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    />
                   </div>
-                </label>
-                <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="unlisted"
-                    checked={visibility === 'unlisted'}
-                    onChange={(e) => setVisibility(e.target.value as 'unlisted')}
-                    className="mr-2"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-gray-600" />
-                    <span>Unlisted</span>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={authorEmail}
+                      onChange={(e) => setAuthorEmail(e.target.value)}
+                      placeholder="your.email@example.com"
+                      className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    />
                   </div>
-                </label>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Website URL
+                    </label>
+                    <input
+                      type="url"
+                      value={authorUrl}
+                      onChange={(e) => setAuthorUrl(e.target.value)}
+                      placeholder="https://yourwebsite.com"
+                      className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    />
+                  </div>
+                </div>
               </div>
-              <p className="mt-2 text-xs text-gray-500">
-                {visibility === 'public' && 'Anyone can view and search this article'}
-                {visibility === 'unlisted' && 'Only accessible via direct link, hidden from search and lists'}
-              </p>
+
+              {/* 文章可见性设置 */}
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 mb-3">Article Visibility</h3>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label className="flex items-center p-2.5 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition">
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value="public"
+                        checked={visibility === 'public'}
+                        onChange={(e) => setVisibility(e.target.value as 'public')}
+                        className="mr-2"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-3.5 h-3.5 text-green-600" />
+                        <span className="text-sm">Public</span>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-2.5 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition">
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value="unlisted"
+                        checked={visibility === 'unlisted'}
+                        onChange={(e) => setVisibility(e.target.value as 'unlisted')}
+                        className="mr-2"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-3.5 h-3.5 text-gray-600" />
+                        <span className="text-sm">Unlisted</span>
+                      </div>
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {visibility === 'public' && 'Anyone can view and search this article'}
+                    {visibility === 'unlisted' && 'Only accessible via direct link, hidden from search and lists'}
+                  </p>
+                </div>
+              </div>
             </div>
-
-
           </div>
         </div>
 
         {/* 编辑区域 - 类似VS Code的界面 */}
-        <div className="relative border border-gray-300 rounded-lg overflow-hidden">
+        <div className="relative border border-gray-300 rounded-lg overflow-hidden shadow-sm">
           {/* 主工具栏 */}
           <div className="bg-gray-100 border-b border-gray-300 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-2">
             <div className="flex items-center gap-2">
@@ -737,7 +797,7 @@ export function ArticleEditor() {
           </div>
 
           {/* 编辑区域主体 */}
-          <div className="flex flex-col sm:flex-row h-[calc(100vh-480px)] min-h-[400px] max-h-[600px]">
+          <div className="flex flex-col sm:flex-row h-[calc(100vh-480px)] min-h-[500px] max-h-[700px]">
             {/* 左侧编辑器 */}
             {(viewMode === 'split' || viewMode === 'editor') && (
               <div className={`flex-1 overflow-hidden ${viewMode === 'split' ? 'border-r border-gray-300' : ''}`}>
@@ -784,11 +844,11 @@ export function ArticleEditor() {
         <div className="flex items-center gap-4">
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={isSaving || (article?.is_slow_mode)}
             className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
           >
             <Save className="w-4 h-4" />
-            {isSaving ? 'Saving...' : 'Save Article'}
+            {isSaving ? 'Saving...' : article?.is_slow_mode ? 'Slow Mode - Save Disabled' : 'Save Article'}
           </button>
           <button
             type="button"

@@ -1,27 +1,21 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Undo, Redo } from 'lucide-react';
+import { Undo, Redo, Plus, Link, Layout, Palette, PieChart, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Box, Grid } from 'lucide-react';
 import { KeyboardShortcuts } from '../keyboard/KeyboardShortcuts';
 import { useNavigate } from 'react-router-dom';
 import { graphService } from '../../services/graphService';
 
 // 导入子组件
-import { GraphControls } from './GraphVisualization/GraphControls';
 import { NodeManagement } from './GraphVisualization/NodeManagement';
 import { LinkManagement } from './GraphVisualization/LinkManagement';
 import { GraphCanvas } from './GraphVisualization/GraphCanvas';
 import { GraphCanvas3D } from './GraphVisualization/GraphCanvas3D';
 import { LayoutManager } from './GraphVisualization/LayoutManager';
-import { ClusterAnalysis } from './GraphVisualization/ClusterAnalysis';
 import { NodeProperties } from './GraphVisualization/NodeProperties';
 import { LinkProperties } from './GraphVisualization/LinkProperties';
 import { ThemeManager } from './GraphVisualization/ThemeManager';
-import { TemplateManager } from './GraphVisualization/TemplateManager';
-import { TemplateCategories } from './GraphVisualization/TemplateCategories';
-import { SaveTemplateDialog } from './GraphVisualization/SaveTemplateDialog';
 import { GraphImportExport } from './GraphVisualization/GraphImportExport';
 import { GraphAnalysis } from './GraphVisualization/GraphAnalysis';
 import { PRESET_THEMES, type GraphTheme } from './GraphVisualization/ThemeTypes';
-import { PRESET_CATEGORIES, PRESET_TEMPLATES, type GraphTemplate, type TemplateCategory } from './GraphVisualization/TemplateTypes';
 
 // 导入类型
 import type { EnhancedNode, EnhancedGraphLink, LayoutType, LayoutDirection, RecentAction } from './GraphVisualization/types';
@@ -48,18 +42,17 @@ export function GraphVisualization() {
   const [nodes, setNodes] = useState<EnhancedNode[]>([]);
   const [links, setLinks] = useState<EnhancedGraphLink[]>([]);
   const [selectedNode, setSelectedNode] = useState<EnhancedNode | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [isAddingLink, setIsAddingLink] = useState(false);
   const [linkSourceNode, setLinkSourceNode] = useState<EnhancedNode | null>(null);
   const [isSimulationRunning, setIsSimulationRunning] = useState(true);
   // 鼠标位置状态，用于绘制临时连接线
   const [mousePosition, setMousePosition] = useState<{x: number, y: number} | null>(null);
   // 布局算法类型
-  const [layoutType, setLayoutType] = useState<LayoutType>('force');
+  const [layoutType] = useState<LayoutType>('force');
   // 布局方向（仅用于层次化布局）
-  const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('top-bottom');
+  const [layoutDirection] = useState<LayoutDirection>('top-bottom');
 
-  const [notification, setNotification] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
+  const [, setNotification] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
 
   // 添加showNotification函数，用于显示通知
   const showNotification = useCallback((message: string, type: 'success' | 'info' | 'error') => {
@@ -98,19 +91,14 @@ export function GraphVisualization() {
   // 复制样式状态
   const [copiedStyle, setCopiedStyle] = useState<{ type: 'node' | 'link'; style: NodeStyle | LinkStyle } | null>(null);
 
-  // 模板相关状态
-  const [categories, setCategories] = useState<TemplateCategory[]>(PRESET_CATEGORIES);
-  const [templates, setTemplates] = useState<GraphTemplate[]>(PRESET_TEMPLATES);
-  const [isSaveTemplateDialogOpen, setIsSaveTemplateDialogOpen] = useState(false);
-
-  // 节点聚类功能
-  const [isClusteringEnabled, setIsClusteringEnabled] = useState(false);
-  const [clusterCount, setClusterCount] = useState(3);
-  const [clusters, setClusters] = useState<Record<string, number>>({}); // 节点ID到聚类ID的映射
-  const [clusterColors, setClusterColors] = useState<string[]>([]); // 每个聚类的颜色
-  
   // 视图模式（2D或3D）
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+  
+  // 控制面板状态 - 用于控制各子面板的显示/隐藏
+  const [activePanel, setActivePanel] = useState<string | null>(null);
+  
+  // 左侧面板折叠状态
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
 
   // 加载用户图表
   useEffect(() => {
@@ -358,109 +346,7 @@ export function GraphVisualization() {
     showNotification(`已粘贴${copiedStyle.type === 'node' ? '节点' : '链接'}样式`, 'success');
   }, [copiedStyle, currentTheme, showNotification]);
 
-  // 模板分类处理函数
-  const handleAddCategory = useCallback((category: Omit<TemplateCategory, 'id' | 'created_at' | 'updated_at'>) => {
-    const newCategory: TemplateCategory = {
-      ...category,
-      id: `category-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    setCategories(prev => [...prev, newCategory]);
-    showNotification('分类已添加', 'success');
-  }, [showNotification]);
 
-  const handleUpdateCategory = useCallback((category: TemplateCategory) => {
-    setCategories(prev => prev.map(cat => 
-      cat.id === category.id ? { ...cat, ...category, updated_at: new Date().toISOString() } : cat
-    ));
-    showNotification('分类已更新', 'success');
-  }, [showNotification]);
-
-  const handleDeleteCategory = useCallback((categoryId: string) => {
-    // 检查是否有模板使用该分类
-    const hasTemplates = templates.some(template => template.category_id === categoryId);
-    if (hasTemplates) {
-      showNotification('该分类下有模板，无法删除', 'error');
-      return;
-    }
-    
-    setCategories(prev => prev.filter(cat => cat.id !== categoryId));
-    showNotification('分类已删除', 'success');
-  }, [templates, showNotification]);
-
-  // 模板处理函数
-  const handleAddTemplate = useCallback((template: Omit<GraphTemplate, 'id' | 'created_at' | 'updated_at'>) => {
-    const newTemplate: GraphTemplate = {
-      ...template,
-      id: `template-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    setTemplates(prev => [...prev, newTemplate]);
-    showNotification('模板已添加', 'success');
-  }, [showNotification]);
-
-  const handleUpdateTemplate = useCallback((template: GraphTemplate) => {
-    setTemplates(prev => prev.map(temp => 
-      temp.id === template.id ? { ...temp, ...template, updated_at: new Date().toISOString() } : temp
-    ));
-    showNotification('模板已更新', 'success');
-  }, [showNotification]);
-
-  const handleDeleteTemplate = useCallback((templateId: string) => {
-    setTemplates(prev => prev.filter(temp => temp.id !== templateId));
-    showNotification('模板已删除', 'success');
-  }, [showNotification]);
-
-  const handleUseTemplate = useCallback((template: GraphTemplate) => {
-    // 转换模板节点为EnhancedNode类型
-    const newNodes: EnhancedNode[] = template.nodes.map(node => ({
-      id: `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      title: node.title,
-      connections: template.links.filter(link => 
-        link.source === node.id || link.target === node.id
-      ).length,
-      x: node.x,
-      y: node.y,
-      is_custom: true
-    }));
-    
-    // 转换模板链接为EnhancedGraphLink类型
-    const newLinks: EnhancedGraphLink[] = [];
-    
-    for (const link of template.links) {
-      // 查找源节点和目标节点的新ID
-      const sourceNode = template.nodes.find(n => n.id === link.source);
-      const targetNode = template.nodes.find(n => n.id === link.target);
-      
-      if (!sourceNode || !targetNode) {
-        continue;
-      }
-      
-      // 查找新节点的ID
-      const newSourceId = newNodes.find(n => n.title === sourceNode.title)?.id;
-      const newTargetId = newNodes.find(n => n.title === targetNode.title)?.id;
-      
-      if (!newSourceId || !newTargetId) {
-        continue;
-      }
-      
-      newLinks.push({
-        id: `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        source: newSourceId,
-        target: newTargetId,
-        type: link.type
-      });
-    }
-    
-    // 更新图谱
-    setNodes(newNodes);
-    setLinks(newLinks);
-    showNotification('已使用模板', 'success');
-  }, [showNotification]);
 
   // 处理导入图谱
   const handleImportGraph = useCallback((graph: any) => {
@@ -492,52 +378,8 @@ export function GraphVisualization() {
     showNotification('图谱已导入', 'success');
   }, [showNotification]);
 
-  // 保存模板处理函数
-  const handleSaveTemplate = useCallback((template: {
-    name: string;
-    description: string;
-    category_id: string;
-    is_public: boolean;
-  }) => {
-    // 转换当前节点为模板节点格式
-    const templateNodes = nodes.map(node => ({
-      id: node.id,
-      title: node.title,
-      x: node.x || 0,
-      y: node.y || 0
-    }));
-    
-    // 转换当前链接为模板链接格式
-    const templateLinks = links.map(link => {
-      const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-      const targetId = typeof link.target === 'object' ? link.target.id : link.target;
-      
-      return {
-        id: link.id,
-        source: String(sourceId),
-        target: String(targetId),
-        type: link.type
-      };
-    });
-    
-    // 创建新模板
-    const newTemplate: GraphTemplate = {
-      id: `template-${Date.now()}`,
-      name: template.name,
-      description: template.description,
-      category_id: template.category_id,
-      nodes: templateNodes,
-      links: templateLinks,
-      is_public: template.is_public,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    // 添加到模板列表
-    setTemplates(prev => [...prev, newTemplate]);
-    showNotification('模板已保存', 'success');
-  }, [nodes, links, showNotification]);
 
+  
   // 画布拖拽放置处理
   const handleCanvasDrop = useCallback((_event: React.DragEvent, x: number, y: number) => {
     // 创建新节点
@@ -564,222 +406,338 @@ export function GraphVisualization() {
     showNotification('节点创建成功', 'success');
   }, [showNotification, addHistory]);
 
+  // 切换面板显示状态
+  const togglePanel = (panelId: string) => {
+    setActivePanel(activePanel === panelId ? null : panelId);
+  };
+
   return (
     <div className="w-full h-screen flex flex-col bg-gray-50">
-      {/* 顶部工具栏 */}
-      <div className="bg-white shadow-sm p-4 flex items-center justify-between">
+      {/* 顶部工具栏 - 统合为图标形式 */}
+      <div className="bg-white shadow-sm p-2 flex items-center justify-between gap-2 border-b">
+        {/* 左侧标题和基本操作 */}
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold">知识图谱可视化</h1>
-
+          <h1 className="text-lg font-bold">知识图谱可视化</h1>
+          
           {/* 撤销/重做按钮 */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleUndo}
-              disabled={historyIndex < 0}
-              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              title="撤销"
-            >
-              <Undo size={16} />
-              <span className="text-sm">撤销</span>
-            </button>
-            <button
-              onClick={handleRedo}
-              disabled={historyIndex >= history.length - 1}
-              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              title="重做"
-            >
-              <Redo size={16} />
-              <span className="text-sm">重做</span>
-            </button>
-          </div>
-
-          {/* 保存模板按钮 */}
           <button
-            onClick={() => setIsSaveTemplateDialogOpen(true)}
-            className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-1"
-            title="保存为模板"
+            onClick={handleUndo}
+            disabled={historyIndex < 0}
+            className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title="撤销"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-            </svg>
-            <span className="text-sm">保存为模板</span>
+            <Undo className="w-4 h-4 text-gray-600" />
           </button>
-
-          {/* 图表控制组件 */}
-          <GraphControls
-            isEditMode={isEditMode}
-            setIsEditMode={setIsEditMode}
-            isSimulationRunning={isSimulationRunning}
-            setIsSimulationRunning={setIsSimulationRunning}
-            layoutType={layoutType}
-            setLayoutType={setLayoutType}
-            layoutDirection={layoutDirection}
-            setLayoutDirection={setLayoutDirection}
-            isAddingLink={isAddingLink}
-            cancelAddLink={() => {
-              setIsAddingLink(false);
-              setLinkSourceNode(null);
-            }}
-          />
+          <button
+            onClick={handleRedo}
+            disabled={historyIndex >= history.length - 1}
+            className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title="重做"
+          >
+            <Redo className="w-4 h-4 text-gray-600" />
+          </button>
         </div>
-
-        {/* 通知显示 */}
-        {notification && (
-          <div className={`fixed top-4 right-4 px-4 py-2 rounded-md text-white ${notification.type === 'success' ? 'bg-green-600' : notification.type === 'error' ? 'bg-red-600' : 'bg-blue-600'}`}>
-            {notification.message}
-          </div>
-        )}
+        
+        {/* 中央功能工具栏 - 图标化 */}
+        <div className="flex items-center gap-1">
+          {/* 节点管理 */}
+          <button
+            onClick={() => togglePanel('nodes')}
+            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${activePanel === 'nodes' ? 'bg-blue-100 text-blue-600' : ''}`}
+            title="节点管理"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+          
+          {/* 链接管理 */}
+          <button
+            onClick={() => togglePanel('links')}
+            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${activePanel === 'links' ? 'bg-blue-100 text-blue-600' : ''}`}
+            title="链接管理"
+          >
+            <Link className="w-4 h-4" />
+          </button>
+          
+          {/* 布局管理 */}
+          <button
+            onClick={() => togglePanel('layout')}
+            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${activePanel === 'layout' ? 'bg-blue-100 text-blue-600' : ''}`}
+            title="布局管理"
+          >
+            <Layout className="w-4 h-4" />
+          </button>
+          
+          {/* 导入导出 */}
+          <button
+            onClick={() => togglePanel('importExport')}
+            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${activePanel === 'importExport' ? 'bg-blue-100 text-blue-600' : ''}`}
+            title="导入导出"
+          >
+            <Box className="w-4 h-4" />
+          </button>
+          
+          {/* 主题样式 */}
+          <button
+            onClick={() => togglePanel('theme')}
+            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${activePanel === 'theme' ? 'bg-blue-100 text-blue-600' : ''}`}
+            title="主题样式"
+          >
+            <Palette className="w-4 h-4" />
+          </button>
+          
+          {/* 图谱分析 */}
+          <button
+            onClick={() => togglePanel('analysis')}
+            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${activePanel === 'analysis' ? 'bg-blue-100 text-blue-600' : ''}`}
+            title="图谱分析"
+          >
+            <PieChart className="w-4 h-4" />
+          </button>
+          
+          {/* 模板 */}
+          <button
+            onClick={() => togglePanel('templates')}
+            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${activePanel === 'templates' ? 'bg-blue-100 text-blue-600' : ''}`}
+            title="模板"
+          >
+            <Grid className="w-4 h-4" />
+          </button>
+        </div>
+        
+        {/* 右侧工具 */}
+        <div className="flex items-center gap-1">
+          {/* 左侧面板折叠切换 */}
+          <button
+            onClick={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
+            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+            title={isLeftPanelCollapsed ? "展开左侧面板" : "折叠左侧面板"}
+          >
+            {isLeftPanelCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+          
+          {/* 视图切换按钮 - 更紧凑的图标形式 */}
+          <button
+            onClick={() => setViewMode('2d')}
+            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${viewMode === '2d' ? 'bg-blue-100 text-blue-600' : ''}`}
+            title="2D视图"
+          >
+            <Grid className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode('3d')}
+            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${viewMode === '3d' ? 'bg-blue-100 text-blue-600' : ''}`}
+            title="3D视图"
+          >
+            <Box className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* 主内容区域 */}
       <div className="flex-1 flex overflow-hidden">
-        {/* 左侧控制面板 */}
-        <div className="w-80 bg-white shadow-md p-4 overflow-y-auto">
-          {/* 节点管理组件 */}
-          <NodeManagement
-            nodes={nodes}
-            links={links}
-            setNodes={setNodes}
-            selectedNode={selectedNode}
-            setSelectedNode={setSelectedNode}
-            selectedNodes={selectedNodes}
-            setSelectedNodes={setSelectedNodes}
-            showNotification={showNotification}
-            onAddNode={(node) => {
-              addHistory({
-                type: 'addNode',
-                nodeId: node.id,
-                timestamp: Date.now(),
-                data: { node }
-              });
-            }}
-            onDeleteNodes={(deletedNodes, deletedLinks) => {
-              deletedNodes.forEach(node => {
-                addHistory({
-                  type: 'deleteNode',
-                  nodeId: node.id,
-                  timestamp: Date.now(),
-                  data: { node, links: deletedLinks.filter(link => {
-                    const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-                    const targetId = typeof link.target === 'object' ? link.target.id : link.target;
-                    return String(sourceId) === node.id || String(targetId) === node.id;
-                  }) }
-                });
-              });
-            }}
-          />
-
-          {/* 链接管理组件 */}
-          <div className="mt-4">
-            <LinkManagement
-              links={links}
-              setLinks={setLinks}
-              nodes={nodes}
-              setNodes={setNodes}
-              isAddingLink={isAddingLink}
-              setIsAddingLink={setIsAddingLink}
-              linkSourceNode={linkSourceNode}
-              setLinkSourceNode={setLinkSourceNode}
-              mousePosition={mousePosition}
-              setMousePosition={setMousePosition}
-              showNotification={showNotification}
-            />
-          </div>
-
-          {/* 布局管理组件 */}
-          <div className="mt-4">
-            <LayoutManager
-              nodes={nodes}
-              links={links}
-              layoutType={layoutType}
-              layoutDirection={layoutDirection}
-              width={800}
-              height={600}
-            />
-          </div>
-
-          {/* 图谱导入/导出组件 */}
-          <div className="mt-4">
-            <GraphImportExport
-              nodes={nodes}
-              links={links}
-              onImportGraph={handleImportGraph}
-              graphTitle="My Knowledge Graph"
-            />
-          </div>
-
-          {/* 图谱分析组件 */}
-          <div className="mt-4">
-            <GraphAnalysis
-              nodes={nodes}
-              links={links}
-            />
-          </div>
-
-          {/* 聚类分析组件 */}
-          <div className="mt-4">
-            <ClusterAnalysis
-              nodes={nodes}
-              links={links}
-              clusters={clusters}
-              setClusters={setClusters}
-              clusterColors={clusterColors}
-              setClusterColors={setClusterColors}
-              clusterCount={clusterCount}
-              setClusterCount={setClusterCount}
-              isClusteringEnabled={isClusteringEnabled}
-              setIsClusteringEnabled={setIsClusteringEnabled}
-            />
-          </div>
-
-          {/* 样式主题组件 */}
-          <div className="mt-4">
-            <ThemeManager
-              currentTheme={currentTheme}
-              onThemeChange={setCurrentTheme}
-            />
-          </div>
-
-          {/* 样式复制粘贴按钮 */}
-          <div className="mt-4 p-4 bg-white rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold mb-4">样式复制粘贴</h3>
-            <div className="flex gap-2">
-              <button
-                onClick={handlePasteStyle}
-                disabled={!copiedStyle}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                粘贴样式
-              </button>
-              {copiedStyle && (
-                <div className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm flex items-center">
-                  已复制: {copiedStyle.type === 'node' ? '节点' : '链接'}样式
+        {/* 左侧控制面板 - 可折叠 */}
+        <div className={`bg-white shadow-md p-4 overflow-y-auto transition-all duration-300 ease-in-out ${isLeftPanelCollapsed ? 'w-0 p-0 overflow-hidden' : 'w-80'}`}>
+          {!isLeftPanelCollapsed && (
+            <>
+              {/* 可折叠的工具面板 */}
+              <div className="space-y-4">
+                {/* 节点管理面板 */}
+                <div className="border rounded-lg overflow-hidden">
+                  <button 
+                    onClick={() => togglePanel('nodes')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Plus className="w-4 h-4 text-blue-600" />
+                      <h3 className="font-medium">节点管理</h3>
+                    </div>
+                    {activePanel === 'nodes' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  {activePanel === 'nodes' && (
+                    <div className="p-3">
+                      <NodeManagement
+                        nodes={nodes}
+                        links={links}
+                        setNodes={setNodes}
+                        selectedNode={selectedNode}
+                        setSelectedNode={setSelectedNode}
+                        selectedNodes={selectedNodes}
+                        setSelectedNodes={setSelectedNodes}
+                        showNotification={showNotification}
+                        onAddNode={(node) => {
+                          addHistory({
+                            type: 'addNode',
+                            nodeId: node.id,
+                            timestamp: Date.now(),
+                            data: { node }
+                          });
+                        }}
+                        onDeleteNodes={(deletedNodes, deletedLinks) => {
+                          deletedNodes.forEach(node => {
+                            addHistory({
+                              type: 'deleteNode',
+                              nodeId: node.id,
+                              timestamp: Date.now(),
+                              data: { node, links: deletedLinks.filter(link => {
+                                const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+                                const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+                                return String(sourceId) === node.id || String(targetId) === node.id;
+                              }) }
+                            });
+                          });
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* 模板分类管理 */}
-          <div className="mt-4">
-            <TemplateCategories
-              categories={categories}
-              onAddCategory={handleAddCategory}
-              onUpdateCategory={handleUpdateCategory}
-              onDeleteCategory={handleDeleteCategory}
-            />
-          </div>
+                {/* 链接管理面板 */}
+                <div className="border rounded-lg overflow-hidden">
+                  <button 
+                    onClick={() => togglePanel('links')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Link className="w-4 h-4 text-blue-600" />
+                      <h3 className="font-medium">链接管理</h3>
+                    </div>
+                    {activePanel === 'links' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  {activePanel === 'links' && (
+                    <div className="p-3">
+                      <LinkManagement
+                        links={links}
+                        setLinks={setLinks}
+                        nodes={nodes}
+                        setNodes={setNodes}
+                        isAddingLink={isAddingLink}
+                        setIsAddingLink={setIsAddingLink}
+                        linkSourceNode={linkSourceNode}
+                        setLinkSourceNode={setLinkSourceNode}
+                        mousePosition={mousePosition}
+                        setMousePosition={setMousePosition}
+                        showNotification={showNotification}
+                      />
+                    </div>
+                  )}
+                </div>
 
-          {/* 模板管理 */}
-          <div className="mt-4">
-            <TemplateManager
-              templates={templates}
-              categories={categories}
-              onAddTemplate={handleAddTemplate}
-              onUpdateTemplate={handleUpdateTemplate}
-              onDeleteTemplate={handleDeleteTemplate}
-              onUseTemplate={handleUseTemplate}
-            />
-          </div>
+                {/* 布局管理面板 */}
+                <div className="border rounded-lg overflow-hidden">
+                  <button 
+                    onClick={() => togglePanel('layout')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Layout className="w-4 h-4 text-blue-600" />
+                      <h3 className="font-medium">布局管理</h3>
+                    </div>
+                    {activePanel === 'layout' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  {activePanel === 'layout' && (
+                    <div className="p-3">
+                      <LayoutManager
+                        nodes={nodes}
+                        links={links}
+                        layoutType={layoutType}
+                        layoutDirection={layoutDirection}
+                        width={800}
+                        height={600}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* 导入导出面板 */}
+                <div className="border rounded-lg overflow-hidden">
+                  <button 
+                    onClick={() => togglePanel('importExport')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Box className="w-4 h-4 text-blue-600" />
+                      <h3 className="font-medium">导入导出</h3>
+                    </div>
+                    {activePanel === 'importExport' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  {activePanel === 'importExport' && (
+                    <div className="p-3">
+                      <GraphImportExport
+                        nodes={nodes}
+                        links={links}
+                        onImportGraph={handleImportGraph}
+                        graphTitle="My Knowledge Graph"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* 样式主题面板 */}
+                <div className="border rounded-lg overflow-hidden">
+                  <button 
+                    onClick={() => togglePanel('theme')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Palette className="w-4 h-4 text-blue-600" />
+                      <h3 className="font-medium">主题样式</h3>
+                    </div>
+                    {activePanel === 'theme' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  {activePanel === 'theme' && (
+                    <div className="p-3">
+                      <ThemeManager
+                        currentTheme={currentTheme}
+                        onThemeChange={setCurrentTheme}
+                      />
+                      
+                      {/* 样式复制粘贴功能 */}
+                      <div className="mt-4 p-3 bg-white rounded-lg shadow-sm">
+                        <h4 className="font-medium mb-2">样式复制粘贴</h4>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handlePasteStyle}
+                            disabled={!copiedStyle}
+                            className="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors"
+                            title="粘贴样式"
+                          >
+                            粘贴样式
+                          </button>
+                          {copiedStyle && (
+                            <div className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-xs flex items-center">
+                              已复制: {copiedStyle.type === 'node' ? '节点' : '链接'}样式
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 图谱分析面板 */}
+                <div className="border rounded-lg overflow-hidden">
+                  <button 
+                    onClick={() => togglePanel('analysis')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <PieChart className="w-4 h-4 text-blue-600" />
+                      <h3 className="font-medium">图谱分析</h3>
+                    </div>
+                    {activePanel === 'analysis' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  {activePanel === 'analysis' && (
+                    <div className="p-3">
+                      <GraphAnalysis
+                        nodes={nodes}
+                        links={links}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* 中央画布区域 */}
@@ -789,14 +747,16 @@ export function GraphVisualization() {
             <button
               onClick={() => setViewMode('2d')}
               className={`px-3 py-1 rounded-md text-sm transition-colors ${viewMode === '2d' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+              title="2D视图"
             >
-              2D视图
+              2D
             </button>
             <button
               onClick={() => setViewMode('3d')}
               className={`px-3 py-1 rounded-md text-sm transition-colors ${viewMode === '3d' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+              title="3D视图"
             >
-              3D视图
+              3D
             </button>
           </div>
           
@@ -858,14 +818,6 @@ export function GraphVisualization() {
             </div>
           )}
         </div>
-
-        {/* 保存模板对话框 */}
-        <SaveTemplateDialog
-          isOpen={isSaveTemplateDialogOpen}
-          categories={categories}
-          onClose={() => setIsSaveTemplateDialogOpen(false)}
-          onSave={handleSaveTemplate}
-        />
       </div>
     </div>
   );

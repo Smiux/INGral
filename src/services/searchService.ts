@@ -46,7 +46,9 @@ export class SearchService extends BaseService {
           this.handleError(error, '搜索文章', 'SearchService');
         }
 
-        return data || [];
+        // 过滤只返回公开文章
+        const filteredData = (data || []).filter((article: Article) => article.visibility === 'public');
+        return filteredData;
       } catch (error) {
         console.error('Failed to search articles:', error);
         return [];
@@ -82,7 +84,9 @@ export class SearchService extends BaseService {
           this.handleError(error, '根据标签搜索文章', 'SearchService');
         }
 
-        return data || [];
+        // 过滤只返回公开文章
+        const filteredData = (data || []).filter((article: Article) => article.visibility === 'public');
+        return filteredData;
       } catch (error) {
         console.error('Failed to search articles by tag:', error);
         return [];
