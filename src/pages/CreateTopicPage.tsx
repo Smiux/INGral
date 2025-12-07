@@ -2,7 +2,7 @@
  * 创建主题页面组件
  * 允许用户创建新的讨论主题
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Send, Tag, Image } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
@@ -33,7 +33,7 @@ export function CreateTopicPage() {
   /**
    * 加载分类信息
    */
-  const loadCategory = async () => {
+  const loadCategory = useCallback(async () => {
     try {
       const categories = await discussionService.getCategories();
       const foundCategory = categories.find(cat => cat.slug === categorySlug);
@@ -50,19 +50,19 @@ export function CreateTopicPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [categorySlug, navigate, setCategory, setIsLoading]);
 
   /**
    * 加载标签
    */
-  const loadTags = async () => {
+  const loadTags = useCallback(async () => {
     try {
       const data = await discussionService.getTags();
       setAvailableTags(data.map(tag => ({ id: tag.id, name: tag.name })));
     } catch (error) {
       console.error('Failed to load tags:', error);
     }
-  };
+  }, [setAvailableTags]);
 
   /**
    * 处理标签切换
@@ -163,7 +163,7 @@ export function CreateTopicPage() {
   useEffect(() => {
     loadCategory();
     loadTags();
-  }, [categorySlug, navigate]);
+  }, [categorySlug, navigate, loadCategory, loadTags]);
 
   if (isLoading) {
     return (

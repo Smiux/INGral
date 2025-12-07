@@ -2,8 +2,8 @@
  * 节点管理组件
  * 负责节点的添加、删除、选择等操作
  */
-import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Trash2, Edit, X } from 'lucide-react';
 import type { NodeManagementProps, EnhancedNode } from './types';
 
 /**
@@ -21,6 +21,15 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
   onAddNode,
   onDeleteNodes,
 }) => {
+  // 批量编辑状态
+  const [isBatchEditing, setIsBatchEditing] = useState(false);
+  // 批量编辑表单数据
+  const [batchEditForm, setBatchEditForm] = useState({
+    title: '',
+    type: '',
+    connections: ''
+  });
+  
   /**
    * 添加新节点
    */
@@ -42,6 +51,81 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
     if (onAddNode) {
       onAddNode(newNode);
     }
+  };
+  
+  /**
+   * 处理批量编辑表单变化
+   */
+  const handleBatchEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setBatchEditForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  /**
+   * 应用批量编辑
+   */
+  const handleApplyBatchEdit = () => {
+    if (selectedNodes.length === 0) {
+      showNotification('请先选择要编辑的节点', 'error');
+      return;
+    }
+    
+    let updatedCount = 0;
+    
+    const updatedNodes = nodes.map(node => {
+      // 只更新选中的节点
+      if (!selectedNodes.some(selected => selected.id === node.id)) {
+        return node;
+      }
+      
+      const updatedNode = { ...node };
+      let hasChanges = false;
+      
+      // 应用表单中的变化
+      if (batchEditForm.title.trim()) {
+        updatedNode.title = batchEditForm.title.trim();
+        hasChanges = true;
+      }
+      
+      if (batchEditForm.type.trim()) {
+        updatedNode.type = batchEditForm.type.trim();
+        hasChanges = true;
+      }
+      
+      if (batchEditForm.connections.trim()) {
+        const connections = parseInt(batchEditForm.connections.trim());
+        if (!isNaN(connections)) {
+          updatedNode.connections = connections;
+          hasChanges = true;
+        }
+      }
+      
+      if (hasChanges) {
+        updatedCount++;
+      }
+      
+      return updatedNode;
+    });
+    
+    if (updatedCount > 0) {
+      setNodes(updatedNodes);
+      setBatchEditForm({ title: '', type: '', connections: '' });
+      setIsBatchEditing(false);
+      showNotification(`已更新 ${updatedCount} 个节点`, 'success');
+    } else {
+      showNotification('没有可应用的更改', 'info');
+    }
+  };
+  
+  /**
+   * 取消批量编辑
+   */
+  const handleCancelBatchEdit = () => {
+    setBatchEditForm({ title: '', type: '', connections: '' });
+    setIsBatchEditing(false);
   };
 
   /**
@@ -104,31 +188,117 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md">
-      <div className="flex flex-wrap gap-2 items-center">
-        {/* 节点统计 */}
-        <div className="text-sm text-gray-600">
-          节点数: {nodes.length} | 选中: {selectedNodes.length}
+      {!isBatchEditing ? (
+        <div className="flex flex-wrap gap-2 items-center">
+          {/* 节点统计 */}
+          <div className="text-sm text-gray-600">
+            节点数: {nodes.length} | 选中: {selectedNodes.length}
+          </div>
+
+          {/* 添加节点按钮 */}
+          <button
+            className="px-4 py-2 bg-green-600 text-white rounded-md flex items-center gap-2 hover:bg-green-700"
+            onClick={handleAddNode}
+          >
+            <Plus size={16} />
+            添加节点
+          </button>
+
+          {/* 批量编辑按钮 */}
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded-md flex items-center gap-2 hover:bg-blue-700"
+            onClick={() => setIsBatchEditing(true)}
+            disabled={selectedNodes.length === 0}
+          >
+            <Edit size={16} />
+            批量编辑
+          </button>
+
+          {/* 删除选中节点按钮 */}
+          <button
+            className="px-4 py-2 bg-red-600 text-white rounded-md flex items-center gap-2 hover:bg-red-700"
+            onClick={handleDeleteSelectedNodes}
+            disabled={selectedNodes.length === 0}
+          >
+            <Trash2 size={16} />
+            删除选中节点
+          </button>
         </div>
-
-        {/* 添加节点按钮 */}
-        <button
-          className="px-4 py-2 bg-green-600 text-white rounded-md flex items-center gap-2 hover:bg-green-700"
-          onClick={handleAddNode}
-        >
-          <Plus size={16} />
-          添加节点
-        </button>
-
-        {/* 删除选中节点按钮 */}
-        <button
-          className="px-4 py-2 bg-red-600 text-white rounded-md flex items-center gap-2 hover:bg-red-700"
-          onClick={handleDeleteSelectedNodes}
-          disabled={selectedNodes.length === 0}
-        >
-          <Trash2 size={16} />
-          删除选中节点
-        </button>
-      </div>
+      ) : (
+        <div className="space-y-4">
+          {/* 批量编辑表单 */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-700">批量编辑节点 ({selectedNodes.length} 个选中)</h3>
+              <button
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                onClick={handleCancelBatchEdit}
+              >
+                <X size={14} />
+                取消
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {/* 节点标题 */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">节点标题 (可选)</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={batchEditForm.title}
+                  onChange={handleBatchEditChange}
+                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                  placeholder="输入新标题"
+                />
+              </div>
+              
+              {/* 节点类型 */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">节点类型 (可选)</label>
+                <input
+                  type="text"
+                  name="type"
+                  value={batchEditForm.type}
+                  onChange={handleBatchEditChange}
+                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                  placeholder="输入节点类型"
+                />
+              </div>
+              
+              {/* 连接数 */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">连接数 (可选)</label>
+                <input
+                  type="number"
+                  name="connections"
+                  value={batchEditForm.connections}
+                  onChange={handleBatchEditChange}
+                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                  placeholder="输入连接数"
+                  min="0"
+                />
+              </div>
+              
+              {/* 应用按钮 */}
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
+                  onClick={handleCancelBatchEdit}
+                >
+                  取消
+                </button>
+                <button
+                  className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                  onClick={handleApplyBatchEdit}
+                >
+                  应用更改
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 可拖拽节点模板 */}
       <div className="mt-4">

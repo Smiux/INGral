@@ -1,4 +1,5 @@
-import type { Article, ArticleLink, Tag, OfflineArticle, Graph, GraphNode, GraphLink } from '../types/index';
+import type { Article, ArticleLink, Tag, Graph, GraphNode, GraphLink } from '../types/index';
+import { ArticleVisibility } from '../types/index';
 import { extractWikiLinks, titleToSlug, extractFormulas } from './markdown';
 import { supabase } from '../lib/supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -208,7 +209,7 @@ export async function fetchAllArticles(filterPublic = false, tagId?: string): Pr
         const typedClient = dbClient as SupabaseClient;
         let query = typedClient.from('articles').select('*');
         if (filterPublic) {
-          query = query.eq('visibility', 'public');
+          query = query.eq('visibility', ArticleVisibility.PUBLIC);
         }
         return await query;
       }, CACHE_TTL.articles);
@@ -236,7 +237,7 @@ export async function fetchAllArticles(filterPublic = false, tagId?: string): Pr
 export async function createArticle(
   title: string,
   content: string,
-  visibility: 'public' | 'unlisted' = 'public',
+  visibility: ArticleVisibility = ArticleVisibility.PUBLIC,
   authorName?: string,
   authorEmail?: string,
   authorUrl?: string,
@@ -378,12 +379,12 @@ export async function createArticle(
 async function saveArticleOffline(article: Partial<Article>): Promise<void> {
   try {
     if (typeof localStorage !== 'undefined') {
-      const offlineArticles: OfflineArticle[] = JSON.parse(localStorage.getItem('offline_articles') || '[]');
+      const offlineArticles: Partial<Article>[] = JSON.parse(localStorage.getItem('offline_articles') || '[]');
 
       // 检查是否已存在相同临时ID的文章
-      const existingIndex = offlineArticles.findIndex((a: OfflineArticle) => a.id === article.id);
+      const existingIndex = offlineArticles.findIndex((a) => a.id === article.id);
 
-      const offlineArticle: OfflineArticle = {
+      const offlineArticle: Partial<Article> = {
         ...(article as Article),
         is_offline: true,
         synced: false,
@@ -414,8 +415,8 @@ async function saveArticleOffline(article: Partial<Article>): Promise<void> {
 async function removeOfflineArticle(articleId: string): Promise<void> {
   try {
     if (typeof localStorage !== 'undefined') {
-      const offlineArticles: OfflineArticle[] = JSON.parse(localStorage.getItem('offline_articles') || '[]');
-      const updatedOfflineArticles = offlineArticles.filter((a: OfflineArticle) => a.id !== articleId);
+      const offlineArticles: Partial<Article>[] = JSON.parse(localStorage.getItem('offline_articles') || '[]');
+      const updatedOfflineArticles = offlineArticles.filter((a) => a.id !== articleId);
       localStorage.setItem('offline_articles', JSON.stringify(updatedOfflineArticles));
     }
   } catch (error) {
@@ -428,7 +429,7 @@ export async function updateArticle(
   id: string,
   title: string,
   content: string,
-  visibility?: 'public' | 'unlisted',
+  visibility?: ArticleVisibility,
   authorName?: string,
   authorEmail?: string,
   authorUrl?: string,
@@ -1207,7 +1208,7 @@ export const createArticleFromGraph = async (
   return await createArticle(
     articleTitle,
     articleContent,
-    'public',
+    ArticleVisibility.PUBLIC,
   );
   } catch (error) {
     console.error('Error creating article from graph:', error);

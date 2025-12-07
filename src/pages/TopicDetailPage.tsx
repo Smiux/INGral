@@ -2,7 +2,7 @@
  * 主题详情页面组件
  * 展示单个讨论主题和其回复
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { MessageSquare, Users, Eye, Clock, ArrowLeft, Send, Tag, Image } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
@@ -36,7 +36,7 @@ export function TopicDetailPage() {
   /**
    * 加载主题详情
    */
-  const loadTopic = async () => {
+  const loadTopic = useCallback(async () => {
     try {
       setIsLoading(true);
       const numericTopicId = parseInt(topicId || '', 10);
@@ -61,12 +61,12 @@ export function TopicDetailPage() {
       console.error('Failed to load topic:', error);
       navigate('/discussions');
     }
-  };
+  }, [topicId, navigate, setTopic, setCategory, setIsLoading]);
 
   /**
    * 加载回复
    */
-  const loadReplies = async () => {
+  const loadReplies = useCallback(async () => {
     try {
       const numericTopicId = parseInt(topicId || '', 10);
       if (isNaN(numericTopicId)) return;
@@ -82,7 +82,7 @@ export function TopicDetailPage() {
     } catch (error) {
       console.error('Failed to load replies:', error);
     }
-  };
+  }, [topicId, currentPage, pageSize, setReplies, setTotalReplies]);
 
   /**
    * 处理回复提交
@@ -180,7 +180,7 @@ export function TopicDetailPage() {
   useEffect(() => {
     loadTopic();
     loadReplies();
-  }, [topicId, navigate]);
+  }, [topicId, navigate, loadTopic, loadReplies]);
 
   if (isLoading) {
     return (

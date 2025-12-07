@@ -5,13 +5,338 @@
  * - Markdown 转 HTML 渲染
  * - Wiki 链接支持（[[Title|Display Text]]）
  * - 数学公式（KaTeX）支持（$inline$ 和 $$block$$）
+ * - Mermaid 图表支持
+ * - Chart.js 图表支持
  * - 标题转 Slug 功能
  * - Wiki 链接提取功能
  * - Markdown 清理和摘要生成
+ * - 引用管理系统
  */
 import MarkdownIt from 'markdown-it';
 import { katexCache } from './katexCache';
 import 'katex/dist/katex.min.css';
+
+/**
+ * 引用数据接口
+ */
+export interface Citation {
+  id: string;
+  type: 'url' | 'doi' | 'isbn' | 'book' | 'article' | 'website';
+  content: string;
+  metadata?: {
+    title?: string;
+    authors?: string[];
+    publisher?: string;
+    year?: number;
+    url?: string;
+    doi?: string;
+    isbn?: string;
+    journal?: string;
+    volume?: number;
+    issue?: number;
+    pages?: string;
+  };
+  position: number;
+  count: number;
+}
+
+/**
+ * 引用格式类型
+ */
+export type CitationStyle = 'apa' | 'mla' | 'chicago' | 'ieee';
+
+/**
+ * 从Markdown内容中提取所有引用
+ * @param content Markdown内容
+ * @returns 提取的引用数组
+ */
+export function extractCitations(content: string): Citation[] {
+  const citations: Citation[] = [];
+  const citationRegex = /\[\^(\w+):\s*([^\]]+)\]/g;
+  let match;
+  
+  while ((match = citationRegex.exec(content)) !== null) {
+    if (match[1] && match[2]) {
+      const type = match[1].toLowerCase() as Citation['type'];
+      const content = match[2].trim();
+      
+      // 检查是否已存在相同内容的引用
+      const existingCitation = citations.find(cit => cit.content === content);
+      
+      if (existingCitation) {
+        // 更新引用计数
+        existingCitation.count++;
+      } else {
+        // 添加新引用
+        citations.push({
+          id: `citation-${citations.length + 1}`,
+          type,
+          content,
+          position: match.index,
+          count: 1
+        });
+      }
+    }
+  }
+  
+  return citations;
+}
+
+/**
+ * 格式化单条引用
+ * @param citation 引用对象
+ * @param style 引用格式
+ * @param index 引用索引（用于IEEE格式）
+ * @returns 格式化后的引用字符串
+ */
+export function formatCitation(citation: Citation, style: CitationStyle, index?: number): string {
+  const { content } = citation;
+  
+  switch (style) {
+    case 'apa':
+      return formatApaCitation(citation);
+    case 'mla':
+      return formatMlaCitation(citation);
+    case 'chicago':
+      return formatChicagoCitation(citation);
+    case 'ieee':
+      return formatIeeeCitation(citation, index || 1);
+    default:
+      return content;
+  }
+}
+
+/**
+ * 格式化APA风格引用
+ * @param citation 引用对象
+ * @returns APA格式引用
+ */
+function formatApaCitation(citation: Citation): string {
+  const { metadata, type, content } = citation;
+  
+  if (metadata) {
+    const { authors, year, title, publisher, journal, volume, issue, pages, doi, url } = metadata;
+    
+    if (type === 'article' && authors && title && journal && year) {
+      // 期刊文章
+      const authorStr = authors.join(', ');
+      const pagesStr = pages ? `, ${pages}` : '';
+      const volumeIssueStr = issue ? `${volume}(${issue})` : `${volume}`;
+      return `${authorStr} (${year}). ${title}. ${journal}, ${volumeIssueStr}${pagesStr}. ${doi || url}`;
+    }
+    
+    if (type === 'book' && authors && title && publisher && year) {
+      // 书籍
+      const authorStr = authors.join(', ');
+      return `${authorStr} (${year}). ${title}. ${publisher}. ${doi || url}`;
+    }
+    
+    if (type === 'website' && title && url && year) {
+      // 网站
+      const authorStr = authors ? `${authors.join(', ')} ` : '';
+      return `${authorStr}(${year}). ${title}. Retrieved from ${url}`;
+    }
+  }
+  
+  // 简单格式
+  return `${content} (${new Date().getFullYear()})`;
+}
+
+/**
+ * 格式化MLA风格引用
+ * @param citation 引用对象
+ * @returns MLA格式引用
+ */
+function formatMlaCitation(citation: Citation): string {
+  const { metadata, type, content } = citation;
+  
+  if (metadata) {
+    const { authors, title, journal, volume, issue, pages, year, publisher, url } = metadata;
+    
+    if (type === 'article' && authors && title && journal && year) {
+      // 期刊文章
+      const authorStr = authors.join(', ');
+      const pagesStr = pages ? ` ${pages}` : '';
+      return `${authorStr}. "${title}." ${journal}, vol. ${volume}, no. ${issue}, ${year}, p${pagesStr}. ${url || content}`;
+    }
+    
+    if (type === 'book' && authors && title && publisher && year) {
+      // 书籍
+      const authorStr = authors.join(', ');
+      return `${authorStr}. ${title}. ${publisher}, ${year}.`;
+    }
+    
+    if (type === 'website' && title && url) {
+      // 网站
+      const authorStr = authors ? `${authors.join(', ')}. ` : '';
+      const yearStr = year ? `${year}. ` : '';
+      return `${authorStr}${title}. ${yearStr}Web. ${new Date().toLocaleDateString()}.`;
+    }
+  }
+  
+  // 简单格式
+  return `${content}`;
+}
+
+/**
+ * 格式化Chicago风格引用
+ * @param citation 引用对象
+ * @returns Chicago格式引用
+ */
+function formatChicagoCitation(citation: Citation): string {
+  const { metadata, type, content } = citation;
+  
+  if (metadata) {
+    const { authors, title, publisher, year, journal, volume, issue, pages, doi, url } = metadata;
+    
+    if (type === 'article' && authors && title && journal && year) {
+      // 期刊文章
+      const authorStr = authors.join(', ');
+      const pagesStr = pages ? `: ${pages}` : '';
+      const volumeIssueStr = issue ? `${volume}, no. ${issue} (${year})` : `${volume} (${year})`;
+      return `${authorStr}. "${title}." ${journal} ${volumeIssueStr}${pagesStr}. ${doi || url}`;
+    }
+    
+    if (type === 'book' && authors && title && publisher && year) {
+      // 书籍
+      const authorStr = authors.join(', ');
+      return `${authorStr}. ${title}. ${publisher}, ${year}.`;
+    }
+  }
+  
+  // 简单格式
+  return `${content}, ${new Date().getFullYear()}`;
+}
+
+/**
+ * 格式化IEEE风格引用
+ * @param citation 引用对象
+ * @param index 引用索引
+ * @returns IEEE格式引用
+ */
+function formatIeeeCitation(citation: Citation, index: number): string {
+  const { metadata, type, content } = citation;
+  
+  if (metadata) {
+    const { authors, title, publisher, year, journal, volume, issue, pages, doi, url } = metadata;
+    
+    if (type === 'article' && authors && title && journal && year) {
+      // 期刊文章
+      const authorStr = authors.map((author, i) => i < 3 ? author : 'et al.').join(', ');
+      const pagesStr = pages ? `, pp. ${pages}` : '';
+      return `[${index}] ${authorStr}, "${title}," ${journal}, vol. ${volume}, no. ${issue},${pagesStr}, ${year}. ${doi || url}`;
+    }
+    
+    if (type === 'book' && authors && title && publisher && year) {
+      // 书籍
+      const authorStr = authors.map((author, i) => i < 3 ? author : 'et al.').join(', ');
+      return `[${index}] ${authorStr}, ${title}. ${publisher}, ${year}. ${doi || url}`;
+    }
+  }
+  
+  // 简单格式
+  return `[${index}] ${content}, ${new Date().getFullYear()}`;
+}
+
+/**
+ * 生成参考文献列表HTML
+ * @param citations 引用数组
+ * @param style 引用格式
+ * @returns 参考文献HTML
+ */
+export function generateBibliography(citations: Citation[], style: CitationStyle = 'apa'): string {
+  if (citations.length === 0) {
+    return '<p class="text-gray-500 dark:text-gray-400">No citations found</p>';
+  }
+  
+  let html = '<div class="bibliography">\n<h2>参考文献</h2>\n<ol class="citation-list space-y-2">\n';
+  
+  citations.forEach((citation, index) => {
+    const formattedCitation = formatCitation(citation, style, index + 1);
+    html += `<li id="cite-${citation.id}" class="citation-item">${formattedCitation}</li>\n`;
+  });
+  
+  html += '</ol>\n</div>\n';
+  
+  return html;
+}
+
+/**
+ * 处理Markdown内容中的引用
+ * @param text Markdown内容
+ * @returns 处理后的内容
+ */
+function processCitations(text: string): string {
+  return text.replace(/\[\^(\w+):\s*([^\]]+)\]/g, (_match, type, content) => {
+    // 生成唯一引用ID
+    const id = `cite-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    return `<sup><a href="#${id}" class="citation-ref">[${type}:${content.substring(0, 20)}${content.length > 20 ? '...' : ''}]</a></sup>`;
+  });
+}
+
+
+import hljs from 'highlight.js';
+import 'highlight.js/styles/github-dark.css';
+
+/**
+ * Markdown渲染缓存
+ */
+interface CacheEntry {
+  data: RenderMarkdownResult;
+  accessedAt: number;
+  accessCount: number;
+  contentSize: number;
+}
+
+const markdownRenderCache = new Map<string, CacheEntry>();
+const CACHE_EXPIRY_TIME = 5 * 60 * 1000; // 5分钟缓存
+const MAX_CACHE_ENTRIES = 50; // 最大缓存条目数
+const MAX_CACHE_SIZE = 10 * 1024 * 1024; // 最大缓存大小（10MB）
+
+// 缓存统计信息
+let totalCacheSize = 0;
+
+/**
+ * 清理过期缓存条目
+ */
+function cleanupCache(): void {
+  const now = Date.now();
+  const entries = Array.from(markdownRenderCache.entries());
+  
+  // 移除过期条目
+  for (const [key, entry] of entries) {
+    if (now - entry.accessedAt > CACHE_EXPIRY_TIME) {
+      totalCacheSize -= entry.contentSize;
+      markdownRenderCache.delete(key);
+    }
+  }
+  
+  // 如果缓存条目数超过限制，按访问频率和时间进行清理
+  if (markdownRenderCache.size > MAX_CACHE_ENTRIES || totalCacheSize > MAX_CACHE_SIZE) {
+    const sortedEntries = Array.from(markdownRenderCache.entries())
+      .sort(([, a], [, b]) => {
+        // 优先按访问频率排序，然后按访问时间排序
+        if (b.accessCount !== a.accessCount) {
+          return b.accessCount - a.accessCount;
+        }
+        return b.accessedAt - a.accessedAt;
+      });
+    
+    // 只保留前MAX_CACHE_ENTRIES个条目
+    const entriesToKeep = sortedEntries.slice(0, MAX_CACHE_ENTRIES);
+    const keysToRemove = new Set(markdownRenderCache.keys());
+    entriesToKeep.forEach(([key]) => keysToRemove.delete(key));
+    
+    // 删除多余的条目
+    keysToRemove.forEach(key => {
+      const entry = markdownRenderCache.get(key);
+      if (entry) {
+        totalCacheSize -= entry.contentSize;
+        markdownRenderCache.delete(key);
+      }
+    });
+  }
+}
 
 /**
  * MarkdownIt 实例配置
@@ -20,7 +345,62 @@ const md = new MarkdownIt({
   html: true,           // 允许 HTML 标签
   linkify: true,        // 自动识别链接
   typographer: true,    // 启用排版优化
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        // 生成缓存键
+        const cacheKey = `highlight:${lang}:${str}`;
+        // 简单的内存缓存
+        if (!window.markdownHighlightCache) {
+          window.markdownHighlightCache = new Map<string, string>();
+        }
+        
+        // 检查缓存
+        if (window.markdownHighlightCache.has(cacheKey)) {
+          return window.markdownHighlightCache.get(cacheKey) || '';
+        }
+        
+        // 渲染并缓存结果
+        const result = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
+        window.markdownHighlightCache.set(cacheKey, result);
+        return result;
+      } catch {
+        // 忽略语法高亮错误
+      }
+    }
+    return ''; // 使用默认的转义
+  }
 });
+
+// 为window添加类型声明
+declare global {
+  interface Window {
+    markdownHighlightCache: Map<string, string>;
+  }
+}
+
+// 自定义图片渲染规则，添加懒加载支持
+const defaultImageRender = md.renderer.rules.image;
+md.renderer.rules.image = function(tokens, idx, options, env, self) {
+  // 添加 loading="lazy" 属性，确保tokens[idx]存在
+  if (tokens[idx]) {
+    tokens[idx].attrPush(['loading', 'lazy']);
+  }
+  return defaultImageRender ? defaultImageRender(tokens, idx, options, env, self) : self.renderToken(tokens, idx, options);
+};
+
+// 自定义代码块渲染规则，集成highlight.js
+md.renderer.rules.fence = function(tokens, idx, options) {
+  const token = tokens[idx];
+  if (!token) return '';
+  
+  const code = token.content.trim();
+  const lang = token.info.trim();
+  const attrs = '';
+  const highlighted = options.highlight?.(code, lang, attrs) || code;
+  
+  return `<pre class="bg-neutral-800 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-${lang}">${highlighted}</code></pre>`;
+};
 
 /**
  * 将标题转换为 Slug（用于 URL 和锚点）
@@ -57,23 +437,48 @@ function processWikiLinks(text: string): string {
 function processMathFormulas(text: string): string {
   let result = text;
   
-  // 处理块级数学公式：$$...$$ 格式
-  result = result.replace(/\$\$([^$]+)\$\$/g, (_match: string, p1: string) => {
-    try {
-      return katexCache.render(p1, { displayMode: true });
-    } catch {
-      return _match; // 渲染失败时返回原始内容
-    }
-  });
+  // 只在有数学公式时才处理，减少不必要的正则匹配
+  if (result.includes('$') || result.includes('\\[')) {
+    // 处理块级数学公式：\[...\] 格式
+    result = result.replace(/(?<!\\)\\\[([\s\S]*?)(?<!\\)\\\]/g, (_match: string, p1: string) => {
+      try {
+        return katexCache.render(p1, { displayMode: true });
+      } catch (error) {
+        console.error('Error rendering block math [\[...\]]:', error);
+        return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
+      }
+    });
 
-  // 处理内联数学公式：$...$ 格式
-  result = result.replace(/\$([^$]+)\$/g, (_match: string, p1: string) => {
-    try {
-      return katexCache.render(p1, { displayMode: false });
-    } catch {
-      return _match; // 渲染失败时返回原始内容
-    }
-  });
+    // 处理内联数学公式：\(...\) 格式
+    result = result.replace(/(?<!\\)\\\(([\s\S]*?)(?<!\\)\\\)/g, (_match: string, p1: string) => {
+      try {
+        return katexCache.render(p1, { displayMode: false });
+      } catch (error) {
+        console.error('Error rendering inline math \(...\):', error);
+        return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
+      }
+    });
+
+    // 处理块级数学公式：$$...$$ 格式
+    result = result.replace(/(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$/g, (_match: string, p1: string) => {
+      try {
+        return katexCache.render(p1, { displayMode: true });
+      } catch (error) {
+        console.error('Error rendering block math $$...$$:', error);
+        return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
+      }
+    });
+
+    // 处理内联数学公式：$...$ 格式
+    result = result.replace(/(?<!\\)\$([\s\S]*?)(?<!\\)\$/g, (_match: string, p1: string) => {
+      try {
+        return katexCache.render(p1, { displayMode: false });
+      } catch (error) {
+        console.error('Error rendering inline math $...$:', error);
+        return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
+      }
+    });
+  }
   
   return result;
 }
@@ -94,9 +499,52 @@ md.renderer.rules.text = function (tokens: { content?: string }[], idx: number) 
   
   // 处理数学公式
   result = processMathFormulas(result);
+  
+  // 处理引用
+  result = processCitations(result);
 
   return result;
 };
+
+/**
+ * 处理 Markdown 文本中的 Mermaid 图表
+ * @param text Markdown 文本
+ */
+function processMermaidDiagrams(text: string): string {
+  return text.replace(/```mermaid([\s\S]*?)```/g, (_match: string, code: string) => {
+    // 清理代码内容，移除首尾空白
+    const cleanedCode = code.trim();
+    
+    // 生成唯一ID
+    const id = `mermaid-diagram-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+    // 返回包含Mermaid图表的HTML
+    return `
+      <div class="mermaid" id="${id}">
+        ${cleanedCode}
+      </div>
+    `;
+  });
+}
+
+/**
+ * 处理 Markdown 文本中的 Chart.js 图表
+ * @param text Markdown 文本
+ */
+function processChartJsDiagrams(text: string): string {
+  return text.replace(/\[chartjs\]([\s\S]*?)\[\/chartjs\]/g, (_match: string, config: string) => {
+    // 清理配置内容，移除首尾空白
+    const cleanedConfig = config.trim();
+    
+    // 生成唯一ID
+    const id = `chartjs-chart-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+    // 返回包含Chart.js图表的HTML，使用自定义属性标记
+    return `
+      <canvas class="chartjs-placeholder" id="${id}" data-chart-config="${encodeURIComponent(cleanedConfig)}"></canvas>
+    `;
+  });
+}
 
 /**
  * 处理 Markdown 文本中的 SymPy 计算单元格
@@ -174,15 +622,114 @@ export function extractFormulas(content: string): Array<{ id: string; content: s
 }
 
 /**
+ * 渲染Markdown结果接口
+ */
+export interface RenderMarkdownResult {
+  html: string;
+  citations: Citation[];
+  headings: ReturnType<typeof extractHeadings>;
+  wikiLinks: ReturnType<typeof extractWikiLinksDetailed>;
+  formulas: ReturnType<typeof extractFormulas>;
+}
+
+/**
  * 将 Markdown 文本渲染为 HTML
+ * @param content Markdown 文本
+ * @param options 渲染选项
+ * @returns 渲染后的 HTML 字符串和相关信息
+ */
+export function renderMarkdown(content: string, options?: {
+  includeBibliography?: boolean;
+  citationStyle?: CitationStyle;
+}): RenderMarkdownResult {
+  // 生成缓存键
+  const cacheKey = `render:${content}:${options?.includeBibliography ? 'bib' : 'nobib'}:${options?.citationStyle || 'apa'}`;
+  
+  // 检查缓存
+  if (markdownRenderCache.has(cacheKey)) {
+    const cachedEntry = markdownRenderCache.get(cacheKey);
+    if (cachedEntry) {
+      // 更新访问统计
+      cachedEntry.accessedAt = Date.now();
+      cachedEntry.accessCount++;
+      return cachedEntry.data;
+    }
+  }
+  
+  // 按顺序处理各种扩展语法，只处理需要的部分
+  let processedContent = content;
+  
+  // 处理SymPy计算单元格
+  if (processedContent.includes('[sympy-cell]')) {
+    processedContent = processSymPyCells(processedContent);
+  }
+  
+  // 处理Mermaid图表
+  if (processedContent.includes('```mermaid')) {
+    processedContent = processMermaidDiagrams(processedContent);
+  }
+  
+  // 处理Chart.js图表
+  if (processedContent.includes('[chartjs]')) {
+    processedContent = processChartJsDiagrams(processedContent);
+  }
+  
+  // 渲染Markdown
+  let html = md.render(processedContent);
+  
+  // 提取引用
+  const citations = extractCitations(content);
+  
+  // 提取标题
+  const headings = extractHeadings(content);
+  
+  // 提取Wiki链接
+  const wikiLinks = extractWikiLinksDetailed(content);
+  
+  // 提取公式
+  const formulas = extractFormulas(content);
+  
+  // 添加参考文献
+  if (options?.includeBibliography && citations.length > 0) {
+    const bibliography = generateBibliography(citations, options.citationStyle);
+    html += `\n\n${bibliography}`;
+  }
+  
+  const result: RenderMarkdownResult = {
+    html,
+    citations,
+    headings,
+    wikiLinks,
+    formulas
+  };
+  
+  // 计算内容大小（大致估计）
+  const contentSize = new Blob([JSON.stringify(result)]).size;
+  
+  // 缓存结果
+  const cacheEntry: CacheEntry = {
+    data: result,
+    accessedAt: Date.now(),
+    accessCount: 1,
+    contentSize
+  };
+  
+  markdownRenderCache.set(cacheKey, cacheEntry);
+  totalCacheSize += contentSize;
+  
+  // 定期清理过期缓存
+  cleanupCache();
+  
+  return result;
+}
+
+/**
+ * 将 Markdown 文本渲染为 HTML（仅返回HTML字符串，兼容旧版API）
  * @param content Markdown 文本
  * @returns 渲染后的 HTML 字符串
  */
-export function renderMarkdown(content: string): string {
-  // 先处理SymPy计算单元格
-  const contentWithSymPyCells = processSymPyCells(content);
-  // 再渲染Markdown
-  return md.render(contentWithSymPyCells);
+export function renderMarkdownSimple(content: string): string {
+  return renderMarkdown(content).html;
 }
 
 /**

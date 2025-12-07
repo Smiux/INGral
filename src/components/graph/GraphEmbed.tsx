@@ -3,6 +3,7 @@ import { graphService } from '../../services/graphService';
 import { GraphCanvas } from './GraphVisualization/GraphCanvas';
 import type { EnhancedNode, EnhancedGraphLink, LayoutType, LayoutDirection } from './GraphVisualization/types';
 import { PRESET_THEMES, type GraphTheme } from './GraphVisualization/ThemeTypes';
+import type { GraphNode, GraphLink } from '../../types';
 
 interface GraphEmbedProps {
   graphId: string;
@@ -43,28 +44,24 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
         }
 
         // Convert graph nodes to EnhancedNode format
-        const enhancedNodes: EnhancedNode[] = graph.nodes.map((node: any) => ({
+        const enhancedNodes: EnhancedNode[] = graph.nodes.map((node: GraphNode) => ({
           id: node.id,
           title: node.title,
           connections: node.connections,
-          type: node.type as any || 'concept',
-          description: node.description,
-          content: node.content,
+          type: node.type || 'concept',
+          content: node.content || '',
           x: node.x || 0,
-          y: node.y || 0,
-          color: node.color || '#6B7280',
-          size: node.size || 20
+          y: node.y || 0
         }));
 
         // Convert graph links to EnhancedGraphLink format
-        const enhancedLinks: EnhancedGraphLink[] = graph.links.map((link: any) => ({
-          id: link.id,
-          source: link.source_id,
-          target: link.target_id,
+        const enhancedLinks: EnhancedGraphLink[] = graph.links.map((link: GraphLink, index: number) => ({
+          id: `link-${index}`, // Generate a unique ID for the link
+          source: link.source,
+          target: link.target,
           type: link.type || 'related',
-          label: link.label,
-          weight: link.weight || 1.0,
-          color: link.color || '#9CA3AF'
+          label: link.label || '',
+          weight: link.weight || 1.0
         }));
 
         setNodes(enhancedNodes);
@@ -88,19 +85,19 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
     }
   };
 
-  const handleNodeDragStart = (_node: EnhancedNode) => {
+  const handleNodeDragStart = () => {
     if (interactive) {
       setIsSimulationRunning(false);
     }
   };
 
-  const handleNodeDragEnd = (_node: EnhancedNode) => {
+  const handleNodeDragEnd = () => {
     if (interactive) {
       setIsSimulationRunning(true);
     }
   };
 
-  const handleLinkClick = (_link: EnhancedGraphLink) => {
+  const handleLinkClick = () => {
     if (interactive) {
       // Link click handling can be added here
     }
@@ -149,6 +146,11 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
         onLinkClick={handleLinkClick}
         onCanvasClick={handleCanvasClick}
         onCanvasDrop={() => {}}
+        onBoxSelectStart={() => {}}
+        onBoxSelectUpdate={() => {}}
+        onBoxSelectEnd={() => {}}
+        isBoxSelecting={false}
+        boxSelection={{ x1: 0, y1: 0, x2: 0, y2: 0 }}
         theme={PRESET_THEMES[0] as GraphTheme}
       />
     </div>

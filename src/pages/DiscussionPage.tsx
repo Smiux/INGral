@@ -2,7 +2,7 @@
  * 讨论主页面组件
  * 展示讨论分类和主题列表
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Tag, MessageSquare, Eye, Clock, Users } from 'lucide-react';
 import type { DiscussionCategory, DiscussionTopic } from '../types';
@@ -53,7 +53,7 @@ export function DiscussionPage() {
   /**
    * 加载主题列表
    */
-  const loadTopics = async () => {
+  const loadTopics = useCallback(async () => {
     try {
       setIsLoading(true);
       const category = categories.find(cat => cat.slug === selectedCategory);
@@ -80,7 +80,7 @@ export function DiscussionPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [categories, selectedCategory, currentPage, pageSize, sortBy, selectedTags, searchQuery, setTopics, setTotalTopics, setIsLoading]);
 
   /**
    * 处理分类切换
@@ -117,7 +117,7 @@ export function DiscussionPage() {
     // 重置到第一页
     setCurrentPage(1);
     loadTopics();
-  }, [selectedCategory, sortBy, selectedTags, categories, searchQuery]);
+  }, [selectedCategory, sortBy, selectedTags, categories, searchQuery, loadTopics, setCurrentPage]);
 
   return (
     <div className="min-h-screen bg-gray-50">

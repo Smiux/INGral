@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import commentService from '../../services/commentService';
+import { commentService } from '../../services/commentService';
 import styles from './CommentForm.module.css';
 
 interface CommentFormProps {
@@ -25,7 +25,9 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onCommen
     
     try {
       await commentService.createComment(
-        { article_id: articleId, content, parent_id: parentId || null },
+        articleId,
+        content,
+        parentId || undefined,
         authorName,
         authorEmail,
         authorUrl
@@ -52,12 +54,14 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onCommen
     <form onSubmit={handleSubmit} className={styles.commentForm}>
       <div className="mb-4">
         <textarea
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation"
           rows={4}
           placeholder="写下你的评论..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
           disabled={isSubmitting}
+          inputMode="text"
+          autoComplete="off"
         />
       </div>
       
@@ -86,11 +90,13 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onCommen
                 <input
                   type="text"
                   id="authorName"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation"
                   placeholder="匿名用户"
                   value={authorName}
                   onChange={(e) => setAuthorName(e.target.value)}
                   disabled={isSubmitting}
+                  inputMode="text"
+                  autoComplete="name"
                 />
               </div>
               <div>
@@ -100,11 +106,13 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onCommen
                 <input
                   type="email"
                   id="authorEmail"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation"
                   placeholder="your@email.com"
                   value={authorEmail}
                   onChange={(e) => setAuthorEmail(e.target.value)}
                   disabled={isSubmitting}
+                  inputMode="email"
+                  autoComplete="email"
                 />
               </div>
               <div>
@@ -114,11 +122,13 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onCommen
                 <input
                   type="url"
                   id="authorUrl"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation"
                   placeholder="https://yourwebsite.com"
                   value={authorUrl}
                   onChange={(e) => setAuthorUrl(e.target.value)}
                   disabled={isSubmitting}
+                  inputMode="url"
+                  autoComplete="url"
                 />
               </div>
             </div>

@@ -118,6 +118,17 @@
   background-color: #f9fafb;
 }
 
+/* 选中的建议项样式 */
+.suggestionItemSelected {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.suggestionItemSelected .suggestionTitle {
+  color: #0369a1;
+  font-weight: 500;
+}
+
 .suggestionTitle {
   font-size: 14px;
   color: #374151;
@@ -158,14 +169,331 @@
   100% { transform: rotate(360deg); }
 }
 
+/* 按钮组样式 */
+.buttonGroup {
+  display: flex;
+  gap: 8px;
+}
+
+/* 高级搜索按钮样式 */
+.advancedButton {
+  padding: 12px 20px;
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.advancedButton:hover {
+  background-color: #e5e7eb;
+}
+
+.advancedButtonActive {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+/* 高级搜索选项面板样式 */
+.advancedOptions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 100%;
+}
+
+/* 高级搜索分组样式 */
+.advancedSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.advancedLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.advancedSelect,
+.advancedInput {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  background-color: white;
+}
+
+.advancedSelect:focus,
+.advancedInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 标签样式 */
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.tagItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.tagRemove {
+  background: none;
+  border: none;
+  color: #0369a1;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  line-height: 1;
+}
+
+.tagRemove:hover {
+  color: #0c4a6e;
+}
+
+.tagsInput {
+  flex: 1;
+  min-width: 150px;
+  padding: 4px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.tagsInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 日期范围样式 */
+.dateRangeContainer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dateSeparator {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* 高级操作样式 */
+.advancedActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.resetButton {
+  padding: 8px 16px;
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resetButton:hover {
+  background-color: #e5e7eb;
+}
+
+/* 搜索历史样式 */
+.historySection {
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+}
+
+.historyTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.clearHistoryButton {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.clearHistoryButton:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.historyIcon {
+  color: #9ca3af;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.historyRemoveButton {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.historyItem:hover .historyRemoveButton {
+  opacity: 1;
+}
+
+.historyRemoveButton:hover {
+  color: #ef4444;
+  background-color: #fee2e2;
+}
+
+/* 搜索建议部分样式 */
+.suggestionsSection {
+  padding-top: 8px;
+}
+
+.suggestionsList {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 高级搜索语法提示样式 */
+.syntaxTipsContainer {
+  margin-top: 8px;
+  padding: 12px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.syntaxTipsTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.syntaxTipsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.syntaxTipItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.syntaxTipItem:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.syntaxTipSyntax {
+  font-weight: 600;
+  color: #3b82f6;
+  font-family: monospace;
+}
+
+.syntaxTipDescription {
+  color: #6b7280;
+  font-size: 11px;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .syntaxTipsList {
+    flex-direction: column;
+  }
+  
+  .syntaxTipItem {
+    justify-content: space-between;
+  }
+  
   .searchForm {
     flex-direction: column;
   }
   
-  .searchButton {
+  .buttonGroup {
     width: 100%;
+    flex-direction: row;
+  }
+  
+  .advancedButton,
+  .searchButton {
+    flex: 1;
+    width: auto;
   }
   
   .inputWrapper {
@@ -180,6 +508,31 @@
   .suggestionsContainer {
     max-height: 250px;
   }
+  
+  .advancedOptions {
+    position: relative;
+    box-shadow: none;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 8px;
+  }
+  
+  .dateRangeContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .tagsContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .tagsInput {
+    min-width: auto;
+  }
+  
+  .historyRemoveButton {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 480px) {
@@ -191,6 +544,7 @@
     font-size: 14px;
   }
   
+  .advancedButton,
   .searchButton {
     padding: 10px;
     font-size: 14px;

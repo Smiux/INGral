@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Menu, X, BookOpen, Users, Brain, Plus, Database } from 'lucide-react';
+import { Search, Menu, BookOpen, Users, Brain, Plus } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 // KeyboardShortcuts组件不存在，已移除
 // import { KeyboardShortcuts } from './keyboard/KeyboardShortcuts';
 
-export function Header() {
+interface HeaderProps {
+  onMobileMenuOpen?: () => void;
+}
+
+export function Header({ onMobileMenuOpen }: HeaderProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +22,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md">
+    <header className="sticky top-0 z-50 bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -45,36 +48,44 @@ export function Header() {
             </div>
           </form>
 
-          <div className="flex items-center gap-4">
-            <nav className="hidden md:flex items-center gap-6" aria-label="主导航">
+          <div className="flex items-center gap-4" role="group" aria-label="导航和操作按钮组">
+            <nav className="hidden md:flex items-center gap-4" aria-label="主导航" role="menubar">
             <Link
               to="/graph"
-              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5"
+              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
               aria-label="知识图谱"
+              role="menuitem"
+              tabIndex={0}
             >
               <Brain className="w-4 h-4" aria-hidden="true" />
               <span className="text-sm">Knowledge Graph</span>
             </Link>
             <Link
               to="/articles"
-              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5"
+              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
               aria-label="文章"
+              role="menuitem"
+              tabIndex={0}
             >
               <BookOpen className="w-4 h-4" aria-hidden="true" />
               <span className="text-sm">Articles</span>
             </Link>
             <Link
               to="/discussions"
-              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5"
+              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
               aria-label="讨论"
+              role="menuitem"
+              tabIndex={0}
             >
               <Users className="w-4 h-4" aria-hidden="true" />
               <span className="text-sm">Discussions</span>
             </Link>
             <Link
               to="/create"
-              className="bg-white text-indigo-600 hover:bg-white/90 px-4 py-1.5 rounded-lg transition font-medium flex items-center gap-1"
+              className="bg-neutral-100 text-primary-600 hover:bg-neutral-200 px-4 py-2 rounded-lg transition font-medium flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               aria-label="创建新内容"
+              role="menuitem"
+              tabIndex={0}
             >
               <Plus className="w-4 h-4" aria-hidden="true" />
               <span className="text-sm">Create</span>
@@ -82,53 +93,22 @@ export function Header() {
           </nav>
 
             {/* Theme Toggle */}
-            <ThemeToggle />
+            <div className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30 p-1 rounded-full">
+              <ThemeToggle />
+            </div>
 
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden text-white hover:text-white/80 p-2"
+              onClick={onMobileMenuOpen}
+              className="md:hidden text-white hover:text-white/80 p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30 rounded-full"
+              aria-label="打开侧边菜单"
+              tabIndex={0}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              <Menu className="w-6 h-6" />
             </button>
           </div>
         </div>
 
-        {mobileMenuOpen && (
-          <div className="md:hidden pb-4 space-y-3 border-t border-white/20 pt-4 bg-indigo-700/95 backdrop-blur-sm">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                placeholder="Search knowledge..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg placeholder-white/70 text-white focus:ring-2 focus:ring-white/30 focus:border-white outline-none"
-              />
-            </form>
-            <Link to="/graph" className="block text-white/90 hover:text-white font-medium py-1 px-2 rounded" aria-label="知识图谱">
-              <Brain className="inline-block w-4 h-4 mr-2" aria-hidden="true" />
-              Knowledge Graph
-            </Link>
-            <Link to="/articles" className="block text-white/90 hover:text-white font-medium py-1 px-2 rounded" aria-label="文章">
-              <BookOpen className="inline-block w-4 h-4 mr-2" aria-hidden="true" />
-              Articles
-            </Link>
-            <Link to="/database" className="block text-white/90 hover:text-white font-medium py-1 px-2 rounded" aria-label="数据库监控">
-              <Database className="inline-block w-4 h-4 mr-2" aria-hidden="true" />
-              Database Monitor
-            </Link>
-            <Link to="/discussions" className="block text-white/90 hover:text-white font-medium py-1 px-2 rounded" aria-label="讨论">
-              <Users className="inline-block w-4 h-4 mr-2" aria-hidden="true" />
-              Discussions
-            </Link>
-            <Link to="/create" className="block bg-white text-indigo-600 hover:bg-white/90 text-center py-2 rounded-lg font-medium" aria-label="创建新内容">
-              <Plus className="inline-block w-4 h-4 mr-2" aria-hidden="true" />
-              Create New
-            </Link>
-            <div className="flex justify-center pt-2">
-              <ThemeToggle />
-            </div>
-          </div>
-        )}
+
       </div>
     </header>
   );

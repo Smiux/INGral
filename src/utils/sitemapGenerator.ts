@@ -117,11 +117,10 @@ function getStaticRoutes(): (Omit<SitemapEntry, 'url'> & { path: string })[] {
     { path: '/articles', changeFrequency: 'daily', priority: 0.9 },
     { path: '/search', changeFrequency: 'monthly', priority: 0.7 },
     { path: '/graph', changeFrequency: 'monthly', priority: 0.8 },
-    { path: '/auth', changeFrequency: 'monthly', priority: 0.6 },
     { path: '/database', changeFrequency: 'monthly', priority: 0.5 },
     { path: '/notifications', changeFrequency: 'weekly', priority: 0.6 },
     { path: '/dashboard', changeFrequency: 'weekly', priority: 0.8 },
-    // 注意：动态路由如 /article/:slug 和 /profile/:userId 不包含在站点地图中
+    // 注意：动态路由如 /article/:slug 不包含在站点地图中
     // 实际应用中，应从数据库获取实际的文章和用户URL
   ];
 }

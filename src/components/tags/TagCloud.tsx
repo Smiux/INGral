@@ -6,47 +6,74 @@ interface TagCloudProps {
   selectedTagId?: string | undefined;
   onTagClick?: (tag: Tag) => void;
   maxTags?: number;
+  showHierarchy?: boolean;
+  sizeRange?: [number, number];
+  colorRange?: [number, number];
+  randomizeOrder?: boolean;
 }
 
 export const TagCloud: React.FC<TagCloudProps> = ({ 
   tags, 
   selectedTagId, 
   onTagClick, 
-  maxTags = 20 
+  maxTags = 20,
+  showHierarchy = false,
+  sizeRange = [12, 24],
+  colorRange = [200, 50],
+  randomizeOrder = true
 }) => {
+  // 递归扁平化标签树
+  const flattenTags = (tagTree: Tag[]): Tag[] => {
+    return tagTree.flatMap(tag => {
+      const hasChildren = tag.children && tag.children.length > 0;
+      const children = hasChildren ? flattenTags(tag.children || []) : [];
+      return [tag, ...children];
+    });
+  };
+  
+  // 扁平化标签树
+  const flatTags = flattenTags(tags);
+  
   // 计算标签的大小范围
   const getTagSize = (usageCount: number) => {
     // 找出最大和最小使用次数
-    const maxUsage = Math.max(...tags.map(tag => tag.usage_count || 0), 1);
-    const minUsage = Math.min(...tags.map(tag => tag.usage_count || 0), 1);
+    const maxUsage = Math.max(...flatTags.map(tag => tag.usage_count || 0), 1);
+    const minUsage = Math.min(...flatTags.map(tag => tag.usage_count || 0), 1);
     
-    // 计算相对大小（12px 到 24px）
-    const sizeRange = 24 - 12;
+    // 计算相对大小
+    const [minSize, maxSize] = sizeRange;
+    const sizeRangeValue = maxSize - minSize;
     const usageRange = maxUsage - minUsage;
     
     if (usageRange === 0) {
-      return 16; // 默认大小
+      return (minSize + maxSize) / 2; // 默认大小
     }
     
-    const relativeSize = ((usageCount - minUsage) / usageRange) * sizeRange;
-    return 12 + relativeSize;
+    const relativeSize = ((usageCount - minUsage) / usageRange) * sizeRangeValue;
+    return minSize + relativeSize;
   };
   
   // 计算标签的颜色
   const getTagColor = (usageCount: number) => {
     // 找出最大和最小使用次数
-    const maxUsage = Math.max(...tags.map(tag => tag.usage_count || 0), 1);
-    const minUsage = Math.min(...tags.map(tag => tag.usage_count || 0), 1);
+    const maxUsage = Math.max(...flatTags.map(tag => tag.usage_count || 0), 1);
+    const minUsage = Math.min(...flatTags.map(tag => tag.usage_count || 0), 1);
     
     // 根据使用次数生成颜色（从蓝色到红色）
+    const [startHue, endHue] = colorRange;
     const usageRange = maxUsage - minUsage;
-    const hue = usageRange === 0 ? 200 : 200 - ((usageCount - minUsage) / usageRange) * 150;
+    const hue = usageRange === 0 ? startHue : startHue - ((usageCount - minUsage) / usageRange) * (startHue - endHue);
     
     return `hsl(${hue}, 70%, 60%)`;
   };
   
   // 限制标签数量
-  const limitedTags = tags.slice(0, maxTags);
+  let limitedTags = flatTags.slice(0, maxTags);
+  
+  // 随机化标签顺序
+  if (randomizeOrder) {
+    limitedTags = [...limitedTags].sort(() => Math.random() - 0.5);
+  }
   
   return (
     <div className="flex flex-wrap gap-2 p-4 bg-white rounded-lg shadow-sm">
@@ -65,9 +92,11 @@ export const TagCloud: React.FC<TagCloudProps> = ({
               color: color,
               border: `1px solid ${color}30`,
               cursor: onTagClick ? 'pointer' : 'default',
+              textDecoration: showHierarchy && tag.parent_id ? 'underline' : 'none',
+              fontWeight: showHierarchy && !tag.parent_id ? 'bold' : 'normal',
             }}
             onClick={() => onTagClick && onTagClick(tag)}
-            title={`使用次数: ${tag.usage_count || 0}`}
+            title={`使用次数: ${tag.usage_count || 0}${showHierarchy && tag.parent_id ? ' (子标签)' : ''}`}
           >
             {tag.name}
           </button>

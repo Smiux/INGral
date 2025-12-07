@@ -1,28 +1,26 @@
 /**
  * 搜索页面
- * 提供文章搜索功能，支持关键词搜索和标签筛选
+ * 提供文章搜索功能，支持高级搜索筛选
  */
 import { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import SearchBox from '../components/search/SearchBox';
 import { SearchResults } from '../components/search/SearchResults';
-import { TagSelector } from '../components/tags/TagSelector';
+import { SearchFilters } from '../services/searchService';
 import styles from './SearchPage.module.css';
 
 export function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-  const [selectedTags, setSelectedTags] = useState<string[]>(
-    searchParams.get('tag') ? [searchParams.get('tag') as string] : [],
-  );
   const [isLoading, setIsLoading] = useState(false);
 
   /**
    * 处理搜索提交
    * @param newQuery - 新的搜索关键词
+   * @param filters - 搜索筛选条件
    */
-  const handleSearch = (newQuery: string) => {
+  const handleSearch = (newQuery: string, filters?: SearchFilters) => {
     setIsLoading(true);
 
     // 更新URL参数
@@ -33,37 +31,47 @@ export function SearchPage() {
       params.delete('q');
     }
 
-    window.location.search = params.toString();
-    setIsLoading(false);
-  };
-
-  /**
-   * 处理标签选择
-   * @param tags - 选中的标签数组
-   */
-  const handleTagSelect = (tags: string[]) => {
-    setIsLoading(true);
-    // 过滤掉undefined的标签，确保类型安全
-    const validTags = tags.filter(tag => tag !== undefined);
-    setSelectedTags(validTags);
-
-    // 更新URL参数
-    const params = new URLSearchParams(searchParams);
-    if (validTags.length > 0 && validTags[0]) {
-      params.set('tag', validTags[0]);
-    } else {
-      params.delete('tag');
+    // 处理筛选条件，将其添加到URL参数中
+    if (filters) {
+      if (filters.searchType && filters.searchType !== 'articles') {
+        params.set('type', filters.searchType);
+      } else {
+        params.delete('type');
+      }
+      
+      if (filters.sortBy && filters.sortBy !== 'relevance') {
+        params.set('sort', filters.sortBy);
+      } else {
+        params.delete('sort');
+      }
+      
+      if (filters.author) {
+        params.set('author', filters.author);
+      } else {
+        params.delete('author');
+      }
+      
+      if (filters.tags && filters.tags.length > 0) {
+        params.set('tags', filters.tags.join(','));
+      } else {
+        params.delete('tags');
+      }
+      
+      if (filters.dateRange?.start) {
+        params.set('startDate', filters.dateRange.start);
+      } else {
+        params.delete('startDate');
+      }
+      
+      if (filters.dateRange?.end) {
+        params.set('endDate', filters.dateRange.end);
+      } else {
+        params.delete('endDate');
+      }
     }
 
     window.location.search = params.toString();
     setIsLoading(false);
-  };
-
-  /**
-   * 清除标签过滤
-   */
-  const clearTagFilter = () => {
-    handleTagSelect([]);
   };
 
   return (
@@ -86,33 +94,13 @@ export function SearchPage() {
           placeholder="输入关键词搜索文章..."
           onSearch={handleSearch}
           defaultValue={query}
+          showAdvancedOptions={true}
         />
-
-        <div className={styles.filterSection}>
-          <h3 className={styles.filterTitle}>按标签筛选</h3>
-          <div className={styles.tagSelectorWrapper}>
-            <TagSelector
-              selectedTags={selectedTags}
-              onChange={handleTagSelect}
-              maxTags={1} // 只允许选择一个标签进行筛选
-            />
-          </div>
-
-          {selectedTags.length > 0 && (
-            <button
-              className={styles.clearFilterButton}
-              onClick={clearTagFilter}
-            >
-              清除标签筛选
-            </button>
-          )}
-        </div>
       </div>
 
       <div className={styles.resultsSection}>
         <SearchResults
           query={query}
-          tagId={selectedTags[0] || ''}
           limit={10}
         />
       </div>

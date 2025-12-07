@@ -93,6 +93,10 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = ({
 
     setIsLoading(false);
 
+    // 保存当前ref值到局部变量
+    const currentRenderer = renderer;
+    const currentContainer = containerRef.current;
+    
     // 清理函数
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -102,10 +106,10 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = ({
       if (controls) {
         controls.dispose();
       }
-      if (renderer) {
-        renderer.dispose();
-        if (containerRef.current && renderer.domElement) {
-          containerRef.current.removeChild(renderer.domElement);
+      if (currentRenderer) {
+        currentRenderer.dispose();
+        if (currentContainer && currentRenderer.domElement) {
+          currentContainer.removeChild(currentRenderer.domElement);
         }
       }
     };

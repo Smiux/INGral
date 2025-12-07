@@ -44,6 +44,30 @@ build
 # Testing
 coverage
 .nyc_output
+.coverage
+*.lcov
+.istanbul
+.nyc_result
+
+# Test reports
+junit.xml
+TEST-*.xml
+
+# Jest
+jest.config.js
+jest.config.ts
+jest.config.cjs
+jest.setup.ts
+.jest
+
+# Vitest
+vitest.config.js
+vitest.config.ts
+.vitest
+
+# Test artifacts
+__tests__/
+*.snap
 
 # Temporary files
 *.tmp

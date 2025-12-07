@@ -5,6 +5,12 @@ import { errorService } from './errorService';
 
 /**
  * 基础服务类，提供通用的数据库操作、缓存管理、事务处理和错误处理
+ * 优化点：
+ * 1. 改进了缓存键生成逻辑，使用更统一的格式
+ * 2. 增强了事务处理逻辑，添加了事务ID参数验证
+ * 3. 优化了缓存失效策略，支持更精确的缓存清除
+ * 4. 添加了更多通用的数据库操作方法
+ * 5. 改进了错误处理，提供更详细的错误信息
  */
 export abstract class BaseService {
   protected supabase: SupabaseClient = supabase;
@@ -58,7 +64,7 @@ export abstract class BaseService {
    * @param limit 限制数量
    * @param offset 偏移量
    */
-  protected applyPagination<T>(query: any, limit?: number, offset?: number): T {
+  protected applyPagination<T extends { limit?: (limit: number) => T; range?: (start: number, end: number) => T }>(query: T, limit?: number, offset?: number): T {
     let paginatedQuery = query;
     
     // 应用限制
@@ -72,26 +78,40 @@ export abstract class BaseService {
       paginatedQuery = paginatedQuery.range(offset, end);
     }
     
-    return paginatedQuery as T;
+    return paginatedQuery;
   }
 
   /**
-   * 获取缓存键
+   * 生成缓存键
+   * @param prefix 缓存前缀
+   * @param keyParts 缓存键组成部分
+   */
+  protected generateCacheKey(prefix: string, ...keyParts: (string | number | boolean | undefined | null)[]): string {
+    // 过滤掉null和undefined值
+    const validParts = keyParts.filter(part => part != null);
+    // 转换为字符串并连接
+    const partsStr = validParts.map(part => String(part)).join(':');
+    // 返回最终缓存键
+    return `${prefix}:${partsStr}`;
+  }
+
+  /**
+   * 获取缓存键（兼容旧方法）
    * @param prefix 缓存前缀
    * @param id 唯一标识符
    */
   protected getCacheKey(prefix: string, id: string | number): string {
-    return `${prefix}:${id}`;
+    return this.generateCacheKey(prefix, 'id', id);
   }
 
   /**
-   * 获取列表缓存键
+   * 获取列表缓存键（兼容旧方法）
    * @param prefix 缓存前缀
    * @param params 查询参数
    */
-  protected getListCacheKey(prefix: string, params?: Record<string, any>): string {
+  protected getListCacheKey<T extends Record<string, unknown>>(prefix: string, params?: T): string {
     const paramsStr = params ? JSON.stringify(params) : 'all';
-    return `${prefix}:list:${paramsStr}`;
+    return this.generateCacheKey(prefix, 'list', paramsStr);
   }
 
   /**
@@ -104,7 +124,6 @@ export abstract class BaseService {
     // 尝试从缓存获取
     const cachedData = this.cache.get<T>(cacheKey);
     if (cachedData) {
-      console.log(`Cache hit for ${cacheKey}`);
       return cachedData;
     }
 
@@ -113,7 +132,6 @@ export abstract class BaseService {
     
     // 缓存结果
     this.cache.set<T>(cacheKey, data, ttl);
-    console.log(`Cache set for ${cacheKey}`);
     
     return data;
   }
@@ -139,6 +157,9 @@ export abstract class BaseService {
    * @param transactionId 事务ID
    */
   protected async commitTransaction(transactionId: string): Promise<void> {
+    if (!transactionId) {
+      throw new Error('Transaction ID is required');
+    }
     return this.queryOptimizer.commitTransaction(transactionId);
   }
 
@@ -151,11 +172,12 @@ export abstract class BaseService {
 
   /**
    * 清除缓存
-   * @param pattern 缓存键模式
+   * @param patterns 缓存键模式列表
    */
-  protected invalidateCache(pattern: string): void {
-    this.cache.invalidatePattern(pattern);
-    console.log(`Cache invalidated for pattern: ${pattern}`);
+  protected invalidateCache(...patterns: string[]): void {
+    patterns.forEach(pattern => {
+      this.cache.invalidatePattern(pattern);
+    });
   }
 
   /**
@@ -178,13 +200,33 @@ export abstract class BaseService {
   }
 
   /**
+   * 按字段获取单个记录
+   * @param table 表名
+   * @param field 字段名
+   * @param value 字段值
+   * @param cachePrefix 缓存前缀
+   * @param ttl 缓存过期时间
+   */
+  protected async getByField<T>(table: string, field: string, value: string | number, cachePrefix: string, ttl: number = 5 * 60 * 1000): Promise<T | null> {
+    const cacheKey = this.generateCacheKey(cachePrefix, field, value);
+    
+    return this.queryWithCache<T | null>(cacheKey, ttl, async () => {
+      const result = await this.executeWithRetry(async () => {
+        return this.supabase.from(table).select('*').eq(field, value).single<T>();
+      }, ttl);
+      
+      return result.data;
+    });
+  }
+
+  /**
    * 获取记录列表
    * @param table 表名
    * @param cachePrefix 缓存前缀
    * @param params 查询参数
    * @param ttl 缓存过期时间
    */
-  protected async getList<T>(table: string, cachePrefix: string, params?: Record<string, any>, ttl: number = 5 * 60 * 1000): Promise<T[]> {
+  protected async getList<T>(table: string, cachePrefix: string, params?: Record<string, string | number | boolean | undefined>, ttl: number = 5 * 60 * 1000): Promise<T[]> {
     const cacheKey = this.getListCacheKey(cachePrefix, params);
     
     return this.queryWithCache<T[]>(cacheKey, ttl, async () => {
@@ -194,17 +236,24 @@ export abstract class BaseService {
         // 应用查询参数
         if (params) {
           for (const [key, value] of Object.entries(params)) {
-            if (key === 'limit' || key === 'offset') continue;
+            if (key === 'limit' || key === 'offset' || key === 'order' || key === 'sort') continue;
             query = query.eq(key, value);
           }
           
           // 应用分页
-          if (params.limit) {
+          if (params.limit && typeof params.limit === 'number') {
             query = query.limit(params.limit);
           }
           
-          if (params.offset) {
-            query = query.range(params.offset, (params.offset + (params.limit || 100)) - 1);
+          if (params.offset && typeof params.offset === 'number') {
+            const limitValue = typeof params.limit === 'number' ? params.limit : 100;
+            query = query.range(params.offset, (params.offset + limitValue) - 1);
+          }
+          
+          // 应用排序
+          if (params.order && typeof params.order === 'string') {
+            const sort = params.sort === 'asc' ? { ascending: true } : { ascending: false };
+            query = query.order(params.order, sort);
           }
         }
         
@@ -222,7 +271,7 @@ export abstract class BaseService {
    * @param cachePrefix 缓存前缀
    * @param ttl 缓存过期时间
    */
-  protected async create<T>(table: string, data: any, cachePrefix: string, ttl: number = 5 * 60 * 1000): Promise<T | null> {
+  protected async create<T>(table: string, data: Record<string, unknown>, cachePrefix: string, ttl: number = 5 * 60 * 1000): Promise<T | null> {
     const result = await this.executeWithRetry(async () => {
       return this.supabase.from(table).insert(data).select().single<T>();
     }, ttl);
@@ -236,6 +285,30 @@ export abstract class BaseService {
   }
 
   /**
+   * 批量创建记录
+   * @param table 表名
+   * @param data 记录数据数组
+   * @param cachePrefix 缓存前缀
+   * @param ttl 缓存过期时间
+   */
+  protected async bulkCreate<T>(table: string, data: Record<string, unknown>[], cachePrefix: string, ttl: number = 5 * 60 * 1000): Promise<T[] | null> {
+    if (data.length === 0) {
+      return [];
+    }
+    
+    const result = await this.executeWithRetry(async () => {
+      return this.supabase.from(table).insert(data).select();
+    }, ttl);
+    
+    if (result.data) {
+      // 清除相关缓存
+      this.invalidateCache(`${cachePrefix}:list:*`);
+    }
+    
+    return result.data as T[] | null;
+  }
+
+  /**
    * 更新记录
    * @param table 表名
    * @param id 记录ID
@@ -243,18 +316,43 @@ export abstract class BaseService {
    * @param cachePrefix 缓存前缀
    * @param ttl 缓存过期时间
    */
-  protected async update<T>(table: string, id: string | number, data: any, cachePrefix: string, ttl: number = 5 * 60 * 1000): Promise<T | null> {
+  protected async update<T>(table: string, id: string | number, data: Record<string, unknown>, cachePrefix: string, ttl: number = 5 * 60 * 1000): Promise<T | null> {
     const result = await this.executeWithRetry(async () => {
       return this.supabase.from(table).update(data).eq('id', id).select().single<T>();
     }, ttl);
     
     if (result.data) {
       // 清除相关缓存
-      this.invalidateCache(`${cachePrefix}:id:${id}`);
-      this.invalidateCache(`${cachePrefix}:list:*`);
+      this.invalidateCache(`${cachePrefix}:id:${id}`, `${cachePrefix}:list:*`);
     }
     
     return result.data;
+  }
+
+  /**
+   * 按条件更新记录
+   * @param table 表名
+   * @param data 更新数据
+   * @param condition 条件对象
+   * @param cachePrefix 缓存前缀
+   * @param ttl 缓存过期时间
+   */
+  protected async updateByCondition<T>(table: string, data: Record<string, unknown>, condition: Record<string, string | number>, cachePrefix: string, ttl: number = 5 * 60 * 1000): Promise<T[] | null> {
+    let query = this.supabase.from(table).update(data).select();
+    
+    // 应用条件
+    for (const [key, value] of Object.entries(condition)) {
+      query = query.eq(key, value);
+    }
+    
+    const result = await this.executeWithRetry(async () => query, ttl);
+    
+    if (result.data) {
+      // 清除相关缓存
+      this.invalidateCache(`${cachePrefix}:list:*`);
+    }
+    
+    return result.data as T[] | null;
   }
 
   /**
@@ -273,9 +371,55 @@ export abstract class BaseService {
     }
     
     // 清除相关缓存
-    this.invalidateCache(`${cachePrefix}:id:${id}`);
+    this.invalidateCache(`${cachePrefix}:id:${id}`, `${cachePrefix}:list:*`);
+    
+    return true;
+  }
+
+  /**
+   * 按条件删除记录
+   * @param table 表名
+   * @param condition 条件对象
+   * @param cachePrefix 缓存前缀
+   */
+  protected async deleteByCondition(table: string, condition: Record<string, string | number>, cachePrefix: string): Promise<boolean> {
+    let query = this.supabase.from(table).delete();
+    
+    // 应用条件
+    for (const [key, value] of Object.entries(condition)) {
+      query = query.eq(key, value);
+    }
+    
+    const result = await this.executeWithRetry(async () => query, 5 * 60 * 1000);
+    
+    if (result.error) {
+      return false;
+    }
+    
+    // 清除相关缓存
     this.invalidateCache(`${cachePrefix}:list:*`);
     
     return true;
+  }
+
+  /**
+   * 执行事务操作
+   * @param callback 事务回调函数
+   */
+  protected async executeInTransaction<T>(callback: (transactionId: string) => Promise<T>): Promise<T> {
+    // 开始事务
+    const transactionId = await this.startTransaction();
+    
+    try {
+      // 执行回调函数
+      const result = await callback(transactionId);
+      // 提交事务
+      await this.commitTransaction(transactionId);
+      return result;
+    } catch (error) {
+      // 回滚事务
+      await this.rollbackTransaction();
+      throw error;
+    }
   }
 }

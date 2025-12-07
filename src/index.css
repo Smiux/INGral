@@ -1,9 +1,46 @@
 /* stylelint-disable */
 /* eslint-disable */
+/* Import print styles */
+@import './styles/print.css';
+
 /* These Tailwind directives are essential for the UI to load properly */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* CSS Variables for theming */
+:root {
+  --primary-color: #3b82f6;
+  --primary-color-light: #eff6ff;
+  --primary-color-dark: #2563eb;
+  --border-color: #e5e7eb;
+  --border-hover: #d1d5db;
+  --bg-primary: #ffffff;
+  --bg-hover: #f9fafb;
+  --bg-elevated: #ffffff;
+  --bg-disabled: #f3f4f6;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+}
+
+/* Dark mode CSS Variables */
+.dark {
+  --primary-color: #60a5fa;
+  --primary-color-light: #1e40af;
+  --primary-color-dark: #3b82f6;
+  --border-color: #374151;
+  --border-hover: #4b5563;
+  --bg-primary: #111827;
+  --bg-hover: #374151;
+  --bg-elevated: #1f2937;
+  --bg-disabled: #1f2937;
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --success-color: #34d399;
+  --error-color: #f87171;
+}
 
 /* Base styles */
 body {

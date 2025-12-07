@@ -1,0 +1,84 @@
+/* SankeyChart组件样式 */
+.container {
+  position: relative;
+  width: 100%;
+  overflow: auto;
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-4);
+}
+
+/* 桑基图节点样式 */
+.sankeyNode {
+  transition: all var(--transition-fast);
+}
+
+.sankeyNode rect {
+  transition: all var(--transition-fast);
+}
+
+.sankeyNode rect:hover {
+  opacity: 0.8;
+  stroke-width: 2px;
+}
+
+/* 桑基图链接样式 */
+.sankeyLink {
+  transition: all var(--transition-fast);
+  stroke-opacity: 0.5;
+}
+
+.sankeyLink:hover {
+  stroke-opacity: 0.8;
+  stroke-width: 2px;
+}
+
+/* 桑基图链接标签样式 */
+.sankeyLinkLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  fill: var(--text-primary);
+  text-shadow: 0 1px 0 var(--bg-secondary), 1px 0 0 var(--bg-secondary), 0 -1px 0 var(--bg-secondary), -1px 0 0 var(--bg-secondary);
+}
+
+/* 悬停提示样式 */
+.tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: var(--spacing-2);
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: var(--shadow-md);
+}
+
+/* 节点标签样式 */
+.sankeyNode text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  fill: var(--text-primary);
+  text-shadow: 0 1px 0 var(--bg-secondary), 1px 0 0 var(--bg-secondary), 0 -1px 0 var(--bg-secondary), -1px 0 0 var(--bg-secondary);
+  pointer-events: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-2);
+  }
+  
+  .tooltip {
+    font-size: 0.75rem;
+    padding: var(--spacing-1);
+  }
+  
+  .sankeyNode text {
+    font-size: 0.75rem;
+  }
+  
+  .sankeyLinkLabel {
+    font-size: 0.625rem;
+  }
+}

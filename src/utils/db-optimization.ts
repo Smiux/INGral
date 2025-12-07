@@ -16,26 +16,76 @@ const BATCH_SIZE = 100;
 
 // 缓存工具类
 class DatabaseCache {
-  private cacheStore: Map<string, { data: unknown; timestamp: number; customTtl?: number }>;
+  private cacheStore: Map<string, { 
+    data: unknown; 
+    timestamp: number; 
+    accessTimestamp: number;
+    hits: number;
+    customTtl?: number;
+    version?: string;
+    dependencies?: string[];
+  }>;
+  private cacheVersion: string;
+  private cacheStats: {
+    hits: number;
+    misses: number;
+    sets: number;
+    invalidations: number;
+  };
+  private maxCacheSize: number;
 
-  constructor() {
+  constructor(maxSize: number = 500) {
     this.cacheStore = new Map();
-    // 定期清理过期缓存
-    setInterval(() => this.cleanupExpiredCache(), 60 * 1000);
+    this.cacheVersion = this.generateCacheVersion();
+    this.cacheStats = {
+      hits: 0,
+      misses: 0,
+      sets: 0,
+      invalidations: 0
+    };
+    this.maxCacheSize = maxSize;
+    // 定期清理过期缓存和使用频率低的缓存
+    setInterval(() => this.cleanupCache(), 30 * 1000);
+    // 定期输出缓存统计信息
+    setInterval(() => this.logCacheStats(), 300 * 1000);
+  }
+
+  // 生成缓存版本
+  private generateCacheVersion(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
   }
 
   // 获取缓存数据
-  get<T>(key: string): T | null {
-    const cachedItem = this.cacheStore.get(key);
-    if (!cachedItem) {return null;}
+  get<T>(key: string, version?: string): T | null {
+    const fullKey = `${this.cacheVersion}:${key}`;
+    const cachedItem = this.cacheStore.get(fullKey);
+    
+    if (!cachedItem) {
+      this.cacheStats.misses++;
+      return null;
+    }
+
+    // 检查版本是否匹配
+    if (version && cachedItem.version && cachedItem.version !== version) {
+      this.cacheStats.misses++;
+      this.cacheStore.delete(fullKey);
+      return null;
+    }
+
+    // 更新访问时间和命中次数
+    cachedItem.accessTimestamp = Date.now();
+    cachedItem.hits++;
+    this.cacheStore.set(fullKey, cachedItem);
 
     // 优先使用自定义TTL
     if (cachedItem.customTtl) {
       const now = Date.now();
       if (now - cachedItem.timestamp > cachedItem.customTtl) {
-        this.cacheStore.delete(key);
+        this.cacheStore.delete(fullKey);
+        this.cacheStats.misses++;
         return null;
       }
+      this.cacheStats.hits++;
       return cachedItem.data as T;
     }
 
@@ -50,35 +100,77 @@ class DatabaseCache {
 
     const now = Date.now();
     if (now - cachedItem.timestamp > ttl) {
-      this.cacheStore.delete(key);
+      this.cacheStore.delete(fullKey);
+      this.cacheStats.misses++;
       return null;
     }
 
+    this.cacheStats.hits++;
     return cachedItem.data as T;
   }
 
   // 设置缓存数据
-  set<T>(key: string, data: T, ttl = 0): void {
-    this.cacheStore.set(key, {
-      data, // 移除any类型转换，让TypeScript推断类型
+  set<T>(key: string, data: T, ttl = 0, version?: string, dependencies?: string[]): void {
+    const fullKey = `${this.cacheVersion}:${key}`;
+    // 构建缓存项，只包含有值的可选属性
+    const cacheItem: { 
+      data: unknown; 
+      timestamp: number; 
+      accessTimestamp: number;
+      hits: number;
+      customTtl?: number;
+      version?: string;
+      dependencies?: string[];
+    } = {
+      data,
       timestamp: Date.now(),
-      customTtl: ttl,
-    });
+      accessTimestamp: Date.now(),
+      hits: 0
+    };
+    
+    // 只有当ttl大于0时才添加customTtl属性
+    if (ttl > 0) {
+      cacheItem.customTtl = ttl;
+    }
+    
+    // 只有当version有值时才添加version属性
+    if (version) {
+      cacheItem.version = version;
+    }
+    
+    // 只有当dependencies有值且不为空数组时才添加dependencies属性
+    if (dependencies && dependencies.length > 0) {
+      cacheItem.dependencies = dependencies;
+    }
+    
+    this.cacheStore.set(fullKey, cacheItem);
+    this.cacheStats.sets++;
+    
+    // 限制缓存大小，防止内存溢出
+    if (this.cacheStore.size > this.maxCacheSize) {
+      this.evictCache(20); // 移除使用频率低的20个缓存项
+    }
   }
 
   // 清除指定缓存
   invalidate(key: string): void {
-    this.cacheStore.delete(key);
+    const fullKey = `${this.cacheVersion}:${key}`;
+    this.cacheStore.delete(fullKey);
+    this.cacheStats.invalidations++;
   }
 
   // 清除所有缓存
   invalidateAll(): void {
     this.cacheStore.clear();
+    this.cacheVersion = this.generateCacheVersion(); // 更新缓存版本
+    this.cacheStats.invalidations += this.cacheStats.hits + this.cacheStats.misses;
+    this.cacheStats.hits = 0;
+    this.cacheStats.misses = 0;
   }
 
   // 根据模式清除缓存
   invalidatePattern(pattern: string): void {
-    const regex = new RegExp(pattern.replace(/\*/g, '.*').replace(/\?/g, '.'));
+    const regex = new RegExp(`${this.cacheVersion}:${pattern}`.replace(/\*/g, '.*').replace(/\?/g, '.'));
     let clearedCount = 0;
 
     this.cacheStore.forEach((_, key) => {
@@ -90,32 +182,118 @@ class DatabaseCache {
 
     if (clearedCount > 0) {
       console.log(`已清除 ${clearedCount} 个匹配模式 '${pattern}' 的缓存项`);
+      this.cacheStats.invalidations += clearedCount;
     }
   }
 
-  // 清理过期缓存
-  private cleanupExpiredCache(): void {
+  // 根据依赖清除缓存
+  invalidateByDependency(dependency: string): void {
+    let clearedCount = 0;
+    
+    this.cacheStore.forEach((item, key) => {
+      if (item.dependencies && item.dependencies.includes(dependency)) {
+        this.cacheStore.delete(key);
+        clearedCount++;
+      }
+    });
+    
+    if (clearedCount > 0) {
+      console.log(`已清除 ${clearedCount} 个依赖于 '${dependency}' 的缓存项`);
+      this.cacheStats.invalidations += clearedCount;
+    }
+  }
+
+  // 清理缓存：移除过期缓存和使用频率低的缓存
+  private cleanupCache(): void {
     const now = Date.now();
+    let expiredCount = 0;
+    
+    // 清理过期缓存
     this.cacheStore.forEach((item, key) => {
       // 优先使用自定义TTL
       if (item.customTtl && now - item.timestamp > item.customTtl) {
         this.cacheStore.delete(key);
+        expiredCount++;
         return;
       }
 
       // 尝试从key中推断缓存类型和对应的TTL
       let ttl = 5 * 60 * 1000; // 默认5分钟
-      if (key.includes('articles')) {ttl = CACHE_TTL.articles;}
-      else if (key.includes('article_links')) {ttl = CACHE_TTL.articleLinks;}
-      else if (key.includes('user_graphs')) {ttl = CACHE_TTL.userGraphs;}
-      else if (key.includes('profiles')) {ttl = CACHE_TTL.userProfiles;}
-      else if (key.includes('search:')) {ttl = CACHE_TTL.searchResults;}
-      else if (key.includes('suggest:')) {ttl = CACHE_TTL.searchSuggestions;}
+      const originalKey = key.replace(`${this.cacheVersion}:`, '');
+      if (originalKey.includes('articles')) {ttl = CACHE_TTL.articles;}
+      else if (originalKey.includes('article_links')) {ttl = CACHE_TTL.articleLinks;}
+      else if (originalKey.includes('user_graphs')) {ttl = CACHE_TTL.userGraphs;}
+      else if (originalKey.includes('profiles')) {ttl = CACHE_TTL.userProfiles;}
+      else if (originalKey.includes('search:')) {ttl = CACHE_TTL.searchResults;}
+      else if (originalKey.includes('suggest:')) {ttl = CACHE_TTL.searchSuggestions;}
 
       if (now - item.timestamp > ttl) {
         this.cacheStore.delete(key);
+        expiredCount++;
       }
     });
+    
+    // 清理使用频率低的缓存，如果缓存大小仍然超过最大限制
+    if (this.cacheStore.size > this.maxCacheSize) {
+      const exceedCount = this.cacheStore.size - this.maxCacheSize;
+      this.evictCache(exceedCount + 10); // 多清理10个以留出空间
+    }
+    
+    if (expiredCount > 0) {
+      console.log(`清理了 ${expiredCount} 个过期缓存项`);
+      this.cacheStats.invalidations += expiredCount;
+    }
+  }
+  
+  // 移除使用频率低的缓存项
+  private evictCache(count: number): void {
+    // 将缓存项转换为数组，按使用频率和访问时间排序
+    // 首先按hits降序排序，如果hits相同则按accessTimestamp降序排序
+    const cachedItems = Array.from(this.cacheStore.entries()).sort((a, b) => {
+      // 首先按命中次数降序
+      if (a[1].hits !== b[1].hits) {
+        return b[1].hits - a[1].hits;
+      }
+      // 命中次数相同，按访问时间降序
+      return b[1].accessTimestamp - a[1].accessTimestamp;
+    });
+    
+    // 移除末尾使用频率最低的count个缓存项
+    const itemsToEvict = cachedItems.slice(-count);
+    let evictedCount = 0;
+    
+    for (const [key] of itemsToEvict) {
+        this.cacheStore.delete(key);
+        evictedCount++;
+        this.cacheStats.invalidations++;
+    }
+    
+    if (evictedCount > 0) {
+      console.log(`移除了 ${evictedCount} 个使用频率低的缓存项`);
+    }
+  }
+  
+  // 获取缓存统计信息
+  getCacheStats() {
+    return { ...this.cacheStats };
+  }
+  
+  // 输出缓存统计信息
+  private logCacheStats(): void {
+    const stats = this.getCacheStats();
+    const hitRate = stats.hits + stats.misses > 0 ? 
+      (stats.hits / (stats.hits + stats.misses) * 100).toFixed(2) : 
+      '0.00';
+    
+    console.log(`缓存统计: 命中 ${stats.hits}, 未命中 ${stats.misses}, 命中率 ${hitRate}%, 总缓存项 ${this.cacheStore.size}`);
+  }
+  
+  // 缓存预热
+  warmupCache(prefixes: string[], ttl: number = 5 * 60 * 1000): void {
+    console.log(`开始缓存预热，前缀列表: ${prefixes.join(', ')}，TTL: ${ttl}ms`);
+    // 这里可以添加具体的缓存预热逻辑
+    // 例如：预加载热门文章、常用标签等
+    // 使用ttl参数来设置缓存过期时间
   }
 }
 
@@ -370,20 +548,47 @@ class QueryOptimizer {
   }
 
   // 带重试机制的查询执行
-  async executeWithRetry<T>(query: () => Promise<T>, maxRetries = 3): Promise<T> {
+  async executeWithRetry<T>(query: () => Promise<T>, maxRetriesOrTtl: number = 3): Promise<T> {
+    // 兼容旧版本，maxRetriesOrTtl 可能是 ttl 或 maxRetries
+    const maxRetries = Math.min(maxRetriesOrTtl, 5); // 限制最大重试次数为5
     let lastError: Error | null = null;
+    
+    // 定义可重试的错误类型
+    const retryableErrors = [
+      '网络错误',
+      'timeout',
+      'TimeoutError',
+      'NetworkError',
+      'ConnectionRefused',
+      'ServiceUnavailable',
+      'Internal Server Error',
+      '502 Bad Gateway',
+      '503 Service Unavailable',
+      '504 Gateway Timeout'
+    ];
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
         return await this.executeQuery(query);
       } catch (error) {
         lastError = error as Error;
-
-        // 只在不是最后一次尝试时重试
-        if (attempt < maxRetries - 1) {
-          // 指数退避策略
+        const errorMessage = lastError.message || '';
+        
+        // 检查是否为可重试的错误类型
+        const isRetryable = retryableErrors.some(retryableError => 
+          errorMessage.includes(retryableError) || 
+          errorMessage.toLowerCase().includes(retryableError.toLowerCase())
+        );
+        
+        // 只在不是最后一次尝试且是可重试错误时重试
+        if (attempt < maxRetries - 1 && isRetryable) {
+          // 指数退避策略，带随机抖动
           const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
           await new Promise(resolve => setTimeout(resolve, delay));
+          console.log(`查询重试 ${attempt + 1}/${maxRetries}，延迟 ${delay.toFixed(0)}ms`);
+        } else {
+          // 不可重试的错误或最后一次尝试，直接抛出
+          throw lastError;
         }
       }
     }

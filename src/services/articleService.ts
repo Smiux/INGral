@@ -1,6 +1,8 @@
 import { BaseService } from './baseService';
 import type { Article, ArticleLink } from '../types/index';
 import { extractWikiLinks, titleToSlug, extractFormulas } from '../utils/markdown';
+import { calculateEditLimitStatus, buildUpdateWithEditLimit } from '../utils/editLimitUtils';
+import { validateTitle, validateContent, validateAuthorInfo, validateVisibility, validateTags } from '../utils/inputValidation';
 
 /**
  * 文章服务类，处理文章相关操作
@@ -22,15 +24,7 @@ export class ArticleService extends BaseService {
    * @param slug 文章Slug
    */
   async getArticleBySlug(slug: string): Promise<Article | null> {
-    const cacheKey = `${this.CACHE_PREFIX}:slug:${slug}`;
-    
-    return this.queryWithCache<Article | null>(cacheKey, 5 * 60 * 1000, async () => {
-      const result = await this.executeWithRetry(async () => {
-        return this.supabase.from(this.TABLE_NAME).select('*').eq('slug', slug).single<Article>();
-      }, 5 * 60 * 1000);
-      
-      return result.data;
-    });
+    return this.getByField<Article>(this.TABLE_NAME, 'slug', slug, this.CACHE_PREFIX, 5 * 60 * 1000);
   }
 
   /**
@@ -38,7 +32,7 @@ export class ArticleService extends BaseService {
    * @param title 文章标题
    */
   async getArticleByTitle(title: string): Promise<Article | null> {
-    const cacheKey = `${this.CACHE_PREFIX}:title:${title.toLowerCase().trim()}`;
+    const cacheKey = this.generateCacheKey(this.CACHE_PREFIX, 'title', title.toLowerCase().trim());
     
     return this.queryWithCache<Article | null>(cacheKey, 5 * 60 * 1000, async () => {
       const result = await this.executeWithRetry(async () => {
@@ -118,6 +112,35 @@ export class ArticleService extends BaseService {
     authorUrl?: string,
     tags?: string[],
   ): Promise<Article | null> {
+    // 验证输入
+    const titleValidation = validateTitle(title);
+    if (!titleValidation.isValid) {
+      throw new Error(titleValidation.message);
+    }
+    
+    const contentValidation = validateContent(content);
+    if (!contentValidation.isValid) {
+      throw new Error(contentValidation.message);
+    }
+    
+    const visibilityValidation = validateVisibility(visibility);
+    if (!visibilityValidation.isValid) {
+      throw new Error(visibilityValidation.message);
+    }
+    
+    const authorValidation = validateAuthorInfo({ name: authorName, email: authorEmail, url: authorUrl });
+    if (!authorValidation.isValid) {
+      throw new Error(authorValidation.message);
+    }
+    
+    const tagsValidation = validateTags(tags);
+    if (!tagsValidation.isValid) {
+      throw new Error(tagsValidation.message);
+    }
+    
+    // 使用清理后的内容
+    const sanitizedContent = contentValidation.content;
+    
     // 生成文章slug
     const slug = titleToSlug(title);
 
@@ -134,7 +157,7 @@ export class ArticleService extends BaseService {
         const articleData = {
           title,
           slug: finalSlug,
-          content,
+          content: sanitizedContent,
           author_name: authorName || 'Anonymous',
           author_email: authorEmail || null,
           author_url: authorUrl || null,
@@ -172,7 +195,7 @@ export class ArticleService extends BaseService {
         const formulas = extractFormulas(content);
         if (formulas.length > 0) {
           // 这里可以添加公式存储逻辑，目前我们将公式添加到article对象中
-          (article as any).formulas = formulas;
+          article.formulas = formulas;
         }
 
         // 提交事务
@@ -216,6 +239,37 @@ export class ArticleService extends BaseService {
     authorUrl?: string,
     tags?: string[],
   ): Promise<Article | null> {
+    // 验证输入
+    const titleValidation = validateTitle(title);
+    if (!titleValidation.isValid) {
+      throw new Error(titleValidation.message);
+    }
+    
+    const contentValidation = validateContent(content);
+    if (!contentValidation.isValid) {
+      throw new Error(contentValidation.message);
+    }
+    
+    if (visibility !== undefined) {
+      const visibilityValidation = validateVisibility(visibility);
+      if (!visibilityValidation.isValid) {
+        throw new Error(visibilityValidation.message);
+      }
+    }
+    
+    const authorValidation = validateAuthorInfo({ name: authorName, email: authorEmail, url: authorUrl });
+    if (!authorValidation.isValid) {
+      throw new Error(authorValidation.message);
+    }
+    
+    const tagsValidation = validateTags(tags);
+    if (!tagsValidation.isValid) {
+      throw new Error(tagsValidation.message);
+    }
+    
+    // 使用清理后的内容
+    const sanitizedContent = contentValidation.content;
+    
     const now = new Date();
     const nowISO = now.toISOString();
     const isOfflineArticle = id.startsWith('temp_');
@@ -226,43 +280,26 @@ export class ArticleService extends BaseService {
       currentArticle = await this.getArticleById(id);
     }
 
-    // 计算编辑计数
-    const editCount24h = (currentArticle?.edit_count_24h || 0) + 1;
-    const editCount7d = (currentArticle?.edit_count_7d || 0) + 1;
+    // 计算编辑限制状态
+    const editLimitStatus = calculateEditLimitStatus(
+      currentArticle?.edit_count_24h || 0,
+      currentArticle?.edit_count_7d || 0,
+      currentArticle?.last_edit_date
+    );
 
-    // 计算是否在24小时内和7天内
-    const lastEditDate = currentArticle?.last_edit_date ? new Date(currentArticle.last_edit_date) : null;
-    const isWithin24h = lastEditDate && (now.getTime() - lastEditDate.getTime() < 24 * 60 * 60 * 1000);
-    const isWithin7d = lastEditDate && (now.getTime() - lastEditDate.getTime() < 7 * 24 * 60 * 60 * 1000);
-
-    // 重置计数逻辑
-    const finalEditCount24h = isWithin24h ? editCount24h : 1;
-    const finalEditCount7d = isWithin7d ? editCount7d : 1;
-
-    // 确定编辑限制状态
-    const isChangePublic = finalEditCount24h > 3;
-    const isSlowMode = finalEditCount24h > 3;
-    const isUnstable = finalEditCount7d > 10;
-    const slowModeUntil = isSlowMode ? new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString() : undefined;
-
-    // 构建更新对象
-    const updateData: Record<string, unknown> = {
+    // 构建基础更新对象
+    const baseUpdateData: Record<string, unknown> = {
       title,
       slug: titleToSlug(title),
-      content,
+      content: sanitizedContent,
       updated_at: nowISO,
       is_offline: isOfflineArticle,
       synced: false,
-      last_modified: nowISO,
-      // 编辑限制相关字段
-      edit_count_24h: finalEditCount24h,
-      edit_count_7d: finalEditCount7d,
-      last_edit_date: nowISO,
-      is_change_public: isChangePublic,
-      is_slow_mode: isSlowMode,
-      slow_mode_until: slowModeUntil,
-      is_unstable: isUnstable,
+      last_modified: nowISO
     };
+
+    // 构建包含编辑限制字段的更新对象
+    const updateData: Record<string, unknown> = buildUpdateWithEditLimit(baseUpdateData, editLimitStatus);
 
     // 添加可选字段
     if (visibility !== undefined) updateData.visibility = visibility;
@@ -310,7 +347,7 @@ export class ArticleService extends BaseService {
           // 提取并处理数学公式
           const formulas = extractFormulas(content);
           if (formulas.length > 0) {
-            (article as any).formulas = formulas;
+            article.formulas = formulas;
           }
 
           // 提交事务
@@ -500,6 +537,137 @@ export class ArticleService extends BaseService {
     } catch (err) {
       console.warn('Failed to update article view count:', err);
     }
+  }
+
+  /**
+   * 点赞文章
+   * @param articleId 文章ID
+   */
+  async upvoteArticle(articleId: string): Promise<boolean> {
+    try {
+      // 更新articles表的upvotes字段
+      await this.executeWithRetry(async () => {
+        return this.supabase.from(this.TABLE_NAME)
+          .update({ upvotes: `upvotes + 1` })
+          .eq('id', articleId);
+      }, 5 * 60 * 1000);
+
+      // 记录交互
+      await this.executeWithRetry(async () => {
+        return this.supabase.from('article_interactions')
+          .insert({
+            article_id: articleId,
+            interaction_type: 'upvote'
+          });
+      }, 5 * 60 * 1000);
+
+      // 清除相关缓存
+      this.invalidateCache(`article:id:${articleId}`);
+      this.invalidateCache('article:slug:*');
+
+      return true;
+    } catch (err) {
+      this.handleError(err, 'ArticleService', '点赞文章');
+      return false;
+    }
+  }
+
+  /**
+   * 取消点赞文章
+   * @param articleId 文章ID
+   */
+  async downvoteArticle(articleId: string): Promise<boolean> {
+    try {
+      // 更新articles表的upvotes字段
+      await this.executeWithRetry(async () => {
+        return this.supabase.from(this.TABLE_NAME)
+          .update({ upvotes: `GREATEST(upvotes - 1, 0)` })
+          .eq('id', articleId);
+      }, 5 * 60 * 1000);
+
+      // 清除相关缓存
+      this.invalidateCache(`article:id:${articleId}`);
+      this.invalidateCache('article:slug:*');
+
+      return true;
+    } catch (err) {
+      this.handleError(err, 'ArticleService', '取消点赞文章');
+      return false;
+    }
+  }
+
+  /**
+   * 收藏文章
+   * @param articleId 文章ID
+   */
+  async bookmarkArticle(articleId: string): Promise<boolean> {
+    try {
+      // 记录收藏交互
+      await this.executeWithRetry(async () => {
+        return this.supabase.from('article_interactions')
+          .insert({
+            article_id: articleId,
+            interaction_type: 'bookmark'
+          });
+      }, 5 * 60 * 1000);
+
+      // 清除相关缓存
+      this.invalidateCache(`article:id:${articleId}`, `${this.CACHE_PREFIX}:bookmarked:${articleId}`);
+
+      return true;
+    } catch (err) {
+      this.handleError(err, 'ArticleService', '收藏文章');
+      return false;
+    }
+  }
+
+  /**
+   * 取消收藏文章
+   * @param articleId 文章ID
+   */
+  async unbookmarkArticle(articleId: string): Promise<boolean> {
+    try {
+      // 删除收藏交互
+      await this.executeWithRetry(async () => {
+        return this.supabase.from('article_interactions')
+          .delete()
+          .eq('article_id', articleId)
+          .eq('interaction_type', 'bookmark');
+      }, 5 * 60 * 1000);
+
+      // 清除相关缓存
+      this.invalidateCache(`article:id:${articleId}`, `${this.CACHE_PREFIX}:bookmarked:${articleId}`);
+
+      return true;
+    } catch (err) {
+      this.handleError(err, 'ArticleService', '取消收藏文章');
+      return false;
+    }
+  }
+
+  /**
+   * 检查文章是否被当前用户收藏
+   * @param articleId 文章ID
+   */
+  async isArticleBookmarked(articleId: string): Promise<boolean> {
+    const cacheKey = this.generateCacheKey(this.CACHE_PREFIX, 'bookmarked', articleId);
+    
+    return this.queryWithCache<boolean>(cacheKey, 5 * 60 * 1000, async () => {
+      try {
+        const result = await this.executeWithRetry(async () => {
+          return this.supabase.from('article_interactions')
+            .select('id')
+            .eq('article_id', articleId)
+            .eq('interaction_type', 'bookmark')
+            .maybeSingle();
+        }, 5 * 60 * 1000);
+
+        return result.data !== null;
+      } catch (err) {
+        this.handleError(err, 'ArticleService', '检查文章收藏状态');
+        return false;
+      }
+    });
   }
 }
 

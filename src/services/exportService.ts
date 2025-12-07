@@ -1,4 +1,6 @@
 import type { Article, Graph, GraphNode, GraphLink } from '../types';
+import { GraphNodeType, GraphVisibility } from '../types';
+import type { SemanticSearchResult } from './semanticSearchService';
 import { renderMarkdown } from '../utils/markdown';
 import { BaseService } from './baseService';
 
@@ -60,7 +62,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
   async exportToHtml(article: Article): Promise<string> {
     try {
       // 渲染文章内容为HTML
-      const contentHtml = renderMarkdown(article.content) || '';
+      const contentHtml = renderMarkdown(article.content).html || '';
 
       // 创建完整的HTML文档
       const htmlContent = `<!DOCTYPE html>
@@ -597,6 +599,208 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
   }
 
   /**
+   * 将SVG元素转换为Canvas
+   * @param svgElement SVG元素
+   * @returns Canvas元素
+   */
+  private async svgToCanvas(svgElement: SVGSVGElement): Promise<HTMLCanvasElement> {
+    return new Promise((resolve, reject) => {
+      try {
+        // 克隆SVG元素，避免修改原始元素
+        const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
+        
+        // 设置SVG的XML命名空间
+        svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        
+        // 获取SVG的尺寸
+        const width = svgElement.clientWidth;
+        const height = svgElement.clientHeight;
+        
+        // 设置SVG的尺寸属性
+        svgClone.setAttribute('width', width.toString());
+        svgClone.setAttribute('height', height.toString());
+        svgClone.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        
+        // 转换SVG为XML字符串
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(svgClone);
+        
+        // 创建Data URL
+        const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+        
+        // 创建Image元素
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = () => {
+          // 创建Canvas元素
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          
+          // 绘制Image到Canvas
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('无法获取Canvas上下文'));
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas);
+        };
+        
+        img.onerror = () => {
+          reject(new Error('无法加载SVG图像'));
+        };
+        
+        // 设置Image的src
+        img.src = svgDataUrl;
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  /**
+   * 导出图谱为PNG图片
+   * @param svgSelector 图谱SVG的选择器
+   * @param filename 文件名
+   */
+  async exportGraphAsPng(svgSelector: string, filename: string): Promise<void> {
+    try {
+      // 获取SVG元素
+      const svgElement = document.querySelector<SVGSVGElement>(svgSelector);
+      if (!svgElement) {
+        throw new Error('找不到图谱SVG元素');
+      }
+      
+      // 转换SVG为Canvas
+      const canvas = await this.svgToCanvas(svgElement);
+
+      // 转换为PNG并下载
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          throw new Error('无法生成PNG文件');
+        }
+        this.triggerDownload(blob, filename, 'image/png');
+      });
+    } catch (error) {
+      console.error('导出图谱PNG失败:', error);
+      throw new Error('导出图谱PNG失败');
+    }
+  }
+
+  /**
+   * 导出图谱为PDF
+   * @param svgSelector 图谱SVG的选择器
+   * @param graph 图谱数据
+   */
+  async exportGraphAsPdf(svgSelector: string, graph: Graph): Promise<void> {
+    try {
+      // 获取SVG元素
+      const svgElement = document.querySelector<SVGSVGElement>(svgSelector);
+      if (!svgElement) {
+        throw new Error('找不到图谱SVG元素');
+      }
+      
+      // 转换SVG为Canvas
+      const canvas = await this.svgToCanvas(svgElement);
+      
+      // 将Canvas转换为图片
+      const imgData = canvas.toDataURL('image/png');
+      
+      // 创建PDF内容
+      const pdfContent = `
+        <!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${graph.title || '知识图谱'}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+              text-align: center;
+            }
+            h1 {
+              font-size: 24px;
+              margin-bottom: 20px;
+              color: #333;
+            }
+            .graph-container {
+              margin: 0 auto;
+              max-width: 100%;
+            }
+            img {
+              max-width: 100%;
+              box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            .metadata {
+              margin-top: 20px;
+              font-size: 14px;
+              color: #666;
+            }
+            .footer {
+              margin-top: 30px;
+              font-size: 12px;
+              color: #999;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>${graph.title || '知识图谱'}</h1>
+          <div class="graph-container">
+            <img src="${imgData}" alt="知识图谱">
+          </div>
+          <div class="metadata">
+            <p>节点数量: ${graph.nodes.length}</p>
+            <p>链接数量: ${graph.links.length}</p>
+            <p>创建时间: ${new Date(graph.created_at || Date.now()).toLocaleString()}</p>
+            <p>更新时间: ${new Date(graph.updated_at || Date.now()).toLocaleString()}</p>
+          </div>
+          <div class="footer">
+            本文导出自知识库系统 · ${new Date().toLocaleDateString()}
+          </div>
+        </body>
+        </html>
+      `;
+
+      // 创建一个新窗口
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        throw new Error('无法打开打印窗口，请检查浏览器设置');
+      }
+
+      // 写入内容到新窗口
+      printWindow.document.write(pdfContent);
+      printWindow.document.close();
+
+      // 等待内容加载完成后触发打印
+      printWindow.onload = () => {
+        if (printWindow.matchMedia) {
+          printWindow.matchMedia('print').addListener((mql) => {
+            if (!mql.matches) {
+              // 打印对话框关闭后关闭窗口
+              setTimeout(() => printWindow.close(), 100);
+            }
+          });
+        }
+
+        // 触发打印
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+        }, 500);
+      };
+    } catch (error) {
+      console.error('导出图谱PDF失败:', error);
+      throw new Error('导出图谱PDF失败');
+    }
+  }
+
+  /**
    * 导入知识图谱数据
    * @param file 文件对象
    * @returns 解析后的图谱数据
@@ -681,11 +885,12 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
 
         const id = nodeElement.getAttribute('id') || '';
 
+        const nodeType = (this.extractGraphmlData(nodeElement, 'd2') || 'article') as keyof typeof GraphNodeType;
         const node: GraphNode = {
           id,
           title: this.extractGraphmlData(nodeElement, 'd0') || id,
           connections: parseInt(this.extractGraphmlData(nodeElement, 'd1') || '0', 10),
-          type: (this.extractGraphmlData(nodeElement, 'd2') || 'article') as 'article' | 'concept' | 'resource',
+          type: GraphNodeType[nodeType],
           description: this.extractGraphmlData(nodeElement, 'd3') || '',
         };
 
@@ -723,13 +928,20 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
       return {
         id: `imported-${Date.now()}`,
         author_id: 'imported',
+        author_name: 'Imported',
         title: 'Imported Graph',
         nodes,
         links,
         is_template: false,
-        visibility: 'public',
+        visibility: GraphVisibility.PUBLIC,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        edit_count_24h: 0,
+        edit_count_7d: 0,
+        last_edit_date: new Date().toISOString(),
+        is_change_public: true,
+        is_slow_mode: false,
+        is_unstable: false,
       };
     } catch (error) {
       console.error('解析GraphML图谱失败:', error);
@@ -922,6 +1134,251 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
       .replace(/"/g, '""')
       .replace(/\n/g, ' ')
       .replace(/\r/g, ' ');
+  }
+
+  // 搜索结果导出功能
+
+  /**
+   * 导出搜索结果为JSON格式
+   * @param results 搜索结果数组
+   * @param query 搜索查询
+   * @returns JSON格式的搜索结果
+   */
+  async exportSearchResultsToJson(
+    results: SemanticSearchResult[],
+    query: string
+  ): Promise<string> {
+    try {
+      const exportData = {
+        query,
+        export_time: new Date().toISOString(),
+        result_count: results.length,
+        results
+      };
+      return JSON.stringify(exportData, null, 2);
+    } catch (error) {
+      console.error('导出搜索结果JSON失败:', error);
+      throw new Error('导出搜索结果JSON失败');
+    }
+  }
+
+  /**
+   * 导出搜索结果为CSV格式
+   * @param results 搜索结果数组
+   * @returns CSV格式的搜索结果
+   */
+  async exportSearchResultsToCsv(
+    results: SemanticSearchResult[]
+  ): Promise<string> {
+    try {
+      // CSV表头
+      let csvContent = 'id,title,type,semantic_score,search_rank,matched_concepts\n';
+      
+      // 添加每一行数据
+      results.forEach(result => {
+        csvContent += `${result.id},"${this.escapeCsv(result.title)}",${result.type},${result.semantic_score},${result.search_rank || ''},"${this.escapeCsv(result.matched_concepts?.join(';') || '')}"\n`;
+      });
+      
+      return csvContent;
+    } catch (error) {
+      console.error('导出搜索结果CSV失败:', error);
+      throw new Error('导出搜索结果CSV失败');
+    }
+  }
+
+  /**
+   * 导出搜索结果为GraphML格式
+   * @param results 搜索结果数组
+   * @returns GraphML格式的搜索结果
+   */
+  async exportSearchResultsToGraphml(
+    results: SemanticSearchResult[]
+  ): Promise<string> {
+    try {
+      // 创建GraphML文件头部
+      let graphmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<graphml xmlns="http://graphml.graphdrawing.org/xmlns" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns 
+         http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">\n  <key id="d0" for="node" attr.name="title" attr.type="string"/>\n  <key id="d1" for="node" attr.name="type" attr.type="string"/>\n  <key id="d2" for="node" attr.name="semantic_score" attr.type="double"/>\n  <key id="d3" for="node" attr.name="search_rank" attr.type="int"/>\n  <key id="d4" for="node" attr.name="matched_concepts" attr.type="string"/>\n  <graph id="G" edgedefault="undirected">\n`;
+
+      // 添加节点
+      results.forEach(result => {
+        graphmlContent += `    <node id="${result.id}">\n`;
+        graphmlContent += `      <data key="d0">${this.escapeXml(result.title)}</data>\n`;
+        graphmlContent += `      <data key="d1">${result.type}</data>\n`;
+        graphmlContent += `      <data key="d2">${result.semantic_score}</data>\n`;
+        
+        if (result.search_rank) {
+          graphmlContent += `      <data key="d3">${result.search_rank}</data>\n`;
+        }
+        
+        if (result.matched_concepts && result.matched_concepts.length > 0) {
+          graphmlContent += `      <data key="d4">${this.escapeXml(result.matched_concepts.join(';'))}</data>\n`;
+        }
+        
+        graphmlContent += `    </node>\n`;
+      });
+
+      // 简单的链接生成：将匹配了相同概念的结果连接起来
+      const conceptToResults = new Map<string, string[]>();
+      results.forEach(result => {
+        if (result.matched_concepts) {
+          result.matched_concepts.forEach(concept => {
+            if (!conceptToResults.has(concept)) {
+              conceptToResults.set(concept, []);
+            }
+            conceptToResults.get(concept)?.push(result.id);
+          });
+        }
+      });
+
+      // 添加链接
+      const addedLinks = new Set<string>();
+      conceptToResults.forEach((conceptResults, concept) => {
+        // 为每个概念组内的结果创建完全连接
+        for (let i = 0; i < conceptResults.length; i++) {
+          for (let j = i + 1; j < conceptResults.length; j++) {
+            const source = conceptResults[i];
+            const target = conceptResults[j];
+            // 使用字符串比较生成唯一链接键，确保顺序一致
+            if (source && target) {
+              const linkKey = source < target ? `${source}-${target}` : `${target}-${source}`;
+            
+              if (!addedLinks.has(linkKey)) {
+                addedLinks.add(linkKey);
+                graphmlContent += `    <edge source="${source}" target="${target}">\n`;
+                graphmlContent += `      <data key="d0">${concept}</data>\n`;
+                graphmlContent += `    </edge>\n`;
+              }
+            }
+          }
+        }
+      });
+
+      // 关闭GraphML文件
+      graphmlContent += `  </graph>\n</graphml>`;
+
+      return graphmlContent;
+    } catch (error) {
+      console.error('导出搜索结果GraphML失败:', error);
+      throw new Error('导出搜索结果GraphML失败');
+    }
+  }
+
+  /**
+   * 导出搜索结果为HTML（用于PDF导出）
+   * @param results 搜索结果数组
+   * @param query 搜索查询
+   * @returns HTML格式的搜索结果
+   */
+  private createSearchResultsHtml(
+    results: SemanticSearchResult[],
+    query: string
+  ): string {
+    // 创建HTML内容
+    return `<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>搜索结果 - ${query}</title>\n  <style>\n    * {\n      box-sizing: border-box;\n      margin: 0;\n      padding: 0;\n    }\n    body {\n      font-family: 'Noto Serif SC', 'Times New Roman', serif;\n      line-height: 1.6;\n      color: #333;\n      background-color: #fff;\n      padding: 20px;\n      max-width: 210mm;\n      margin: 0 auto;\n    }\n    .paper {\n      background: white;\n      padding: 2cm;\n      box-shadow: 0 0 20px rgba(0,0,0,0.1);\n      margin-bottom: 20px;\n    }\n    h1 {\n      font-size: 2rem;\n      font-weight: 700;\n      color: #1a1a1a;\n      margin-bottom: 1rem;\n      text-align: center;\n    }\n    .query-info {\n      text-align: center;\n      color: #666;\n      margin-bottom: 2rem;\n      font-size: 1.1rem;\n    }\n    .result-count {\n      text-align: center;\n      color: #888;\n      margin-bottom: 2rem;\n      font-size: 0.9rem;\n    }\n    .result-item {\n      margin-bottom: 2rem;\n      padding-bottom: 1.5rem;\n      border-bottom: 1px solid #e0e0e0;\n    }\n    .result-item:last-child {\n      border-bottom: none;\n      margin-bottom: 0;\n      padding-bottom: 0;\n    }\n    .result-title {\n      font-size: 1.3rem;\n      font-weight: 600;\n      color: #2c3e50;\n      margin-bottom: 0.5rem;\n    }\n    .result-meta {\n      display: flex;\n      gap: 1rem;\n      font-size: 0.9rem;\n      color: #666;\n      margin-bottom: 0.5rem;\n    }\n    .result-type {\n      background-color: #e3f2fd;\n      color: #1976d2;\n      padding: 0.2rem 0.5rem;\n      border-radius: 4px;\n      font-size: 0.8rem;\n      font-weight: 500;\n    }\n    .result-score {\n      background-color: #e8f5e8;\n      color: #2e7d32;\n      padding: 0.2rem 0.5rem;\n      border-radius: 4px;\n      font-size: 0.8rem;\n      font-weight: 500;\n    }\n    .result-concepts {\n      margin-top: 0.5rem;\n      font-size: 0.9rem;\n      color: #757575;\n    }\n    .concept-tag {\n      background-color: #f5f5f5;\n      color: #616161;\n      padding: 0.15rem 0.4rem;\n      border-radius: 3px;\n      font-size: 0.8rem;\n      margin-right: 0.5rem;\n      margin-bottom: 0.3rem;\n      display: inline-block;\n    }\n    .footer {\n      margin-top: 3rem;\n      padding-top: 1rem;\n      border-top: 1px solid #e0e0e0;\n      text-align: center;\n      font-size: 0.875rem;\n      color: #999;\n    }\n  </style>\n</head>\n<body>\n  <div class="paper">\n    <h1>搜索结果</h1>\n    <div class="query-info">查询关键词："${query}"</div>\n    <div class="result-count">共找到 ${results.length} 条结果</div>\n    <div class="results-container">\n      ${results.map(result => `\n      <div class="result-item">\n        <div class="result-title">${this.escapeXml(result.title)}</div>\n        <div class="result-meta">\n          <span class="result-type">${result.type}</span>\n          <span class="result-score">语义分数: ${result.semantic_score.toFixed(4)}</span>\n          ${result.search_rank ? `<span class="result-score">搜索排名: ${result.search_rank}</span>` : ''}\n        </div>\n        ${result.matched_concepts && result.matched_concepts.length > 0 ? `\n        <div class="result-concepts">\n          <strong>匹配概念：</strong>\n          ${result.matched_concepts.map(concept => `<span class="concept-tag">${this.escapeXml(concept)}</span>`).join('')}\n        </div>` : ''}\n      </div>`).join('')}\n    </div>\n    <div class="footer">\n      搜索结果导出自知识库系统 · ${new Date().toLocaleDateString()}· ${new Date().toLocaleTimeString()}\n    </div>\n  </div>\n</body>\n</html>`;
+  }
+
+  /**
+   * 导出搜索结果为PDF
+   * @param results 搜索结果数组
+   * @param query 搜索查询
+   */
+  async exportSearchResultsToPdf(
+    results: SemanticSearchResult[],
+    query: string
+  ): Promise<void> {
+    try {
+      const htmlContent = this.createSearchResultsHtml(results, query);
+
+      // 创建一个新窗口
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        throw new Error('无法打开打印窗口，请检查浏览器设置');
+      }
+
+      // 写入内容到新窗口
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+
+      // 等待内容加载完成后触发打印
+      printWindow.onload = () => {
+        if (printWindow.matchMedia) {
+          printWindow.matchMedia('print').addListener((mql) => {
+            if (!mql.matches) {
+              // 打印对话框关闭后关闭窗口
+              setTimeout(() => printWindow.close(), 100);
+            }
+          });
+        }
+
+        // 触发打印
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+        }, 500);
+      };
+    } catch (error) {
+      console.error('导出搜索结果PDF失败:', error);
+      throw new Error('导出搜索结果PDF失败');
+    }
+  }
+
+  /**
+   * 导出搜索结果为JSON文件
+   * @param results 搜索结果数组
+   * @param query 搜索查询
+   */
+  async exportSearchResultsAsJsonFile(
+    results: SemanticSearchResult[],
+    query: string
+  ): Promise<void> {
+    try {
+      const jsonContent = await this.exportSearchResultsToJson(results, query);
+      const safeFilename = this.sanitizeFilename(`search-results-${query}`) + '.json';
+      this.triggerDownload(jsonContent, safeFilename, 'application/json;charset=utf-8');
+    } catch (error) {
+      console.error('导出搜索结果JSON文件失败:', error);
+      throw new Error('导出搜索结果JSON文件失败');
+    }
+  }
+
+  /**
+   * 导出搜索结果为CSV文件
+   * @param results 搜索结果数组
+   * @param query 搜索查询
+   */
+  async exportSearchResultsAsCsvFile(
+    results: SemanticSearchResult[],
+    query: string
+  ): Promise<void> {
+    try {
+      const csvContent = await this.exportSearchResultsToCsv(results);
+      const safeFilename = this.sanitizeFilename(`search-results-${query}`) + '.csv';
+      this.triggerDownload(csvContent, safeFilename, 'text/csv;charset=utf-8');
+    } catch (error) {
+      console.error('导出搜索结果CSV文件失败:', error);
+      throw new Error('导出搜索结果CSV文件失败');
+    }
+  }
+
+  /**
+   * 导出搜索结果为GraphML文件
+   * @param results 搜索结果数组
+   * @param query 搜索查询
+   */
+  async exportSearchResultsAsGraphmlFile(
+    results: SemanticSearchResult[],
+    query: string
+  ): Promise<void> {
+    try {
+      const graphmlContent = await this.exportSearchResultsToGraphml(results);
+      const safeFilename = this.sanitizeFilename(`search-results-${query}`) + '.graphml';
+      this.triggerDownload(graphmlContent, safeFilename, 'application/xml;charset=utf-8');
+    } catch (error) {
+      console.error('导出搜索结果GraphML文件失败:', error);
+      throw new Error('导出搜索结果GraphML文件失败');
+    }
   }
 }
 

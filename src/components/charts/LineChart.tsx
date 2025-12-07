@@ -1,15 +1,15 @@
-import React, { useRef } from 'react';
-import { useCanvas } from '../../hooks/useCanvasHook';
-import { Canvas } from '../../components/canvas/Canvas';
-import type { CanvasRef } from '../../components/canvas/Canvas';
-import type { ChartData } from '../../types/analytics';
+import React from 'react';
+import { ChartBase } from './ChartBase';
 import styles from './LineChart.module.css';
+import type { ChartData, ChartOptions, ChartEvent, ActiveElement } from 'chart.js';
 
 interface LineChartProps {
-  data: ChartData;
+  data: ChartData<'line'>;
   height?: number;
   options?: Record<string, unknown>;
   className?: string;
+  onPointClick?: (index: number, value: number, label: string) => void;
+  onHover?: (index: number | null, value: number | null, label: string | null) => void;
 }
 
 const LineChartComponent: React.FC<LineChartProps> = ({
@@ -17,23 +17,88 @@ const LineChartComponent: React.FC<LineChartProps> = ({
   height = 300,
   options = {},
   className = '',
+  onPointClick,
+  onHover,
 }) => {
-  const { drawChart } = useCanvas(data, {
-    type: 'line',
-    height,
-    ...options,
-  });
+  // 准备图表数据
+  const chartData = {
+    labels: data.labels || [],
+    datasets: data.datasets?.map(dataset => ({
+      label: dataset.label || '',
+      data: dataset.data || [],
+      borderColor: dataset.borderColor || '#3b82f6',
+      backgroundColor: dataset.backgroundColor || 'rgba(79, 70, 229, 0.1)',
+      borderWidth: dataset.borderWidth || 2,
+      fill: dataset.fill !== undefined ? dataset.fill : true,
+      tension: dataset.tension || 0.3,
+      pointRadius: dataset.pointRadius || 5,
+      pointHoverRadius: dataset.pointHoverRadius || 8,
+    })) || [],
+  };
 
-  // 创建一个正确类型的ref传递给Canvas组件
-  const canvasRef = useRef<CanvasRef>(null);
+  // 配置图表选项
+  const chartOptions: ChartOptions = {
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        enabled: true,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+    // 启用交互
+    interaction: {
+      intersect: false,
+      mode: 'index',
+    },
+    ...options,
+  };
+
+  // 处理点击事件
+  const handleChartClick = (_event: ChartEvent, elements: ActiveElement[]) => {
+    if (elements.length > 0 && onPointClick) {
+      const element = elements[0];
+      if (element) {
+        const index = element.index;
+        const value = chartData.datasets[0]?.data[index] as number;
+        const label = chartData.labels?.[index] as string;
+        onPointClick(index, value, label);
+      }
+    }
+  };
+
+  // 处理悬停事件
+  const handleChartHover = (_event: ChartEvent, elements: ActiveElement[]) => {
+    if (onHover) {
+      if (elements.length > 0) {
+        const element = elements[0];
+        if (element) {
+          const index = element.index;
+          const value = chartData.datasets[0]?.data[index] as number;
+          const label = chartData.labels?.[index] as string;
+          onHover(index, value, label);
+        }
+      } else {
+        onHover(null, null, null);
+      }
+    }
+  };
 
   return (
-    <div
+    <ChartBase
+      chartType="line"
+      data={chartData}
+      height={height}
+      options={chartOptions}
       className={`${styles.container} ${className}`}
-      style={{ height: height || 300 }}
-    >
-      <Canvas ref={canvasRef} height={height} onDraw={drawChart} />
-    </div>
+      onChartClick={handleChartClick}
+      onChartHover={handleChartHover}
+    />
   );
 };
 

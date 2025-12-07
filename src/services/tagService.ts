@@ -89,7 +89,7 @@ export class TagService extends BaseService {
       const tagRecord = {
         name: tagData.name,
         description: tagData.description,
-        color: tagData.color || '#007bff',
+        color: tagData.color || 'var(--primary-500)',
         slug,
         parent_id: tagData.parent_id || null,
         is_system_tag: tagData.is_system_tag || false,
@@ -189,7 +189,7 @@ export class TagService extends BaseService {
       const tagsWithSlug = tags.map(tag => ({
         ...tag,
         slug: this.generateSlug(tag.name),
-        color: tag.color || '#007bff',
+        color: tag.color || 'var(--primary-500)',
         usage_count: 0,
       }));
 

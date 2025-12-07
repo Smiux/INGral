@@ -46,7 +46,7 @@ export const SaveTemplateDialog: React.FC<SaveTemplateDialogProps> = ({
     
     setTemplateData(prev => ({
       ...prev,
-      [name]: finalValue as any
+      [name]: finalValue as typeof prev[keyof typeof prev]
     }));
     
     // 清除对应字段的错误

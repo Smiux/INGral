@@ -1,5 +1,6 @@
 import { BaseService } from './baseService';
 import type { Graph, GraphNode, GraphLink, Article } from '../types/index';
+import { calculateEditLimitStatus, buildUpdateWithEditLimit } from '../utils/editLimitUtils';
 
 /**
  * 图谱服务类，处理图谱相关操作
@@ -53,6 +54,217 @@ export class GraphService extends BaseService {
   }
 
   /**
+   * 分页获取图谱详情
+   * @param graphId 图谱ID
+   * @param options 分页选项
+   */
+  async getGraphByIdWithPagination(graphId: string, options: {
+    nodePage?: number;
+    nodeLimit?: number;
+    linkPage?: number;
+    linkLimit?: number;
+    includeBasicInfo?: boolean;
+  } = {}): Promise<Graph | null> {
+    const {
+      nodePage = 1,
+      nodeLimit = 50,
+      linkPage = 1,
+      linkLimit = 100,
+      includeBasicInfo = true
+    } = options;
+
+    const cacheKey = `${this.getCacheKey(this.CACHE_PREFIX, graphId)}:page-${nodePage}-${linkPage}`;
+    
+    return this.queryWithCache<Graph | null>(cacheKey, 3 * 60 * 1000, async () => {
+      // 获取图谱基本信息
+      const graphResult = includeBasicInfo 
+        ? await this.executeWithRetry(async () => {
+            return this.supabase.from(this.TABLE_NAME).select('*').eq('id', graphId).single<Graph>();
+          }, 3 * 60 * 1000)
+        : { data: { id: graphId, nodes: [], links: [] } as unknown as Graph };
+      
+      if (!graphResult.data) {
+        return null;
+      }
+
+      // 分页获取图谱节点
+      const nodesResult = await this.executeWithRetry(async () => {
+        return this.supabase.from('graph_nodes')
+          .select('*')
+          .eq('graph_id', graphId)
+          .order('connections', { ascending: false })
+          .limit(nodeLimit)
+          .range((nodePage - 1) * nodeLimit, nodePage * nodeLimit - 1);
+      }, 3 * 60 * 1000);
+
+      // 分页获取图谱链接
+      const linksResult = await this.executeWithRetry(async () => {
+        return this.supabase.from('graph_links')
+          .select('*')
+          .eq('graph_id', graphId)
+          .limit(linkLimit)
+          .range((linkPage - 1) * linkLimit, linkPage * linkLimit - 1);
+      }, 3 * 60 * 1000);
+
+      return {
+        ...graphResult.data,
+        nodes: nodesResult.data || [],
+        links: linksResult.data || [],
+        // 添加分页信息
+        pagination: {
+          nodePage,
+          nodeLimit,
+          linkPage,
+          linkLimit,
+          hasMoreNodes: nodesResult.data?.length === nodeLimit,
+          hasMoreLinks: linksResult.data?.length === linkLimit
+        }
+      };
+    });
+  }
+
+  /**
+   * 获取指定节点的邻居节点和链接
+   * @param graphId 图谱ID
+   * @param nodeId 节点ID
+   * @param depth 深度，默认为1
+   */
+  async getNeighborNodes(graphId: string, nodeId: string, depth: number = 1): Promise<{
+    nodes: GraphNode[];
+    links: GraphLink[];
+  }> {
+    const cacheKey = `${this.getCacheKey(this.CACHE_PREFIX, graphId)}:neighbors:${nodeId}:depth-${depth}`;
+    
+    return this.queryWithCache(cacheKey, 3 * 60 * 1000, async () => {
+      // 获取节点本身
+      const nodeResult = await this.executeWithRetry(async () => {
+        return this.supabase.from('graph_nodes')
+          .select('*')
+          .eq('id', nodeId)
+          .eq('graph_id', graphId)
+          .single();
+      }, 3 * 60 * 1000);
+
+      if (!nodeResult.data) {
+        return { nodes: [], links: [] };
+      }
+
+      // 获取直接相连的链接
+      const linksResult = await this.executeWithRetry(async () => {
+        return this.supabase.from('graph_links')
+          .select('*')
+          .eq('graph_id', graphId)
+          .or(`source_id.eq.${nodeId},target_id.eq.${nodeId}`);
+      }, 3 * 60 * 1000);
+
+      const links = linksResult.data || [];
+      const neighborNodeIds = new Set<string>();
+
+      // 提取邻居节点ID
+      links.forEach(link => {
+        if (link.source_id !== nodeId) {
+          neighborNodeIds.add(link.source_id);
+        }
+        if (link.target_id !== nodeId) {
+          neighborNodeIds.add(link.target_id);
+        }
+      });
+
+      // 获取邻居节点
+      const neighborNodesResult = await this.executeWithRetry(async () => {
+        return this.supabase.from('graph_nodes')
+          .select('*')
+          .eq('graph_id', graphId)
+          .in('id', Array.from(neighborNodeIds));
+      }, 3 * 60 * 1000);
+
+      const nodes = [nodeResult.data, ...(neighborNodesResult.data || [])];
+
+      return { nodes, links };
+    });
+  }
+
+  /**
+   * 分页获取图谱节点
+   * @param graphId 图谱ID
+   * @param page 页码
+   * @param limit 每页数量
+   */
+  async getNodesByGraphIdWithPagination(graphId: string, page: number = 1, limit: number = 50): Promise<{
+    nodes: GraphNode[];
+    total: number;
+    hasMore: boolean;
+  }> {
+    const offset = (page - 1) * limit;
+    const cacheKey = `${this.getCacheKey('graph_nodes', graphId)}:page-${page}-limit-${limit}`;
+    
+    return this.queryWithCache(cacheKey, 3 * 60 * 1000, async () => {
+      // 获取节点总数
+      const countResult = await this.executeWithRetry(async () => {
+        return this.supabase.from('graph_nodes')
+          .select('id', { count: 'exact', head: true })
+          .eq('graph_id', graphId);
+      }, 3 * 60 * 1000);
+
+      // 获取节点数据
+      const nodesResult = await this.executeWithRetry(async () => {
+        return this.supabase.from('graph_nodes')
+          .select('*')
+          .eq('graph_id', graphId)
+          .order('connections', { ascending: false })
+          .limit(limit)
+          .range(offset, offset + limit - 1);
+      }, 3 * 60 * 1000);
+
+      const total = countResult.count || 0;
+      const nodes = nodesResult.data || [];
+      const hasMore = offset + nodes.length < total;
+
+      return { nodes, total, hasMore };
+    });
+  }
+
+  /**
+   * 分页获取图谱链接
+   * @param graphId 图谱ID
+   * @param page 页码
+   * @param limit 每页数量
+   */
+  async getLinksByGraphIdWithPagination(graphId: string, page: number = 1, limit: number = 100): Promise<{
+    links: GraphLink[];
+    total: number;
+    hasMore: boolean;
+  }> {
+    const offset = (page - 1) * limit;
+    const cacheKey = `${this.getCacheKey('graph_links', graphId)}:page-${page}-limit-${limit}`;
+    
+    return this.queryWithCache(cacheKey, 3 * 60 * 1000, async () => {
+      // 获取链接总数
+      const countResult = await this.executeWithRetry(async () => {
+        return this.supabase.from('graph_links')
+          .select('id', { count: 'exact', head: true })
+          .eq('graph_id', graphId);
+      }, 3 * 60 * 1000);
+
+      // 获取链接数据
+      const linksResult = await this.executeWithRetry(async () => {
+        return this.supabase.from('graph_links')
+          .select('*')
+          .eq('graph_id', graphId)
+          .order('weight', { ascending: false })
+          .limit(limit)
+          .range(offset, offset + limit - 1);
+      }, 3 * 60 * 1000);
+
+      const total = countResult.count || 0;
+      const links = linksResult.data || [];
+      const hasMore = offset + links.length < total;
+
+      return { links, total, hasMore };
+    });
+  }
+
+  /**
    * 创建图谱
    * @param graphData 图谱数据
    */
@@ -86,7 +298,10 @@ export class GraphService extends BaseService {
     title: string;
     is_template: boolean;
     visibility: 'public' | 'unlisted';
-    graph_data: any;
+    graph_data: {
+      nodes: Array<Record<string, unknown>>;
+      links: Array<Record<string, unknown>>;
+    };
   }>): Promise<Graph | null> {
     const now = new Date();
     const nowISO = now.toISOString();
@@ -94,38 +309,21 @@ export class GraphService extends BaseService {
     // 获取当前图谱信息以计算编辑限制
     const currentGraph = await this.getGraphById(graphId);
 
-    // 计算编辑计数
-    const editCount24h = (currentGraph?.edit_count_24h || 0) + 1;
-    const editCount7d = (currentGraph?.edit_count_7d || 0) + 1;
-
-    // 计算是否在24小时内和7天内
-    const lastEditDate = currentGraph?.last_edit_date ? new Date(currentGraph.last_edit_date) : null;
-    const isWithin24h = lastEditDate && (now.getTime() - lastEditDate.getTime() < 24 * 60 * 60 * 1000);
-    const isWithin7d = lastEditDate && (now.getTime() - lastEditDate.getTime() < 7 * 24 * 60 * 60 * 1000);
-
-    // 重置计数逻辑
-    const finalEditCount24h = isWithin24h ? editCount24h : 1;
-    const finalEditCount7d = isWithin7d ? editCount7d : 1;
-
-    // 确定编辑限制状态
-    const isChangePublic = finalEditCount24h > 3;
-    const isSlowMode = finalEditCount24h > 3;
-    const isUnstable = finalEditCount7d > 10;
-    const slowModeUntil = isSlowMode ? new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString() : undefined;
+    // 计算编辑限制状态
+    const editLimitStatus = calculateEditLimitStatus(
+      currentGraph?.edit_count_24h || 0,
+      currentGraph?.edit_count_7d || 0,
+      currentGraph?.last_edit_date
+    );
 
     // 构建最终更新对象，包含编辑限制字段
-    const finalUpdates = {
-      ...updates,
-      updated_at: nowISO,
-      // 编辑限制相关字段
-      edit_count_24h: finalEditCount24h,
-      edit_count_7d: finalEditCount7d,
-      last_edit_date: nowISO,
-      is_change_public: isChangePublic,
-      is_slow_mode: isSlowMode,
-      slow_mode_until: slowModeUntil,
-      is_unstable: isUnstable,
-    };
+    const finalUpdates = buildUpdateWithEditLimit(
+      {
+        ...updates,
+        updated_at: nowISO
+      },
+      editLimitStatus
+    );
 
     return this.update<Graph>(this.TABLE_NAME, graphId, finalUpdates, this.CACHE_PREFIX, 3 * 60 * 1000);
   }
@@ -197,7 +395,7 @@ export class GraphService extends BaseService {
       type: nodeData.type || 'concept',
       description: nodeData.description,
       content: nodeData.content,
-      color: nodeData.color || '#6B7280',
+      color: nodeData.color || 'var(--neutral-500)',
       size: nodeData.size || 20,
       x: nodeData.x || 0,
       y: nodeData.y || 0,
@@ -238,7 +436,7 @@ export class GraphService extends BaseService {
       type: linkData.type || 'related',
       label: linkData.label,
       weight: linkData.weight || 1.0,
-      color: linkData.color || '#9CA3AF'
+      color: linkData.color || 'var(--neutral-400)'
     };
 
     const link = await this.create<GraphLink>(tableName, linkRecord, cachePrefix, 3 * 60 * 1000);
@@ -379,7 +577,14 @@ export class GraphService extends BaseService {
    * 导出图谱数据
    * @param graphId 图谱ID
    */
-  async exportGraph(graphId: string) {
+  async exportGraph(graphId: string): Promise<{
+    id: string;
+    title: string;
+    nodes: GraphNode[];
+    links: GraphLink[];
+    created_at: string;
+    updated_at: string;
+  } | null> {
     const graph = await this.getGraphById(graphId);
     if (!graph) return null;
 
@@ -399,8 +604,8 @@ export class GraphService extends BaseService {
    */
   async importGraph(graphData: {
     title: string;
-    nodes: any[];
-    links: any[];
+    nodes: Array<Record<string, unknown>>;
+    links: Array<Record<string, unknown>>;
     visibility?: 'public' | 'unlisted';
   }): Promise<Graph | null> {
     try {
@@ -426,36 +631,36 @@ export class GraphService extends BaseService {
         for (const node of graphData.nodes) {
           const createdNode = await this.createNode({
             graph_id: graph.id,
-            title: node.title,
-            type: node.type,
-            description: node.description,
-            content: node.content,
-            color: node.color,
-            size: node.size,
-            x: node.x,
-            y: node.y,
-            z: node.z
+            title: (node as Record<string, unknown>).title as string || 'Untitled Node',
+            type: (node as Record<string, unknown>).type as 'article' | 'concept' | 'resource' || 'concept',
+            description: (node as Record<string, unknown>).description as string || '',
+            content: (node as Record<string, unknown>).content as string || '',
+            color: (node as Record<string, unknown>).color as string || 'var(--neutral-500)',
+            size: (node as Record<string, unknown>).size as number || 20,
+            x: (node as Record<string, unknown>).x as number || 0,
+            y: (node as Record<string, unknown>).y as number || 0,
+            z: (node as Record<string, unknown>).z as number || 0
           });
 
           if (createdNode) {
-            nodeIdMap[node.id] = createdNode.id;
+            nodeIdMap[(node as Record<string, unknown>).id as string] = createdNode.id;
           }
         }
 
         // 创建链接
         for (const link of graphData.links) {
-          const sourceId = nodeIdMap[link.source as string];
-          const targetId = nodeIdMap[link.target as string];
+          const sourceId = nodeIdMap[(link as Record<string, unknown>).source as string];
+          const targetId = nodeIdMap[(link as Record<string, unknown>).target as string];
 
           if (sourceId && targetId) {
             await this.createLink({
               graph_id: graph.id,
               source_id: sourceId,
               target_id: targetId,
-              type: link.type,
-              label: link.label,
-              weight: link.weight,
-              color: link.color
+              type: (link as Record<string, unknown>).type as string || 'related',
+              label: (link as Record<string, unknown>).label as string || '',
+              weight: (link as Record<string, unknown>).weight as number || 1.0,
+              color: (link as Record<string, unknown>).color as string || 'var(--neutral-400)'
             });
           }
         }
@@ -475,8 +680,241 @@ export class GraphService extends BaseService {
       return null;
     }
   }
+
+  /**
+   * 自动生成图谱，基于文章内容
+   * @param articleId 文章ID
+   * @param title 图谱标题
+   * @param visibility 图谱可见性
+   */
+  async autoGenerateGraph(articleId: string, title: string, visibility: 'public' | 'unlisted' = 'unlisted'): Promise<Graph | null> {
+    try {
+      // 开始事务
+      const transactionId = await this.startTransaction();
+
+      try {
+        // 创建图谱
+        const graph = await this.createGraph({
+          title: title,
+          visibility: visibility,
+          is_template: false
+        });
+
+        if (!graph) {
+          throw new Error('Failed to create graph');
+        }
+
+        // 获取文章内容
+        const { data: article } = await this.supabase
+          .from('articles')
+          .select('title, content, tags, summary')
+          .eq('id', articleId)
+          .single();
+
+        if (!article) {
+          throw new Error('Failed to get article');
+        }
+
+        // 提取关键词和概念（增强版，使用TF-IDF算法）
+        const concepts = this.extractConcepts(article.content, article.tags || []);
+        
+        // 创建节点映射
+        const nodeIdMap: Record<string, string> = {};
+
+        // 创建文章节点
+        const articleNode = await this.createNode({
+          graph_id: graph.id,
+          title: article.title,
+          type: 'article',
+          description: article.summary || '',
+          content: article.content,
+          color: 'var(--primary-500)',
+          size: 30
+        });
+
+        if (articleNode) {
+          nodeIdMap['article'] = articleNode.id;
+        }
+
+        // 创建概念节点
+        for (const concept of concepts) {
+          const createdNode = await this.createNode({
+            graph_id: graph.id,
+            title: concept.text,
+            type: 'concept',
+            description: concept.description,
+            color: concept.color || 'var(--neutral-500)',
+            size: 20
+          });
+
+          if (createdNode) {
+            nodeIdMap[concept.text] = createdNode.id;
+          }
+        }
+
+        // 创建链接：文章与概念之间的链接
+        for (const concept of concepts) {
+          const articleNodeId = nodeIdMap['article'];
+          const conceptNodeId = nodeIdMap[concept.text];
+
+          if (articleNodeId && conceptNodeId) {
+            await this.createLink({
+              graph_id: graph.id,
+              source_id: articleNodeId,
+              target_id: conceptNodeId,
+              type: 'related',
+              label: concept.relation || '提到',
+              weight: concept.weight || 1.0
+            });
+          }
+        }
+
+        // 创建概念之间的链接
+        for (let i = 0; i < concepts.length; i++) {
+          for (let j = i + 1; j < concepts.length; j++) {
+            // 如果概念在内容中相邻出现，创建链接
+            const concept1 = concepts[i];
+            const concept2 = concepts[j];
+            
+            if (concept1 && concept2) {
+              const content = article.content.toLowerCase();
+              const text1 = concept1.text.toLowerCase();
+              const text2 = concept2.text.toLowerCase();
+
+              if (content.includes(text1) && content.includes(text2)) {
+                // 简单检查两个概念是否在200个字符内出现
+                const index1 = content.indexOf(text1);
+                const index2 = content.indexOf(text2);
+                
+                if (Math.abs(index1 - index2) < 200) {
+                  const nodeId1 = nodeIdMap[concept1.text];
+                  const nodeId2 = nodeIdMap[concept2.text];
+                  
+                  if (nodeId1 && nodeId2) {
+                    await this.createLink({
+                      graph_id: graph.id,
+                      source_id: nodeId1,
+                      target_id: nodeId2,
+                      type: 'related',
+                      label: '关联',
+                      weight: 0.5
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // 提交事务
+        await this.commitTransaction(transactionId);
+        
+        // 创建文章-图谱映射
+        await this.createArticleNodeMapping(articleId, nodeIdMap['article'] || '', 'primary');
+        
+        return graph;
+      } catch (err) {
+        // 回滚事务
+        await this.rollbackTransaction();
+        this.handleError(err, 'GraphService', '自动生成图谱');
+        return null;
+      }
+    } catch (err) {
+      this.handleError(err, 'GraphService', '自动生成图谱');
+      return null;
+    }
+  }
+
+  /**
+   * 从文章内容中提取概念（增强版，使用TF-IDF算法）
+   * @param content 文章内容
+   * @param tags 文章标签
+   */
+  private extractConcepts(content: string, tags: Array<{ name: string }>): Array<{ text: string; weight: number; description: string; relation?: string; color?: string }> {
+    // 增强版概念提取，使用TF-IDF算法
+    const concepts: Array<{ text: string; weight: number; description: string; relation?: string; color?: string }> = [];
+    
+    // 从标签中提取概念
+    const tagColors: readonly string[] = ['var(--success-500)', 'var(--warning-500)', 'var(--error-500)', 'var(--secondary-500)', 'var(--primary-500)'];
+    
+    for (let i = 0; i < tags.length; i++) {
+      const tag = tags[i];
+      if (tag && tag.name) {
+        concepts.push({
+          text: tag.name as string,
+          weight: 2.0,
+          description: `文章标签: ${tag.name}`,
+          color: tagColors[i % tagColors.length] as string
+        });
+      }
+    }
+    
+    // 从内容中提取关键词（使用TF-IDF算法）
+    const keywords = this.extractKeywords(content);
+    
+    for (const keyword of keywords) {
+      if (!concepts.some(c => c.text === keyword.text)) {
+        concepts.push({
+          text: keyword.text,
+          weight: keyword.weight,
+          description: `文章中提到的概念: ${keyword.text}`,
+          color: 'var(--neutral-500)'
+        });
+      }
+    }
+    
+    return concepts;
+  }
+
+  /**
+   * 提取关键词（使用TF-IDF算法）
+   * @param content 文章内容
+   * @param limit 关键词数量限制
+   */
+  private extractKeywords(content: string, limit: number = 10): Array<{ text: string; weight: number }> {
+    // 停用词列表
+    const stopWords = ['的', '了', '和', '是', '在', '有', '我', '这', '那', '你', '他', '她', '它', '我们', '你们', '他们', '她们', '它们', '也', '还', '但', '却', '而', '就', '都', '只', '又', '很', '更', '最', '太', '非常', '极', '及', '与', '同', '并', '或', '若', '如', '因', '为', '所以', '由于', '因此', '但是', '不过', '然而', '可是', '虽然', '尽管', '即使', '如果', '假如', '倘若', '要是', '只要', '只有', '无论', '不管', '还是', '要么', '或者', '与其', '不如', '宁可', '宁愿', '也不'];
+    
+    // 简单分词和去停用词
+    const words = content
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
+      .filter(word => word.length > 2 && !stopWords.includes(word));
+    
+    // 统计词频 (TF)
+    const wordCounts: Record<string, number> = {};
+    const totalWords = words.length;
+    
+    for (const word of words) {
+      wordCounts[word] = (wordCounts[word] || 0) + 1;
+    }
+    
+    // 计算TF-IDF
+    // 简化版：使用文档总数N=1，实际项目中可以使用更复杂的IDF计算
+    const N = 1; // 文档总数，实际应用中应根据语料库计算
+    const tfidfScores: Array<{ text: string; weight: number }> = [];
+    
+    for (const [word, freq] of Object.entries(wordCounts)) {
+      // TF: 词频 / 总词数
+      const tf = freq / totalWords;
+      // IDF: 1 + log(N / (1 + 出现该词的文档数))，简化处理
+      const idf = 1 + Math.log(N / (1 + 1));
+      // TF-IDF 分数
+      const tfidf = tf * idf;
+      
+      tfidfScores.push({
+        text: word,
+        weight: parseFloat(tfidf.toFixed(6))
+      });
+    }
+    
+    // 按TF-IDF分数排序，取前N个
+    return tfidfScores
+      .sort((a, b) => b.weight - a.weight)
+      .slice(0, limit);
+  }
 }
 
 // 导出单例实例
 export const graphService = new GraphService();
-

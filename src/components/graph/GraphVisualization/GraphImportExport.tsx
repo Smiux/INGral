@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { exportService } from '../../../services/exportService';
 import type { Graph } from '../../../types';
+import { GraphNodeType, GraphVisibility } from '../../../types';
 import type { EnhancedNode, EnhancedGraphLink } from './types';
 
 interface GraphImportExportProps {
@@ -8,32 +9,36 @@ interface GraphImportExportProps {
   links: EnhancedGraphLink[];
   onImportGraph: (graph: Graph) => void;
   graphTitle?: string;
+  svgSelector?: string;
 }
 
 export const GraphImportExport: React.FC<GraphImportExportProps> = ({
   nodes,
   links,
   onImportGraph,
-  graphTitle = 'knowledge-graph'
+  graphTitle = 'knowledge-graph',
+  svgSelector = 'svg'
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 处理导出操作
-  const handleExport = async (format: 'json' | 'graphml' | 'csv') => {
+  const handleExport = async (format: 'json' | 'graphml' | 'csv' | 'pdf' | 'png') => {
     setIsExporting(true);
 
     try {
       // 转换节点和链接格式
       const graph: Graph = {
         id: `exported-${Date.now()}`,
+        author_id: 'exported',
+        author_name: 'Exported',
         title: graphTitle,
         nodes: nodes.map(node => ({
           id: node.id,
           title: node.title,
           connections: node.connections,
-          type: node.type as any || 'concept',
+          type: GraphNodeType[(node.type?.toUpperCase() as keyof typeof GraphNodeType) || 'CONCEPT'],
           content: node.content || ''
         })),
         links: links.map(link => ({
@@ -42,9 +47,16 @@ export const GraphImportExport: React.FC<GraphImportExportProps> = ({
           type: link.type
         })),
         is_template: false,
-        visibility: 'public',
+        visibility: GraphVisibility.PUBLIC,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        // 编辑限制相关字段
+        edit_count_24h: 0,
+        edit_count_7d: 0,
+        last_edit_date: new Date().toISOString(),
+        is_change_public: true,
+        is_slow_mode: false,
+        is_unstable: false
       };
 
       switch (format) {
@@ -56,6 +68,13 @@ export const GraphImportExport: React.FC<GraphImportExportProps> = ({
           break;
         case 'csv':
           await exportService.exportGraphAsCsvFiles(graph);
+          break;
+        case 'pdf':
+          await exportService.exportGraphAsPdf(svgSelector, graph);
+          break;
+        case 'png':
+          const safeFilename = graph.title ? graph.title.replace(/[^a-zA-Z0-9_-]/g, '_') : 'knowledge-graph';
+          await exportService.exportGraphAsPng(svgSelector, `${safeFilename}.png`);
           break;
       }
     } catch (error) {
@@ -117,6 +136,20 @@ export const GraphImportExport: React.FC<GraphImportExportProps> = ({
               className="px-3 py-2 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 transition-colors disabled:bg-purple-300 disabled:cursor-not-allowed"
             >
               {isExporting ? '导出中...' : '导出为 CSV'}
+            </button>
+            <button
+              onClick={() => handleExport('pdf')}
+              disabled={isExporting}
+              className="px-3 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition-colors disabled:bg-red-300 disabled:cursor-not-allowed"
+            >
+              {isExporting ? '导出中...' : '导出为 PDF'}
+            </button>
+            <button
+              onClick={() => handleExport('png')}
+              disabled={isExporting}
+              className="px-3 py-2 bg-orange-600 text-white rounded-md text-sm hover:bg-orange-700 transition-colors disabled:bg-orange-300 disabled:cursor-not-allowed"
+            >
+              {isExporting ? '导出中...' : '导出为 PNG'}
             </button>
           </div>
         </div>

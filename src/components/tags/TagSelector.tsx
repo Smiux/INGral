@@ -26,17 +26,23 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   const [creatingTag, setCreatingTag] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // 获取可用标签
+  // 获取可用标签树
   useEffect(() => {
     const fetchTags = async () => {
       try {
         setLoading(true);
         setError(null);
-        const tags = await tagService.getAllTags({
-        sortBy: 'usage_count',
-        sortOrder: 'desc',
-      });
-        setAvailableTags(tags);
+        // 使用getTagTree()方法获取层级标签树
+        const tagTree = await tagService.getTagTree();
+        // 扁平化标签树以便在选择器中使用
+        const flattenTags = (tags: Tag[]): Tag[] => {
+          return tags.flatMap(tag => {
+            const hasChildren = tag.children && tag.children.length > 0;
+            const children = hasChildren ? flattenTags(tag.children || []) : [];
+            return [tag, ...children];
+          });
+        };
+        setAvailableTags(flattenTags(tagTree));
       } catch (err) {
         setError('获取标签失败');
         console.error('获取标签错误:', err);

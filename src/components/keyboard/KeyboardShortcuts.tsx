@@ -4,23 +4,48 @@ import { keyboardNavigationManager, KeyCode } from '../../utils/keyboardNavigati
 import { screenReaderAnnouncer } from '../../utils/accessibility';
 import { X, ChevronsDown, ChevronsUp } from 'lucide-react';
 
-// 快捷键信息模态框组件
-export const KeyboardShortcuts: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+// 快捷键信息模态框组件 - 支持自定义按钮
+interface KeyboardShortcutsProps {
+  renderButton?: () => React.ReactNode;
+  isOpen?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
+}
+
+export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButton, isOpen: propIsOpen, onOpenChange }) => {
+  // 使用外部控制的isOpen状态或内部状态
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
+  
+  // 当外部isOpen变化时，更新内部状态
+  useEffect(() => {
+    if (propIsOpen !== undefined) {
+      setInternalIsOpen(propIsOpen);
+    }
+  }, [propIsOpen]);
+  
+  // 更新isOpen状态的函数
+  const setIsOpen = (value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value);
+    } else {
+      setInternalIsOpen(value);
+    }
+  };
+  
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const modalRef = useRef<HTMLDivElement>(null);
 
   // 注册显示快捷键帮助的快捷键
   useEffect(() => {
-    const toggleShortcutsHelp = () => setIsOpen(prev => {
-      const newValue = !prev;
+    const toggleShortcutsHelp = () => {
+      const newValue = !isOpen;
       if (newValue) {
         screenReaderAnnouncer.announce('键盘快捷键帮助已打开。使用Tab键导航，Escape键关闭。', false);
       } else {
         screenReaderAnnouncer.announce('键盘快捷键帮助已关闭。', false);
       }
-      return newValue;
-    });
+      setIsOpen(newValue);
+    };
 
     // 注册快捷键Alt+K用于打开/关闭快捷键帮助
     keyboardNavigationManager.registerShortcut(
@@ -103,21 +128,29 @@ export const KeyboardShortcuts: React.FC = () => {
 
   const groupedShortcuts = getGroupedShortcuts();
 
+  // 打开快捷键帮助
+  const openShortcutsHelp = () => {
+    setIsOpen(true);
+    screenReaderAnnouncer.announce('键盘快捷键帮助已打开。使用Tab键导航，Escape键关闭。', false);
+  };
+
   // 渲染键盘快捷键帮助按钮和模态框
   return (
     <>
+      {/* 自定义按钮或默认按钮 */}
       {!isOpen && (
-        // 左下角的帮助按钮
-        <button
-          onClick={() => {
-            setIsOpen(true);
-            screenReaderAnnouncer.announce('键盘快捷键帮助已打开。使用Tab键导航，Escape键关闭。', false);
-          }}
-          aria-label="打开键盘快捷键帮助"
-          className="fixed bottom-4 left-4 z-40 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
-        >
-          <span className="text-lg font-bold">?</span>
-        </button>
+        renderButton ? (
+          renderButton()
+        ) : (
+          // 左下角的帮助按钮（默认位置）
+          <button
+            onClick={openShortcutsHelp}
+            aria-label="打开键盘快捷键帮助"
+            className="fixed bottom-4 left-4 z-40 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+          >
+            <span className="text-lg font-bold">?</span>
+          </button>
+        )
       )}
 
       {isOpen && (

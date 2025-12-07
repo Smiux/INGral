@@ -1,18 +1,30 @@
 /**
- * 内存缓存实现
+ * 内存缓存实现，支持LRU淘汰机制
  *
  * 功能特性：
  * - 支持设置过期时间
  * - 自动清理过期数据
+ * - LRU缓存淘汰机制
  * - 线程安全的单例模式
  * - 类型安全的API
+ * - 支持设置最大缓存大小
  */
 class Cache {
+  // 缓存数据结构，使用Map保持插入顺序
   private readonly cache: Map<string, { value: unknown; expiry: number }>;
   private readonly cleanupInterval: number = 5 * 60 * 1000; // 5分钟
+  private readonly maxSize: number; // 最大缓存大小
+  private readonly defaultTtl: number; // 默认过期时间（毫秒）
 
-  constructor() {
+  /**
+   * 构造函数
+   * @param maxSize 最大缓存大小，默认1000
+   * @param defaultTtl 默认过期时间（秒），默认5分钟
+   */
+  constructor(maxSize: number = 1000, defaultTtl: number = 300) {
     this.cache = new Map();
+    this.maxSize = maxSize;
+    this.defaultTtl = defaultTtl * 1000;
     // 启动定期清理过期数据的定时器
     setInterval(() => this.cleanup(), this.cleanupInterval);
   }
@@ -23,8 +35,24 @@ class Cache {
    * @param value 缓存值
    * @param ttlInSeconds 过期时间（秒），默认5分钟
    */
-  set<T>(key: string, value: T, ttlInSeconds = 300): void {
-    const expiry = Date.now() + ttlInSeconds * 1000;
+  set<T>(key: string, value: T, ttlInSeconds?: number): void {
+    const expiry = Date.now() + (ttlInSeconds ? ttlInSeconds * 1000 : this.defaultTtl);
+    
+    // 如果键已存在，先删除它（LRU策略：最近使用的放在后面）
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    }
+    
+    // 如果缓存大小超过最大值，删除最久未使用的项（Map的第一个元素）
+    if (this.cache.size >= this.maxSize) {
+      const iterator = this.cache.keys();
+      const result = iterator.next();
+      if (!result.done) {
+        this.cache.delete(result.value);
+      }
+    }
+    
+    // 添加到缓存末尾
     this.cache.set(key, { value, expiry });
   }
 
@@ -43,7 +71,12 @@ class Cache {
       return undefined;
     }
 
-    return item.value as T;
+    // LRU策略：将最近访问的项移到末尾
+    const value = item.value;
+    this.cache.delete(key);
+    this.cache.set(key, item);
+
+    return value as T;
   }
 
   /**
@@ -98,7 +131,32 @@ class Cache {
     this.cleanup(); // 先清理过期项
     return this.cache.size;
   }
+
+  /**
+   * 获取最大缓存大小
+   * @returns 最大缓存大小
+   */
+  getMaxSize(): number {
+    return this.maxSize;
+  }
+
+  /**
+   * 手动执行LRU清理，删除最久未使用的项
+   * @param count 要删除的项数
+   */
+  cleanupLRU(count: number = 1): void {
+    for (let i = 0; i < count && this.cache.size > 0; i++) {
+      const iterator = this.cache.keys();
+      const result = iterator.next();
+      if (!result.done) {
+        this.cache.delete(result.value);
+      }
+    }
+  }
 }
 
 // 导出单例
 export const cache = new Cache();
+
+// 导出Cache类，允许创建自定义缓存实例
+export { Cache };

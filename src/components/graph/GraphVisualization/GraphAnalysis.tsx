@@ -24,12 +24,176 @@ interface CentralityMetrics {
   eigenvector: CentralityResult[];
 }
 
-export const GraphAnalysis: React.FC<GraphAnalysisProps> = ({ nodes, links }) => {
+export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, links }) => {
   const [centralityMetrics, setCentralityMetrics] = useState<CentralityMetrics | null>(null);
   const [pathResult, setPathResult] = useState<PathResult | null>(null);
   const [selectedSource, setSelectedSource] = useState<string>('');
   const [selectedTarget, setSelectedTarget] = useState<string>('');
   const [isCalculating, setIsCalculating] = useState(false);
+  
+  // 通用工具函数：获取节点的邻居
+  const getNodeNeighbors = useCallback((nodeId: string, unique: boolean = true): string[] => {
+    const neighbors: string[] = [];
+    
+    links.forEach(link => {
+      const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
+      const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
+      
+      if (sourceId === nodeId) neighbors.push(targetId);
+      if (targetId === nodeId) neighbors.push(sourceId);
+    });
+    
+    return unique ? Array.from(new Set(neighbors)) : neighbors;
+  }, [links]);
+  
+  // 新增：基础统计信息
+  const calculateBasicStats = useCallback(() => {
+    const nodeCount = nodes.length;
+    const linkCount = links.length;
+    
+    // 计算平均度
+    const totalDegree = nodes.reduce((sum, node) => {
+      const degree = links.filter(link => 
+        (typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source)) === node.id ||
+        (typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target)) === node.id
+      ).length;
+      return sum + degree;
+    }, 0);
+    const averageDegree = nodeCount > 0 ? totalDegree / nodeCount : 0;
+    
+    // 计算网络密度
+    const maxPossibleLinks = nodeCount * (nodeCount - 1) / 2;
+    const density = maxPossibleLinks > 0 ? linkCount / maxPossibleLinks : 0;
+    
+    // 计算聚类系数（简化版）
+    let totalTriangles = 0;
+    let totalPossibleTriangles = 0;
+    
+    nodes.forEach(node => {
+      // 获取邻居
+      const uniqueNeighbors = getNodeNeighbors(node.id);
+      const k = uniqueNeighbors.length;
+      
+      // 计算可能的三角形数量
+      if (k >= 2) {
+        totalPossibleTriangles += k * (k - 1) / 2;
+      }
+      
+      // 计算实际的三角形数量
+      for (let i = 0; i < uniqueNeighbors.length; i++) {
+        for (let j = i + 1; j < uniqueNeighbors.length; j++) {
+          const neighbor1 = uniqueNeighbors[i];
+          const neighbor2 = uniqueNeighbors[j];
+          
+          // 检查是否存在链接
+          const hasLink = links.some(link => {
+            const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
+            const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
+            
+            return (sourceId === neighbor1 && targetId === neighbor2) ||
+                   (sourceId === neighbor2 && targetId === neighbor1);
+          });
+          
+          if (hasLink) {
+            totalTriangles += 1;
+          }
+        }
+      }
+    });
+    
+    // 全局聚类系数
+    const clusteringCoefficient = totalPossibleTriangles > 0 ? totalTriangles / totalPossibleTriangles : 0;
+    
+    return {
+      nodeCount,
+      linkCount,
+      averageDegree,
+      density,
+      clusteringCoefficient
+    };
+  }, [nodes, getNodeNeighbors, links]);
+  
+  // 新增：连通分量分析
+  const calculateConnectedComponents = useCallback(() => {
+    const visited = new Set<string>();
+    const components: EnhancedNode[][] = [];
+    
+    // BFS遍历找出所有连通分量
+    nodes.forEach(node => {
+      if (!visited.has(node.id)) {
+        const queue: string[] = [node.id];
+        const component: EnhancedNode[] = [];
+        
+        while (queue.length > 0) {
+          const currentId = queue.shift()!;
+          if (visited.has(currentId)) continue;
+          
+          visited.add(currentId);
+          const currentNode = nodes.find(n => n.id === currentId)!;
+          component.push(currentNode);
+          
+          // 获取邻居
+          const neighbors = getNodeNeighbors(currentId, false);
+          
+          // 添加未访问的邻居到队列
+          neighbors.forEach(neighborId => {
+            if (!visited.has(neighborId)) {
+              queue.push(neighborId);
+            }
+          });
+        }
+        
+        components.push(component);
+      }
+    });
+    
+    return components;
+  }, [nodes, getNodeNeighbors]);
+  
+  // 新增：计算直径（简化版，只计算最大连通分量的直径）
+  const calculateDiameter = useCallback(() => {
+    const components = calculateConnectedComponents();
+    if (components.length === 0) return 0;
+    
+    // 找到最大连通分量
+    const largestComponent = components.reduce((max, component) => 
+      max && component.length > max.length ? component : max, components[0]
+    );
+    
+    let diameter = 0;
+    
+    // 对最大连通分量中的每个节点计算BFS
+    if (largestComponent) {
+      largestComponent.forEach(sourceNode => {
+        // BFS计算到所有其他节点的最短距离
+        const distances: Record<string, number> = {};
+        const queue: { nodeId: string; distance: number }[] = [{ nodeId: sourceNode.id, distance: 0 }];
+        distances[sourceNode.id] = 0;
+        
+        while (queue.length > 0) {
+          const { nodeId, distance } = queue.shift()!;
+          
+          // 获取邻居
+        const neighbors = getNodeNeighbors(nodeId, false);
+        
+        neighbors.forEach(neighborId => {
+            if (!(neighborId in distances)) {
+              const neighborDistance = distance + 1;
+              distances[neighborId] = neighborDistance;
+              queue.push({ nodeId: neighborId, distance: neighborDistance });
+              
+              // 更新直径
+              if (neighborDistance > diameter) {
+                diameter = neighborDistance;
+              }
+            }
+          });
+        }
+      });
+    }
+    
+    return diameter;
+  }, [calculateConnectedComponents, getNodeNeighbors]);
 
   // 计算度中心性
   const calculateDegreeCentrality = useCallback(() => {
@@ -85,15 +249,8 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = ({ nodes, links }) =>
         const v = queue.shift()!;
         stack.push(v);
         
-        // 找到所有邻居
-        const neighbors: string[] = [];
-        links.forEach(link => {
-          const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
-          const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
-          
-          if (sourceId === v) neighbors.push(targetId);
-          if (targetId === v) neighbors.push(sourceId);
-        });
+        // 获取邻居
+        const neighbors = getNodeNeighbors(v, false);
         
         neighbors.forEach(w => {
           // 第一次访问
@@ -135,7 +292,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = ({ nodes, links }) =>
     });
     
     return result.sort((a, b) => b.value - a.value);
-  }, [nodes, links]);
+  }, [nodes, getNodeNeighbors]);
 
   // 计算接近中心性
   const calculateClosenessCentrality = useCallback(() => {
@@ -150,15 +307,8 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = ({ nodes, links }) =>
       while (queue.length > 0) {
         const { nodeId, distance } = queue.shift()!;
         
-        // 找到所有邻居
-        const neighbors: string[] = [];
-        links.forEach(link => {
-          const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
-          const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
-          
-          if (sourceId === nodeId) neighbors.push(targetId);
-          if (targetId === nodeId) neighbors.push(sourceId);
-        });
+        // 获取邻居
+        const neighbors = getNodeNeighbors(nodeId, false);
         
         neighbors.forEach(neighborId => {
           if (!(neighborId in distances)) {
@@ -190,7 +340,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = ({ nodes, links }) =>
     });
     
     return result.sort((a, b) => b.value - a.value);
-  }, [nodes, links]);
+  }, [nodes, links, getNodeNeighbors]);
 
   // 计算特征向量中心性（简化版）
   const calculateEigenvectorCentrality = useCallback(() => {
@@ -325,15 +475,8 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = ({ nodes, links }) =>
         
         visited.add(current);
         
-        // 找到所有邻居
-        const neighbors: string[] = [];
-        links.forEach(link => {
-          const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
-          const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
-          
-          if (sourceId === current) neighbors.push(targetId);
-          if (targetId === current) neighbors.push(sourceId);
-        });
+        // 获取邻居
+        const neighbors = getNodeNeighbors(current, false);
         
         neighbors.forEach(neighbor => {
           if (!visited.has(neighbor)) {
@@ -373,7 +516,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = ({ nodes, links }) =>
       });
       setIsCalculating(false);
     }, 100);
-  }, [nodes, links, selectedSource, selectedTarget]);
+  }, [nodes, selectedSource, selectedTarget, getNodeNeighbors]);
 
   // 渲染中心性结果
   const renderCentralityResults = () => {
@@ -515,12 +658,98 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = ({ nodes, links }) =>
     );
   };
 
+  // 渲染基础统计信息
+  const renderBasicStats = () => {
+    const stats = calculateBasicStats();
+    const components = calculateConnectedComponents();
+    const diameter = calculateDiameter();
+    
+    return (
+      <div className="mt-6">
+        <h4 className="text-lg font-semibold text-gray-900">基础统计信息</h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          {/* 基础指标 */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h5 className="font-medium text-gray-800 mb-3">基础指标</h5>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">节点数量:</span>
+                <span className="font-medium text-gray-900">{stats.nodeCount}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">链接数量:</span>
+                <span className="font-medium text-gray-900">{stats.linkCount}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">平均度:</span>
+                <span className="font-medium text-gray-900">{stats.averageDegree.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">网络密度:</span>
+                <span className="font-medium text-gray-900">{stats.density.toFixed(4)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">聚类系数:</span>
+                <span className="font-medium text-gray-900">{stats.clusteringCoefficient.toFixed(4)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">网络直径:</span>
+                <span className="font-medium text-gray-900">{diameter}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">连通分量数量:</span>
+                <span className="font-medium text-gray-900">{components.length}</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* 连通分量 */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h5 className="font-medium text-gray-800 mb-3">连通分量</h5>
+            <div className="max-h-48 overflow-y-auto">
+              <div className="space-y-2">
+                {components.map((component, index) => (
+                  <div key={index} className="border-l-2 border-blue-500 pl-3 py-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-800">
+                        分量 {index + 1}
+                      </span>
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        {component.length} 个节点
+                      </span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {component.slice(0, 5).map(node => (
+                        <span key={node.id} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs">
+                          {node.title}
+                        </span>
+                      ))}
+                      {component.length > 5 && (
+                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs">
+                          ... 等 {component.length - 5} 个节点
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-md">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">图谱分析</h3>
       
+      {/* 基础统计信息 */}
+      {renderBasicStats()}
+      
       {/* 中心性指标计算 */}
-      <div>
+      <div className="mt-4">
         <h4 className="text-sm font-medium text-gray-700 mb-2">中心性指标</h4>
         <button
           onClick={calculateCentralityMetrics}
@@ -574,4 +803,4 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = ({ nodes, links }) =>
       {renderPathResult()}
     </div>
   );
-};
+});
