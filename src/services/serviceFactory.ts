@@ -15,7 +15,6 @@ import { TagService } from './tagService';
 import { VersionHistoryService } from './versionHistoryService';
 import { AnalyticsService } from './analyticsService';
 import CalculationService from './calculationService';
-import { DatabaseInitService } from './databaseInitService';
 import { DiscussionService } from './discussionService';
 import { ErrorService } from './errorService';
 import { ExportService } from './exportService';
@@ -34,7 +33,6 @@ interface ServiceMap {
   versionHistory: VersionHistoryService;
   analytics: AnalyticsService;
   calculation: typeof CalculationService;
-  databaseInit: DatabaseInitService;
   discussion: DiscussionService;
   error: ErrorService;
   export: ExportService;
@@ -106,9 +104,6 @@ export class ServiceFactory {
         break;
       case 'calculation':
         instance = CalculationService as ServiceMap[T];
-        break;
-      case 'databaseInit':
-        instance = new DatabaseInitService() as ServiceMap[T];
         break;
       case 'discussion':
         instance = new DiscussionService() as ServiceMap[T];

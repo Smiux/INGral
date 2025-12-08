@@ -1,7 +1,6 @@
-import React, { Suspense, lazy, useEffect, ReactNode, useState } from 'react';
+import React, { Suspense, lazy, useEffect, ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from './components/layout/Header';
-import { Sidebar } from './components/layout/Sidebar';
 import { Loader } from './components/ui/Loader';
 import { useGlobalKeyboardShortcuts } from './components/keyboard/keyboardUtils';
 import './styles/accessibility.css';
@@ -58,7 +57,6 @@ const ArticleViewer = lazy(() => import('./components/articles/ArticleViewer').t
 const ArticleEditor = lazy(() => import('./components/articles/ArticleEditor').then(m => ({ default: m.ArticleEditor })));
 const GraphVisualization = lazy(() => import('./components/graph/GraphVisualization').then(m => ({ default: m.GraphVisualization })));
 const GraphListPage = lazy(() => import('./pages/GraphListPage').then(m => ({ default: m.GraphListPage })));
-const DatabasePage = lazy(() => import('./pages/DatabasePage').then(m => ({ default: m.DatabasePage })));
 const DiscussionPage = lazy(() => import('./pages/DiscussionPage').then(m => ({ default: m.DiscussionPage })));
 const TopicDetailPage = lazy(() => import('./pages/TopicDetailPage').then(m => ({ default: m.TopicDetailPage })));
 const CreateTopicPage = lazy(() => import('./pages/CreateTopicPage').then(m => ({ default: m.CreateTopicPage })));
@@ -66,9 +64,6 @@ const CreateTopicPage = lazy(() => import('./pages/CreateTopicPage').then(m => (
 function App() {
   // 初始化全局键盘快捷键
   useGlobalKeyboardShortcuts();
-  // 侧边栏状态管理
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // 初始化屏幕阅读器通知管理器
   useEffect(() => {
@@ -90,68 +85,41 @@ function App() {
     <ThemeProvider>
       <BrowserRouter>
         <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
-          <Header onMobileMenuOpen={() => setMobileSidebarOpen(true)} />
+          <Header />
           
-          <div className="flex flex-1">
-            {/* 移动端侧边栏遮罩层 */}
-            {mobileSidebarOpen && (
-              <div 
-                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-                onClick={() => setMobileSidebarOpen(false)}
-                aria-hidden="true"
-              />
-            )}
-            
-            {/* 侧边栏 - 大屏幕可折叠，小屏幕弹出 */}
-            <div className={`
-              fixed lg:relative z-50 h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out
-              ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-              ${sidebarCollapsed ? 'w-16' : 'w-64'}
-            `}>
-              <Sidebar 
-                isCollapsed={sidebarCollapsed} 
-                onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
-                onCloseMobile={() => setMobileSidebarOpen(false)}
-              />
-            </div>
-            
-            {/* 主内容区域 */}
-            <main 
-              className={`flex-1 transition-all duration-300 ease-in-out p-4 sm:p-6 lg:p-8
-                ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}
-                ${mobileSidebarOpen ? 'lg:ml-0' : ''}`}
-            >
-              <ErrorBoundary>
-                <Suspense
-                  fallback={
-                    <div className="flex items-center justify-center min-h-[50vh]">
-                      <Loader size="large" text="加载中..." />
-                    </div>
-                  }
-                >
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/articles" element={<ArticlesPage />} />
-                    <Route path="/search" element={<SearchPage />} />
-                    <Route path="/article/:slug" element={<ArticleViewer />} />
-                    <Route path="/create" element={<ArticleEditor />} />
-                    <Route path="/edit/:slug" element={<ArticleEditor />} />
-                    <Route path="/graph" element={<GraphListPage />} />
-                    <Route path="/graph/create" element={<GraphVisualization />} />
-                    <Route path="/graph/:graphId" element={<GraphVisualization />} />
-                    <Route path="/database" element={<DatabasePage />} />
-                    {/* 讨论区路由 */}
-                    <Route path="/discussions" element={<DiscussionPage />} />
-                    <Route path="/discussions/:categorySlug" element={<DiscussionPage />} />
-                    <Route path="/topic/:topicId" element={<TopicDetailPage />} />
-                    <Route path="/create-topic" element={<CreateTopicPage />} />
-                    {/* 404页面重定向到首页 */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </Suspense>
-              </ErrorBoundary>
-            </main>
-          </div>
+          {/* 主内容区域 - 移除侧边栏后，主内容区域占满整个宽度 */}
+          <main 
+            className="flex-1 transition-all duration-300 ease-in-out p-4 sm:p-6 lg:p-8"
+          >
+            <ErrorBoundary>
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center min-h-[50vh]">
+                    <Loader size="large" text="加载中..." />
+                  </div>
+                }
+              >
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/articles" element={<ArticlesPage />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/article/:slug" element={<ArticleViewer />} />
+                  <Route path="/create" element={<ArticleEditor />} />
+                  <Route path="/edit/:slug" element={<ArticleEditor />} />
+                  <Route path="/graph" element={<GraphListPage />} />
+                  <Route path="/graph/create" element={<GraphVisualization />} />
+                  <Route path="/graph/:graphId" element={<GraphVisualization />} />
+                  {/* 讨论区路由 */}
+                  <Route path="/discussions" element={<DiscussionPage />} />
+                  <Route path="/discussions/:categorySlug" element={<DiscussionPage />} />
+                  <Route path="/topic/:topicId" element={<TopicDetailPage />} />
+                  <Route path="/create-topic" element={<CreateTopicPage />} />
+                  {/* 404页面重定向到首页 */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </ErrorBoundary>
+          </main>
         </div>
       </BrowserRouter>
     </ThemeProvider>

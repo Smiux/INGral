@@ -3,7 +3,7 @@
  * 提供数据验证、事务管理和写入保障功能，确保数据正确写入数据库
  */
 
-import { dbLogger } from './db-logger';
+
 
 /**
  * 数据验证错误类
@@ -83,7 +83,7 @@ export class ArticleValidator {
       });
     }
 
-    dbLogger.debug('文章数据验证通过', { articleId: articleData['id'] });
+
   }
 
   /**
@@ -165,7 +165,7 @@ export class GraphValidator {
       }
     }
 
-    dbLogger.debug('图表数据验证通过', { graphId: graphData['id'] });
+
   }
 
   /**
@@ -232,7 +232,7 @@ export class UserValidator {
       }
     }
 
-    dbLogger.debug('用户数据验证通过', { username: userData['username'] });
+
   }
 
   /**
@@ -274,28 +274,14 @@ export class DataWriteGuard {
   /**
    * 安全写入数据，包含验证和错误处理
    * @param operation 数据库操作函数
-   * @param dataType 数据类型
-   * @param data 要写入的数据
    * @returns 操作结果
    */
-  static async safeWrite<T>(operation: () => Promise<T>, dataType: string, data: Record<string, unknown>): Promise<T> {
+  static async safeWrite<T>(operation: () => Promise<T>): Promise<T> {
     try {
-      // 记录写入尝试
-      dbLogger.info(`尝试写入${dataType}数据`, { id: data.id, type: dataType });
-
       // 执行操作
       const result = await operation();
-
-      // 记录成功
-      dbLogger.info(`成功写入${dataType}数据`, { id: data.id, type: dataType });
       return result;
     } catch (error) {
-      // 记录失败
-      dbLogger.error(`写入${dataType}数据失败`, {
-        name: error instanceof Error ? error.name || 'Error' : 'Error',
-        message: error instanceof Error ? error.message : String(error),
-      });
-
       // 重新抛出错误
       throw error;
     }
@@ -304,24 +290,17 @@ export class DataWriteGuard {
   /**
    * 重试写入操作
    * @param operation 数据库操作函数
-   * @param dataType 数据类型
-   * @param data 要写入的数据
    * @param maxRetries 最大重试次数，默认3次
    * @returns 操作结果
    */
-  static async writeWithRetry<T>(operation: () => Promise<T>, dataType: string, data: Record<string, unknown>, maxRetries = 3): Promise<T> {
+  static async writeWithRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        dbLogger.info(`写入尝试 ${attempt}/${maxRetries}`, { dataType, dataId: data.id });
         return await operation();
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        dbLogger.error(`写入尝试 ${attempt}/${maxRetries} 失败，正在重试`, {
-          name: lastError?.name || 'Error',
-          message: lastError?.message || '未知错误',
-        });
 
         // 指数退避策略
         if (attempt < maxRetries) {
@@ -332,10 +311,6 @@ export class DataWriteGuard {
     }
 
     // 所有重试都失败
-    dbLogger.error(`所有 ${maxRetries} 次写入尝试都失败`, {
-      name: lastError?.name || 'Error',
-      message: lastError?.message || '未知错误',
-    });
     throw lastError;
   }
 
@@ -346,9 +321,6 @@ export class DataWriteGuard {
    */
   static async safeBatchWrite<T>(operations: (() => Promise<T>)[]): Promise<(T | null)[]> {
     const results: (T | null)[] = [];
-    let successCount = 0;
-
-    dbLogger.info('开始批量写入操作', { totalOperations: operations.length });
 
     for (let i = 0; i < operations.length; i++) {
       try {
@@ -357,26 +329,13 @@ export class DataWriteGuard {
         if (typeof operation === 'function') {
           const result = await operation();
           results.push(result);
-          successCount++;
-          dbLogger.debug(`批量操作 ${i + 1}/${operations.length} 成功`);
         } else {
-          dbLogger.error(`批量操作 ${i + 1}/${operations.length} 失败: 无效的操作函数`);
           results.push(null);
         }
-      } catch (error) {
-        dbLogger.error(`批量操作 ${i + 1}/${operations.length} 失败`, {
-          name: error instanceof Error ? error.name || 'Error' : 'Error',
-          message: error instanceof Error ? error.message : String(error),
-        });
+      } catch {
         results.push(null); // 用null标记失败的操作
       }
     }
-
-    dbLogger.info('批量写入完成', {
-      totalOperations: operations.length,
-      successCount,
-      failureCount: operations.length - successCount,
-    });
 
     return results;
   }
@@ -413,20 +372,14 @@ export class TransactionManager {
   /**
    * 执行数据库事务
    * @param operations 事务操作函数
-   * @param tables 涉及的表名列表
    * @returns 事务结果
    */
 
   static async executeTransaction<T>(
     operations: (tx: TransactionObject) => Promise<T>,
-    tables: string[] = [],
   ): Promise<T> {
-    const transactionId = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
     // 导入supabase（仅在需要时导入以避免循环依赖）
     const { supabase } = await import('../lib/supabase');
-
-    dbLogger.logTransaction(transactionId, 'begin', tables);
 
     try {
       // 在真实环境中，这里应该使用supabase的事务API
@@ -440,32 +393,13 @@ export class TransactionManager {
             throw new Error('Supabase client is not initialized');
           }
           const tableOps = supabase.from(table);
-          return new Proxy(tableOps as unknown as TableOperations<T>, {
-            get(target, prop: string | symbol) {
-              const value = Reflect.get(target, prop);
-              if (typeof value === 'function') {
-                return function (this: unknown, ...args: unknown[]) {
-                  dbLogger.debug(`事务操作 [${transactionId}] ${table}.${String(prop)}`, { params: args });
-                  return value.apply(this, args);
-                };
-              }
-              return value;
-            },
-          });
+          return tableOps as unknown as TableOperations<T>;
         },
       };
 
       const result = await operations(tx);
-
-      // 记录事务提交
-      dbLogger.logTransaction(transactionId, 'commit', tables);
-
       return result;
     } catch (error) {
-      // 记录事务回滚
-      dbLogger.logTransaction(transactionId, 'rollback', tables);
-      dbLogger.error(`事务失败 [${transactionId}]`, error instanceof Error ? error : new Error(String(error)));
-
       throw error;
     }
   }

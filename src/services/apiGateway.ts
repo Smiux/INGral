@@ -218,7 +218,7 @@ export class ApiGateway extends BaseService {
    */
   private async executeApiRequest<T>(config: RequestConfig): Promise<T> {
     // 基于请求配置，调用现有的BaseService方法
-    const { url, method, data, cacheTTL = 5 * 60 * 1000 } = config;
+    const { url, method, data } = config;
     
     // 解析URL，提取表名和操作
     const [table, operation] = url.split('/').filter(Boolean);
@@ -231,16 +231,16 @@ export class ApiGateway extends BaseService {
       case 'GET':
         if (operation) {
           // 获取单个记录
-          const result = await this.getById<T>(table, operation, table, cacheTTL);
+          const result = await this.getById<T>(table, operation);
           return result as T;
         } else {
           // 获取记录列表
-          const result = await this.getList<T>(table, table, undefined, cacheTTL);
+          const result = await this.getList<T>(table);
           return result as unknown as T;
         }
       case 'POST':
         // 创建记录
-        const createResult = await this.create<T>(table, Array.isArray(data) ? { items: data } : (data || {}), table, cacheTTL);
+        const createResult = await this.create<T>(table, Array.isArray(data) ? { items: data } : (data || {}));
         return createResult as T;
       case 'PUT':
       case 'PATCH':
@@ -248,14 +248,14 @@ export class ApiGateway extends BaseService {
           throw new Error('Operation ID is required for update');
         }
         // 更新记录
-        const updateResult = await this.update<T>(table, operation, Array.isArray(data) ? { items: data } : (data || {}), table, cacheTTL);
+        const updateResult = await this.update<T>(table, operation, Array.isArray(data) ? { items: data } : (data || {}));
         return updateResult as T;
       case 'DELETE':
         if (!operation) {
           throw new Error('Operation ID is required for delete');
         }
         // 删除记录
-        await this.delete(table, operation, table);
+        await this.delete(table, operation);
         return null as unknown as T;
       default:
         throw new Error(`Unsupported HTTP method: ${method}`);
@@ -395,7 +395,7 @@ export class ApiGateway extends BaseService {
    * 清除所有缓存
    */
   public clearAllCache(): void {
-    this.invalidateCache('*');
+    // 移除缓存清除功能，因为已经不再使用缓存
   }
 
   /**

@@ -13,36 +13,29 @@ export class DiscussionService extends BaseService {
   private readonly REPLIES_TABLE = 'discussion_replies';
   private readonly TAGS_TABLE = 'discussion_tags';
   private readonly TOPIC_TAGS_TABLE = 'topic_tags';
-  
-  // 缓存前缀常量
-  private readonly CACHE_PREFIX = 'discussion';
 
   /**
    * 获取所有讨论分类
    * @returns 讨论分类数组
    */
   async getCategories(): Promise<DiscussionCategory[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:categories`;
-    
-    return this.queryWithCache<DiscussionCategory[]>(cacheKey, 5 * 60 * 1000, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        const { data, error } = await this.supabase
-          .from(this.CATEGORIES_TABLE)
-          .select('*')
-          .order('name', { ascending: true });
+    try {
+      this.checkSupabaseClient();
+      
+      const { data, error } = await this.supabase
+        .from(this.CATEGORIES_TABLE)
+        .select('*')
+        .order('name', { ascending: true });
 
-        if (error) {
-          this.handleError(error, '获取讨论分类', 'DiscussionService');
-        }
-
-        return this.handleSuccessResponse(data, []);
-      } catch (error) {
-        console.error('获取讨论分类错误:', error);
-        return [];
+      if (error) {
+        this.handleError(error, '获取讨论分类', 'DiscussionService');
       }
-    });
+
+      return this.handleSuccessResponse(data, []);
+    } catch (error) {
+      console.error('获取讨论分类错误:', error);
+      return [];
+    }
   }
 
   /**
@@ -51,28 +44,24 @@ export class DiscussionService extends BaseService {
    * @returns 讨论分类
    */
   async getCategoryBySlug(slug: string): Promise<DiscussionCategory | null> {
-    const cacheKey = `${this.CACHE_PREFIX}:category:${slug}`;
-    
-    return this.queryWithCache<DiscussionCategory | null>(cacheKey, 5 * 60 * 1000, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        const { data, error } = await this.supabase
-          .from(this.CATEGORIES_TABLE)
-          .select('*')
-          .eq('slug', slug)
-          .single();
+    try {
+      this.checkSupabaseClient();
+      
+      const { data, error } = await this.supabase
+        .from(this.CATEGORIES_TABLE)
+        .select('*')
+        .eq('slug', slug)
+        .single();
 
-        if (error) {
-          this.handleError(error, '根据Slug获取分类', 'DiscussionService');
-        }
-
-        return data || null;
-      } catch (error) {
-        console.error('根据Slug获取分类错误:', error);
-        return null;
+      if (error) {
+        this.handleError(error, '根据Slug获取分类', 'DiscussionService');
       }
-    });
+
+      return data || null;
+    } catch (error) {
+      console.error('根据Slug获取分类错误:', error);
+      return null;
+    }
   }
 
   /**
@@ -93,63 +82,59 @@ export class DiscussionService extends BaseService {
     tags?: number[],
     searchQuery?: string
   ): Promise<{ data: DiscussionTopic[]; count: number | undefined }> {
-    const cacheKey = `${this.CACHE_PREFIX}:topics:category:${categoryId}:${sortBy}:${tags?.join(',') || 'none'}:${searchQuery || 'none'}`;
-    
-    return this.queryWithCache<{ data: DiscussionTopic[]; count: number | undefined }>(cacheKey, 5 * 60 * 1000, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        // 构建查询，包含关联的topic_tags表用于过滤
-        let query = this.supabase
-          .from(this.TOPICS_TABLE)
-          .select('*, topic_tags(*)', { count: 'exact' })
-          .eq('category_id', categoryId);
+    try {
+      this.checkSupabaseClient();
+      
+      // 构建查询，包含关联的topic_tags表用于过滤
+      let query = this.supabase
+        .from(this.TOPICS_TABLE)
+        .select('*, topic_tags(*)', { count: 'exact' })
+        .eq('category_id', categoryId);
 
-        // 应用搜索查询
-        if (searchQuery && searchQuery.trim() !== '') {
-          const trimmedQuery = searchQuery.trim();
-          query = query.or(
-            `title.ilike.%${trimmedQuery}%,content.ilike.%${trimmedQuery}%`
-          );
-        }
-
-        // 应用标签过滤
-        if (tags && tags.length > 0) {
-          // 使用exists操作符过滤具有指定标签的主题
-          const tagResults = await this.supabase
-            .from(this.TOPIC_TAGS_TABLE)
-            .select('topic_id')
-            .in('tag_id', tags);
-          
-          query = query.in('id', tagResults.data?.map(tag => tag.topic_id) || []);
-        }
-
-        // 应用排序
-        if (sortBy === 'random') {
-          query = query.order('RANDOM()');
-        } else {
-          // 默认按更新时间排序，置顶主题优先
-          query = query.order('is_pinned', { ascending: false }).order('updated_at', { ascending: false });
-        }
-
-        // 应用分页
-        query = this.applyPagination(query, limit, offset);
-
-        const { data, count, error } = await query;
-
-        if (error) {
-          this.handleError(error, '获取分类主题列表', 'DiscussionService');
-        }
-
-        return {
-          data: this.handleSuccessResponse(data, []),
-          count: count || undefined
-        };
-      } catch (error) {
-        console.error('获取分类主题列表错误:', error);
-        return { data: [], count: undefined };
+      // 应用搜索查询
+      if (searchQuery && searchQuery.trim() !== '') {
+        const trimmedQuery = searchQuery.trim();
+        query = query.or(
+          `title.ilike.%${trimmedQuery}%,content.ilike.%${trimmedQuery}%`
+        );
       }
-    });
+
+      // 应用标签过滤
+      if (tags && tags.length > 0) {
+        // 使用exists操作符过滤具有指定标签的主题
+        const tagResults = await this.supabase
+          .from(this.TOPIC_TAGS_TABLE)
+          .select('topic_id')
+          .in('tag_id', tags);
+        
+        query = query.in('id', tagResults.data?.map(tag => tag.topic_id) || []);
+      }
+
+      // 应用排序
+      if (sortBy === 'random') {
+        query = query.order('RANDOM()');
+      } else {
+        // 默认按更新时间排序，置顶主题优先
+        query = query.order('is_pinned', { ascending: false }).order('updated_at', { ascending: false });
+      }
+
+      // 应用分页
+      query = this.applyPagination(query, limit, offset);
+
+      const { data, count, error } = await query;
+
+      if (error) {
+        this.handleError(error, '获取分类主题列表', 'DiscussionService');
+      }
+
+      return {
+        data: this.handleSuccessResponse(data, []),
+        count: count || undefined
+      };
+    } catch (error) {
+      console.error('获取分类主题列表错误:', error);
+      return { data: [], count: undefined };
+    }
   }
 
   /**
@@ -158,34 +143,30 @@ export class DiscussionService extends BaseService {
    * @returns 主题详情
    */
   async getTopicById(topicId: number): Promise<DiscussionTopic | null> {
-    const cacheKey = `${this.CACHE_PREFIX}:topic:${topicId}`;
-    
-    return this.queryWithCache<DiscussionTopic | null>(cacheKey, 5 * 60 * 1000, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        // 增加浏览次数
-        await this.supabase
-          .from(this.TOPICS_TABLE)
-          .update({ view_count: this.supabase.rpc('increment', { value: 1 }) })
-          .eq('id', topicId);
+    try {
+      this.checkSupabaseClient();
+      
+      // 增加浏览次数
+      await this.supabase
+        .from(this.TOPICS_TABLE)
+        .update({ view_count: this.supabase.rpc('increment', { value: 1 }) })
+        .eq('id', topicId);
 
-        const { data, error } = await this.supabase
-          .from(this.TOPICS_TABLE)
-          .select('*, category:category_id(*), tags:topic_tags(*, tag:tag_id(*))')
-          .eq('id', topicId)
-          .single();
+      const { data, error } = await this.supabase
+        .from(this.TOPICS_TABLE)
+        .select('*, category:category_id(*), tags:topic_tags(*, tag:tag_id(*))')
+        .eq('id', topicId)
+        .single();
 
-        if (error) {
-          this.handleError(error, '获取主题详情', 'DiscussionService');
-        }
-
-        return data || null;
-      } catch (error) {
-        console.error('获取主题详情错误:', error);
-        return null;
+      if (error) {
+        this.handleError(error, '获取主题详情', 'DiscussionService');
       }
-    });
+
+      return data || null;
+    } catch (error) {
+      console.error('获取主题详情错误:', error);
+      return null;
+    }
   }
 
   /**
@@ -221,9 +202,6 @@ export class DiscussionService extends BaseService {
         await this.supabase.from(this.TOPIC_TAGS_TABLE).insert(topicTags);
       }
 
-      // 清除相关缓存
-      this.invalidateCache(`${this.CACHE_PREFIX}:topics:*`);
-      
       return newTopic;
     } catch (error) {
       console.error('创建主题错误:', error);
@@ -239,38 +217,34 @@ export class DiscussionService extends BaseService {
    * @returns 回复数组和总数
    */
   async getTopicReplies(topicId: number, limit = 20, offset = 0): Promise<{ data: DiscussionReply[]; count: number | undefined }> {
-    const cacheKey = `${this.CACHE_PREFIX}:replies:topic:${topicId}:${limit}:${offset}`;
-    
-    return this.queryWithCache<{ data: DiscussionReply[]; count: number | undefined }>(cacheKey, 5 * 60 * 1000, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        // 先获取所有回复，用于构建回复树
-        const { data: allReplies, count, error } = await this.supabase
-          .from(this.REPLIES_TABLE)
-          .select('*', { count: 'exact' })
-          .eq('topic_id', topicId);
+    try {
+      this.checkSupabaseClient();
+      
+      // 先获取所有回复，用于构建回复树
+      const { data: allReplies, count, error } = await this.supabase
+        .from(this.REPLIES_TABLE)
+        .select('*', { count: 'exact' })
+        .eq('topic_id', topicId);
 
-        if (error) {
-          this.handleError(error, '获取主题回复', 'DiscussionService');
-        }
-
-        // 构建回复树
-        const replies = this.handleSuccessResponse(allReplies, []);
-        const replyTree = this.buildReplyTree(replies);
-        
-        // 应用分页
-        const paginatedReplies = replyTree.slice(offset, offset + limit);
-
-        return {
-          data: paginatedReplies,
-          count: count || undefined
-        };
-      } catch (error) {
-        console.error('获取主题回复错误:', error);
-        return { data: [], count: undefined };
+      if (error) {
+        this.handleError(error, '获取主题回复', 'DiscussionService');
       }
-    });
+
+      // 构建回复树
+      const replies = this.handleSuccessResponse(allReplies, []);
+      const replyTree = this.buildReplyTree(replies);
+      
+      // 应用分页
+      const paginatedReplies = replyTree.slice(offset, offset + limit);
+
+      return {
+        data: paginatedReplies,
+        count: count || undefined
+      };
+    } catch (error) {
+      console.error('获取主题回复错误:', error);
+      return { data: [], count: undefined };
+    }
   }
 
   /**
@@ -324,12 +298,6 @@ export class DiscussionService extends BaseService {
         this.handleError(error, '创建回复', 'DiscussionService');
       }
 
-      if (data) {
-        // 清除相关缓存
-        this.invalidateCache(`${this.CACHE_PREFIX}:replies:*`);
-        this.invalidateCache(`${this.CACHE_PREFIX}:topics:*`);
-      }
-      
       return data || null;
     } catch (error) {
       console.error('创建回复错误:', error);
@@ -342,27 +310,23 @@ export class DiscussionService extends BaseService {
    * @returns 标签数组
    */
   async getTags(): Promise<DiscussionTag[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:tags`;
-    
-    return this.queryWithCache<DiscussionTag[]>(cacheKey, 5 * 60 * 1000, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        const { data, error } = await this.supabase
-          .from(this.TAGS_TABLE)
-          .select('*')
-          .order('usage_count', { ascending: false });
+    try {
+      this.checkSupabaseClient();
+      
+      const { data, error } = await this.supabase
+        .from(this.TAGS_TABLE)
+        .select('*')
+        .order('usage_count', { ascending: false });
 
-        if (error) {
-          this.handleError(error, '获取所有标签', 'DiscussionService');
-        }
-
-        return this.handleSuccessResponse(data, []);
-      } catch (error) {
-        console.error('获取所有标签错误:', error);
-        return [];
+      if (error) {
+        this.handleError(error, '获取所有标签', 'DiscussionService');
       }
-    });
+
+      return this.handleSuccessResponse(data, []);
+    } catch (error) {
+      console.error('获取所有标签错误:', error);
+      return [];
+    }
   }
 
   /**
@@ -387,11 +351,6 @@ export class DiscussionService extends BaseService {
         this.handleError(error, '创建标签', 'DiscussionService');
       }
 
-      if (data) {
-        // 清除相关缓存
-        this.invalidateCache(`${this.CACHE_PREFIX}:tags`);
-      }
-      
       return data || null;
     } catch (error) {
       console.error('创建标签错误:', error);
@@ -406,29 +365,25 @@ export class DiscussionService extends BaseService {
    * @returns 匹配的主题数组
    */
   async searchTopics(query: string, limit = 20): Promise<DiscussionTopic[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:search:topics:${query}:${limit}`;
-    
-    return this.queryWithCache<DiscussionTopic[]>(cacheKey, 1 * 60 * 1000, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        const { data, error } = await this.supabase
-          .from(this.TOPICS_TABLE)
-          .select('*')
-          .ilike('title', `%${query}%`)
-          .or(`ilike(content, '%${query}%')`)
-          .limit(limit);
+    try {
+      this.checkSupabaseClient();
+      
+      const { data, error } = await this.supabase
+        .from(this.TOPICS_TABLE)
+        .select('*')
+        .ilike('title', `%${query}%`)
+        .or(`ilike(content, '%${query}%')`)
+        .limit(limit);
 
-        if (error) {
-          this.handleError(error, '搜索主题', 'DiscussionService');
-        }
-
-        return this.handleSuccessResponse(data, []);
-      } catch (error) {
-        console.error('搜索主题错误:', error);
-        return [];
+      if (error) {
+        this.handleError(error, '搜索主题', 'DiscussionService');
       }
-    });
+
+      return this.handleSuccessResponse(data, []);
+    } catch (error) {
+      console.error('搜索主题错误:', error);
+      return [];
+    }
   }
 }
 

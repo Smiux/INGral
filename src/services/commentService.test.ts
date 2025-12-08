@@ -21,14 +21,8 @@ const mockSupabase = {
   delete: jest.fn().mockResolvedValue({ data: { id: 'test-comment-id' } }),
 };
 
-// Mock the executeWithRetry method
-(BaseService.prototype as unknown as { executeWithRetry: jest.Mock }).executeWithRetry = jest.fn().mockResolvedValue(mockSupabase);
-// Mock the queryWithCache method
-(BaseService.prototype as unknown as { queryWithCache: jest.Mock }).queryWithCache = jest.fn().mockImplementation((_cacheKey, _ttl, callback) => callback());
 // Mock the create method
 (BaseService.prototype as unknown as { create: jest.Mock }).create = jest.fn().mockImplementation((_tableName, data) => Promise.resolve({ id: 'test-comment-id', ...data }));
-// Mock the invalidateCache method
-(BaseService.prototype as unknown as { invalidateCache: jest.Mock }).invalidateCache = jest.fn();
 
 describe('CommentService', () => {
   beforeEach(() => {
@@ -95,7 +89,6 @@ describe('CommentService', () => {
         author_name: authorName,
       });
       expect((BaseService.prototype as unknown as { create: jest.Mock }).create).toHaveBeenCalled();
-    expect((BaseService.prototype as unknown as { invalidateCache: jest.Mock }).invalidateCache).toHaveBeenCalled();
     });
 
     it('should create a nested comment with parentId', async () => {
@@ -122,16 +115,6 @@ describe('CommentService', () => {
       const result = await commentService.upvoteComment(commentId);
 
       expect(result).toBe(true);
-      expect((BaseService.prototype as unknown as { executeWithRetry: jest.Mock }).executeWithRetry).toHaveBeenCalled();
-      expect((BaseService.prototype as unknown as { invalidateCache: jest.Mock }).invalidateCache).toHaveBeenCalled();
-    });
-
-    it('should handle error when upvoting comment', async () => {
-      (BaseService.prototype as unknown as { executeWithRetry: jest.Mock }).executeWithRetry.mockRejectedValue(new Error('Failed to upvote'));
-
-      const result = await commentService.upvoteComment('test-comment-id');
-
-      expect(result).toBe(false);
     });
   });
 
@@ -142,8 +125,6 @@ describe('CommentService', () => {
       const result = await commentService.downvoteComment(commentId);
 
       expect(result).toBe(true);
-      expect((BaseService.prototype as unknown as { executeWithRetry: jest.Mock }).executeWithRetry).toHaveBeenCalled();
-      expect((BaseService.prototype as unknown as { invalidateCache: jest.Mock }).invalidateCache).toHaveBeenCalled();
     });
   });
 
@@ -154,8 +135,6 @@ describe('CommentService', () => {
       const result = await commentService.deleteComment(commentId);
 
       expect(result).toBe(true);
-      expect((BaseService.prototype as unknown as { executeWithRetry: jest.Mock }).executeWithRetry).toHaveBeenCalled();
-      expect((BaseService.prototype as unknown as { invalidateCache: jest.Mock }).invalidateCache).toHaveBeenCalled();
     });
   });
 });

@@ -6,26 +6,24 @@ import type { Comment } from '../types';
  */
 export class CommentService extends BaseService {
   private readonly TABLE_NAME = 'comments';
-  private readonly CACHE_PREFIX = 'comment';
 
   /**
    * 按文章ID获取评论
    * @param articleId 文章ID
    */
   async getCommentsByArticleId(articleId: string): Promise<Comment[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:article:${articleId}`;
-    
-    return this.queryWithCache<Comment[]>(cacheKey, 5 * 60 * 1000, async () => {
-      const result = await this.executeWithRetry(async () => {
-        return this.supabase.from(this.TABLE_NAME)
-          .select('*')
-          .eq('article_id', articleId)
-          .eq('is_deleted', false)
-          .order('created_at', { ascending: false });
-      }, 5 * 60 * 1000);
+    try {
+      const result = await this.supabase.from(this.TABLE_NAME)
+        .select('*')
+        .eq('article_id', articleId)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false });
       
       return result.data || [];
-    });
+    } catch (error) {
+      this.handleError(error, 'CommentService', '按文章ID获取评论');
+      return [];
+    }
   }
 
   /**
@@ -55,12 +53,7 @@ export class CommentService extends BaseService {
     };
 
     try {
-      const result = await this.create<Comment>(this.TABLE_NAME, commentData, this.CACHE_PREFIX, 5 * 60 * 1000);
-      
-      // 清除文章评论缓存
-      this.invalidateCache(`${this.CACHE_PREFIX}:article:${articleId}`);
-      
-      return result;
+      return await this.create<Comment>(this.TABLE_NAME, commentData);
     } catch (err) {
       this.handleError(err, 'CommentService', '创建评论');
       return null;
@@ -82,14 +75,9 @@ export class CommentService extends BaseService {
       
       if (comment) {
         // 更新点赞数
-        await this.executeWithRetry(async () => {
-          return this.supabase.from(this.TABLE_NAME)
-            .update({ upvotes: (comment.upvotes || 0) + 1 })
-            .eq('id', commentId);
-        }, 5 * 60 * 1000);
-        
-        // 清除相关缓存
-        this.invalidateCache(`${this.CACHE_PREFIX}:*`);
+        await this.supabase.from(this.TABLE_NAME)
+          .update({ upvotes: (comment.upvotes || 0) + 1 })
+          .eq('id', commentId);
         
         return true;
       }
@@ -116,14 +104,9 @@ export class CommentService extends BaseService {
       
       if (comment) {
         // 更新点赞数
-        await this.executeWithRetry(async () => {
-          return this.supabase.from(this.TABLE_NAME)
-            .update({ downvotes: (comment.downvotes || 0) + 1 })
-            .eq('id', commentId);
-        }, 5 * 60 * 1000);
-        
-        // 清除相关缓存
-        this.invalidateCache(`${this.CACHE_PREFIX}:*`);
+        await this.supabase.from(this.TABLE_NAME)
+          .update({ downvotes: (comment.downvotes || 0) + 1 })
+          .eq('id', commentId);
         
         return true;
       }
@@ -141,14 +124,9 @@ export class CommentService extends BaseService {
    */
   async deleteComment(commentId: string): Promise<boolean> {
     try {
-      await this.executeWithRetry(async () => {
-        return this.supabase.from(this.TABLE_NAME)
-          .update({ is_deleted: true })
-          .eq('id', commentId);
-      }, 5 * 60 * 1000);
-      
-      // 清除相关缓存
-      this.invalidateCache(`${this.CACHE_PREFIX}:*`);
+      await this.supabase.from(this.TABLE_NAME)
+        .update({ is_deleted: true })
+        .eq('id', commentId);
       
       return true;
     } catch (err) {

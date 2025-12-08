@@ -1,6 +1,5 @@
 import type { Article, Comment, Tag } from '../types';
 import { BaseService } from './baseService';
-import { CACHE_TTL } from '../utils/db-optimization';
 import { semanticSearchService, SemanticSearchResult } from './semanticSearchService';
 
 // 导入筛选类型
@@ -33,7 +32,6 @@ interface SearchResult {
  */
 export class SearchService extends BaseService {
   private static instance: SearchService;
-  private readonly CACHE_PREFIX = 'search';
 
   private constructor() {
     super();
@@ -56,29 +54,25 @@ export class SearchService extends BaseService {
    * @returns 匹配的文章数组，包含搜索排名
    */
   async searchArticles(query: string, limit = 20): Promise<(Article & { search_rank: number })[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:${query}:${limit}`;
+    try {
+      this.checkSupabaseClient();
+      // 调用数据库搜索函数
+      const { data, error } = await this.supabase.rpc('search_articles', {
+        query: query,
+        limit_count: limit,
+      });
 
-    return this.queryWithCache<(Article & { search_rank: number })[]>(cacheKey, CACHE_TTL.searchResults, async () => {
-      try {
-        this.checkSupabaseClient();
-        // 调用数据库搜索函数
-        const { data, error } = await this.supabase.rpc('search_articles', {
-          query: query,
-          limit_count: limit,
-        });
-
-        if (error) {
-          this.handleError(error, '搜索文章', 'SearchService');
-        }
-
-        // 过滤只返回公开文章
-        const filteredData = (data || []).filter((article: Article) => article.visibility === 'public');
-        return filteredData;
-      } catch (error) {
-        console.error('Failed to search articles:', error);
-        return [];
+      if (error) {
+        this.handleError(error, '搜索文章', 'SearchService');
       }
-    });
+
+      // 过滤只返回公开文章
+      const filteredData = (data || []).filter((article: Article) => article.visibility === 'public');
+      return filteredData;
+    } catch (error) {
+      console.error('Failed to search articles:', error);
+      return [];
+    }
   }
 
   /**
@@ -93,30 +87,26 @@ export class SearchService extends BaseService {
     tagId: string,
     limit = 20,
   ): Promise<(Article & { search_rank: number })[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:tag:${tagId}:${query}:${limit}`;
+    try {
+      this.checkSupabaseClient();
+      // 调用数据库带标签的搜索函数
+      const { data, error } = await this.supabase.rpc('search_articles_by_tag', {
+        query: query,
+        tag_id_filter: tagId,
+        limit_count: limit,
+      });
 
-    return this.queryWithCache<(Article & { search_rank: number })[]>(cacheKey, CACHE_TTL.searchResults, async () => {
-      try {
-        this.checkSupabaseClient();
-        // 调用数据库带标签的搜索函数
-        const { data, error } = await this.supabase.rpc('search_articles_by_tag', {
-          query: query,
-          tag_id_filter: tagId,
-          limit_count: limit,
-        });
-
-        if (error) {
-          this.handleError(error, '根据标签搜索文章', 'SearchService');
-        }
-
-        // 过滤只返回公开文章
-        const filteredData = (data || []).filter((article: Article) => article.visibility === 'public');
-        return filteredData;
-      } catch (error) {
-        console.error('Failed to search articles by tag:', error);
-        return [];
+      if (error) {
+        this.handleError(error, '根据标签搜索文章', 'SearchService');
       }
-    });
+
+      // 过滤只返回公开文章
+      const filteredData = (data || []).filter((article: Article) => article.visibility === 'public');
+      return filteredData;
+    } catch (error) {
+      console.error('Failed to search articles by tag:', error);
+      return [];
+    }
   }
 
   /**
@@ -126,27 +116,23 @@ export class SearchService extends BaseService {
    * @returns 搜索建议数组，包含文章标题和ID
    */
   async getSearchSuggestions(query: string, limit = 5): Promise<{ title: string; id: string }[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:suggestions:${query}:${limit}`;
+    try {
+      this.checkSupabaseClient();
+      // 使用新的搜索建议函数
+      const { data, error } = await this.supabase.rpc('search_suggestions', {
+        query: query,
+        limit_count: limit,
+      });
 
-    return this.queryWithCache<{ title: string; id: string }[]>(cacheKey, CACHE_TTL.searchSuggestions, async () => {
-      try {
-        this.checkSupabaseClient();
-        // 使用新的搜索建议函数
-        const { data, error } = await this.supabase.rpc('search_suggestions', {
-          query: query,
-          limit_count: limit,
-        });
-
-        if (error) {
-          this.handleError(error, '获取搜索建议', 'SearchService');
-        }
-
-        return data || [];
-      } catch (error) {
-        console.error('Failed to get search suggestions:', error);
-        return [];
+      if (error) {
+        this.handleError(error, '获取搜索建议', 'SearchService');
       }
-    });
+
+      return data || [];
+    } catch (error) {
+      console.error('Failed to get search suggestions:', error);
+      return [];
+    }
   }
 
   /**
@@ -156,27 +142,23 @@ export class SearchService extends BaseService {
    * @returns 匹配的评论数组，包含搜索排名
    */
   async searchComments(query: string, limit = 20): Promise<(Comment & { search_rank: number })[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:comments:${query}:${limit}`;
+    try {
+      this.checkSupabaseClient();
+      // 调用数据库搜索函数
+      const { data, error } = await this.supabase.rpc('search_comments', {
+        query: query,
+        limit_count: limit,
+      });
 
-    return this.queryWithCache<(Comment & { search_rank: number })[]>(cacheKey, CACHE_TTL.searchResults, async () => {
-      try {
-        this.checkSupabaseClient();
-        // 调用数据库搜索函数
-        const { data, error } = await this.supabase.rpc('search_comments', {
-          query: query,
-          limit_count: limit,
-        });
-
-        if (error) {
-          this.handleError(error, '搜索评论', 'SearchService');
-        }
-
-        return data || [];
-      } catch (error) {
-        console.error('Failed to search comments:', error);
-        return [];
+      if (error) {
+        this.handleError(error, '搜索评论', 'SearchService');
       }
-    });
+
+      return data || [];
+    } catch (error) {
+      console.error('Failed to search comments:', error);
+      return [];
+    }
   }
 
   /**
@@ -291,94 +273,90 @@ export class SearchService extends BaseService {
       dateRange
     } = filters;
 
-    // 构建缓存键，包含所有筛选条件
-    const cacheKey = `${this.CACHE_PREFIX}:advanced:${searchType}:${sortBy}:${author || ''}:${tags?.join(',') || ''}:${dateRange?.start || ''}:${dateRange?.end || ''}:${query}:${limit}:${useSemanticSearch}`;
+    try {
+      this.checkSupabaseClient();
+      
+      // 如果使用语义搜索
+      if (useSemanticSearch) {
+        // 直接调用语义搜索服务
+        const semanticResults = await semanticSearchService.semanticSearch(query, limit);
+        return semanticResults;
+      }
+      
+      // 传统搜索逻辑
+      let results: ((Article | Comment) & { search_rank: number })[] = [];
 
-    return this.queryWithCache<((Article | Comment) & { search_rank: number })[] | SemanticSearchResult[]>(cacheKey, CACHE_TTL.searchResults, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        // 如果使用语义搜索
-        if (useSemanticSearch) {
-          // 直接调用语义搜索服务
-          const semanticResults = await semanticSearchService.semanticSearch(query, limit);
-          return semanticResults;
+      // 构建最终查询，包含原始查询和引号短语
+      const finalQuery = [...parsedQuery.terms, ...parsedQuery.quotedPhrases].join(' ');
+
+      // 根据搜索类型执行不同的搜索逻辑
+      if (searchType === 'articles' || searchType === 'all') {
+        // 搜索文章
+        const articles = await this.searchArticles(finalQuery, limit * 2);
+        let filteredArticles = articles;
+
+        // 应用额外筛选条件
+        if (author) {
+          filteredArticles = filteredArticles.filter(article => 
+            article.author_name?.toLowerCase().includes(author.toLowerCase())
+          );
         }
-        
-        // 传统搜索逻辑
-        let results: ((Article | Comment) & { search_rank: number })[] = [];
 
-        // 构建最终查询，包含原始查询和引号短语
-        const finalQuery = [...parsedQuery.terms, ...parsedQuery.quotedPhrases].join(' ');
+        if (tags && tags.length > 0) {
+          filteredArticles = filteredArticles.filter(article => 
+            tags.some(tag => article.tags?.some(articleTag => articleTag.name === tag))
+          );
+        }
 
-        // 根据搜索类型执行不同的搜索逻辑
-        if (searchType === 'articles' || searchType === 'all') {
-          // 搜索文章
-          const articles = await this.searchArticles(finalQuery, limit * 2);
-          let filteredArticles = articles;
+        if (dateRange?.start) {
+          filteredArticles = filteredArticles.filter(article => 
+            article.created_at >= dateRange.start!
+          );
+        }
 
-          // 应用额外筛选条件
-          if (author) {
-            filteredArticles = filteredArticles.filter(article => 
-              article.author_name?.toLowerCase().includes(author.toLowerCase())
+        if (dateRange?.end) {
+          filteredArticles = filteredArticles.filter(article => 
+            article.created_at <= dateRange.end!
+          );
+        }
+
+        // 应用排除术语
+        if (parsedQuery.excludedTerms.length > 0) {
+          filteredArticles = filteredArticles.filter(article => {
+            const content = `${article.title} ${article.content}`.toLowerCase();
+            return !parsedQuery.excludedTerms.some(term => 
+              content.includes(term.toLowerCase())
             );
-          }
+          });
+        }
 
-          if (tags && tags.length > 0) {
-            filteredArticles = filteredArticles.filter(article => 
-              tags.some(tag => article.tags?.some(articleTag => articleTag.name === tag))
-            );
-          }
-
-          if (dateRange?.start) {
-            filteredArticles = filteredArticles.filter(article => 
-              article.created_at >= dateRange.start!
-            );
-          }
-
-          if (dateRange?.end) {
-            filteredArticles = filteredArticles.filter(article => 
-              article.created_at <= dateRange.end!
-            );
-          }
-
-          // 应用排除术语
-          if (parsedQuery.excludedTerms.length > 0) {
-            filteredArticles = filteredArticles.filter(article => {
-              const content = `${article.title} ${article.content}`.toLowerCase();
-              return !parsedQuery.excludedTerms.some(term => 
-                content.includes(term.toLowerCase())
-              );
-            });
-          }
-
-          // 应用字段搜索
-          if (Object.keys(parsedQuery.fieldSearches).length > 0) {
-            filteredArticles = filteredArticles.filter(article => {
-              for (const [field, value] of Object.entries(parsedQuery.fieldSearches)) {
-                switch (field.toLowerCase()) {
-                  case 'title':
-                    if (!article.title?.toLowerCase().includes(value.toLowerCase())) {
-                      return false;
-                    }
-                    break;
-                  case 'author':
-                    if (!article.author_name?.toLowerCase().includes(value.toLowerCase())) {
-                      return false;
-                    }
-                    break;
-                  case 'content':
-                    if (!article.content?.toLowerCase().includes(value.toLowerCase())) {
-                      return false;
-                    }
-                    break;
-                }
+        // 应用字段搜索
+        if (Object.keys(parsedQuery.fieldSearches).length > 0) {
+          filteredArticles = filteredArticles.filter(article => {
+            for (const [field, value] of Object.entries(parsedQuery.fieldSearches)) {
+              switch (field.toLowerCase()) {
+                case 'title':
+                  if (!article.title?.toLowerCase().includes(value.toLowerCase())) {
+                    return false;
+                  }
+                  break;
+                case 'author':
+                  if (!article.author_name?.toLowerCase().includes(value.toLowerCase())) {
+                    return false;
+                  }
+                  break;
+                case 'content':
+                  if (!article.content?.toLowerCase().includes(value.toLowerCase())) {
+                    return false;
+                  }
+                  break;
               }
-              return true;
-            });
-          }
+            }
+            return true;
+          });
+        }
 
-          // 应用范围搜索
+        // 应用范围搜索
         if (Object.keys(parsedQuery.rangeSearches).length > 0) {
           filteredArticles = filteredArticles.filter(article => {
             for (const [field, range] of Object.entries(parsedQuery.rangeSearches)) {
@@ -395,62 +373,61 @@ export class SearchService extends BaseService {
           });
         }
 
-          // 排序
-          filteredArticles.sort((a, b) => this.sortResults(a, b, sortBy));
-          results = [...results, ...filteredArticles];
-        }
-
-        if (searchType === 'comments' || searchType === 'all') {
-          // 搜索评论
-          const comments = await this.searchComments(finalQuery, limit * 2);
-          let filteredComments = comments;
-
-          // 应用额外筛选条件
-          if (author) {
-            filteredComments = filteredComments.filter(comment => 
-              comment.author_name?.toLowerCase().includes(author.toLowerCase())
-            );
-          }
-
-          if (dateRange?.start) {
-            filteredComments = filteredComments.filter(comment => 
-              comment.created_at >= dateRange.start!
-            );
-          }
-
-          if (dateRange?.end) {
-            filteredComments = filteredComments.filter(comment => 
-              comment.created_at <= dateRange.end!
-            );
-          }
-
-          // 应用排除术语
-          if (parsedQuery.excludedTerms.length > 0) {
-            filteredComments = filteredComments.filter(comment => {
-              const content = comment.content?.toLowerCase() || '';
-              return !parsedQuery.excludedTerms.some(term => 
-                content.includes(term.toLowerCase())
-              );
-            });
-          }
-
-          // 排序
-          filteredComments.sort((a, b) => this.sortResults(a, b, sortBy));
-          results = [...results, ...filteredComments];
-        }
-
-        // 如果是全搜索，按排序重新合并结果
-        if (searchType === 'all') {
-          results.sort((a, b) => this.sortResults(a, b, sortBy));
-        }
-
-        // 限制结果数量
-        return results.slice(0, limit);
-      } catch (error) {
-        console.error('Failed to perform advanced search:', error);
-        return [];
+        // 排序
+        filteredArticles.sort((a, b) => this.sortResults(a, b, sortBy));
+        results = [...results, ...filteredArticles];
       }
-    });
+
+      if (searchType === 'comments' || searchType === 'all') {
+        // 搜索评论
+        const comments = await this.searchComments(finalQuery, limit * 2);
+        let filteredComments = comments;
+
+        // 应用额外筛选条件
+        if (author) {
+          filteredComments = filteredComments.filter(comment => 
+            comment.author_name?.toLowerCase().includes(author.toLowerCase())
+          );
+        }
+
+        if (dateRange?.start) {
+          filteredComments = filteredComments.filter(comment => 
+            comment.created_at >= dateRange.start!
+          );
+        }
+
+        if (dateRange?.end) {
+          filteredComments = filteredComments.filter(comment => 
+            comment.created_at <= dateRange.end!
+          );
+        }
+
+        // 应用排除术语
+        if (parsedQuery.excludedTerms.length > 0) {
+          filteredComments = filteredComments.filter(comment => {
+            const content = comment.content?.toLowerCase() || '';
+            return !parsedQuery.excludedTerms.some(term => 
+              content.includes(term.toLowerCase())
+            );
+          });
+        }
+
+        // 排序
+        filteredComments.sort((a, b) => this.sortResults(a, b, sortBy));
+        results = [...results, ...filteredComments];
+      }
+
+      // 如果是全搜索，按排序重新合并结果
+      if (searchType === 'all') {
+        results.sort((a, b) => this.sortResults(a, b, sortBy));
+      }
+
+      // 限制结果数量
+      return results.slice(0, limit);
+    } catch (error) {
+      console.error('Failed to perform advanced search:', error);
+      return [];
+    }
   }
 
   /**
@@ -465,32 +442,27 @@ export class SearchService extends BaseService {
     filters: SearchFilters = {}, 
     limit = 20
   ): Promise<SemanticSearchResult[]> {
-    // 构建缓存键
-    const cacheKey = `${this.CACHE_PREFIX}:semantic_enhanced:${JSON.stringify(filters)}:${query}:${limit}`;
-
-    return this.queryWithCache<SemanticSearchResult[]>(cacheKey, CACHE_TTL.searchResults, async () => {
-      try {
-        // 1. 执行传统搜索
-        const traditionalResults = await this.advancedSearch(query, filters, limit * 2);
-        
-        // 2. 确保结果是传统搜索类型
-        if (!Array.isArray(traditionalResults) || traditionalResults.length === 0) {
-          return [];
-        }
-        
-        // 3. 语义增强传统搜索结果
-        const enhancedResults = await semanticSearchService.enhanceSearchResults(
-          traditionalResults as ((Article | Comment) & { search_rank: number })[],
-          query
-        );
-        
-        // 4. 限制结果数量
-        return enhancedResults.slice(0, limit);
-      } catch (error) {
-        console.error('Failed to perform semantic enhanced search:', error);
+    try {
+      // 1. 执行传统搜索
+      const traditionalResults = await this.advancedSearch(query, filters, limit * 2);
+      
+      // 2. 确保结果是传统搜索类型
+      if (!Array.isArray(traditionalResults) || traditionalResults.length === 0) {
         return [];
       }
-    });
+      
+      // 3. 语义增强传统搜索结果
+      const enhancedResults = await semanticSearchService.enhanceSearchResults(
+        traditionalResults as ((Article | Comment) & { search_rank: number })[],
+        query
+      );
+      
+      // 4. 限制结果数量
+      return enhancedResults.slice(0, limit);
+    } catch (error) {
+      console.error('Failed to perform semantic enhanced search:', error);
+      return [];
+    }
   }
 
   /**
@@ -512,7 +484,7 @@ export class SearchService extends BaseService {
    * 清理搜索相关缓存，包括文章搜索结果和搜索建议
    */
   clearSearchCache(): void {
-    this.invalidateCache(`${this.CACHE_PREFIX}:*`);
+    // 移除缓存清理功能，因为已经不再使用缓存
   }
 
   /**
@@ -522,50 +494,46 @@ export class SearchService extends BaseService {
    * @returns 推荐的文章数组
    */
   async getIntelligentRecommendations(articleId: string, limit = 5): Promise<Article[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:recommendations:${articleId}:${limit}`;
-
-    return this.queryWithCache<Article[]>(cacheKey, CACHE_TTL.searchResults, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        // 获取当前文章的标签
-        const { data: currentArticle } = await this.supabase
-          .from('articles')
-          .select('tags')
-          .eq('id', articleId)
-          .single();
-        
-        if (!currentArticle || !currentArticle.tags || currentArticle.tags.length === 0) {
-          // 如果当前文章没有标签，返回最新文章
-          const { data: latestArticles } = await this.supabase
-            .from('articles')
-            .select('*')
-            .neq('id', articleId)
-            .eq('visibility', 'public')
-            .order('created_at', { ascending: false })
-            .limit(limit);
-          
-          return latestArticles || [];
-        }
-        
-        // 基于标签获取相似文章
-        const articleTags = currentArticle.tags.map((tag: Tag) => tag.id);
-        
-        const { data: similarArticles } = await this.supabase
+    try {
+      this.checkSupabaseClient();
+      
+      // 获取当前文章的标签
+      const { data: currentArticle } = await this.supabase
+        .from('articles')
+        .select('tags')
+        .eq('id', articleId)
+        .single();
+      
+      if (!currentArticle || !currentArticle.tags || currentArticle.tags.length === 0) {
+        // 如果当前文章没有标签，返回最新文章
+        const { data: latestArticles } = await this.supabase
           .from('articles')
           .select('*')
           .neq('id', articleId)
           .eq('visibility', 'public')
-          .contains('tags', articleTags)
           .order('created_at', { ascending: false })
           .limit(limit);
         
-        return similarArticles || [];
-      } catch (error) {
-        console.error('Failed to get intelligent recommendations:', error);
-        return [];
+        return latestArticles || [];
       }
-    });
+      
+      // 基于标签获取相似文章
+      const articleTags = currentArticle.tags.map((tag: Tag) => tag.id);
+      
+      const { data: similarArticles } = await this.supabase
+        .from('articles')
+        .select('*')
+        .neq('id', articleId)
+        .eq('visibility', 'public')
+        .contains('tags', articleTags)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      
+      return similarArticles || [];
+    } catch (error) {
+      console.error('Failed to get intelligent recommendations:', error);
+      return [];
+    }
   }
 }
 

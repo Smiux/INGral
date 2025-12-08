@@ -2,32 +2,14 @@ import type { Article, ArticleLink, Tag, Graph, GraphNode, GraphLink } from '../
 import { ArticleVisibility } from '../types/index';
 import { extractWikiLinks, titleToSlug, extractFormulas } from './markdown';
 import { supabase } from '../lib/supabase';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { DatabaseCache, QueryOptimizer, ConnectionManager, CACHE_TTL } from './db-optimization';
-
-// 初始化优化工具
-const cache = new DatabaseCache();
-const queryOptimizer = new QueryOptimizer();
-const connectionManager = ConnectionManager.getInstance();
-
-// 模拟数据定义 - 用于错误处理和回退
-const mockArticles: Article[] = [];
-// 确保类型明确，避免any类型推断
-const mockArticleLinks: ArticleLink[] = [];
 
 // 性能优化：为频繁访问的文章缓存热门文章列表（可选功能）
 
-// 优化后的函数 - 使用缓存和重试逻辑
 // 异步更新文章阅读计数
 async function updateArticleViewCount(articleId: string): Promise<void> {
   try {
     // 添加类型断言解决supabase RPC调用的类型问题
-
-    // 使用unknown作为中间类型进行安全转换
     await (supabase as unknown as { rpc: (name: string, params: Record<string, unknown>) => Promise<void> }).rpc('increment_article_views', { article_id: articleId });
-    // 清除相关缓存
-    cache.invalidatePattern(`article:id:${articleId}`);
-    cache.invalidatePattern('article:slug:*');
   } catch (err) {
     console.warn('Failed to update article view count:', err);
   }
@@ -37,36 +19,17 @@ async function updateArticleViewCount(articleId: string): Promise<void> {
 async function fetchArticle<T extends string>(
   key: string,
   value: T,
-  cachePrefix: string,
-  cacheKey: string
+  cachePrefix: string
 ): Promise<Article | null> {
-  // 尝试从缓存获取
-  const cachedArticle = cache.get<Article>(cacheKey);
-  if (cachedArticle) {
-    console.log(`Cache hit for article ${cachePrefix}:`, value);
-    // 异步更新阅读计数，不阻塞返回
-    updateArticleViewCount(cachedArticle.id).catch(console.error);
-    return cachedArticle;
-  }
-
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
+    // 直接使用supabase客户端
+    const result = await supabase.from('articles').select('*').eq(key, value).single();
+    const { data: article, error } = result;
 
-    // 使用优化的查询执行函数（带重试逻辑）
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      // 使用类型断言为SupabaseClient
-      const typedClient = dbClient as SupabaseClient;
-      return await typedClient.from('articles').select('*').eq(key, value).single();
-    }, CACHE_TTL.articles);
-
-    const { data: article } = result || {};
-
-    if (!article) {return null;}
+    if (error || !article) {return null;}
 
     // 获取文章的标签
-    const typedClient = dbClient as SupabaseClient;
-    const tagsResult = await typedClient.from('article_tags')
+    const tagsResult = await supabase.from('article_tags')
       .select('tag:tag_id(*)')
       .eq('article_id', article.id);
 
@@ -85,9 +48,6 @@ async function fetchArticle<T extends string>(
     // 更新阅读计数（异步）
     updateArticleViewCount(article.id).catch(console.error);
 
-    // 将结果缓存，设置过期时间为5分钟
-    cache.set<Article>(cacheKey, article);
-
     return article as Article;
   } catch (err) {
     console.error(`Error in fetchArticle by ${cachePrefix}:`, err);
@@ -98,12 +58,12 @@ async function fetchArticle<T extends string>(
 
 // 根据slug获取文章
 export async function fetchArticleBySlug(slug: string): Promise<Article | null> {
-  return fetchArticle('slug', slug, 'slug', `article:slug:${slug}`);
+  return fetchArticle('slug', slug, 'slug');
 }
 
 // 根据ID获取文章
 export async function fetchArticleById(id: string): Promise<Article | null> {
-  return fetchArticle('id', id, 'ID', `article:id:${id}`);
+  return fetchArticle('id', id, 'ID');
 }
 
 // 移除冗余的getArticleById函数，直接使用fetchArticleById
@@ -112,38 +72,17 @@ export async function fetchArticleById(id: string): Promise<Article | null> {
 
 // 根据标签过滤文章
 export async function fetchArticlesByTag(tagId: string): Promise<Article[]> {
-  // 生成缓存键
-  const cacheKey = `articles:tag:${tagId}`;
-
-  // 尝试从缓存获取
-  const cachedArticles = cache.get<Article[]>(cacheKey);
-  if (cachedArticles) {
-    console.log('Cache hit for articles by tag:', tagId);
-    return cachedArticles;
-  }
-
   try {
-    const dbClient = await connectionManager.getClient();
-    // 添加类型断言解决supabase客户端的类型问题
-
-    // 使用类型断言为SupabaseClient
-    const typedClient = dbClient as SupabaseClient;
-
-    // 通过article_tags关联表查询文章
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      return await typedClient.from('article_tags')
-        .select('article:article_id(*)')
-        .eq('tag_id', tagId);
-    }, CACHE_TTL.articles);
+    // 直接使用supabase客户端
+    const result = await supabase.from('article_tags')
+      .select('article:article_id(*)')
+      .eq('tag_id', tagId);
 
     // 安全地访问数据
     const articlesWithTags = result?.data || [];
     const articles: Article[] = articlesWithTags
       .filter((item) => item?.article)
       .map((item) => item.article as unknown as Article);
-
-    // 将结果缓存
-    cache.set<Article[]>(cacheKey, articles);
 
     return articles;
   } catch (err) {
@@ -155,36 +94,12 @@ export async function fetchArticlesByTag(tagId: string): Promise<Article[]> {
 
 // 优化的获取所有文章函数
 export async function fetchAllArticles(filterPublic = false, tagId?: string): Promise<Article[]> {
-  // 生成缓存键
-  const cacheKey = tagId
-    ? `articles:tag:${tagId}:${filterPublic ? 'public' : 'all'}`
-    : `articles:all:${filterPublic ? 'public' : 'all'}`;
-
-  // 尝试从缓存获取
-  const cachedArticles = cache.get<Article[]>(cacheKey);
-  if (cachedArticles) {
-    console.log('Cache hit for articles', tagId ? `with tag ${tagId}` : '');
-    return cachedArticles;
-  }
-
-  // 直接使用真实数据库连接，不使用模拟数据
-
-  let dbClient: SupabaseClient | null = null;
-
   try {
-    // 使用连接池管理数据库连接
-    dbClient = await connectionManager.getClient();
-
-    // 使用优化的查询执行函数（带重试逻辑）
-    let result;
-
     if (tagId) {
       // 通过标签过滤文章
-      result = await queryOptimizer.executeWithRetry(async () => {
-        return await dbClient!.from('article_tags')
-          .select('article:article_id(*)')
-          .eq('tag_id', tagId);
-      }, CACHE_TTL.articles);
+      const result = await supabase.from('article_tags')
+        .select('article:article_id(*)')
+        .eq('tag_id', tagId);
 
       const articlesWithTags = result?.data || [];
       let articles = articlesWithTags
@@ -196,38 +111,21 @@ export async function fetchAllArticles(filterPublic = false, tagId?: string): Pr
         articles = articles.filter((article: Article) => article.visibility === 'public');
       }
 
-      // 将结果缓存
-      cache.set<Article[]>(cacheKey, articles);
-
       return articles;
     } else {
       // 获取所有文章
-      result = await queryOptimizer.executeWithRetry(async () => {
-        // 添加类型断言解决supabase查询的类型问题
+      let query = supabase.from('articles').select('*');
+      if (filterPublic) {
+        query = query.eq('visibility', ArticleVisibility.PUBLIC);
+      }
+      const result = await query;
 
-        // 使用类型断言为SupabaseClient
-        const typedClient = dbClient as SupabaseClient;
-        let query = typedClient.from('articles').select('*');
-        if (filterPublic) {
-          query = query.eq('visibility', ArticleVisibility.PUBLIC);
-        }
-        return await query;
-      }, CACHE_TTL.articles);
-
-      const articles: Article[] = (result?.data || []) as Article[];
-
-      // 将结果缓存，设置过期时间为1分钟（列表更新更频繁）
-      cache.set<Article[]>(cacheKey, articles);
-
-      return articles;
+      return (result?.data || []) as Article[];
     }
   } catch (err) {
     console.error('Error in fetchAllArticles:', err);
     // 返回空数组而不是抛出错误，确保UI能够加载
     return [];
-  } finally {
-    // 在前端环境中，Supabase客户端连接会自动管理，无需显式释放
-    // 连接管理已由Supabase SDK内部处理
   }
 }
 
@@ -267,101 +165,67 @@ export async function createArticle(
   };
 
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
+    // 尝试从数据库获取
+    const existingArticleResult = await supabase.from('articles').select('id').eq('slug', slug).maybeSingle();
+    const { data: existingArticle } = existingArticleResult;
 
-    // 开始事务
-    const transactionId = await queryOptimizer.startTransaction();
+    const finalSlug = existingArticle ? `${slug}-${Date.now().toString(36).substr(2, 9)}` : slug;
 
-    try {
-      // 尝试从数据库获取
-      const result = await queryOptimizer.executeWithRetry(async () => {
-        // 添加类型断言解决supabase查询的类型问题
-        return await (dbClient as SupabaseClient).from('articles').select('id').eq('slug', slug).maybeSingle();
-      }, CACHE_TTL.articles);
+    // 创建文章
+    const createResult = await supabase.from('articles')
+      .insert({
+        title,
+        slug: finalSlug,
+        content,
+        'author_name': authorName || 'Anonymous',
+        'author_email': authorEmail,
+        'author_url': authorUrl,
+        'visibility': visibility,
+      })
+      .select()
+      .single();
 
-      const { data: existingArticle } = result || {};
+    const { data: article, error: createError } = createResult;
 
-      const finalSlug = existingArticle ? `${slug}-${Date.now().toString(36).substr(2, 9)}` : slug;
-
-      // 创建文章 - 使用优化的插入
-        const createResult = await queryOptimizer.executeWithRetry(async () => {
-          // 添加类型断言解决supabase查询的类型问题
-          return await (dbClient as SupabaseClient).from('articles')
-            .insert({
-              title,
-              slug: finalSlug,
-              content,
-              'author_name': authorName || 'Anonymous',
-              'author_email': authorEmail,
-              'author_url': authorUrl,
-              'visibility': visibility,
-            })
-            .select()
-            .single();
-        }, CACHE_TTL.articles);
-
-      const { data: article } = createResult || {};
-
-      if (!article) {
-        throw new Error('Failed to create article');
-      }
-
-      // 如果提供了标签，处理文章标签
-      if (tags && tags.length > 0) {
-        for (const tagId of tags) {
-          await queryOptimizer.executeWithRetry(async () => {
-            return await (dbClient as SupabaseClient).from('article_tags')
-              .insert({
-                'article_id': article.id,
-                'tag_id': tagId,
-              });
-          }, CACHE_TTL.articles);
-        }
-      }
-
-      // 处理文章链接
-      const links = extractWikiLinks(content);
-      for (const linkedTitle of links) {
-        const linkedArticle = await fetchArticleByTitle(linkedTitle);
-        if (linkedArticle && linkedArticle.id !== article.id) {
-          await createArticleLink(article.id, linkedArticle.id, 'referenced');
-        }
-      }
-
-      // 提取并处理数学公式
-      const formulas = extractFormulas(content);
-      if (formulas.length > 0) {
-        // 这里可以添加公式存储逻辑，目前我们将公式添加到article对象中
-        (article as Article & { formulas?: Array<{ id: string; content: string; type: 'inline' | 'block'; label?: string; position: number }> }).formulas = formulas;
-      }
-
-      // 提交事务
-      await queryOptimizer.commitTransaction(transactionId);
-
-      // 清除相关缓存
-      cache.invalidatePattern('articles:all:*');
-      cache.invalidatePattern('user:articles:*');
-
-      // 从本地存储中删除可能存在的离线文章
-      try {
-        await removeOfflineArticle(tempId);
-      } catch (storageError) {
-        console.warn('Failed to remove offline article from local storage:', storageError);
-      }
-
-      return article as Article;
-    } catch (err) {
-      // 回滚事务
-      await queryOptimizer.rollbackTransaction();
-      console.error('创建文章失败，保存到本地存储:', err);
-
-      // 将文章保存到本地存储作为离线文章
-      await saveArticleOffline(articleData);
-
-      // 返回带有临时ID的文章
-      return articleData as unknown as Article;
+    if (createError || !article) {
+      throw new Error('Failed to create article');
     }
+
+    // 如果提供了标签，处理文章标签
+    if (tags && tags.length > 0) {
+      for (const tagId of tags) {
+        await supabase.from('article_tags')
+          .insert({
+            'article_id': article.id,
+            'tag_id': tagId,
+          });
+      }
+    }
+
+    // 处理文章链接
+    const links = extractWikiLinks(content);
+    for (const linkedTitle of links) {
+      const linkedArticle = await fetchArticleByTitle(linkedTitle);
+      if (linkedArticle && linkedArticle.id !== article.id) {
+        await createArticleLink(article.id, linkedArticle.id, 'referenced');
+      }
+    }
+
+    // 提取并处理数学公式
+    const formulas = extractFormulas(content);
+    if (formulas.length > 0) {
+      // 这里可以添加公式存储逻辑，目前我们将公式添加到article对象中
+      (article as Article & { formulas?: Array<{ id: string; content: string; type: 'inline' | 'block'; label?: string; position: number }> }).formulas = formulas;
+    }
+
+    // 从本地存储中删除可能存在的离线文章
+    try {
+      await removeOfflineArticle(tempId);
+    } catch (storageError) {
+      console.warn('Failed to remove offline article from local storage:', storageError);
+    }
+
+    return article as Article;
   } catch (err) {
     console.error('创建文章时发生网络或数据库错误:', err);
 
@@ -460,115 +324,78 @@ export async function updateArticle(
     // 如果不是离线文章，尝试更新到数据库
     if (!isOfflineArticle) {
       try {
-        // 使用连接池管理数据库连接
-        const dbClient = await connectionManager.getClient();
+        // 更新文章
+        const result = await supabase.from('articles')
+          .update(updateData)
+          .eq('id', id)
+          .select()
+          .single();
 
-        // 开始事务
-        const transactionId = await queryOptimizer.startTransaction();
+        const { data: article, error: updateError } = result;
 
-        try {
-          // 更新文章
-          const result = await queryOptimizer.executeWithRetry(async () => {
-            // 添加类型断言解决supabase查询的类型问题
-            return await (dbClient as SupabaseClient).from('articles')
-              .update(updateData)
-              .eq('id', id)
-              .select()
-              .single();
-          }, CACHE_TTL.articles);
+        if (updateError || !article) {
+          throw new Error('Article not found');
+        }
 
-          // 如果提供了标签，更新文章标签
-          if (tags !== undefined) {
-            // 首先删除所有现有标签
-            await queryOptimizer.executeWithRetry(async () => {
-              return await (dbClient as SupabaseClient).from('article_tags').delete().eq('article_id', id);
-            }, CACHE_TTL.articles);
+        // 如果提供了标签，更新文章标签
+        if (tags !== undefined) {
+          // 首先删除所有现有标签
+          await supabase.from('article_tags').delete().eq('article_id', id);
 
-            // 然后添加新标签
-            if (tags.length > 0) {
-              for (const tagId of tags) {
-                await queryOptimizer.executeWithRetry(async () => {
-                  return await (dbClient as SupabaseClient).from('article_tags')
-                    .insert({
-                      'article_id': id,
-                      'tag_id': tagId,
-                    });
-                }, CACHE_TTL.articles);
-              }
+          // 然后添加新标签
+          if (tags.length > 0) {
+            for (const tagId of tags) {
+              await supabase.from('article_tags')
+                .insert({
+                  'article_id': id,
+                  'tag_id': tagId,
+                });
             }
           }
-
-          const { data: article } = result || {};
-
-          if (!article) {
-            throw new Error('Article not found');
-          }
-
-          // 处理文章链接更新
-          await updateArticleLinks(id, content);
-
-          // 提取并处理数学公式
-          const formulas = extractFormulas(content);
-          if (formulas.length > 0) {
-            // 这里可以添加公式存储逻辑，目前我们将公式添加到article对象中
-            (article as Article & { formulas?: Array<{ id: string; content: string; type: 'inline' | 'block'; label?: string; position: number }> }).formulas = formulas;
-          }
-
-          // 提交事务
-          await queryOptimizer.commitTransaction(transactionId);
-
-          // 清除相关缓存
-          cache.invalidatePattern(`article:id:${id}`);
-          cache.invalidatePattern('article:slug:*');
-          cache.invalidatePattern('articles:all:*');
-          cache.invalidatePattern('user:articles:*');
-
-          // 从本地存储中删除可能存在的离线文章版本
-          try {
-            await removeOfflineArticle(id);
-          } catch (storageError) {
-            console.warn('Failed to remove offline article from local storage:', storageError);
-          }
-
-          return article as Article;
-        } catch (dbError) {
-          // 回滚事务
-          await queryOptimizer.rollbackTransaction();
-          console.error('更新文章到数据库失败，保存为离线文章:', dbError);
-
-          // 标记为离线文章
-          updateData['is_offline'] = true;
-
-          // 获取现有文章信息（如果有）
-          let existingArticle = null;
-          try {
-            existingArticle = await fetchArticleById(id);
-          } catch (fetchError) {
-            console.warn('获取现有文章信息失败:', fetchError);
-          }
-
-          // 合并更新数据和现有文章信息
-          const offlineArticle = existingArticle
-            ? { ...existingArticle, ...updateData }
-            : { id, ...updateData };
-
-          // 保存到本地存储
-          await saveArticleOffline(offlineArticle);
-
-          // 返回离线版本
-          return offlineArticle as unknown as Article;
         }
-      } catch (connectionError) {
-        console.error('数据库连接错误，保存为离线文章:', connectionError);
+
+        // 处理文章链接更新
+        await updateArticleLinks(id, content);
+
+        // 提取并处理数学公式
+        const formulas = extractFormulas(content);
+        if (formulas.length > 0) {
+          // 这里可以添加公式存储逻辑，目前我们将公式添加到article对象中
+          (article as Article & { formulas?: Array<{ id: string; content: string; type: 'inline' | 'block'; label?: string; position: number }> }).formulas = formulas;
+        }
+
+        // 从本地存储中删除可能存在的离线文章版本
+        try {
+          await removeOfflineArticle(id);
+        } catch (storageError) {
+          console.warn('Failed to remove offline article from local storage:', storageError);
+        }
+
+        return article as Article;
+      } catch (dbError) {
+        console.error('更新文章到数据库失败，保存为离线文章:', dbError);
 
         // 标记为离线文章
         updateData['is_offline'] = true;
 
+        // 获取现有文章信息（如果有）
+        let existingArticle = null;
+        try {
+          existingArticle = await fetchArticleById(id);
+        } catch (fetchError) {
+          console.warn('获取现有文章信息失败:', fetchError);
+        }
+
+        // 合并更新数据和现有文章信息
+        const offlineArticle = existingArticle
+          ? { ...existingArticle, ...updateData }
+          : { id, ...updateData };
+
         // 保存到本地存储
-        await saveArticleOffline({ id, ...updateData });
+        await saveArticleOffline(offlineArticle);
 
         // 返回离线版本
-        return { id, ...updateData } as unknown as Article;
+        return offlineArticle as unknown as Article;
       }
     } else {
       // 对于离线文章，直接更新本地存储
@@ -596,133 +423,60 @@ export async function updateArticle(
 // 优化的删除文章函数
 export async function deleteArticle(id: string): Promise<boolean> {
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
+    // 先删除相关链接
+    await supabase.from('article_links')
+      .delete()
+      .or(`source_id.eq.${id},target_id.eq.${id}`);
 
-    // 开始事务
-    const transactionId = await queryOptimizer.startTransaction();
+    // 再删除文章
+    const result = await supabase.from('articles').delete().eq('id', id);
+    const { error } = result;
 
-    try {
-      // 先删除相关链接
-      await queryOptimizer.executeWithRetry(async () => {
-        // 添加类型断言解决supabase查询的类型问题
-
-        // 使用类型断言为SupabaseClient
-        return await (dbClient as SupabaseClient).from('article_links')
-          .delete()
-          .or(`source_id.eq.${id},target_id.eq.${id}`);
-      }, CACHE_TTL.articleLinks);
-
-      // 再删除文章
-      await queryOptimizer.executeWithRetry(async () => {
-        // 添加类型断言解决supabase查询的类型问题
-
-        // 使用类型断言为SupabaseClient
-        return await (dbClient as SupabaseClient).from('articles').delete().eq('id', id);
-      }, CACHE_TTL.articles);
-
-      // 提交事务
-      await queryOptimizer.commitTransaction(transactionId);
-
-      // 清除相关缓存
-      cache.invalidatePattern(`article:id:${id}`);
-      cache.invalidatePattern('article:slug:*');
-      cache.invalidatePattern('articles:all:*');
-      cache.invalidatePattern('user:articles:*');
-
-      return true;
-    } catch (err) {
-      // 回滚事务
-      await queryOptimizer.rollbackTransaction();
-      throw err;
+    if (error) {
+      throw error;
     }
+
+    return true;
   } catch (err) {
     console.error('Error in deleteArticle:', err);
-    // 回退到模拟数据
-    // 使用过滤后的新数组替换，避免直接修改const变量
-    const filteredArticles = mockArticles.filter(article => article.id !== id);
-    const filteredLinks = mockArticleLinks.filter(link => link.source_id !== id && link.target_id !== id);
-    // 复制到模拟数据
-    mockArticles.length = 0;
-    mockArticles.push(...filteredArticles);
-    mockArticleLinks.length = 0;
-    mockArticleLinks.push(...filteredLinks);
-    return true;
+    // 返回失败
+    return false;
   }
 }
 
 // 优化的按标题获取文章函数
 export async function fetchArticleByTitle(title: string): Promise<Article | null> {
-  // 生成缓存键
-  const cacheKey = `article:title:${title.toLowerCase().trim()}`;
-
-  // 尝试从缓存获取
-  const cachedArticle = cache.get<Article>(cacheKey);
-  if (cachedArticle) {
-    console.log('Cache hit for article title:', title);
-    return cachedArticle;
-  }
-
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
+    // 直接使用supabase客户端
+    const result = await supabase.from('articles')
+      .select('*')
+      .ilike('title', `%${title}%`)
+      .limit(1)
+      .single();
 
-    // 使用优化的搜索查询
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      return await (dbClient as SupabaseClient).from('articles')
-        .select('*')
-        .ilike('title', `%${title}%`)
-        .limit(1)
-        .single();
-    }, CACHE_TTL.articles);
-
-    const { data: article } = result || {};
-
-    if (!article) {return null;}
-
-    // 缓存结果
-    cache.set<Article>(cacheKey, article as Article);
+    const { data: article, error } = result;
+    if (error || !article) {return null;}
 
     return article as Article;
   } catch (err) {
     console.error('Error in fetchArticleByTitle:', err);
-    // 回退到模拟数据
-    const normalizedTitle = title.toLowerCase().trim();
-    const foundArticle = mockArticles.find(
-      article => article.title.toLowerCase().includes(normalizedTitle),
-    );
-    return foundArticle || null;
+    return null;
   }
 }
 
 // 优化的获取用户文章函数
 export async function getUserArticles(userId: string): Promise<Article[]> {
-  // 生成缓存键
-  const cacheKey = `user:articles:${userId}`;
-
-  // 尝试从缓存获取
-  const cachedArticles = cache.get<Article[]>(cacheKey);
-  if (cachedArticles) {
-    console.log('Cache hit for user articles:', userId);
-    return cachedArticles;
-  }
-
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
+    // 直接使用supabase客户端
+    const result = await supabase.from('articles')
+      .select('*')
+      .eq('author_id', userId)
+      .order('updated_at', { ascending: false });
 
-    // 使用优化的查询
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      return await (dbClient as SupabaseClient).from('articles')
-        .select('*')
-        .eq('author_id', userId)
-        .order('updated_at', { ascending: false });
-    }, CACHE_TTL.articles);
-
-    const { data: articles } = result || {};
-
-    // 缓存结果，设置过期时间为2分钟
-    cache.set<Article[]>(cacheKey, (articles || []) as Article[]);
+    const { data: articles, error } = result;
+    if (error) {
+      throw error;
+    }
 
     return (articles || []) as Article[];
   } catch (err) {
@@ -738,49 +492,41 @@ export async function createArticleLink(
   type = 'related',
 ): Promise<ArticleLink | null> {
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
-    // 添加类型断言解决supabase客户端的类型问题
-
-    // 使用类型断言为SupabaseClient
-    const typedClient = dbClient as SupabaseClient;
-
     // 检查是否已存在相同的链接
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      // 使用类型化客户端
-      return await typedClient.from('article_links')
-        .select('*')
-        .eq('source_id', sourceId)
-        .eq('target_id', targetId)
-        .eq('relationship_type', type)
-        .maybeSingle();
-    }, CACHE_TTL.articleLinks);
+    const result = await supabase.from('article_links')
+      .select('*')
+      .eq('source_id', sourceId)
+      .eq('target_id', targetId)
+      .eq('relationship_type', type)
+      .maybeSingle();
 
     // 安全地解构和类型断言
-    const { data: existingLink } = result || {};
+    const { data: existingLink, error: checkError } = result;
+
+    if (checkError) {
+      throw checkError;
+    }
 
     if (existingLink) {
       return existingLink as ArticleLink; // 如果已存在，直接返回现有链接
     }
 
     // 创建新链接
-    const createLinkResult = await queryOptimizer.executeWithRetry(async () => {
-      // 使用类型化客户端
-      return await typedClient.from('article_links')
-        .insert({
-          source_id: sourceId,
-          target_id: targetId,
-          relationship_type: type,
-        })
-        .select()
-        .single();
-    }, CACHE_TTL.articleLinks);
+    const createLinkResult = await supabase.from('article_links')
+      .insert({
+        source_id: sourceId,
+        target_id: targetId,
+        relationship_type: type,
+      })
+      .select()
+      .single();
 
     // 安全地解构和类型断言
-    const { data: newLink } = createLinkResult || {};
+    const { data: newLink, error: createError } = createLinkResult;
 
-    // 清除文章链接缓存
-    cache.invalidatePattern('article:links:*');
+    if (createError) {
+      throw createError;
+    }
 
     return newLink as ArticleLink;
   } catch (err) {
@@ -792,43 +538,18 @@ export async function createArticleLink(
 // 优化的更新文章链接函数
 export async function updateArticleLinks(articleId: string, content: string): Promise<void> {
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
-    // 添加类型断言解决supabase客户端的类型问题
+    // 删除所有源为该文章的旧链接
+    await supabase.from('article_links')
+      .delete()
+      .eq('source_id', articleId);
 
-    // 使用类型断言为SupabaseClient
-    const typedClient = dbClient as SupabaseClient;
-
-    // 开始事务
-    const transactionId = await queryOptimizer.startTransaction();
-
-    try {
-      // 删除所有源为该文章的旧链接
-      await queryOptimizer.executeWithRetry(async () => {
-        // 使用类型化客户端
-        return await typedClient.from('article_links')
-          .delete()
-          .eq('source_id', articleId);
-      }, CACHE_TTL.articleLinks);
-
-      // 提取新链接并添加
-      const links = extractWikiLinks(content);
-      for (const linkedTitle of links) {
-        const linkedArticle = await fetchArticleByTitle(linkedTitle);
-        if (linkedArticle && linkedArticle.id !== articleId) {
-          await createArticleLink(articleId, linkedArticle.id, 'referenced');
-        }
+    // 提取新链接并添加
+    const links = extractWikiLinks(content);
+    for (const linkedTitle of links) {
+      const linkedArticle = await fetchArticleByTitle(linkedTitle);
+      if (linkedArticle && linkedArticle.id !== articleId) {
+        await createArticleLink(articleId, linkedArticle.id, 'referenced');
       }
-
-      // 提交事务
-      await queryOptimizer.commitTransaction(transactionId);
-
-      // 清除文章链接缓存
-      cache.invalidatePattern(`article:links:${articleId}`);
-    } catch (err) {
-      // 回滚事务
-      await queryOptimizer.rollbackTransaction();
-      throw err;
     }
   } catch (err) {
     console.error('Error in updateArticleLinks:', err);
@@ -838,38 +559,15 @@ export async function updateArticleLinks(articleId: string, content: string): Pr
 
 // 优化的获取文章链接函数
 export async function getArticleLinks(articleId: string): Promise<ArticleLink[]> {
-  // 生成缓存键
-  const cacheKey = `article:links:${articleId}`;
-
-  // 尝试从缓存获取
-  const cachedLinks = cache.get<ArticleLink[]>(cacheKey);
-  if (cachedLinks) {
-    console.log('Cache hit for article links:', articleId);
-    return cachedLinks;
-  }
-
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
-    // 添加类型断言解决supabase客户端的类型问题
-
-    // 使用类型断言为SupabaseClient
-    const typedClient = dbClient as SupabaseClient;
-
-    // 使用优化的查询
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      return await typedClient.from('article_links')
-        .select('*')
-        .eq('source_id', articleId);
-    }, CACHE_TTL.articleLinks);
+    // 直接使用supabase客户端
+    const result = await supabase.from('article_links')
+      .select('*')
+      .eq('source_id', articleId);
 
     // 安全地访问数据
     const links = result?.data || [];
-
-    // 缓存结果
-    cache.set<ArticleLink[]>(cacheKey, links as ArticleLink[]);
-
-    return links;
+    return links as ArticleLink[];
   } catch (err) {
     console.error('Error in getArticleLinks:', err);
     throw err;
@@ -879,18 +577,10 @@ export async function getArticleLinks(articleId: string): Promise<ArticleLink[]>
 // 优化的移除文章所有链接函数
 export async function removeAllArticleLinks(articleId: string): Promise<boolean> {
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
-
-    // 使用优化的查询
-    await queryOptimizer.executeWithRetry(async () => {
-      return await (dbClient as SupabaseClient).from('article_links')
-        .delete()
-        .or(`source_id.eq.${articleId},target_id.eq.${articleId}`);
-    }, CACHE_TTL.articleLinks);
-
-    // 清除文章链接缓存
-    cache.invalidatePattern('article:links:*');
+    // 直接使用supabase客户端
+    await supabase.from('article_links')
+      .delete()
+      .or(`source_id.eq.${articleId},target_id.eq.${articleId}`);
 
     return true;
   } catch (err) {
@@ -902,40 +592,31 @@ export async function removeAllArticleLinks(articleId: string): Promise<boolean>
 // 优化的保存图表数据函数
 export async function saveGraphData(graph: Record<string, unknown>): Promise<string | null> {
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
+    // 确保graph对象有必要的属性
+    const title = graph.title as string || 'Untitled Graph';
+    const nodes = graph.nodes as Record<string, unknown>[] || [];
+    const links = graph.links as Record<string, unknown>[] || [];
+    const userId = graph.userId as string || 'anonymous';
+    const isTemplate = graph.isTemplate as boolean || false;
 
-    // 使用优化的插入
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      // 确保graph对象有必要的属性
-      const title = graph.title as string || 'Untitled Graph';
-      const nodes = graph.nodes as Record<string, unknown>[] || [];
-      const links = graph.links as Record<string, unknown>[] || [];
-      const userId = graph.userId as string || 'anonymous';
-      const isTemplate = graph.isTemplate as boolean || false;
+    // 直接使用supabase客户端
+    const response = await supabase.from('user_graphs')
+      .insert({
+        title,
+        graph_data: {
+          nodes,
+          links,
+        },
+        user_id: userId,
+        is_template: isTemplate,
+      })
+      .select('id')
+      .single();
 
-      // 使用类型断言为SupabaseClient
-      const response = await (dbClient as SupabaseClient).from('user_graphs')
-        .insert({
-          title,
-          graph_data: {
-            nodes,
-            links,
-          },
-          user_id: userId,
-          is_template: isTemplate,
-        })
-        .select('id')
-        .single();
-
-      return response;
-    }, CACHE_TTL.userGraphs);
-
-    // 直接从result获取data，不需要再次解构
-    const savedGraph = result?.data;
-
-    // 清除用户图表缓存
-    cache.invalidatePattern(`user:graphs:${graph.userId || 'anonymous'}`);
+    const { data: savedGraph, error } = response;
+    if (error) {
+      throw error;
+    }
 
     return savedGraph?.id || null;
   } catch (err) {
@@ -952,29 +633,17 @@ export async function getUserGraphs(authorId: string): Promise<Graph[]> {
     return [];
   }
 
-  // 生成缓存键
-  const cacheKey = `user:graphs:${authorId}`;
-
-  // 尝试从缓存获取
-  const cachedGraphs = cache.get<Graph[]>(cacheKey);
-  if (cachedGraphs) {
-    console.log('Cache hit for user graphs:', authorId);
-    return cachedGraphs;
-  }
-
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
+    // 直接使用supabase客户端
+    const result = await supabase.from('user_graphs')
+      .select('*')
+      .eq('author_id', authorId)
+      .order('updated_at', { ascending: false });
 
-    // 使用优化的查询
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      return await (dbClient as SupabaseClient).from('user_graphs')
-        .select('*')
-        .eq('author_id', authorId)
-        .order('updated_at', { ascending: false });
-    }, CACHE_TTL.userGraphs);
-
-    const { data: graphs } = result || {};
+    const { data: graphs, error } = result;
+    if (error) {
+      throw error;
+    }
 
     // 处理返回的数据
     const processedGraphs = (graphs || []).map((graph) => ({
@@ -982,9 +651,6 @@ export async function getUserGraphs(authorId: string): Promise<Graph[]> {
       nodes: graph.nodes || [],
       links: graph.links || [],
     }) as Graph);
-
-    // 缓存结果
-    cache.set<Graph[]>(cacheKey, processedGraphs as Graph[]);
 
     return processedGraphs;
   } catch (err) {
@@ -996,32 +662,17 @@ export async function getUserGraphs(authorId: string): Promise<Graph[]> {
 
 // 优化的按ID获取图表函数
 export async function fetchGraphById(graphId: string): Promise<Graph | null> {
-  // 生成缓存键
-  const cacheKey = `graph:id:${graphId}`;
-
-  // 尝试从缓存获取
-  const cachedGraph = cache.get<Graph>(cacheKey);
-  if (cachedGraph) {
-    console.log('Cache hit for graph ID:', graphId);
-    return cachedGraph;
-  }
-
   try {
-    // 使用优化的查询
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      // 添加类型断言解决supabase查询的类型问题
-
-      // 使用类型断言为SupabaseClient
-      return await (supabase as SupabaseClient).from('user_graphs')
-        .select('*')
-        .eq('id', graphId)
-        .single();
-    }, CACHE_TTL.userGraphs);
+    // 直接使用supabase客户端
+    const result = await supabase.from('user_graphs')
+      .select('*')
+      .eq('id', graphId)
+      .single();
 
     // 安全地解构数据
-    const { data: graph } = result || {};
+    const { data: graph, error } = result;
 
-    if (!graph) {
+    if (error || !graph) {
       return null;
     }
 
@@ -1031,9 +682,6 @@ export async function fetchGraphById(graphId: string): Promise<Graph | null> {
       nodes: graph.graph_data?.nodes || [],
       links: graph.graph_data?.links || [],
     };
-
-    // 缓存结果
-    cache.set(cacheKey, processedGraph);
 
     return processedGraph as Graph;
   } catch (err) {
@@ -1046,24 +694,12 @@ export async function fetchGraphById(graphId: string): Promise<Graph | null> {
 // 优化的删除图表函数
 export async function deleteGraph(graphId: string): Promise<boolean> {
   try {
-    // 获取图表信息以确定用户ID（用于缓存失效）
-    const graph = await fetchGraphById(graphId);
+    // 直接使用supabase客户端删除
+    const result = await supabase.from('user_graphs').delete().eq('id', graphId);
+    const { error } = result;
 
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
-
-    // 使用优化的删除
-    await queryOptimizer.executeWithRetry(async () => {
-      // 添加类型断言解决supabase查询的类型问题
-
-      // 使用类型断言为SupabaseClient
-      return await (dbClient as SupabaseClient).from('user_graphs').delete().eq('id', graphId);
-    }, CACHE_TTL.userGraphs);
-
-    // 清除相关缓存
-    cache.invalidate(`graph:id:${graphId}`);
-    if (graph?.author_id) {
-      cache.invalidatePattern(`user:graphs:${graph.author_id}`);
+    if (error) {
+      throw error;
     }
 
     return true;
@@ -1076,23 +712,18 @@ export async function deleteGraph(graphId: string): Promise<boolean> {
 // 获取模板列表
 export async function getTemplates(): Promise<Record<string, unknown>[]> {
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
-
-    // 使用优化的查询
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      // 添加类型断言解决supabase查询的类型问题
-
-      // 使用类型断言为SupabaseClient
-      return await (dbClient as SupabaseClient).from('user_graphs')
-        .select('*')
-        .eq('is_template', true)
-        .eq('visibility', 'public')
-        .order('created_at', { ascending: false });
-    }, CACHE_TTL.userGraphs);
+    // 直接使用supabase客户端
+    const result = await supabase.from('user_graphs')
+      .select('*')
+      .eq('is_template', true)
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false });
 
     // 安全地解构数据
-    const { data: templates } = result || {};
+    const { data: templates, error } = result;
+    if (error) {
+      throw error;
+    }
 
     return templates || [];
   } catch (err) {
@@ -1104,24 +735,19 @@ export async function getTemplates(): Promise<Record<string, unknown>[]> {
 // 获取公共图表列表
 export async function getPublicGraphs(limit = 20, offset = 0): Promise<Record<string, unknown>[]> {
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
-
-    // 使用优化的查询
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      // 添加类型断言解决supabase查询的类型问题
-
-      // 使用类型断言为SupabaseClient
-      return await (dbClient as SupabaseClient).from('user_graphs')
-        .select('*')
-        .eq('visibility', 'public')
-        .eq('is_template', false)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
-    }, CACHE_TTL.userGraphs);
+    // 直接使用supabase客户端
+    const result = await supabase.from('user_graphs')
+      .select('*')
+      .eq('visibility', 'public')
+      .eq('is_template', false)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
     // 安全地解构数据
-    const { data: graphs } = result || {};
+    const { data: graphs, error } = result;
+    if (error) {
+      throw error;
+    }
 
     return graphs || [];
   } catch (err) {
@@ -1136,59 +762,25 @@ export async function searchArticles(
   limit = 10,
   offset = 0,
 ): Promise<Article[]> {
-  // 生成缓存键
-  const cacheKey = `articles:search:${query.toLowerCase()}:${limit}:${offset}`;
-
-  // 尝试从缓存获取
-  const cachedResults = cache.get<Article[]>(cacheKey);
-  if (cachedResults) {
-    console.log('Cache hit for article search:', query);
-    return cachedResults;
-  }
-
   try {
-    // 使用连接池管理数据库连接
-    const dbClient = await connectionManager.getClient();
+    // 直接使用supabase客户端
+    const searchResult = await supabase.from('articles')
+      .select('*')
+      .textSearch('title', query, { config: 'english' })
+      .limit(limit)
+      .range(offset, offset + limit - 1)
+      .order('updated_at', { ascending: false });
 
-    // 确保dbClient已初始化，否则使用空结果
-    if (!dbClient) {
-      return [];
+    const { data: articles, error } = searchResult;
+    if (error) {
+      throw error;
     }
-
-    // 使用优化的查询
-    const result = await queryOptimizer.executeWithRetry(async () => {
-      // 使用类型断言为SupabaseClient并获取articles表
-      const typedClient = dbClient as SupabaseClient;
-      // 对textSearch方法添加类型断言，因为它可能不在标准类型定义中
-
-      // 使用类型断言处理textSearch扩展方法
-      const searchResult = await typedClient.from('articles')
-        .select('*')
-        .textSearch('title', query, { config: 'english' })
-        .limit(limit)
-        .range(offset, offset + limit - 1)
-        .order('updated_at', { ascending: false });
-      return searchResult;
-    }, CACHE_TTL.articles);
-
-    const { data: articles } = result || { data: [] };
-
-    // 缓存结果，设置较短的过期时间（搜索结果可能变化较快）
-    cache.set<Article[]>(cacheKey, (articles || []) as Article[]);
 
     return (articles || []) as Article[];
   } catch (err) {
     console.error('Error in searchArticles:', err);
-    // 回退到模拟数据
-    const normalizedQuery = query.toLowerCase();
-    const filteredArticles = mockArticles.filter(article =>
-      (article.title || '').toLowerCase().includes(normalizedQuery) ||
-      (article.content || '').toLowerCase().includes(normalizedQuery),
-    );
-
-    return [...filteredArticles].sort(
-      (a, b) => new Date(b.created_at || new Date()).getTime() - new Date(a.created_at || new Date()).getTime(),
-    ).slice(offset, offset + limit);
+    // 返回空数组，不再使用模拟数据
+    return [];
   }
 }
 

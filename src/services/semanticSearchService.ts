@@ -1,6 +1,5 @@
 import type { Article, Comment } from '../types';
 import { BaseService } from './baseService';
-import { CACHE_TTL } from '../utils/db-optimization';
 
 // 实体类型定义
 export type EntityType = 'concept' | 'article' | 'resource' | 'person' | 'organization' | 'location';
@@ -40,7 +39,7 @@ export interface SemanticVector {
  */
 export class SemanticSearchService extends BaseService {
   private static instance: SemanticSearchService;
-  private readonly CACHE_PREFIX = 'semantic_search';
+
   private readonly VECTOR_DIMENSION = 384; // 默认向量维度，可根据模型调整
 
   private constructor() {
@@ -167,106 +166,102 @@ export class SemanticSearchService extends BaseService {
    * @returns 语义搜索结果数组
    */
   async semanticSearch(query: string, limit = 20): Promise<SemanticSearchResult[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:${query}:${limit}`;
-
-    return this.queryWithCache<SemanticSearchResult[]>(cacheKey, CACHE_TTL.searchResults, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        // 1. 实体识别
-        const entities = this.recognizeEntities(query);
-        
-        // 2. 提取概念
-        const queryConcepts = this.extractConcepts(query);
-        
-        // 3. 生成查询向量
-        const queryVector = this.generateTextVector(query);
-        
-        // 4. 获取所有相关内容的向量
-        // 这里简化处理，直接获取文章和概念数据，然后计算相似度
-        const results: SemanticSearchResult[] = [];
-        
-        // 搜索文章
-        const { data: articles } = await this.supabase
-          .from('articles')
-          .select('*')
-          .eq('visibility', 'public')
-          .limit(100); // 先获取较多结果，再进行语义排序
-        
-        if (articles) {
-          articles.forEach(article => {
-            // 生成文章向量
-            const articleVector = this.generateTextVector(`${article.title} ${article.content}`);
-            // 计算相似度
-            const semanticScore = this.calculateCosineSimilarity(queryVector, articleVector);
-            
-            if (semanticScore > 0.1) { // 设置阈值过滤不相关结果
-              results.push({
-                id: article.id,
-                title: article.title,
-                content: article.content,
-                type: 'article',
-                semantic_score: semanticScore,
-                search_rank: Math.round(semanticScore * 100),
-                entity_matches: entities,
-                matched_concepts: queryConcepts.filter(concept => 
-                  article.content.toLowerCase().includes(concept) || 
-                  article.title.toLowerCase().includes(concept)
-                ),
-              });
-            }
-          });
-        }
-        
-        // 搜索概念节点
-        const { data: concepts } = await this.supabase
-          .from('graph_nodes')
-          .select('*')
-          .eq('type', 'concept')
-          .limit(100);
-        
-        if (concepts) {
-          concepts.forEach(concept => {
-            // 生成概念向量
-            const conceptVector = this.generateTextVector(`${concept.title} ${concept.description || ''}`);
-            // 计算相似度
-            const semanticScore = this.calculateCosineSimilarity(queryVector, conceptVector);
-            
-            if (semanticScore > 0.1) { // 设置阈值过滤不相关结果
-              results.push({
-                id: concept.id,
-                title: concept.title,
-                content: concept.description,
-                type: 'concept',
-                semantic_score: semanticScore,
-                search_rank: Math.round(semanticScore * 100),
-                entity_matches: entities,
-                matched_concepts: queryConcepts.filter(conceptTerm => 
-                  concept.title.toLowerCase().includes(conceptTerm) || 
-                  (concept.description && concept.description.toLowerCase().includes(conceptTerm))
-                ),
-              });
-            }
-          });
-        }
-        
-        // 5. 排序结果：结合语义分数和搜索排名
-        results.sort((a, b) => {
-          // 优先按语义分数排序，其次按搜索排名
-          const scoreDiff = b.semantic_score - a.semantic_score;
-          if (Math.abs(scoreDiff) > 0.01) {
-            return scoreDiff;
+    try {
+      this.checkSupabaseClient();
+      
+      // 1. 实体识别
+      const entities = this.recognizeEntities(query);
+      
+      // 2. 提取概念
+      const queryConcepts = this.extractConcepts(query);
+      
+      // 3. 生成查询向量
+      const queryVector = this.generateTextVector(query);
+      
+      // 4. 获取所有相关内容的向量
+      // 这里简化处理，直接获取文章和概念数据，然后计算相似度
+      const results: SemanticSearchResult[] = [];
+      
+      // 搜索文章
+      const { data: articles } = await this.supabase
+        .from('articles')
+        .select('*')
+        .eq('visibility', 'public')
+        .limit(100); // 先获取较多结果，再进行语义排序
+      
+      if (articles) {
+        articles.forEach(article => {
+          // 生成文章向量
+          const articleVector = this.generateTextVector(`${article.title} ${article.content}`);
+          // 计算相似度
+          const semanticScore = this.calculateCosineSimilarity(queryVector, articleVector);
+          
+          if (semanticScore > 0.1) { // 设置阈值过滤不相关结果
+            results.push({
+              id: article.id,
+              title: article.title,
+              content: article.content,
+              type: 'article',
+              semantic_score: semanticScore,
+              search_rank: Math.round(semanticScore * 100),
+              entity_matches: entities,
+              matched_concepts: queryConcepts.filter(concept => 
+                article.content.toLowerCase().includes(concept) || 
+                article.title.toLowerCase().includes(concept)
+              ),
+            });
           }
-          return (b.search_rank || 0) - (a.search_rank || 0);
         });
-        
-        // 6. 限制结果数量
-        return results.slice(0, limit);
-      } catch (error) {
-        console.error('Failed to perform semantic search:', error);
-        return [];
       }
-    });
+      
+      // 搜索概念节点
+      const { data: concepts } = await this.supabase
+        .from('graph_nodes')
+        .select('*')
+        .eq('type', 'concept')
+        .limit(100);
+      
+      if (concepts) {
+        concepts.forEach(concept => {
+          // 生成概念向量
+          const conceptVector = this.generateTextVector(`${concept.title} ${concept.description || ''}`);
+          // 计算相似度
+          const semanticScore = this.calculateCosineSimilarity(queryVector, conceptVector);
+          
+          if (semanticScore > 0.1) { // 设置阈值过滤不相关结果
+            results.push({
+              id: concept.id,
+              title: concept.title,
+              content: concept.description,
+              type: 'concept',
+              semantic_score: semanticScore,
+              search_rank: Math.round(semanticScore * 100),
+              entity_matches: entities,
+              matched_concepts: queryConcepts.filter(conceptTerm => 
+                concept.title.toLowerCase().includes(conceptTerm) || 
+                (concept.description && concept.description.toLowerCase().includes(conceptTerm))
+              ),
+            });
+          }
+        });
+      }
+      
+      // 5. 排序结果：结合语义分数和搜索排名
+      results.sort((a, b) => {
+        // 优先按语义分数排序，其次按搜索排名
+        const scoreDiff = b.semantic_score - a.semantic_score;
+        if (Math.abs(scoreDiff) > 0.01) {
+          return scoreDiff;
+        }
+        return (b.search_rank || 0) - (a.search_rank || 0);
+      });
+      
+      // 6. 限制结果数量
+      return results.slice(0, limit);
+    } catch (error) {
+      console.error('Failed to perform semantic search:', error);
+      return [];
+    }
   }
 
   /**
@@ -279,69 +274,65 @@ export class SemanticSearchService extends BaseService {
     traditionalResults: ((Article | Comment) & { search_rank: number })[],
     query: string
   ): Promise<SemanticSearchResult[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:enhance:${query}:${traditionalResults.length}`;
-
-    return this.queryWithCache<SemanticSearchResult[]>(cacheKey, CACHE_TTL.searchResults, async () => {
-      try {
-        // 生成查询向量
-        const queryVector = this.generateTextVector(query);
+    try {
+      // 生成查询向量
+      const queryVector = this.generateTextVector(query);
+      
+      // 实体识别
+      const entities = this.recognizeEntities(query);
+      
+      // 提取概念
+      const queryConcepts = this.extractConcepts(query);
+      
+      // 增强每个结果
+      const enhancedResults: SemanticSearchResult[] = traditionalResults.map(result => {
+        // 确定结果类型
+        const type: 'article' | 'comment' = 'content' in result ? 'article' : 'comment';
         
-        // 实体识别
-        const entities = this.recognizeEntities(query);
+        // 生成结果向量
+        const articleResult = result as Article & { search_rank: number };
+        const resultText = type === 'article' 
+          ? `${articleResult.title} ${articleResult.content}`
+          : result.content;
+        const resultVector = this.generateTextVector(resultText);
         
-        // 提取概念
-        const queryConcepts = this.extractConcepts(query);
+        // 计算语义相似度
+        const semanticScore = this.calculateCosineSimilarity(queryVector, resultVector);
         
-        // 增强每个结果
-        const enhancedResults: SemanticSearchResult[] = traditionalResults.map(result => {
-          // 确定结果类型
-          const type: 'article' | 'comment' = 'content' in result ? 'article' : 'comment';
-          
-          // 生成结果向量
-          const articleResult = result as Article & { search_rank: number };
-          const resultText = type === 'article' 
-            ? `${articleResult.title} ${articleResult.content}`
-            : result.content;
-          const resultVector = this.generateTextVector(resultText);
-          
-          // 计算语义相似度
-          const semanticScore = this.calculateCosineSimilarity(queryVector, resultVector);
-          
-          // 找出匹配的概念
-          const matchedConcepts = queryConcepts.filter(concept => 
-            resultText.toLowerCase().includes(concept)
-          );
-          
-          return {
-            id: result.id,
-            title: type === 'article' ? articleResult.title : '评论',
-            content: result.content,
-            type,
-            semantic_score: semanticScore,
-            search_rank: result.search_rank,
-            entity_matches: entities,
-            matched_concepts: matchedConcepts,
-          };
-        });
+        // 找出匹配的概念
+        const matchedConcepts = queryConcepts.filter(concept => 
+          resultText.toLowerCase().includes(concept)
+        );
         
-        // 按语义分数重新排序
-        return enhancedResults.sort((a, b) => b.semantic_score - a.semantic_score);
-      } catch (error) {
-        console.error('Failed to enhance search results:', error);
-        // 增强失败时返回原始结果的转换形式
-        return traditionalResults.map(result => {
-          const articleResult = result as Article & { search_rank: number };
-          return {
-            id: result.id,
-            title: 'content' in result ? articleResult.title : '评论',
-            content: result.content,
-            type: 'content' in result ? 'article' : 'comment',
-            semantic_score: 0,
-            search_rank: result.search_rank,
-          };
-        });
-      }
-    });
+        return {
+          id: result.id,
+          title: type === 'article' ? articleResult.title : '评论',
+          content: result.content,
+          type,
+          semantic_score: semanticScore,
+          search_rank: result.search_rank,
+          entity_matches: entities,
+          matched_concepts: matchedConcepts,
+        };
+      });
+      
+      // 按语义分数重新排序
+      return enhancedResults.sort((a, b) => b.semantic_score - a.semantic_score);
+    } catch (error) {
+      console.error('Failed to enhance search results:', error);
+      // 增强失败时返回原始结果的转换形式
+      return traditionalResults.map(result => {
+        const articleResult = result as Article & { search_rank: number };
+        return {
+          id: result.id,
+          title: 'content' in result ? articleResult.title : '评论',
+          content: result.content,
+          type: 'content' in result ? 'article' : 'comment',
+          semantic_score: 0,
+          search_rank: result.search_rank,
+        };
+      });
+    }
   }
 
   /**
@@ -356,111 +347,100 @@ export class SemanticSearchService extends BaseService {
     contentType: 'article' | 'comment' | 'concept',
     limit = 5
   ): Promise<SemanticSearchResult[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:similar:${contentType}:${contentId}:${limit}`;
-
-    return this.queryWithCache<SemanticSearchResult[]>(cacheKey, CACHE_TTL.searchResults, async () => {
-      try {
-        this.checkSupabaseClient();
-        
-        let contentText = '';
-        
-        // 获取源内容
-        if (contentType === 'article') {
-          const { data: article } = await this.supabase
-            .from('articles')
-            .select('title, content')
-            .eq('id', contentId)
-            .single();
-          if (article) {
-            contentText = `${article.title} ${article.content}`;
-          }
-        } else if (contentType === 'concept') {
-          const { data: concept } = await this.supabase
-            .from('graph_nodes')
-            .select('title, description')
-            .eq('id', contentId)
-            .single();
-          if (concept) {
-            contentText = `${concept.title} ${concept.description || ''}`;
-          }
-        }
-        
-        if (!contentText) {
-          return [];
-        }
-        
-        // 生成源内容向量
-        const sourceVector = this.generateTextVector(contentText);
-        
-        // 获取所有可能的相似内容
-        const results: SemanticSearchResult[] = [];
-        
-        // 搜索文章
-        const { data: articles } = await this.supabase
+    try {
+      this.checkSupabaseClient();
+      
+      let contentText = '';
+      
+      // 获取源内容
+      if (contentType === 'article') {
+        const { data: article } = await this.supabase
           .from('articles')
-          .select('*')
-          .eq('visibility', 'public')
-          .neq('id', contentId)
-          .limit(100);
-        
-        if (articles) {
-          articles.forEach(article => {
-            const articleVector = this.generateTextVector(`${article.title} ${article.content}`);
-            const similarity = this.calculateCosineSimilarity(sourceVector, articleVector);
-            
-            if (similarity > 0.3) { // 设置较高阈值
-              results.push({
-                id: article.id,
-                title: article.title,
-                content: article.content,
-                type: 'article',
-                semantic_score: similarity,
-              });
-            }
-          });
+          .select('title, content')
+          .eq('id', contentId)
+          .single();
+        if (article) {
+          contentText = `${article.title} ${article.content}`;
         }
-        
-        // 搜索概念
-        const { data: concepts } = await this.supabase
+      } else if (contentType === 'concept') {
+        const { data: concept } = await this.supabase
           .from('graph_nodes')
-          .select('*')
-          .eq('type', 'concept')
-          .neq('id', contentId)
-          .limit(100);
-        
-        if (concepts) {
-          concepts.forEach(concept => {
-            const conceptVector = this.generateTextVector(`${concept.title} ${concept.description || ''}`);
-            const similarity = this.calculateCosineSimilarity(sourceVector, conceptVector);
-            
-            if (similarity > 0.3) { // 设置较高阈值
-              results.push({
-                id: concept.id,
-                title: concept.title,
-                content: concept.description,
-                type: 'concept',
-                semantic_score: similarity,
-              });
-            }
-          });
+          .select('title, description')
+          .eq('id', contentId)
+          .single();
+        if (concept) {
+          contentText = `${concept.title} ${concept.description || ''}`;
         }
-        
-        // 排序并限制结果
-        return results
-          .sort((a, b) => b.semantic_score - a.semantic_score)
-          .slice(0, limit);
-      } catch (error) {
-        console.error('Failed to get similar content:', error);
+      }
+      
+      if (!contentText) {
         return [];
       }
-    });
-  }
-
-  /**
-   * 清理语义搜索相关缓存
-   */
-  clearSemanticSearchCache(): void {
-    this.invalidateCache(`${this.CACHE_PREFIX}:*`);
+      
+      // 生成源内容向量
+      const sourceVector = this.generateTextVector(contentText);
+      
+      // 获取所有可能的相似内容
+      const results: SemanticSearchResult[] = [];
+      
+      // 搜索文章
+      const { data: articles } = await this.supabase
+        .from('articles')
+        .select('*')
+        .eq('visibility', 'public')
+        .neq('id', contentId)
+        .limit(100);
+      
+      if (articles) {
+        articles.forEach(article => {
+          const articleVector = this.generateTextVector(`${article.title} ${article.content}`);
+          const similarity = this.calculateCosineSimilarity(sourceVector, articleVector);
+          
+          if (similarity > 0.3) { // 设置较高阈值
+            results.push({
+              id: article.id,
+              title: article.title,
+              content: article.content,
+              type: 'article',
+              semantic_score: similarity,
+            });
+          }
+        });
+      }
+      
+      // 搜索概念
+      const { data: concepts } = await this.supabase
+        .from('graph_nodes')
+        .select('*')
+        .eq('type', 'concept')
+        .neq('id', contentId)
+        .limit(100);
+      
+      if (concepts) {
+        concepts.forEach(concept => {
+          const conceptVector = this.generateTextVector(`${concept.title} ${concept.description || ''}`);
+          const similarity = this.calculateCosineSimilarity(sourceVector, conceptVector);
+          
+          if (similarity > 0.3) { // 设置较高阈值
+            results.push({
+              id: concept.id,
+              title: concept.title,
+              content: concept.description,
+              type: 'concept',
+              semantic_score: similarity,
+            });
+          }
+        });
+      }
+      
+      // 排序并限制结果
+      return results
+        .sort((a, b) => b.semantic_score - a.semantic_score)
+        .slice(0, limit);
+    } catch (error) {
+      console.error('Failed to get similar content:', error);
+      return [];
+    }
   }
 }
 

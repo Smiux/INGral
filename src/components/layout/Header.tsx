@@ -1,15 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Menu, BookOpen, Users, Brain, Plus } from 'lucide-react';
+import { Search, BookOpen, Users, Brain, Plus } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 // KeyboardShortcuts组件不存在，已移除
 // import { KeyboardShortcuts } from './keyboard/KeyboardShortcuts';
 
-interface HeaderProps {
-  onMobileMenuOpen?: () => void;
-}
-
-export function Header({ onMobileMenuOpen }: HeaderProps) {
+export function Header() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -96,19 +92,8 @@ export function Header({ onMobileMenuOpen }: HeaderProps) {
             <div className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30 p-1 rounded-full">
               <ThemeToggle />
             </div>
-
-            <button
-              onClick={onMobileMenuOpen}
-              className="md:hidden text-white hover:text-white/80 p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30 rounded-full"
-              aria-label="打开侧边菜单"
-              tabIndex={0}
-            >
-              <Menu className="w-6 h-6" />
-            </button>
           </div>
         </div>
-
-
       </div>
     </header>
   );

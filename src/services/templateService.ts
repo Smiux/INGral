@@ -4,7 +4,6 @@
  */
 import { BaseService } from './baseService';
 import type { ContentTemplate, TemplateCategory, CreateTemplateRequest, UpdateTemplateRequest } from '../types/template';
-import { CACHE_TTL } from '../utils/db-optimization';
 
 // 预设模板分类
 const PRESET_CATEGORIES: Omit<TemplateCategory, 'id' | 'created_at' | 'updated_at'>[] = [
@@ -156,7 +155,7 @@ console.log('Hello, World!');
 
 export class TemplateService extends BaseService {
   private static instance: TemplateService;
-  private readonly CACHE_PREFIX = 'template';
+
 
   private constructor() {
     super();
@@ -221,85 +220,73 @@ export class TemplateService extends BaseService {
    * 获取模板分类列表
    */
   async getTemplateCategories(): Promise<TemplateCategory[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:categories`;
+    try {
+      this.checkSupabaseClient();
+      const { data, error } = await this.supabase
+        .from('template_categories')
+        .select('*')
+        .order('name');
 
-    return this.queryWithCache<TemplateCategory[]>(cacheKey, CACHE_TTL.articles, async () => {
-      try {
-        this.checkSupabaseClient();
-        const { data, error } = await this.supabase
-          .from('template_categories')
-          .select('*')
-          .order('name');
-
-        if (error) {
-          this.handleError(error, '获取模板分类', 'TemplateService');
-          return [];
-        }
-
-        return data || [];
-      } catch (error) {
-        console.error('Failed to get template categories:', error);
+      if (error) {
+        this.handleError(error, '获取模板分类', 'TemplateService');
         return [];
       }
-    });
+
+      return data || [];
+    } catch (error) {
+      console.error('Failed to get template categories:', error);
+      return [];
+    }
   }
 
   /**
    * 获取模板列表
    */
   async getTemplates(categoryId?: string): Promise<ContentTemplate[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:list:${categoryId || 'all'}`;
+    try {
+      this.checkSupabaseClient();
+      let query = this.supabase.from('templates').select('*').order('created_at', { ascending: false });
 
-    return this.queryWithCache<ContentTemplate[]>(cacheKey, CACHE_TTL.articles, async () => {
-      try {
-        this.checkSupabaseClient();
-        let query = this.supabase.from('templates').select('*').order('created_at', { ascending: false });
+      if (categoryId) {
+        query = query.eq('category_id', categoryId);
+      }
 
-        if (categoryId) {
-          query = query.eq('category_id', categoryId);
-        }
+      const { data, error } = await query;
 
-        const { data, error } = await query;
-
-        if (error) {
-          this.handleError(error, '获取模板列表', 'TemplateService');
-          return [];
-        }
-
-        return data || [];
-      } catch (error) {
-        console.error('Failed to get templates:', error);
+      if (error) {
+        this.handleError(error, '获取模板列表', 'TemplateService');
         return [];
       }
-    });
+
+      return data || [];
+    } catch (error) {
+      console.error('Failed to get templates:', error);
+      return [];
+    }
   }
 
   /**
    * 获取单个模板
    */
   async getTemplateById(id: string): Promise<ContentTemplate | null> {
-    const cacheKey = `${this.CACHE_PREFIX}:${id}`;
+    try {
+      this.checkSupabaseClient();
+      const { data, error } = await this.supabase
+        .from('templates')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-    return this.queryWithCache<ContentTemplate | null>(cacheKey, CACHE_TTL.articles, async () => {
-      try {
-        this.checkSupabaseClient();
-        const { data, error } = await this.supabase
-          .from('templates')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (error) {
-          this.handleError(error, '获取模板详情', 'TemplateService');
-          return null;
-        }
-
-        return data;
-      } catch (error) {
-        console.error(`Failed to get template with id ${id}:`, error);
+      if (error) {
+        this.handleError(error, '获取模板详情', 'TemplateService');
         return null;
       }
-    });
+
+      return data;
+    } catch (error) {
+      console.error(`Failed to get template with id ${id}:`, error);
+      return null;
+    }
   }
 
   /**
@@ -324,9 +311,6 @@ export class TemplateService extends BaseService {
         this.handleError(error, '创建模板', 'TemplateService');
         return null;
       }
-
-      // 清除相关缓存
-      this.invalidateCache(`${this.CACHE_PREFIX}:*`);
 
       return data;
     } catch (error) {
@@ -357,9 +341,6 @@ export class TemplateService extends BaseService {
         return null;
       }
 
-      // 清除相关缓存
-      this.invalidateCache(`${this.CACHE_PREFIX}:*`);
-
       return data;
     } catch (error) {
       console.error(`Failed to update template with id ${id}:`, error);
@@ -383,9 +364,6 @@ export class TemplateService extends BaseService {
         return false;
       }
 
-      // 清除相关缓存
-      this.invalidateCache(`${this.CACHE_PREFIX}:*`);
-
       return true;
     } catch (error) {
       console.error(`Failed to delete template with id ${id}:`, error);
@@ -397,29 +375,25 @@ export class TemplateService extends BaseService {
    * 搜索模板
    */
   async searchTemplates(query: string): Promise<ContentTemplate[]> {
-    const cacheKey = `${this.CACHE_PREFIX}:search:${query}`;
+    try {
+      this.checkSupabaseClient();
+      const { data, error } = await this.supabase
+        .from('templates')
+        .select('*')
+        .ilike('name', `%${query}%`)
+        .or(`ilike(description, '%${query}%')`)
+        .order('created_at', { ascending: false });
 
-    return this.queryWithCache<ContentTemplate[]>(cacheKey, CACHE_TTL.articles, async () => {
-      try {
-        this.checkSupabaseClient();
-        const { data, error } = await this.supabase
-          .from('templates')
-          .select('*')
-          .ilike('name', `%${query}%`)
-          .or(`ilike(description, '%${query}%')`)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          this.handleError(error, '搜索模板', 'TemplateService');
-          return [];
-        }
-
-        return data || [];
-      } catch (error) {
-        console.error(`Failed to search templates with query '${query}':`, error);
+      if (error) {
+        this.handleError(error, '搜索模板', 'TemplateService');
         return [];
       }
-    });
+
+      return data || [];
+    } catch (error) {
+      console.error(`Failed to search templates with query '${query}':`, error);
+      return [];
+    }
   }
 }
 

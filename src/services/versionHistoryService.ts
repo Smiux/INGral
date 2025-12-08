@@ -17,7 +17,6 @@ import { BaseService } from './baseService';
  */
 export class VersionHistoryService extends BaseService {
   private readonly VERSIONS_TABLE = 'article_versions';
-  private readonly CACHE_PREFIX = 'version';
 
   /**
    * 获取文章版本列表
@@ -26,53 +25,46 @@ export class VersionHistoryService extends BaseService {
    */
   async getArticleVersions(params: GetArticleVersionsParams): Promise<VersionHistoryResult> {
     const { articleId, page = 1, limit = 20 } = params;
-    const cacheKey = `${this.CACHE_PREFIX}:article:${articleId}:${page}:${limit}`;
 
-    return this.queryWithCache<VersionHistoryResult>(cacheKey, 5 * 60 * 1000, async () => {
-      try {
-        // 计算偏移量
-        const offset = (page - 1) * limit;
-        
-        // 获取版本总数
-        const countResult = await this.executeWithRetry(async () => {
-          return this.supabase
-            .from(this.VERSIONS_TABLE)
-            .select('*', { count: 'exact', head: true })
-            .eq('article_id', articleId);
-        }, 5 * 60 * 1000);
-        
-        const total = countResult.count || 0;
-        
-        // 获取版本列表
-        const versionsResult = await this.executeWithRetry(async () => {
-          return this.supabase
-            .from(this.VERSIONS_TABLE)
-            .select('*')
-            .eq('article_id', articleId)
-            .order('version_number', { ascending: false })
-            .range(offset, offset + limit - 1);
-        }, 5 * 60 * 1000);
-        
-        const versions = versionsResult.data || [];
-        
-        return {
-          versions,
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        };
-      } catch (error) {
-        this.handleError(error, '获取文章版本列表', 'VersionHistoryService');
-        return {
-          versions: [],
-          total: 0,
-          page,
-          limit,
-          totalPages: 0,
-        };
-      }
-    });
+    try {
+      // 计算偏移量
+      const offset = (page - 1) * limit;
+      
+      // 获取版本总数
+      const countResult = await this.supabase
+        .from(this.VERSIONS_TABLE)
+        .select('*', { count: 'exact', head: true })
+        .eq('article_id', articleId);
+      
+      const total = countResult.count || 0;
+      
+      // 获取版本列表
+      const versionsResult = await this.supabase
+        .from(this.VERSIONS_TABLE)
+        .select('*')
+        .eq('article_id', articleId)
+        .order('version_number', { ascending: false })
+        .range(offset, offset + limit - 1);
+      
+      const versions = versionsResult.data || [];
+      
+      return {
+        versions,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      this.handleError(error, '获取文章版本列表', 'VersionHistoryService');
+      return {
+        versions: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+      };
+    }
   }
 
   /**
@@ -81,24 +73,18 @@ export class VersionHistoryService extends BaseService {
    * @returns 文章版本
    */
   async getVersionById(versionId: string): Promise<ArticleVersion | null> {
-    const cacheKey = `${this.CACHE_PREFIX}:id:${versionId}`;
-
-    return this.queryWithCache<ArticleVersion | null>(cacheKey, 5 * 60 * 1000, async () => {
-      try {
-        const result = await this.executeWithRetry(async () => {
-          return this.supabase
-            .from(this.VERSIONS_TABLE)
-            .select('*')
-            .eq('id', versionId)
-            .single<ArticleVersion>();
-        }, 5 * 60 * 1000);
-        
-        return result.data;
-      } catch (error) {
-        this.handleError(error, '根据ID获取版本', 'VersionHistoryService');
-        return null;
-      }
-    });
+    try {
+      const result = await this.supabase
+        .from(this.VERSIONS_TABLE)
+        .select('*')
+        .eq('id', versionId)
+        .single<ArticleVersion>();
+      
+      return result.data;
+    } catch (error) {
+      this.handleError(error, '根据ID获取版本', 'VersionHistoryService');
+      return null;
+    }
   }
 
   /**
@@ -162,13 +148,11 @@ export class VersionHistoryService extends BaseService {
       }
       
       // 1. 首先获取当前文章内容，创建一个新的版本作为还原前的快照
-      const currentArticleResult = await this.executeWithRetry(async () => {
-        return this.supabase
-          .from('articles')
-          .select('*')
-          .eq('id', articleId)
-          .single();
-      }, 5 * 60 * 1000);
+      const currentArticleResult = await this.supabase
+        .from('articles')
+        .select('*')
+        .eq('id', articleId)
+        .single();
       
       const currentArticle = currentArticleResult.data;
       
@@ -177,36 +161,29 @@ export class VersionHistoryService extends BaseService {
       }
       
       // 创建还原前的快照版本
-      await this.executeWithRetry(async () => {
-        return this.supabase
-          .from(this.VERSIONS_TABLE)
-          .insert({
-            article_id: articleId,
-            version_number: (versionToRestore.version_number + 1),
-            title: currentArticle.title,
-            content: currentArticle.content,
-            metadata: currentArticle.metadata,
-            author_id: 'system',
-            change_summary: `还原前的快照 - ${restoreComment}`,
-            is_published: currentArticle.is_published,
-          });
-      }, 5 * 60 * 1000);
+      await this.supabase
+        .from(this.VERSIONS_TABLE)
+        .insert({
+          article_id: articleId,
+          version_number: (versionToRestore.version_number + 1),
+          title: currentArticle.title,
+          content: currentArticle.content,
+          metadata: currentArticle.metadata,
+          author_id: 'system',
+          change_summary: `还原前的快照 - ${restoreComment}`,
+          is_published: currentArticle.is_published,
+        });
       
       // 2. 还原版本到文章
-      await this.executeWithRetry(async () => {
-        return this.supabase
-          .from('articles')
-          .update({
-            title: versionToRestore.title,
-            content: versionToRestore.content,
-            metadata: versionToRestore.metadata,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', articleId);
-      }, 5 * 60 * 1000);
-      
-      // 清除相关缓存
-      this.invalidateCache(`${this.CACHE_PREFIX}:article:${articleId}:*`);
+      await this.supabase
+        .from('articles')
+        .update({
+          title: versionToRestore.title,
+          content: versionToRestore.content,
+          metadata: versionToRestore.metadata,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', articleId);
       
       return true;
     } catch (error) {
