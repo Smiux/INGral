@@ -23,7 +23,49 @@ type WorkerResponse = {
  * 图谱画布组件
  * @param props - 组件属性
  */
-export const GraphCanvas: React.FC<GraphCanvasProps> = ({
+// 自定义比较函数，用于React.memo
+const areEqual = (prevProps: GraphCanvasProps, nextProps: GraphCanvasProps) => {
+  // 比较节点数量和链接数量
+  if (prevProps.nodes.length !== nextProps.nodes.length ||
+      prevProps.links.length !== nextProps.links.length) {
+    return false;
+  }
+  
+  // 比较选中节点
+  if (prevProps.selectedNode?.id !== nextProps.selectedNode?.id ||
+      prevProps.selectedNodes.length !== nextProps.selectedNodes.length) {
+    return false;
+  }
+  
+  // 比较布局类型和方向
+  if (prevProps.layoutType !== nextProps.layoutType ||
+      prevProps.layoutDirection !== nextProps.layoutDirection) {
+    return false;
+  }
+  
+  // 比较节点和链接间距
+  if (prevProps.nodeSpacing !== nextProps.nodeSpacing ||
+      prevProps.levelSpacing !== nextProps.levelSpacing) {
+    return false;
+  }
+  
+  // 比较框选状态
+  if (prevProps.isBoxSelecting !== nextProps.isBoxSelecting) {
+    return false;
+  }
+  
+  // 比较主题颜色
+  if (prevProps.theme.node.fill !== nextProps.theme.node.fill ||
+      prevProps.theme.node.stroke !== nextProps.theme.node.stroke ||
+      prevProps.theme.link.stroke !== nextProps.theme.link.stroke) {
+    return false;
+  }
+  
+  // 其他props变化较少，可以跳过比较
+  return true;
+};
+
+export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
   nodes,
   links,
   isSimulationRunning,
@@ -136,11 +178,10 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
     // 执行节点聚合
     const {
       nodes: layoutNodes,
-      links: layoutLinks,
-      aggregated
+      links: layoutLinks
     } = shouldAggregate
       ? NodeAggregationUtils.aggregateNodes(nodes, links, 30, 3)
-      : { nodes, links, aggregated: false };
+      : { nodes, links };
     
     // 创建或更新SVG
     const svg = d3.select(svgRef.current || containerRef.current)
@@ -204,31 +245,30 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
         event.stopPropagation();
         onNodeClick(d, event as React.MouseEvent);
       })
-      .call(d3.drag<SVGGElement, EnhancedNode>()
-        .on('start', (event, d) => {
-          onNodeDragStart(d);
-          if (!event.active && simulationRef.current) {
-            simulationRef.current.alphaTarget(0.3).restart();
-          }
-          d.fx = d.x;
-          d.fy = d.y;
-        })
-        .on('drag', (event, d) => {
-          d.fx = event.x;
-          d.fy = event.y;
-          if (simulationRef.current) {
-            simulationRef.current.alpha(0.3);
-          }
-        })
-        .on('end', (event, d) => {
-          onNodeDragEnd(d);
-          if (!event.active && simulationRef.current) {
-            simulationRef.current.alphaTarget(0);
-          }
-          d.fx = null;
-          d.fy = null;
-        })
-      );
+      .call(d3.drag<SVGGElement, EnhancedNode>())
+      .on('start', (event, d) => {
+        onNodeDragStart(d);
+        if (!event.active && simulationRef.current) {
+          simulationRef.current.alphaTarget(0.3).restart();
+        }
+        d.fx = d.x;
+        d.fy = d.y;
+      })
+      .on('drag', (event, d) => {
+        d.fx = event.x;
+        d.fy = event.y;
+        if (simulationRef.current) {
+          simulationRef.current.alpha(0.3);
+        }
+      })
+      .on('end', (event, d) => {
+        onNodeDragEnd(d);
+        if (!event.active && simulationRef.current) {
+          simulationRef.current.alphaTarget(0);
+        }
+        d.fx = null;
+        d.fy = null;
+      });
 
     // 添加节点圆
     node.append('circle')
@@ -475,21 +515,6 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
       .attr('x2', (d) => (d.target as EnhancedNode).x || 0)
       .attr('y2', (d) => (d.target as EnhancedNode).y || 0);
 
-    // 添加展开/折叠指示器（如果节点被聚合）
-    if (aggregated) {
-      node.append('path')
-        .attr('d', 'M -15 -5 L -5 -5 L -10 5 Z')
-        .attr('fill', theme.node.textFill)
-        .attr('transform', 'translate(0, 0) rotate(0)')
-        .style('pointer-events', 'all')
-        .style('cursor', 'pointer')
-        .on('click', (event, d) => {
-          event.stopPropagation();
-          // 处理节点展开/折叠逻辑
-          console.log('Toggle node:', d.id);
-        });
-    }
-
     // 保存节点和链接引用，用于后续更新
     nodes.forEach(n => nodeRefs.current.set(n.id, n));
     links.forEach(l => linkRefs.current.set(l.id, l));
@@ -567,4 +592,4 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
       )}
     </div>
   );
-};
+}, areEqual);

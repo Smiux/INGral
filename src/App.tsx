@@ -5,7 +5,7 @@ import { Loader } from './components/ui/Loader';
 import { useGlobalKeyboardShortcuts } from './components/keyboard/keyboardUtils';
 import './styles/accessibility.css';
 import { screenReaderAnnouncer } from './utils/accessibility';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider } from './context';
 
 // 定义错误边界组件
 interface ErrorBoundaryProps {

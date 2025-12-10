@@ -340,7 +340,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
     });
     
     return result.sort((a, b) => b.value - a.value);
-  }, [nodes, links, getNodeNeighbors]);
+  }, [nodes, getNodeNeighbors]);
 
   // 计算特征向量中心性（简化版）
   const calculateEigenvectorCentrality = useCallback(() => {

@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { FontLoader, Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import type { EnhancedNode, EnhancedGraphLink } from './types';
 
 interface GraphCanvas3DProps {
@@ -18,7 +18,24 @@ interface GraphCanvas3DProps {
   selectedNodes: EnhancedNode[];
 }
 
-export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = ({
+// 自定义比较函数，用于React.memo
+const areEqual = (prevProps: GraphCanvas3DProps, nextProps: GraphCanvas3DProps) => {
+  // 比较节点数量和链接数量
+  if (prevProps.nodes.length !== nextProps.nodes.length ||
+      prevProps.links.length !== nextProps.links.length) {
+    return false;
+  }
+  
+  // 比较选中节点
+  if (prevProps.selectedNode?.id !== nextProps.selectedNode?.id ||
+      prevProps.selectedNodes.length !== nextProps.selectedNodes.length) {
+    return false;
+  }
+  
+  return true;
+};
+
+export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
   nodes,
   links,
   onNodeClick,
@@ -32,6 +49,8 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = ({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  // 使用object类型替代any，更安全的临时解决方案
+  const fontRef = useRef<Font | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // 初始化3D场景
@@ -91,7 +110,12 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = ({
     };
     window.addEventListener('resize', handleResize);
 
-    setIsLoading(false);
+    // 加载字体
+    const fontLoader = new FontLoader();
+    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+      fontRef.current = font;
+      setIsLoading(false);
+    });
 
     // 保存当前ref值到局部变量
     const currentRenderer = renderer;
@@ -117,161 +141,159 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = ({
 
   // 更新3D图谱内容
   useEffect(() => {
-    if (!sceneRef.current) return;
+    if (!sceneRef.current || !fontRef.current) return;
 
     const scene = sceneRef.current;
-    const fontLoader = new FontLoader();
+    const font = fontRef.current;
 
     // 清除现有对象
     scene.children = scene.children.filter(child => 
       child instanceof THREE.Light || child instanceof THREE.AmbientLight
     );
 
-    // 加载字体
-    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
-      // 创建节点几何体和材质
-      const nodeGeometry = new THREE.SphereGeometry(3, 32, 32);
+    // 创建节点几何体和材质
+    const nodeGeometry = new THREE.SphereGeometry(3, 32, 32);
 
-      // 创建节点
-      const nodeObjects: { node: EnhancedNode; mesh: THREE.Mesh; label: THREE.Mesh }[] = [];
+    // 创建节点
+    const nodeObjects: { node: EnhancedNode; mesh: THREE.Mesh; label: THREE.Mesh }[] = [];
+    
+    nodes.forEach((node, index) => {
+      // 检查节点是否被选中
+      const isSelected = selectedNode?.id === node.id || selectedNodes.some(n => n.id === node.id);
       
-      nodes.forEach((node, index) => {
-        // 检查节点是否被选中
-        const isSelected = selectedNode?.id === node.id || selectedNodes.some(n => n.id === node.id);
-        
-        // 创建节点材质
-        const nodeMaterial = new THREE.MeshStandardMaterial({
-          color: isSelected ? 0x3b82f6 : 0x1976d2,
-          emissive: isSelected ? 0x3b82f6 : 0x000000,
-          emissiveIntensity: isSelected ? 0.2 : 0
-        });
-        
-        const mesh = new THREE.Mesh(nodeGeometry, nodeMaterial);
-        
-        // 计算节点位置 - 使用力导向布局算法的简化版本
-        const angle = (index / nodes.length) * Math.PI * 2;
-        const radius = 30 + Math.sin(index) * 10;
-        mesh.position.set(
-          Math.cos(angle) * radius,
-          Math.sin(angle) * radius,
-          Math.sin(angle * 2) * 10
-        );
-        
-        // 添加点击事件
-        mesh.userData = { node };
-        
-        scene.add(mesh);
-        
-        // 创建节点标签
-        const textGeometry = new TextGeometry(node.title.substring(0, 8), {
-          font: font,
-          size: 1,
-          depth: 0.1,
-          curveSegments: 12,
-          bevelEnabled: false
-        });
-        
-        const textMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
-        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-        
-        // 定位标签
-        textMesh.position.set(
-          mesh.position.x,
-          mesh.position.y + 5,
-          mesh.position.z
-        );
-        
-        // 旋转标签使其始终面向相机
-        textMesh.lookAt(cameraRef.current!.position);
-        
-        scene.add(textMesh);
-        
-        nodeObjects.push({ node, mesh, label: textMesh });
+      // 创建节点材质
+      const nodeMaterial = new THREE.MeshStandardMaterial({
+        color: isSelected ? 0x3b82f6 : 0x1976d2,
+        emissive: isSelected ? 0x3b82f6 : 0x000000,
+        emissiveIntensity: isSelected ? 0.2 : 0
       });
-
-      // 创建链接
-      links.forEach(link => {
-        // 处理source
-        const sourceId = typeof link.source === 'object' && link.source.id ? link.source.id : link.source;
-        const sourceNode = nodes.find(n => n.id === String(sourceId));
-        
-        // 处理target
-        const targetId = typeof link.target === 'object' && link.target.id ? link.target.id : link.target;
-        const targetNode = nodes.find(n => n.id === String(targetId));
-        
-        if (sourceNode && targetNode) {
-          const sourceObject = nodeObjects.find(no => no.node.id === sourceNode.id);
-          const targetObject = nodeObjects.find(no => no.node.id === targetNode.id);
-          
-          if (sourceObject && targetObject) {
-            // 创建链接几何体
-            const linkGeometry = new THREE.BufferGeometry().setFromPoints([
-              sourceObject.mesh.position,
-              targetObject.mesh.position
-            ]);
-            
-            // 创建链接材质
-            const linkMaterial = new THREE.LineBasicMaterial({ 
-              color: 0x999999,
-              opacity: 0.6,
-              transparent: true
-            });
-            
-            const linkLine = new THREE.Line(linkGeometry, linkMaterial);
-            
-            // 添加点击事件
-            linkLine.userData = { link };
-            
-            scene.add(linkLine);
-          }
-        }
+      
+      const mesh = new THREE.Mesh(nodeGeometry, nodeMaterial);
+      
+      // 计算节点位置 - 使用力导向布局算法的简化版本
+      const angle = (index / nodes.length) * Math.PI * 2;
+      const radius = 30 + Math.sin(index) * 10;
+      mesh.position.set(
+        Math.cos(angle) * radius,
+        Math.sin(angle) * radius,
+        Math.sin(angle * 2) * 10
+      );
+      
+      // 添加点击事件
+      mesh.userData = { node };
+      
+      scene.add(mesh);
+      
+      // 创建节点标签
+      const textGeometry = new TextGeometry(node.title.substring(0, 8), {
+        font: font,
+        size: 1,
+        depth: 0.1,
+        curveSegments: 12,
+        bevelEnabled: false
       });
-
-      // 添加鼠标交互
-      const raycaster = new THREE.Raycaster();
-      const mouse = new THREE.Vector2();
       
-      const handleMouseClick = (event: MouseEvent) => {
-        if (!containerRef.current || !cameraRef.current) return;
-        
-        const rect = containerRef.current.getBoundingClientRect();
-        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        
-        raycaster.setFromCamera(mouse, cameraRef.current);
-        
-        // 检测节点点击
-        const nodeIntersections = raycaster.intersectObjects(nodeObjects.map(no => no.mesh));
-        if (nodeIntersections.length > 0) {
-          const intersection = nodeIntersections[0];
-          if (intersection?.object?.userData?.node) {
-            const clickedNode = intersection.object.userData.node;
-            onNodeClick(clickedNode);
-            return;
-          }
-        }
-        
-        // 检测链接点击
-        const linkObjects = scene.children.filter(child => 
-          child instanceof THREE.Line && child.userData && child.userData.link
-        );
-        const linkIntersections = raycaster.intersectObjects(linkObjects as THREE.Object3D[]);
-        if (linkIntersections.length > 0) {
-          const intersection = linkIntersections[0];
-          if (intersection?.object?.userData?.link) {
-            const clickedLink = intersection.object.userData.link;
-            onLinkClick(clickedLink);
-          }
-        }
-      };
+      const textMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
       
-      containerRef.current?.addEventListener('click', handleMouseClick);
+      // 定位标签
+      textMesh.position.set(
+        mesh.position.x,
+        mesh.position.y + 5,
+        mesh.position.z
+      );
       
-      // 清理事件监听
-      return () => {
-        containerRef.current?.removeEventListener('click', handleMouseClick);
-      };
+      // 旋转标签使其始终面向相机
+      textMesh.lookAt(cameraRef.current!.position);
+      
+      scene.add(textMesh);
+      
+      nodeObjects.push({ node, mesh, label: textMesh });
     });
+
+    // 创建链接
+    links.forEach(link => {
+      // 处理source
+      const sourceId = typeof link.source === 'object' && link.source.id ? link.source.id : link.source;
+      const sourceNode = nodes.find(n => n.id === String(sourceId));
+      
+      // 处理target
+      const targetId = typeof link.target === 'object' && link.target.id ? link.target.id : link.target;
+      const targetNode = nodes.find(n => n.id === String(targetId));
+      
+      if (sourceNode && targetNode) {
+        const sourceObject = nodeObjects.find(no => no.node.id === sourceNode.id);
+        const targetObject = nodeObjects.find(no => no.node.id === targetNode.id);
+        
+        if (sourceObject && targetObject) {
+          // 创建链接几何体
+          const linkGeometry = new THREE.BufferGeometry().setFromPoints([
+            sourceObject.mesh.position,
+            targetObject.mesh.position
+          ]);
+          
+          // 创建链接材质
+          const linkMaterial = new THREE.LineBasicMaterial({ 
+            color: 0x999999,
+            opacity: 0.6,
+            transparent: true
+          });
+          
+          const linkLine = new THREE.Line(linkGeometry, linkMaterial);
+          
+          // 添加点击事件
+          linkLine.userData = { link };
+          
+          scene.add(linkLine);
+        }
+      }
+    });
+
+    // 添加鼠标交互
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    
+    const handleMouseClick = (event: MouseEvent) => {
+      if (!containerRef.current || !cameraRef.current) return;
+      
+      const rect = containerRef.current.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      raycaster.setFromCamera(mouse, cameraRef.current);
+      
+      // 检测节点点击
+      const nodeIntersections = raycaster.intersectObjects(nodeObjects.map(no => no.mesh));
+      if (nodeIntersections.length > 0) {
+        const intersection = nodeIntersections[0];
+        if (intersection?.object?.userData?.node) {
+          const clickedNode = intersection.object.userData.node;
+          onNodeClick(clickedNode);
+          return;
+        }
+      }
+      
+      // 检测链接点击
+      const linkObjects = scene.children.filter(child => 
+        child instanceof THREE.Line && child.userData && child.userData.link
+      );
+      const linkIntersections = raycaster.intersectObjects(linkObjects as THREE.Object3D[]);
+      if (linkIntersections.length > 0) {
+        const intersection = linkIntersections[0];
+        if (intersection?.object?.userData?.link) {
+          const clickedLink = intersection.object.userData.link;
+          onLinkClick(clickedLink);
+        }
+      }
+    };
+    
+    const container = containerRef.current;
+    container?.addEventListener('click', handleMouseClick);
+    
+    // 清理事件监听
+    return () => {
+      container?.removeEventListener('click', handleMouseClick);
+    };
   }, [nodes, links, selectedNode, selectedNodes, onNodeClick, onLinkClick]);
 
   // 导出3D模型为GLTF格式
@@ -315,4 +337,4 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = ({
       </div>
     </div>
   );
-};
+}, areEqual);

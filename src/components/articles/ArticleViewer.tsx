@@ -14,7 +14,7 @@ import { graphService } from '../../services/graphService';
 import { GraphEmbedWrapper } from '../graph/GraphEmbed';
 import mermaid from 'mermaid';
 import Chart from 'chart.js/auto';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 import { CommentsSection } from '../comments/CommentsSection';
 
 

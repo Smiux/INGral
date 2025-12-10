@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Comment as CommentType } from '../../types';
 import { commentService } from '../../services/commentService';
 import { Comment } from './Comment';
@@ -15,17 +15,17 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 加载评论
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     setIsLoading(true);
     const fetchedComments = await commentService.getCommentsByArticleId(articleId);
     setComments(fetchedComments);
     setIsLoading(false);
-  };
+  }, [articleId]);
 
   // 初始加载评论
   useEffect(() => {
     loadComments();
-  }, [articleId]);
+  }, [articleId, loadComments]);
 
   // 处理添加新评论
   const handleAddComment = async () => {

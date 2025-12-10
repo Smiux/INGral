@@ -1,17 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-// Define theme types
-type Theme = 'light' | 'dark';
-
-// Define context type
-interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
-  setTheme: (theme: Theme) => void;
-}
-
-// Create context with default values
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+import { useState, useEffect, ReactNode } from 'react';
+import { ThemeContext, Theme } from './ThemeContext';
 
 // Theme provider component
 interface ThemeProviderProps {
@@ -56,13 +44,4 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
       {children}
     </ThemeContext.Provider>
   );
-};
-
-// Custom hook to use theme context
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
 };

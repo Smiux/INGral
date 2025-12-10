@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Comment } from '../../types';
 import styles from './CommentList.module.css';
 import CommentItem from './CommentItem';
@@ -15,7 +15,7 @@ const CommentList: React.FC<CommentListProps> = ({ articleId }) => {
   const [error, setError] = useState<string | null>(null);
 
   // 加载文章评论
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -28,12 +28,12 @@ const CommentList: React.FC<CommentListProps> = ({ articleId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [articleId]);
 
   // 加载文章评论
   useEffect(() => {
     loadComments();
-  }, [articleId]);
+  }, [articleId, loadComments]);
 
   // 处理评论投票
   const handleVote = async (commentId: string, voteType: 'up' | 'down') => {
@@ -71,10 +71,6 @@ const CommentList: React.FC<CommentListProps> = ({ articleId }) => {
       console.error('Failed to delete comment:', err);
     }
   };
-
-  useEffect(() => {
-    loadComments();
-  }, [articleId, loadComments]);
 
   return (
     <div className={styles.container}>
