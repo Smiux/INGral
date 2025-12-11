@@ -113,9 +113,9 @@ export class SearchService extends BaseService {
    * 获取搜索建议，基于部分关键词生成相关推荐
    * @param query 部分搜索关键词
    * @param limit 建议数量限制，默认5
-   * @returns 搜索建议数组，包含文章标题和ID
+   * @returns 搜索建议数组，包含文章标题、ID、摘要和标签
    */
-  async getSearchSuggestions(query: string, limit = 5): Promise<{ title: string; id: string }[]> {
+  async getSearchSuggestions(query: string, limit = 5): Promise<{ title: string; id: string; excerpt?: string; tags?: string[] }[]> {
     try {
       this.checkSupabaseClient();
       // 使用新的搜索建议函数
@@ -126,6 +126,30 @@ export class SearchService extends BaseService {
 
       if (error) {
         this.handleError(error, '获取搜索建议', 'SearchService');
+      }
+
+      // 增强建议数据，添加摘要和标签信息
+      if (data && Array.isArray(data)) {
+        return data.map(item => {
+          // 生成简短摘要（如果没有则截取内容）
+          let excerpt = '';
+          if (item.excerpt && item.excerpt.length > 0) {
+            excerpt = item.excerpt;
+          } else if (item.content && item.content.length > 0) {
+            // 截取内容前100个字符作为摘要
+            excerpt = item.content.slice(0, 100) + '...';
+          }
+
+          // 提取标签名称
+          const tags = item.tags ? item.tags.map((tag: Tag) => tag.name) : [];
+
+          return {
+            title: item.title,
+            id: item.id,
+            excerpt,
+            tags
+          };
+        });
       }
 
       return data || [];

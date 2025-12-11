@@ -2,6 +2,7 @@
 /* eslint-disable */
 /* Import print styles */
 @import './styles/print.css';
+@import './styles/design-system.css';
 
 /* These Tailwind directives are essential for the UI to load properly */
 @tailwind base;

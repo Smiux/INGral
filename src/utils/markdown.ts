@@ -11,6 +11,8 @@
  * - Wiki 链接提取功能
  * - Markdown 清理和摘要生成
  * - 引用管理系统
+ * - 增强的缓存机制
+ * - 知识图谱嵌入支持
  */
 import MarkdownIt from 'markdown-it';
 import { katexCache } from './katexCache';
@@ -279,6 +281,18 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 
 /**
+ * Markdown渲染缓存配置
+ */
+const CACHE_CONFIG = {
+  EXPIRY_TIME: 10 * 60 * 1000, // 10分钟缓存，延长缓存时间以提高命中率
+  MAX_ENTRIES: 100, // 增加最大缓存条目数到100
+  MAX_SIZE: 20 * 1024 * 1024, // 增加最大缓存大小到20MB
+  CLEANUP_INTERVAL: 2 * 60 * 1000, // 定期清理间隔：2分钟
+  MIN_ACCESS_COUNT: 2, // 最小访问次数，低于此值的条目优先被清理
+  PRUNE_RATIO: 0.3 // 清理比例，每次清理30%的低优先级条目
+};
+
+/**
  * Markdown渲染缓存
  */
 interface CacheEntry {
@@ -286,15 +300,37 @@ interface CacheEntry {
   accessedAt: number;
   accessCount: number;
   contentSize: number;
+  hash: string; // 添加内容哈希，用于快速比较
 }
 
 const markdownRenderCache = new Map<string, CacheEntry>();
-const CACHE_EXPIRY_TIME = 5 * 60 * 1000; // 5分钟缓存
-const MAX_CACHE_ENTRIES = 50; // 最大缓存条目数
-const MAX_CACHE_SIZE = 10 * 1024 * 1024; // 最大缓存大小（10MB）
+const markdownHighlightCache = new Map<string, string>(); // 模块级别缓存，避免依赖全局window对象
 
 // 缓存统计信息
-let totalCacheSize = 0;
+// eslint-disable-next-line prefer-const
+let cacheStats = {
+  hits: 0,
+  misses: 0,
+  totalSize: 0,
+  entries: 0,
+  lastCleanup: Date.now()
+};
+
+/**
+ * 生成内容的哈希值，用于快速比较
+ * @param content 要哈希的内容
+ * @returns 哈希字符串
+ */
+function generateHash(content: string): string {
+  // 使用简单的哈希算法，适合快速计算
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(16);
+}
 
 /**
  * 清理过期缓存条目
@@ -305,14 +341,15 @@ function cleanupCache(): void {
   
   // 移除过期条目
   for (const [key, entry] of entries) {
-    if (now - entry.accessedAt > CACHE_EXPIRY_TIME) {
-      totalCacheSize -= entry.contentSize;
+    if (now - entry.accessedAt > CACHE_CONFIG.EXPIRY_TIME) {
+      cacheStats.totalSize -= entry.contentSize;
+      cacheStats.entries--;
       markdownRenderCache.delete(key);
     }
   }
   
-  // 如果缓存条目数超过限制，按访问频率和时间进行清理
-  if (markdownRenderCache.size > MAX_CACHE_ENTRIES || totalCacheSize > MAX_CACHE_SIZE) {
+  // 如果缓存条目数或大小超过限制，进行清理
+  if (markdownRenderCache.size > CACHE_CONFIG.MAX_ENTRIES || cacheStats.totalSize > CACHE_CONFIG.MAX_SIZE) {
     const sortedEntries = Array.from(markdownRenderCache.entries())
       .sort(([, a], [, b]) => {
         // 优先按访问频率排序，然后按访问时间排序
@@ -322,8 +359,15 @@ function cleanupCache(): void {
         return b.accessedAt - a.accessedAt;
       });
     
-    // 只保留前MAX_CACHE_ENTRIES个条目
-    const entriesToKeep = sortedEntries.slice(0, MAX_CACHE_ENTRIES);
+    // 计算需要清理的条目数
+    const excessEntries = markdownRenderCache.size - CACHE_CONFIG.MAX_ENTRIES;
+    const entriesToRemove = Math.max(
+      excessEntries,
+      Math.floor(markdownRenderCache.size * CACHE_CONFIG.PRUNE_RATIO)
+    );
+    
+    // 只保留前N个条目
+    const entriesToKeep = sortedEntries.slice(0, sortedEntries.length - entriesToRemove);
     const keysToRemove = new Set(markdownRenderCache.keys());
     entriesToKeep.forEach(([key]) => keysToRemove.delete(key));
     
@@ -331,11 +375,63 @@ function cleanupCache(): void {
     keysToRemove.forEach(key => {
       const entry = markdownRenderCache.get(key);
       if (entry) {
-        totalCacheSize -= entry.contentSize;
+        cacheStats.totalSize -= entry.contentSize;
+        cacheStats.entries--;
         markdownRenderCache.delete(key);
       }
     });
   }
+  
+  // 清理highlight缓存
+  if (markdownHighlightCache.size > 200) {
+    // 只保留最近使用的150个条目
+    const sortedHighlightEntries = Array.from(markdownHighlightCache.entries());
+    const entriesToKeep = sortedHighlightEntries.slice(0, 150);
+    markdownHighlightCache.clear();
+    entriesToKeep.forEach(([key, value]) => {
+      markdownHighlightCache.set(key, value);
+    });
+  }
+  
+  cacheStats.lastCleanup = now;
+}
+
+/**
+ * 定期清理缓存的定时器
+ */
+let cleanupTimer: NodeJS.Timeout | null = null;
+
+/**
+ * 启动定期缓存清理
+ */
+function startPeriodicCleanup(): void {
+  if (cleanupTimer) {
+    clearInterval(cleanupTimer);
+  }
+  
+  cleanupTimer = setInterval(() => {
+    cleanupCache();
+  }, CACHE_CONFIG.CLEANUP_INTERVAL);
+}
+
+// 启动定期清理
+startPeriodicCleanup();
+
+/**
+ * 停止定期缓存清理（用于测试）
+ */
+export function stopPeriodicCleanup(): void {
+  if (cleanupTimer) {
+    clearInterval(cleanupTimer);
+    cleanupTimer = null;
+  }
+}
+
+/**
+ * 获取缓存统计信息
+ */
+export function getCacheStats(): typeof cacheStats {
+  return { ...cacheStats };
 }
 
 /**
@@ -350,19 +446,15 @@ const md = new MarkdownIt({
       try {
         // 生成缓存键
         const cacheKey = `highlight:${lang}:${str}`;
-        // 简单的内存缓存
-        if (!window.markdownHighlightCache) {
-          window.markdownHighlightCache = new Map<string, string>();
-        }
         
         // 检查缓存
-        if (window.markdownHighlightCache.has(cacheKey)) {
-          return window.markdownHighlightCache.get(cacheKey) || '';
+        if (markdownHighlightCache.has(cacheKey)) {
+          return markdownHighlightCache.get(cacheKey) || '';
         }
         
         // 渲染并缓存结果
         const result = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
-        window.markdownHighlightCache.set(cacheKey, result);
+        markdownHighlightCache.set(cacheKey, result);
         return result;
       } catch {
         // 忽略语法高亮错误
@@ -371,13 +463,6 @@ const md = new MarkdownIt({
     return ''; // 使用默认的转义
   }
 });
-
-// 为window添加类型声明
-declare global {
-  interface Window {
-    markdownHighlightCache: Map<string, string>;
-  }
-}
 
 // 自定义图片渲染规则，添加懒加载支持
 const defaultImageRender = md.renderer.rules.image;
@@ -389,7 +474,7 @@ md.renderer.rules.image = function(tokens, idx, options, env, self) {
   return defaultImageRender ? defaultImageRender(tokens, idx, options, env, self) : self.renderToken(tokens, idx, options);
 };
 
-// 自定义代码块渲染规则，集成highlight.js
+// 自定义代码块渲染规则，集成highlight.js，添加行号、复制按钮和语言标识
 md.renderer.rules.fence = function(tokens, idx, options) {
   const token = tokens[idx];
   if (!token) return '';
@@ -399,7 +484,29 @@ md.renderer.rules.fence = function(tokens, idx, options) {
   const attrs = '';
   const highlighted = options.highlight?.(code, lang, attrs) || code;
   
-  return `<pre class="bg-neutral-800 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-${lang}">${highlighted}</code></pre>`;
+  // 生成行号
+  const lines = code.split('\n');
+  const lineNumbersHtml = lines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('\n');
+  
+  // 构建代码块HTML，添加行号、复制按钮和语言标识
+  return `<div class="code-block-container relative rounded-lg overflow-hidden mb-4">
+    <div class="code-header flex items-center justify-between bg-neutral-700 dark:bg-gray-800 px-4 py-2">
+      <span class="code-language text-xs font-medium text-gray-300">${lang || 'plaintext'}</span>
+      <button 
+        class="copy-button text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1"
+        onclick="navigator.clipboard.writeText('${code.replace(/'/g, "\\'")}').then(() => {
+          this.textContent = '已复制!'; this.classList.add('bg-green-600');
+          setTimeout(() => { this.textContent = '复制代码'; this.classList.remove('bg-green-600'); }, 1500);
+        })"
+      >
+        复制代码
+      </button>
+    </div>
+    <pre class="bg-neutral-800 dark:bg-gray-900 p-0 overflow-x-auto"><code class="language-${lang}">
+      <span class="line-numbers-container pr-4 select-none">${lineNumbersHtml}</span>
+      <span class="code-content p-4">${highlighted}</span>
+    </code></pre>
+  </div>`;
 };
 
 /**
@@ -439,22 +546,22 @@ function processMathFormulas(text: string): string {
   
   // 只在有数学公式时才处理，减少不必要的正则匹配
   if (result.includes('$') || result.includes('\\[')) {
-    // 处理块级数学公式：\[...\] 格式
+    // 处理块级数学公式：\\[...\\] 格式
     result = result.replace(/(?<!\\)\\\[([\s\S]*?)(?<!\\)\\\]/g, (_match: string, p1: string) => {
       try {
         return katexCache.render(p1, { displayMode: true });
       } catch (error) {
-        console.error('Error rendering block math [\[...\]]:', error);
+        console.error('Error rendering block math [\\...\\]:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
       }
     });
 
-    // 处理内联数学公式：\(...\) 格式
+    // 处理内联数学公式：\\(...\\) 格式
     result = result.replace(/(?<!\\)\\\(([\s\S]*?)(?<!\\)\\\)/g, (_match: string, p1: string) => {
       try {
         return katexCache.render(p1, { displayMode: false });
       } catch (error) {
-        console.error('Error rendering inline math \(...\):', error);
+        console.error('Error rendering inline math \\(...\\):', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
       }
     });
@@ -566,6 +673,57 @@ function processSymPyCells(text: string): string {
 }
 
 /**
+ * 处理 Markdown 文本中的知识图谱嵌入
+ * @param text Markdown 文本
+ */
+function processGraphEmbeds(text: string): string {
+  return text.replace(/\[graph(?:\s+([^\]]+))?\]([\s\S]*?)\[\/graph\]/g, (_match: string, attrs: string, content: string) => {
+    // 清理内容和属性
+    const cleanedContent = content.trim();
+    const cleanedAttrs = attrs ? attrs.trim() : '';
+    
+    // 解析属性
+    const attrsObj: Record<string, string> = {};
+    if (cleanedAttrs) {
+      // 简单的属性解析，支持 key=value 格式
+      const attrPairs = cleanedAttrs.split(/\s+/);
+      for (const pair of attrPairs) {
+        const [key, value] = pair.split('=');
+        if (key && value) {
+          attrsObj[key] = value.replace(/^['"]|['"]$/g, ''); // 移除引号
+        }
+      }
+    }
+    
+    // 生成唯一ID
+    const id = `graph-embed-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+    // 尝试解析图谱数据
+    let graphData = { nodes: [], links: [] };
+    try {
+      graphData = JSON.parse(cleanedContent);
+    } catch (error) {
+      console.error('Error parsing graph data:', error);
+    }
+    
+    // 返回包含图谱嵌入的HTML，使用自定义属性标记
+    return `
+      <div 
+        class="graph-embed-placeholder"
+        data-graph-id="${id}"
+        data-graph-data="${encodeURIComponent(JSON.stringify(graphData))}"
+        data-graph-attrs="${encodeURIComponent(JSON.stringify(attrsObj))}"
+        style="${attrsObj.style || ''}"
+      >
+        <div class="graph-embed-loading">
+          <div class="loader">加载知识图谱中...</div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+/**
  * 从 Markdown 文本中提取所有数学公式
  * @param content Markdown 文本
  * @returns 提取的公式数组
@@ -603,7 +761,7 @@ export function extractFormulas(content: string): Array<{ id: string; content: s
     }
   }
 
-  // 处理带标签的公式：\begin{equation}...\end{equation} 格式
+  // 处理带标签的公式：\\begin{equation}...\\end{equation} 格式
   const equationRegex = /\\begin{equation}(?:\\label{([^}]+)})?([\s\S]*?)\\end{equation}/g;
   while ((match = equationRegex.exec(content)) !== null) {
     if (match[2]) {
@@ -652,9 +810,14 @@ export function renderMarkdown(content: string, options?: {
       // 更新访问统计
       cachedEntry.accessedAt = Date.now();
       cachedEntry.accessCount++;
+      // 增加缓存命中统计
+      cacheStats.hits++;
       return cachedEntry.data;
     }
   }
+  
+  // 增加缓存未命中统计
+  cacheStats.misses++;
   
   // 按顺序处理各种扩展语法，只处理需要的部分
   let processedContent = content;
@@ -672,6 +835,11 @@ export function renderMarkdown(content: string, options?: {
   // 处理Chart.js图表
   if (processedContent.includes('[chartjs]')) {
     processedContent = processChartJsDiagrams(processedContent);
+  }
+  
+  // 处理知识图谱嵌入
+  if (processedContent.includes('[graph')) {
+    processedContent = processGraphEmbeds(processedContent);
   }
   
   // 渲染Markdown
@@ -711,11 +879,13 @@ export function renderMarkdown(content: string, options?: {
     data: result,
     accessedAt: Date.now(),
     accessCount: 1,
-    contentSize
+    contentSize,
+    hash: generateHash(content)
   };
   
   markdownRenderCache.set(cacheKey, cacheEntry);
-  totalCacheSize += contentSize;
+  cacheStats.totalSize += contentSize;
+  cacheStats.entries++;
   
   // 定期清理过期缓存
   cleanupCache();

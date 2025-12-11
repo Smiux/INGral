@@ -25,13 +25,30 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   // Update document class when theme changes
   useEffect(() => {
     const root = document.documentElement;
+    
+    // 添加过渡类，实现平滑主题切换
+    root.classList.add('theme-transition');
+    
     if (theme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-    // Save theme to localStorage
+    
+    // 移除过渡类，避免影响其他动画
+    const removeTransition = () => {
+      root.classList.remove('theme-transition');
+    };
+    
+    // 监听过渡结束事件
+    root.addEventListener('transitionend', removeTransition, { once: true });
+    
+    // 保存主题到 localStorage
     localStorage.setItem('theme', theme);
+    
+    return () => {
+      root.removeEventListener('transitionend', removeTransition);
+    };
   }, [theme]);
 
   // Toggle theme function

@@ -1,3 +1,6 @@
+/**
+ * LaTeX公式编辑器组件，提供可视化和代码两种编辑模式
+ */
 import { useState, useEffect, useRef } from 'react';
 import { X, Save, Copy, RotateCw, Search, HelpCircle, Star, StarOff } from 'lucide-react';
 import katex from 'katex';
@@ -51,6 +54,13 @@ interface LatexEditorProps {
   initialFormula?: string;
 }
 
+/**
+ * LaTeX编辑器组件
+ * @param isOpen - 编辑器是否打开
+ * @param onClose - 关闭编辑器的回调
+ * @param onInsert - 插入公式的回调
+ * @param initialFormula - 初始公式
+ */
 export function LatexEditor({ isOpen, onClose, onInsert, initialFormula = '' }: LatexEditorProps) {
   const [formula, setFormula] = useState(initialFormula);
   const [renderedFormula, setRenderedFormula] = useState<string>('');
@@ -89,6 +99,10 @@ export function LatexEditor({ isOpen, onClose, onInsert, initialFormula = '' }: 
         { name: 'Pythagorean Theorem', formula: 'a^2 + b^2 = c^2' },
         { name: 'Sum of Series', formula: '\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}' },
         { name: 'Binomial Theorem', formula: '(a + b)^n = \\sum_{k=0}^{n} \\binom{n}{k} a^{n-k} b^k' },
+        { name: 'Geometric Series', formula: '\\sum_{n=0}^{\\infty} ar^n = \\frac{a}{1-r} \\quad |r| < 1' },
+        { name: 'Logarithm Identity', formula: '\\log(ab) = \\log(a) + \\log(b)' },
+        { name: 'Exponential Identity', formula: 'e^{\\ln(x)} = x' },
+        { name: 'Trigonometric Identity', formula: '\\sin^2(x) + \\cos^2(x) = 1' },
       ],
     },
     {
@@ -98,6 +112,12 @@ export function LatexEditor({ isOpen, onClose, onInsert, initialFormula = '' }: 
         { name: 'Integral', formula: '\\int_{a}^{b} f(x) \\, dx' },
         { name: 'Chain Rule', formula: '\\frac{d}{dx} f(g(x)) = f\'(g(x)) \\cdot g\'(x)' },
         { name: 'Product Rule', formula: '\\frac{d}{dx} [f(x)g(x)] = f\'(x)g(x) + f(x)g\'(x)' },
+        { name: 'Quotient Rule', formula: '\\frac{d}{dx} \\left(\\frac{f(x)}{g(x)}\\right) = \\frac{f\'(x)g(x) - f(x)g\'(x)}{[g(x)]^2}' },
+        { name: 'Fundamental Theorem of Calculus', formula: '\\frac{d}{dx} \\int_{a}^{x} f(t) \\, dt = f(x)' },
+        { name: 'Partial Derivative', formula: '\\frac{\\partial f(x,y)}{\\partial x}' },
+        { name: 'Gradient', formula: '\\nabla f = \\left(\\frac{\\partial f}{\\partial x}, \\frac{\\partial f}{\\partial y}, \\frac{\\partial f}{\\partial z}\\right)' },
+        { name: 'Laplacian', formula: '\\nabla^2 f = \\frac{\\partial^2 f}{\\partial x^2} + \\frac{\\partial^2 f}{\\partial y^2} + \\frac{\\partial^2 f}{\\partial z^2}' },
+        { name: 'Taylor Series', formula: 'f(x) = \\sum_{n=0}^{\\infty} \\frac{f^{(n)}(a)}{n!} (x-a)^n' },
       ],
     },
     {
@@ -106,6 +126,11 @@ export function LatexEditor({ isOpen, onClose, onInsert, initialFormula = '' }: 
         { name: 'Matrix Multiplication', formula: 'C_{ij} = \\sum_{k=1}^{n} A_{ik} B_{kj}' },
         { name: 'Determinant', formula: '\\det(A) = \\begin{bmatrix} a & b \\ c & d \\end{bmatrix} = ad - bc' },
         { name: 'Eigenvalue Equation', formula: 'A v = \\lambda v' },
+        { name: 'Trace', formula: '\\text{tr}(A) = \\sum_{i=1}^{n} A_{ii}' },
+        { name: 'Inverse Matrix', formula: 'A^{-1} = \\frac{1}{\\det(A)} \\text{adj}(A)' },
+        { name: 'Vector Dot Product', formula: '\\mathbf{a} \\cdot \\mathbf{b} = \\sum_{i=1}^{n} a_i b_i' },
+        { name: 'Vector Cross Product', formula: '\\mathbf{a} \\times \\mathbf{b} = \\begin{vmatrix} \\mathbf{i} & \\mathbf{j} & \\mathbf{k} \\ a_1 & a_2 & a_3 \\ b_1 & b_2 & b_3 \\end{vmatrix}' },
+        { name: 'Singular Value Decomposition', formula: 'A = U \\Sigma V^T' },
       ],
     },
     {
@@ -114,6 +139,35 @@ export function LatexEditor({ isOpen, onClose, onInsert, initialFormula = '' }: 
         { name: 'Newton\'s Second Law', formula: 'F = ma' },
         { name: 'Einstein\'s Mass-Energy Equivalence', formula: 'E = mc^2' },
         { name: 'Maxwell\'s Equations', formula: '\\nabla \\cdot E = \\frac{\\rho}{\\epsilon_0}' },
+        { name: 'Schrödinger Equation', formula: 'i\\hbar \\frac{\\partial}{\\partial t} \\Psi(\\mathbf{r},t) = \\hat{H} \\Psi(\\mathbf{r},t)' },
+        { name: 'Heisenberg Uncertainty Principle', formula: '\\Delta x \\Delta p \\geq \\frac{\\hbar}{2}' },
+        { name: 'Planck\'s Law', formula: 'E = hf' },
+        { name: 'Boltzmann Distribution', formula: 'P(E) = \\frac{1}{Z} e^{-\\beta E}' },
+        { name: 'Lorentz Force', formula: '\\mathbf{F} = q(\\mathbf{E} + \\mathbf{v} \\times \\mathbf{B})' },
+      ],
+    },
+    {
+      name: 'Statistics & Probability',
+      items: [
+        { name: 'Mean', formula: '\\mu = \\frac{1}{n} \\sum_{i=1}^{n} x_i' },
+        { name: 'Variance', formula: '\\sigma^2 = \\frac{1}{n-1} \\sum_{i=1}^{n} (x_i - \\mu)^2' },
+        { name: 'Standard Deviation', formula: '\\sigma = \\sqrt{\\sigma^2}' },
+        { name: 'Probability Density Function', formula: 'P(a \\leq X \\leq b) = \\int_{a}^{b} f(x) \\, dx' },
+        { name: 'Gaussian Distribution', formula: 'f(x) = \\frac{1}{\\sigma \\sqrt{2\\pi}} e^{-\\frac{(x-\\mu)^2}{2\\sigma^2}}' },
+        { name: 'Bayes Theorem', formula: 'P(A|B) = \\frac{P(B|A) P(A)}{P(B)}' },
+        { name: 'Correlation Coefficient', formula: 'r = \\frac{\\sum (x_i - \\mu_x)(y_i - \\mu_y)}{\\sqrt{\\sum (x_i - \\mu_x)^2 \\sum (y_i - \\mu_y)^2}}' },
+      ],
+    },
+    {
+      name: 'Logic & Set Theory',
+      items: [
+        { name: 'Modus Ponens', formula: 'P \\rightarrow Q, P \\vdash Q' },
+        { name: 'Modus Tollens', formula: 'P \\rightarrow Q, \\neg Q \\vdash \\neg P' },
+        { name: 'De Morgan\'s Laws', formula: '\\neg (P \\wedge Q) \\equiv \\neg P \\vee \\neg Q' },
+        { name: 'Set Union', formula: 'A \\cup B = \\{x | x \\in A \\text{ or } x \\in B\\}' },
+        { name: 'Set Intersection', formula: 'A \\cap B = \\{x | x \\in A \\text{ and } x \\in B\\}' },
+        { name: 'Set Difference', formula: 'A \\setminus B = \\{x | x \\in A \\text{ and } x \\notin B\\}' },
+        { name: 'Cartesian Product', formula: 'A \\times B = \\{(a,b) | a \\in A, b \\in B\\}' },
       ],
     },
   ];
@@ -278,7 +332,7 @@ export function LatexEditor({ isOpen, onClose, onInsert, initialFormula = '' }: 
 
     let finalFormula = formula;
     if (useNumbering) {
-      finalFormula = `\\begin{equation}\\label{eq:${formulaNumber}}\n${formula}\\end{equation}`;
+      finalFormula = `\\begin{equation}\\label{eq:${formulaNumber}}\\n${formula}\\end{equation}`;
       setFormulaNumber(prev => prev + 1);
     }
 
@@ -449,7 +503,7 @@ export function LatexEditor({ isOpen, onClose, onInsert, initialFormula = '' }: 
                     onChange={(e) => setFormula(e.target.value)}
                     onKeyDown={handleKeyDown}
                     className="w-full h-40 p-3 border border-gray-300 rounded-md font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    placeholder="Enter LaTeX formula here, e.g. \\frac{a}{b} + \\sqrt{c}"
+                    placeholder="Enter LaTeX formula here, e.g. \frac{a}{b} + \sqrt{c}"
                     spellCheck={false}
                   />
                 )}

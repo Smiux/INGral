@@ -15,6 +15,8 @@ export const NodeProperties: React.FC<NodePropertiesProps> = ({ node, onUpdateNo
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [type, setType] = useState<'concept' | 'article' | 'resource' | string>('concept');
+  const [shape, setShape] = useState<'circle' | 'rectangle' | 'triangle' | 'hexagon' | 'diamond' | string>('circle');
+
 
   // 当选中节点变化时，更新表单数据
   useEffect(() => {
@@ -22,6 +24,7 @@ export const NodeProperties: React.FC<NodePropertiesProps> = ({ node, onUpdateNo
       setTitle(node.title);
       setContent(node.content || '');
       setType(node.type || 'concept');
+      setShape(node.shape || 'circle');
     }
   }, [node]);
 
@@ -44,6 +47,7 @@ export const NodeProperties: React.FC<NodePropertiesProps> = ({ node, onUpdateNo
       title,
       content,
       type,
+      shape,
     };
     
     onUpdateNode(updatedNode);
@@ -89,6 +93,22 @@ export const NodeProperties: React.FC<NodePropertiesProps> = ({ node, onUpdateNo
             <option value="article">文章</option>
             <option value="resource">资源</option>
             <option value="custom">自定义</option>
+          </select>
+        </div>
+        
+        {/* 节点形状 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">形状</label>
+          <select
+            value={shape}
+            onChange={(e) => setShape(e.target.value as 'circle' | 'rectangle' | 'triangle' | 'hexagon' | 'diamond' | string)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="circle">圆形</option>
+            <option value="rectangle">矩形</option>
+            <option value="triangle">三角形</option>
+            <option value="hexagon">六边形</option>
+            <option value="diamond">菱形</option>
           </select>
         </div>
         

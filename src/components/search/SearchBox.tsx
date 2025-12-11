@@ -1,9 +1,15 @@
+/**
+ * 搜索框组件，提供文章搜索功能，包括搜索建议、历史记录和高级搜索选项
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import { searchService, SearchFilters } from '../../services/searchService';
 import { CompositeFilter, createDefaultFilter } from '../../types/filter';
 import FilterBuilder from './FilterBuilder';
 import styles from './SearchBox.module.css';
 
+/**
+ * 搜索框组件属性接口
+ */
 interface SearchBoxProps {
   placeholder?: string;
   onSearch: (query: string, filters?: SearchFilters) => void;
@@ -45,7 +51,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   showAdvancedOptions = false,
 }) => {
   const [query, setQuery] = useState(defaultValue);
-  const [suggestions, setSuggestions] = useState<{ title: string; id: string }[]>([]);
+  const [suggestions, setSuggestions] = useState<{ title: string; id: string; excerpt?: string; tags?: string[] }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hasFocus, setHasFocus] = useState(false);

@@ -781,6 +781,91 @@ export class GraphService extends BaseService {
       .sort((a, b) => b.weight - a.weight)
       .slice(0, limit);
   }
+
+  /**
+   * 比较两个图谱的差异
+   * @param graphId1 第一个图谱ID
+   * @param graphId2 第二个图谱ID
+   */
+  async compareGraphs(graphId1: string, graphId2: string): Promise<{ 
+    nodesAdded: GraphNode[];
+    nodesRemoved: GraphNode[];
+    nodesUpdated: Array<{ old: GraphNode; new: GraphNode }>;
+    linksAdded: GraphLink[];
+    linksRemoved: GraphLink[];
+    linksUpdated: Array<{ old: GraphLink; new: GraphLink }>;
+  } | null> {
+    try {
+      // 获取两个图谱的数据
+      const [graph1, graph2] = await Promise.all([
+        this.getGraphById(graphId1),
+        this.getGraphById(graphId2)
+      ]);
+
+      if (!graph1 || !graph2) {
+        return null;
+      }
+
+      // 节点比较
+      const nodes1 = new Map(graph1.nodes.map(node => [node.id, node]));
+      const nodes2 = new Map(graph2.nodes.map(node => [node.id, node]));
+
+      // 添加的节点
+      const nodesAdded = Array.from(nodes2.values()).filter(node => !nodes1.has(node.id));
+      
+      // 删除的节点
+      const nodesRemoved = Array.from(nodes1.values()).filter(node => !nodes2.has(node.id));
+      
+      // 更新的节点
+      const nodesUpdated: Array<{ old: GraphNode; new: GraphNode }> = [];
+      nodes1.forEach((node1, id) => {
+        const node2 = nodes2.get(id);
+        if (node2) {
+          // 比较节点属性是否变化
+          if (JSON.stringify(node1) !== JSON.stringify(node2)) {
+            nodesUpdated.push({ old: node1, new: node2 });
+          }
+        }
+      });
+
+      // 链接比较
+      // 使用source和target的组合作为链接的唯一标识
+      const getLinkKey = (link: GraphLink) => `${link.source}-${link.target}-${link.type}`;
+      
+      const links1 = new Map(graph1.links.map(link => [getLinkKey(link), link]));
+      const links2 = new Map(graph2.links.map(link => [getLinkKey(link), link]));
+
+      // 添加的链接
+      const linksAdded = Array.from(links2.values()).filter(link => !links1.has(getLinkKey(link)));
+      
+      // 删除的链接
+      const linksRemoved = Array.from(links1.values()).filter(link => !links2.has(getLinkKey(link)));
+      
+      // 更新的链接
+      const linksUpdated: Array<{ old: GraphLink; new: GraphLink }> = [];
+      links1.forEach((link1, key) => {
+        const link2 = links2.get(key);
+        if (link2) {
+          // 比较链接属性是否变化
+          if (JSON.stringify(link1) !== JSON.stringify(link2)) {
+            linksUpdated.push({ old: link1, new: link2 });
+          }
+        }
+      });
+
+      return {
+        nodesAdded,
+        nodesRemoved,
+        nodesUpdated,
+        linksAdded,
+        linksRemoved,
+        linksUpdated
+      };
+    } catch (err) {
+      this.handleError(err, 'GraphService', '比较图谱');
+      return null;
+    }
+  }
 }
 
 // 导出单例实例

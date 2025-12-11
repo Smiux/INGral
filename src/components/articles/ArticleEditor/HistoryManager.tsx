@@ -16,11 +16,15 @@ interface HistoryItem {
 interface HistoryManagerProps {
   title: string;
   content: string;
+  setTitle: (title: string) => void;
+  setContent: (content: string) => void;
 }
 
 export function HistoryManager({
   title,
   content,
+  setTitle,
+  setContent,
 }: HistoryManagerProps) {
   // 历史记录状态
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -35,28 +39,33 @@ export function HistoryManager({
    * 添加历史记录
    */
   const addToHistory = useCallback(() => {
-    setHistory(prev => {
-      // 如果当前不是在历史记录的最后，截断历史记录
-      const newHistory = prev.slice(0, historyIndex + 1);
-      newHistory.push({
-        title,
-        content,
-        timestamp: new Date()
+    // 只有当内容或标题变化时才添加历史记录
+    if (history.length === 0 || 
+        history[historyIndex]?.content !== content || 
+        history[historyIndex]?.title !== title) {
+      setHistory(prev => {
+        // 如果当前不是在历史记录的最后，截断历史记录
+        const newHistory = prev.slice(0, historyIndex + 1);
+        newHistory.push({
+          title,
+          content,
+          timestamp: new Date()
+        });
+        
+        // 限制历史记录的最大长度
+        if (newHistory.length > MAX_HISTORY_SIZE) {
+          newHistory.shift();
+        }
+        
+        return newHistory;
       });
-      
-      // 限制历史记录的最大长度
-      if (newHistory.length > MAX_HISTORY_SIZE) {
-        newHistory.shift();
-      }
-      
-      return newHistory;
-    });
-    setHistoryIndex(prev => {
-      const newIndex = prev + 1;
-      // 如果历史记录被截断，调整索引
-      return Math.min(newIndex, MAX_HISTORY_SIZE - 1);
-    });
-  }, [title, content, historyIndex]);
+      setHistoryIndex(prev => {
+        const newIndex = prev + 1;
+        // 如果历史记录被截断，调整索引
+        return Math.min(newIndex, MAX_HISTORY_SIZE - 1);
+      });
+    }
+  }, [title, content, historyIndex, history]);
 
   /**
    * 防抖处理，避免过于频繁保存历史记录
@@ -96,6 +105,17 @@ export function HistoryManager({
     }
   }, [historyIndex, history.length]);
 
+  // 当历史索引变化时，更新编辑器内容
+  useEffect(() => {
+    if (historyIndex >= 0 && historyIndex < history.length) {
+      const historyItem = history[historyIndex];
+      if (historyItem) {
+        setTitle(historyItem.title);
+        setContent(historyItem.content);
+      }
+    }
+  }, [historyIndex, history, setTitle, setContent]);
+
   // 监听键盘快捷键，支持Ctrl+Z撤销和Ctrl+Y重做
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -104,7 +124,7 @@ export function HistoryManager({
         if (e.key === 'z') {
           e.preventDefault();
           undo();
-        } else if (e.key === 'y') {
+        } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
           e.preventDefault();
           redo();
         }
@@ -114,17 +134,6 @@ export function HistoryManager({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo]);
-
-  // 历史记录状态调试信息
-  useEffect(() => {
-    // 可以在这里添加调试信息，或者将历史记录状态暴露给父组件
-    console.log('历史记录状态:', {
-      historyLength: history.length,
-      currentIndex: historyIndex,
-      canUndo: historyIndex > 0,
-      canRedo: historyIndex < history.length - 1
-    });
-  }, [history.length, historyIndex]);
 
   return null;
 }

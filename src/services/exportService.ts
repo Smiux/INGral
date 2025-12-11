@@ -3,6 +3,9 @@ import { GraphNodeType, GraphVisibility } from '../types';
 import type { SemanticSearchResult } from './semanticSearchService';
 import { renderMarkdown } from '../utils/markdown';
 import { BaseService } from './baseService';
+import htmlDocx from 'html-docx-js';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 /**
  * 导出服务类，提供文章导出功能
@@ -12,6 +15,237 @@ export class ExportService extends BaseService {
 
   private constructor() {
     super();
+  }
+
+  /**
+   * 使用jsPDF导出文章为PDF
+   * @param article 文章对象
+   */
+  async exportArticleToPdfWithJsPdf(article: Article): Promise<void> {
+    try {
+      const htmlContent = await this.exportToHtml(article);
+      
+      // 创建一个临时的HTML元素
+      const tempElement = document.createElement('div');
+      tempElement.innerHTML = htmlContent;
+      tempElement.style.position = 'fixed';
+      tempElement.style.left = '-9999px';
+      tempElement.style.width = '210mm';
+      tempElement.style.backgroundColor = 'white';
+      document.body.appendChild(tempElement);
+      
+      // 使用html2canvas将HTML转换为canvas
+      const canvas = await html2canvas(tempElement, {
+        scale: 2, // 提高分辨率
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      });
+      
+      // 清理临时元素
+      document.body.removeChild(tempElement);
+      
+      // 创建PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      const position = 0;
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      
+      // 保存PDF
+      const safeFilename = this.sanitizeFilename(article.title) + '.pdf';
+      pdf.save(safeFilename);
+    } catch (error) {
+      console.error('使用jsPDF导出PDF失败:', error);
+      throw new Error('使用jsPDF导出PDF失败');
+    }
+  }
+
+  /**
+   * 导出为Word格式
+   * @param article 文章对象
+   * @returns Word文档的Blob对象
+   */
+  async exportToWord(article: Article): Promise<Blob> {
+    try {
+      const htmlContent = await this.exportToHtml(article);
+      
+      // 使用html-docx-js将HTML转换为Word文档
+      const docxBlob = htmlDocx.asBlob(htmlContent, {
+        orientation: 'portrait',
+        margins: {
+          top: 20,
+          right: 20,
+          bottom: 20,
+          left: 20
+        }
+      });
+      
+      return docxBlob as Blob;
+    } catch (error) {
+      console.error('导出Word失败:', error);
+      throw new Error('导出Word失败');
+    }
+  }
+
+  /**
+   * 导出文章为Word文件
+   * @param article 文章对象
+   */
+  async exportArticleToWord(article: Article): Promise<void> {
+    try {
+      const docxBlob = await this.exportToWord(article);
+      const safeFilename = this.sanitizeFilename(article.title) + '.docx';
+      this.triggerDownload(docxBlob, safeFilename, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    } catch (error) {
+      console.error('导出Word文件失败:', error);
+      throw new Error('导出Word文件失败');
+    }
+  }
+
+  /**
+   * 导出为LaTeX格式
+   * @param article 文章对象
+   * @returns LaTeX格式的文本
+   */
+  async exportToLatex(article: Article): Promise<string> {
+    try {
+      // 创建LaTeX内容
+      const latexContent = `\\documentclass{article}
+\\usepackage[UTF8]{ctex}
+\\usepackage{graphicx}
+\\usepackage{amsmath}
+\\usepackage{amssymb}
+\\usepackage{hyperref}
+\\usepackage{listings}
+\\usepackage{color}
+\\usepackage{geometry}
+\\geometry{a4paper, top=2cm, bottom=2cm, left=2cm, right=2cm}
+
+\\title{${article.title}}
+\\author{${article.author_id || 'Unknown'}}
+\\date{${new Date().toLocaleDateString()}}
+
+\\begin{document}
+
+\\maketitle
+
+\\section*{元信息}
+\\begin{tabular}{ll}
+    \\textbf{作者ID:} & ${article.author_id || 'Unknown'} \\
+    \\textbf{创建时间:} & ${article.created_at ? new Date(article.created_at).toLocaleString() : 'N/A'} \\
+    \\textbf{更新时间:} & ${article.updated_at ? new Date(article.updated_at).toLocaleString() : 'N/A'}
+\\end{tabular}
+
+\\section*{内容}
+
+${this.markdownToLatex(article.content)}
+
+\\section*{标签}
+${article.tags ? article.tags.map(tag => `\\#${tag}`).join(' ') : ''}
+
+\\end{document}`;
+      
+      return latexContent;
+    } catch (error) {
+      console.error('导出LaTeX失败:', error);
+      throw new Error('导出LaTeX失败');
+    }
+  }
+
+  /**
+   * 将Markdown转换为LaTeX格式
+   * @param markdown Markdown文本
+   * @returns LaTeX格式的文本
+   */
+  private markdownToLatex(markdown: string): string {
+    try {
+      // 简单的Markdown到LaTeX转换
+      let latex = markdown;
+      
+      // 标题转换
+      latex = latex.replace(/^#\s+(.*$)/gm, '\\section{$1}');
+      latex = latex.replace(/^##\s+(.*$)/gm, '\\subsection{$1}');
+      latex = latex.replace(/^###\s+(.*$)/gm, '\\subsubsection{$1}');
+      
+      // 段落转换
+      latex = latex.replace(/^\s*\n\s*$/, '\\par');
+      
+      // 粗体和斜体转换
+      latex = latex.replace(/\*\*(.*?)\*\*/g, '\\textbf{$1}');
+      latex = latex.replace(/\*(.*?)\*/g, '\\textit{$1}');
+      
+      // 代码块转换
+      latex = latex.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+        return `\\begin{lstlisting}[language=${lang || 'text'}]
+${code}
+\\end{lstlisting}`;
+      });
+      
+      // 行内代码转换
+      latex = latex.replace(/`(.*?)`/g, '\\texttt{$1}');
+      
+      // 列表转换
+      latex = latex.replace(/^-\s+(.*$)/gm, '\\item $1');
+      latex = latex.replace(/^\d+\.\s+(.*$)/gm, '\\item $1');
+      latex = latex.replace(/(\\item.*?)(?=\\item|$)/gs, '\\begin{itemize}\n$1\\end{itemize}');
+      
+      // 引用转换
+      latex = latex.replace(/^>\s+(.*$)/gm, '\\begin{quote}$1\\end{quote}');
+      
+      // 表格转换（简单实现）
+      latex = latex.replace(/\|(.*?)\|\n\|(.*?)\|\n((?:\|.*?\|\n)*)/g, (_, headers, _separator, rows) => {
+        const headerCols = headers.split('|').map((col: string) => col.trim()).filter((col: string) => col);
+        const dataRows = rows.split('\n')
+          .filter((row: string) => row.trim())
+          .map((row: string) => row.split('|').map((col: string) => col.trim()).filter((col: string) => col));
+        
+        let tableLatex = '\\begin{table}[h]\n\\centering\n\\begin{tabular}{';
+        
+        // 添加表格列格式
+        tableLatex += '|c'.repeat(headerCols.length) + '|\\\hline\n';
+        
+        // 添加表头
+        tableLatex += headerCols.join('|') + '\\\hline\n';
+        
+        // 添加数据行
+        dataRows.forEach((row: string[]) => {
+          tableLatex += row.join('|') + '\\\hline\n';
+        });
+        
+        tableLatex += '\\end{tabular}\n\\end{table}';
+        
+        return tableLatex;
+      });
+      
+      return latex;
+    } catch (error) {
+      console.error('Markdown到LaTeX转换失败:', error);
+      throw new Error('Markdown到LaTeX转换失败');
+    }
+  }
+
+  /**
+   * 导出文章为LaTeX文件
+   * @param article 文章对象
+   */
+  async exportArticleToLatex(article: Article): Promise<void> {
+    try {
+      const latexContent = await this.exportToLatex(article);
+      const safeFilename = this.sanitizeFilename(article.title) + '.tex';
+      this.triggerDownload(latexContent, safeFilename, 'application/x-latex;charset=utf-8');
+    } catch (error) {
+      console.error('导出LaTeX文件失败:', error);
+      throw new Error('导出LaTeX文件失败');
+    }
   }
 
   /**

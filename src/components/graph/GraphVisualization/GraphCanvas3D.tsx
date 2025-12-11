@@ -153,9 +153,10 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
 
     // 创建节点几何体和材质
     const nodeGeometry = new THREE.SphereGeometry(3, 32, 32);
+    const nodeWireframeGeometry = new THREE.SphereGeometry(3.5, 32, 32);
 
     // 创建节点
-    const nodeObjects: { node: EnhancedNode; mesh: THREE.Mesh; label: THREE.Mesh }[] = [];
+    const nodeObjects: { node: EnhancedNode; mesh: THREE.Mesh; label: THREE.Mesh; wireframe: THREE.Line }[] = [];
     
     nodes.forEach((node, index) => {
       // 检查节点是否被选中
@@ -165,7 +166,9 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
       const nodeMaterial = new THREE.MeshStandardMaterial({
         color: isSelected ? 0x3b82f6 : 0x1976d2,
         emissive: isSelected ? 0x3b82f6 : 0x000000,
-        emissiveIntensity: isSelected ? 0.2 : 0
+        emissiveIntensity: isSelected ? 0.3 : 0,
+        metalness: 0.3,
+        roughness: 0.5
       });
       
       const mesh = new THREE.Mesh(nodeGeometry, nodeMaterial);
@@ -180,9 +183,25 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
       );
       
       // 添加点击事件
-      mesh.userData = { node };
+      mesh.userData = { node, index };
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       
       scene.add(mesh);
+      
+      // 添加选中边框
+      const wireframeMaterial = new THREE.LineBasicMaterial({
+        color: isSelected ? 0xffffff : 0x000000,
+        transparent: true,
+        opacity: isSelected ? 0.8 : 0
+      });
+      
+      const wireframe = new THREE.LineSegments(
+        new THREE.WireframeGeometry(nodeWireframeGeometry),
+        wireframeMaterial
+      );
+      wireframe.position.copy(mesh.position);
+      scene.add(wireframe);
       
       // 创建节点标签
       const textGeometry = new TextGeometry(node.title.substring(0, 8), {
@@ -193,7 +212,11 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
         bevelEnabled: false
       });
       
-      const textMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+      const textMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.8
+      });
       const textMesh = new THREE.Mesh(textGeometry, textMaterial);
       
       // 定位标签
@@ -205,10 +228,11 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
       
       // 旋转标签使其始终面向相机
       textMesh.lookAt(cameraRef.current!.position);
+      textMesh.castShadow = true;
       
       scene.add(textMesh);
       
-      nodeObjects.push({ node, mesh, label: textMesh });
+      nodeObjects.push({ node, mesh, label: textMesh, wireframe });
     });
 
     // 创建链接
@@ -236,13 +260,14 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
           const linkMaterial = new THREE.LineBasicMaterial({ 
             color: 0x999999,
             opacity: 0.6,
-            transparent: true
+            transparent: true,
+            linewidth: 1.5
           });
           
           const linkLine = new THREE.Line(linkGeometry, linkMaterial);
           
           // 添加点击事件
-          linkLine.userData = { link };
+          linkLine.userData = { link, source: sourceObject.mesh, target: targetObject.mesh };
           
           scene.add(linkLine);
         }
@@ -252,9 +277,106 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
     // 添加鼠标交互
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
+    let isDragging = false;
+    let draggedObject: THREE.Mesh | null = null;
+    const mouseDownPosition = new THREE.Vector2();
+    
+    const handleMouseDown = (event: MouseEvent) => {
+      if (!containerRef.current || !cameraRef.current) return;
+      
+      const rect = containerRef.current.getBoundingClientRect();
+      mouseDownPosition.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseDownPosition.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      raycaster.setFromCamera(mouseDownPosition, cameraRef.current);
+      
+      // 检测节点点击
+      const nodeIntersections = raycaster.intersectObjects(nodeObjects.map(no => no.mesh));
+      if (nodeIntersections.length > 0 && nodeIntersections[0]) {
+        isDragging = true;
+        draggedObject = nodeIntersections[0].object as THREE.Mesh;
+        // 禁用轨道控制器
+        if (controlsRef.current) {
+          controlsRef.current.enabled = false;
+        }
+      }
+    };
+    
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!isDragging || !draggedObject || !containerRef.current || !cameraRef.current) return;
+      
+      const rect = containerRef.current.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      // 实现拖拽逻辑
+      const plane = new THREE.Plane(cameraRef.current.up, 0);
+      const ray = new THREE.Raycaster();
+      ray.setFromCamera(mouse, cameraRef.current);
+      
+      const intersectionPoint = new THREE.Vector3();
+      
+      // 使用Three.js的Plane.intersectLine方法代替Raycaster.intersectPlane
+      const rayLine = new THREE.Line3(ray.ray.origin, ray.ray.origin.clone().add(ray.ray.direction.clone().multiplyScalar(1000)));
+      const intersection = plane.intersectLine(rayLine, intersectionPoint);
+      
+      if (intersection && draggedObject) {
+        draggedObject.position.copy(intersectionPoint);
+        
+        // 更新标签位置
+        const nodeObject = nodeObjects.find(no => no.mesh === draggedObject);
+        if (nodeObject) {
+          nodeObject.label.position.copy(draggedObject.position).add(new THREE.Vector3(0, 5, 0));
+          nodeObject.label.lookAt(cameraRef.current!.position);
+          nodeObject.wireframe.position.copy(draggedObject.position);
+        }
+        
+        // 更新链接
+        links.forEach(link => {
+          const sourceId = typeof link.source === 'object' && link.source.id ? link.source.id : link.source;
+          const targetId = typeof link.target === 'object' && link.target.id ? link.target.id : link.target;
+          
+          if ((draggedObject as THREE.Mesh).userData.node.id === String(sourceId) || (draggedObject as THREE.Mesh).userData.node.id === String(targetId)) {
+            const linkObjects = scene.children.filter(child => 
+              child instanceof THREE.Line && child.userData && child.userData.link
+            ) as THREE.Line[];
+            
+            linkObjects.forEach(linkLine => {
+              if (linkLine.userData.link.id === link.id) {
+                const positionAttribute = linkLine.geometry.attributes.position;
+                if (positionAttribute) {
+                  const positions = positionAttribute.array as Float32Array;
+                  const sourceObject = nodeObjects.find(no => no.node.id === String(sourceId));
+                  const targetObject = nodeObjects.find(no => no.node.id === String(targetId));
+                  
+                  if (sourceObject && targetObject) {
+                    positions[0] = sourceObject.mesh.position.x;
+                    positions[1] = sourceObject.mesh.position.y;
+                    positions[2] = sourceObject.mesh.position.z;
+                    positions[3] = targetObject.mesh.position.x;
+                    positions[4] = targetObject.mesh.position.y;
+                    positions[5] = targetObject.mesh.position.z;
+                    positionAttribute.needsUpdate = true;
+                  }
+                }
+              }
+            });
+          }
+        });
+      }
+    };
+    
+    const handleMouseUp = () => {
+      isDragging = false;
+      draggedObject = null;
+      // 启用轨道控制器
+      if (controlsRef.current) {
+        controlsRef.current.enabled = true;
+      }
+    };
     
     const handleMouseClick = (event: MouseEvent) => {
-      if (!containerRef.current || !cameraRef.current) return;
+      if (!containerRef.current || !cameraRef.current || isDragging) return;
       
       const rect = containerRef.current.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -287,12 +409,68 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
       }
     };
     
+    // 添加悬停效果
+    const handleMouseHover = (event: MouseEvent) => {
+      if (!containerRef.current || !cameraRef.current) return;
+      
+      const rect = containerRef.current.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      raycaster.setFromCamera(mouse, cameraRef.current);
+      
+      // 检测节点悬停
+      const nodeIntersections = raycaster.intersectObjects(nodeObjects.map(no => no.mesh));
+      
+      // 重置所有节点
+      nodeObjects.forEach(no => {
+        no.mesh.scale.set(1, 1, 1);
+        // 确保材质是单个材质而非材质数组
+        if (no.wireframe.material instanceof THREE.Material) {
+          no.wireframe.material.opacity = no.node.id === selectedNode?.id || selectedNodes.some(n => n.id === no.node.id) ? 0.8 : 0;
+        }
+        if (no.label.material instanceof THREE.Material) {
+          no.label.material.opacity = 0.8;
+        }
+      });
+      
+      // 高亮悬停节点
+      if (nodeIntersections.length > 0 && nodeIntersections[0]) {
+        const intersection = nodeIntersections[0];
+        const hoveredMesh = intersection.object as THREE.Mesh;
+        const nodeObject = nodeObjects.find(no => no.mesh === hoveredMesh);
+        
+        if (nodeObject) {
+          hoveredMesh.scale.set(1.2, 1.2, 1.2);
+          if (nodeObject.wireframe.material instanceof THREE.Material) {
+            nodeObject.wireframe.material.opacity = 0.6;
+          }
+          if (nodeObject.label.material instanceof THREE.Material) {
+            nodeObject.label.material.opacity = 1;
+          }
+          containerRef.current!.style.cursor = 'pointer';
+        }
+      } else {
+        containerRef.current!.style.cursor = 'default';
+      }
+    };
+    
     const container = containerRef.current;
+    container?.addEventListener('mousedown', handleMouseDown);
+    container?.addEventListener('mousemove', handleMouseMove);
+    container?.addEventListener('mouseup', handleMouseUp);
+    container?.addEventListener('mouseleave', handleMouseUp);
     container?.addEventListener('click', handleMouseClick);
+    container?.addEventListener('mousemove', handleMouseHover);
     
     // 清理事件监听
     return () => {
+      container?.removeEventListener('mousedown', handleMouseDown);
+      container?.removeEventListener('mousemove', handleMouseMove);
+      container?.removeEventListener('mouseup', handleMouseUp);
+      container?.removeEventListener('mouseleave', handleMouseUp);
       container?.removeEventListener('click', handleMouseClick);
+      container?.removeEventListener('mousemove', handleMouseHover);
     };
   }, [nodes, links, selectedNode, selectedNodes, onNodeClick, onLinkClick]);
 
