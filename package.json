@@ -37,7 +37,7 @@
     "@supabase/supabase-js": "^2.57.4",
     "@types/d3-sankey": "^0.12.5",
     "@types/highlight.js": "^9.12.4",
-    "@types/html-docx-js": "^0.3.4",
+
     "@types/react-dropzone": "^4.2.2",
     "@types/three": "^0.181.0",
     "@uiw/react-md-editor": "^4.0.9",
@@ -46,7 +46,6 @@
     "d3-sankey": "^0.12.3",
     "date-fns": "^4.1.0",
     "highlight.js": "^11.11.1",
-    "html-docx-js": "^0.3.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.4",
     "katex": "^0.16.25",

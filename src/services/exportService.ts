@@ -3,7 +3,6 @@ import { GraphNodeType, GraphVisibility } from '../types';
 import type { SemanticSearchResult } from './semanticSearchService';
 import { renderMarkdown } from '../utils/markdown';
 import { BaseService } from './baseService';
-import htmlDocx from 'html-docx-js';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -66,48 +65,6 @@ export class ExportService extends BaseService {
     } catch (error) {
       console.error('使用jsPDF导出PDF失败:', error);
       throw new Error('使用jsPDF导出PDF失败');
-    }
-  }
-
-  /**
-   * 导出为Word格式
-   * @param article 文章对象
-   * @returns Word文档的Blob对象
-   */
-  async exportToWord(article: Article): Promise<Blob> {
-    try {
-      const htmlContent = await this.exportToHtml(article);
-      
-      // 使用html-docx-js将HTML转换为Word文档
-      const docxBlob = htmlDocx.asBlob(htmlContent, {
-        orientation: 'portrait',
-        margins: {
-          top: 20,
-          right: 20,
-          bottom: 20,
-          left: 20
-        }
-      });
-      
-      return docxBlob as Blob;
-    } catch (error) {
-      console.error('导出Word失败:', error);
-      throw new Error('导出Word失败');
-    }
-  }
-
-  /**
-   * 导出文章为Word文件
-   * @param article 文章对象
-   */
-  async exportArticleToWord(article: Article): Promise<void> {
-    try {
-      const docxBlob = await this.exportToWord(article);
-      const safeFilename = this.sanitizeFilename(article.title) + '.docx';
-      this.triggerDownload(docxBlob, safeFilename, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    } catch (error) {
-      console.error('导出Word文件失败:', error);
-      throw new Error('导出Word文件失败');
     }
   }
 
