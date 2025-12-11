@@ -5,6 +5,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import React, { lazy, Suspense } from 'react';
+import { Globe, Lock } from 'lucide-react';
 import type { ContentTemplate } from '../../types/template';
 import type { Article } from '../../types';
 import { articleService } from '../../services/articleService';
@@ -224,7 +225,7 @@ export function ArticleEditor() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = '';
+        // 现代浏览器只需要调用preventDefault()，不需要设置returnValue
         return '';
       }
       return;
@@ -254,6 +255,19 @@ export function ArticleEditor() {
   }, []);
 
   /**
+   * 处理文章标题输入，实时检查标题长度
+   */
+  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    
+    // 标题长度提示
+    if (newTitle.length > 100) {
+      showNotification('标题长度建议不超过100个字符', 'info');
+    }
+  }, [showNotification]);
+
+  /**
    * 保存文章
    */
   const handleSave = useCallback(async (e: React.FormEvent) => {
@@ -263,13 +277,17 @@ export function ArticleEditor() {
 
     try {
       if (!title.trim()) {
-        setError('文章标题不能为空');
+        const errorMsg = '文章标题不能为空';
+        setError(errorMsg);
+        showNotification(errorMsg, 'error');
         setIsSaving(false);
         return;
       }
 
       if (!content.trim()) {
-        setError('文章内容不能为空');
+        const errorMsg = '文章内容不能为空';
+        setError(errorMsg);
+        showNotification(errorMsg, 'error');
         setIsSaving(false);
         return;
       }
@@ -283,6 +301,7 @@ export function ArticleEditor() {
 
       if (!result) {
         throw new Error('保存文章时返回空结果');
+        
       }
 
       setArticle(result);
@@ -351,15 +370,9 @@ export function ArticleEditor() {
   /**
    * 切换视图模式
    */
-  const toggleViewMode = useCallback(() => {
-    if (viewMode === 'split') {
-      setViewMode('editor');
-    } else if (viewMode === 'editor') {
-      setViewMode('preview');
-    } else {
-      setViewMode('split');
-    }
-  }, [viewMode]);
+  const toggleViewMode = useCallback((mode: 'split' | 'editor' | 'preview') => {
+    setViewMode(mode);
+  }, []);
 
   /**
    * 加载自动保存的草稿
@@ -511,24 +524,11 @@ export function ArticleEditor() {
           e.preventDefault();
           handleSave(e as unknown as React.FormEvent);
           break;
-        case 'z':
-          e.preventDefault();
-          if (e.shiftKey) {
-            // Ctrl+Shift+Z for redo
-            // 这里需要调用历史记录管理器的重做功能
-          } else {
-            // Ctrl+Z for undo
-            // 这里需要调用历史记录管理器的撤销功能
-          }
-          break;
-        case 'y':
-          e.preventDefault();
-          // Ctrl+Y for redo
-          // 这里需要调用历史记录管理器的重做功能
-          break;
         case 'p':
           e.preventDefault();
-          toggleViewMode();
+          // 根据当前视图模式切换到下一个模式
+          const nextMode = viewMode === 'editor' ? 'preview' : viewMode === 'preview' ? 'split' : 'editor';
+          toggleViewMode(nextMode);
           break;
         case '/':
           e.preventDefault();
@@ -687,6 +687,193 @@ export function ArticleEditor() {
         </div>
       )}
 
+      {/* 设置面板 */}
+      {showSettingsPanel && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">编辑器设置</h2>
+              <button
+                onClick={() => setShowSettingsPanel(false)}
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="space-y-6">
+                {/* 可见性设置 */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">可见性设置</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-4">
+                      <button
+                        onClick={() => setVisibility('public')}
+                        className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${visibility === 'public' 
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800' 
+                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-650'}`}
+                      >
+                        <Globe size={16} className="text-blue-500 dark:text-blue-400" />
+                        <span>公开</span>
+                      </button>
+                      <button
+                        onClick={() => setVisibility('unlisted')}
+                        className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${visibility === 'unlisted' 
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800' 
+                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-650'}`}
+                      >
+                        <Lock size={16} className="text-purple-500 dark:text-purple-400" />
+                        <span>仅分享</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 作者信息设置 */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">作者信息</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label htmlFor="authorName" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者名称</label>
+                      <input
+                        type="text"
+                        id="authorName"
+                        value={authorName}
+                        onChange={(e) => setAuthorName(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="输入作者名称"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="authorEmail" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者邮箱</label>
+                      <input
+                        type="email"
+                        id="authorEmail"
+                        value={authorEmail}
+                        onChange={(e) => setAuthorEmail(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="输入作者邮箱"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="authorUrl" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者网站</label>
+                      <input
+                        type="url"
+                        id="authorUrl"
+                        value={authorUrl}
+                        onChange={(e) => setAuthorUrl(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="输入作者网站"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 帮助面板 */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">编辑器帮助</h2>
+              <button
+                onClick={() => setShowHelp(false)}
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="space-y-6">
+                {/* 基本操作 */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">基本操作</h3>
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <p>• 直接在编辑区域输入Markdown格式的文本</p>
+                    <p>• 使用工具栏进行格式化操作</p>
+                    <p>• 切换不同的视图模式（编辑/预览/分屏）</p>
+                    <p>• 自动保存功能会定期保存您的工作</p>
+                  </div>
+                </div>
+                
+                {/* 支持的功能 */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">支持的功能</h3>
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <p>• Markdown语法支持</p>
+                    <p>• LaTeX公式编辑（$inline$ 和 $$block$$）</p>
+                    <p>• Mermaid图表支持</p>
+                    <p>• 代码高亮</p>
+                    <p>• 表格支持</p>
+                    <p>• 列表支持</p>
+                    <p>• 链接和图片支持</p>
+                    <p>• 知识图谱生成</p>
+                  </div>
+                </div>
+                
+                {/* 快捷键 */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">常用快捷键</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+S</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">保存文章</span>
+                    </div>
+                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+Z</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">撤销</span>
+                    </div>
+                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+Y</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">重做</span>
+                    </div>
+                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+P</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">切换预览</span>
+                    </div>
+                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+/</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">显示快捷键</span>
+                    </div>
+                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+B</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">加粗</span>
+                    </div>
+                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+I</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">斜体</span>
+                    </div>
+                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+K</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">插入链接</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 支持和反馈 */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">支持和反馈</h3>
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <p>如果您遇到任何问题或有改进建议，请通过以下方式联系我们：</p>
+                    <p>• 查看文档：[文档链接]</p>
+                    <p>• 提交反馈：[反馈链接]</p>
+                    <p>• 联系支持：[支持邮箱]</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* 主编辑区域 */}
       <div className="flex flex-1 overflow-hidden">
         {/* 编辑器主体 */}
@@ -697,8 +884,6 @@ export function ArticleEditor() {
             onToggleViewMode={toggleViewMode}
             onSave={handleSave}
             isSaving={isSaving}
-            visibility={visibility}
-            onVisibilityChange={setVisibility}
             onSelectTemplate={() => setShowTemplateManager(true)}
             onGenerateGraph={() => setShowGraphGenerator(true)}
             showSettingsPanel={showSettingsPanel}
@@ -709,7 +894,37 @@ export function ArticleEditor() {
             onToggleToolbar={() => setShowToolbar(!showToolbar)}
             livePreview={livePreview}
             onToggleLivePreview={() => setLivePreview(!livePreview)}
+            showLineNumbers={showLineNumbers}
+            onToggleLineNumbers={() => setShowLineNumbers(!showLineNumbers)}
           />
+
+          {/* 文章标题输入区域 */}
+          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 transition-all">
+            <input
+              type="text"
+              value={title}
+              onChange={handleTitleChange}
+              className="w-full text-2xl font-bold bg-transparent border-none outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)]"
+              placeholder="请输入文章标题..."
+              autoFocus
+            />
+            <div className="text-xs text-[var(--text-secondary)] mt-1 flex items-center justify-between">
+              <span>{title.length} / 100 字符</span>
+              <div className="flex items-center space-x-4">
+                <span className="flex items-center">
+                  {visibility === 'public' ? (
+                    <Globe size={14} className="mr-1 text-blue-500" />
+                  ) : (
+                    <Lock size={14} className="mr-1 text-purple-500" />
+                  )}
+                  {visibility === 'public' ? '公开' : '未列出'}
+                </span>
+                <span>
+                  {content.length} 字符
+                </span>
+              </div>
+            </div>
+          </div>
 
           {/* 格式化工具栏 */}
           {showToolbar && (
@@ -741,20 +956,6 @@ export function ArticleEditor() {
               <span>{content.split('\n').length} 行</span>
               <span>{content.length} 字符</span>
               <span className="text-gray-700 dark:text-gray-300 font-mono">Ln {cursorPosition.line}, Col {cursorPosition.column}</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowLineNumbers(!showLineNumbers)}
-                className="flex items-center space-x-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                <span>{showLineNumbers ? '隐藏' : '显示'}行号</span>
-              </button>
-              <button
-                onClick={() => setLivePreview(!livePreview)}
-                className="flex items-center space-x-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                <span>{livePreview ? '关闭' : '开启'}实时预览</span>
-              </button>
             </div>
           </div>
         </div>

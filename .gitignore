@@ -95,6 +95,7 @@ __tests__/
 .env.production
 
 # Supabase
+supabase/
 *.temp/
 .temp/
 

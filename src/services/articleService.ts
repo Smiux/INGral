@@ -167,6 +167,7 @@ export class ArticleService extends BaseService {
         author_email: authorEmail || null,
         author_url: authorUrl || null,
         visibility,
+        status: 'published',
       };
 
       const article = await this.create<Article>(this.TABLE_NAME, articleData);
@@ -296,6 +297,8 @@ export class ArticleService extends BaseService {
     if (authorName !== undefined) updateData.author_name = authorName;
     if (authorEmail !== undefined) updateData.author_email = authorEmail;
     if (authorUrl !== undefined) updateData.author_url = authorUrl;
+    // 确保状态字段存在，默认保持published状态
+    updateData.status = 'published';
 
     try {
       // 如果不是离线文章，尝试更新到数据库

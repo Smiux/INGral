@@ -56,27 +56,30 @@ export function extractCitations(content: string): Citation[] {
   const citations: Citation[] = [];
   const citationRegex = /\[\^(\w+):\s*([^\]]+)\]/g;
   let match;
+  const contentMap = new Map<string, Citation>(); // 使用Map优化查找性能
   
   while ((match = citationRegex.exec(content)) !== null) {
     if (match[1] && match[2]) {
       const type = match[1].toLowerCase() as Citation['type'];
-      const content = match[2].trim();
+      const citationContent = match[2].trim();
       
-      // 检查是否已存在相同内容的引用
-      const existingCitation = citations.find(cit => cit.content === content);
+      // 检查是否已存在相同内容的引用，使用Map优化查找
+      const existingCitation = contentMap.get(citationContent);
       
       if (existingCitation) {
         // 更新引用计数
         existingCitation.count++;
       } else {
         // 添加新引用
-        citations.push({
+        const newCitation = {
           id: `citation-${citations.length + 1}`,
           type,
-          content,
+          content: citationContent,
           position: match.index,
           count: 1
-        });
+        };
+        citations.push(newCitation);
+        contentMap.set(citationContent, newCitation);
       }
     }
   }
@@ -322,12 +325,11 @@ let cacheStats = {
  * @returns 哈希字符串
  */
 function generateHash(content: string): string {
-  // 使用简单的哈希算法，适合快速计算
-  let hash = 0;
+  // 使用更高效的哈希算法，基于DJB2算法
+  let hash = 5381;
   for (let i = 0; i < content.length; i++) {
     const char = content.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = ((hash << 5) + hash) + char; // hash * 33 + char
   }
   return Math.abs(hash).toString(16);
 }
@@ -528,12 +530,12 @@ export function titleToSlug(title: string): string {
  * @param text Markdown 文本
  */
 function processWikiLinks(text: string): string {
-  return text.replace(/\[\[([^\]]+)\]\]/g, (_match: string, p1: string) => {
-    const parts = p1.split('|').map((s: string) => s.trim());
-    const title = parts[0] || '';
-    const displayText = parts[1] || title;
-    const slug = titleToSlug(title || displayText);
-    return `<a href="/article/${slug}" class="wiki-link">${displayText}</a>`;
+  // 优化正则表达式性能，使用更高效的匹配方式
+  return text.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match: string, title: string, displayText: string) => {
+    const trimmedTitle = title?.trim() || '';
+    const trimmedDisplayText = displayText?.trim() || trimmedTitle;
+    const slug = titleToSlug(trimmedTitle || trimmedDisplayText);
+    return `<a href="/article/${slug}" class="wiki-link">${trimmedDisplayText}</a>`;
   });
 }
 
@@ -577,7 +579,7 @@ function processMathFormulas(text: string): string {
     });
 
     // 处理内联数学公式：$...$ 格式
-    result = result.replace(/(?<!\\)\$([\s\S]*?)(?<!\\)\$/g, (_match: string, p1: string) => {
+    result = result.replace(/(?<!\\)\$([^$]+)(?<!\\)\$/g, (_match: string, p1: string) => {
       try {
         return katexCache.render(p1, { displayMode: false });
       } catch (error) {
@@ -800,8 +802,11 @@ export function renderMarkdown(content: string, options?: {
   includeBibliography?: boolean;
   citationStyle?: CitationStyle;
 }): RenderMarkdownResult {
-  // 生成缓存键
-  const cacheKey = `render:${content}:${options?.includeBibliography ? 'bib' : 'nobib'}:${options?.citationStyle || 'apa'}`;
+  // 生成更高效的缓存键
+  const citationStyle = options?.citationStyle || 'apa';
+  const includeBibliography = options?.includeBibliography ? 'bib' : 'nobib';
+  const contentHash = generateHash(content);
+  const cacheKey = `render:${contentHash}:${includeBibliography}:${citationStyle}`;
   
   // 检查缓存
   if (markdownRenderCache.has(cacheKey)) {
@@ -880,7 +885,7 @@ export function renderMarkdown(content: string, options?: {
     accessedAt: Date.now(),
     accessCount: 1,
     contentSize,
-    hash: generateHash(content)
+    hash: contentHash
   };
   
   markdownRenderCache.set(cacheKey, cacheEntry);
@@ -908,10 +913,10 @@ export function renderMarkdownSimple(content: string): string {
  * @returns Wiki 链接标题数组
  */
 export function extractWikiLinks(content: string): string[] {
-  const matches: string[] = content.match(/\[\[([^\]]+)\]\]/g) || [];
+  const matches: string[] = content.match(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g) || [];
   return matches.map((match: string) => {
-    const parts = match.slice(2, -2).split('|');
-    const title = parts[0]?.trim() || '';
+    const titleMatch = /\[\[([^\]|]+)/.exec(match);
+    const title = titleMatch ? titleMatch[1]?.trim() || '' : '';
     return title;
   });
 }
@@ -924,12 +929,11 @@ export function extractWikiLinks(content: string): string[] {
 export function extractWikiLinksDetailed(content: string): { title: string; displayText: string; slug: string }[] {
   const links: { title: string; displayText: string; slug: string }[] = [];
   
-  content.replace(/\[\[([^\]]+)\]\]/g, (_match, p1) => {
-    const parts = p1.split('|').map((s: string) => s.trim());
-    const title = parts[0] || '';
-    const displayText = parts[1] || title;
-    const slug = titleToSlug(title || displayText);
-    links.push({ title, displayText, slug });
+  content.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match, title, displayText) => {
+    const trimmedTitle = title?.trim() || '';
+    const trimmedDisplayText = displayText?.trim() || trimmedTitle;
+    const slug = titleToSlug(trimmedTitle || trimmedDisplayText);
+    links.push({ title: trimmedTitle, displayText: trimmedDisplayText, slug });
     return _match;
   });
   
@@ -959,7 +963,7 @@ export function getMarkdownSummary(content: string, length = 150): string {
   const plainText = content
     .replace(/\[\[([^\]]+)\]\]/g, '$1')
     .replace(/\$\$([^$]+)\$\$/g, '')
-    .replace(/\$([^$]+)\$/g, '')
+    .replace(/(?<!\\)\$([^$]+)(?<!\\)\$/g, '')
     .replace(/[#*`~_\[\](){}]/g, '')
     .replace(/\n+/g, ' ')
     .trim();

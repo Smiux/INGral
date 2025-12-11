@@ -1,4 +1,4 @@
-import { Save, Globe, Lock, Settings, HelpCircle, FileText, Share2, Network, Eye, EyeOff, Code, LayoutGrid } from 'lucide-react';
+import { Save, Settings, HelpCircle, FileText, Network, Eye, EyeOff, Code, LayoutGrid } from 'lucide-react';
 
 /**
  * 编辑器工具栏组件
@@ -6,11 +6,9 @@ import { Save, Globe, Lock, Settings, HelpCircle, FileText, Share2, Network, Eye
  */
 interface EditorToolbarProps {
   viewMode: 'split' | 'editor' | 'preview';
-  onToggleViewMode: () => void;
+  onToggleViewMode: (mode: 'split' | 'editor' | 'preview') => void;
   onSave: (e: React.FormEvent) => void;
   isSaving: boolean;
-  visibility: 'public' | 'unlisted';
-  onVisibilityChange: (visibility: 'public' | 'unlisted') => void;
   onSelectTemplate: () => void;
   onGenerateGraph?: () => void;
   showSettingsPanel: boolean;
@@ -21,6 +19,8 @@ interface EditorToolbarProps {
   onToggleToolbar: () => void;
   livePreview: boolean;
   onToggleLivePreview: () => void;
+  showLineNumbers: boolean;
+  onToggleLineNumbers: () => void;
 }
 
 export function EditorToolbar({
@@ -28,8 +28,6 @@ export function EditorToolbar({
   onToggleViewMode,
   onSave,
   isSaving,
-  visibility,
-  onVisibilityChange,
   onSelectTemplate,
   onGenerateGraph,
   showSettingsPanel,
@@ -40,6 +38,8 @@ export function EditorToolbar({
   onToggleToolbar,
   livePreview,
   onToggleLivePreview,
+  showLineNumbers,
+  onToggleLineNumbers,
 }: EditorToolbarProps) {
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300">
@@ -62,7 +62,7 @@ export function EditorToolbar({
           {/* 视图切换按钮组 */}
           <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden shadow-sm">
             <button
-              onClick={onToggleViewMode}
+              onClick={() => onToggleViewMode('editor')}
               className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-200 ${viewMode === 'editor' 
                 ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-inner' 
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
@@ -71,7 +71,7 @@ export function EditorToolbar({
               <span className="hidden sm:inline">编辑</span>
             </button>
             <button
-              onClick={onToggleViewMode}
+              onClick={() => onToggleViewMode('preview')}
               className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-200 ${viewMode === 'preview' 
                 ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-inner' 
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
@@ -80,7 +80,7 @@ export function EditorToolbar({
               <span className="hidden sm:inline">预览</span>
             </button>
             <button
-              onClick={onToggleViewMode}
+              onClick={() => onToggleViewMode('split')}
               className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-200 ${viewMode === 'split' 
                 ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-inner' 
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
@@ -124,54 +124,11 @@ export function EditorToolbar({
             </button>
           )}
 
-          {/* 可见性切换按钮 */}
-          <div className="relative group">
-            <button
-              className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm"
-            >
-              {visibility === 'public' ? (
-                <>
-                  <Globe size={16} />
-                  <span className="hidden sm:inline">公开</span>
-                </>
-              ) : (
-                <>
-                  <Lock size={16} />
-                  <span className="hidden sm:inline">未列出</span>
-                </>
-              )}
-            </button>
-            {/* 可见性下拉菜单 - 改进的动画效果 */}
-            <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[160px] opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 ease-out">
-              <button
-                onClick={() => onVisibilityChange('public')}
-                className={`flex items-center space-x-2 w-full px-4 py-2.5 text-sm transition-all duration-150 ${visibility === 'public' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-              >
-                <Globe size={16} className="text-blue-500 dark:text-blue-400" />
-                <span>公开</span>
-              </button>
-              <button
-                onClick={() => onVisibilityChange('unlisted')}
-                className={`flex items-center space-x-2 w-full px-4 py-2.5 text-sm transition-all duration-150 ${visibility === 'unlisted' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-              >
-                <Lock size={16} className="text-purple-500 dark:text-purple-400" />
-                <span>未列出</span>
-              </button>
-            </div>
-          </div>
+
         </div>
 
         {/* 右侧操作按钮 */}
         <div className="flex items-center gap-1">
-          {/* 分享按钮 */}
-          <button
-            className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm"
-            title="分享文章"
-          >
-            <Share2 size={16} />
-            <span className="hidden sm:inline">分享</span>
-          </button>
-
           {/* 工具栏折叠/展开按钮 */}
           <button
             onClick={onToggleToolbar}
@@ -186,6 +143,20 @@ export function EditorToolbar({
               )}
             </svg>
             <span className="hidden sm:inline">{showToolbar ? '折叠' : '展开'}</span>
+          </button>
+
+          {/* 显示行号按钮 */}
+          <button
+            onClick={onToggleLineNumbers}
+            className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${showLineNumbers
+              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm' 
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm'}`}
+            title={showLineNumbers ? '隐藏行号' : '显示行号'}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+            <span className="hidden sm:inline">{showLineNumbers ? '隐藏' : '显示'}行号</span>
           </button>
 
           {/* 设置按钮 */}

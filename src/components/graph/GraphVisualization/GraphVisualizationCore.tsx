@@ -6,6 +6,11 @@ import { graphService } from '../../../services/graphService';
 import type { EnhancedNode, EnhancedGraphLink, LayoutType, LayoutDirection, RecentAction, SavedLayout, ForceParameters } from './types';
 import type { GraphTheme, NodeStyle, LinkStyle } from './ThemeTypes';
 
+// 导入服务类
+import { GraphHistoryManager } from './GraphHistoryManager';
+import { GraphThemeManager } from './GraphThemeManager';
+import { GraphLayoutParamsManager } from './GraphLayoutParamsManager';
+
 // 导出类型定义
 export interface GraphVisualizationCoreProps {
   children: (
@@ -125,7 +130,7 @@ import { PRESET_THEMES } from './ThemeTypes';
 export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps) => {
   const navigate = useNavigate();
   
-  // 原始状态管理，保留与子组件兼容的setter
+  // 保留与子组件兼容的状态和setter
   const [nodes, setNodes] = useState<EnhancedNode[]>([]);
   const [links, setLinks] = useState<EnhancedGraphLink[]>([]);
   const [selectedNode, setSelectedNode] = useState<EnhancedNode | null>(null);
@@ -199,6 +204,10 @@ export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps
   // 通知状态
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
 
+  // 操作历史记录
+  const [history, setHistory] = useState<RecentAction[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
   // 添加showNotification函数，用于显示通知
   const showNotification = useCallback((message: string, type: 'success' | 'info' | 'error') => {
     setNotification({ message, type });
@@ -211,9 +220,36 @@ export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps
     setNotification(null);
   }, []);
 
-  // 操作历史记录
-  const [history, setHistory] = useState<RecentAction[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
+  // 初始化服务类
+  const [servicesInitialized, setServicesInitialized] = useState(false);
+  const [themeManager] = useState(() => new GraphThemeManager(currentTheme, setCurrentTheme, () => {}));
+  const [historyManager] = useState(() => new GraphHistoryManager());
+  const [layoutParamsManager] = useState(() => new GraphLayoutParamsManager(savedLayouts, setSavedLayouts));
+
+  // 初始化服务状态
+  useEffect(() => {
+    if (!servicesInitialized) {
+      // 初始化主题管理器
+      themeManager.handleThemeChange(currentTheme);
+      
+      // 初始化历史记录管理器
+      historyManager.updateGraphData();
+      
+      // 初始化布局参数管理器
+      // 从localStorage加载保存的布局
+      try {
+        const savedLayoutsStr = localStorage.getItem('savedLayouts');
+        if (savedLayoutsStr) {
+          const layouts = JSON.parse(savedLayoutsStr);
+          setSavedLayouts(layouts);
+        }
+      } catch (error) {
+        console.error('从localStorage加载布局失败:', error);
+      }
+      
+      setServicesInitialized(true);
+    }
+  }, [servicesInitialized, currentTheme, nodes, links, themeManager, historyManager, layoutParamsManager]);
 
   // 加载用户图表
   useEffect(() => {
@@ -224,8 +260,43 @@ export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps
         setLinks([]);
         setIsSimulationRunning(true);
 
-        // 显示加载成功通知
-        showNotification('知识图谱加载成功', 'success');
+        // 尝试从服务加载数据
+        const graphs = await graphService.getAllGraphs('unlisted');
+        if (graphs && graphs.length > 0 && graphs[0] && graphs[0].id) {
+          // 获取第一个图谱的详情
+          const graphData = await graphService.getGraphById(graphs[0].id);
+          if (graphData && graphData.nodes && graphData.links) {
+            // 转换GraphNode[]为EnhancedNode[]
+            const enhancedNodes = graphData.nodes.map(node => ({
+              ...node,
+              // 添加EnhancedNode所需的额外属性
+              isExpanded: false,
+              _isAggregated: false,
+              _aggregatedNodes: [],
+              type: node.type || 'concept'
+            }));
+            
+            // 转换GraphLink[]为EnhancedGraphLink[]
+            const enhancedLinks = graphData.links.map(link => ({
+              ...link,
+              // 添加EnhancedGraphLink所需的id属性
+              id: `link-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+              // source和target已经是字符串类型，不需要额外转换
+              source: link.source as string,
+              target: link.target as string
+            }));
+            
+            setNodes(enhancedNodes);
+            setLinks(enhancedLinks);
+            showNotification('知识图谱加载成功', 'success');
+          } else {
+            // 没有数据时显示提示
+            showNotification('知识图谱数据为空，您可以创建新节点', 'info');
+          }
+        } else {
+          // 没有图谱时显示提示
+          showNotification('没有找到知识图谱，您可以创建新图谱', 'info');
+        }
       } catch (error) {
         console.error('Unexpected error in loadData:', error);
 
@@ -242,6 +313,8 @@ export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps
         } catch (notifyError) {
           console.error('Error showing notification:', notifyError);
         }
+      } finally {
+        setIsSimulationRunning(false);
       }
     };
 
@@ -532,92 +605,41 @@ export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps
 
   // 记录操作历史
   const addHistory = useCallback((action: RecentAction) => {
+    // 使用历史管理器添加历史记录
+    historyManager.addHistoryItem(action);
+    setHistory(historyManager.history);
+    setHistoryIndex(historyManager.historyIndex);
     // 使用单个setHistory调用，确保历史记录和索引的一致性
     setHistory((prevHistory) => {
       setHistoryIndex(prevHistory.length);
       // 添加新操作并限制历史记录长度为50
       return [...prevHistory, action].slice(-50);
     });
-  }, []);
+  }, [historyManager]);
 
   // 撤销操作
   const handleUndo = useCallback(() => {
-    if (historyIndex < 0) return;
-    
-    const action = history[historyIndex];
-    if (!action) return;
-    
-    let newNodes = [...nodes];
-    let newLinks = [...links];
-    
-    // 根据操作类型执行撤销
-    switch (action.type) {
-      case 'addNode':
-        // 撤销添加节点，删除该节点
-        newNodes = newNodes.filter(node => node.id !== action.nodeId);
-        break;
-      case 'deleteNode':
-        // 撤销删除节点，重新添加该节点和关联的链接
-        newNodes.push(action.data.node);
-        newLinks.push(...action.data.links);
-        break;
-      case 'addLink':
-        // 撤销添加链接，删除该链接
-        newLinks = newLinks.filter(link => link.id !== action.linkId);
-        break;
-      case 'deleteLink':
-        // 撤销删除链接，重新添加该链接
-        newLinks.push(action.data);
-        break;
-    }
-    
+    // 使用历史管理器处理撤销
+    historyManager.handleUndo();
     // 更新状态
-    setNodes(newNodes);
-    setLinks(newLinks);
-    setHistoryIndex(historyIndex - 1);
+    setNodes(nodes => historyManager.canUndo ? [...nodes] : nodes);
+    setLinks(links => historyManager.canUndo ? [...links] : links);
+    setHistory(historyManager.history);
+    setHistoryIndex(historyManager.historyIndex);
     showNotification('已撤销操作', 'info');
-  }, [history, historyIndex, nodes, links, showNotification]);
+  }, [historyManager, showNotification]);
 
   // 重做操作
   const handleRedo = useCallback(() => {
-    if (historyIndex >= history.length - 1) return;
-    
-    const nextIndex = historyIndex + 1;
-    const action = history[nextIndex];
-    if (!action) return;
-    
-    let newNodes = [...nodes];
-    let newLinks = [...links];
-    
-    // 根据操作类型执行重做
-    switch (action.type) {
-      case 'addNode':
-        // 重做添加节点，重新添加该节点
-        newNodes.push(action.data.node);
-        break;
-      case 'deleteNode':
-        // 重做删除节点，删除该节点和关联的链接
-        newNodes = newNodes.filter(node => node.id !== action.nodeId);
-        newLinks = newLinks.filter(link => {
-          return !action.data.links.some((l: EnhancedGraphLink) => l.id === link.id);
-        });
-        break;
-      case 'addLink':
-        // 重做添加链接，重新添加该链接
-        newLinks.push(action.data as EnhancedGraphLink);
-        break;
-      case 'deleteLink':
-        // 重做删除链接，删除该链接
-        newLinks = newLinks.filter(link => link.id !== action.linkId);
-        break;
-    }
-    
+    // 使用历史管理器处理重做
+    historyManager.handleRedo();
     // 更新状态
-    setNodes(newNodes);
-    setLinks(newLinks);
-    setHistoryIndex(nextIndex);
+    setNodes(nodes => historyManager.canRedo ? [...nodes] : nodes);
+    setLinks(links => historyManager.canRedo ? [...links] : links);
+    setHistory(historyManager.history);
+    setHistoryIndex(historyManager.historyIndex);
     showNotification('已重做操作', 'info');
-  }, [history, historyIndex, nodes, links, showNotification]);
+  }, [historyManager, showNotification]);
 
   // 复制节点样式
   const handleCopyNodeStyle = useCallback(() => {
@@ -626,14 +648,15 @@ export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps
       return;
     }
     
-    // 复制当前主题的节点样式
+    // 使用主题管理器复制节点样式
+    themeManager.handleStyleCopy('node', currentTheme.node);
     setCopiedStyle({
       type: 'node',
       style: currentTheme.node
     });
     
     showNotification('已复制节点样式', 'success');
-  }, [selectedNode, currentTheme, showNotification]);
+  }, [selectedNode, currentTheme, showNotification, themeManager]);
 
   // 复制链接样式
   const handleCopyLinkStyle = useCallback(() => {
@@ -642,14 +665,15 @@ export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps
       return;
     }
     
-    // 复制当前主题的链接样式
+    // 使用主题管理器复制链接样式
+    themeManager.handleStyleCopy('link', currentTheme.link);
     setCopiedStyle({
       type: 'link',
       style: currentTheme.link
     });
     
     showNotification('已复制链接样式', 'success');
-  }, [selectedLink, currentTheme, showNotification]);
+  }, [selectedLink, currentTheme, showNotification, themeManager]);
 
   // 粘贴样式
   const handlePasteStyle = useCallback(() => {
@@ -658,15 +682,16 @@ export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps
       return;
     }
     
-    // 根据复制的样式类型更新主题
+    // 使用主题管理器粘贴样式
     const updatedTheme: GraphTheme = {
       ...currentTheme,
       [copiedStyle.type]: copiedStyle.style
     };
     
+    themeManager.handleThemeChange(updatedTheme);
     setCurrentTheme(updatedTheme);
     showNotification(`已粘贴${copiedStyle.type === 'node' ? '节点' : '链接'}样式`, 'success');
-  }, [copiedStyle, currentTheme, showNotification]);
+  }, [copiedStyle, currentTheme, showNotification, themeManager]);
 
   // 处理导入图谱
   const handleImportGraph = useCallback((graph: { nodes: EnhancedNode[]; links: EnhancedGraphLink[] }) => {
@@ -704,80 +729,30 @@ export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps
   
   // 保存布局
   const handleSaveLayout = useCallback((layout: SavedLayout) => {
-    setSavedLayouts(prev => [...prev, layout]);
+    // 使用布局参数管理器保存布局
+    layoutParamsManager.handleLayoutSave(layout.name, nodes, links, layoutType, layoutDirection);
+    setSavedLayouts(layoutParamsManager.savedLayouts);
     showNotification('布局已保存', 'success');
-    
-    // 将布局保存到localStorage
-    try {
-      const existingLayouts = localStorage.getItem('savedLayouts');
-      const layouts = existingLayouts ? JSON.parse(existingLayouts) : [];
-      layouts.push(layout);
-      localStorage.setItem('savedLayouts', JSON.stringify(layouts));
-    } catch (error) {
-      console.error('保存布局到localStorage失败:', error);
-    }
-  }, [showNotification]);
+  }, [nodes, links, layoutType, layoutDirection, layoutParamsManager, showNotification]);
   
   // 加载布局
   const handleLoadLayout = useCallback((layout: SavedLayout) => {
+    // 使用布局参数管理器加载布局
+    layoutParamsManager.handleLayoutApply();
     // 更新布局参数
     setLayoutType(layout.layout.layoutType);
     setLayoutDirection(layout.layout.layoutDirection);
-    setNodeSpacing(layout.layout.nodeSpacing || 50);
-    setLevelSpacing(layout.layout.levelSpacing || 100);
-    setForceParameters(layout.layout.forceParameters || {
-      charge: -300,
-      linkStrength: 0.1,
-      linkDistance: 150,
-      gravity: 0.1
-    });
-    
-    // 更新节点位置
-    setNodes(prevNodes => {
-      return prevNodes.map(node => {
-        const position = layout.nodePositions[node.id];
-        return {
-          ...node,
-          x: position?.x || node.x || 0,
-          y: position?.y || node.y || 0
-        };
-      });
-    });
-    
     showNotification('布局已加载', 'success');
-  }, [showNotification]);
+  }, [layoutParamsManager, showNotification]);
   
   // 删除布局
   const handleDeleteLayout = useCallback((layoutId: string) => {
-    setSavedLayouts(prev => prev.filter(layout => layout.id !== layoutId));
+    // 使用布局参数管理器删除布局
+    layoutParamsManager.handleLayoutDelete(layoutId);
+    setSavedLayouts(layoutParamsManager.savedLayouts);
     showNotification('布局已删除', 'success');
-    
-    // 从localStorage删除布局
-    try {
-      const existingLayouts = localStorage.getItem('savedLayouts');
-      if (existingLayouts) {
-        const layouts = JSON.parse(existingLayouts);
-        const updatedLayouts = layouts.filter((layout: SavedLayout) => layout.id !== layoutId);
-        localStorage.setItem('savedLayouts', JSON.stringify(updatedLayouts));
-      }
-    } catch (error) {
-      console.error('从localStorage删除布局失败:', error);
-    }
-  }, [showNotification]);
+  }, [layoutParamsManager, showNotification]);
   
-  // 从localStorage加载保存的布局
-  useEffect(() => {
-    try {
-      const savedLayoutsStr = localStorage.getItem('savedLayouts');
-      if (savedLayoutsStr) {
-        const layouts = JSON.parse(savedLayoutsStr);
-        setSavedLayouts(layouts);
-      }
-    } catch (error) {
-      console.error('从localStorage加载布局失败:', error);
-    }
-  }, []);
-
   // 画布拖拽放置处理
   const handleCanvasDrop = useCallback((_event: React.DragEvent, x: number, y: number) => {
     // 创建新节点
@@ -794,15 +769,17 @@ export const GraphVisualizationCore = ({ children }: GraphVisualizationCoreProps
     setNodes(prevNodes => [...prevNodes, newNode]);
     
     // 记录操作历史
-    addHistory({
+    const action: RecentAction = {
       type: 'addNode',
       nodeId: newNode.id,
       timestamp: Date.now(),
       data: { node: newNode }
-    });
+    };
+    historyManager.addHistoryItem(action);
+    addHistory(action);
     
     showNotification('节点创建成功', 'success');
-  }, [showNotification, addHistory]);
+  }, [showNotification, addHistory, historyManager]);
 
   // 切换面板显示状态
   const togglePanel = useCallback((panelId: string | null) => {
