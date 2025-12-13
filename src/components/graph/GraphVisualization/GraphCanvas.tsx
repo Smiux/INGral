@@ -192,14 +192,20 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
     const height = containerRef.current.clientHeight;
     
     // 检查是否需要聚合节点（当节点数量超过一定阈值时）
-    const shouldAggregate = nodes.length > 50;
+    // 优化节点聚合策略：根据屏幕尺寸和节点数量动态调整聚合阈值
+    const nodeCount = nodes.length;
+    const screenArea = width * height;
+    const density = nodeCount / screenArea;
+    
+    // 动态计算聚合阈值：屏幕密度越高，越容易触发聚合
+    const shouldAggregate = density > 0.0005 || nodeCount > 150;
     
     // 执行节点聚合
     const {
       nodes: layoutNodes,
       links: layoutLinks
     } = shouldAggregate
-      ? NodeAggregationUtils.aggregateNodes(nodes, links, 30, 3)
+      ? NodeAggregationUtils.aggregateNodes(nodes, links, Math.max(30, Math.min(80, 1000 / Math.sqrt(nodeCount))), Math.max(3, Math.min(10, Math.floor(nodeCount / 50))))
       : { nodes, links };
     
     // 创建或更新SVG
@@ -350,23 +356,52 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
           onNodeClick(d, event as React.MouseEvent);
         })
         .call(d3.drag<SVGGElement, EnhancedNode>())
-        .on('start', (event, d) => {
+        .on('start', (_, d) => {
           onNodeDragStart(d);
-          if (!event.active && simulationRef.current) {
-            simulationRef.current.alphaTarget(0.3).restart();
-          }
+          // 优化：拖拽开始时不重启模拟，保持节点位置稳定
           d.fx = d.x;
           d.fy = d.y;
         })
         .on('drag', (event, d) => {
           d.fx = event.x;
           d.fy = event.y;
-          if (simulationRef.current) {
-            simulationRef.current.alpha(0.3);
-          }
+          // 实时更新节点位置，提升拖拽响应速度
+          d3.select(event.currentTarget).attr('transform', `translate(${d.fx}, ${d.fy})`);
+          // 更新与该节点相关的链接
+          g.selectAll<SVGLineElement, EnhancedGraphLink>('.link')
+            .filter(link => {
+              const sourceId = typeof link.source === 'string' || typeof link.source === 'number' ? link.source : (link.source as EnhancedNode).id;
+              const targetId = typeof link.target === 'string' || typeof link.target === 'number' ? link.target : (link.target as EnhancedNode).id;
+              return sourceId === d.id || targetId === d.id;
+            })
+            .attr('x1', link => {
+              const source = typeof link.source === 'string' || typeof link.source === 'number' 
+                ? allNodes.find(n => n.id === link.source) 
+                : link.source as EnhancedNode;
+              return source?.fx || source?.x || 0;
+            })
+            .attr('y1', link => {
+              const source = typeof link.source === 'string' || typeof link.source === 'number' 
+                ? allNodes.find(n => n.id === link.source) 
+                : link.source as EnhancedNode;
+              return source?.fy || source?.y || 0;
+            })
+            .attr('x2', link => {
+              const target = typeof link.target === 'string' || typeof link.target === 'number' 
+                ? allNodes.find(n => n.id === link.target) 
+                : link.target as EnhancedNode;
+              return target?.fx || target?.x || 0;
+            })
+            .attr('y2', link => {
+              const target = typeof link.target === 'string' || typeof link.target === 'number' 
+                ? allNodes.find(n => n.id === link.target) 
+                : link.target as EnhancedNode;
+              return target?.fy || target?.y || 0;
+            });
         })
         .on('end', (event, d) => {
           onNodeDragEnd(d);
+          // 优化：拖拽结束后保持节点位置固定，提升控制稳定性
           if (!event.active && simulationRef.current) {
             simulationRef.current.alphaTarget(0);
           }

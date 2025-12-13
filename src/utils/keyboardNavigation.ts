@@ -62,6 +62,7 @@ export enum KeyCode {
   SPACE = ' ',
   BACKSPACE = 'Backspace',
   DELETE = 'Delete',
+  SLASH = '/',
   ARROW_UP = 'ArrowUp',
   ARROW_DOWN = 'ArrowDown',
   ARROW_LEFT = 'ArrowLeft',
@@ -338,7 +339,7 @@ export const focusUtils = {
 
     // 获取可聚焦元素
     const focusableElements = Array.from(document.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     ));
 
     // 过滤出可见且未禁用的元素
@@ -373,7 +374,7 @@ export const focusUtils = {
 
     // 获取可聚焦元素
     const focusableElements = Array.from(document.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     ));
 
     // 过滤出可见且未禁用的元素
@@ -407,7 +408,7 @@ export const focusUtils = {
     if (!container) {return;}
 
     const firstFocusable = container.querySelector<HTMLElement>(
-      'button:enabled, a[href]:not([disabled]), input:enabled, select:enabled, textarea:enabled, [tabindex]:not([tabindex="-1"]):not([disabled])',
+      'button:enabled, a[href]:not([disabled]), input:enabled, select:enabled, textarea:enabled, [tabindex]:not([tabindex="-1"]):not([disabled])'
     );
 
     if (firstFocusable) {
@@ -423,7 +424,7 @@ export const focusUtils = {
     if (!container) {return;}
 
     const focusableElements = Array.from(container.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     ));
 
     // 过滤出可见且未禁用的元素

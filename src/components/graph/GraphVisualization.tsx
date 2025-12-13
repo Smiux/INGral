@@ -8,11 +8,10 @@ import { GraphVisualizationCore } from './GraphVisualization/GraphVisualizationC
 // 导入子组件
 import { GraphToolbar } from './GraphVisualization/GraphToolbar';
 import { GraphSettingsPanel } from './GraphVisualization/GraphSettingsPanel';
-import { GraphLeftPanel } from './GraphVisualization/GraphLeftPanel';
-import { GraphRightPanel } from './GraphVisualization/GraphRightPanel';
 import { GraphCanvas } from './GraphVisualization/GraphCanvas';
 import { GraphCanvas3D } from './GraphVisualization/GraphCanvas3D';
 import { GraphNavigationControls } from './GraphVisualization/GraphNavigationControls';
+import { PanelContainer } from './GraphVisualization/PanelContainer';
 
 /**
  * 知识图谱可视化组件
@@ -37,47 +36,43 @@ export function GraphVisualization() {
     <GraphVisualizationCore>
       {({ 
         // 状态
-        nodes, links, selectedNode, selectedNodes, selectedLink, selectedLinks,
-        isAddingLink, linkSourceNode, mousePosition, isSimulationRunning,
-        layoutType, layoutDirection, viewMode, isLeftPanelCollapsed, isToolbarVisible,
-        isLeftToolbarVisible, activePanel, currentTheme, copiedStyle,
+        nodes, links, selectedNode, selectedNodes, selectedLinks,
+        layoutType, layoutDirection, viewMode, isToolbarVisible,
+        activePanel, currentTheme,
         isBoxSelecting, boxSelection, isSettingsPanelOpen, isShortcutsOpen,
-        nodeSpacing, levelSpacing, forceParameters, savedLayouts,
         notification, historyIndex, history,
-        toolbarAutoHide, leftToolbarAutoHide,
+        toolbarAutoHide,
+        isSimulationRunning, isAddingLink, linkSourceNode, mousePosition, nodeSpacing,
+        levelSpacing, forceParameters, savedLayouts, copiedStyle,
         
         // 状态更新函数
-        setNodes, setLinks, setSelectedNode, setSelectedNodes,
-        setSelectedLinks, setIsAddingLink, setLinkSourceNode, setMousePosition,
-        setLayoutType, setLayoutDirection, setViewMode,
-        setIsLeftPanelCollapsed,
-        setCurrentTheme,
-        setIsSettingsPanelOpen, setIsShortcutsOpen, setNodeSpacing,
+        setViewMode,
+        setIsSettingsPanelOpen, setIsShortcutsOpen,
+        setToolbarAutoHide, setNodes, setLinks, setSelectedNode,
+        setSelectedNodes, setSelectedLinks, setIsAddingLink, setLinkSourceNode,
+        setMousePosition, setLayoutType, setLayoutDirection, setNodeSpacing,
         setLevelSpacing, setForceParameters,
-        setToolbarAutoHide, setLeftToolbarAutoHide,
+        setCurrentTheme,
         
         // 回调函数
-        showNotification, closeNotification, handleNodeClick, handleNodeDragStart,
+        closeNotification, handleNodeClick, handleNodeDragStart,
         handleNodeDragEnd, handleLinkClick, handleCanvasClick, handleBoxSelectStart,
-        handleBoxSelectUpdate, handleBoxSelectEnd, handleUpdateNode, handleUpdateLink,
-        handleUndo, handleRedo, handleCopyNodeStyle, handleCopyLinkStyle, handlePasteStyle,
-        handleImportGraph, handleSaveLayout, handleLoadLayout, handleDeleteLayout,
-        handleCanvasDrop, togglePanel,
-        addHistory
+        handleBoxSelectUpdate, handleBoxSelectEnd, handleUndo, handleRedo,
+        handleCopyNodeStyle, handleCopyLinkStyle, handlePasteStyle, handleCanvasDrop, togglePanel,
+        handleSaveLayout, handleLoadLayout, handleDeleteLayout, handleImportGraph,
+        showNotification, addHistory
       }) => (
         <div className={`w-full h-screen flex flex-col ${currentTheme.backgroundColor}`}>
           {/* 顶部工具栏 - 现代化设计 */}
           <GraphToolbar
             isToolbarVisible={isToolbarVisible}
             viewMode={viewMode}
-            isLeftPanelCollapsed={isLeftPanelCollapsed}
             isSettingsPanelOpen={isSettingsPanelOpen}
             activePanel={activePanel}
             historyIndex={historyIndex}
             history={history}
             currentTheme={currentTheme}
             setViewMode={setViewMode}
-            setIsLeftPanelCollapsed={setIsLeftPanelCollapsed}
             setIsSettingsPanelOpen={setIsSettingsPanelOpen}
             setIsShortcutsOpen={setIsShortcutsOpen}
             handleUndo={handleUndo}
@@ -89,10 +84,8 @@ export function GraphVisualization() {
           <GraphSettingsPanel
             isSettingsPanelOpen={isSettingsPanelOpen}
             toolbarAutoHide={toolbarAutoHide}
-            leftToolbarAutoHide={leftToolbarAutoHide}
             setIsSettingsPanelOpen={setIsSettingsPanelOpen}
             setToolbarAutoHide={setToolbarAutoHide}
-            setLeftToolbarAutoHide={setLeftToolbarAutoHide}
           />
 
           {/* 通知组件 */}
@@ -106,51 +99,6 @@ export function GraphVisualization() {
 
           {/* 主内容区域 */}
           <div className="flex-1 flex overflow-hidden">
-            {/* 左侧控制面板 - 现代化可折叠设计 */}
-            <GraphLeftPanel
-              isLeftPanelCollapsed={isLeftPanelCollapsed}
-              isLeftToolbarVisible={isLeftToolbarVisible}
-              activePanel={activePanel}
-              nodes={nodes}
-              links={links}
-              selectedNode={selectedNode}
-              selectedNodes={selectedNodes}
-              selectedLinks={selectedLinks}
-              isAddingLink={isAddingLink}
-              linkSourceNode={linkSourceNode}
-              mousePosition={mousePosition}
-              layoutType={layoutType}
-              layoutDirection={layoutDirection}
-              nodeSpacing={nodeSpacing}
-              levelSpacing={levelSpacing}
-              forceParameters={forceParameters}
-              savedLayouts={savedLayouts}
-              currentTheme={currentTheme}
-              copiedStyle={copiedStyle}
-              setNodes={setNodes}
-              setLinks={setLinks}
-              setSelectedNode={setSelectedNode}
-              setSelectedNodes={setSelectedNodes}
-              setIsAddingLink={setIsAddingLink}
-              setLinkSourceNode={setLinkSourceNode}
-              setMousePosition={setMousePosition}
-              setSelectedLinks={setSelectedLinks}
-              setLayoutType={setLayoutType}
-              setLayoutDirection={setLayoutDirection}
-              setNodeSpacing={setNodeSpacing}
-              setLevelSpacing={setLevelSpacing}
-              setForceParameters={setForceParameters}
-              setCurrentTheme={setCurrentTheme}
-              showNotification={showNotification}
-              handleImportGraph={handleImportGraph}
-              handleSaveLayout={handleSaveLayout}
-              handleLoadLayout={handleLoadLayout}
-              handleDeleteLayout={handleDeleteLayout}
-              togglePanel={togglePanel}
-              addHistory={addHistory}
-              handlePasteStyle={handlePasteStyle}
-            />
-
             {/* 中央画布区域 */}
             <div className="flex-1 relative" ref={containerRef}>
               {/* 视图切换按钮 - 更紧凑的设计 */}
@@ -211,19 +159,52 @@ export function GraphVisualization() {
                 />
               )}
             </div>
-
-            {/* 右侧属性面板 - 始终显示，包含图例和控制 */}
-            <GraphRightPanel
-              nodes={nodes}
-              selectedNode={selectedNode}
-              selectedLink={selectedLink}
-              currentTheme={currentTheme}
-              handleCopyNodeStyle={handleCopyNodeStyle}
-              handleCopyLinkStyle={handleCopyLinkStyle}
-              handleUpdateNode={handleUpdateNode}
-              handleUpdateLink={handleUpdateLink}
-            />
           </div>
+          
+          {/* 独立子面板容器 */}
+          <PanelContainer
+            activePanel={activePanel}
+            nodes={nodes}
+            links={links}
+            selectedNode={selectedNode}
+            selectedNodes={selectedNodes}
+            selectedLinks={selectedLinks}
+            isAddingLink={isAddingLink}
+            linkSourceNode={linkSourceNode}
+            mousePosition={mousePosition}
+            layoutType={layoutType}
+            layoutDirection={layoutDirection}
+            nodeSpacing={nodeSpacing}
+            levelSpacing={levelSpacing}
+            forceParameters={forceParameters}
+            savedLayouts={savedLayouts}
+            currentTheme={currentTheme}
+            copiedStyle={copiedStyle}
+            setNodes={setNodes}
+            setLinks={setLinks}
+            setSelectedNode={setSelectedNode}
+            setSelectedNodes={setSelectedNodes}
+            setSelectedLinks={setSelectedLinks}
+            setIsAddingLink={setIsAddingLink}
+            setLinkSourceNode={setLinkSourceNode}
+            setMousePosition={setMousePosition}
+            setLayoutType={setLayoutType}
+            setLayoutDirection={setLayoutDirection}
+            setNodeSpacing={setNodeSpacing}
+            setLevelSpacing={setLevelSpacing}
+            setForceParameters={setForceParameters}
+            setCurrentTheme={setCurrentTheme}
+            togglePanel={togglePanel}
+            showNotification={showNotification}
+            handleCopyNodeStyle={handleCopyNodeStyle}
+            handleCopyLinkStyle={handleCopyLinkStyle}
+            handlePasteStyle={handlePasteStyle}
+            handleImportGraph={handleImportGraph}
+            handleSaveLayout={handleSaveLayout}
+            handleLoadLayout={handleLoadLayout}
+            handleDeleteLayout={handleDeleteLayout}
+            addHistory={addHistory}
+          />
 
           {/* 键盘快捷键面板 */}
           {isShortcutsOpen && <KeyboardShortcuts />}

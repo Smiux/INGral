@@ -2,13 +2,8 @@
  * 文章编辑器组件
  * 支持Markdown编辑、LaTeX公式、实时预览和自动保存功能
  */
-import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import React, { lazy, Suspense } from 'react';
 import { Globe, Lock } from 'lucide-react';
-import type { ContentTemplate } from '../../types/template';
-import type { Article } from '../../types';
-import { articleService } from '../../services/articleService';
 import { Notification } from '../common/Notification';
 import { EditorToolbar } from './ArticleEditor/EditorToolbar';
 import { EditorFormattingToolbar } from './ArticleEditor/EditorFormattingToolbar';
@@ -16,9 +11,8 @@ import { EditorContentArea } from './ArticleEditor/EditorContentArea';
 import { EditorSidebar } from './ArticleEditor/EditorSidebar';
 import { AutosaveManager } from './ArticleEditor/AutosaveManager';
 import { HistoryManager } from './ArticleEditor/HistoryManager';
-import { copyFormat, pasteFormat, handleFormat as formatText, generateTableOfContents, insertLatexFormula, insertGraphMarkdown } from './ArticleEditor/EditorUtils';
-import { generateGraphFromArticle } from '../../utils/GraphGenerationUtils';
-import type { GraphNode, GraphLink } from '../../types';
+import { copyFormat, pasteFormat, handleFormat as formatText, insertLatexFormula, insertGraphMarkdown } from './ArticleEditor/EditorUtils';
+import { useArticleEditor } from './ArticleEditor/useArticleEditor';
 
 // 懒加载非核心组件，优化初始加载时间
 const TemplateManager = lazy(() => import('./TemplateManager').then(m => ({ default: m.TemplateManager })));
@@ -32,80 +26,23 @@ const FileUploadDialog = lazy(() => import('./ArticleEditor/FileUploadDialog').t
  * 管理编辑器的主要状态和逻辑
  */
 export function ArticleEditor() {
-  const { slug } = useParams<{ slug?: string }>();
-  const navigate = useNavigate();
-  
-  // 文章核心状态
-  const [article, setArticle] = useState<Article | null>(null);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(!!slug);
-  const [error, setError] = useState('');
-  
-  // 编辑器配置状态
-  const [visibility, setVisibility] = useState<'public' | 'unlisted'>('public');
-  const [authorName, setAuthorName] = useState('');
-  const [authorEmail, setAuthorEmail] = useState('');
-  const [authorUrl, setAuthorUrl] = useState('');
-  const [lastEdited, setLastEdited] = useState<Date | null>(null);
-  
-  // 编辑器视图状态
-  const [viewMode, setViewMode] = useState<'split' | 'editor' | 'preview'>('split');
-  const [isMobile, setIsMobile] = useState(false);
-  const [showLineNumbers, setShowLineNumbers] = useState(false);
-  const [livePreview, setLivePreview] = useState(true);
-  
-  // 编辑器面板状态
-  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [showTemplateManager, setShowTemplateManager] = useState(false);
-  const [showToc, setShowToc] = useState(false);
-  
-  // 未保存更改状态
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
-  // 目录状态
-  const [tableOfContents, setTableOfContents] = useState<TableOfContentsItem[]>([]);
-  const [expandedTocItems, setExpandedTocItems] = useState<Set<string>>(new Set());
-  const [activeTocItem, setActiveTocItem] = useState<string>('');
-  
-  // 格式刷状态
-  const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
-  const [isFormatBrushActive, setIsFormatBrushActive] = useState(false);
-  
-  // 工具栏折叠状态
-  const [showToolbar, setShowToolbar] = useState(true);
-  
-  // 光标位置状态
-  const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 });
-  
-  // 通知状态
-  const [notification, setNotification] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
-  
-  // LaTeX编辑器状态
-  const [latexEditorOpen, setLatexEditorOpen] = useState(false);
-  const [selectedText, setSelectedText] = useState('');
-  
-  // 图片上传对话框状态
-  const [imageUploadDialogOpen, setImageUploadDialogOpen] = useState(false);
-  
-  // 文件上传对话框状态
-  const [fileUploadDialogOpen, setFileUploadDialogOpen] = useState(false);
-  
-  // 快捷键相关状态
-  const [showShortcuts, setShowShortcuts] = useState(false);
-  
-  // 知识图表相关状态
-  const [showGraphGenerator, setShowGraphGenerator] = useState(false);
-  const [generatedGraph, setGeneratedGraph] = useState<{nodes: GraphNode[], links: GraphLink[]} | null>(null);
-  const [graphGenerationConfig, setGraphGenerationConfig] = useState({
-    maxNodes: 30,
-    maxLinks: 50,
-    minConceptOccurrences: 2,
-    extractionDepth: 2
-  });
-  
+  // 使用文章编辑器Hook
+  const {
+    state,
+    updateState,
+    showNotification,
+    closeNotification,
+    handleTitleChange,
+    handleSave,
+    handleSelectTemplate,
+    toggleViewMode,
+    handleContentChange,
+    handleCursorPositionChange,
+    handleGenerateGraph,
+    setTitle,
+    setContent
+  } = useArticleEditor();
+
   // 快捷键定义数组
   const SHORTCUTS = [
     { id: 'bold', name: '加粗', description: '将选中的文本加粗', defaultKey: 'Ctrl+B', category: '文本格式' },
@@ -125,289 +62,84 @@ export function ArticleEditor() {
   ];
 
   /**
-   * 目录项类型定义
+   * 优化全屏模式下的UI显示
    */
-  interface TableOfContentsItem {
-    id: string;
-    text: string;
-    level: number;
-    children: TableOfContentsItem[];
-  }
-
-  /**
-   * 检测屏幕尺寸以确定是否为移动设备
-   */
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  /**
-   * 在移动设备上默认显示编辑视图
-   */
-  useEffect(() => {
-    if (isMobile) {
-      setViewMode('editor');
+  React.useEffect(() => {
+    const body = document.body;
+    if (state.isFullscreen) {
+      body.classList.add('fullscreen-mode');
+      // 隐藏浏览器滚动条
+      body.style.overflow = 'hidden';
     } else {
-      setViewMode('split');
+      body.classList.remove('fullscreen-mode');
+      body.style.overflow = '';
     }
-  }, [isMobile]);
+
+    return () => {
+      body.classList.remove('fullscreen-mode');
+      body.style.overflow = '';
+    };
+  }, [state.isFullscreen]);
 
   /**
-   * 处理文章加载
+   * 处理全屏变化
    */
-  useEffect(() => {
-    const loadArticle = async () => {
-      if (!slug) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const data = await articleService.getArticleBySlug(slug);
-        if (!data) {
-          setError('文章未找到');
-          setIsLoading(false);
-          return;
-        }
-
-        setArticle(data);
-        setTitle(data.title);
-        setContent(data.content);
-        setVisibility(data.visibility || 'public');
-        setAuthorName(data.author_name || '');
-        setAuthorEmail(data.author_email || '');
-        setAuthorUrl(data.author_url || '');
-        setLastEdited(data.updated_at ? new Date(data.updated_at) : null);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : '加载文章失败';
-        console.error('加载文章错误:', errorMessage);
-        setError(errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
+  React.useEffect(() => {
+    const handleFullscreenChange = () => {
+      updateState('isFullscreen', !!document.fullscreenElement);
     };
 
-    if (slug) {
-      loadArticle();
-    } else {
-      setIsLoading(false);
-    }
-  }, [slug]);
+    // 添加浏览器前缀支持
+    const events = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'msfullscreenchange'];
+    events.forEach(event => {
+      document.addEventListener(event, handleFullscreenChange);
+    });
 
-  /**
-   * 跟踪未保存的更改
-   */
-  useEffect(() => {
-    if (!isLoading) {
-      const initialTitle = article?.title || '';
-      const initialContent = article?.content || '';
-      const initialVisibility = article?.visibility || 'public';
-      
-      setHasUnsavedChanges(
-        title !== initialTitle || 
-        content !== initialContent || 
-        visibility !== initialVisibility
-      );
-    }
-  }, [title, content, visibility, article, isLoading]);
-
-  /**
-   * 添加离开确认功能
-   */
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        // 现代浏览器只需要调用preventDefault()，不需要设置returnValue
-        return '';
-      }
-      return;
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleFullscreenChange);
+      });
     };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges]);
+  }, [updateState]);
 
   /**
-   * 显示通知
+   * 处理全屏模式切换
    */
-  const showNotification = useCallback((message: string, type: 'success' | 'info' | 'error') => {
-    setNotification({ message, type });
-    // 3秒后自动关闭通知
-    setTimeout(() => {
-      setNotification(null);
-    }, 3000);
-  }, []);
-
-  /**
-   * 关闭通知
-   */
-  const closeNotification = useCallback(() => {
-    setNotification(null);
-  }, []);
-
-  /**
-   * 处理文章标题输入，实时检查标题长度
-   */
-  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value;
-    setTitle(newTitle);
-    
-    // 标题长度提示
-    if (newTitle.length > 100) {
-      showNotification('标题长度建议不超过100个字符', 'info');
-    }
-  }, [showNotification]);
-
-  /**
-   * 保存文章
-   */
-  const handleSave = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    setError('');
-
-    try {
-      if (!title.trim()) {
-        const errorMsg = '文章标题不能为空';
-        setError(errorMsg);
-        showNotification(errorMsg, 'error');
-        setIsSaving(false);
-        return;
-      }
-
-      if (!content.trim()) {
-        const errorMsg = '文章内容不能为空';
-        setError(errorMsg);
-        showNotification(errorMsg, 'error');
-        setIsSaving(false);
-        return;
-      }
-
-      let result: Article | null | undefined;
-      if (article) {
-        result = await articleService.updateArticle(article.id, title, content, visibility, authorName, authorEmail, authorUrl);
-      } else {
-        result = await articleService.createArticle(title, content, visibility, authorName, authorEmail, authorUrl);
-      }
-
-      if (!result) {
-        throw new Error('保存文章时返回空结果');
-        
-      }
-
-      setArticle(result);
-      setLastEdited(new Date());
-
-      // 清除草稿
-      const draftKey = `draft_anonymous_${slug || 'new'}`;
-      localStorage.removeItem(draftKey);
-
-      // 重置未保存更改状态
-      setHasUnsavedChanges(false);
-
-      // 检查文章是否为临时ID文章
-      const isOfflineArticle = result.id?.toString().startsWith('temp_') ?? false;
-
-      if (isOfflineArticle) {
-        showNotification('文章已保存（离线模式），将在网络恢复时自动同步', 'info');
-      } else {
-        if (result && result.slug) {
-          showNotification('文章保存成功', 'success');
-          const newSlug = result.slug;
-          // 稍微延迟一下，让用户看到通知
-          setTimeout(() => {
-            navigate(`/article/${newSlug}`, { replace: true });
-          }, 500);
+  React.useEffect(() => {
+    if (state.isFullscreen) {
+      // 使用整个编辑器容器进入全屏，而不是仅编辑区域
+      const editorElement = document.querySelector('.flex-1.flex.flex-col.overflow-hidden');
+      if (editorElement) {
+        // 尝试使用标准的requestFullscreen方法
+        if (typeof editorElement.requestFullscreen === 'function') {
+          editorElement.requestFullscreen().catch(err => {
+            console.error('Error attempting to enable fullscreen:', err);
+            updateState('isFullscreen', false); // 恢复状态
+          });
         } else {
-          console.error('保存成功，但无法获取文章链接');
-          showNotification('保存成功，但无法获取文章链接，请手动返回首页', 'info');
+          // 标准方法不支持，直接恢复状态
+          console.error('Fullscreen API not supported');
+          updateState('isFullscreen', false);
         }
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '保存文章失败';
-      console.error('保存文章错误:', errorMessage);
-
-      // 根据不同错误类型显示更友好的错误信息
-      let userFriendlyError = '保存文章失败，请稍后重试';
-      if (errorMessage.includes('network') || errorMessage.includes('Network')) {
-        userFriendlyError = '网络连接问题，文章已保存到本地，将在网络恢复时同步';
-      } else if (errorMessage.includes('permission') || errorMessage.includes('Permission')) {
-        userFriendlyError = '权限不足，您没有权限修改此文章';
-      } else if (errorMessage.includes('validation') || errorMessage.includes('Validation')) {
-        userFriendlyError = '文章内容验证失败，请检查输入内容';
+    } else {
+      // 只有当文档处于全屏状态时，才调用exitFullscreen
+      if (typeof document.exitFullscreen === 'function' && document.fullscreenElement) {
+        document.exitFullscreen().catch(err => {
+          console.error('Error attempting to exit fullscreen:', err);
+        });
       }
-
-      setError(userFriendlyError);
-      showNotification(userFriendlyError, 'error');
-    } finally {
-      setIsSaving(false);
     }
-  }, [article, title, content, visibility, authorName, authorEmail, authorUrl, slug, showNotification, navigate]);
-
-  /**
-   * 处理模板选择
-   */
-  const handleSelectTemplate = useCallback((template: ContentTemplate) => {
-    // 更新编辑器内容为模板内容
-    setContent(template.content);
-    // 如果是新文章，可以设置一个默认标题
-    if (!article && !title.trim()) {
-      setTitle(template.name);
-    }
-    showNotification(`已应用模板: ${template.name}`, 'success');
-    setShowTemplateManager(false);
-  }, [article, title, showNotification]);
-
-  /**
-   * 切换视图模式
-   */
-  const toggleViewMode = useCallback((mode: 'split' | 'editor' | 'preview') => {
-    setViewMode(mode);
-  }, []);
-
-  /**
-   * 加载自动保存的草稿
-   */
-  useEffect(() => {
-    if (article) {return;} // 已有文章时不加载草稿
-
-    try {
-      const draftKey = `draft_anonymous_${slug || 'new'}`;
-      const savedDraft = localStorage.getItem(draftKey);
-
-      if (savedDraft) {
-        const draft = JSON.parse(savedDraft);
-        // 如果用户确认，可以加载草稿
-        if (window.confirm('检测到未完成的草稿，是否恢复？')) {
-          setTitle(draft.title || '');
-          setContent(draft.content || '');
-          setVisibility(draft.visibility || 'public');
-        }
-        // 无论用户选择与否，都清除草稿，避免下次编辑时再次提示
-        localStorage.removeItem(draftKey);
-      }
-    } catch (err) {
-      console.warn('加载草稿失败:', err);
-    }
-  }, [article, slug]);
+  }, [state.isFullscreen, updateState]);
 
   /**
    * 复制格式
    */
   const handleCopyFormat = () => {
-    const format = copyFormat(content);
+    const format = copyFormat(state.content);
     if (format) {
-      setCopiedFormat(format);
-      setIsFormatBrushActive(true);
+      updateState('copiedFormat', format);
+      updateState('isFormatBrushActive', true);
       showNotification(`已复制${format === 'bold' ? '粗体' : format === 'italic' ? '斜体' : format === 'strikethrough' ? '删除线' : '行内代码'}格式`, 'success');
     } else {
       showNotification('请先选择要复制格式的文本', 'info');
@@ -418,8 +150,8 @@ export function ArticleEditor() {
    * 粘贴格式
    */
   const handlePasteFormat = () => {
-    if (copiedFormat) {
-      pasteFormat(copiedFormat, content, setContent);
+    if (state.copiedFormat) {
+      pasteFormat(state.copiedFormat, state.content, (newContent: string) => updateState('content', newContent));
       showNotification('格式已应用', 'success');
     } else {
       showNotification('请先复制格式', 'info');
@@ -430,9 +162,9 @@ export function ArticleEditor() {
    * 切换格式刷状态
    */
   const handleToggleFormatBrush = () => {
-    if (isFormatBrushActive) {
-      setIsFormatBrushActive(false);
-      setCopiedFormat(null);
+    if (state.isFormatBrushActive) {
+      updateState('isFormatBrushActive', false);
+      updateState('copiedFormat', null);
       showNotification('格式刷已关闭', 'info');
     } else {
       handleCopyFormat();
@@ -440,20 +172,13 @@ export function ArticleEditor() {
   };
 
   /**
-   * 处理光标位置变化
-   */
-  const handleCursorPositionChange = useCallback((position: { line: number; column: number }) => {
-    setCursorPosition(position);
-  }, []);
-
-  /**
    * 处理文本格式化
    */
-  const handleFormat = useCallback((formatType: string, data: Record<string, unknown> = {}) => {
+  const handleFormat = React.useCallback((formatType: string, data: Record<string, unknown> = {}) => {
     // 处理特殊格式类型
     if (formatType === 'latex') {
       // 打开LaTeX编辑器
-      setLatexEditorOpen(true);
+      updateState('latexEditorOpen', true);
       // 获取当前选中的文本作为初始公式
       const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
       if (textarea) {
@@ -461,42 +186,77 @@ export function ArticleEditor() {
           textarea.selectionStart,
           textarea.selectionEnd
         );
-        setSelectedText(selectedText);
+        updateState('selectedText', selectedText);
       }
       return;
     } else if (formatType === 'image') {
       // 打开图片上传对话框
-      setImageUploadDialogOpen(true);
+      updateState('imageUploadDialogOpen', true);
       return;
     } else if (formatType === 'file') {
       // 打开文件上传对话框
-      setFileUploadDialogOpen(true);
+      updateState('fileUploadDialogOpen', true);
       return;
     }
     // 调用编辑器核心的格式化函数
-    formatText(formatType, data, content, setContent);
-  }, [content, setContent, setLatexEditorOpen, setSelectedText]);
+    formatText(formatType, data, state.content, (newContent: string) => updateState('content', newContent));
+  }, [state.content, updateState]);
 
   /**
    * 处理图片上传成功
    */
-  const handleImageUploaded = useCallback((imageUrl: string) => {
+  const handleImageUploaded = React.useCallback((imageUrl: string) => {
     // 插入到当前光标位置
-    formatText('image', { url: imageUrl }, content, setContent);
-  }, [content, setContent]);
+    formatText('image', { url: imageUrl }, state.content, (newContent: string) => updateState('content', newContent));
+  }, [state.content, updateState]);
 
   /**
    * 处理文件上传成功
    */
-  const handleFileUploaded = useCallback((fileUrl: string, fileName: string) => {
+  const handleFileUploaded = React.useCallback((fileUrl: string, fileName: string) => {
     // 插入到当前光标位置
-    formatText('file', { url: fileUrl, name: fileName }, content, setContent);
-  }, [content, setContent]);
+    formatText('file', { url: fileUrl, name: fileName }, state.content, (newContent: string) => updateState('content', newContent));
+  }, [state.content, updateState]);
 
   /**
    * 处理键盘快捷键
    */
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  const handleKeyDown = React.useCallback((e: KeyboardEvent) => {
+    // 智能建议导航处理
+    if (state.showSuggestions && state.suggestions.length > 0) {
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          updateState('suggestionIndex', prev => (prev < state.suggestions.length - 1 ? prev + 1 : 0));
+          return;
+        case 'ArrowUp':
+          e.preventDefault();
+          updateState('suggestionIndex', prev => (prev > 0 ? prev - 1 : state.suggestions.length - 1));
+          return;
+        case 'Enter':
+          e.preventDefault();
+          if (state.suggestionIndex >= 0 && state.suggestionIndex < state.suggestions.length) {
+            const selectedSuggestion = state.suggestions[state.suggestionIndex];
+            if (selectedSuggestion) {
+              const words = state.content.split(/\s+/);
+              words.pop(); // 移除当前输入的最后一个单词
+              words.push(selectedSuggestion); // 添加选中的建议
+              updateState('content', words.join(' '));
+              updateState('showSuggestions', false);
+              updateState('suggestions', []);
+              updateState('suggestionIndex', -1);
+            }
+          }
+          return;
+        case 'Escape':
+          e.preventDefault();
+          updateState('showSuggestions', false);
+          updateState('suggestions', []);
+          updateState('suggestionIndex', -1);
+          return;
+      }
+    }
+
     // 检查是否按下了Ctrl键
     if (e.ctrlKey) {
       switch (e.key.toLowerCase()) {
@@ -526,14 +286,33 @@ export function ArticleEditor() {
           break;
         case 'p':
           e.preventDefault();
-          // 根据当前视图模式切换到下一个模式
-          const nextMode = viewMode === 'editor' ? 'preview' : viewMode === 'preview' ? 'split' : 'editor';
-          toggleViewMode(nextMode);
+          // 简化视图切换逻辑，减少依赖
+          updateState('viewMode', prevMode => {
+            if (prevMode === 'editor') return 'preview';
+            if (prevMode === 'preview') return 'split';
+            return 'editor';
+          });
           break;
         case '/':
           e.preventDefault();
-          setShowShortcuts(!showShortcuts);
+          updateState('showShortcuts', prev => !prev);
           break;
+        case ' ': // Ctrl+Space 触发智能建议
+          e.preventDefault();
+          updateState('showSuggestions', prev => !prev);
+          break;
+        case 'f': // Ctrl+F 触发搜索
+          e.preventDefault();
+          // 这里可以实现搜索功能
+          break;
+        case 'shift':
+          break; // 忽略单独的Shift键
+        default:
+          if (state.showSuggestions) {
+            updateState('showSuggestions', false);
+            updateState('suggestions', []);
+            updateState('suggestionIndex', -1);
+          }
       }
     }
     
@@ -556,14 +335,24 @@ export function ArticleEditor() {
           e.preventDefault();
           handleFormat('codeblock');
           break;
+        case 'f': // Ctrl+Shift+F 切换全屏
+          e.preventDefault();
+          updateState('isFullscreen', prev => !prev);
+          break;
       }
     }
-  }, [handleFormat, handleSave, toggleViewMode, showShortcuts]);
+
+    // 处理F11全屏快捷键
+    if (e.key === 'F11') {
+      e.preventDefault();
+      updateState('isFullscreen', prev => !prev);
+    }
+  }, [state.showSuggestions, state.suggestions, state.suggestionIndex, state.content, handleFormat, handleSave, updateState]);
 
   /**
    * 添加键盘事件监听器
    */
-  useEffect(() => {
+  React.useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
@@ -575,81 +364,45 @@ export function ArticleEditor() {
    */
   const handleInsertLatexFormula = (formula: string) => {
     // 调用工具函数插入LaTeX公式
-    insertLatexFormula(formula, content, setContent);
-    setLatexEditorOpen(false);
-  };
-
-  /**
-   * 生成知识图表
-   */
-  const handleGenerateGraph = () => {
-    try {
-      if (!content.trim()) {
-        showNotification('请先输入文章内容', 'info');
-        return;
-      }
-
-      const graph = generateGraphFromArticle({
-        title: title || '未命名文章',
-        content: content,
-        visibility: visibility,
-        author_name: authorName,
-        author_email: authorEmail,
-        author_url: authorUrl
-      } as Article, graphGenerationConfig);
-
-      setGeneratedGraph({ nodes: graph.nodes, links: graph.links });
-      showNotification(`成功生成知识图表，包含 ${graph.nodes.length} 个节点和 ${graph.links.length} 条关系`, 'success');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '生成知识图表失败';
-      console.error('生成知识图表错误:', errorMessage);
-      showNotification(errorMessage, 'error');
-    }
+    insertLatexFormula(formula, state.content, (newContent: string) => updateState('content', newContent));
+    updateState('latexEditorOpen', false);
   };
 
   /**
    * 插入知识图表到文章
    */
   const handleInsertGraph = () => {
-    if (generatedGraph) {
+    if (state.generatedGraph) {
       // 构建知识图表的JSON字符串
-      const graphJson = JSON.stringify(generatedGraph, null, 2);
+      const graphJson = JSON.stringify(state.generatedGraph, null, 2);
       // 使用 [graph] 语法插入到文章中
       const graphMarkdown = `\n[graph]${graphJson}[/graph]\n`;
       // 插入到当前光标位置
-      insertGraphMarkdown(graphMarkdown, content, setContent);
+      insertGraphMarkdown(graphMarkdown, state.content, (newContent: string) => updateState('content', newContent));
       showNotification('知识图表已插入到文章中', 'success');
-      setShowGraphGenerator(false);
+      updateState('showGraphGenerator', false);
     }
   };
-
-  /**
-   * 内容变化时自动更新目录
-   */
-  useEffect(() => {
-    const toc = generateTableOfContents(content);
-    setTableOfContents(toc);
-  }, [content]);
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       {/* 通知组件 */}
-      {notification && (
+      {state.notification && (
         <Notification
-          message={notification.message}
-          type={notification.type}
+          message={state.notification.message}
+          type={state.notification.type}
           onClose={closeNotification}
         />
       )}
 
       {/* 快捷键面板 */}
-      {showShortcuts && (
+      {state.showShortcuts && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">键盘快捷键</h2>
               <button
-                onClick={() => setShowShortcuts(false)}
+                onClick={() => updateState('showShortcuts', false)}
                 className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -687,103 +440,16 @@ export function ArticleEditor() {
         </div>
       )}
 
-      {/* 设置面板 */}
-      {showSettingsPanel && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">编辑器设置</h2>
-              <button
-                onClick={() => setShowSettingsPanel(false)}
-                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-4">
-              <div className="space-y-6">
-                {/* 可见性设置 */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">可见性设置</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-4">
-                      <button
-                        onClick={() => setVisibility('public')}
-                        className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${visibility === 'public' 
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800' 
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-650'}`}
-                      >
-                        <Globe size={16} className="text-blue-500 dark:text-blue-400" />
-                        <span>公开</span>
-                      </button>
-                      <button
-                        onClick={() => setVisibility('unlisted')}
-                        className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${visibility === 'unlisted' 
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800' 
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-650'}`}
-                      >
-                        <Lock size={16} className="text-purple-500 dark:text-purple-400" />
-                        <span>仅分享</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* 作者信息设置 */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">作者信息</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <label htmlFor="authorName" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者名称</label>
-                      <input
-                        type="text"
-                        id="authorName"
-                        value={authorName}
-                        onChange={(e) => setAuthorName(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="输入作者名称"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="authorEmail" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者邮箱</label>
-                      <input
-                        type="email"
-                        id="authorEmail"
-                        value={authorEmail}
-                        onChange={(e) => setAuthorEmail(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="输入作者邮箱"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="authorUrl" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者网站</label>
-                      <input
-                        type="url"
-                        id="authorUrl"
-                        value={authorUrl}
-                        onChange={(e) => setAuthorUrl(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="输入作者网站"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
       
       {/* 帮助面板 */}
-      {showHelp && (
+      {state.showHelp && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">编辑器帮助</h2>
               <button
-                onClick={() => setShowHelp(false)}
+                onClick={() => updateState('showHelp', false)}
                 className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -880,104 +546,229 @@ export function ArticleEditor() {
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* 编辑器工具栏 */}
           <EditorToolbar
-            viewMode={viewMode}
+            viewMode={state.viewMode}
             onToggleViewMode={toggleViewMode}
             onSave={handleSave}
-            isSaving={isSaving}
-            onSelectTemplate={() => setShowTemplateManager(true)}
-            onGenerateGraph={() => setShowGraphGenerator(true)}
-            showSettingsPanel={showSettingsPanel}
-            onToggleSettings={() => setShowSettingsPanel(!showSettingsPanel)}
-            showHelp={showHelp}
-            onToggleHelp={() => setShowHelp(!showHelp)}
-            showToolbar={showToolbar}
-            onToggleToolbar={() => setShowToolbar(!showToolbar)}
-            livePreview={livePreview}
-            onToggleLivePreview={() => setLivePreview(!livePreview)}
-            showLineNumbers={showLineNumbers}
-            onToggleLineNumbers={() => setShowLineNumbers(!showLineNumbers)}
+            isSaving={state.isSaving}
+            onSelectTemplate={() => updateState('showTemplateManager', true)}
+            onGenerateGraph={() => updateState('showGraphGenerator', true)}
+            showHelp={state.showHelp}
+            onToggleHelp={() => updateState('showHelp', !state.showHelp)}
+            showToolbar={state.showToolbar}
+            onToggleToolbar={() => updateState('showToolbar', !state.showToolbar)}
+            livePreview={state.livePreview}
+            onToggleLivePreview={() => updateState('livePreview', !state.livePreview)}
+            collaborators={state.collaborators}
           />
 
           {/* 文章标题输入区域 */}
           <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 transition-all">
             <input
               type="text"
-              value={title}
+              value={state.title}
               onChange={handleTitleChange}
               className="w-full text-2xl font-bold bg-transparent border-none outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)]"
               placeholder="请输入文章标题..."
               autoFocus
             />
             <div className="text-xs text-[var(--text-secondary)] mt-1 flex items-center justify-between">
-              <span>{title.length} / 100 字符</span>
+              <span>{state.title.length} / 100 字符</span>
               <div className="flex items-center space-x-4">
                 <span className="flex items-center">
-                  {visibility === 'public' ? (
+                  {state.visibility === 'public' ? (
                     <Globe size={14} className="mr-1 text-blue-500" />
                   ) : (
                     <Lock size={14} className="mr-1 text-purple-500" />
                   )}
-                  {visibility === 'public' ? '公开' : '未列出'}
+                  {state.visibility === 'public' ? '公开' : '仅分享'}
                 </span>
                 <span>
-                  {content.length} 字符
+                  {state.content.length} 字符
                 </span>
               </div>
             </div>
           </div>
 
           {/* 格式化工具栏 */}
-          {showToolbar && (
+          {state.showToolbar && (
             <EditorFormattingToolbar
               onFormat={handleFormat}
               onCopyFormat={handleCopyFormat}
               onPasteFormat={handlePasteFormat}
               onToggleFormatBrush={handleToggleFormatBrush}
-              isFormatBrushActive={isFormatBrushActive}
+              isFormatBrushActive={state.isFormatBrushActive}
             />
           )}
 
           {/* 编辑器内容区域 */}
-          <EditorContentArea
-            content={content}
-            setContent={setContent}
-            viewMode={viewMode}
-            livePreview={livePreview}
-            showLineNumbers={showLineNumbers}
-            isLoading={isLoading}
-            error={error}
-            onCursorPositionChange={handleCursorPositionChange}
-          />
+          <div className={`editor-content-area ${state.isFullscreen ? 'fullscreen' : ''}`}>
+            <EditorContentArea
+              content={state.content}
+              setContent={handleContentChange}
+              viewMode={state.viewMode}
+              livePreview={state.livePreview}
+              isLoading={state.isLoading}
+              error={state.error}
+              onCursorPositionChange={handleCursorPositionChange}
+              collaborators={state.collaborators}
+            />
+            
+            {/* 智能建议UI */}
+            {state.showSuggestions && state.suggestions.length > 0 && (
+              <div className="suggestions-container absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-lg max-h-60 overflow-y-auto">
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {state.suggestions.map((suggestion, index) => (
+                    <li
+                      key={index}
+                      className={`p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${index === state.suggestionIndex ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}`}
+                      onClick={() => {
+                        const words = state.content.split(/\s+/);
+                        words.pop();
+                        words.push(suggestion);
+                        updateState('content', words.join(' '));
+                        updateState('showSuggestions', false);
+                        updateState('suggestions', []);
+                        updateState('suggestionIndex', -1);
+                      }}
+                    >
+                      {suggestion}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* 文章发布设置 */}
+          <div className="border-t border-gray-200 dark:border-gray-700 transition-all duration-300">
+            {/* 设置面板切换按钮 */}
+            <button
+              onClick={() => updateState('showSettingsPanel', !state.showSettingsPanel)}
+              className="w-full flex items-center justify-between p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors duration-300"
+            >
+              <div className="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="font-medium text-gray-700 dark:text-gray-300">文章发布设置</span>
+              </div>
+              <svg
+                className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${state.showSettingsPanel ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* 设置面板内容 */}
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 ${state.showSettingsPanel ? 'max-h-96' : 'max-h-0'}`}
+            >
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="space-y-6">
+                  {/* 可见性设置 */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">可见性设置</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-4">
+                        <button
+                          onClick={() => updateState('visibility', 'public')}
+                          className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${state.visibility === 'public' 
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800' 
+                            : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-650'}`}
+                        >
+                          <Globe size={16} className="text-blue-500 dark:text-blue-400" />
+                          <span>公开</span>
+                        </button>
+                        <button
+                          onClick={() => updateState('visibility', 'unlisted')}
+                          className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${state.visibility === 'unlisted' 
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800' 
+                            : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-650'}`}
+                        >
+                          <Lock size={16} className="text-purple-500 dark:text-purple-400" />
+                          <span>仅分享</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 作者信息设置 */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">作者信息</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label htmlFor="authorName" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者名称</label>
+                        <input
+                          type="text"
+                          id="authorName"
+                          value={state.authorName}
+                          onChange={(e) => updateState('authorName', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="输入作者名称"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="authorEmail" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者邮箱</label>
+                        <input
+                          type="email"
+                          id="authorEmail"
+                          value={state.authorEmail}
+                          onChange={(e) => updateState('authorEmail', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="输入作者邮箱"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="authorUrl" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者网站</label>
+                        <input
+                          type="url"
+                          id="authorUrl"
+                          value={state.authorUrl}
+                          onChange={(e) => updateState('authorUrl', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="输入作者网站"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* 编辑器底部状态栏 */}
           <div className="bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-2 px-4 text-sm text-gray-600 dark:text-gray-400 flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <span>上次编辑: {lastEdited ? lastEdited.toLocaleString() : '从未'}</span>
-              <span>{content.split('\n').length} 行</span>
-              <span>{content.length} 字符</span>
-              <span className="text-gray-700 dark:text-gray-300 font-mono">Ln {cursorPosition.line}, Col {cursorPosition.column}</span>
+              <span>上次编辑: {state.lastEdited ? state.lastEdited.toLocaleString() : '从未'}</span>
+              <span>{state.content.split('\n').length} 行</span>
+              <span>{state.content.length} 字符</span>
+              <span className="text-gray-700 dark:text-gray-300 font-mono">Ln {state.cursorPosition.line}, Col {state.cursorPosition.column}</span>
             </div>
           </div>
         </div>
 
         {/* 编辑器侧边栏 */}
         <EditorSidebar
-          showToc={showToc}
-          onToggleToc={() => setShowToc(!showToc)}
-          tableOfContents={tableOfContents}
-          expandedTocItems={expandedTocItems}
-          setExpandedTocItems={setExpandedTocItems}
-          activeTocItem={activeTocItem}
-          setActiveTocItem={setActiveTocItem}
+          showToc={state.showToc}
+          onToggleToc={() => updateState('showToc', !state.showToc)}
+          tableOfContents={state.tableOfContents}
+          expandedTocItems={state.expandedTocItems}
+          setExpandedTocItems={(items) => updateState('expandedTocItems', items)}
+          activeTocItem={state.activeTocItem}
+          setActiveTocItem={(item) => updateState('activeTocItem', item)}
         />
       </div>
 
       {/* 模板选择对话框 */}
-      {showTemplateManager && (
+      {state.showTemplateManager && (
         <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]">加载中...</div>}>
           <TemplateManager
             onSelectTemplate={handleSelectTemplate}
-            onClose={() => setShowTemplateManager(false)}
+            onClose={() => updateState('showTemplateManager', false)}
           />
         </Suspense>
       )}
@@ -985,25 +776,25 @@ export function ArticleEditor() {
       {/* LaTeX编辑器 */}
       <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]">加载中...</div>}>
         <LatexEditor
-          isOpen={latexEditorOpen}
-          onClose={() => setLatexEditorOpen(false)}
+          isOpen={state.latexEditorOpen}
+          onClose={() => updateState('latexEditorOpen', false)}
           onInsert={handleInsertLatexFormula}
-          initialFormula={selectedText}
+          initialFormula={state.selectedText}
         />
       </Suspense>
 
       {/* 自动保存管理器 */}
       <AutosaveManager
-        title={title}
-        content={content}
-        visibility={visibility}
-        slug={slug || undefined}
+        title={state.title}
+        content={state.content}
+        visibility={state.visibility}
+        slug={state.slug || undefined}
       />
 
       {/* 历史记录管理器 */}
       <HistoryManager
-        title={title}
-        content={content}
+        title={state.title}
+        content={state.content}
         setTitle={setTitle}
         setContent={setContent}
       />
@@ -1011,21 +802,21 @@ export function ArticleEditor() {
       {/* 知识图表生成器 */}
       <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]">加载中...</div>}>
         <GraphGenerator
-          isOpen={showGraphGenerator}
-          onClose={() => setShowGraphGenerator(false)}
+          isOpen={state.showGraphGenerator}
+          onClose={() => updateState('showGraphGenerator', false)}
           onGenerate={handleGenerateGraph}
           onInsert={handleInsertGraph}
-          generatedGraph={generatedGraph}
-          config={graphGenerationConfig}
-          onConfigChange={setGraphGenerationConfig}
+          generatedGraph={state.generatedGraph}
+          config={state.graphGenerationConfig}
+          onConfigChange={(config) => updateState('graphGenerationConfig', config)}
         />
       </Suspense>
 
       {/* 图片上传对话框 */}
       <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]">加载中...</div>}>
         <ImageUploadDialog
-          isOpen={imageUploadDialogOpen}
-          onClose={() => setImageUploadDialogOpen(false)}
+          isOpen={state.imageUploadDialogOpen}
+          onClose={() => updateState('imageUploadDialogOpen', false)}
           onImageUploaded={handleImageUploaded}
           showNotification={showNotification}
         />
@@ -1034,8 +825,8 @@ export function ArticleEditor() {
       {/* 文件上传对话框 */}
       <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]">加载中...</div>}>
         <FileUploadDialog
-          isOpen={fileUploadDialogOpen}
-          onClose={() => setFileUploadDialogOpen(false)}
+          isOpen={state.fileUploadDialogOpen}
+          onClose={() => updateState('fileUploadDialogOpen', false)}
           onFileUploaded={handleFileUploaded}
           showNotification={showNotification}
         />

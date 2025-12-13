@@ -60,6 +60,9 @@ export interface EnhancedNode extends d3.SimulationNodeDatum {
   // 节点聚合相关属性
   _aggregatedNodes?: EnhancedNode[];
   _isAggregated?: boolean;
+  _averageImportance?: number;
+  _clusterCenter?: { x: number; y: number };
+  _clusterSize?: number;
   // 动画相关属性
   _targetX?: number; // 目标X坐标，用于平滑动画
   _targetY?: number; // 目标Y坐标，用于平滑动画

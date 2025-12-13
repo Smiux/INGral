@@ -645,37 +645,81 @@ export class GraphService extends BaseService {
         }
       }
 
-      // 创建概念之间的链接
-      for (let i = 0; i < concepts.length; i++) {
-        for (let j = i + 1; j < concepts.length; j++) {
-          // 如果概念在内容中相邻出现，创建链接
-          const concept1 = concepts[i];
-          const concept2 = concepts[j];
+      // 创建概念之间的链接（优化版）
+      if (concepts.length > 1) {
+        const content = article.content.toLowerCase();
+        
+        // 预计算所有概念在内容中的位置，避免重复搜索
+        const conceptPositions: Record<string, number[]> = {};
+        for (const concept of concepts) {
+          const text = concept.text.toLowerCase();
+          const positions: number[] = [];
+          let index = content.indexOf(text);
           
-          if (concept1 && concept2) {
-            const content = article.content.toLowerCase();
-            const text1 = concept1.text.toLowerCase();
-            const text2 = concept2.text.toLowerCase();
-
-            if (content.includes(text1) && content.includes(text2)) {
-              // 简单检查两个概念是否在200个字符内出现
-              const index1 = content.indexOf(text1);
-              const index2 = content.indexOf(text2);
-              
-              if (Math.abs(index1 - index2) < 200) {
-                const nodeId1 = nodeIdMap[concept1.text];
-                const nodeId2 = nodeIdMap[concept2.text];
-                
-                if (nodeId1 && nodeId2) {
-                  await this.createLink({
-                    graph_id: graph.id,
-                    source_id: nodeId1,
-                    target_id: nodeId2,
-                    type: 'related',
-                    label: '关联',
-                    weight: 0.5
-                  });
+          while (index !== -1) {
+            positions.push(index);
+            index = content.indexOf(text, index + 1);
+          }
+          
+          if (positions.length > 0) {
+            conceptPositions[concept.text] = positions;
+          }
+        }
+        
+        // 创建概念对映射，避免重复处理
+        const processedPairs = new Set<string>();
+        
+        // 只处理前10个最重要的概念，减少O(n^2)复杂度
+        const topConcepts = concepts.slice(0, 10);
+        
+        // 检查概念之间的关联
+        for (let i = 0; i < topConcepts.length; i++) {
+          for (let j = i + 1; j < topConcepts.length; j++) {
+            const concept1 = topConcepts[i];
+            const concept2 = topConcepts[j];
+            
+            // 添加类型检查，确保概念存在
+            if (!concept1 || !concept2) {
+              continue;
+            }
+            
+            // 生成唯一的概念对标识，避免重复处理
+            const pairKey = `${concept1.text}-${concept2.text}`;
+            if (processedPairs.has(pairKey)) {
+              continue;
+            }
+            processedPairs.add(pairKey);
+            
+            const positions1 = conceptPositions[concept1.text] || [];
+            const positions2 = conceptPositions[concept2.text] || [];
+            
+            // 检查是否有任何位置对在200个字符内
+            let hasClosePositions = false;
+            for (const pos1 of positions1) {
+              for (const pos2 of positions2) {
+                if (Math.abs(pos1 - pos2) < 200) {
+                  hasClosePositions = true;
+                  break; // 找到匹配，退出内层循环
                 }
+              }
+              if (hasClosePositions) {
+                break; // 找到匹配，退出外层循环
+              }
+            }
+            
+            if (hasClosePositions) {
+              const nodeId1 = nodeIdMap[concept1.text];
+              const nodeId2 = nodeIdMap[concept2.text];
+              
+              if (nodeId1 && nodeId2) {
+                await this.createLink({
+                  graph_id: graph.id,
+                  source_id: nodeId1,
+                  target_id: nodeId2,
+                  type: 'related',
+                  label: '关联',
+                  weight: 0.5
+                });
               }
             }
           }
@@ -738,37 +782,123 @@ export class GraphService extends BaseService {
    * @param content 文章内容
    * @param limit 关键词数量限制
    */
-  private extractKeywords(content: string, limit: number = 10): Array<{ text: string; weight: number }> {
-    // 停用词列表
-    const stopWords = ['的', '了', '和', '是', '在', '有', '我', '这', '那', '你', '他', '她', '它', '我们', '你们', '他们', '她们', '它们', '也', '还', '但', '却', '而', '就', '都', '只', '又', '很', '更', '最', '太', '非常', '极', '及', '与', '同', '并', '或', '若', '如', '因', '为', '所以', '由于', '因此', '但是', '不过', '然而', '可是', '虽然', '尽管', '即使', '如果', '假如', '倘若', '要是', '只要', '只有', '无论', '不管', '还是', '要么', '或者', '与其', '不如', '宁可', '宁愿', '也不'];
+  private extractKeywords(content: string, limit: number = 15): Array<{ text: string; weight: number }> {
+    // 扩展后的停用词列表
+    const stopWords = new Set([
+      '的', '了', '和', '是', '在', '有', '我', '这', '那', '你', '他', '她', '它', 
+      '我们', '你们', '他们', '她们', '它们', '也', '还', '但', '却', '而', '就', 
+      '都', '只', '又', '很', '更', '最', '太', '非常', '极', '及', '与', '同', 
+      '并', '或', '若', '如', '因', '为', '所以', '由于', '因此', '但是', '不过', 
+      '然而', '可是', '虽然', '尽管', '即使', '如果', '假如', '倘若', '要是', 
+      '只要', '只有', '无论', '不管', '还是', '要么', '或者', '与其', '不如', 
+      '宁可', '宁愿', '也不', '啊', '呀', '呢', '吧', '吗', '啦', '哦', '嗯', 
+      '哎', '唉', '喂', '咳', '嘿', '嘻', '哈', '哦', '哟', '哇', '呀', '啦', 
+      '呢', '吧', '吗', '了', '着', '过', '的', '地', '得', '所', '以', '之', 
+      '而', '与', '及', '或', '且', '但', '却', '然', '而', '乃', '则', '虽', 
+      '然', '纵', '然', '即', '使', '如', '若', '倘', '若', '假', '如', '假', 
+      '使', '只', '要', '只', '有', '除', '非', '无', '论', '不', '管', '任', 
+      '凭', '别', '特', '别', '非', '常', '十', '分', '很', '极', '其', '尤', 
+      '为', '更', '加', '最', '顶', '太', '过', '异', '常', '超', '级', '极', 
+      '端', '相', '当', '比', '较', '差', '不', '多', '大', '概', '也', '许', 
+      '或', '许', '恐', '怕', '难', '道', '难', '免', '必', '须', '务', '必', 
+      '应', '该', '可', '能', '会', '要', '想', '将', '即', '将', '正', '在', 
+      '已', '经', '曾', '经', '刚', '刚', '才', '刚', '恰', '好', '恰', '巧', 
+      '刚', '巧', '正', '好', '就', '是', '对', '于', '关', '于', '至', '于', 
+      '由', '于', '因', '为', '所', '以', '因', '此', '于', '是', '然', '后', 
+      '接', '着', '先', '后', '最', '初', '开', '始', '最', '终', '结', '果', 
+      '到', '底', '究', '竟', '难', '道', '难', '不成', '难', '怪', '反', '正', 
+      '事', '实', '上', '实', '际', '上', '说', '实', '话', '总', '之', '总', 
+      '的', '来', '说', '归', '根', '结', '底', '归', '根', '到', '底', '据', 
+      '说', '听', '说', '据', '悉', '了', '解', '知', '道', '明', '白', '清', 
+      '楚', '懂', '得', '认', '为', '觉', '得', '想', '法', '观', '点', '意', 
+      '见', '看', '法', '态', '度', '觉', '得', '感', '到', '觉', '着', '感', 
+      '受', '认', '为', '以', '为', '觉', '得', '想', '要', '希', '望', '期', 
+      '望', '盼', '望', '企', '盼', '渴', '望', '憧', '憬', '梦', '想', '希', 
+      '图', '企', '图', '试', '图', '试', '着', '尝', '试', '努', '力', '尽', 
+      '力', '竭', '力', '致', '力', '专', '心', '专', '注', '认', '真', '仔', 
+      '细', '精', '心', '周', '到', '全', '面', '完', '整', '完', '美', '美', 
+      '好', '优', '秀', '杰', '出', '卓', '越', '伟', '大', '高', '尚', '正', 
+      '直', '善', '良', '美', '丽', '漂', '亮', '帅', '气', '可', '爱', '迷', 
+      '人', '有', '趣', '有', '用', '有', '益', '有', '效', '有', '用', '实', 
+      '用', '实', '际', '有', '效', '有', '用', '真', '实', '可', '靠', '可', 
+      '信', '确', '实', '的', '确', '真', '的', '实', '在', '实', '际', '上', 
+      '事', '实', '上', '说', '实', '话', '诚', '实', '坦', '诚', '直', '率', 
+      '坦', '白', '真', '诚', '老', '实', '可', '信', '可', '靠', '可', '行', 
+      '可', '能', '会', '要', '想', '将', '即', '将', '正', '在', '已', '经', 
+      '曾', '经', '刚', '刚', '才', '刚', '恰', '好', '恰', '巧', '刚', '巧', 
+      '正', '好', '就', '是', '对', '于', '关', '于', '至', '于', '由', '于', 
+      '因', '为', '所', '以', '因', '此', '于', '是', '然', '后', '接', '着', 
+      '先', '后', '最', '初', '开', '始', '最', '终', '结', '果', '到', '底', 
+      '究', '竟', '难', '道', '难', '不成', '难', '怪', '反', '正', '事', '实', 
+      '上', '实', '际', '上', '说', '实', '话', '总', '之', '总', '的', '来', 
+      '说', '归', '根', '结', '底', '归', '根', '到', '底', '据', '说', '听', 
+      '说', '据', '悉', '了', '解', '知', '道', '明', '白', '清', '楚', '懂', 
+      '得', '认', '为', '觉', '得', '想', '法', '观', '点', '意', '见', '看', 
+      '法', '态', '度', '觉', '得', '感', '到', '觉', '着', '感', '受', '认', 
+      '为', '以', '为', '觉', '得', '想', '要', '希', '望', '期', '望', '盼', 
+      '望', '企', '盼', '渴', '望', '憧', '憬', '梦', '想', '希', '图', '企', 
+      '图', '试', '图', '试', '着', '尝', '试', '努', '力', '尽', '力', '竭', 
+      '力', '致', '力', '专', '心', '专', '注', '认', '真', '仔', '细', '精', 
+      '心', '周', '到', '全', '面', '完', '整', '完', '美', '美', '好', '优', 
+      '秀', '杰', '出', '卓', '越', '伟', '大', '高', '尚', '正', '直', '善', 
+      '良', '美', '丽', '漂', '亮', '帅', '气', '可', '爱', '迷', '人', '有', 
+      '趣', '有', '用', '有', '益', '有', '效', '有', '用', '实', '用', '实', 
+      '际', '有', '效', '有', '用', '真', '实', '可', '靠', '可', '信', '确', 
+      '实', '的', '确', '真', '的', '实', '在', '实', '际', '上', '事', '实', 
+      '上', '说', '实', '话', '诚', '实', '坦', '诚', '直', '率', '坦', '白', 
+      '真', '诚', '老', '实', '可', '信', '可', '靠', '可', '行', '可', '能', 
+      '会', '要', '想', '将', '即', '将', '正', '在', '已', '经', '曾', '经', 
+      '刚', '刚', '才', '刚', '恰', '好', '恰', '巧', '刚', '巧', '正', '好',
+      // 数字和单位
+      '一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '百', '千', '万', '亿',
+      '个', '只', '条', '件', '张', '片', '本', '册', '页', '卷', '份', '支', '枝', '棵', '株',
+      '根', '条', '块', '粒', '颗', '只', '个', '辆', '台', '架', '艘', '艘', '间', '栋', '座',
+      '扇', '户', '道', '面', '堵', '堵', '头', '匹', '头', '群', '队', '堆', '批', '包', '捆',
+      '束', '把', '串', '挂', '滴', '点', '线', '条', '股', '团', '片', '片', '层', '排', '列',
+      '行', '列', '组', '队', '群', '批', '次', '种', '类', '样', '式', '款', '型', '号', '类',
+      // 时间相关
+      '年', '月', '日', '时', '分', '秒', '天', '周', '星期', '日', '小时', '分钟', '秒钟',
+      '今天', '明天', '后天', '昨天', '前天', '上周', '本周', '下周', '上个月', '这个月', '下个月',
+      '去年', '今年', '明年', '现在', '目前', '当前', '此时', '此刻', '刚才', '刚刚', '马上', '立刻',
+      '立即', '即刻', '顿时', '顿时', '忽然', '突然', '瞬间', '刹那', '一会儿', '一下子', '不久',
+      '很快', '稍后', '以后', '后来', '之后', '之前', '从前', '过去', '以往', '未来', '将来', '今后',
+      // 英文停用词
+      'a', 'an', 'the', 'and', 'or', 'but', 'not', 'is', 'are', 'am', 'was', 'were', 'be', 'been', 'being',
+      'to', 'of', 'in', 'on', 'at', 'with', 'by', 'for', 'from', 'about', 'against', 'between', 'into',
+      'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'in', 'out', 'on', 'off',
+      'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how',
+      'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not',
+      'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should',
+      'now'
+    ]);
     
-    // 简单分词和去停用词
+    // 改进的分词和去停用词
     const words = content
       .toLowerCase()
-      .replace(/[^\w\s]/g, '')
+      .replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, ' ') // 保留中英文和数字
       .split(/\s+/)
-      .filter(word => word.length > 2 && !stopWords.includes(word));
+      .filter(word => word.length > 1 && !stopWords.has(word));
     
     // 统计词频 (TF)
     const wordCounts: Record<string, number> = {};
-    const totalWords = words.length;
     
     for (const word of words) {
       wordCounts[word] = (wordCounts[word] || 0) + 1;
     }
     
     // 计算TF-IDF
-    // 简化版：使用文档总数N=1，实际项目中可以使用更复杂的IDF计算
-    const N = 1; // 文档总数，实际应用中应根据语料库计算
     const tfidfScores: Array<{ text: string; weight: number }> = [];
     
     for (const [word, freq] of Object.entries(wordCounts)) {
-      // TF: 词频 / 总词数
-      const tf = freq / totalWords;
-      // IDF: 1 + log(N / (1 + 出现该词的文档数))，简化处理
-      const idf = 1 + Math.log(N / (1 + 1));
-      // TF-IDF 分数
-      const tfidf = tf * idf;
+      // TF: 词频 / 总词数，增加对数平滑
+      const tf = 1 + Math.log10(freq);
+      // 改进的IDF计算，考虑了单词长度作为额外权重
+      // 更长的单词通常具有更强的语义信息
+      const wordLengthFactor = Math.min(1.5, 1 + word.length / 10);
+      // 简化的IDF，实际应用中应根据语料库计算
+      const idf = 1 + Math.log10(1000 / (1 + freq)); // 假设有1000篇文档的语料库
+      // TF-IDF 分数，结合单词长度因子
+      const tfidf = tf * idf * wordLengthFactor;
       
       tfidfScores.push({
         text: word,
@@ -783,7 +913,7 @@ export class GraphService extends BaseService {
   }
 
   /**
-   * 比较两个图谱的差异
+   * 比较两个图谱的差异（优化版）
    * @param graphId1 第一个图谱ID
    * @param graphId2 第二个图谱ID
    */
@@ -816,13 +946,20 @@ export class GraphService extends BaseService {
       // 删除的节点
       const nodesRemoved = Array.from(nodes1.values()).filter(node => !nodes2.has(node.id));
       
-      // 更新的节点
+      // 更新的节点（优化版：只比较关键属性，不使用JSON.stringify）
       const nodesUpdated: Array<{ old: GraphNode; new: GraphNode }> = [];
       nodes1.forEach((node1, id) => {
         const node2 = nodes2.get(id);
         if (node2) {
-          // 比较节点属性是否变化
-          if (JSON.stringify(node1) !== JSON.stringify(node2)) {
+          // 只比较关键属性，避免全量比较
+          const isUpdated = 
+            node1.title !== node2.title ||
+            node1.type !== node2.type ||
+            node1.description !== node2.description ||
+            node1.color !== node2.color ||
+            node1.size !== node2.size;
+            
+          if (isUpdated) {
             nodesUpdated.push({ old: node1, new: node2 });
           }
         }
@@ -832,6 +969,7 @@ export class GraphService extends BaseService {
       // 使用source和target的组合作为链接的唯一标识
       const getLinkKey = (link: GraphLink) => `${link.source}-${link.target}-${link.type}`;
       
+      // 预计算链接映射
       const links1 = new Map(graph1.links.map(link => [getLinkKey(link), link]));
       const links2 = new Map(graph2.links.map(link => [getLinkKey(link), link]));
 
@@ -841,13 +979,18 @@ export class GraphService extends BaseService {
       // 删除的链接
       const linksRemoved = Array.from(links1.values()).filter(link => !links2.has(getLinkKey(link)));
       
-      // 更新的链接
+      // 更新的链接（优化版：只比较关键属性，不使用JSON.stringify）
       const linksUpdated: Array<{ old: GraphLink; new: GraphLink }> = [];
       links1.forEach((link1, key) => {
         const link2 = links2.get(key);
         if (link2) {
-          // 比较链接属性是否变化
-          if (JSON.stringify(link1) !== JSON.stringify(link2)) {
+          // 只比较关键属性，避免全量比较
+          const isUpdated = 
+            link1.label !== link2.label ||
+            link1.weight !== link2.weight ||
+            link1.color !== link2.color;
+            
+          if (isUpdated) {
             linksUpdated.push({ old: link1, new: link2 });
           }
         }

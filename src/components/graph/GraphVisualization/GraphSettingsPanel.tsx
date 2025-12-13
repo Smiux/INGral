@@ -5,29 +5,24 @@ export interface GraphSettingsPanelProps {
   // 状态
   isSettingsPanelOpen: boolean;
   toolbarAutoHide: boolean;
-  leftToolbarAutoHide: boolean;
   
   // 回调函数
   setIsSettingsPanelOpen: (open: boolean) => void;
   setToolbarAutoHide: (autoHide: boolean) => void;
-  setLeftToolbarAutoHide: (autoHide: boolean) => void;
 }
 
 // 自定义比较函数，用于React.memo
 const areEqual = (prevProps: GraphSettingsPanelProps, nextProps: GraphSettingsPanelProps) => {
   // 比较面板状态和工具栏设置
   return prevProps.isSettingsPanelOpen === nextProps.isSettingsPanelOpen &&
-         prevProps.toolbarAutoHide === nextProps.toolbarAutoHide &&
-         prevProps.leftToolbarAutoHide === nextProps.leftToolbarAutoHide;
+         prevProps.toolbarAutoHide === nextProps.toolbarAutoHide;
 };
 
 export const GraphSettingsPanel: React.FC<GraphSettingsPanelProps> = React.memo(({
   isSettingsPanelOpen,
   toolbarAutoHide,
-  leftToolbarAutoHide,
   setIsSettingsPanelOpen,
-  setToolbarAutoHide,
-  setLeftToolbarAutoHide
+  setToolbarAutoHide
 }) => {
   if (!isSettingsPanelOpen) {
     return null;
@@ -55,26 +50,6 @@ export const GraphSettingsPanel: React.FC<GraphSettingsPanelProps> = React.memo(
           </button>
         </div>
         <p className="text-xs text-gray-500 mt-1">自动收起：鼠标离开工具栏3秒后自动隐藏，鼠标移到顶部区域时显示</p>
-      </div>
-      
-      {/* 左侧工具栏显示模式 */}
-      <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">左侧工具栏显示模式</h4>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setLeftToolbarAutoHide(false)}
-            className={`flex-1 px-3 py-1.5 rounded-md text-sm transition-colors ${!leftToolbarAutoHide ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-          >
-            固定显示
-          </button>
-          <button
-            onClick={() => setLeftToolbarAutoHide(true)}
-            className={`flex-1 px-3 py-1.5 rounded-md text-sm transition-colors ${leftToolbarAutoHide ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-          >
-            自动收起
-          </button>
-        </div>
-        <p className="text-xs text-gray-500 mt-1">自动收起：鼠标离开工具栏3秒后自动隐藏，鼠标移到左侧区域时显示</p>
       </div>
       
       {/* 关闭按钮 */}

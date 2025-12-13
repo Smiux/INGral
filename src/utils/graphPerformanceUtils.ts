@@ -254,19 +254,36 @@ export class NodeAggregationUtils {
     const aggregatedNodeIds = new Set<string>();
     const visited = new Set<string>();
     
-    // 基于距离的节点聚合算法
+    // 计算节点的重要性评分
+    const nodeImportance = this.calculateNodeImportance(nodes, links);
+    
+    // 基于距离和重要性的节点聚合算法
     const clusters: EnhancedNode[][] = [];
     
     // 为每个未访问的节点寻找邻近节点形成聚类
     nodesCopy.forEach((node, index) => {
       if (visited.has(node.id)) return;
       
+      // 如果节点重要性较高，不进行聚合
+      if ((nodeImportance[node.id] ?? 0) > 0.7) {
+        aggregatedNodes.push(node);
+        visited.add(node.id);
+        return;
+      }
+      
       const cluster: EnhancedNode[] = [node];
       visited.add(node.id);
       
-      // 检查其他节点是否与当前节点距离足够近
+      // 检查其他节点是否与当前节点距离足够近且重要性较低
       nodesCopy.forEach((otherNode, otherIndex) => {
         if (index === otherIndex || visited.has(otherNode.id)) return;
+        
+        // 如果节点重要性较高，不进行聚合
+        if ((nodeImportance[otherNode.id] ?? 0) > 0.7) {
+          aggregatedNodes.push(otherNode);
+          visited.add(otherNode.id);
+          return;
+        }
         
         const distance = this.calculateDistance(node, otherNode);
         if (distance < aggregationThreshold) {
@@ -290,61 +307,90 @@ export class NodeAggregationUtils {
       const centerX = cluster.reduce((sum, node) => sum + (node.x || 0), 0) / cluster.length;
       const centerY = cluster.reduce((sum, node) => sum + (node.y || 0), 0) / cluster.length;
       
+      // 计算聚合节点的总连接数
+      const totalConnections = cluster.reduce((sum, node) => sum + (node.connections || 0), 0);
+      
+      // 计算聚合节点的平均重要性
+      const avgImportance = cluster.reduce((sum, node) => sum + (nodeImportance[node.id] || 0), 0) / cluster.length;
+      
       // 创建聚合节点
       const aggregatedNode: EnhancedNode = {
         id: `aggregate-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title: `聚合节点 (${cluster.length}个)`,
-        connections: cluster.reduce((sum, node) => sum + node.connections, 0),
+        connections: totalConnections,
         type: 'aggregate',
         x: centerX,
         y: centerY,
         isExpanded: false, // 初始状态为折叠
         // 添加聚合节点特有的属性
         _aggregatedNodes: cluster,
-        _isAggregated: true
+        _isAggregated: true,
+        // 添加重要性信息
+        _averageImportance: avgImportance,
+        // 添加聚类中心信息
+        _clusterCenter: { x: centerX, y: centerY },
+        // 添加聚类节点数量信息
+        _clusterSize: cluster.length
       };
       
       aggregatedNodes.push(aggregatedNode);
       aggregatedNodeIds.add(aggregatedNode.id);
       
       // 更新链接：将指向聚类中节点的链接重定向到聚合节点
-      cluster.forEach(node => {
-        // 处理作为源节点的链接
-        links.forEach(link => {
-          if ((link.source as EnhancedNode).id === node.id) {
-            const newLink: EnhancedGraphLink = {
-              ...link,
-              id: `aggregated-${link.id}-source`,
-              source: aggregatedNode
-            };
-            aggregatedLinks.push(newLink);
-          }
-          
-          // 处理作为目标节点的链接
-          if ((link.target as EnhancedNode).id === node.id) {
-            const newLink: EnhancedGraphLink = {
-              ...link,
-              id: `aggregated-${link.id}-target`,
-              target: aggregatedNode
-            };
-            aggregatedLinks.push(newLink);
-          }
-        });
+      const clusterNodeIds = new Set(cluster.map(node => node.id));
+      
+      // 收集需要更新的链接
+      const linksToUpdate = links.filter(link => {
+        const sourceId = (link.source as EnhancedNode).id;
+        const targetId = (link.target as EnhancedNode).id;
+        return clusterNodeIds.has(sourceId) || clusterNodeIds.has(targetId);
       });
       
-      // 移除原始链接
-      cluster.forEach(node => {
-        links.forEach(link => {
-          const sourceId = (link.source as EnhancedNode).id;
+      // 去重处理，避免重复添加相同的链接
+      const uniqueLinks = new Map<string, EnhancedGraphLink>();
+      
+      linksToUpdate.forEach(link => {
+        // 处理作为源节点的链接
+        if (clusterNodeIds.has((link.source as EnhancedNode).id)) {
           const targetId = (link.target as EnhancedNode).id;
-          
-          if (sourceId === node.id || targetId === node.id) {
-            const index = aggregatedLinks.findIndex(l => l.id === link.id);
-            if (index > -1) {
-              aggregatedLinks.splice(index, 1);
-            }
+          const linkKey = `source-${aggregatedNode.id}-${targetId}-${link.type}`;
+          if (!uniqueLinks.has(linkKey)) {
+            uniqueLinks.set(linkKey, {
+              ...link,
+              id: linkKey,
+              source: aggregatedNode
+            });
           }
-        });
+        }
+        
+        // 处理作为目标节点的链接
+        if (clusterNodeIds.has((link.target as EnhancedNode).id)) {
+          const sourceId = (link.source as EnhancedNode).id;
+          const linkKey = `target-${sourceId}-${aggregatedNode.id}-${link.type}`;
+          if (!uniqueLinks.has(linkKey)) {
+            uniqueLinks.set(linkKey, {
+              ...link,
+              id: linkKey,
+              target: aggregatedNode
+            });
+          }
+        }
+      });
+      
+      // 添加新的链接
+      uniqueLinks.forEach(link => aggregatedLinks.push(link));
+      
+      // 移除原始链接
+      links.forEach(link => {
+        const sourceId = (link.source as EnhancedNode).id;
+        const targetId = (link.target as EnhancedNode).id;
+        
+        if (clusterNodeIds.has(sourceId) || clusterNodeIds.has(targetId)) {
+          const index = aggregatedLinks.findIndex(l => l.id === link.id);
+          if (index > -1) {
+            aggregatedLinks.splice(index, 1);
+          }
+        }
       });
     });
     
@@ -354,6 +400,103 @@ export class NodeAggregationUtils {
       aggregated: clusters.length > 0,
       aggregatedNodeIds
     };
+  }
+  
+  /**
+   * 计算节点的重要性评分
+   * @param nodes 节点列表
+   * @param links 链接列表
+   * @returns 节点重要性评分映射
+   */
+  private static calculateNodeImportance(
+    nodes: EnhancedNode[],
+    links: EnhancedGraphLink[]
+  ): Record<string, number> {
+    const importance: Record<string, number> = {};
+    
+    // 初始化重要性
+    nodes.forEach(node => {
+      importance[node.id] = 0.0;
+    });
+    
+    // 计算节点的连接度
+    const degreeCentrality: Record<string, number> = {};
+    nodes.forEach(node => {
+      degreeCentrality[node.id] = 0;
+    });
+    
+    links.forEach(link => {
+      const sourceId = (link.source as EnhancedNode).id;
+      const targetId = (link.target as EnhancedNode).id;
+      if (degreeCentrality[sourceId] !== undefined) {
+        degreeCentrality[sourceId]++;
+      }
+      if (degreeCentrality[targetId] !== undefined) {
+        degreeCentrality[targetId]++;
+      }
+    });
+    
+    // 归一化连接度
+    const maxDegree = Math.max(...Object.values(degreeCentrality));
+    if (maxDegree > 0) {
+      nodes.forEach(node => {
+        importance[node.id] = (importance[node.id] || 0) + (degreeCentrality[node.id] || 0) / maxDegree * 0.6;
+      });
+    }
+    
+    // 计算节点的中间度中心性（简化版本）
+    const betweennessCentrality: Record<string, number> = {};
+    nodes.forEach(node => {
+      betweennessCentrality[node.id] = 0;
+    });
+    
+    // 简化的中间度计算：统计节点作为最短路径中间节点的次数
+    // 这里使用简化版本，只考虑直接连接
+    links.forEach(link => {
+      const sourceId = (link.source as EnhancedNode).id;
+      const targetId = (link.target as EnhancedNode).id;
+      betweennessCentrality[sourceId] = (betweennessCentrality[sourceId] || 0) + 1;
+      betweennessCentrality[targetId] = (betweennessCentrality[targetId] || 0) + 1;
+    });
+    
+    // 归一化中间度
+    const maxBetweenness = Math.max(...Object.values(betweennessCentrality));
+    if (maxBetweenness > 0) {
+      nodes.forEach(node => {
+        importance[node.id] = (importance[node.id] || 0) + (betweennessCentrality[node.id] || 0) / maxBetweenness * 0.3;
+      });
+    }
+    
+    // 考虑节点的连接权重（如果有）
+    if (links.some(link => (link.weight || 0) > 1)) {
+      const weightCentrality: Record<string, number> = {};
+      nodes.forEach(node => {
+        weightCentrality[node.id] = 0;
+      });
+      
+      links.forEach(link => {
+        const sourceId = (link.source as EnhancedNode).id;
+        const targetId = (link.target as EnhancedNode).id;
+        const weight = link.weight || 1;
+        weightCentrality[sourceId] = (weightCentrality[sourceId] || 0) + weight;
+        weightCentrality[targetId] = (weightCentrality[targetId] || 0) + weight;
+      });
+      
+      // 归一化权重中心性
+      const maxWeight = Math.max(...Object.values(weightCentrality));
+      if (maxWeight > 0) {
+        nodes.forEach(node => {
+          importance[node.id] = (importance[node.id] || 0) + (weightCentrality[node.id] || 0) / maxWeight * 0.1;
+        });
+      }
+    }
+    
+    // 确保重要性在0到1之间
+    nodes.forEach(node => {
+      importance[node.id] = Math.min(1.0, Math.max(0.0, importance[node.id] || 0));
+    });
+    
+    return importance;
   }
   
   /**

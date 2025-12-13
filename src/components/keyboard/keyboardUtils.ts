@@ -59,6 +59,77 @@ export const useGlobalKeyboardShortcuts = () => {
         '创建新文章',
         '内容操作',
       );
+
+      // 图谱操作快捷键 - 全局可用
+      keyboardNavigationManager.registerShortcut(
+        'graph-undo',
+        { key: KeyCode.Z, ctrlKey: true },
+        () => {
+          // 查找并触发撤销按钮
+          const undoBtn = document.querySelector('[title="撤销"] button');
+          if (undoBtn) {
+            (undoBtn as HTMLButtonElement).click();
+          }
+        },
+        '撤销操作',
+        '图谱操作',
+      );
+
+      keyboardNavigationManager.registerShortcut(
+        'graph-redo',
+        { key: KeyCode.Y, ctrlKey: true },
+        () => {
+          // 查找并触发重做按钮
+          const redoBtn = document.querySelector('[title="重做"] button');
+          if (redoBtn) {
+            (redoBtn as HTMLButtonElement).click();
+          }
+        },
+        '重做操作',
+        '图谱操作',
+      );
+
+      keyboardNavigationManager.registerShortcut(
+        'graph-redo-shift',
+        { key: KeyCode.Z, ctrlKey: true, shiftKey: true },
+        () => {
+          // 查找并触发重做按钮（Shift+Ctrl+Z 替代方案）
+          const redoBtn = document.querySelector('[title="重做"] button');
+          if (redoBtn) {
+            (redoBtn as HTMLButtonElement).click();
+          }
+        },
+        '重做操作（替代快捷键）',
+        '图谱操作',
+      );
+
+      keyboardNavigationManager.registerShortcut(
+        'graph-toggle-right-panel',
+        { key: KeyCode.R, ctrlKey: true },
+        () => {
+          // 查找并触发右侧面板切换按钮
+          const toggleBtn = document.querySelector('[title*="右侧面板"] button');
+          if (toggleBtn) {
+            (toggleBtn as HTMLButtonElement).click();
+          }
+        },
+        '切换右侧面板显示',
+        '图谱操作',
+      );
+
+      keyboardNavigationManager.registerShortcut(
+        'graph-show-shortcuts',
+        { key: KeyCode.SLASH, ctrlKey: true },
+        () => {
+          // 查找并触发快捷键按钮
+          const shortcutBtn = document.querySelector('button[aria-label="显示键盘快捷键"]');
+          if (shortcutBtn) {
+            (shortcutBtn as HTMLButtonElement).click();
+          }
+        },
+        '显示键盘快捷键',
+        '图谱操作',
+      );
     };
 
     // 注册快捷键

@@ -53,21 +53,31 @@ coverage
 junit.xml
 TEST-*.xml
 
-# Jest
+# Test configurations
+.jest
+.vitest
 jest.config.js
 jest.config.ts
 jest.config.cjs
+jest.setup.js
 jest.setup.ts
-.jest
-
-# Vitest
 vitest.config.js
 vitest.config.ts
-.vitest
 
 # Test artifacts
-__tests__/
 *.snap
+
+# Test files
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Mock files
+__mocks__/
+*.mock.ts
+*.mock.tsx
 
 # Temporary files
 *.tmp

@@ -284,15 +284,15 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 
 /**
- * Markdown渲染缓存配置
+ * Markdown渲染缓存配置 - 优化版
  */
 const CACHE_CONFIG = {
-  EXPIRY_TIME: 10 * 60 * 1000, // 10分钟缓存，延长缓存时间以提高命中率
-  MAX_ENTRIES: 100, // 增加最大缓存条目数到100
-  MAX_SIZE: 20 * 1024 * 1024, // 增加最大缓存大小到20MB
-  CLEANUP_INTERVAL: 2 * 60 * 1000, // 定期清理间隔：2分钟
-  MIN_ACCESS_COUNT: 2, // 最小访问次数，低于此值的条目优先被清理
-  PRUNE_RATIO: 0.3 // 清理比例，每次清理30%的低优先级条目
+  EXPIRY_TIME: 30 * 60 * 1000, // 延长缓存时间到30分钟，进一步提高命中率
+  MAX_ENTRIES: 300, // 增加最大缓存条目数到300
+  MAX_SIZE: 50 * 1024 * 1024, // 增加最大缓存大小到50MB
+  CLEANUP_INTERVAL: 10 * 60 * 1000, // 减少清理频率到10分钟，降低CPU开销
+  MIN_ACCESS_COUNT: 0, // 移除最小访问次数限制，允许所有条目被缓存
+  PRUNE_RATIO: 0.1 // 降低清理比例到10%，减少缓存震荡
 };
 
 /**
@@ -303,15 +303,15 @@ interface CacheEntry {
   accessedAt: number;
   accessCount: number;
   contentSize: number;
-  hash: string; // 添加内容哈希，用于快速比较
+  hash: string; // 内容哈希，用于快速比较
+  lastUsed: number; // 最后使用时间，用于LRU清理
 }
 
 const markdownRenderCache = new Map<string, CacheEntry>();
-const markdownHighlightCache = new Map<string, string>(); // 模块级别缓存，避免依赖全局window对象
+const markdownHighlightCache = new Map<string, { value: string; accessedAt: number }>(); // 增强高亮缓存，添加访问时间
 
 // 缓存统计信息
-// eslint-disable-next-line prefer-const
-let cacheStats = {
+const cacheStats = {
   hits: 0,
   misses: 0,
   totalSize: 0,
@@ -324,14 +324,39 @@ let cacheStats = {
  * @param content 要哈希的内容
  * @returns 哈希字符串
  */
-function generateHash(content: string): string {
-  // 使用更高效的哈希算法，基于DJB2算法
+export function generateHash(content: string): string {
+  // 使用更高效的哈希算法，基于DJB2算法，优化性能
   let hash = 5381;
-  for (let i = 0; i < content.length; i++) {
-    const char = content.charCodeAt(i);
-    hash = ((hash << 5) + hash) + char; // hash * 33 + char
+  const len = content.length;
+  // 每4个字符计算一次哈希，减少计算次数，提高性能
+  for (let i = 0; i < len; i += 4) {
+    const char1 = content.charCodeAt(i) || 0;
+    const char2 = content.charCodeAt(i + 1) || 0;
+    const char3 = content.charCodeAt(i + 2) || 0;
+    const char4 = content.charCodeAt(i + 3) || 0;
+    hash = ((hash << 5) + hash) + char1;
+    hash = ((hash << 5) + hash) + char2;
+    hash = ((hash << 5) + hash) + char3;
+    hash = ((hash << 5) + hash) + char4;
   }
   return Math.abs(hash).toString(16);
+}
+
+/**
+ * 优化的缓存键生成函数
+ * @param content Markdown内容
+ * @param options 渲染选项
+ * @returns 缓存键
+ */
+function generateCacheKey(content: string, options?: {
+  includeBibliography?: boolean;
+  citationStyle?: CitationStyle;
+}): string {
+  const citationStyle = options?.citationStyle || 'apa';
+  const includeBibliography = options?.includeBibliography ? 'bib' : 'nobib';
+  // 只使用内容的哈希作为缓存键的主要部分，提高缓存命中率
+  const contentHash = generateHash(content);
+  return `render:${contentHash}:${includeBibliography}:${citationStyle}`;
 }
 
 /**
@@ -354,11 +379,11 @@ function cleanupCache(): void {
   if (markdownRenderCache.size > CACHE_CONFIG.MAX_ENTRIES || cacheStats.totalSize > CACHE_CONFIG.MAX_SIZE) {
     const sortedEntries = Array.from(markdownRenderCache.entries())
       .sort(([, a], [, b]) => {
-        // 优先按访问频率排序，然后按访问时间排序
+        // 优先按访问频率排序，然后按最后使用时间排序
         if (b.accessCount !== a.accessCount) {
           return b.accessCount - a.accessCount;
         }
-        return b.accessedAt - a.accessedAt;
+        return b.lastUsed - a.lastUsed;
       });
     
     // 计算需要清理的条目数
@@ -384,14 +409,16 @@ function cleanupCache(): void {
     });
   }
   
-  // 清理highlight缓存
+  // 清理highlight缓存：优化清理策略，按访问时间排序，只保留最近使用的条目
   if (markdownHighlightCache.size > 200) {
-    // 只保留最近使用的150个条目
-    const sortedHighlightEntries = Array.from(markdownHighlightCache.entries());
+    // 按访问时间排序，保留最近使用的150个条目
+    const sortedHighlightEntries = Array.from(markdownHighlightCache.entries())
+      .sort(([, a], [, b]) => b.accessedAt - a.accessedAt);
+    
     const entriesToKeep = sortedHighlightEntries.slice(0, 150);
     markdownHighlightCache.clear();
-    entriesToKeep.forEach(([key, value]) => {
-      markdownHighlightCache.set(key, value);
+    entriesToKeep.forEach(([key, { value }]) => {
+      markdownHighlightCache.set(key, { value, accessedAt: now });
     });
   }
   
@@ -451,12 +478,21 @@ const md = new MarkdownIt({
         
         // 检查缓存
         if (markdownHighlightCache.has(cacheKey)) {
-          return markdownHighlightCache.get(cacheKey) || '';
+          const cachedEntry = markdownHighlightCache.get(cacheKey);
+          if (cachedEntry) {
+            // 更新访问时间
+            cachedEntry.accessedAt = Date.now();
+            return cachedEntry.value;
+          }
         }
         
         // 渲染并缓存结果
         const result = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
-        markdownHighlightCache.set(cacheKey, result);
+        // 缓存结果，存储对象
+        markdownHighlightCache.set(cacheKey, { 
+          value: result, 
+          accessedAt: Date.now() 
+        });
         return result;
       } catch {
         // 忽略语法高亮错误
@@ -484,7 +520,28 @@ md.renderer.rules.fence = function(tokens, idx, options) {
   const code = token.content.trim();
   const lang = token.info.trim();
   const attrs = '';
-  const highlighted = options.highlight?.(code, lang, attrs) || code;
+  
+  // 生成缓存键
+  const cacheKey = `highlight:${lang}:${code}`;
+  let highlighted = '';
+  
+  // 检查缓存
+  if (markdownHighlightCache.has(cacheKey)) {
+    const cachedEntry = markdownHighlightCache.get(cacheKey);
+    if (cachedEntry) {
+      highlighted = cachedEntry.value;
+      // 更新访问时间
+      cachedEntry.accessedAt = Date.now();
+    }
+  } else {
+    // 渲染并缓存结果
+    highlighted = options.highlight?.(code, lang, attrs) || code;
+    // 缓存结果
+    markdownHighlightCache.set(cacheKey, { 
+      value: highlighted, 
+      accessedAt: Date.now() 
+    });
+  }
   
   // 生成行号
   const lines = code.split('\n');
@@ -551,7 +608,7 @@ function processMathFormulas(text: string): string {
     // 处理块级数学公式：\\[...\\] 格式
     result = result.replace(/(?<!\\)\\\[([\s\S]*?)(?<!\\)\\\]/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1, { displayMode: true });
+        return katexCache.render(p1.trim(), { displayMode: true });
       } catch (error) {
         console.error('Error rendering block math [\\...\\]:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
@@ -561,7 +618,7 @@ function processMathFormulas(text: string): string {
     // 处理内联数学公式：\\(...\\) 格式
     result = result.replace(/(?<!\\)\\\(([\s\S]*?)(?<!\\)\\\)/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1, { displayMode: false });
+        return katexCache.render(p1.trim(), { displayMode: false });
       } catch (error) {
         console.error('Error rendering inline math \\(...\\):', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
@@ -571,7 +628,7 @@ function processMathFormulas(text: string): string {
     // 处理块级数学公式：$$...$$ 格式
     result = result.replace(/(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1, { displayMode: true });
+        return katexCache.render(p1.trim(), { displayMode: true });
       } catch (error) {
         console.error('Error rendering block math $$...$$:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
@@ -579,9 +636,69 @@ function processMathFormulas(text: string): string {
     });
 
     // 处理内联数学公式：$...$ 格式
-    result = result.replace(/(?<!\\)\$([^$]+)(?<!\\)\$/g, (_match: string, p1: string) => {
+    result = result.replace(/(?<!\\)\$([^$\\]*(?:\\.[^$\\]*)*)(?<!\\)\$/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1, { displayMode: false });
+        return katexCache.render(p1.trim(), { displayMode: false });
+      } catch (error) {
+        console.error('Error rendering inline math $...$:', error);
+        return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
+      }
+    });
+  }
+  
+  return result;
+}
+
+/**
+ * 在Markdown渲染完成后处理数学公式
+ * 更健壮的公式处理，解决公式位置和相邻文本问题
+ * @param html 渲染后的HTML文本
+ */
+function processMathFormulasPostRender(html: string): string {
+  let result = html;
+  
+  // 只在有数学公式时才处理，减少不必要的正则匹配
+  if (result.includes('$') || result.includes('\\[')) {
+    // 处理块级数学公式：\\[...\\] 格式
+    result = result.replace(/(?<!\\)\\\[([\s\S]*?)(?<!\\)\\\]/g, (_match: string, p1: string) => {
+      try {
+        return katexCache.render(p1.trim(), { displayMode: true });
+      } catch (error) {
+        console.error('Error rendering block math [\\...\\]:', error);
+        return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
+      }
+    });
+
+    // 处理内联数学公式：\\(...\\) 格式
+    result = result.replace(/(?<!\\)\\\(([\s\S]*?)(?<!\\)\\\)/g, (_match: string, p1: string) => {
+      try {
+        return katexCache.render(p1.trim(), { displayMode: false });
+      } catch (error) {
+        console.error('Error rendering inline math \\(...\\):', error);
+        return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
+      }
+    });
+
+    // 处理块级数学公式：$$...$$ 格式
+    result = result.replace(/(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$/g, (_match: string, p1: string) => {
+      try {
+        return katexCache.render(p1.trim(), { displayMode: true });
+      } catch (error) {
+        console.error('Error rendering block math $$...$$:', error);
+        return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
+      }
+    });
+
+    // 处理内联数学公式：$...$ 格式 - 更健壮的正则表达式
+    // 解决公式与文本相邻的问题，使用更精确的边界匹配
+    result = result.replace(/(?<!\\)\$([^$\\]*(?:\\.[^$\\]*)*)(?<!\\)\$/g, (_match: string, p1: string) => {
+      // 清理公式内容，移除首尾空白
+      const cleanedFormula = p1.trim();
+      if (!cleanedFormula) {
+        return '$ $';
+      }
+      try {
+        return katexCache.render(cleanedFormula, { displayMode: false });
       } catch (error) {
         console.error('Error rendering inline math $...$:', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
@@ -802,11 +919,9 @@ export function renderMarkdown(content: string, options?: {
   includeBibliography?: boolean;
   citationStyle?: CitationStyle;
 }): RenderMarkdownResult {
-  // 生成更高效的缓存键
-  const citationStyle = options?.citationStyle || 'apa';
-  const includeBibliography = options?.includeBibliography ? 'bib' : 'nobib';
+  // 生成优化的缓存键
+  const cacheKey = generateCacheKey(content, options);
   const contentHash = generateHash(content);
-  const cacheKey = `render:${contentHash}:${includeBibliography}:${citationStyle}`;
   
   // 检查缓存
   if (markdownRenderCache.has(cacheKey)) {
@@ -815,6 +930,7 @@ export function renderMarkdown(content: string, options?: {
       // 更新访问统计
       cachedEntry.accessedAt = Date.now();
       cachedEntry.accessCount++;
+      cachedEntry.lastUsed = Date.now();
       // 增加缓存命中统计
       cacheStats.hits++;
       return cachedEntry.data;
@@ -862,6 +978,9 @@ export function renderMarkdown(content: string, options?: {
   // 提取公式
   const formulas = extractFormulas(content);
   
+  // 后期处理：统一处理数学公式，确保在所有其他Markdown处理完成后进行
+  html = processMathFormulasPostRender(html);
+  
   // 添加参考文献
   if (options?.includeBibliography && citations.length > 0) {
     const bibliography = generateBibliography(citations, options.citationStyle);
@@ -885,7 +1004,8 @@ export function renderMarkdown(content: string, options?: {
     accessedAt: Date.now(),
     accessCount: 1,
     contentSize,
-    hash: contentHash
+    hash: contentHash,
+    lastUsed: Date.now()
   };
   
   markdownRenderCache.set(cacheKey, cacheEntry);
@@ -1055,5 +1175,5 @@ export function generateTableOfContents(content: string): string {
  */
 export function isEmptyMarkdown(content: string): boolean {
   const cleaned = cleanMarkdown(content);
-  return cleaned === '' || cleaned === '# ';
+  return cleaned === '' || cleaned === '#';
 }

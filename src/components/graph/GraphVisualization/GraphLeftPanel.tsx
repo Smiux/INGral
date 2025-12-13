@@ -8,6 +8,8 @@ import { LayoutManager } from './LayoutManager';
 import { GraphImportExport } from './GraphImportExport';
 import { ThemeManager } from './ThemeManager';
 import { GraphAnalysis } from './GraphAnalysis';
+import { StatisticsPanel } from './StatisticsPanel';
+import { StyleAdjustmentPanel } from './StyleAdjustmentPanel';
 
 // 导入类型定义
 import { EnhancedNode, EnhancedGraphLink, LayoutType, LayoutDirection, ForceParameters, SavedLayout, RecentAction } from './types';
@@ -61,6 +63,8 @@ export interface GraphLeftPanelProps {
   togglePanel: (panelId: string | null) => void;
   addHistory: (action: RecentAction) => void;
   handlePasteStyle: () => void;
+  handleCopyNodeStyle: () => void;
+  handleCopyLinkStyle: () => void;
 }
 
 // 自定义比较函数，用于React.memo
@@ -135,7 +139,9 @@ export const GraphLeftPanel: React.FC<GraphLeftPanelProps> = React.memo(({
   handleDeleteLayout,
   togglePanel,
   addHistory,
-  handlePasteStyle
+  handlePasteStyle,
+  handleCopyNodeStyle,
+  handleCopyLinkStyle
 }) => {
   if (isLeftPanelCollapsed && !isLeftToolbarVisible) {
     return null;
@@ -409,6 +415,70 @@ export const GraphLeftPanel: React.FC<GraphLeftPanelProps> = React.memo(({
                   <GraphAnalysis
                     nodes={nodes}
                     links={links}
+                  />
+                </div>
+              )}
+            </div>
+            
+            {/* 统计信息面板 - 现代化设计 */}
+            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white hover:shadow-md transition-all duration-200 ease-in-out">
+              <button 
+                onClick={() => togglePanel('statistics')}
+                className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-gray-100 transition-all duration-200 ease-in-out"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
+                      <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-medium text-gray-800">统计信息</h3>
+                </div>
+                <div className={`transition-transform duration-300 ease-in-out ${activePanel === 'statistics' ? 'transform rotate-180' : ''}`}>
+                  <ChevronDown className="w-5 h-5 text-gray-600" />
+                </div>
+              </button>
+              {activePanel === 'statistics' && (
+                <div className="p-4 border-t border-gray-100 bg-white">
+                  <StatisticsPanel
+                    nodes={nodes}
+                    links={links}
+                  />
+                </div>
+              )}
+            </div>
+            
+            {/* 样式调整面板 - 现代化设计 */}
+            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white hover:shadow-md transition-all duration-200 ease-in-out">
+              <button 
+                onClick={() => togglePanel('style')}
+                className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-gray-100 transition-all duration-200 ease-in-out"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                      <path fillRule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <h3 className="font-medium text-gray-800">样式调整</h3>
+                </div>
+                <div className={`transition-transform duration-300 ease-in-out ${activePanel === 'style' ? 'transform rotate-180' : ''}`}>
+                  <ChevronDown className="w-5 h-5 text-gray-600" />
+                </div>
+              </button>
+              {activePanel === 'style' && (
+                <div className="p-4 border-t border-gray-100 bg-white">
+                  <StyleAdjustmentPanel
+                    selectedNode={selectedNode}
+                    selectedNodes={selectedNodes}
+                    selectedLinks={selectedLinks}
+                    currentTheme={currentTheme}
+                    handleCopyNodeStyle={handleCopyNodeStyle}
+                    handleCopyLinkStyle={handleCopyLinkStyle}
+                    handlePasteStyle={handlePasteStyle}
+                    setCurrentTheme={setCurrentTheme}
                   />
                 </div>
               )}

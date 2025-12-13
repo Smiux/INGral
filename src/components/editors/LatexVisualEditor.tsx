@@ -152,7 +152,7 @@ export function LatexVisualEditor({
         mathQuillInstanceRef.current = null;
       }
     };
-  }, [mathFieldRef, onFormulaChange, onMathQuillReady]);
+  }, [mathFieldRef, onFormulaChange, onMathQuillReady, formula]);
 
   /**
    * 当公式变化时，更新MathQuill实例

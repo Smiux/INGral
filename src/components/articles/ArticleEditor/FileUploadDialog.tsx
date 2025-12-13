@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Upload, FileText } from 'lucide-react';
+import { X, Upload, FileText, FileImage, FileCode, FileSpreadsheet, FileArchive, FileAudio, FileVideo, File } from 'lucide-react';
 import { fileService } from '@/services/fileService';
 
 interface FileUploadDialogProps {
@@ -139,6 +139,36 @@ export function FileUploadDialog({ isOpen, onClose, onFileUploaded, showNotifica
     showNotification(`文件 ${fileName} 已插入到编辑器`, 'success');
   };
 
+  /**
+   * 获取文件类型对应的图标
+   */
+  const getFileIcon = (fileName: string, fileType: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    
+    if (fileType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+      return <FileImage size={20} className="text-blue-500" />;
+    } else if (fileType.startsWith('application/pdf') || ext === 'pdf') {
+      return <File size={20} className="text-red-500" />;
+    } else if (fileType.startsWith('text/plain') || ['txt', 'md', 'markdown'].includes(ext)) {
+      return <FileText size={20} className="text-gray-500" />;
+    } else if (['js', 'ts', 'jsx', 'tsx', 'html', 'css', 'json', 'xml', 'yaml', 'yml'].includes(ext)) {
+      return <FileCode size={20} className="text-purple-500" />;
+    } else if (['xls', 'xlsx', 'csv', 'ods'].includes(ext)) {
+      return <FileSpreadsheet size={20} className="text-green-500" />;
+    } else if (['doc', 'docx', 'odt'].includes(ext)) {
+      return <File size={20} className="text-blue-600" />;
+    } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
+      return <FileArchive size={20} className="text-yellow-500" />;
+    } else if (fileType.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'flac'].includes(ext)) {
+      return <FileAudio size={20} className="text-pink-500" />;
+    } else if (fileType.startsWith('video/') || ['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
+      return <FileVideo size={20} className="text-orange-500" />;
+    }
+    
+    // 默认图标
+    return <FileText size={20} className="text-gray-500" />;
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
@@ -212,11 +242,11 @@ export function FileUploadDialog({ isOpen, onClose, onFileUploaded, showNotifica
               </h4>
               <div className="space-y-3">
                 {uploadedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-650 transition-colors">
                     <div className="flex items-center space-x-3">
-                      <FileText size={20} className="text-blue-500" />
+                      {getFileIcon(file.name, file.type)}
                       <div>
-                        <div className="font-medium text-gray-900 dark:text-white truncate max-w-xs">
+                        <div className="font-medium text-gray-900 dark:text-white truncate max-w-sm">
                           {file.name}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
