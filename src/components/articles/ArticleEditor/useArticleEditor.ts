@@ -49,9 +49,6 @@ export interface ArticleEditorState {
   isMobile: boolean;
   livePreview: boolean;
   isFullscreen: boolean;
-  showSuggestions: boolean;
-  suggestions: string[];
-  suggestionIndex: number;
   
   // 编辑器面板状态
   showSettingsPanel: boolean;
@@ -145,9 +142,6 @@ export function useArticleEditor() {
     isMobile: window.innerWidth < 768,
     livePreview: true,
     isFullscreen: false,
-    showSuggestions: false,
-    suggestions: [],
-    suggestionIndex: -1,
     
     // 编辑器面板状态
     showSettingsPanel: false,
@@ -345,23 +339,6 @@ export function useArticleEditor() {
   }, [state.title, state.content, state.visibility, state.article, state.isLoading, updateState]);
 
   /**
-   * 添加离开确认功能
-   */
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (state.hasUnsavedChanges) {
-        e.preventDefault();
-        return '';
-      }
-      return;
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [state.hasUnsavedChanges]);
-
-  /**
    * 显示通知
    */
   const showNotification = useCallback((message: string, type: 'success' | 'info' | 'error') => {
@@ -371,6 +348,89 @@ export function useArticleEditor() {
       updateState('notification', null);
     }, 3000);
   }, [updateState]);
+
+  /**
+   * 保存草稿到本地存储
+   */
+  const saveDraft = useCallback(() => {
+    if (!state.article) { // 只有未上传的文章才保存为草稿
+      try {
+        const draftKey = `draft_anonymous_${slug || 'new'}`;
+        const currentDate = new Date();
+        
+        // 创建草稿对象
+        const draft = {
+          title: state.title,
+          content: state.content,
+          visibility: state.visibility,
+          authorName: state.authorName,
+          authorEmail: state.authorEmail,
+          authorUrl: state.authorUrl,
+          lastSaved: currentDate.toISOString(),
+          createdAt: currentDate.toISOString(),
+          id: `${slug || 'new'}_${Date.now()}`
+        };
+        
+        // 保存到本地存储
+        localStorage.setItem(draftKey, JSON.stringify(draft));
+        showNotification('草稿已保存', 'success');
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : '保存草稿失败';
+        console.error('保存草稿失败:', errorMessage);
+        showNotification(`保存草稿失败: ${errorMessage}`, 'error');
+      }
+    }
+  }, [state.article, state.title, state.content, state.visibility, state.authorName, state.authorEmail, state.authorUrl, slug, showNotification]);
+
+  /**
+   * 手动保存草稿
+   */
+  const handleManualSaveDraft = useCallback(() => {
+    saveDraft();
+  }, [saveDraft]);
+
+  /**
+   * 添加离开确认功能
+   */
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (state.hasUnsavedChanges && !state.article) {
+        // 对于未上传的文章，自定义确认提示
+        const message = '您有未保存的更改，是否保存为草稿？';
+        (e as BeforeUnloadEvent).returnValue = message;
+        return message;
+      }
+      return;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [state.hasUnsavedChanges, state.article]);
+
+  /**
+   * 监听路由变化，实现自定义离开确认
+   */
+  useEffect(() => {
+    const handleRouteChange = (e: PopStateEvent) => {
+      if (state.hasUnsavedChanges && !state.article) {
+        const shouldSave = window.confirm('您有未保存的更改，是否保存为草稿？');
+        if (shouldSave) {
+          saveDraft();
+        } else if (shouldSave === false) {
+          // 用户取消离开，阻止路由跳转
+          e.preventDefault();
+        }
+      }
+    };
+
+    // 添加路由变化监听
+    window.addEventListener('popstate', handleRouteChange);
+
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, [state.hasUnsavedChanges, state.article, saveDraft]);
 
   /**
    * 关闭通知
@@ -656,58 +716,9 @@ export function useArticleEditor() {
     localEditTimestampRef.current = new Date();
     
     updateState('content', newContent);
-    
-    // 简单的智能建议实现，可根据需要扩展
-    const lastWord = newContent.split(/\s+/).pop() || '';
-    if (lastWord.length > 2) {
-      // 模拟智能建议，实际可以连接API获取更智能的建议
-      const mockSuggestions = [
-        `${lastWord}是一个重要的概念`,
-        `${lastWord}在领域中有广泛应用`,
-        `${lastWord}的原理是...`,
-        `关于${lastWord}的研究表明...`
-      ];
-      batchUpdateState({
-        suggestions: mockSuggestions,
-        showSuggestions: true,
-        suggestionIndex: -1
-      });
-    } else {
-      batchUpdateState({
-        showSuggestions: false,
-        suggestions: [],
-        suggestionIndex: -1
-      });
-    }
-  }, [batchUpdateState, updateState]);
+  }, [updateState]);
 
-  /**
-   * 加载自动保存的草稿
-   */
-  useEffect(() => {
-    if (state.article) {return;} // 已有文章时不加载草稿
 
-    try {
-      const draftKey = `draft_anonymous_${slug || 'new'}`;
-      const savedDraft = localStorage.getItem(draftKey);
-
-      if (savedDraft) {
-        const draft = JSON.parse(savedDraft);
-        // 如果用户确认，可以加载草稿
-        if (window.confirm('检测到未完成的草稿，是否恢复？')) {
-          batchUpdateState({
-            title: draft.title || '',
-            content: draft.content || '',
-            visibility: draft.visibility || 'public'
-          });
-        }
-        // 无论用户选择与否，都清除草稿，避免下次编辑时再次提示
-        localStorage.removeItem(draftKey);
-      }
-    } catch (err) {
-      console.warn('加载草稿失败:', err);
-    }
-  }, [state.article, slug, batchUpdateState]);
 
   /**
    * 处理光标位置变化
@@ -777,6 +788,7 @@ export function useArticleEditor() {
     handleGenerateGraph,
     resolveConflict,
     setTitle,
-    setContent
+    setContent,
+    handleManualSaveDraft
   };
 }

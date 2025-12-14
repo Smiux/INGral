@@ -20,6 +20,7 @@ const LatexEditor = lazy(() => import('../editors/LatexEditor').then(m => ({ def
 const GraphGenerator = lazy(() => import('./ArticleEditor/GraphGenerator').then(m => ({ default: m.GraphGenerator })));
 const ImageUploadDialog = lazy(() => import('./ArticleEditor/ImageUploadDialog').then(m => ({ default: m.ImageUploadDialog })));
 const FileUploadDialog = lazy(() => import('./ArticleEditor/FileUploadDialog').then(m => ({ default: m.FileUploadDialog })));
+const DraftManager = lazy(() => import('./DraftManager').then(m => ({ default: m.DraftManager })));
 
 /**
  * 文章编辑器组件
@@ -30,6 +31,7 @@ export function ArticleEditor() {
   const {
     state,
     updateState,
+    batchUpdateState,
     showNotification,
     closeNotification,
     handleTitleChange,
@@ -40,8 +42,50 @@ export function ArticleEditor() {
     handleCursorPositionChange,
     handleGenerateGraph,
     setTitle,
-    setContent
+    setContent,
+    handleManualSaveDraft
   } = useArticleEditor();
+
+  // 草稿管理器状态
+  const [showDraftManager, setShowDraftManager] = React.useState<boolean>(false);
+
+  /**
+   * 处理加载草稿
+   */
+  const handleLoadDraft = React.useCallback((draft: import('../../types/draft').ArticleDraft) => {
+    batchUpdateState({
+      title: draft.title || '',
+      content: draft.content || '',
+      visibility: draft.visibility || 'public',
+      authorName: draft.authorName || '',
+      authorEmail: draft.authorEmail || '',
+      authorUrl: draft.authorUrl || ''
+    });
+    showNotification('草稿已加载', 'success');
+  }, [batchUpdateState, showNotification]);
+
+  /**
+   * 处理创建新草稿
+   */
+  const handleCreateNewDraft = React.useCallback(() => {
+    // 重置编辑器状态，创建新草稿
+    batchUpdateState({
+      title: '',
+      content: '',
+      visibility: 'public',
+      authorName: '',
+      authorEmail: '',
+      authorUrl: ''
+    });
+    showNotification('已创建新草稿', 'success');
+  }, [batchUpdateState, showNotification]);
+
+  /**
+   * 切换草稿管理器显示
+   */
+  const toggleDraftManager = React.useCallback(() => {
+    setShowDraftManager(prev => !prev);
+  }, []);
 
   // 快捷键定义数组
   const SHORTCUTS = [
@@ -222,40 +266,8 @@ export function ArticleEditor() {
    * 处理键盘快捷键
    */
   const handleKeyDown = React.useCallback((e: KeyboardEvent) => {
-    // 智能建议导航处理
-    if (state.showSuggestions && state.suggestions.length > 0) {
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault();
-          updateState('suggestionIndex', prev => (prev < state.suggestions.length - 1 ? prev + 1 : 0));
-          return;
-        case 'ArrowUp':
-          e.preventDefault();
-          updateState('suggestionIndex', prev => (prev > 0 ? prev - 1 : state.suggestions.length - 1));
-          return;
-        case 'Enter':
-          e.preventDefault();
-          if (state.suggestionIndex >= 0 && state.suggestionIndex < state.suggestions.length) {
-            const selectedSuggestion = state.suggestions[state.suggestionIndex];
-            if (selectedSuggestion) {
-              const words = state.content.split(/\s+/);
-              words.pop(); // 移除当前输入的最后一个单词
-              words.push(selectedSuggestion); // 添加选中的建议
-              updateState('content', words.join(' '));
-              updateState('showSuggestions', false);
-              updateState('suggestions', []);
-              updateState('suggestionIndex', -1);
-            }
-          }
-          return;
-        case 'Escape':
-          e.preventDefault();
-          updateState('showSuggestions', false);
-          updateState('suggestions', []);
-          updateState('suggestionIndex', -1);
-          return;
-      }
-    }
+    // 移除智能建议相关的所有逻辑
+    // 确保自动补全功能不会被任何键盘事件触发
 
     // 检查是否按下了Ctrl键
     if (e.ctrlKey) {
@@ -297,10 +309,6 @@ export function ArticleEditor() {
           e.preventDefault();
           updateState('showShortcuts', prev => !prev);
           break;
-        case ' ': // Ctrl+Space 触发智能建议
-          e.preventDefault();
-          updateState('showSuggestions', prev => !prev);
-          break;
         case 'f': // Ctrl+F 触发搜索
           e.preventDefault();
           // 这里可以实现搜索功能
@@ -308,11 +316,8 @@ export function ArticleEditor() {
         case 'shift':
           break; // 忽略单独的Shift键
         default:
-          if (state.showSuggestions) {
-            updateState('showSuggestions', false);
-            updateState('suggestions', []);
-            updateState('suggestionIndex', -1);
-          }
+          // 移除智能建议相关的逻辑
+          break;
       }
     }
     
@@ -347,7 +352,7 @@ export function ArticleEditor() {
       e.preventDefault();
       updateState('isFullscreen', prev => !prev);
     }
-  }, [state.showSuggestions, state.suggestions, state.suggestionIndex, state.content, handleFormat, handleSave, updateState]);
+  }, [handleFormat, handleSave, updateState]);
 
   /**
    * 添加键盘事件监听器
@@ -559,6 +564,8 @@ export function ArticleEditor() {
             livePreview={state.livePreview}
             onToggleLivePreview={() => updateState('livePreview', !state.livePreview)}
             collaborators={state.collaborators}
+            onOpenDraftManager={toggleDraftManager}
+            onSaveDraft={handleManualSaveDraft}
           />
 
           {/* 文章标题输入区域 */}
@@ -613,30 +620,7 @@ export function ArticleEditor() {
               collaborators={state.collaborators}
             />
             
-            {/* 智能建议UI */}
-            {state.showSuggestions && state.suggestions.length > 0 && (
-              <div className="suggestions-container absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-lg max-h-60 overflow-y-auto">
-                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {state.suggestions.map((suggestion, index) => (
-                    <li
-                      key={index}
-                      className={`p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${index === state.suggestionIndex ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}`}
-                      onClick={() => {
-                        const words = state.content.split(/\s+/);
-                        words.pop();
-                        words.push(suggestion);
-                        updateState('content', words.join(' '));
-                        updateState('showSuggestions', false);
-                        updateState('suggestions', []);
-                        updateState('suggestionIndex', -1);
-                      }}
-                    >
-                      {suggestion}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {/* 智能建议UI已移除 - 自动补全功能已禁用 */}
           </div>
 
           {/* 文章发布设置 */}
@@ -829,6 +813,16 @@ export function ArticleEditor() {
           onClose={() => updateState('fileUploadDialogOpen', false)}
           onFileUploaded={handleFileUploaded}
           showNotification={showNotification}
+        />
+      </Suspense>
+
+      {/* 草稿管理器 */}
+      <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]">加载中...</div>}>
+        <DraftManager
+          isOpen={showDraftManager}
+          onClose={() => setShowDraftManager(false)}
+          onLoadDraft={handleLoadDraft}
+          onCreateNewDraft={handleCreateNewDraft}
         />
       </Suspense>
     </div>

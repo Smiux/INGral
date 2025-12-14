@@ -11,6 +11,12 @@ export interface NodeStyle {
   radius: number;
   fontSize: number;
   textFill: string;
+  hoverStrokeWidth?: number;
+  borderRadius?: number;
+  selectedStrokeWidth?: number;
+  hoverTextFill?: string;
+  selectedFill?: string;
+  selectedStroke?: string;
 }
 
 // 链接样式接口

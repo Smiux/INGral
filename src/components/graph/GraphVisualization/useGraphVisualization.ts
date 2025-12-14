@@ -35,10 +35,6 @@ export function useGraphVisualization() {
   const [layoutType, setLayoutType] = useState<LayoutType>('force');
   const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('top-bottom');
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
-  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState<boolean>(() => {
-    const saved = localStorage.getItem('graphLeftPanelCollapsed');
-    return saved ? JSON.parse(saved) : false;
-  });
   const [isRightPanelVisible, setIsRightPanelVisible] = useState<boolean>(() => {
     const saved = localStorage.getItem('graphRightPanelVisible');
     return saved ? JSON.parse(saved) : true;
@@ -256,8 +252,6 @@ export function useGraphVisualization() {
     let timeoutId: number | undefined;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (isLeftPanelCollapsed) return;
-
       // 清除之前的定时器
       if (timeoutId) {
         window.clearTimeout(timeoutId);
@@ -284,12 +278,7 @@ export function useGraphVisualization() {
       }
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [leftToolbarAutoHide, isLeftPanelCollapsed]);
-
-  // 保存左侧面板折叠状态到localStorage
-  useEffect(() => {
-    localStorage.setItem('graphLeftPanelCollapsed', JSON.stringify(isLeftPanelCollapsed));
-  }, [isLeftPanelCollapsed]);
+  }, [leftToolbarAutoHide]);
 
   // 保存右侧面板可见状态到localStorage
   useEffect(() => {
@@ -376,19 +365,22 @@ export function useGraphVisualization() {
       setSelectedNode(node);
       setSelectedNodes([node]);
       
-      // Check if this node is linked to an article
+      // 不自动跳转，保留节点选择状态
+      // Check if this node is linked to an article (optional feature)
+      /*
       try {
         const articles = await graphService.getArticlesByNodeId(node.id);
         if (articles.length > 0) {
-          // Navigate to the first linked article
-          const firstArticle = articles[0];
-          if (firstArticle && firstArticle.slug) {
-            navigate(`/article/${firstArticle.slug}`);
-          }
+          // Navigate to the first linked article (commented out to preserve selection)
+          // const firstArticle = articles[0];
+          // if (firstArticle && firstArticle.slug) {
+          //   navigate(`/article/${firstArticle.slug}`);
+          // }
         }
       } catch (error) {
         console.error('Failed to fetch articles by node id:', error);
       }
+      */
     }
   }, [navigate]);
 
@@ -702,7 +694,6 @@ export function useGraphVisualization() {
     viewMode,
     
     // UI状态
-    isLeftPanelCollapsed,
     isRightPanelVisible,
     isToolbarVisible,
     isLeftToolbarVisible,
@@ -745,7 +736,6 @@ export function useGraphVisualization() {
     setLayoutType,
     setLayoutDirection,
     setViewMode,
-    setIsLeftPanelCollapsed,
     setIsRightPanelVisible,
     setIsToolbarVisible,
     setIsLeftToolbarVisible,

@@ -29,7 +29,6 @@ export interface GraphVisualizationCoreProps {
       viewMode: '2d' | '3d';
       
       // UI状态
-      isLeftPanelCollapsed: boolean;
       isRightPanelVisible: boolean;
       isToolbarVisible: boolean;
       isLeftToolbarVisible: boolean;
@@ -72,7 +71,6 @@ export interface GraphVisualizationCoreProps {
       setLayoutType: React.Dispatch<React.SetStateAction<LayoutType>>;
       setLayoutDirection: React.Dispatch<React.SetStateAction<LayoutDirection>>;
       setViewMode: React.Dispatch<React.SetStateAction<'2d' | '3d'>>;
-      setIsLeftPanelCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
       setIsRightPanelVisible: React.Dispatch<React.SetStateAction<boolean>>;
       setIsToolbarVisible: React.Dispatch<React.SetStateAction<boolean>>;
       setIsLeftToolbarVisible: React.Dispatch<React.SetStateAction<boolean>>;

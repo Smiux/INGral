@@ -1,4 +1,4 @@
-import { Save, HelpCircle, FileText, Network, Eye, EyeOff, Code, LayoutGrid } from 'lucide-react';
+import { Save, HelpCircle, FileText, Network, Eye, EyeOff, Code, LayoutGrid, FileText as DraftIcon } from 'lucide-react';
 
 /**
  * 编辑器工具栏组件
@@ -22,6 +22,8 @@ interface EditorToolbarProps {
     name: string;
     cursorPosition?: { line: number; column: number };
   }[];
+  onOpenDraftManager?: () => void;
+  onSaveDraft?: () => void;
 }
 
 export function EditorToolbar({
@@ -38,6 +40,8 @@ export function EditorToolbar({
   livePreview,
   onToggleLivePreview,
   collaborators,
+  onOpenDraftManager,
+  onSaveDraft,
 }: EditorToolbarProps) {
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300">
@@ -122,6 +126,29 @@ export function EditorToolbar({
             </button>
           )}
 
+          {/* 保存草稿按钮 */}
+          {onSaveDraft && (
+            <button
+              onClick={onSaveDraft}
+              className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-250 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm transform hover:scale-105"
+              title="保存草稿"
+            >
+              <Save size={16} className="transition-transform duration-250 hover:scale-125" />
+              <span className="hidden sm:inline">保存草稿</span>
+            </button>
+          )}
+
+          {/* 草稿管理器按钮 */}
+          {onOpenDraftManager && (
+            <button
+              onClick={onOpenDraftManager}
+              className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-250 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm transform hover:scale-105"
+              title="草稿管理"
+            >
+              <DraftIcon size={16} className="transition-transform duration-250 hover:scale-125" />
+              <span className="hidden sm:inline">草稿</span>
+            </button>
+          )}
 
         </div>
 

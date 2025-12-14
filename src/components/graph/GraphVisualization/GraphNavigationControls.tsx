@@ -74,17 +74,17 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
   };
 
   return (
-    <div className="absolute bottom-2 left-2 z-10 bg-white/80 rounded-md shadow-sm p-1 flex flex-col gap-1">
+    <div className="absolute bottom-4 left-4 z-10 bg-white/90 rounded-xl shadow-md p-1.5 flex flex-col gap-1.5 backdrop-blur-sm border border-gray-100">
       {/* 缩放控制 */}
-      <div className="flex gap-1">
+      <div className="flex gap-1.5">
         <button
           onClick={() => containerRef.current?.querySelector('svg')?.dispatchEvent(
             new WheelEvent('wheel', { deltaY: -100, bubbles: true })
           )}
-          className="p-1 rounded-md hover:bg-gray-100 text-gray-700 transition-colors"
+          className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-all duration-200 ease-in-out transform hover:scale-[1.05] shadow-sm hover:shadow-md"
           title="放大"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             <line x1="11" y1="8" x2="11" y2="14"></line>
@@ -95,90 +95,42 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
           onClick={() => containerRef.current?.querySelector('svg')?.dispatchEvent(
             new WheelEvent('wheel', { deltaY: 100, bubbles: true })
           )}
-          className="p-1 rounded-md hover:bg-gray-100 text-gray-700 transition-colors"
+          className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-all duration-200 ease-in-out transform hover:scale-[1.05] shadow-sm hover:shadow-md"
           title="缩小"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             <line x1="8" y1="11" x2="14" y2="11"></line>
           </svg>
         </button>
       </div>
-      {/* 平移控制 */}
-      <div className="grid grid-cols-3 gap-1">
-        <div></div>
-        <button
-          onClick={() => containerRef.current?.querySelector('svg')?.dispatchEvent(
-            new WheelEvent('wheel', { deltaY: -100, deltaMode: 1, bubbles: true })
-          )}
-          className="p-1 rounded-md hover:bg-gray-100 text-gray-700 transition-colors"
-          title="向上平移"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="18 15 12 9 6 15"></polyline>
-          </svg>
-        </button>
-        <div></div>
-        <button
-          onClick={() => containerRef.current?.querySelector('svg')?.dispatchEvent(
-            new WheelEvent('wheel', { deltaX: -100, deltaMode: 1, bubbles: true })
-          )}
-          className="p-1 rounded-md hover:bg-gray-100 text-gray-700 transition-colors"
-          title="向左平移"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
+      
+      {/* 视图控制 */}
+      <div className="flex gap-1.5">
         <button
           onClick={handleCenterAlign}
-          className="p-1 rounded-md hover:bg-gray-100 text-gray-700 transition-colors"
-          title="居中对齐"
+          className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-all duration-200 ease-in-out transform hover:scale-[1.05] shadow-sm hover:shadow-md"
+          title="中心对齐"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="8" x2="12" y2="16"></line>
             <line x1="8" y1="12" x2="16" y2="12"></line>
           </svg>
         </button>
         <button
-          onClick={() => containerRef.current?.querySelector('svg')?.dispatchEvent(
-            new WheelEvent('wheel', { deltaX: 100, deltaMode: 1, bubbles: true })
-          )}
-          className="p-1 rounded-md hover:bg-gray-100 text-gray-700 transition-colors"
-          title="向右平移"
+          onClick={handleFitToScreen}
+          className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-all duration-200 ease-in-out transform hover:scale-[1.05] shadow-sm hover:shadow-md"
+          title="自适应视图"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
           </svg>
         </button>
-        <div></div>
-        <button
-          onClick={() => containerRef.current?.querySelector('svg')?.dispatchEvent(
-            new WheelEvent('wheel', { deltaY: 100, deltaMode: 1, bubbles: true })
-          )}
-          className="p-1 rounded-md hover:bg-gray-100 text-gray-700 transition-colors"
-          title="向下平移"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </button>
-        <div></div>
       </div>
-      {/* 自适应缩放 */}
-      <button
-        onClick={handleFitToScreen}
-        className="p-1 rounded-md hover:bg-gray-100 text-gray-700 transition-colors"
-        title="自适应缩放"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="9" y1="9" x2="15" y2="15"></line>
-          <line x1="15" y1="9" x2="9" y2="15"></line>
-        </svg>
-      </button>
     </div>
   );
 }, areEqual);

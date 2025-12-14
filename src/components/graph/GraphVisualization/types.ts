@@ -190,6 +190,9 @@ export interface GraphCanvasProps {
   isBoxSelecting: boolean;
   boxSelection: { x1: number; y1: number; x2: number; y2: number };
   theme: import('./ThemeTypes').GraphTheme; // 主题样式
+  isAddingLink?: boolean; // 是否正在添加链接
+  linkSourceNode?: EnhancedNode | null; // 链接源节点
+  mousePosition?: { x: number; y: number } | null; // 当前鼠标位置
 }
 
 // 布局管理属性

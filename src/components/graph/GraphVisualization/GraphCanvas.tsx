@@ -5,7 +5,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import type { GraphCanvasProps, EnhancedNode, EnhancedGraphLink } from './types';
-import { NodeAggregationUtils } from '../../../utils/graphPerformanceUtils';
 
 
 
@@ -88,6 +87,9 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
   isBoxSelecting,
   boxSelection,
   theme,
+  isAddingLink = false,
+  linkSourceNode = null,
+  mousePosition = null,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -191,22 +193,10 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
     const width = containerRef.current.clientWidth;
     const height = containerRef.current.clientHeight;
     
-    // 检查是否需要聚合节点（当节点数量超过一定阈值时）
-    // 优化节点聚合策略：根据屏幕尺寸和节点数量动态调整聚合阈值
+    // 不使用节点聚合，直接使用原始节点和链接
+    const layoutNodes = nodes;
+    const layoutLinks = links;
     const nodeCount = nodes.length;
-    const screenArea = width * height;
-    const density = nodeCount / screenArea;
-    
-    // 动态计算聚合阈值：屏幕密度越高，越容易触发聚合
-    const shouldAggregate = density > 0.0005 || nodeCount > 150;
-    
-    // 执行节点聚合
-    const {
-      nodes: layoutNodes,
-      links: layoutLinks
-    } = shouldAggregate
-      ? NodeAggregationUtils.aggregateNodes(nodes, links, Math.max(30, Math.min(80, 1000 / Math.sqrt(nodeCount))), Math.max(3, Math.min(10, Math.floor(nodeCount / 50))))
-      : { nodes, links };
     
     // 创建或更新SVG
     const svg = d3.select(svgRef.current || containerRef.current)
@@ -246,10 +236,12 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
     // 应用缩放行为，添加正确的类型断言
     svg.call(zoom as unknown as (selection: d3.Selection<SVGSVGElement | d3.BaseType, null, SVGSVGElement | HTMLDivElement, unknown>) => void);
 
-    // 清除旧的节点和链接
-    g.selectAll('.node').remove();
-    g.selectAll('.link').remove();
-    g.selectAll('.box-selection').remove();
+    // 初始渲染 - 只在第一次渲染或节点/链接数量变化时清除旧元素
+    if (nodeCount !== g.selectAll('.node').size() || layoutLinks.length !== g.selectAll('.link').size()) {
+      g.selectAll('.node').remove();
+      g.selectAll('.link').remove();
+      g.selectAll('.box-selection').remove();
+    }
     
     // 初始渲染
     updateVisibleElements(zoomTransform, width, height, layoutNodes, layoutLinks, g, theme);
@@ -355,59 +347,59 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
           event.stopPropagation();
           onNodeClick(d, event as React.MouseEvent);
         })
-        .call(d3.drag<SVGGElement, EnhancedNode>())
-        .on('start', (_, d) => {
-          onNodeDragStart(d);
-          // 优化：拖拽开始时不重启模拟，保持节点位置稳定
-          d.fx = d.x;
-          d.fy = d.y;
-        })
-        .on('drag', (event, d) => {
-          d.fx = event.x;
-          d.fy = event.y;
-          // 实时更新节点位置，提升拖拽响应速度
-          d3.select(event.currentTarget).attr('transform', `translate(${d.fx}, ${d.fy})`);
-          // 更新与该节点相关的链接
-          g.selectAll<SVGLineElement, EnhancedGraphLink>('.link')
-            .filter(link => {
-              const sourceId = typeof link.source === 'string' || typeof link.source === 'number' ? link.source : (link.source as EnhancedNode).id;
-              const targetId = typeof link.target === 'string' || typeof link.target === 'number' ? link.target : (link.target as EnhancedNode).id;
-              return sourceId === d.id || targetId === d.id;
-            })
-            .attr('x1', link => {
-              const source = typeof link.source === 'string' || typeof link.source === 'number' 
-                ? allNodes.find(n => n.id === link.source) 
-                : link.source as EnhancedNode;
-              return source?.fx || source?.x || 0;
-            })
-            .attr('y1', link => {
-              const source = typeof link.source === 'string' || typeof link.source === 'number' 
-                ? allNodes.find(n => n.id === link.source) 
-                : link.source as EnhancedNode;
-              return source?.fy || source?.y || 0;
-            })
-            .attr('x2', link => {
-              const target = typeof link.target === 'string' || typeof link.target === 'number' 
-                ? allNodes.find(n => n.id === link.target) 
-                : link.target as EnhancedNode;
-              return target?.fx || target?.x || 0;
-            })
-            .attr('y2', link => {
-              const target = typeof link.target === 'string' || typeof link.target === 'number' 
-                ? allNodes.find(n => n.id === link.target) 
-                : link.target as EnhancedNode;
-              return target?.fy || target?.y || 0;
-            });
-        })
-        .on('end', (event, d) => {
-          onNodeDragEnd(d);
-          // 优化：拖拽结束后保持节点位置固定，提升控制稳定性
-          if (!event.active && simulationRef.current) {
-            simulationRef.current.alphaTarget(0);
-          }
-          d.fx = null;
-          d.fy = null;
-        });
+        .call(d3.drag<SVGGElement, EnhancedNode>()
+          .on('start', (_, d) => {
+            onNodeDragStart(d);
+            // 拖拽开始时固定节点位置
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on('drag', (event, d) => {
+            d.fx = event.x;
+            d.fy = event.y;
+            // 实时更新节点位置，提升拖拽响应速度
+            d3.select(event.currentTarget).attr('transform', `translate(${d.fx}, ${d.fy})`);
+            // 更新与该节点相关的链接
+            g.selectAll<SVGLineElement, EnhancedGraphLink>('.link')
+              .filter(link => {
+                const sourceId = typeof link.source === 'string' || typeof link.source === 'number' ? link.source : (link.source as EnhancedNode).id;
+                const targetId = typeof link.target === 'string' || typeof link.target === 'number' ? link.target : (link.target as EnhancedNode).id;
+                return sourceId === d.id || targetId === d.id;
+              })
+              .attr('x1', link => {
+                const source = typeof link.source === 'string' || typeof link.source === 'number' 
+                  ? allNodes.find(n => n.id === link.source) 
+                  : link.source as EnhancedNode;
+                return source?.fx || source?.x || 0;
+              })
+              .attr('y1', link => {
+                const source = typeof link.source === 'string' || typeof link.source === 'number' 
+                  ? allNodes.find(n => n.id === link.source) 
+                  : link.source as EnhancedNode;
+                return source?.fy || source?.y || 0;
+              })
+              .attr('x2', link => {
+                const target = typeof link.target === 'string' || typeof link.target === 'number' 
+                  ? allNodes.find(n => n.id === link.target) 
+                  : link.target as EnhancedNode;
+                return target?.fx || target?.x || 0;
+              })
+              .attr('y2', link => {
+                const target = typeof link.target === 'string' || typeof link.target === 'number' 
+                  ? allNodes.find(n => n.id === link.target) 
+                  : link.target as EnhancedNode;
+                return target?.fy || target?.y || 0;
+              });
+          })
+          .on('end', (_, d) => {
+            onNodeDragEnd(d);
+            // 拖拽结束后保持节点位置固定，不再回到力导向布局位置
+            // 只有当用户手动切换布局时才清除固定位置
+            // 移除以下两行，保持节点固定
+            // d.fx = null;
+            // d.fy = null;
+          })
+        );
       
       // 添加节点形状
       nodeEnter.each(function(d) {
@@ -415,9 +407,12 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
         const shape = d.shape || 'circle';
         const radius = theme.node.radius;
         const isSelected = selectedNode?.id === d.id || selectedNodes?.some(node => node.id === d.id);
-        const fill = isSelected ? '#FF6B6B' : theme.node.fill;
-        const stroke = isSelected ? '#FF5252' : theme.node.stroke;
-        const strokeWidth = isSelected ? 3 : theme.node.strokeWidth;
+        
+        // 使用主题变量或默认值
+        const fill = isSelected ? theme.node.selectedFill || '#FF6B6B' : theme.node.fill;
+        const stroke = isSelected ? theme.node.selectedStroke || '#FF5252' : theme.node.stroke;
+        const strokeWidth = isSelected ? theme.node.selectedStrokeWidth || 3 : theme.node.strokeWidth;
+        const borderRadius = theme.node.borderRadius || 5;
         
         // 根据shape属性渲染不同的形状
         switch (shape) {
@@ -426,7 +421,9 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
               .attr('r', radius)
               .attr('fill', fill)
               .attr('stroke', stroke)
-              .attr('stroke-width', strokeWidth);
+              .attr('stroke-width', strokeWidth)
+              .attr('class', 'node-shape')
+              .style('transition', 'fill 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease, r 0.3s ease');
             break;
           case 'rectangle':
             g.append('rect')
@@ -434,18 +431,22 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
               .attr('height', radius * 1.5)
               .attr('x', -radius)
               .attr('y', -radius * 0.75)
-              .attr('rx', 5)
-              .attr('ry', 5)
+              .attr('rx', borderRadius)
+              .attr('ry', borderRadius)
               .attr('fill', fill)
               .attr('stroke', stroke)
-              .attr('stroke-width', strokeWidth);
+              .attr('stroke-width', strokeWidth)
+              .attr('class', 'node-shape')
+              .style('transition', 'fill 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease, rx 0.3s ease');
             break;
           case 'triangle':
             g.append('path')
               .attr('d', `M 0 ${-radius} L ${radius} ${radius} L ${-radius} ${radius} Z`)
               .attr('fill', fill)
               .attr('stroke', stroke)
-              .attr('stroke-width', strokeWidth);
+              .attr('stroke-width', strokeWidth)
+              .attr('class', 'node-shape')
+              .style('transition', 'fill 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease');
             break;
           case 'hexagon':
             const hexPath = `M ${radius} 0 L ${radius/2} ${radius*Math.sqrt(3)/2} L ${-radius/2} ${radius*Math.sqrt(3)/2} L ${-radius} 0 L ${-radius/2} ${-radius*Math.sqrt(3)/2} L ${radius/2} ${-radius*Math.sqrt(3)/2} Z`;
@@ -453,14 +454,18 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
               .attr('d', hexPath)
               .attr('fill', fill)
               .attr('stroke', stroke)
-              .attr('stroke-width', strokeWidth);
+              .attr('stroke-width', strokeWidth)
+              .attr('class', 'node-shape')
+              .style('transition', 'fill 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease');
             break;
           case 'diamond':
             g.append('path')
               .attr('d', `M 0 ${-radius} L ${radius} 0 L 0 ${radius} L ${-radius} 0 Z`)
               .attr('fill', fill)
               .attr('stroke', stroke)
-              .attr('stroke-width', strokeWidth);
+              .attr('stroke-width', strokeWidth)
+              .attr('class', 'node-shape')
+              .style('transition', 'fill 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease');
             break;
           default:
             // 默认渲染为圆形
@@ -468,7 +473,9 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
               .attr('r', radius)
               .attr('fill', fill)
               .attr('stroke', stroke)
-              .attr('stroke-width', strokeWidth);
+              .attr('stroke-width', strokeWidth)
+              .attr('class', 'node-shape')
+              .style('transition', 'fill 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease, r 0.3s ease');
         }
       });
       
@@ -481,7 +488,51 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
         .attr('font-size', theme.node.fontSize)
         .attr('fill', theme.node.textFill)
         .attr('pointer-events', 'none')
-        .style('user-select', 'none');
+        .style('user-select', 'none')
+        .style('line-height', '1.2')
+        .style('transition', 'fill 0.3s ease, font-size 0.3s ease');
+      
+      // 添加节点悬停效果
+      nodeEnter.on('mouseenter', function(_, d) {
+        const g = d3.select(this);
+        const shape = g.select('.node-shape');
+        const isSelected = selectedNode?.id === d.id || selectedNodes?.some(node => node.id === d.id);
+        
+        // 悬停效果：放大形状并添加阴影
+        shape
+          .transition()
+          .duration(200)
+          .attr('stroke-width', isSelected ? theme.node.selectedStrokeWidth || 4 : theme.node.strokeWidth + 1)
+          .style('filter', 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))');
+        
+        // 悬停效果：放大文本
+        g.select('text')
+          .transition()
+          .duration(200)
+          .style('font-weight', 'bold')
+          .style('fill', theme.node.hoverTextFill || '#333');
+      });
+      
+      // 移除节点悬停效果
+      nodeEnter.on('mouseleave', function(_, d) {
+        const g = d3.select(this);
+        const shape = g.select('.node-shape');
+        const isSelected = selectedNode?.id === d.id || selectedNodes?.some(node => node.id === d.id);
+        
+        // 恢复原始样式
+        shape
+          .transition()
+          .duration(200)
+          .attr('stroke-width', isSelected ? theme.node.selectedStrokeWidth || 3 : theme.node.strokeWidth)
+          .style('filter', 'none');
+        
+        // 恢复原始文本样式
+        g.select('text')
+          .transition()
+          .duration(200)
+          .style('font-weight', 'normal')
+          .style('fill', theme.node.textFill);
+      });
       
       // 为聚合节点添加展开/折叠指示器
       nodeEnter.filter((d) => {
@@ -516,7 +567,48 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
         linkRefs.current.set(`${sourceId}-${targetId}-${l.type}`, l);
       });
     }
+    
+    // 渲染临时链接（在创建新链接时）
+    const renderTempLink = () => {
+      // 检查是否正在添加链接且有源节点
+      if (isAddingLink && linkSourceNode && mousePosition) {
+        // 移除旧的临时链接
+        g.selectAll('.temp-link').remove();
+        
+        // 创建临时链接
+        g.append('line')
+          .attr('class', 'temp-link')
+          .attr('x1', linkSourceNode.x || 0)
+          .attr('y1', linkSourceNode.y || 0)
+          .attr('x2', mousePosition.x)
+          .attr('y2', mousePosition.y)
+          .attr('stroke', '#FF6B6B')
+          .attr('stroke-width', 2)
+          .attr('stroke-dasharray', '5,5')
+          .style('pointer-events', 'none')
+          .style('z-index', 100);
+      } else {
+        // 清除临时链接
+        g.selectAll('.temp-link').remove();
+      }
+    };
+    
+    // 初始渲染临时链接
+    renderTempLink();
 
+    // 切换布局时清除节点固定位置，以便应用新布局
+    // 只有在布局类型变化时才清除固定位置
+    const prevLayoutType = gRef.current?.attr('data-layout-type') || '';
+    if (prevLayoutType !== layoutType) {
+      // 清除所有节点的固定位置
+      layoutNodes.forEach(node => {
+        node.fx = null;
+        node.fy = null;
+      });
+      // 保存当前布局类型
+      gRef.current?.attr('data-layout-type', layoutType);
+    }
+    
     // 根据布局类型应用不同的布局算法
     if (layoutType === 'force') {
       // 力导向布局 - 优化：根据节点数量动态调整参数和算法
@@ -787,7 +879,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = React.memo(({
       window.removeEventListener('resize', handleResize);
       currentSimulation?.stop();
     };
-  }, [nodes, links, isSimulationRunning, layoutType, layoutDirection, nodeSpacing, levelSpacing, forceParameters, selectedNode, selectedNodes, onNodeClick, onNodeDragStart, onNodeDragEnd, onLinkClick, theme]);
+  }, [nodes, links, isSimulationRunning, layoutType, layoutDirection, nodeSpacing, levelSpacing, forceParameters, selectedNode, selectedNodes, onNodeClick, onNodeDragStart, onNodeDragEnd, onLinkClick, theme, isAddingLink, linkSourceNode, mousePosition]);
 
   return (
     <div

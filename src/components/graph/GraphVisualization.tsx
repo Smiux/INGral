@@ -156,6 +156,9 @@ export function GraphVisualization() {
                   isBoxSelecting={isBoxSelecting}
                   boxSelection={boxSelection}
                   theme={currentTheme}
+                  isAddingLink={isAddingLink}
+                  linkSourceNode={linkSourceNode}
+                  mousePosition={mousePosition}
                 />
               )}
             </div>
