@@ -26,7 +26,7 @@ const DraftManager = lazy(() => import('./DraftManager').then(m => ({ default: m
  * 文章编辑器组件
  * 管理编辑器的主要状态和逻辑
  */
-export function ArticleEditor() {
+function ArticleEditorImpl() {
   // 使用文章编辑器Hook
   const {
     state,
@@ -828,3 +828,5 @@ export function ArticleEditor() {
     </div>
   );
 }
+
+export const ArticleEditor = React.memo(ArticleEditorImpl);

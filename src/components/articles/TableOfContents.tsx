@@ -1,21 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useScrollNavigation } from '../../hooks/useScrollNavigation';
+import { TableOfContentsItem, ArticleTableOfContentsProps } from '../../types';
 
-// 目录项类型定义
-export interface TableOfContentsItem {
-  id: string;
-  text: string;
-  level: number;
-  children: TableOfContentsItem[];
-}
-
-interface TableOfContentsProps {
-  contentRef: React.RefObject<HTMLDivElement>;
-  activeHeadingId: string;
-  onActiveHeadingChange: (id: string) => void;
-}
-
-export function TableOfContents({ contentRef, activeHeadingId, onActiveHeadingChange }: TableOfContentsProps) {
+function ArticleTableOfContentsImpl({ contentRef, activeHeadingId, onActiveHeadingChange }: ArticleTableOfContentsProps) {
   const [tableOfContents, setTableOfContents] = useState<TableOfContentsItem[]>([]);
   const [expandedTocItems, setExpandedTocItems] = useState<Set<string>>(new Set());
   const headingsRef = useRef<Map<string, HTMLElement>>(new Map());
@@ -202,3 +189,5 @@ export function TableOfContents({ contentRef, activeHeadingId, onActiveHeadingCh
     </aside>
   );
 }
+
+export const ArticleTableOfContents = React.memo(ArticleTableOfContentsImpl);

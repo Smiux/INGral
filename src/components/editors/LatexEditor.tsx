@@ -1,7 +1,7 @@
 /**
  * LaTeX公式编辑器组件，提供可视化和代码两种编辑模式
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Save, Copy, Search } from 'lucide-react';
 import 'katex/dist/katex.min.css';
 
@@ -134,12 +134,12 @@ export function LatexEditor({ isOpen, onClose, onInsert, initialFormula = '' }: 
   /**
    * 关闭编辑器
    */
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     onClose();
     setFormula('');
     setIsVisualMode(false);
     setActiveTab('editor');
-  };
+  }, [onClose]);
 
   /**
    * 插入公式到编辑器

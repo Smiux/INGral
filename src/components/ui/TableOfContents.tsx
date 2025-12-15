@@ -1,17 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { generateTableOfContents } from '../../utils/markdown';
-
-interface TableOfContentsProps {
-  content: string;
-  className?: string;
-  title?: string;
-}
+import { UITableOfContentsProps } from '../../types';
 
 /**
  * TableOfContents component for displaying a dynamic table of contents
  * based on Markdown headings
  */
-export function TableOfContents({ content, className = '', title = 'Table of Contents' }: TableOfContentsProps) {
+export function TableOfContents({ content, className = '', title = 'Table of Contents' }: UITableOfContentsProps) {
   const [tocHtml, setTocHtml] = useState<string>('');
   const [activeId, setActiveId] = useState<string>('');
   const tocRef = useRef<HTMLDivElement>(null);

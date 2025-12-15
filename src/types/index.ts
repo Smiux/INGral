@@ -525,6 +525,58 @@ export interface AppConfig {
 }
 
 /**
+ * 目录项接口
+ */
+export interface TableOfContentsItem {
+  id: string;
+  text: string;
+  level: number;
+  children: TableOfContentsItem[];
+}
+
+/**
+ * 文章目录组件Props接口
+ */
+export interface ArticleTableOfContentsProps {
+  contentRef: React.RefObject<HTMLDivElement>;
+  activeHeadingId: string;
+  onActiveHeadingChange: (id: string) => void;
+}
+
+/**
+ * 编辑器目录组件Props接口
+ */
+export interface EditorTableOfContentsProps {
+  items: TableOfContentsItem[];
+  expandedItems: Set<string>;
+  activeItem: string;
+  onItemClick: (itemId: string) => void;
+  onToggleExpand: (items: Set<string>) => void;
+}
+
+/**
+ * UI目录组件Props接口
+ */
+export interface UITableOfContentsProps {
+  content: string;
+  className?: string;
+  title?: string;
+}
+
+/**
+ * 编辑器侧边栏组件Props接口
+ */
+export interface EditorSidebarProps {
+  showToc: boolean;
+  onToggleToc: () => void;
+  tableOfContents: TableOfContentsItem[];
+  expandedTocItems: Set<string>;
+  setExpandedTocItems: (items: Set<string>) => void;
+  activeTocItem: string;
+  setActiveTocItem: (itemId: string) => void;
+}
+
+/**
  * 错误类型枚举
  */
 export enum ErrorType {

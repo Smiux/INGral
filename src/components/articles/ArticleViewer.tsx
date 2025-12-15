@@ -11,7 +11,7 @@ import { renderMarkdown } from '../../utils/markdown';
 import ExportButton from '../ui/ExportButton';
 import { useTheme } from '../../hooks/useTheme';
 import { CommentsSection } from '../comments/CommentsSection';
-import { TableOfContents } from './TableOfContents';
+import { ArticleTableOfContents } from './TableOfContents';
 import { RelatedContent } from './RelatedContent';
 import { useChartRendering } from '../../hooks/useChartRendering';
 import { SymPyCellRenderer } from '../editors/SymPyCellRenderer';
@@ -270,7 +270,7 @@ export function ArticleViewer() {
       {/* 文章内容和目录布局 */}
       <div className="flex flex-col lg:flex-row gap-8">
         {/* 左侧目录 */}
-        <TableOfContents 
+        <ArticleTableOfContents 
           contentRef={contentRef} 
           activeHeadingId={activeHeadingId} 
           onActiveHeadingChange={setActiveHeadingId} 

@@ -1,5 +1,5 @@
-import { useState, useEffect, ReactNode } from 'react';
-import { ThemeContext, Theme } from './ThemeContext';
+import { useEffect, ReactNode } from 'react';
+import { useThemeStore } from '../stores/themeStore';
 
 // Theme provider component
 interface ThemeProviderProps {
@@ -7,20 +7,8 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  // Initialize theme from localStorage or system preference
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Check localStorage for saved theme
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    if (savedTheme) {
-      return savedTheme;
-    }
-    // Check system preference
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    // Default to light theme
-    return 'light';
-  });
+  // Get theme from Zustand store
+  const { theme } = useThemeStore();
 
   // Update document class when theme changes
   useEffect(() => {
@@ -43,22 +31,10 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     // 监听过渡结束事件
     root.addEventListener('transitionend', removeTransition, { once: true });
     
-    // 保存主题到 localStorage
-    localStorage.setItem('theme', theme);
-    
     return () => {
       root.removeEventListener('transitionend', removeTransition);
     };
   }, [theme]);
 
-  // Toggle theme function
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <>{children}</>;
 };

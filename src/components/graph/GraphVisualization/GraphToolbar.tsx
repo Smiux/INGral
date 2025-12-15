@@ -1,70 +1,27 @@
 import React from 'react';
 import { Undo, Redo, Plus, Link, Layout, Palette, PieChart, Box, Grid, Settings, BarChart, SlidersHorizontal } from 'lucide-react';
 
-// 导入类型定义
-import { RecentAction } from './types';
-import { GraphTheme } from './ThemeTypes';
+// 导入自定义Hook
+import { useGraph } from './useGraph';
 
-export interface GraphToolbarProps {
-  // 状态
-  isToolbarVisible: boolean;
-  viewMode: '2d' | '3d';
-  isSettingsPanelOpen: boolean;
-  activePanel: string | null;
-  historyIndex: number;
-  history: RecentAction[];
-  currentTheme: GraphTheme;
+/**
+ * 图谱工具栏组件
+ */
+export const GraphToolbar: React.FC = React.memo(() => {
+  // 使用useGraph Hook获取状态和操作
+  const { state, actions } = useGraph();
   
-  // 回调函数
-  setViewMode: (mode: '2d' | '3d') => void;
-  setIsSettingsPanelOpen: (open: boolean) => void;
-  setIsShortcutsOpen: (open: boolean) => void;
-  handleUndo: () => void;
-  handleRedo: () => void;
-  togglePanel: (panelId: string | null) => void;
-}
-
-// 自定义比较函数，用于React.memo
-const areEqual = (prevProps: GraphToolbarProps, nextProps: GraphToolbarProps) => {
-  // 比较工具栏可见性
-  if (prevProps.isToolbarVisible !== nextProps.isToolbarVisible) {
-    return false;
-  }
+  // 从state中解构需要的状态
+  const {
+    isToolbarVisible,
+    viewMode,
+    isSettingsPanelOpen,
+    activePanel,
+    historyIndex,
+    history,
+    currentTheme
+  } = state;
   
-  // 比较视图模式
-  if (prevProps.viewMode !== nextProps.viewMode) {
-    return false;
-  }
-  
-  // 比较面板状态
-  if (prevProps.isSettingsPanelOpen !== nextProps.isSettingsPanelOpen ||
-      prevProps.activePanel !== nextProps.activePanel) {
-    return false;
-  }
-  
-  // 比较历史记录索引（用于撤销/重做按钮）
-  if (prevProps.historyIndex !== nextProps.historyIndex) {
-    return false;
-  }
-  
-  return true;
-};
-
-export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
-  isToolbarVisible,
-  viewMode,
-  isSettingsPanelOpen,
-  activePanel,
-  historyIndex,
-  history,
-  currentTheme,
-  setViewMode,
-  setIsSettingsPanelOpen,
-  setIsShortcutsOpen,
-  handleUndo,
-  handleRedo,
-  togglePanel
-}) => {
   return (
     <div className={`${currentTheme.backgroundColor} border-b border-gray-200 shadow-md p-1 flex items-center justify-between gap-1 transition-all duration-300 ease-in-out ${isToolbarVisible ? 'translate-y-0' : '-translate-y-full'} z-50 backdrop-blur-sm`}>
       {/* 左侧基本操作 */}
@@ -72,7 +29,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         {/* 撤销/重做按钮组 */}
         <div className="flex items-center gap-1 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm">
           <button
-            onClick={handleUndo}
+            onClick={actions.undo}
             disabled={historyIndex < 0}
             className={`flex flex-col items-center justify-center w-14 h-14 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${historyIndex >= 0 ? 'hover:bg-blue-50' : ''} ${activePanel === 'undo' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
             title="撤销 (Ctrl+Z)"
@@ -81,7 +38,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
             <span className="text-[10px] whitespace-nowrap">撤销</span>
           </button>
           <button
-            onClick={handleRedo}
+            onClick={actions.redo}
             disabled={historyIndex >= history.length - 1}
             className={`flex flex-col items-center justify-center w-14 h-14 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${historyIndex < history.length - 1 ? 'hover:bg-blue-50' : ''} ${activePanel === 'redo' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
             title="重做 (Ctrl+Y)"
@@ -96,7 +53,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
       <div className="flex items-center gap-2">
         {/* 节点管理按钮 */}
         <button
-          onClick={() => togglePanel(activePanel === 'nodes' ? null : 'nodes')}
+          onClick={() => actions.togglePanel(activePanel === 'nodes' ? null : 'nodes')}
           className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'nodes' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
           title="节点管理"
         >
@@ -106,7 +63,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         
         {/* 链接管理按钮 */}
         <button
-          onClick={() => togglePanel(activePanel === 'links' ? null : 'links')}
+          onClick={() => actions.togglePanel(activePanel === 'links' ? null : 'links')}
           className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'links' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
           title="链接管理"
         >
@@ -116,7 +73,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         
         {/* 布局管理按钮 */}
         <button
-          onClick={() => togglePanel(activePanel === 'layout' ? null : 'layout')}
+          onClick={() => actions.togglePanel(activePanel === 'layout' ? null : 'layout')}
           className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'layout' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
           title="布局管理"
         >
@@ -126,7 +83,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         
         {/* 主题样式按钮 */}
         <button
-          onClick={() => togglePanel(activePanel === 'theme' ? null : 'theme')}
+          onClick={() => actions.togglePanel(activePanel === 'theme' ? null : 'theme')}
           className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'theme' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
           title="主题样式"
         >
@@ -136,7 +93,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         
         {/* 导入导出按钮 */}
         <button
-          onClick={() => togglePanel(activePanel === 'importExport' ? null : 'importExport')}
+          onClick={() => actions.togglePanel(activePanel === 'importExport' ? null : 'importExport')}
           className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'importExport' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
           title="导入导出"
         >
@@ -146,7 +103,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         
         {/* 图谱分析按钮 */}
         <button
-          onClick={() => togglePanel(activePanel === 'analysis' ? null : 'analysis')}
+          onClick={() => actions.togglePanel(activePanel === 'analysis' ? null : 'analysis')}
           className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'analysis' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
           title="图谱分析"
         >
@@ -159,7 +116,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
       <div className="flex items-center gap-2">
         {/* 统计信息按钮 */}
         <button
-          onClick={() => togglePanel(activePanel === 'statistics' ? null : 'statistics')}
+          onClick={() => actions.togglePanel(activePanel === 'statistics' ? null : 'statistics')}
           className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'statistics' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
           title="查看统计信息"
         >
@@ -169,7 +126,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         
         {/* 样式调整按钮 */}
         <button
-          onClick={() => togglePanel(activePanel === 'style' ? null : 'style')}
+          onClick={() => actions.togglePanel(activePanel === 'style' ? null : 'style')}
           className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'style' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
           title="调整当前选中节点/连线样式"
         >
@@ -180,7 +137,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         {/* 视图切换按钮组 */}
         <div className="flex items-center gap-1 bg-white/90 rounded-lg shadow-sm p-0.5">
           <button
-            onClick={() => setViewMode('2d')}
+            onClick={() => actions.setViewMode('2d')}
             className={`flex flex-col items-center justify-center w-14 h-14 rounded-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${viewMode === '2d' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}
             title="2D视图"
           >
@@ -188,7 +145,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
             <span className="text-[10px] whitespace-nowrap">2D</span>
           </button>
           <button
-            onClick={() => setViewMode('3d')}
+            onClick={() => actions.setViewMode('3d')}
             className={`flex flex-col items-center justify-center w-14 h-14 rounded-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${viewMode === '3d' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}
             title="3D视图"
           >
@@ -199,7 +156,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         
         {/* 键盘快捷键按钮 */}
         <button
-          onClick={() => setIsShortcutsOpen(true)}
+          onClick={() => actions.setIsShortcutsOpen(true)}
           className="flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] text-gray-700"
           title="键盘快捷键"
         >
@@ -209,7 +166,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         
         {/* 设置按钮 */}
         <button
-          onClick={() => setIsSettingsPanelOpen(!isSettingsPanelOpen)}
+          onClick={() => actions.setIsSettingsPanelOpen(!isSettingsPanelOpen)}
           className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${isSettingsPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
           title="设置"
         >
@@ -220,4 +177,4 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
       
     </div>
   );
-}, areEqual);
+});

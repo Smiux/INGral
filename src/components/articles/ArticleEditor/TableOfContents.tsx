@@ -1,32 +1,16 @@
 /**
- * 目录项类型定义
- */
-export interface TableOfContentsItem {
-  id: string;
-  text: string;
-  level: number;
-  children: TableOfContentsItem[];
-}
-
-/**
  * 目录组件
  * 显示文章的目录结构，支持展开/折叠和点击跳转
  */
-interface TableOfContentsProps {
-  items: TableOfContentsItem[];
-  expandedItems: Set<string>;
-  activeItem: string;
-  onItemClick: (itemId: string) => void;
-  onToggleExpand: (items: Set<string>) => void;
-}
+import { TableOfContentsItem, EditorTableOfContentsProps } from '../../../types';
 
-export function TableOfContents({
+export function EditorTableOfContents({
   items,
   expandedItems,
   activeItem,
   onItemClick,
   onToggleExpand,
-}: TableOfContentsProps) {
+}: EditorTableOfContentsProps) {
   /**
    * 递归渲染目录项
    */

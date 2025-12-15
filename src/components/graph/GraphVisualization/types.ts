@@ -3,7 +3,7 @@
  * 提供所有图谱相关组件共享的类型定义
  */
 
-import type * as d3 from 'd3';
+
 
 // 节点数据接口
 export interface NodeData {
@@ -34,8 +34,8 @@ export interface GraphData {
   created_at?: string; // 添加创建时间属性
 }
 
-// 增强节点接口，扩展d3.SimulationNodeDatum
-export interface EnhancedNode extends d3.SimulationNodeDatum {
+// 增强节点接口
+export interface EnhancedNode {
   id: string;
   title: string;
   slug?: string;
@@ -48,6 +48,10 @@ export interface EnhancedNode extends d3.SimulationNodeDatum {
   shape?: 'circle' | 'rectangle' | 'triangle' | 'hexagon' | 'diamond' | string; // 新增：用于自定义节点形状
   isExpanded?: boolean; // 新增：用于控制节点在树形布局中是否展开
   isFixed?: boolean; // 新增：用于控制节点是否固定位置
+  x?: number;
+  y?: number;
+  fx?: number | null;
+  fy?: number | null;
   // 地理布局相关属性
   latitude?: number;
   longitude?: number;
@@ -66,10 +70,16 @@ export interface EnhancedNode extends d3.SimulationNodeDatum {
   // 动画相关属性
   _targetX?: number; // 目标X坐标，用于平滑动画
   _targetY?: number; // 目标Y坐标，用于平滑动画
+  // 节点分组相关属性
+  groupId?: string; // 所属分组ID
+  isGroup?: boolean; // 是否为分组节点
+  memberIds?: string[]; // 分组包含的节点ID列表
+  groupTitle?: string; // 分组标题
+  groupType?: string; // 分组类型
 }
 
-// 增强链接接口，扩展d3.SimulationLinkDatum
-export interface EnhancedGraphLink extends d3.SimulationLinkDatum<EnhancedNode> {
+// 增强链接接口
+export interface EnhancedGraphLink {
   type: string;
   id: string;
   // 明确声明source和target的类型，支持节点对象或ID
@@ -109,11 +119,13 @@ export interface SavedLayout {
 }
 
 // 操作历史记录类型
-export type RecentAction =
+export type RecentAction = 
   | { type: 'addNode'; nodeId: string; timestamp: number; data: { node: EnhancedNode } }
   | { type: 'deleteNode'; nodeId: string; timestamp: number; data: { node: EnhancedNode; links: EnhancedGraphLink[] } }
   | { type: 'addLink'; linkId: string; timestamp: number; data: EnhancedGraphLink }
-  | { type: 'deleteLink'; linkId: string; timestamp: number; data: EnhancedGraphLink };
+  | { type: 'deleteLink'; linkId: string; timestamp: number; data: EnhancedGraphLink }
+  | { type: 'groupNodes'; groupId: string; timestamp: number; data: { nodes: EnhancedNode[]; group: EnhancedNode } }
+  | { type: 'ungroupNodes'; groupId: string; timestamp: number; data: { nodes: EnhancedNode[]; group: EnhancedNode } };
 
 // 图谱控制属性
 export interface GraphControlsProps {

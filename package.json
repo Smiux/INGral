@@ -35,14 +35,11 @@
   "dependencies": {
     "@mermaid-js/mermaid-cli": "^11.12.0",
     "@supabase/supabase-js": "^2.57.4",
-    "@types/d3-sankey": "^0.12.5",
     "@types/highlight.js": "^9.12.4",
     "@types/react-dropzone": "^4.2.2",
     "@types/three": "^0.181.0",
     "@uiw/react-md-editor": "^4.0.9",
     "chart.js": "^4.5.1",
-    "d3": "^7.9.0",
-    "d3-sankey": "^0.12.3",
     "date-fns": "^4.1.0",
     "highlight.js": "^11.11.1",
     "html2canvas": "^1.4.1",
@@ -58,7 +55,9 @@
     "react-easy-crop": "^5.5.5",
     "react-router-dom": "^7.9.6",
     "react-window": "^2.2.3",
-    "three": "^0.181.2"
+    "reactflow": "^11.11.4",
+    "three": "^0.181.2",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.5",
@@ -66,7 +65,6 @@
     "@jest/globals": "^30.2.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
-    "@types/d3": "^7.4.3",
     "@types/jest": "^30.0.0",
     "@types/jest-axe": "^3.5.9",
     "@types/markdown-it": "^14.1.2",

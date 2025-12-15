@@ -11,106 +11,65 @@ import { GraphAnalysis } from './GraphAnalysis';
 import { StatisticsPanel } from './StatisticsPanel';
 import { StyleAdjustmentPanel } from './StyleAdjustmentPanel';
 
+// 导入自定义Hook
+import { useGraph } from './useGraph';
+
 // 导入类型定义
-import { EnhancedNode, EnhancedGraphLink, LayoutType, LayoutDirection, ForceParameters, SavedLayout, RecentAction } from './types';
-import { GraphTheme, NodeStyle, LinkStyle } from './ThemeTypes';
+import { EnhancedNode, EnhancedGraphLink } from './types';
 
 interface PanelContainerProps {
-  // 状态
   activePanel: string | null;
-  nodes: EnhancedNode[];
-  links: EnhancedGraphLink[];
-  selectedNode: EnhancedNode | null;
-  selectedNodes: EnhancedNode[];
-  selectedLinks: EnhancedGraphLink[];
-  isAddingLink: boolean;
-  linkSourceNode: EnhancedNode | null;
-  mousePosition: { x: number; y: number } | null;
-  layoutType: LayoutType;
-  layoutDirection: LayoutDirection;
-  nodeSpacing: number;
-  levelSpacing: number;
-  forceParameters: ForceParameters;
-  savedLayouts: SavedLayout[];
-  currentTheme: GraphTheme;
-  copiedStyle: { type: 'node' | 'link'; style: NodeStyle | LinkStyle } | null;
-  
-  // 状态更新函数
-  setNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
-  setLinks: React.Dispatch<React.SetStateAction<EnhancedGraphLink[]>>;
-  setSelectedNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
-  setSelectedNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
-  setSelectedLinks: React.Dispatch<React.SetStateAction<EnhancedGraphLink[]>>;
-  setIsAddingLink: React.Dispatch<React.SetStateAction<boolean>>;
-  setLinkSourceNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
-  setMousePosition: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
-  setLayoutType: React.Dispatch<React.SetStateAction<LayoutType>>;
-  setLayoutDirection: React.Dispatch<React.SetStateAction<LayoutDirection>>;
-  setNodeSpacing: React.Dispatch<React.SetStateAction<number>>;
-  setLevelSpacing: React.Dispatch<React.SetStateAction<number>>;
-  setForceParameters: React.Dispatch<React.SetStateAction<ForceParameters>>;
-  setCurrentTheme: React.Dispatch<React.SetStateAction<GraphTheme>>;
   togglePanel: (panelId: string | null) => void;
-  
-  // 回调函数
-  showNotification: (message: string, type: 'success' | 'info' | 'error') => void;
-  handleCopyNodeStyle: () => void;
-  handleCopyLinkStyle: () => void;
-  handlePasteStyle: () => void;
-  handleImportGraph: (graph: { nodes: EnhancedNode[]; links: EnhancedGraphLink[] }) => void;
-  handleSaveLayout: (layout: SavedLayout) => void;
-  handleLoadLayout: (layout: SavedLayout) => void;
-  handleDeleteLayout: (layoutId: string) => void;
-  addHistory: (action: RecentAction) => void;
 }
 
 /**
  * 面板容器组件
  * 管理所有独立子面板的显示和隐藏，以及布局样式
  */
-export const PanelContainer: React.FC<PanelContainerProps> = ({
-  activePanel,
-  nodes,
-  links,
-  selectedNode,
-  selectedNodes,
-  selectedLinks,
-  isAddingLink,
-  linkSourceNode,
-  mousePosition,
-  layoutType,
-  layoutDirection,
-  nodeSpacing,
-  levelSpacing,
-  forceParameters,
-  savedLayouts,
-  currentTheme,
-  copiedStyle,
-  setNodes,
-  setLinks,
-  setSelectedNode,
-  setSelectedNodes,
-  setSelectedLinks,
-  setIsAddingLink,
-  setLinkSourceNode,
-  setMousePosition,
-  setLayoutType,
-  setLayoutDirection,
-  setNodeSpacing,
-  setLevelSpacing,
-  setForceParameters,
-  setCurrentTheme,
-  togglePanel,
-  showNotification,
-  handleCopyNodeStyle,
-  handleCopyLinkStyle,
-  handlePasteStyle,
-  handleImportGraph,
-  handleSaveLayout,
-  handleLoadLayout,
-  handleDeleteLayout,
-  addHistory
-}) => {
+export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, togglePanel }) => {
+  // 使用useGraph Hook获取状态和操作
+  const { state, actions } = useGraph();
+  
+  // 从state中解构需要的状态
+  const {
+    nodes,
+    links,
+    selectedNode,
+    selectedNodes,
+    selectedLinks,
+    isAddingLink,
+    linkSourceNode,
+    mousePosition,
+    layoutType,
+    layoutDirection,
+    nodeSpacing,
+    levelSpacing,
+    forceParameters,
+    savedLayouts,
+    currentTheme,
+    copiedStyle
+  } = state;
+  
+  // 从actions中解构需要的操作
+  const {
+    setNodes,
+    setLinks,
+    setLayoutType,
+    setLayoutDirection,
+    setNodeSpacing,
+    setLevelSpacing,
+    setForceParameters,
+    setCurrentTheme,
+    showNotification,
+    handleCopyNodeStyle,
+    handleCopyLinkStyle,
+    handlePasteStyle,
+    handleImportGraph,
+    handleSaveLayout,
+    handleLoadLayout,
+    handleDeleteLayout,
+    addHistory
+  } = actions;
   // 关闭面板
   const closePanel = () => togglePanel(null);
 
@@ -127,11 +86,11 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({
             <NodeManagement
               nodes={nodes}
               links={links}
-              setNodes={setNodes}
+              setNodes={(value) => setNodes(typeof value === 'function' ? value(nodes) : value)}
               selectedNode={selectedNode}
-              setSelectedNode={setSelectedNode}
+              setSelectedNode={(value) => actions.selectNode(typeof value === 'function' ? value(selectedNode) : value)}
               selectedNodes={selectedNodes}
-              setSelectedNodes={setSelectedNodes}
+              setSelectedNodes={(value) => actions.selectNodes(typeof value === 'function' ? value(selectedNodes) : value)}
               showNotification={showNotification}
               onAddNode={(node) => {
                 addHistory({
@@ -168,18 +127,18 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({
             </h3>
             <LinkManagement
               links={links}
-              setLinks={setLinks}
+              setLinks={(value) => setLinks(typeof value === 'function' ? value(links) : value)}
               nodes={nodes}
-              setNodes={setNodes}
+              setNodes={(value) => setNodes(typeof value === 'function' ? value(nodes) : value)}
               isAddingLink={isAddingLink}
-              setIsAddingLink={setIsAddingLink}
+              setIsAddingLink={(value) => actions.setIsAddingLink(typeof value === 'function' ? value(isAddingLink) : value)}
               linkSourceNode={linkSourceNode}
-              setLinkSourceNode={setLinkSourceNode}
+              setLinkSourceNode={(value) => actions.setLinkSourceNode(typeof value === 'function' ? value(linkSourceNode) : value)}
               mousePosition={mousePosition}
-              setMousePosition={setMousePosition}
+              setMousePosition={(value) => actions.setMousePosition(typeof value === 'function' ? value(mousePosition) : value)}
               showNotification={showNotification}
               selectedLinks={selectedLinks}
-              setSelectedLinks={setSelectedLinks}
+              setSelectedLinks={(value) => actions.selectLinks(typeof value === 'function' ? value(selectedLinks) : value)}
             />
           </div>
         );

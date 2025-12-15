@@ -1,29 +1,7 @@
 import { BookOpen, Settings, HelpCircle } from 'lucide-react';
-import { TableOfContents } from './TableOfContents';
+import { EditorSidebarProps } from '../../../types';
+import { EditorTableOfContents } from './TableOfContents';
 
-/**
- * 目录项类型定义
- */
-interface TableOfContentsItem {
-  id: string;
-  text: string;
-  level: number;
-  children: TableOfContentsItem[];
-}
-
-/**
- * 编辑器侧边栏组件
- * 包含目录管理、设置面板和帮助面板
- */
-interface EditorSidebarProps {
-  showToc: boolean;
-  onToggleToc: () => void;
-  tableOfContents: TableOfContentsItem[];
-  expandedTocItems: Set<string>;
-  setExpandedTocItems: (items: Set<string>) => void;
-  activeTocItem: string;
-  setActiveTocItem: (itemId: string) => void;
-}
 
 export function EditorSidebar({
   showToc,
@@ -60,7 +38,7 @@ export function EditorSidebar({
         {/* 目录内容 */}
         {tableOfContents.length > 0 ? (
           <div className="space-y-2">
-            <TableOfContents
+            <EditorTableOfContents
               items={tableOfContents}
               expandedItems={expandedTocItems}
               activeItem={activeTocItem}

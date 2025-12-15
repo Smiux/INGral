@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import * as d3 from 'd3';
 import type { SemanticSearchResult } from '../../services/semanticSearchService';
 import type { Graph, GraphVisibility } from '../../types';
 import { GraphNodeType } from '../../types';
 import { EnhancedNode, EnhancedGraphLink, LayoutType, LayoutDirection } from '../graph/GraphVisualization/types';
 import { exportService } from '../../services/exportService';
+import { GraphCanvasReactFlow } from '../graph/GraphVisualization/GraphCanvasReactFlow';
 import styles from './SearchResultsGraph.module.css';
 
 interface SearchResultsGraphProps {
@@ -13,13 +13,14 @@ interface SearchResultsGraphProps {
 }
 
 const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query }) => {
-  const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(800);
   const [height, setHeight] = useState(600);
   const [layoutType, setLayoutType] = useState<LayoutType>('force');
   const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('top-bottom');
   const [exportLoading, setExportLoading] = useState(false); // 用于追踪导出状态
+  const [nodes, setNodes] = useState<EnhancedNode[]>([]);
+  const [links, setLinks] = useState<EnhancedGraphLink[]>([]);
 
   // 转换搜索结果为图谱数据
   const transformResultsToGraphData = useCallback(() => {
@@ -111,237 +112,6 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
     };
   }, [results, width, height]);
 
-  // 初始化和更新图谱
-  const updateGraph = useCallback(() => {
-    const svg = d3.select(svgRef.current);
-    const container = containerRef.current;
-    if (!svg || !container) return;
-
-    // 清空现有内容
-    svg.selectAll('*').remove();
-
-    // 获取数据
-    const { nodes, links } = transformResultsToGraphData();
-    
-    if (nodes.length === 0) {
-      svg.append('text')
-        .attr('x', width / 2)
-        .attr('y', height / 2)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#9ca3af')
-        .text('没有足够的数据生成图谱');
-      return;
-    }
-
-    // 创建缩放行为
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.1, 4])
-      .on('zoom', (event) => {
-        g.attr('transform', event.transform);
-      });
-
-    // 应用缩放
-    svg.call(zoom as unknown as (selection: d3.Selection<SVGSVGElement | null, unknown, null, undefined>) => void);
-
-    const g = svg.append('g');
-
-    // 创建箭头标记
-    svg.append('defs').selectAll('marker')
-      .data(['arrowhead'])
-      .enter().append('marker')
-      .attr('id', 'arrowhead')
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 20)
-      .attr('refY', 0)
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
-      .attr('orient', 'auto')
-      .append('path')
-      .attr('d', 'M 0,-5 L 10,0 L 0,5')
-      .attr('fill', '#999');
-
-    // 创建力导向图
-    if (layoutType === 'force') {
-      // 创建力导向模拟
-      const simulation = d3.forceSimulation(nodes as EnhancedNode[])
-        .force('link', d3.forceLink(links as EnhancedGraphLink[]).id((d) => (d as EnhancedNode).id).distance(100).strength(0.5))
-        .force('charge', d3.forceManyBody().strength(-500))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius((d) => 40 + (d as EnhancedNode).connections * 5));
-
-      // 创建链接
-      const link = g.append('g')
-        .selectAll('line')
-        .data(links)
-        .enter().append('line')
-        .attr('stroke', '#999')
-        .attr('stroke-opacity', 0.6)
-        .attr('stroke-width', d => d.type === 'similar' ? 2 : 1)
-        .attr('marker-end', d => d.type === 'related' ? 'url(#arrowhead)' : null);
-
-      // 创建节点组
-      const node = g.append('g')
-        .selectAll('g')
-        .data(nodes)
-        .enter().append('g')
-        .attr('class', styles.nodeGroup || 'node-group')
-        .call(d3.drag<SVGGElement, EnhancedNode>()
-          .on('start', dragstarted)
-          .on('drag', dragged)
-          .on('end', dragended));
-
-      // 添加节点圆形
-      node.append('circle')
-        .attr('r', d => 20 + d.connections * 5)
-        .attr('fill', d => {
-          if (d.type === 'concept') return '#8b5cf6';
-          if (d.type === 'article') return '#3b82f6';
-          return '#10b981';
-        })
-        .attr('stroke', '#fff')
-        .attr('stroke-width', 2)
-        .attr('class', styles.nodeCircle || 'node-circle');
-
-      // 添加节点文本
-      node.append('text')
-        .attr('dx', 0)
-        .attr('dy', 5)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#fff')
-        .attr('font-size', 12)
-        .attr('font-weight', 'bold')
-        .text(d => d.title.length > 15 ? `${d.title.substring(0, 15)}...` : d.title);
-
-      // 添加节点类型
-      node.append('text')
-        .attr('dx', 0)
-        .attr('dy', 25)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#fff')
-        .attr('font-size', 10)
-        .text(d => d.type || '');
-
-      // 节点拖拽处理
-      function dragstarted(event: d3.D3DragEvent<SVGGElement, EnhancedNode, EnhancedNode>, d: EnhancedNode) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
-      }
-
-      function dragged(event: d3.D3DragEvent<SVGGElement, EnhancedNode, EnhancedNode>, d: EnhancedNode) {
-        d.fx = event.x;
-        d.fy = event.y;
-      }
-
-      function dragended(event: d3.D3DragEvent<SVGGElement, EnhancedNode, EnhancedNode>, d: EnhancedNode) {
-        if (!event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
-      }
-
-      // 更新位置
-      simulation.on('tick', () => {
-        link
-          .attr('x1', (d: EnhancedGraphLink) => (d.source as EnhancedNode).x || 0)
-          .attr('y1', (d: EnhancedGraphLink) => (d.source as EnhancedNode).y || 0)
-          .attr('x2', (d: EnhancedGraphLink) => (d.target as EnhancedNode).x || 0)
-          .attr('y2', (d: EnhancedGraphLink) => (d.target as EnhancedNode).y || 0);
-
-        node
-          .attr('transform', (d: EnhancedNode) => `translate(${d.x || 0},${d.y || 0})`);
-      });
-    } else if (layoutType === 'tree') {
-      // 树状布局
-      // 找出所有文章节点作为根节点
-      const articleNodes = nodes.filter(n => n.type === 'article');
-      
-      if (articleNodes.length > 0) {
-        // 使用第一个文章节点作为根节点
-        const rootNode = articleNodes[0];
-        
-        // 创建节点映射
-        const nodeMap = new Map<string, EnhancedNode>(nodes.map(n => [n.id, n]));
-        
-        // 构建层次数据结构
-        interface HierarchyNode extends EnhancedNode {
-          children?: HierarchyNode[];
-        }
-        
-        const buildHierarchy = (node: EnhancedNode): HierarchyNode => {
-          // 查找指向该节点的子节点
-          const children = links
-            .filter(l => l.target === node.id && typeof l.source === 'string')
-            .map(link => nodeMap.get(link.source as string))
-            .filter((child): child is EnhancedNode => child !== undefined);
-          
-          return {
-            ...node,
-            children: children.length > 0 ? children.map(buildHierarchy) : []
-          };
-        };
-        
-        // 创建层次数据
-        const rootData = buildHierarchy(rootNode as EnhancedNode);
-        
-        // 创建D3层次结构
-        const root = d3.hierarchy(rootData);
-        
-        // 创建树布局
-        const treeLayout = d3.tree<HierarchyNode>()
-          .size([width - 100, height - 100])
-          .separation((a, b) => a.parent === b.parent ? 1 : 2);
-        
-        // 计算布局
-        treeLayout(root);
-        
-        // 创建链接
-        g.append('g')
-          .selectAll('path')
-          .data(root.links())
-          .enter().append('path')
-          .attr('d', d => {
-            const sourceX = (d.source.y || 0) + 50;
-            const sourceY = (d.source.x || 0) + 50;
-            const targetX = (d.target.y || 0) + 50;
-            const targetY = (d.target.x || 0) + 50;
-            
-            return `M${sourceX},${sourceY} H${targetX} V${targetY}`;
-          })
-          .attr('fill', 'none')
-          .attr('stroke', '#999')
-          .attr('stroke-opacity', 0.6)
-          .attr('stroke-width', 2);
-        
-        // 创建节点组
-        const node = g.append('g')
-          .selectAll('g')
-          .data(root.descendants())
-          .enter().append('g')
-          .attr('transform', d => `translate(${(d.y || 0) + 50},${(d.x || 0) + 50})`);
-        
-        // 添加节点圆形
-        node.append('circle')
-          .attr('r', 25)
-          .attr('fill', d => {
-            if (d.data.type === 'concept') return '#8b5cf6';
-            if (d.data.type === 'article') return '#3b82f6';
-            return '#10b981';
-          })
-          .attr('stroke', '#fff')
-          .attr('stroke-width', 2);
-        
-        // 添加节点文本
-        node.append('text')
-          .attr('dx', 0)
-          .attr('dy', 5)
-          .attr('text-anchor', 'middle')
-          .attr('fill', '#fff')
-          .attr('font-size', 12)
-          .text(d => d.data.title.length > 15 ? `${d.data.title.substring(0, 15)}...` : d.data.title);
-      }
-    }
-  }, [layoutType, transformResultsToGraphData, width, height]);
-
   // 处理窗口大小变化
   useEffect(() => {
     const handleResize = () => {
@@ -362,14 +132,15 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
 
   // 当数据或布局变化时更新图表
   useEffect(() => {
-    updateGraph();
-  }, [updateGraph]);
+    const { nodes, links } = transformResultsToGraphData();
+    setNodes(nodes);
+    setLinks(links);
+  }, [transformResultsToGraphData]);
 
   // 导出图谱为JSON
   const exportGraphToJson = useCallback(async () => {
     setExportLoading(true);
     try {
-      const { nodes, links } = transformResultsToGraphData();
       const graphData = {
         id: `search-results-graph-${Date.now()}`,
         author_id: 'system',
@@ -390,13 +161,12 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
     } finally {
       setExportLoading(false);
     }
-  }, [transformResultsToGraphData, query]);
+  }, [nodes, links, query]);
 
   // 导出图谱为GraphML
   const exportGraphToGraphml = useCallback(async () => {
     setExportLoading(true);
     try {
-      const { nodes, links } = transformResultsToGraphData();
       // Convert EnhancedNode to GraphNode
       const graphNodes = nodes.map(node => ({
         id: node.id,
@@ -441,17 +211,15 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
     } finally {
       setExportLoading(false);
     }
-  }, [transformResultsToGraphData, query]);
+  }, [nodes, links, query]);
 
   // 导出图谱为PNG
   const exportGraphToPng = useCallback(async () => {
     setExportLoading(true);
     try {
-      if (svgRef.current) {
-        // Fix: exportGraphAsPng expects filename as second parameter
-        const filename = `search-graph-${new Date().toISOString().slice(0, 10)}.png`;
-        await exportService.exportGraphAsPng('#search-results-svg', filename);
-      }
+      // Fix: exportGraphAsPng expects filename as second parameter
+      const filename = `search-graph-${new Date().toISOString().slice(0, 10)}.png`;
+      await exportService.exportGraphAsPng('#search-results-graph', filename);
     } catch (error) {
       console.error('Export graph to PNG failed:', error);
     } finally {
@@ -460,7 +228,7 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
   }, []);
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={containerRef}>
       {/* 布局控制和导出选项 */}
       <div className={styles.layoutControls}>
         <div className={styles.controlGroup}>
@@ -522,14 +290,17 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
       </div>
 
       {/* 图谱容器 */}
-      <div className={styles.graphContainer} ref={containerRef}>
-        <svg
-          id="search-results-svg"
-          ref={svgRef}
-          width={width}
-          height={height}
-          className={styles.graphSvg}
-        />
+      <div className={styles.graphContainer} style={{ width, height }} id="search-results-graph">
+        {nodes.length > 0 ? (
+          <GraphCanvasReactFlow
+            nodes={nodes}
+            links={links}
+          />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full text-gray-500">
+            没有足够的数据生成图谱
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Download, Save, Edit, X, Check, Trash2 } from 'lucide-react';
 import { graphService } from '../../services/graphService';
-import { GraphCanvas } from './GraphVisualization/GraphCanvas';
-import type { EnhancedNode, EnhancedGraphLink, LayoutType, LayoutDirection } from './GraphVisualization/types';
-import { PRESET_THEMES, type GraphTheme } from './GraphVisualization/ThemeTypes';
+import { GraphCanvasReactFlow } from './GraphVisualization/GraphCanvasReactFlow';
+import type { EnhancedNode, EnhancedGraphLink, LayoutType } from './GraphVisualization/types';
+
 import type { GraphNode, GraphLink } from '../../types';
 
 interface GraphEmbedProps {
@@ -29,10 +29,7 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<EnhancedNode | null>(null);
-  const [selectedNodes, setSelectedNodes] = useState<EnhancedNode[]>([]);
   const [selectedLink, setSelectedLink] = useState<EnhancedGraphLink | null>(null);
-  const [isSimulationRunning, setIsSimulationRunning] = useState(false);
-  const [layoutDirection] = useState<LayoutDirection>('top-bottom');
   const [isEditing, setIsEditing] = useState(false);
   const [editMode, setEditMode] = useState<'node' | 'link' | null>(null);
   const [nodeTitle, setNodeTitle] = useState('');
@@ -73,7 +70,6 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
 
           setNodes(enhancedNodes);
           setLinks(enhancedLinks);
-          setIsSimulationRunning(layoutType === 'force');
         } else {
           // 从服务器加载数据
           const graph = await graphService.getGraphById(graphId);
@@ -105,7 +101,6 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
 
           setNodes(enhancedNodes);
           setLinks(enhancedLinks);
-          setIsSimulationRunning(layoutType === 'force');
         }
       } catch (err) {
         console.error('Error loading embedded graph:', err);
@@ -122,7 +117,6 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
   const handleNodeClick = useCallback((node: EnhancedNode) => {
     if (interactive) {
       setSelectedNode(node);
-      setSelectedNodes([node]);
       setSelectedLink(null);
       if (isEditing) {
         setEditMode('node');
@@ -137,7 +131,6 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
     if (interactive) {
       setSelectedLink(link);
       setSelectedNode(null);
-      setSelectedNodes([]);
       if (isEditing) {
         setEditMode('link');
         setLinkLabel(link.label || '');
@@ -150,7 +143,6 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
   const handleCanvasClick = useCallback(() => {
     if (interactive) {
       setSelectedNode(null);
-      setSelectedNodes([]);
       setSelectedLink(null);
       setEditMode(null);
     }
@@ -158,40 +150,13 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
 
   // 处理节点拖拽开始
   const handleNodeDragStart = useCallback(() => {
-    if (interactive) {
-      setIsSimulationRunning(false);
-    }
-  }, [interactive]);
+    // React Flow handles drag behavior internally
+  }, []);
 
   // 处理节点拖拽结束
   const handleNodeDragEnd = useCallback(() => {
-    if (interactive) {
-      setIsSimulationRunning(true);
-    }
-  }, [interactive]);
-
-  // 处理画布拖放
-  const handleCanvasDrop = useCallback((_event: React.DragEvent, x: number, y: number) => {
-    if (isEditing) {
-      // 创建新节点
-      const newNode: EnhancedNode = {
-        id: `node_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
-        title: '新节点',
-        connections: 0,
-        type: 'concept',
-        content: '',
-        x,
-        y
-      };
-
-      setNodes(prev => [...prev, newNode]);
-      setSelectedNode(newNode);
-      setSelectedNodes([newNode]);
-      setEditMode('node');
-      setNodeTitle('新节点');
-      setNodeType('concept');
-    }
-  }, [isEditing]);
+    // React Flow handles drag behavior internally
+  }, []);
 
   // 保存编辑
   const handleSaveEdit = useCallback(() => {
@@ -245,7 +210,6 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
       setNodes(updatedNodes);
       setLinks(updatedLinks);
       setSelectedNode(null);
-      setSelectedNodes([]);
       setEditMode(null);
       // 通知父组件更新
       onUpdate?.({ nodes: updatedNodes, links: updatedLinks });
@@ -301,21 +265,6 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
     onUpdate?.({ nodes, links });
     alert('图表已保存');
   }, [nodes, links, onUpdate]);
-
-  // 开始框选
-  const handleBoxSelectStart = useCallback(() => {
-    // 实现框选逻辑
-  }, []);
-
-  // 更新框选
-  const handleBoxSelectUpdate = useCallback(() => {
-    // 实现框选更新逻辑
-  }, []);
-
-  // 结束框选
-  const handleBoxSelectEnd = useCallback(() => {
-    // 实现框选结束逻辑
-  }, []);
 
   if (loading) {
     return (
@@ -488,26 +437,14 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
 
       {/* 图表画布 */}
       <div className="flex-1 relative">
-        <GraphCanvas
+        <GraphCanvasReactFlow
           nodes={nodes}
           links={links}
-          isSimulationRunning={isSimulationRunning}
-          layoutType={layoutType}
-          layoutDirection={layoutDirection}
-          selectedNode={selectedNode}
-          selectedNodes={selectedNodes}
           onNodeClick={handleNodeClick}
           onNodeDragStart={handleNodeDragStart}
           onNodeDragEnd={handleNodeDragEnd}
           onLinkClick={handleLinkClick}
           onCanvasClick={handleCanvasClick}
-          onCanvasDrop={handleCanvasDrop}
-          onBoxSelectStart={handleBoxSelectStart}
-          onBoxSelectUpdate={handleBoxSelectUpdate}
-          onBoxSelectEnd={handleBoxSelectEnd}
-          isBoxSelecting={false}
-          boxSelection={{ x1: 0, y1: 0, x2: 0, y2: 0 }}
-          theme={PRESET_THEMES[0] as GraphTheme}
         />
       </div>
     </div>
