@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, BookOpen, Users, Brain, Plus } from 'lucide-react';
+import { Search, BookOpen, Users, Brain } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 // KeyboardShortcuts组件不存在，已移除
 // import { KeyboardShortcuts } from './keyboard/KeyboardShortcuts';
@@ -75,16 +75,6 @@ export function Header() {
             >
               <Users className="w-4 h-4" aria-hidden="true" />
               <span className="text-sm">Discussions</span>
-            </Link>
-            <Link
-              to="/create"
-              className="bg-neutral-100 text-primary-600 hover:bg-neutral-200 px-4 py-2 rounded-lg transition font-medium flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              aria-label="创建新内容"
-              role="menuitem"
-              tabIndex={0}
-            >
-              <Plus className="w-4 h-4" aria-hidden="true" />
-              <span className="text-sm">Create</span>
             </Link>
           </nav>
 

@@ -17,7 +17,6 @@ export enum ResourceType {
   GRAPH = 'graph',
   COMMENT = 'comment',
   DISCUSSION = 'discussion',
-  REVIEW = 'review',
   TAG = 'tag'
 }
 
@@ -106,11 +105,6 @@ export interface Formula {
 }
 
 /**
- * 内容审核状态类型
- */
-export type ReviewStatus = 'pending' | 'approved' | 'rejected' | 'needs_revision';
-
-/**
  * 编辑限制接口，用于文章、图谱等资源的编辑限制
  */
 export interface EditLimit {
@@ -128,32 +122,6 @@ export interface EditLimit {
   slow_mode_until?: string;
   // 内容是否不稳定
   is_unstable: boolean;
-}
-
-/**
- * 内容审核相关字段接口
- */
-export interface ReviewFields {
-  // 审核状态
-  review_status: ReviewStatus;
-  // 审核者ID
-  reviewer_id?: string;
-  // 审核者名称
-  reviewer_name?: string;
-  // 审核日期
-  review_date?: string;
-  // 审核评论
-  review_comments?: string;
-  // 准确性评分
-  accuracy_score: number;
-  // 是否有准确性问题
-  has_accuracy_issues: boolean;
-  // 是否已验证
-  is_verified: boolean;
-  // 验证日期
-  verification_date?: string;
-  // 验证说明
-  verification_notes?: string;
 }
 
 /**
@@ -213,17 +181,6 @@ export interface Article {
   article_tags?: ArticleTag[];
   // 数学公式数据
   formulas?: Formula[];
-  // 内容审核相关字段
-  review_status: ReviewStatus;
-  reviewer_id?: string;
-  reviewer_name?: string;
-  review_date?: string;
-  review_comments?: string;
-  accuracy_score: number;
-  has_accuracy_issues: boolean;
-  is_verified: boolean;
-  verification_date?: string;
-  verification_notes?: string;
   // 编辑限制相关字段
   edit_count_24h: number;
   edit_count_7d: number;
@@ -236,16 +193,6 @@ export interface Article {
   is_offline: boolean;
   synced: boolean;
   last_modified: string;
-}
-
-/**
- * 内容审核日志接口
- */
-export interface ArticleReview extends ReviewFields {
-  id: string;
-  article_id: string;
-  article_version_id?: string;
-  created_at: string;
 }
 
 /**

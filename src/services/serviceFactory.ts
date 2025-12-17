@@ -19,7 +19,6 @@ import { DiscussionService } from './discussionService';
 import { ErrorService } from './errorService';
 import { ExportService } from './exportService';
 import { FileService } from './fileService';
-import ReviewService from './reviewService';
 import { SemanticSearchService } from './semanticSearchService';
 import { TemplateService } from './templateService';
 
@@ -37,7 +36,6 @@ interface ServiceMap {
   error: ErrorService;
   export: ExportService;
   file: FileService;
-  review: typeof ReviewService;
   semanticSearch: SemanticSearchService;
   template: TemplateService;
 }
@@ -117,9 +115,6 @@ export class ServiceFactory {
       case 'file':
         instance = FileService.getInstance() as ServiceMap[T];
         break;
-      case 'review':
-        instance = ReviewService as ServiceMap[T];
-        break;
       case 'semanticSearch':
         instance = SemanticSearchService.getInstance() as ServiceMap[T];
         break;
@@ -182,4 +177,4 @@ export const serviceFactory = ServiceFactory.getInstance();
 // 导出便捷的服务访问方法
 export const getService = <T extends keyof ServiceMap>(serviceType: T): ServiceMap[T] => {
   return serviceFactory.getService(serviceType);
-};
+}
