@@ -303,7 +303,7 @@ const VirtualEditor = React.memo(({
       {/* 行号显示 */}
       <div 
         ref={lineNumbersRef}
-        className="bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400 text-sm overflow-hidden select-none transition-all duration-200 z-10 relative"
+        className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-sm overflow-hidden select-none transition-all duration-200 z-10 relative border-r border-[var(--border-color)]"
         style={{ 
           width: '50px',
           flexShrink: 0,
@@ -446,7 +446,7 @@ const VirtualEditor = React.memo(({
               onClick={throttledUpdateCursorPosition}
               onPaste={throttledUpdateCursorPosition}
               onCut={throttledUpdateCursorPosition}
-              className="flex-1 w-full border-none resize-none outline-none bg-transparent text-gray-900 dark:text-gray-100 font-mono text-sm leading-relaxed transition-all duration-200 z-10 relative"
+              className="flex-1 w-full border-none resize-none outline-none bg-transparent text-[var(--text-primary)] font-mono text-sm leading-relaxed transition-all duration-200 z-10 relative"
               placeholder="开始编写你的文章..."
               spellCheck={false}
               style={{
@@ -646,7 +646,7 @@ const SimpleEditor = React.memo(({
       {/* 行号显示 - 作为编辑区域内部元素，不影响外部grid布局 */}
       <div 
         ref={lineNumbersRef}
-        className="bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400 text-sm overflow-hidden select-none transition-all duration-200 z-10 relative"
+        className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-sm overflow-hidden select-none transition-all duration-200 z-10 relative border-r border-[var(--border-color)]"
         style={{ 
           width: '50px',
           flexShrink: 0,
@@ -733,7 +733,7 @@ const SimpleEditor = React.memo(({
           onPaste={throttledUpdateCursorPosition}
           onCut={throttledUpdateCursorPosition}
           onScroll={handleTextareaScroll}
-          className="flex-1 w-full h-full border-none resize-none outline-none bg-transparent text-gray-900 dark:text-gray-100 font-mono text-sm leading-relaxed transition-all duration-200 z-10 relative"
+          className="flex-1 w-full h-full border-none resize-none outline-none bg-transparent text-[var(--text-primary)] font-mono text-sm leading-relaxed transition-all duration-200 z-10 relative"
           placeholder="开始编写你的文章..."
           spellCheck={false}
           style={{
@@ -1062,7 +1062,7 @@ export const EditorContentArea = React.memo(({
         {/* 分割线 */}
         {viewMode === 'split' && (
           <div 
-            className="bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors duration-200 cursor-col-resize"
+            className="bg-[var(--border-color)] hover:bg-[var(--border-hover)] transition-colors duration-200 cursor-col-resize"
             style={{ width: '1px' }}
             title="拖动调整区域大小"
           />

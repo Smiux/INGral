@@ -44,7 +44,7 @@ export function EditorToolbar({
   onSaveDraft,
 }: EditorToolbarProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300">
+    <div className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)] shadow-[var(--shadow-sm)] transition-all duration-300">
       {/* 顶部工具栏 */}
       <div className="flex flex-wrap items-center justify-between px-3 py-2 gap-2 transition-all duration-300">
         {/* 左侧操作按钮 */}
@@ -175,8 +175,8 @@ export function EditorToolbar({
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   {collaborators.map((collaborator) => {
-                    // 为每个协作者分配不同的颜色，与光标颜色保持一致
-                    const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+                    // 为每个协作者分配不同的颜色，与光标颜色保持一致（使用设计系统变量）
+                    const colors = ['var(--error-500)', 'var(--primary-400)', 'var(--success-400)', 'var(--warning-500)', 'var(--secondary-500)', 'var(--primary-600)'];
                     const colorIndex = collaborators.findIndex(c => c.id === collaborator.id) % colors.length;
                     const cursorColor = colors[colorIndex];
                     

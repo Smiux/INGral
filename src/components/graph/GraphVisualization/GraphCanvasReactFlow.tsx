@@ -244,15 +244,15 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
   // 定义一个ref来追踪前一次的节点数量
   const prevNodesLengthRef = React.useRef(nodes.length);
   
-  // 监听节点数量变化，优化视图聚焦
+  // 监听ReactFlow节点数量变化，优化视图聚焦
   React.useEffect(() => {
-    if (reactFlowInstance.current && nodes.length > 0) {
+    if (reactFlowInstance.current && reactFlowNodes.length > 0) {
       // 只有在特定条件下才调整视图：
       // 1. 从0个节点增加到1个节点
       // 2. 从1个节点增加到2个节点
       // 3. 节点数量减少到1个节点
       const prevLength = prevNodesLengthRef.current;
-      const currentLength = nodes.length;
+      const currentLength = reactFlowNodes.length;
       
       if (prevLength === 0 && currentLength === 1 || 
           prevLength === 1 && currentLength === 2 || 
@@ -269,8 +269,8 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
     }
     
     // 更新前一次节点数量
-    prevNodesLengthRef.current = nodes.length;
-  }, [nodes.length]);
+    prevNodesLengthRef.current = reactFlowNodes.length;
+  }, [reactFlowNodes.length]);
   
   // 处理节点拖拽开始
   const onNodeDragStart = useCallback((_: React.MouseEvent, node: import('reactflow').Node) => {

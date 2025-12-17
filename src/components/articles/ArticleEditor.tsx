@@ -403,12 +403,13 @@ function ArticleEditorImpl() {
       {/* 快捷键面板 */}
       {state.showShortcuts && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">键盘快捷键</h2>
+          <div className="bg-[var(--bg-card)] dark:bg-[var(--bg-card)] rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-[var(--border-color)]">
+            <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-[var(--text-primary)]">键盘快捷键</h2>
               <button
                 onClick={() => updateState('showShortcuts', false)}
-                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                className="p-1 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"
+                aria-label="关闭快捷键面板"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -419,15 +420,15 @@ function ArticleEditorImpl() {
               {/* 按类别分组显示快捷键 */}
               {Array.from(new Set(SHORTCUTS.map(shortcut => shortcut.category))).map(category => (
                 <div key={category} className="mb-6">
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">{category}</h3>
+                  <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">{category}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {SHORTCUTS.filter(shortcut => shortcut.category === category).map(shortcut => (
-                      <div key={shortcut.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div key={shortcut.id} className="flex items-center justify-between p-3 bg-[var(--bg-secondary)] rounded-lg">
                         <div>
-                          <div className="font-medium text-gray-800 dark:text-gray-200">{shortcut.name}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">{shortcut.description}</div>
+                          <div className="font-medium text-[var(--text-primary)]">{shortcut.name}</div>
+                          <div className="text-sm text-[var(--text-secondary)]">{shortcut.description}</div>
                         </div>
-                        <kbd className="px-3 py-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md text-sm font-mono border border-gray-300 dark:border-gray-500">
+                        <kbd className="px-3 py-1 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-md text-sm font-mono border border-[var(--border-color)]">
                           {shortcut.defaultKey}
                         </kbd>
                       </div>
@@ -436,9 +437,9 @@ function ArticleEditorImpl() {
                 </div>
               ))}
             </div>
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                提示：按 <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md text-xs font-mono">Ctrl+/</kbd> 可快速显示/隐藏此面板
+            <div className="p-4 border-t border-[var(--border-color)] bg-[var(--bg-secondary)]">
+              <div className="text-sm text-[var(--text-secondary)]">
+                提示：按 <kbd className="px-2 py-0.5 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-md text-xs font-mono border border-[var(--border-color)]">Ctrl+/</kbd> 可快速显示/隐藏此面板
               </div>
             </div>
           </div>
@@ -450,12 +451,13 @@ function ArticleEditorImpl() {
       {/* 帮助面板 */}
       {state.showHelp && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">编辑器帮助</h2>
+          <div className="bg-[var(--bg-card)] dark:bg-[var(--bg-card)] rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--border-color)]">
+            <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-[var(--text-primary)]">编辑器帮助</h2>
               <button
                 onClick={() => updateState('showHelp', false)}
-                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                className="p-1 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"
+                aria-label="关闭帮助面板"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -466,8 +468,8 @@ function ArticleEditorImpl() {
               <div className="space-y-6">
                 {/* 基本操作 */}
                 <div>
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">基本操作</h3>
-                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">基本操作</h3>
+                  <div className="space-y-2 text-sm text-[var(--text-secondary)]">
                     <p>• 直接在编辑区域输入Markdown格式的文本</p>
                     <p>• 使用工具栏进行格式化操作</p>
                     <p>• 切换不同的视图模式（编辑/预览/分屏）</p>
@@ -477,8 +479,8 @@ function ArticleEditorImpl() {
                 
                 {/* 支持的功能 */}
                 <div>
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">支持的功能</h3>
-                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">支持的功能</h3>
+                  <div className="space-y-2 text-sm text-[var(--text-secondary)]">
                     <p>• Markdown语法支持</p>
                     <p>• LaTeX公式编辑（$inline$ 和 $$block$$）</p>
                     <p>• Mermaid图表支持</p>
@@ -492,47 +494,47 @@ function ArticleEditorImpl() {
                 
                 {/* 快捷键 */}
                 <div>
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">常用快捷键</h3>
+                  <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">常用快捷键</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+S</span>
-                      <span className="ml-2 text-gray-600 dark:text-gray-400">保存文章</span>
+                    <div className="p-2 bg-[var(--bg-secondary)] rounded-md">
+                      <span className="font-medium text-[var(--text-primary)]">Ctrl+S</span>
+                      <span className="ml-2 text-[var(--text-secondary)]">保存文章</span>
                     </div>
-                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+Z</span>
-                      <span className="ml-2 text-gray-600 dark:text-gray-400">撤销</span>
+                    <div className="p-2 bg-[var(--bg-secondary)] rounded-md">
+                      <span className="font-medium text-[var(--text-primary)]">Ctrl+Z</span>
+                      <span className="ml-2 text-[var(--text-secondary)]">撤销</span>
                     </div>
-                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+Y</span>
-                      <span className="ml-2 text-gray-600 dark:text-gray-400">重做</span>
+                    <div className="p-2 bg-[var(--bg-secondary)] rounded-md">
+                      <span className="font-medium text-[var(--text-primary)]">Ctrl+Y</span>
+                      <span className="ml-2 text-[var(--text-secondary)]">重做</span>
                     </div>
-                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+P</span>
-                      <span className="ml-2 text-gray-600 dark:text-gray-400">切换预览</span>
+                    <div className="p-2 bg-[var(--bg-secondary)] rounded-md">
+                      <span className="font-medium text-[var(--text-primary)]">Ctrl+P</span>
+                      <span className="ml-2 text-[var(--text-secondary)]">切换预览</span>
                     </div>
-                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+/</span>
-                      <span className="ml-2 text-gray-600 dark:text-gray-400">显示快捷键</span>
+                    <div className="p-2 bg-[var(--bg-secondary)] rounded-md">
+                      <span className="font-medium text-[var(--text-primary)]">Ctrl+/</span>
+                      <span className="ml-2 text-[var(--text-secondary)]">显示快捷键</span>
                     </div>
-                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+B</span>
-                      <span className="ml-2 text-gray-600 dark:text-gray-400">加粗</span>
+                    <div className="p-2 bg-[var(--bg-secondary)] rounded-md">
+                      <span className="font-medium text-[var(--text-primary)]">Ctrl+B</span>
+                      <span className="ml-2 text-[var(--text-secondary)]">加粗</span>
                     </div>
-                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+I</span>
-                      <span className="ml-2 text-gray-600 dark:text-gray-400">斜体</span>
+                    <div className="p-2 bg-[var(--bg-secondary)] rounded-md">
+                      <span className="font-medium text-[var(--text-primary)]">Ctrl+I</span>
+                      <span className="ml-2 text-[var(--text-secondary)]">斜体</span>
                     </div>
-                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                      <span className="font-medium text-gray-800 dark:text-gray-200">Ctrl+K</span>
-                      <span className="ml-2 text-gray-600 dark:text-gray-400">插入链接</span>
+                    <div className="p-2 bg-[var(--bg-secondary)] rounded-md">
+                      <span className="font-medium text-[var(--text-primary)]">Ctrl+K</span>
+                      <span className="ml-2 text-[var(--text-secondary)]">插入链接</span>
                     </div>
                   </div>
                 </div>
                 
                 {/* 支持和反馈 */}
                 <div>
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">支持和反馈</h3>
-                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">支持和反馈</h3>
+                  <div className="space-y-2 text-sm text-[var(--text-secondary)]">
                     <p>如果您遇到任何问题或有改进建议，请通过以下方式联系我们：</p>
                     <p>• 查看文档：[文档链接]</p>
                     <p>• 提交反馈：[反馈链接]</p>
@@ -569,7 +571,7 @@ function ArticleEditorImpl() {
           />
 
           {/* 文章标题输入区域 */}
-          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 transition-all">
+          <div className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)] p-3 transition-all">
             <input
               type="text"
               value={state.title}
@@ -583,9 +585,9 @@ function ArticleEditorImpl() {
               <div className="flex items-center space-x-4">
                 <span className="flex items-center">
                   {state.visibility === 'public' ? (
-                    <Globe size={14} className="mr-1 text-blue-500" />
+                    <Globe size={14} className="mr-1 text-[var(--blue-500)]" />
                   ) : (
-                    <Lock size={14} className="mr-1 text-purple-500" />
+                    <Lock size={14} className="mr-1 text-[var(--purple-500)]" />
                   )}
                   {state.visibility === 'public' ? '公开' : '仅分享'}
                 </span>
@@ -624,21 +626,21 @@ function ArticleEditorImpl() {
           </div>
 
           {/* 文章发布设置 */}
-          <div className="border-t border-gray-200 dark:border-gray-700 transition-all duration-300">
+          <div className="border-t border-[var(--border-color)] transition-all duration-300">
             {/* 设置面板切换按钮 */}
             <button
               onClick={() => updateState('showSettingsPanel', !state.showSettingsPanel)}
-              className="w-full flex items-center justify-between p-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors duration-300"
+              className="w-full flex items-center justify-between p-3 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] transition-colors duration-300"
             >
               <div className="flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="font-medium text-gray-700 dark:text-gray-300">文章发布设置</span>
+                <span className="font-medium text-[var(--text-primary)]">文章发布设置</span>
               </div>
               <svg
-                className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${state.showSettingsPanel ? 'rotate-180' : ''}`}
+                className={`h-5 w-5 text-[var(--text-secondary)] transition-transform duration-300 ${state.showSettingsPanel ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -649,31 +651,31 @@ function ArticleEditorImpl() {
 
             {/* 设置面板内容 */}
             <div
-              className={`overflow-hidden transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 ${state.showSettingsPanel ? 'max-h-96' : 'max-h-0'}`}
+              className={`overflow-hidden transition-all duration-300 ease-in-out bg-[var(--bg-secondary)] ${state.showSettingsPanel ? 'max-h-96' : 'max-h-0'}`}
             >
-              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="p-4 border-t border-[var(--border-color)]">
                 <div className="space-y-6">
                   {/* 可见性设置 */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">可见性设置</h3>
+                    <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">可见性设置</h3>
                     <div className="space-y-3">
                       <div className="flex items-center space-x-4">
                         <button
                           onClick={() => updateState('visibility', 'public')}
                           className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${state.visibility === 'public' 
-                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800' 
-                            : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-650'}`}
+                            ? 'bg-[var(--blue-50)] dark:bg-[var(--blue-900)]/20 text-[var(--blue-700)] dark:text-[var(--blue-400)] border border-[var(--blue-200)] dark:border-[var(--blue-800)]' 
+                            : 'bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-color)] hover:bg-[var(--bg-hover)]'}`}
                         >
-                          <Globe size={16} className="text-blue-500 dark:text-blue-400" />
+                          <Globe size={16} className="text-[var(--blue-500)] dark:text-[var(--blue-400)]" />
                           <span>公开</span>
                         </button>
                         <button
                           onClick={() => updateState('visibility', 'unlisted')}
                           className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${state.visibility === 'unlisted' 
-                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800' 
-                            : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-650'}`}
+                            ? 'bg-[var(--blue-50)] dark:bg-[var(--blue-900)]/20 text-[var(--blue-700)] dark:text-[var(--blue-400)] border border-[var(--blue-200)] dark:border-[var(--blue-800)]' 
+                            : 'bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-color)] hover:bg-[var(--bg-hover)]'}`}
                         >
-                          <Lock size={16} className="text-purple-500 dark:text-purple-400" />
+                          <Lock size={16} className="text-[var(--purple-500)] dark:text-[var(--purple-400)]" />
                           <span>仅分享</span>
                         </button>
                       </div>
@@ -682,38 +684,38 @@ function ArticleEditorImpl() {
                   
                   {/* 作者信息设置 */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">作者信息</h3>
+                    <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">作者信息</h3>
                     <div className="space-y-3">
                       <div>
-                        <label htmlFor="authorName" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者名称</label>
+                        <label htmlFor="authorName" className="block text-sm text-[var(--text-secondary)] mb-1">作者名称</label>
                         <input
                           type="text"
                           id="authorName"
                           value={state.authorName}
                           onChange={(e) => updateState('authorName', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-[var(--border-color)] rounded-md bg-[var(--bg-card)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]"
                           placeholder="输入作者名称"
                         />
                       </div>
                       <div>
-                        <label htmlFor="authorEmail" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者邮箱</label>
+                        <label htmlFor="authorEmail" className="block text-sm text-[var(--text-secondary)] mb-1">作者邮箱</label>
                         <input
                           type="email"
                           id="authorEmail"
                           value={state.authorEmail}
                           onChange={(e) => updateState('authorEmail', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-[var(--border-color)] rounded-md bg-[var(--bg-card)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]"
                           placeholder="输入作者邮箱"
                         />
                       </div>
                       <div>
-                        <label htmlFor="authorUrl" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">作者网站</label>
+                        <label htmlFor="authorUrl" className="block text-sm text-[var(--text-secondary)] mb-1">作者网站</label>
                         <input
                           type="url"
                           id="authorUrl"
                           value={state.authorUrl}
                           onChange={(e) => updateState('authorUrl', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-[var(--border-color)] rounded-md bg-[var(--bg-card)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]"
                           placeholder="输入作者网站"
                         />
                       </div>
@@ -725,12 +727,12 @@ function ArticleEditorImpl() {
           </div>
 
           {/* 编辑器底部状态栏 */}
-          <div className="bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-2 px-4 text-sm text-gray-600 dark:text-gray-400 flex items-center justify-between">
+          <div className="bg-[var(--bg-secondary)] border-t border-[var(--border-color)] py-2 px-4 text-sm text-[var(--text-secondary)] flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <span>上次编辑: {state.lastEdited ? state.lastEdited.toLocaleString() : '从未'}</span>
               <span>{state.content.split('\n').length} 行</span>
               <span>{state.content.length} 字符</span>
-              <span className="text-gray-700 dark:text-gray-300 font-mono">Ln {state.cursorPosition.line}, Col {state.cursorPosition.column}</span>
+              <span className="text-[var(--text-primary)] font-mono">Ln {state.cursorPosition.line}, Col {state.cursorPosition.column}</span>
             </div>
           </div>
         </div>
