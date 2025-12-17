@@ -12,7 +12,7 @@ import type { NodeManagementProps, EnhancedNode } from './types';
  */
 export const NodeManagement: React.FC<NodeManagementProps> = ({
   nodes,
-  links,
+  connections,
   setNodes,
   setSelectedNode,
   selectedNodes,
@@ -140,7 +140,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
     const selectedNodeIds = new Set(selectedNodes.map(node => node.id));
 
     // 获取与选中节点关联的链接
-    const associatedLinks = links.filter(link => {
+    const associatedLinks = connections.filter(link => {
       const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
       const targetId = typeof link.target === 'object' ? link.target.id : link.target;
       return selectedNodeIds.has(String(sourceId)) || selectedNodeIds.has(String(targetId));

@@ -1,75 +1,62 @@
 import React from 'react';
 import { EnhancedNode } from './types';
+import type { ReactFlowInstance } from 'reactflow';
 
 // 导入类型定义
 export interface GraphNavigationControlsProps {
   // 状态
-  containerRef: React.RefObject<HTMLDivElement>;
   nodes: EnhancedNode[];
+  reactFlowInstance?: ReactFlowInstance | null;
 }
 
 // 自定义比较函数，用于React.memo
 const areEqual = (prevProps: GraphNavigationControlsProps, nextProps: GraphNavigationControlsProps) => {
-  // 只比较节点数量，因为其他props变化较少
-  return prevProps.nodes.length === nextProps.nodes.length;
+  // 只比较节点数量和reactFlowInstance，因为其他props变化较少
+  return prevProps.nodes.length === nextProps.nodes.length && prevProps.reactFlowInstance === nextProps.reactFlowInstance;
 };
 
 export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = React.memo(({
-  containerRef,
-  nodes
+  nodes,
+  reactFlowInstance
 }) => {
   // 中心对齐功能
   const handleCenterAlign = () => {
-    const svg = containerRef.current?.querySelector('svg');
-    if (svg) {
-      // 使用D3的zoomIdentity重置缩放和平移
-      const d3 = (window as unknown as { d3: typeof import('d3') }).d3;
-      if (d3) {
-        d3.select(svg).transition().duration(500).call(
-          (d3.zoom() as d3.ZoomBehavior<SVGSVGElement, unknown>).transform, d3.zoomIdentity
-        );
-      }
+    if (reactFlowInstance) {
+      // 使用ReactFlow的API重置缩放和平移
+      reactFlowInstance.setViewport({
+        x: 0,
+        y: 0,
+        zoom: 1
+      }, {
+        duration: 500
+      });
     }
   };
 
   // 自适应缩放功能
   const handleFitToScreen = () => {
-    const svg = containerRef.current?.querySelector('svg');
-    if (svg && nodes.length > 0) {
-      // 计算节点的边界框
-      const xValues = nodes.map(n => n.x || 0);
-      const yValues = nodes.map(n => n.y || 0);
-      const xMin = Math.min(...xValues);
-      const xMax = Math.max(...xValues);
-      const yMin = Math.min(...yValues);
-      const yMax = Math.max(...yValues);
-      
-      // 检查containerRef.current是否为null
-      if (!containerRef.current) return;
-      
-      const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight;
-      
-      // 计算缩放比例
-      const scaleX = width / (xMax - xMin + 200);
-      const scaleY = height / (yMax - yMin + 200);
-      const scale = Math.min(scaleX, scaleY, 1);
-      
-      // 计算中心位置
-      const centerX = (xMin + xMax) / 2;
-      const centerY = (yMin + yMax) / 2;
-      
-      // 应用缩放和居中
-      const d3 = (window as unknown as { d3: typeof import('d3') }).d3;
-      if (d3) {
-        d3.select(svg).transition().duration(500).call(
-          (d3.zoom() as d3.ZoomBehavior<SVGSVGElement, unknown>).transform, 
-          d3.zoomIdentity
-            .translate(width / 2, height / 2)
-            .scale(scale)
-            .translate(-centerX, -centerY)
-        );
-      }
+    if (reactFlowInstance && nodes.length > 0) {
+      // 使用ReactFlow的fitView方法自动适应视图
+      reactFlowInstance.fitView({
+        padding: 100,
+        duration: 500
+      });
+    }
+  };
+
+  // 放大功能
+  const handleZoomIn = () => {
+    if (reactFlowInstance) {
+      // 使用ReactFlow的API放大
+      reactFlowInstance.zoomIn({ duration: 200 });
+    }
+  };
+
+  // 缩小功能
+  const handleZoomOut = () => {
+    if (reactFlowInstance) {
+      // 使用ReactFlow的API缩小
+      reactFlowInstance.zoomOut({ duration: 200 });
     }
   };
 
@@ -78,9 +65,7 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
       {/* 缩放控制 */}
       <div className="flex gap-1.5">
         <button
-          onClick={() => containerRef.current?.querySelector('svg')?.dispatchEvent(
-            new WheelEvent('wheel', { deltaY: -100, bubbles: true })
-          )}
+          onClick={handleZoomIn}
           className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-all duration-200 ease-in-out transform hover:scale-[1.05] shadow-sm hover:shadow-md"
           title="放大"
         >
@@ -92,9 +77,7 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
           </svg>
         </button>
         <button
-          onClick={() => containerRef.current?.querySelector('svg')?.dispatchEvent(
-            new WheelEvent('wheel', { deltaY: 100, bubbles: true })
-          )}
+          onClick={handleZoomOut}
           className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-all duration-200 ease-in-out transform hover:scale-[1.05] shadow-sm hover:shadow-md"
           title="缩小"
         >

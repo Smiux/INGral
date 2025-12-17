@@ -1,5 +1,5 @@
 import React from 'react';
-import { Undo, Redo, Plus, Link, Layout, Palette, PieChart, Box, Grid, Settings, BarChart, SlidersHorizontal } from 'lucide-react';
+import { Undo, Redo, Plus, Layout, Palette, PieChart, Box, Grid, Settings, BarChart, SlidersHorizontal, Database } from 'lucide-react';
 
 // 导入自定义Hook
 import { useGraph } from './useGraph';
@@ -21,7 +21,18 @@ export const GraphToolbar: React.FC = React.memo(() => {
     history,
     currentTheme
   } = state;
-  
+
+  // 处理创建新节点
+  const handleCreateNode = () => {
+    // 创建一个新的DragEvent对象
+    const mockEvent = new DragEvent('drop', {
+      bubbles: true,
+      cancelable: true
+    }) as unknown as React.DragEvent<Element>;
+    // 调用handleCanvasDrop来创建新节点
+    actions.handleCanvasDrop(mockEvent, 0, 0);
+  };
+
   return (
     <div className={`${currentTheme.backgroundColor} border-b border-gray-200 shadow-md p-1 flex items-center justify-between gap-1 transition-all duration-300 ease-in-out ${isToolbarVisible ? 'translate-y-0' : '-translate-y-full'} z-50 backdrop-blur-sm`}>
       {/* 左侧基本操作 */}
@@ -51,24 +62,14 @@ export const GraphToolbar: React.FC = React.memo(() => {
       
       {/* 中央功能工具栏 - 现代化分组 */}
       <div className="flex items-center gap-2">
-        {/* 节点管理按钮 */}
+        {/* 直接创建节点按钮 */}
         <button
-          onClick={() => actions.togglePanel(activePanel === 'nodes' ? null : 'nodes')}
-          className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'nodes' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-          title="节点管理"
+          onClick={handleCreateNode}
+          className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'create-node' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+          title="创建节点"
         >
           <Plus className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] whitespace-nowrap">节点</span>
-        </button>
-        
-        {/* 链接管理按钮 */}
-        <button
-          onClick={() => actions.togglePanel(activePanel === 'links' ? null : 'links')}
-          className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'links' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-          title="链接管理"
-        >
-          <Link className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] whitespace-nowrap">链接</span>
+          <span className="text-[10px] whitespace-nowrap">创建节点</span>
         </button>
         
         {/* 布局管理按钮 */}
@@ -124,11 +125,21 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <span className="text-[10px] whitespace-nowrap">统计</span>
         </button>
         
+        {/* 管理按钮 - 合并节点和连接管理 */}
+        <button
+          onClick={() => actions.togglePanel(activePanel === 'manage' ? null : 'manage')}
+          className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'manage' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+          title="节点与连接管理"
+        >
+          <Database className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] whitespace-nowrap">管理</span>
+        </button>
+        
         {/* 样式调整按钮 */}
         <button
           onClick={() => actions.togglePanel(activePanel === 'style' ? null : 'style')}
           className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${activePanel === 'style' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-          title="调整当前选中节点/连线样式"
+          title="调整当前选中节点/连接样式"
         >
           <SlidersHorizontal className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] whitespace-nowrap">样式</span>
@@ -153,16 +164,6 @@ export const GraphToolbar: React.FC = React.memo(() => {
             <span className="text-[10px] whitespace-nowrap">3D</span>
           </button>
         </div>
-        
-        {/* 键盘快捷键按钮 */}
-        <button
-          onClick={() => actions.setIsShortcutsOpen(true)}
-          className="flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] text-gray-700"
-          title="键盘快捷键"
-        >
-          <span className="text-xl font-bold mb-0.5">?</span>
-          <span className="text-[10px] whitespace-nowrap">快捷键</span>
-        </button>
         
         {/* 设置按钮 */}
         <button

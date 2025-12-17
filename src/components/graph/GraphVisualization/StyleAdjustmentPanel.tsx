@@ -2,13 +2,13 @@ import React from 'react';
 import { SlidersHorizontal, PaintBucket, Link as LinkIcon } from 'lucide-react';
 
 // 导入类型定义
-import { EnhancedNode, EnhancedGraphLink } from './types';
+import { EnhancedNode, EnhancedGraphConnection } from './types';
 import { GraphTheme, NodeStyle, LinkStyle } from './ThemeTypes';
 
 interface StyleAdjustmentPanelProps {
   selectedNode: EnhancedNode | null;
   selectedNodes: EnhancedNode[];
-  selectedLinks: EnhancedGraphLink[];
+  selectedLinks: EnhancedGraphConnection[];
   currentTheme: GraphTheme;
   handleCopyNodeStyle: () => void;
   handleCopyLinkStyle: () => void;

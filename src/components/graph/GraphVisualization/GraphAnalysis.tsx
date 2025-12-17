@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import type { EnhancedNode, EnhancedGraphLink } from './types';
+import type { EnhancedNode, EnhancedGraphConnection } from './types';
 
 interface GraphAnalysisProps {
   nodes: EnhancedNode[];
-  links: EnhancedGraphLink[];
+  links: EnhancedGraphConnection[];
 }
 
 interface CentralityResult {

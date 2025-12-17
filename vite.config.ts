@@ -18,8 +18,6 @@ export default defineConfig({
         manualChunks: {
           // 将第三方库拆分为独立的chunk
           'vendor': ['react', 'react-dom', 'react-router-dom'],
-          // 将d3相关的图表库拆分为独立的chunk
-          'd3': ['d3'],
           // 将three.js相关的3D库拆分为独立的chunk
           'three': ['three'],
           // 将markdown和katex相关的库拆分为独立的chunk

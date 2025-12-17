@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { SemanticSearchResult } from '../../services/semanticSearchService';
 import type { Graph, GraphVisibility } from '../../types';
 import { GraphNodeType } from '../../types';
-import { EnhancedNode, EnhancedGraphLink, LayoutType, LayoutDirection } from '../graph/GraphVisualization/types';
+import { EnhancedNode, EnhancedGraphConnection, LayoutType, LayoutDirection } from '../graph/GraphVisualization/types';
 import { exportService } from '../../services/exportService';
 import { GraphCanvasReactFlow } from '../graph/GraphVisualization/GraphCanvasReactFlow';
 import styles from './SearchResultsGraph.module.css';
@@ -20,13 +20,13 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
   const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('top-bottom');
   const [exportLoading, setExportLoading] = useState(false); // 用于追踪导出状态
   const [nodes, setNodes] = useState<EnhancedNode[]>([]);
-  const [links, setLinks] = useState<EnhancedGraphLink[]>([]);
+  const [links, setLinks] = useState<EnhancedGraphConnection[]>([]);
 
   // 转换搜索结果为图谱数据
   const transformResultsToGraphData = useCallback(() => {
     // 创建节点映射，确保每个结果都是唯一节点
     const nodeMap = new Map<string, EnhancedNode>();
-    const links: EnhancedGraphLink[] = [];
+    const links: EnhancedGraphConnection[] = [];
     const conceptMap = new Map<string, EnhancedNode>();
 
     // 首先创建所有节点
@@ -294,7 +294,7 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
         {nodes.length > 0 ? (
           <GraphCanvasReactFlow
             nodes={nodes}
-            links={links}
+            connections={links}
           />
         ) : (
           <div className="flex items-center justify-center w-full h-full text-gray-500">

@@ -1,4 +1,4 @@
-import type { EnhancedNode, EnhancedGraphLink, SavedLayout } from './types';
+import type { EnhancedNode, EnhancedGraphConnection, SavedLayout } from './types';
 import type { GraphTheme } from './ThemeTypes';
 
 /**
@@ -46,7 +46,7 @@ export class GraphUtils {
    * @param id 链接ID
    * @returns 链接索引，未找到返回-1
    */
-  static getLinkIndex(links: EnhancedGraphLink[], id: string): number {
+  static getLinkIndex(links: EnhancedGraphConnection[], id: string): number {
     return links.findIndex(link => link.id === id);
   }
 
@@ -66,7 +66,7 @@ export class GraphUtils {
    * @param id 链接ID
    * @returns 链接对象，未找到返回undefined
    */
-  static getLinkById(links: EnhancedGraphLink[], id: string): EnhancedGraphLink | undefined {
+  static getLinkById(links: EnhancedGraphConnection[], id: string): EnhancedGraphConnection | undefined {
     return links.find(link => link.id === id);
   }
 
@@ -174,7 +174,7 @@ export class GraphUtils {
    * @param links 导入的链接数组
    * @returns 转换后的EnhancedGraphLink数组
    */
-  static convertToEnhancedLinks(links: unknown[]): EnhancedGraphLink[] {
+  static convertToEnhancedLinks(links: unknown[]): EnhancedGraphConnection[] {
     return links.map((link) => {
       const typedLink = link as Record<string, unknown>;
       const source = typedLink.source && typeof typedLink.source === 'object' 
@@ -201,7 +201,7 @@ export class GraphUtils {
    * @param nodeId 节点ID
    * @returns 是否相关
    */
-  static isLinkRelatedToNode(link: EnhancedGraphLink, nodeId: string): boolean {
+  static isLinkRelatedToNode(link: EnhancedGraphConnection, nodeId: string): boolean {
     const sourceId = typeof link.source === 'string' ? link.source : (link.source as EnhancedNode).id;
     const targetId = typeof link.target === 'string' ? link.target : (link.target as EnhancedNode).id;
     return sourceId === nodeId || targetId === nodeId;
@@ -212,7 +212,7 @@ export class GraphUtils {
    * @param link 链接对象
    * @returns 是否有效
    */
-  static isValidLink(link: EnhancedGraphLink): boolean {
+  static isValidLink(link: EnhancedGraphConnection): boolean {
     const sourceValid = typeof link.source === 'string' || !!(link.source as EnhancedNode).id;
     const targetValid = typeof link.target === 'string' || !!(link.target as EnhancedNode).id;
     return sourceValid && targetValid;

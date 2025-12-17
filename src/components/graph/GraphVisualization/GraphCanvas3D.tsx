@@ -7,13 +7,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { FontLoader, Font } from 'three/examples/jsm/loaders/FontLoader.js';
-import type { EnhancedNode, EnhancedGraphLink } from './types';
+import type { EnhancedNode, EnhancedGraphConnection } from './types';
 
 interface GraphCanvas3DProps {
   nodes: EnhancedNode[];
-  links: EnhancedGraphLink[];
+  connections: EnhancedGraphConnection[];
   onNodeClick: (node: EnhancedNode) => void;
-  onLinkClick: (link: EnhancedGraphLink) => void;
+  onConnectionClick: (connection: EnhancedGraphConnection) => void;
   selectedNode: EnhancedNode | null;
   selectedNodes: EnhancedNode[];
 }
@@ -22,7 +22,7 @@ interface GraphCanvas3DProps {
 const areEqual = (prevProps: GraphCanvas3DProps, nextProps: GraphCanvas3DProps) => {
   // 比较节点数量和链接数量
   if (prevProps.nodes.length !== nextProps.nodes.length ||
-      prevProps.links.length !== nextProps.links.length) {
+      prevProps.connections.length !== nextProps.connections.length) {
     return false;
   }
   
@@ -37,9 +37,9 @@ const areEqual = (prevProps: GraphCanvas3DProps, nextProps: GraphCanvas3DProps) 
 
 export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
   nodes,
-  links,
+  connections,
   onNodeClick,
-  onLinkClick,
+  onConnectionClick,
   selectedNode,
   selectedNodes
 }) => {
@@ -236,13 +236,13 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
     });
 
     // 创建链接
-    links.forEach(link => {
+    connections.forEach(connection => {
       // 处理source
-      const sourceId = typeof link.source === 'object' && link.source.id ? link.source.id : link.source;
+      const sourceId = typeof connection.source === 'object' && connection.source.id ? connection.source.id : connection.source;
       const sourceNode = nodes.find(n => n.id === String(sourceId));
       
       // 处理target
-      const targetId = typeof link.target === 'object' && link.target.id ? link.target.id : link.target;
+      const targetId = typeof connection.target === 'object' && connection.target.id ? connection.target.id : connection.target;
       const targetNode = nodes.find(n => n.id === String(targetId));
       
       if (sourceNode && targetNode) {
@@ -251,25 +251,25 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
         
         if (sourceObject && targetObject) {
           // 创建链接几何体
-          const linkGeometry = new THREE.BufferGeometry().setFromPoints([
+          const connectionGeometry = new THREE.BufferGeometry().setFromPoints([
             sourceObject.mesh.position,
             targetObject.mesh.position
           ]);
           
           // 创建链接材质
-          const linkMaterial = new THREE.LineBasicMaterial({ 
+          const connectionMaterial = new THREE.LineBasicMaterial({ 
             color: 0x999999,
             opacity: 0.6,
             transparent: true,
             linewidth: 1.5
           });
           
-          const linkLine = new THREE.Line(linkGeometry, linkMaterial);
+          const connectionLine = new THREE.Line(connectionGeometry, connectionMaterial);
           
           // 添加点击事件
-          linkLine.userData = { link, source: sourceObject.mesh, target: targetObject.mesh };
+          connectionLine.userData = { connection, source: sourceObject.mesh, target: targetObject.mesh };
           
-          scene.add(linkLine);
+          scene.add(connectionLine);
         }
       }
     });
@@ -332,18 +332,18 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
         }
         
         // 更新链接
-        links.forEach(link => {
-          const sourceId = typeof link.source === 'object' && link.source.id ? link.source.id : link.source;
-          const targetId = typeof link.target === 'object' && link.target.id ? link.target.id : link.target;
+        connections.forEach(connection => {
+          const sourceId = typeof connection.source === 'object' && connection.source.id ? connection.source.id : connection.source;
+          const targetId = typeof connection.target === 'object' && connection.target.id ? connection.target.id : connection.target;
           
           if ((draggedObject as THREE.Mesh).userData.node.id === String(sourceId) || (draggedObject as THREE.Mesh).userData.node.id === String(targetId)) {
-            const linkObjects = scene.children.filter(child => 
-              child instanceof THREE.Line && child.userData && child.userData.link
+            const connectionObjects = scene.children.filter(child => 
+              child instanceof THREE.Line && child.userData && child.userData.connection
             ) as THREE.Line[];
             
-            linkObjects.forEach(linkLine => {
-              if (linkLine.userData.link.id === link.id) {
-                const positionAttribute = linkLine.geometry.attributes.position;
+            connectionObjects.forEach(connectionLine => {
+              if (connectionLine.userData.connection.id === connection.id) {
+                const positionAttribute = connectionLine.geometry.attributes.position;
                 if (positionAttribute) {
                   const positions = positionAttribute.array as Float32Array;
                   const sourceObject = nodeObjects.find(no => no.node.id === String(sourceId));
@@ -396,15 +396,15 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
       }
       
       // 检测链接点击
-      const linkObjects = scene.children.filter(child => 
-        child instanceof THREE.Line && child.userData && child.userData.link
+      const connectionObjects = scene.children.filter(child => 
+        child instanceof THREE.Line && child.userData && child.userData.connection
       );
-      const linkIntersections = raycaster.intersectObjects(linkObjects as THREE.Object3D[]);
-      if (linkIntersections.length > 0) {
-        const intersection = linkIntersections[0];
-        if (intersection?.object?.userData?.link) {
-          const clickedLink = intersection.object.userData.link;
-          onLinkClick(clickedLink);
+      const connectionIntersections = raycaster.intersectObjects(connectionObjects as THREE.Object3D[]);
+      if (connectionIntersections.length > 0) {
+        const intersection = connectionIntersections[0];
+        if (intersection?.object?.userData?.connection) {
+          const clickedConnection = intersection.object.userData.connection;
+          onConnectionClick(clickedConnection);
         }
       }
     };
@@ -472,7 +472,7 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
       container?.removeEventListener('click', handleMouseClick);
       container?.removeEventListener('mousemove', handleMouseHover);
     };
-  }, [nodes, links, selectedNode, selectedNodes, onNodeClick, onLinkClick]);
+  }, [nodes, connections, selectedNode, selectedNodes, onNodeClick, onConnectionClick]);
 
   // 导出3D模型为GLTF格式
   const exportToGLTF = () => {

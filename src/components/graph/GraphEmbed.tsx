@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Download, Save, Edit, X, Check, Trash2 } from 'lucide-react';
 import { graphService } from '../../services/graphService';
 import { GraphCanvasReactFlow } from './GraphVisualization/GraphCanvasReactFlow';
-import type { EnhancedNode, EnhancedGraphLink, LayoutType } from './GraphVisualization/types';
+import type { EnhancedNode, EnhancedGraphConnection, LayoutType } from './GraphVisualization/types';
 
 import type { GraphNode, GraphLink } from '../../types';
 
@@ -13,7 +13,7 @@ interface GraphEmbedProps {
   interactive?: boolean;
   layoutType?: LayoutType;
   theme?: string;
-  onUpdate?: (graphData: { nodes: EnhancedNode[]; links: EnhancedGraphLink[] }) => void;
+  onUpdate?: (graphData: { nodes: EnhancedNode[]; links: EnhancedGraphConnection[] }) => void;
 }
 
 export const GraphEmbed: React.FC<GraphEmbedProps> = ({
@@ -25,11 +25,11 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
   onUpdate
 }) => {
   const [nodes, setNodes] = useState<EnhancedNode[]>([]);
-  const [links, setLinks] = useState<EnhancedGraphLink[]>([]);
+  const [links, setLinks] = useState<EnhancedGraphConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<EnhancedNode | null>(null);
-  const [selectedLink, setSelectedLink] = useState<EnhancedGraphLink | null>(null);
+  const [selectedLink, setSelectedLink] = useState<EnhancedGraphConnection | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editMode, setEditMode] = useState<'node' | 'link' | null>(null);
   const [nodeTitle, setNodeTitle] = useState('');
@@ -59,7 +59,7 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
             y: node.y || 0
           }));
 
-          const enhancedLinks: EnhancedGraphLink[] = graphData.links.map((link: { id?: string; source: string | number; target: string | number; type?: string; label?: string; weight?: number }, index: number) => ({
+          const enhancedLinks: EnhancedGraphConnection[] = graphData.links.map((link: { id?: string; source: string | number; target: string | number; type?: string; label?: string; weight?: number }, index: number) => ({
             id: link.id || `link-${index}`,
             source: link.source,
             target: link.target,
@@ -90,7 +90,7 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
           }));
 
           // Convert graph links to EnhancedGraphLink format
-          const enhancedLinks: EnhancedGraphLink[] = graph.links.map((link: GraphLink, index: number) => ({
+          const enhancedLinks: EnhancedGraphConnection[] = graph.links.map((link: GraphLink, index: number) => ({
             id: `link-${index}`,
             source: link.source,
             target: link.target,
@@ -127,7 +127,7 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
   }, [interactive, isEditing]);
 
   // 处理链接点击
-  const handleLinkClick = useCallback((link: EnhancedGraphLink) => {
+  const handleLinkClick = useCallback((link: EnhancedGraphConnection) => {
     if (interactive) {
       setSelectedLink(link);
       setSelectedNode(null);
@@ -439,11 +439,11 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
       <div className="flex-1 relative">
         <GraphCanvasReactFlow
           nodes={nodes}
-          links={links}
+          connections={links}
           onNodeClick={handleNodeClick}
           onNodeDragStart={handleNodeDragStart}
           onNodeDragEnd={handleNodeDragEnd}
-          onLinkClick={handleLinkClick}
+          onConnectionClick={handleLinkClick}
           onCanvasClick={handleCanvasClick}
         />
       </div>

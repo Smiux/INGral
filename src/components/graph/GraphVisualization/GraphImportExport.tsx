@@ -2,11 +2,11 @@ import React, { useState, useRef } from 'react';
 import { exportService } from '../../../services/exportService';
 import type { Graph } from '../../../types';
 import { GraphNodeType, GraphVisibility } from '../../../types';
-import type { EnhancedNode, EnhancedGraphLink } from './types';
+import type { EnhancedNode, EnhancedGraphConnection } from './types';
 
 interface GraphImportExportProps {
   nodes: EnhancedNode[];
-  links: EnhancedGraphLink[];
+  links: EnhancedGraphConnection[];
   onImportGraph: (graph: Graph) => void;
   graphTitle?: string;
   svgSelector?: string;

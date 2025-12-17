@@ -15,8 +15,8 @@ export interface NodeData {
   created_at?: string;
 }
 
-// 链接数据接口
-export interface LinkData {
+// 连接数据接口
+export interface ConnectionData {
   id?: string | number;
   source?: string | number | NodeData;
   target?: string | number | NodeData;
@@ -29,7 +29,7 @@ export interface GraphData {
   id?: string | number;
   name?: string; // 修改为可选属性
   nodes: NodeData[];
-  links: LinkData[];
+  connections: ConnectionData[];
   is_template?: boolean;
   created_at?: string; // 添加创建时间属性
 }
@@ -78,15 +78,15 @@ export interface EnhancedNode {
   groupType?: string; // 分组类型
 }
 
-// 增强链接接口
-export interface EnhancedGraphLink {
+// 增强连接接口
+export interface EnhancedGraphConnection {
   type: string;
   id: string;
   // 明确声明source和target的类型，支持节点对象或ID
   source: EnhancedNode | string | number;
   target: EnhancedNode | string | number;
-  weight?: number; // 链接权重，用于力导向布局和重要性排序
-  label?: string; // 链接标签，用于显示链接类型或描述
+  weight?: number; // 连接权重，用于力导向布局和重要性排序
+  label?: string; // 连接标签，用于显示连接类型或描述
 }
 
 // 布局类型
@@ -121,9 +121,9 @@ export interface SavedLayout {
 // 操作历史记录类型
 export type RecentAction = 
   | { type: 'addNode'; nodeId: string; timestamp: number; data: { node: EnhancedNode } }
-  | { type: 'deleteNode'; nodeId: string; timestamp: number; data: { node: EnhancedNode; links: EnhancedGraphLink[] } }
-  | { type: 'addLink'; linkId: string; timestamp: number; data: EnhancedGraphLink }
-  | { type: 'deleteLink'; linkId: string; timestamp: number; data: EnhancedGraphLink }
+  | { type: 'deleteNode'; nodeId: string; timestamp: number; data: { node: EnhancedNode; connections: EnhancedGraphConnection[] } }
+  | { type: 'addConnection'; connectionId: string; timestamp: number; data: EnhancedGraphConnection }
+  | { type: 'deleteConnection'; connectionId: string; timestamp: number; data: EnhancedGraphConnection }
   | { type: 'groupNodes'; groupId: string; timestamp: number; data: { nodes: EnhancedNode[]; group: EnhancedNode } }
   | { type: 'ungroupNodes'; groupId: string; timestamp: number; data: { nodes: EnhancedNode[]; group: EnhancedNode } };
 
@@ -137,14 +137,14 @@ export interface GraphControlsProps {
   setLayoutType: (layout: LayoutType) => void;
   layoutDirection: LayoutDirection;
   setLayoutDirection: (direction: LayoutDirection) => void;
-  isAddingLink: boolean;
-  cancelAddLink: () => void;
+  isAddingConnection: boolean;
+  cancelAddConnection: () => void;
 }
 
 // 节点管理属性
 export interface NodeManagementProps {
   nodes: EnhancedNode[];
-  links: EnhancedGraphLink[];
+  connections: EnhancedGraphConnection[];
   setNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
   selectedNode: EnhancedNode | null;
   setSelectedNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
@@ -152,19 +152,19 @@ export interface NodeManagementProps {
   setSelectedNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
   showNotification: (message: string, type: 'success' | 'info' | 'error') => void;
   onAddNode?: (node: EnhancedNode) => void;
-  onDeleteNodes?: (nodes: EnhancedNode[], links: EnhancedGraphLink[]) => void;
+  onDeleteNodes?: (nodes: EnhancedNode[], connections: EnhancedGraphConnection[]) => void;
 }
 
-// 链接管理属性
-export interface LinkManagementProps {
-  links: EnhancedGraphLink[];
-  setLinks: React.Dispatch<React.SetStateAction<EnhancedGraphLink[]>>;
+// 连接管理属性
+export interface ConnectionManagementProps {
+  connections: EnhancedGraphConnection[];
+  setConnections: React.Dispatch<React.SetStateAction<EnhancedGraphConnection[]>>;
   nodes: EnhancedNode[];
   setNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
-  isAddingLink: boolean;
-  setIsAddingLink: React.Dispatch<React.SetStateAction<boolean>>;
-  linkSourceNode: EnhancedNode | null;
-  setLinkSourceNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
+  isAddingConnection: boolean;
+  setIsAddingConnection: React.Dispatch<React.SetStateAction<boolean>>;
+  connectionSourceNode: EnhancedNode | null;
+  setConnectionSourceNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
   mousePosition: { x: number; y: number } | null;
   setMousePosition: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
   showNotification: (message: string, type: 'success' | 'info' | 'error') => void;
@@ -181,7 +181,7 @@ export interface ForceParameters {
 // 图谱画布属性
 export interface GraphCanvasProps {
   nodes: EnhancedNode[];
-  links: EnhancedGraphLink[];
+  connections: EnhancedGraphConnection[];
   isSimulationRunning: boolean;
   layoutType: LayoutType;
   layoutDirection: LayoutDirection;
@@ -193,7 +193,7 @@ export interface GraphCanvasProps {
   onNodeClick: (node: EnhancedNode, event: React.MouseEvent) => void;
   onNodeDragStart: (node: EnhancedNode) => void;
   onNodeDragEnd: (node: EnhancedNode) => void;
-  onLinkClick: (link: EnhancedGraphLink) => void;
+  onConnectionClick: (connection: EnhancedGraphConnection) => void;
   onCanvasClick: (event: React.MouseEvent) => void;
   onCanvasDrop: (event: React.DragEvent, x: number, y: number) => void;
   onBoxSelectStart: (x: number, y: number) => void;
@@ -202,15 +202,15 @@ export interface GraphCanvasProps {
   isBoxSelecting: boolean;
   boxSelection: { x1: number; y1: number; x2: number; y2: number };
   theme: import('./ThemeTypes').GraphTheme; // 主题样式
-  isAddingLink?: boolean; // 是否正在添加链接
-  linkSourceNode?: EnhancedNode | null; // 链接源节点
+  isAddingConnection?: boolean; // 是否正在添加连接
+  connectionSourceNode?: EnhancedNode | null; // 连接源节点
   mousePosition?: { x: number; y: number } | null; // 当前鼠标位置
 }
 
 // 布局管理属性
 export interface LayoutManagerProps {
   nodes: EnhancedNode[];
-  links: EnhancedGraphLink[];
+  connections: EnhancedGraphConnection[];
   layoutType: LayoutType;
   layoutDirection: LayoutDirection;
   width: number;
@@ -220,7 +220,7 @@ export interface LayoutManagerProps {
 // 聚类分析属性
 export interface ClusterAnalysisProps {
   nodes: EnhancedNode[];
-  links: EnhancedGraphLink[];
+  connections: EnhancedGraphConnection[];
   clusters: Record<string, number>;
   setClusters: React.Dispatch<React.SetStateAction<Record<string, number>>>;
   clusterColors: string[];

@@ -1,12 +1,13 @@
 import React, { useReducer, ReactNode, useCallback, useEffect } from 'react';
 
 // 导入类型定义
-import type { EnhancedNode, EnhancedGraphLink, LayoutType, LayoutDirection, RecentAction, SavedLayout, ForceParameters } from './types';
+import type { ReactFlowInstance } from 'reactflow';
+import type { EnhancedNode, EnhancedGraphConnection, LayoutType, LayoutDirection, RecentAction, SavedLayout, ForceParameters } from './types';
 import type { GraphTheme, NodeStyle, LinkStyle } from './ThemeTypes';
 import { PRESET_THEMES } from './ThemeTypes';
 
 // 导入Context和类型
-import { GraphContext, GraphContextType, GraphAction, GraphState, GraphActions } from './GraphContextType';
+import { GraphContext, GraphAction, GraphState, GraphActions } from './GraphContextType';
 
 // 导入服务
 import { graphService } from '../../../services/graphService';
@@ -22,17 +23,19 @@ const getInitialState = (): GraphState => {
   const savedTheme = localStorage.getItem('graphCurrentTheme');
   
   return {
-    // 节点和链接数据
+    // 节点和连接数据
     nodes: [],
-    links: [],
+    connections: [],
     selectedNode: null,
     selectedNodes: [],
-    selectedLink: null,
-    selectedLinks: [],
+    selectedConnection: null,
+    selectedConnections: [],
+    // ReactFlow实例引用
+    reactFlowInstance: null,
     
     // 交互状态
-    isAddingLink: false,
-    linkSourceNode: null,
+    isAddingConnection: false,
+    connectionSourceNode: null,
     mousePosition: null,
     isSimulationRunning: true,
     
@@ -68,7 +71,6 @@ const getInitialState = (): GraphState => {
     isBoxSelecting: false,
     boxSelection: { x1: 0, y1: 0, x2: 0, y2: 0 },
     isSettingsPanelOpen: false,
-    isShortcutsOpen: false,
     toolbarAutoHide: savedToolbarAutoHide ? JSON.parse(savedToolbarAutoHide) : false,
     leftToolbarAutoHide: false,
     
@@ -106,11 +108,11 @@ const getInitialState = (): GraphState => {
 
 const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
   switch (action.type) {
-    // 节点和链接相关
+    // 节点和连接相关
     case 'SET_NODES':
       return { ...state, nodes: action.payload };
-    case 'SET_LINKS':
-      return { ...state, links: action.payload };
+    case 'SET_CONNECTIONS':
+      return { ...state, connections: action.payload };
     case 'ADD_NODE':
       return { ...state, nodes: [...state.nodes, action.payload] };
     case 'UPDATE_NODE':
@@ -122,22 +124,26 @@ const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
       return {
         ...state,
         nodes: state.nodes.filter(node => node.id !== action.payload),
-        links: state.links.filter(link => 
-          String(link.source) !== action.payload && String(link.target) !== action.payload
+        connections: state.connections.filter(connection => 
+          String(connection.source) !== action.payload && String(connection.target) !== action.payload
         )
       };
-    case 'ADD_LINK':
-      return { ...state, links: [...state.links, action.payload] };
-    case 'UPDATE_LINK':
+    case 'ADD_CONNECTION':
+      return { ...state, connections: [...state.connections, action.payload] };
+    case 'UPDATE_CONNECTION':
       return {
         ...state,
-        links: state.links.map(link => link.id === action.payload.id ? action.payload : link)
+        connections: state.connections.map(connection => connection.id === action.payload.id ? action.payload : connection)
       };
-    case 'DELETE_LINK':
+    case 'DELETE_CONNECTION':
       return {
         ...state,
-        links: state.links.filter(link => link.id !== action.payload)
+        connections: state.connections.filter(connection => connection.id !== action.payload)
       };
+    
+    // ReactFlow相关
+    case 'SET_REACT_FLOW_INSTANCE':
+      return { ...state, reactFlowInstance: action.payload };
     
     // 选择相关
     case 'SELECT_NODE':
@@ -145,30 +151,30 @@ const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
         ...state,
         selectedNode: action.payload,
         selectedNodes: action.payload ? [action.payload] : [],
-        selectedLink: null,
-        selectedLinks: []
+        selectedConnection: null,
+        selectedConnections: []
       };
     case 'SELECT_NODES':
       return {
         ...state,
         selectedNodes: action.payload,
         selectedNode: action.payload.length > 0 ? (action.payload[0] || null) : null,
-        selectedLink: null,
-        selectedLinks: []
+        selectedConnection: null,
+        selectedConnections: []
       };
-    case 'SELECT_LINK':
+    case 'SELECT_CONNECTION':
       return {
         ...state,
-        selectedLink: action.payload,
-        selectedLinks: action.payload ? [action.payload] : [],
+        selectedConnection: action.payload,
+        selectedConnections: action.payload ? [action.payload] : [],
         selectedNode: null,
         selectedNodes: []
       };
-    case 'SELECT_LINKS':
+    case 'SELECT_CONNECTIONS':
       return {
         ...state,
-        selectedLinks: action.payload,
-        selectedLink: action.payload.length > 0 ? (action.payload[0] || null) : null,
+        selectedConnections: action.payload,
+        selectedConnection: action.payload.length > 0 ? (action.payload[0] || null) : null,
         selectedNode: null,
         selectedNodes: []
       };
@@ -177,15 +183,15 @@ const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
         ...state,
         selectedNode: null,
         selectedNodes: [],
-        selectedLink: null,
-        selectedLinks: []
+        selectedConnection: null,
+        selectedConnections: []
       };
     
     // 交互相关
-    case 'SET_IS_ADDING_LINK':
-      return { ...state, isAddingLink: action.payload };
-    case 'SET_LINK_SOURCE_NODE':
-      return { ...state, linkSourceNode: action.payload };
+    case 'SET_IS_ADDING_CONNECTION':
+      return { ...state, isAddingConnection: action.payload };
+    case 'SET_CONNECTION_SOURCE_NODE':
+      return { ...state, connectionSourceNode: action.payload };
     case 'SET_MOUSE_POSITION':
       return { ...state, mousePosition: action.payload };
     case 'SET_IS_SIMULATION_RUNNING':
@@ -218,8 +224,7 @@ const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
       return { ...state, boxSelection: action.payload };
     case 'SET_IS_SETTINGS_PANEL_OPEN':
       return { ...state, isSettingsPanelOpen: action.payload };
-    case 'SET_IS_SHORTCUTS_OPEN':
-      return { ...state, isShortcutsOpen: action.payload };
+
     case 'SET_TOOLBAR_AUTO_HIDE':
       return { ...state, toolbarAutoHide: action.payload };
     case 'SET_LEFT_TOOLBAR_AUTO_HIDE':
@@ -272,7 +277,7 @@ const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
         if (!actionToUndo) return state;
         
         let newNodes = [...state.nodes];
-        let newLinks = [...state.links];
+        let newConnections = [...state.connections];
         
         // 根据操作类型执行撤销
         switch (actionToUndo.type) {
@@ -281,24 +286,24 @@ const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
             newNodes = newNodes.filter(node => node.id !== actionToUndo.nodeId);
             break;
           case 'deleteNode':
-            // 撤销删除节点，重新添加该节点和关联的链接
+            // 撤销删除节点，重新添加该节点和关联的连接
             newNodes.push(actionToUndo.data.node);
-            newLinks.push(...actionToUndo.data.links);
+            newConnections.push(...actionToUndo.data.connections);
             break;
-          case 'addLink':
-            // 撤销添加链接，删除该链接
-            newLinks = newLinks.filter(link => link.id !== actionToUndo.linkId);
+          case 'addConnection':
+            // 撤销添加连接，删除该连接
+            newConnections = newConnections.filter(connection => connection.id !== actionToUndo.connectionId);
             break;
-          case 'deleteLink':
-            // 撤销删除链接，重新添加该链接
-            newLinks.push(actionToUndo.data);
+          case 'deleteConnection':
+            // 撤销删除连接，重新添加该连接
+            newConnections.push(actionToUndo.data);
             break;
         }
         
         return {
           ...state,
           nodes: newNodes,
-          links: newLinks,
+          connections: newConnections,
           historyIndex: state.historyIndex - 1
         };
       }
@@ -310,7 +315,7 @@ const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
         if (!actionToRedo) return state;
         
         let newNodes = [...state.nodes];
-        let newLinks = [...state.links];
+        let newConnections = [...state.connections];
         
         // 根据操作类型执行重做
         switch (actionToRedo.type) {
@@ -319,26 +324,26 @@ const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
             newNodes.push(actionToRedo.data.node);
             break;
           case 'deleteNode':
-            // 重做删除节点，删除该节点和关联的链接
+            // 重做删除节点，删除该节点和关联的连接
             newNodes = newNodes.filter(node => node.id !== actionToRedo.nodeId);
-            newLinks = newLinks.filter(link => {
-              return !actionToRedo.data.links.some((l: EnhancedGraphLink) => l.id === link.id);
+            newConnections = newConnections.filter(connection => {
+              return !actionToRedo.data.connections.some((l: EnhancedGraphConnection) => l.id === connection.id);
             });
             break;
-          case 'addLink':
-            // 重做添加链接，重新添加该链接
-            newLinks.push(actionToRedo.data);
+          case 'addConnection':
+            // 重做添加连接，重新添加该连接
+            newConnections.push(actionToRedo.data);
             break;
-          case 'deleteLink':
-            // 重做删除链接，删除该链接
-            newLinks = newLinks.filter(link => link.id !== actionToRedo.linkId);
+          case 'deleteConnection':
+            // 重做删除连接，删除该连接
+            newConnections = newConnections.filter(connection => connection.id !== actionToRedo.connectionId);
             break;
         }
         
         return {
           ...state,
           nodes: newNodes,
-          links: newLinks,
+          connections: newConnections,
           historyIndex: nextIndex
         };
       }
@@ -502,7 +507,7 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const loadGraphData = async () => {
       try {
         dispatch({ type: 'SET_NODES', payload: [] });
-        dispatch({ type: 'SET_LINKS', payload: [] });
+        dispatch({ type: 'SET_CONNECTIONS', payload: [] });
         dispatch({ type: 'SET_IS_SIMULATION_RUNNING', payload: true });
         
         const graphs = await graphService.getAllGraphs('unlisted');
@@ -517,15 +522,15 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               type: node.type || 'concept'
             }));
             
-            const enhancedLinks = graphData.links.map(link => ({
-              ...link,
-              id: `link-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-              source: link.source as string,
-              target: link.target as string
+            const enhancedConnections = graphData.links.map(connection => ({
+              ...connection,
+              id: `connection-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+              source: connection.source as string,
+              target: connection.target as string
             }));
             
             dispatch({ type: 'SET_NODES', payload: enhancedNodes });
-            dispatch({ type: 'SET_LINKS', payload: enhancedLinks });
+            dispatch({ type: 'SET_CONNECTIONS', payload: enhancedConnections });
             dispatch({ type: 'SHOW_NOTIFICATION', payload: { message: '知识图谱加载成功', type: 'success' } });
           } else {
             dispatch({ type: 'SHOW_NOTIFICATION', payload: { message: '知识图谱数据为空，您可以创建新节点', type: 'info' } });
@@ -536,7 +541,7 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       } catch (error) {
         console.error('加载图谱数据失败:', error);
         dispatch({ type: 'SET_NODES', payload: [] });
-        dispatch({ type: 'SET_LINKS', payload: [] });
+        dispatch({ type: 'SET_CONNECTIONS', payload: [] });
         dispatch({ type: 'SET_IS_SIMULATION_RUNNING', payload: false });
         dispatch({ type: 'SHOW_NOTIFICATION', payload: { message: '加载数据失败，请稍后重试', type: 'error' } });
       } finally {
@@ -551,13 +556,18 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Actions实现
   // ===========================
   
-  // 节点和链接操作
+  // ReactFlow相关操作
+  const setReactFlowInstance = useCallback((instance: ReactFlowInstance | null) => {
+    dispatch({ type: 'SET_REACT_FLOW_INSTANCE', payload: instance });
+  }, []);
+  
+  // 节点和连接操作
   const setNodes = useCallback((nodes: EnhancedNode[]) => {
     dispatch({ type: 'SET_NODES', payload: nodes });
   }, []);
   
-  const setLinks = useCallback((links: EnhancedGraphLink[]) => {
-    dispatch({ type: 'SET_LINKS', payload: links });
+  const setConnections = useCallback((connections: EnhancedGraphConnection[]) => {
+    dispatch({ type: 'SET_CONNECTIONS', payload: connections });
   }, []);
   
   const addNode = useCallback((node: EnhancedNode) => {
@@ -572,16 +582,16 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     dispatch({ type: 'DELETE_NODE', payload: nodeId });
   }, []);
   
-  const addLink = useCallback((link: EnhancedGraphLink) => {
-    dispatch({ type: 'ADD_LINK', payload: link });
+  const addConnection = useCallback((connection: EnhancedGraphConnection) => {
+    dispatch({ type: 'ADD_CONNECTION', payload: connection });
   }, []);
   
-  const updateLink = useCallback((link: EnhancedGraphLink) => {
-    dispatch({ type: 'UPDATE_LINK', payload: link });
+  const updateConnection = useCallback((connection: EnhancedGraphConnection) => {
+    dispatch({ type: 'UPDATE_CONNECTION', payload: connection });
   }, []);
   
-  const deleteLink = useCallback((linkId: string) => {
-    dispatch({ type: 'DELETE_LINK', payload: linkId });
+  const deleteConnection = useCallback((connectionId: string) => {
+    dispatch({ type: 'DELETE_CONNECTION', payload: connectionId });
   }, []);
   
   // 选择操作
@@ -593,12 +603,12 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     dispatch({ type: 'SELECT_NODES', payload: nodes });
   }, []);
   
-  const selectLink = useCallback((link: EnhancedGraphLink | null) => {
-    dispatch({ type: 'SELECT_LINK', payload: link });
+  const selectConnection = useCallback((connection: EnhancedGraphConnection | null) => {
+    dispatch({ type: 'SELECT_CONNECTION', payload: connection });
   }, []);
   
-  const selectLinks = useCallback((links: EnhancedGraphLink[]) => {
-    dispatch({ type: 'SELECT_LINKS', payload: links });
+  const selectConnections = useCallback((connections: EnhancedGraphConnection[]) => {
+    dispatch({ type: 'SELECT_CONNECTIONS', payload: connections });
   }, []);
   
   const clearSelection = useCallback(() => {
@@ -606,12 +616,12 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
   
   // 交互操作
-  const setIsAddingLink = useCallback((isAddingLink: boolean) => {
-    dispatch({ type: 'SET_IS_ADDING_LINK', payload: isAddingLink });
+  const setIsAddingConnection = useCallback((isAddingConnection: boolean) => {
+    dispatch({ type: 'SET_IS_ADDING_CONNECTION', payload: isAddingConnection });
   }, []);
   
-  const setLinkSourceNode = useCallback((node: EnhancedNode | null) => {
-    dispatch({ type: 'SET_LINK_SOURCE_NODE', payload: node });
+  const setConnectionSourceNode = useCallback((node: EnhancedNode | null) => {
+    dispatch({ type: 'SET_CONNECTION_SOURCE_NODE', payload: node });
   }, []);
   
   const setMousePosition = useCallback((position: { x: number; y: number } | null) => {
@@ -656,7 +666,7 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     dispatch({ type: 'SET_CURRENT_THEME', payload: theme });
   }, []);
   
-  const setCopiedStyle = useCallback((style: { type: 'node' | 'link'; style: NodeStyle | LinkStyle } | null) => {
+  const setCopiedStyle = useCallback((style: { type: 'node' | 'connection'; style: NodeStyle | LinkStyle } | null) => {
     dispatch({ type: 'SET_COPIED_STYLE', payload: style });
   }, []);
   
@@ -670,10 +680,6 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   
   const setIsSettingsPanelOpen = useCallback((isOpen: boolean) => {
     dispatch({ type: 'SET_IS_SETTINGS_PANEL_OPEN', payload: isOpen });
-  }, []);
-  
-  const setIsShortcutsOpen = useCallback((isOpen: boolean) => {
-    dispatch({ type: 'SET_IS_SHORTCUTS_OPEN', payload: isOpen });
   }, []);
   
   const setToolbarAutoHide = useCallback((autoHide: boolean) => {
@@ -718,7 +724,7 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // 布局算法实现
   const applyLayout = useCallback((layoutType: LayoutType, direction: LayoutDirection) => {
     const nodes = [...state.nodes];
-    const links = [...state.links];
+    const connections = [...state.connections];
     
     let newNodes = [...nodes];
     
@@ -749,9 +755,9 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           });
           
           // 构建父子关系
-          links.forEach(link => {
-            const sourceId = typeof link.source === 'string' ? link.source : (link.source as EnhancedNode).id;
-            const targetId = typeof link.target === 'string' ? link.target : (link.target as EnhancedNode).id;
+          connections.forEach(connection => {
+            const sourceId = typeof connection.source === 'string' ? connection.source : (connection.source as EnhancedNode).id;
+            const targetId = typeof connection.target === 'string' ? connection.target : (connection.target as EnhancedNode).id;
             
             childrenMap.get(sourceId)?.push(targetId);
             parentsMap.get(targetId)?.push(sourceId);
@@ -850,14 +856,14 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           let maxConnections = 0;
           
           nodes.forEach(node => {
-            const connections = links.filter(link => {
-              const sourceId = typeof link.source === 'string' ? link.source : (link.source as EnhancedNode).id;
-              const targetId = typeof link.target === 'string' ? link.target : (link.target as EnhancedNode).id;
+            const connectionsCount = connections.filter(connection => {
+              const sourceId = typeof connection.source === 'string' ? connection.source : (connection.source as EnhancedNode).id;
+              const targetId = typeof connection.target === 'string' ? connection.target : (connection.target as EnhancedNode).id;
               return sourceId === node.id || targetId === node.id;
             }).length;
             
-            if (connections > maxConnections) {
-              maxConnections = connections;
+            if (connectionsCount > maxConnections) {
+              maxConnections = connectionsCount;
               centerNode = node;
             }
           });
@@ -902,9 +908,9 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           });
           
           // 构建父子关系
-          links.forEach(link => {
-            const sourceId = typeof link.source === 'string' ? link.source : (link.source as EnhancedNode).id;
-            const targetId = typeof link.target === 'string' ? link.target : (link.target as EnhancedNode).id;
+          connections.forEach(connection => {
+            const sourceId = typeof connection.source === 'string' ? connection.source : (connection.source as EnhancedNode).id;
+            const targetId = typeof connection.target === 'string' ? connection.target : (connection.target as EnhancedNode).id;
             
             childrenMap.get(sourceId)?.push(targetId);
             parentsMap.get(targetId)?.push(sourceId);
@@ -964,7 +970,7 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     dispatch({ type: 'SET_LAYOUT_TYPE', payload: layoutType });
     dispatch({ type: 'SET_LAYOUT_DIRECTION', payload: direction });
     showNotification(`已应用${layoutType}布局`, 'success');
-  }, [state.nodes, state.links, state.nodeSpacing, state.levelSpacing, dispatch, showNotification]);
+  }, [state.nodes, state.connections, state.nodeSpacing, state.levelSpacing, dispatch, showNotification]);
   
   const closeNotification = useCallback(() => {
     dispatch({ type: 'CLOSE_NOTIFICATION' });
@@ -1243,8 +1249,8 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     });
   }, [state.nodes]);
   
-  const handleLinkClick = useCallback((link: EnhancedGraphLink) => {
-    dispatch({ type: 'SELECT_LINK', payload: link });
+  const handleConnectionClick = useCallback((connection: EnhancedGraphConnection) => {
+    dispatch({ type: 'SELECT_CONNECTION', payload: connection });
   }, []);
   
   const handleCanvasClick = useCallback(() => {
@@ -1286,9 +1292,9 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     dispatch({ type: 'SHOW_NOTIFICATION', payload: { message: '节点属性已更新', type: 'success' } });
   }, []);
   
-  const handleUpdateLink = useCallback((updatedLink: EnhancedGraphLink) => {
-    dispatch({ type: 'UPDATE_LINK', payload: updatedLink });
-    dispatch({ type: 'SHOW_NOTIFICATION', payload: { message: '链接属性已更新', type: 'success' } });
+  const handleUpdateConnection = useCallback((updatedConnection: EnhancedGraphConnection) => {
+    dispatch({ type: 'UPDATE_CONNECTION', payload: updatedConnection });
+    dispatch({ type: 'SHOW_NOTIFICATION', payload: { message: '连接属性已更新', type: 'success' } });
   }, []);
   
   const handleCopyNodeStyle = useCallback(() => {
@@ -1301,15 +1307,15 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     showNotification('已复制节点样式', 'success');
   }, [state.selectedNode, state.currentTheme, showNotification]);
   
-  const handleCopyLinkStyle = useCallback(() => {
-    if (!state.selectedLink) {
-      showNotification('请先选择一个链接', 'error');
+  const handleCopyConnectionStyle = useCallback(() => {
+    if (!state.selectedConnection) {
+      showNotification('请先选择一个连接', 'error');
       return;
     }
     
-    dispatch({ type: 'SET_COPIED_STYLE', payload: { type: 'link', style: state.currentTheme.link } });
-    showNotification('已复制链接样式', 'success');
-  }, [state.selectedLink, state.currentTheme, showNotification]);
+    dispatch({ type: 'SET_COPIED_STYLE', payload: { type: 'connection', style: state.currentTheme.link } });
+    showNotification('已复制连接样式', 'success');
+  }, [state.selectedConnection, state.currentTheme, showNotification]);
   
   const handlePasteStyle = useCallback(() => {
     if (!state.copiedStyle) {
@@ -1323,10 +1329,10 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
     
     dispatch({ type: 'SET_CURRENT_THEME', payload: updatedTheme });
-    showNotification(`已粘贴${state.copiedStyle.type === 'node' ? '节点' : '链接'}样式`, 'success');
+    showNotification(`已粘贴${state.copiedStyle.type === 'node' ? '节点' : '连接'}样式`, 'success');
   }, [state.copiedStyle, state.currentTheme, showNotification]);
   
-  const handleImportGraph = useCallback((graph: { nodes: EnhancedNode[]; links: EnhancedGraphLink[] }) => {
+  const handleImportGraph = useCallback((graph: { nodes: EnhancedNode[]; connections: EnhancedGraphConnection[] }) => {
     const newNodes: EnhancedNode[] = graph.nodes.map((node: EnhancedNode) => ({
       id: String(node.id || `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`),
       title: node.title || '新节点',
@@ -1339,22 +1345,22 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       _aggregatedNodes: []
     }));
     
-    const newLinks: EnhancedGraphLink[] = graph.links.map((link: EnhancedGraphLink) => {
-      const source = link.source && typeof link.source === 'object' ? String((link.source as EnhancedNode).id) : String(link.source);
-      const target = link.target && typeof link.target === 'object' ? String((link.target as EnhancedNode).id) : String(link.target);
+    const newConnections: EnhancedGraphConnection[] = graph.connections.map((connection: EnhancedGraphConnection) => {
+      const source = connection.source && typeof connection.source === 'object' ? String((connection.source as EnhancedNode).id) : String(connection.source);
+      const target = connection.target && typeof connection.target === 'object' ? String((connection.target as EnhancedNode).id) : String(connection.target);
       
       return {
-        id: `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        type: link.type || 'related',
+        id: `connection-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: connection.type || 'related',
         source: source,
         target: target,
-        label: link.label || '',
-        weight: link.weight || 1.0
+        label: connection.label || '',
+        weight: connection.weight || 1.0
       };
     });
     
     dispatch({ type: 'SET_NODES', payload: newNodes });
-    dispatch({ type: 'SET_LINKS', payload: newLinks });
+    dispatch({ type: 'SET_CONNECTIONS', payload: newConnections });
     showNotification('图谱已导入', 'success');
   }, [showNotification]);
   
@@ -1375,12 +1381,67 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [showNotification]);
   
   const handleCanvasDrop = useCallback((_event: React.DragEvent, x: number, y: number) => {
+    // 计算新节点的位置，避免与现有节点重叠
+    let finalX = x;
+    let finalY = y;
+    
+    // 节点大小参数，用于计算避免重叠的距离
+    const NODE_SIZE = 100;
+    const MIN_DISTANCE = NODE_SIZE * 1.5; // 最小距离，避免重叠
+    const MAX_DISTANCE = NODE_SIZE * 3; // 最大距离，不要离太远
+    
+    if (state.nodes.length === 0) {
+      // 如果是第一个节点，在视图中心创建
+      finalX = 0;
+      finalY = 0;
+    } else {
+      // 检查是否与现有节点重叠
+      let isOverlapping = true;
+      let attempts = 0;
+      const MAX_ATTEMPTS = 20;
+      
+      while (isOverlapping && attempts < MAX_ATTEMPTS) {
+        isOverlapping = false;
+        
+        // 检查当前位置是否与任何现有节点重叠
+        for (const node of state.nodes) {
+          const distance = Math.sqrt(
+            Math.pow(finalX - (node.x || 0), 2) + 
+            Math.pow(finalY - (node.y || 0), 2)
+          );
+          
+          if (distance < MIN_DISTANCE) {
+            isOverlapping = true;
+            attempts++;
+            
+            // 优化：在现有节点附近寻找合适位置，而不是总是从原始位置偏移
+            // 随机选择一个现有节点
+            const randomIndex = Math.floor(Math.random() * state.nodes.length);
+            const randomNode = state.nodes[randomIndex] || { x: 0, y: 0 };
+            // 计算随机角度
+            const angle = Math.random() * Math.PI * 2;
+            // 计算新位置，在随机节点周围的合理范围内
+            const distance = MIN_DISTANCE + Math.random() * (MAX_DISTANCE - MIN_DISTANCE);
+            finalX = (randomNode.x || 0) + Math.cos(angle) * distance;
+            finalY = (randomNode.y || 0) + Math.sin(angle) * distance;
+            break;
+          }
+        }
+      }
+      
+      // 如果尝试了MAX_ATTEMPTS次仍未找到合适位置，使用原始位置
+      if (attempts >= MAX_ATTEMPTS) {
+        finalX = x;
+        finalY = y;
+      }
+    }
+    
     const newNode: EnhancedNode = {
       id: `node_${Date.now()}`,
       title: '新节点',
       connections: 0,
-      x: x,
-      y: y,
+      x: finalX,
+      y: finalY,
       type: 'concept',
       is_custom: true,
       isExpanded: false,
@@ -1396,7 +1457,7 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       data: { node: newNode }
     } });
     showNotification('节点创建成功', 'success');
-  }, [showNotification]);
+  }, [state.nodes, showNotification]);
   
   const togglePanel = useCallback((panelId: string | null) => {
     dispatch({ type: 'SET_ACTIVE_PANEL', payload: state.activePanel === panelId ? null : panelId });
@@ -1410,125 +1471,84 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
     
     // 创建分组节点
-    const groupId = `group_${Date.now()}`;
-    const memberIds = nodes.map(node => node.id);
-    
-    // 计算分组节点的中心位置
-    const avgX = nodes.reduce((sum, node) => sum + (node.x || 0), 0) / nodes.length;
-    const avgY = nodes.reduce((sum, node) => sum + (node.y || 0), 0) / nodes.length;
-    
-    const groupNode: EnhancedNode = {
-      id: groupId,
+    const group: EnhancedNode = {
+      id: `group_${Date.now()}`,
       title: `分组 (${nodes.length}个节点)`,
       connections: 0,
       type: 'aggregate',
-      shape: 'rectangle',
       isGroup: true,
-      memberIds: memberIds,
-      x: avgX,
-      y: avgY,
+      memberIds: nodes.map(node => node.id),
+      x: nodes.reduce((sum, node) => sum + (node.x || 0), 0) / nodes.length,
+      y: nodes.reduce((sum, node) => sum + (node.y || 0), 0) / nodes.length,
       isExpanded: true,
-      _isAggregated: true,
-      _aggregatedNodes: nodes,
-      _clusterCenter: { x: avgX, y: avgY },
-      _clusterSize: nodes.length
+      _isAggregated: false,
+      _aggregatedNodes: []
     };
     
-    // 发送分组action
-    dispatch({ type: 'GROUP_NODES', payload: { nodes, group: groupNode } });
-    
-    // 添加到历史记录
+    // 添加分组到历史记录
     dispatch({ type: 'ADD_HISTORY', payload: {
       type: 'groupNodes',
-      groupId: groupId,
+      groupId: group.id,
       timestamp: Date.now(),
-      data: { nodes, group: groupNode }
+      data: { nodes, group }
     } });
     
-    showNotification('节点分组成功', 'success');
+    // 更新状态
+    dispatch({ type: 'GROUP_NODES', payload: { nodes, group } });
+    showNotification('节点已分组', 'success');
   }, [showNotification]);
   
-  // 取消分组操作
   const ungroupNodes = useCallback((groupId: string) => {
-    // 发送取消分组action
+    // 添加到历史记录
+    dispatch({ type: 'ADD_HISTORY', payload: {
+      type: 'ungroupNodes',
+      groupId,
+      timestamp: Date.now(),
+      data: { nodes: [], group: {} as EnhancedNode }
+    } });
+    
+    // 更新状态
     dispatch({ type: 'UNGROUP_NODES', payload: groupId });
-    
-    // 从历史记录中找到对应的分组操作
-    const groupAction = state.history.find(action => 
-      action.type === 'groupNodes' && action.groupId === groupId
-    );
-    
-    if (groupAction && groupAction.type === 'groupNodes') {
-      // 添加到历史记录
-      dispatch({ type: 'ADD_HISTORY', payload: {
-        type: 'ungroupNodes',
-        groupId: groupId,
-        timestamp: Date.now(),
-        data: groupAction.data
-      } });
-    }
-    
-    showNotification('取消分组成功', 'success');
-  }, [state.history, showNotification]);
+    showNotification('分组已取消', 'success');
+  }, [showNotification]);
   
-  // 切换分组展开状态
   const toggleGroupExpansion = useCallback((nodeId: string) => {
-    const node = state.nodes.find(n => n.id === nodeId);
-    if (!node || !node.isGroup) return;
+    // 切换分组节点的展开状态
+    const updatedNodes = state.nodes.map(node => {
+      if (node.id === nodeId && node.isGroup) {
+        return { ...node, isExpanded: !node.isExpanded };
+      }
+      return node;
+    });
     
-    const updatedNode = {
-      ...node,
-      isExpanded: !node.isExpanded
-    };
-    
-    dispatch({ type: 'UPDATE_NODE', payload: updatedNode });
-    
-    // 如果展开，确保子节点可见；如果折叠，隐藏子节点
-    if (updatedNode.isExpanded && node.memberIds) {
-      // 展开分组，显示所有成员节点
-      const updatedNodes = state.nodes.map(n => {
-        if (node.memberIds?.includes(n.id)) {
-          return { ...n, isVisible: true };
-        }
-        return n;
-      });
-      dispatch({ type: 'SET_NODES', payload: updatedNodes });
-    } else if (node.memberIds) {
-      // 折叠分组，隐藏所有成员节点
-      const updatedNodes = state.nodes.map(n => {
-        if (node.memberIds?.includes(n.id)) {
-          return { ...n, isVisible: false };
-        }
-        return n;
-      });
-      dispatch({ type: 'SET_NODES', payload: updatedNodes });
-    }
-    
-    showNotification(`${updatedNode.isExpanded ? '展开' : '折叠'}分组成功`, 'success');
-  }, [state.nodes, showNotification]);
+    dispatch({ type: 'SET_NODES', payload: updatedNodes });
+  }, [state.nodes]);
   
-  // 组合所有actions
+  // 构建actions对象
   const actions: GraphActions = {
-    // 节点和链接操作
+    // ReactFlow相关
+    setReactFlowInstance,
+    
+    // 节点和连接操作
     setNodes,
-    setLinks,
+    setConnections,
     addNode,
     updateNode,
     deleteNode,
-    addLink,
-    updateLink,
-    deleteLink,
+    addConnection,
+    updateConnection,
+    deleteConnection,
     
     // 选择操作
     selectNode,
     selectNodes,
-    selectLink,
-    selectLinks,
+    selectConnection,
+    selectConnections,
     clearSelection,
     
     // 交互操作
-    setIsAddingLink,
-    setLinkSourceNode,
+    setIsAddingConnection,
+    setConnectionSourceNode,
     setMousePosition,
     setIsSimulationRunning,
     
@@ -1548,7 +1568,6 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setIsBoxSelecting,
     setBoxSelection,
     setIsSettingsPanelOpen,
-    setIsShortcutsOpen,
     setToolbarAutoHide,
     setLeftToolbarAutoHide,
     
@@ -1587,15 +1606,15 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     handleNodeClick,
     handleNodeDragStart,
     handleNodeDragEnd,
-    handleLinkClick,
+    handleConnectionClick,
     handleCanvasClick,
     handleBoxSelectStart,
     handleBoxSelectUpdate,
     handleBoxSelectEnd,
     handleUpdateNode,
-    handleUpdateLink,
+    handleUpdateConnection,
     handleCopyNodeStyle,
-    handleCopyLinkStyle,
+    handleCopyConnectionStyle,
     handlePasteStyle,
     handleImportGraph,
     handleSaveLayout,
@@ -1605,132 +1624,8 @@ export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     togglePanel
   };
   
-  // 提供Context值
-  const contextValue: GraphContextType = {
-    state,
-    actions
-  };
-  
-  // 键盘事件处理 - 放在所有函数声明之后
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // 检查是否是图谱画布获得焦点
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return; // 不处理输入框中的键盘事件
-      }
-      
-      // 选择相关快捷键
-      if (e.ctrlKey || e.metaKey) {
-        switch (e.key) {
-          case 'a':
-            e.preventDefault();
-            // 选择所有节点
-            dispatch({ type: 'SELECT_NODES', payload: state.nodes });
-            break;
-          case 'g':
-            e.preventDefault();
-            // 分组选择的节点
-            if (state.selectedNodes.length > 1) {
-              groupNodes(state.selectedNodes);
-            }
-            break;
-          case 'u':
-            e.preventDefault();
-            // 取消分组
-            if (state.selectedNode && state.selectedNode.isGroup) {
-              ungroupNodes(state.selectedNode.id);
-            }
-            break;
-        }
-      } else {
-        switch (e.key) {
-          case 'Delete':
-          case 'Backspace':
-            // 删除选中的节点和链接
-            if (state.selectedNodes.length > 0) {
-              state.selectedNodes.forEach(node => {
-                dispatch({ type: 'DELETE_NODE', payload: node.id });
-              });
-              showNotification(`已删除 ${state.selectedNodes.length} 个节点`, 'success');
-            } else if (state.selectedLinks.length > 0) {
-              state.selectedLinks.forEach(link => {
-                dispatch({ type: 'DELETE_LINK', payload: link.id });
-              });
-              showNotification(`已删除 ${state.selectedLinks.length} 个链接`, 'success');
-            }
-            break;
-          case 'Escape':
-            // 清除选择
-            dispatch({ type: 'CLEAR_SELECTION' });
-            break;
-          case ' ': // 空格键
-            e.preventDefault();
-            // 切换模拟运行状态
-            dispatch({ type: 'SET_IS_SIMULATION_RUNNING', payload: !state.isSimulationRunning });
-            showNotification(
-              `模拟已${!state.isSimulationRunning ? '启动' : '停止'}`, 
-              'success'
-            );
-            break;
-          case 'ArrowUp':
-          case 'ArrowDown':
-          case 'ArrowLeft':
-          case 'ArrowRight':
-            // 键盘导航，移动选中节点
-            e.preventDefault();
-            if (state.selectedNodes.length === 0) return;
-            
-            const delta = 10;
-            const updatedNodes = state.selectedNodes.map(node => {
-              let newX = node.x || 0;
-              let newY = node.y || 0;
-              
-              switch (e.key) {
-                case 'ArrowUp':
-                  newY -= delta;
-                  break;
-                case 'ArrowDown':
-                  newY += delta;
-                  break;
-                case 'ArrowLeft':
-                  newX -= delta;
-                  break;
-                case 'ArrowRight':
-                  newX += delta;
-                  break;
-              }
-              
-              return {
-                ...node,
-                x: newX,
-                y: newY
-              };
-            });
-            
-            // 更新节点位置
-            const allNodes = state.nodes.map(node => {
-              const updated = updatedNodes.find(n => n.id === node.id);
-              return updated || node;
-            });
-            
-            dispatch({ type: 'SET_NODES', payload: allNodes });
-            break;
-        }
-      }
-    };
-    
-    // 添加键盘事件监听器
-    window.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      // 移除键盘事件监听器
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [state.nodes, state.selectedNodes, state.selectedLinks, state.selectedNode, state.isSimulationRunning, groupNodes, ungroupNodes, showNotification]);
-  
   return (
-    <GraphContext.Provider value={contextValue}>
+    <GraphContext.Provider value={{ state, actions }}>
       {children}
     </GraphContext.Provider>
   );

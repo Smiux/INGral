@@ -1,5 +1,6 @@
 import { createContext } from 'react';
-import type { EnhancedNode, EnhancedGraphLink, LayoutType, LayoutDirection, RecentAction, SavedLayout, ForceParameters } from './types';
+import type { ReactFlowInstance } from 'reactflow';
+import type { EnhancedNode, EnhancedGraphConnection, LayoutType, LayoutDirection, RecentAction, SavedLayout, ForceParameters } from './types';
 import type { GraphTheme, NodeStyle, LinkStyle } from './ThemeTypes';
 
 // ===========================
@@ -8,17 +9,19 @@ import type { GraphTheme, NodeStyle, LinkStyle } from './ThemeTypes';
 
 // 图谱状态接口
 export interface GraphState {
-  // 节点和链接数据
+  // 节点和连接数据
   nodes: EnhancedNode[];
-  links: EnhancedGraphLink[];
+  connections: EnhancedGraphConnection[];
   selectedNode: EnhancedNode | null;
   selectedNodes: EnhancedNode[];
-  selectedLink: EnhancedGraphLink | null;
-  selectedLinks: EnhancedGraphLink[];
+  selectedConnection: EnhancedGraphConnection | null;
+  selectedConnections: EnhancedGraphConnection[];
+  // ReactFlow实例引用
+  reactFlowInstance: ReactFlowInstance | null;
   
   // 交互状态
-  isAddingLink: boolean;
-  linkSourceNode: EnhancedNode | null;
+  isAddingConnection: boolean;
+  connectionSourceNode: EnhancedNode | null;
   mousePosition: { x: number; y: number } | null;
   isSimulationRunning: boolean;
   
@@ -33,11 +36,10 @@ export interface GraphState {
   isLeftToolbarVisible: boolean;
   activePanel: string | null;
   currentTheme: GraphTheme;
-  copiedStyle: { type: 'node' | 'link'; style: NodeStyle | LinkStyle } | null;
+  copiedStyle: { type: 'node' | 'connection'; style: NodeStyle | LinkStyle } | null;
   isBoxSelecting: boolean;
   boxSelection: { x1: number; y1: number; x2: number; y2: number };
   isSettingsPanelOpen: boolean;
-  isShortcutsOpen: boolean;
   toolbarAutoHide: boolean;
   leftToolbarAutoHide: boolean;
   
@@ -65,26 +67,26 @@ export interface GraphState {
 
 // Action类型定义
 export type GraphAction =
-  // 节点和链接相关
+  // 节点和连接相关
   | { type: 'SET_NODES'; payload: EnhancedNode[] }
-  | { type: 'SET_LINKS'; payload: EnhancedGraphLink[] }
+  | { type: 'SET_CONNECTIONS'; payload: EnhancedGraphConnection[] }
   | { type: 'ADD_NODE'; payload: EnhancedNode }
   | { type: 'UPDATE_NODE'; payload: EnhancedNode }
   | { type: 'DELETE_NODE'; payload: string }
-  | { type: 'ADD_LINK'; payload: EnhancedGraphLink }
-  | { type: 'UPDATE_LINK'; payload: EnhancedGraphLink }
-  | { type: 'DELETE_LINK'; payload: string }
+  | { type: 'ADD_CONNECTION'; payload: EnhancedGraphConnection }
+  | { type: 'UPDATE_CONNECTION'; payload: EnhancedGraphConnection }
+  | { type: 'DELETE_CONNECTION'; payload: string }
   
   // 选择相关
   | { type: 'SELECT_NODE'; payload: EnhancedNode | null }
   | { type: 'SELECT_NODES'; payload: EnhancedNode[] }
-  | { type: 'SELECT_LINK'; payload: EnhancedGraphLink | null }
-  | { type: 'SELECT_LINKS'; payload: EnhancedGraphLink[] }
+  | { type: 'SELECT_CONNECTION'; payload: EnhancedGraphConnection | null }
+  | { type: 'SELECT_CONNECTIONS'; payload: EnhancedGraphConnection[] }
   | { type: 'CLEAR_SELECTION' }
   
   // 交互相关
-  | { type: 'SET_IS_ADDING_LINK'; payload: boolean }
-  | { type: 'SET_LINK_SOURCE_NODE'; payload: EnhancedNode | null }
+  | { type: 'SET_IS_ADDING_CONNECTION'; payload: boolean }
+  | { type: 'SET_CONNECTION_SOURCE_NODE'; payload: EnhancedNode | null }
   | { type: 'SET_MOUSE_POSITION'; payload: { x: number; y: number } | null }
   | { type: 'SET_IS_SIMULATION_RUNNING'; payload: boolean }
   
@@ -99,7 +101,7 @@ export type GraphAction =
   | { type: 'SET_IS_LEFT_TOOLBAR_VISIBLE'; payload: boolean }
   | { type: 'SET_ACTIVE_PANEL'; payload: string | null }
   | { type: 'SET_CURRENT_THEME'; payload: GraphTheme }
-  | { type: 'SET_COPIED_STYLE'; payload: { type: 'node' | 'link'; style: NodeStyle | LinkStyle } | null }
+  | { type: 'SET_COPIED_STYLE'; payload: { type: 'node' | 'connection'; style: NodeStyle | LinkStyle } | null }
   | { type: 'SET_IS_BOX_SELECTING'; payload: boolean }
   | { type: 'SET_BOX_SELECTION'; payload: { x1: number; y1: number; x2: number; y2: number } }
   | { type: 'SET_IS_SETTINGS_PANEL_OPEN'; payload: boolean }
@@ -134,7 +136,9 @@ export type GraphAction =
   
   // 分组相关
   | { type: 'GROUP_NODES'; payload: { nodes: EnhancedNode[]; group: EnhancedNode } }
-  | { type: 'UNGROUP_NODES'; payload: string }; // payload为分组ID
+  | { type: 'UNGROUP_NODES'; payload: string } // payload为分组ID
+  // ReactFlow相关
+  | { type: 'SET_REACT_FLOW_INSTANCE'; payload: ReactFlowInstance | null };
 
 // 图谱上下文接口
 export interface GraphContextType {
@@ -144,26 +148,27 @@ export interface GraphContextType {
 
 // 图谱操作接口
 export interface GraphActions {
-  // 节点和链接操作
+  // 节点和连接操作
+  setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
   setNodes: (nodes: EnhancedNode[]) => void;
-  setLinks: (links: EnhancedGraphLink[]) => void;
+  setConnections: (connections: EnhancedGraphConnection[]) => void;
   addNode: (node: EnhancedNode) => void;
   updateNode: (node: EnhancedNode) => void;
   deleteNode: (nodeId: string) => void;
-  addLink: (link: EnhancedGraphLink) => void;
-  updateLink: (link: EnhancedGraphLink) => void;
-  deleteLink: (linkId: string) => void;
+  addConnection: (connection: EnhancedGraphConnection) => void;
+  updateConnection: (connection: EnhancedGraphConnection) => void;
+  deleteConnection: (connectionId: string) => void;
   
   // 选择操作
   selectNode: (node: EnhancedNode | null) => void;
   selectNodes: (nodes: EnhancedNode[]) => void;
-  selectLink: (link: EnhancedGraphLink | null) => void;
-  selectLinks: (links: EnhancedGraphLink[]) => void;
+  selectConnection: (connection: EnhancedGraphConnection | null) => void;
+  selectConnections: (connections: EnhancedGraphConnection[]) => void;
   clearSelection: () => void;
   
   // 交互操作
-  setIsAddingLink: (isAddingLink: boolean) => void;
-  setLinkSourceNode: (node: EnhancedNode | null) => void;
+  setIsAddingConnection: (isAddingConnection: boolean) => void;
+  setConnectionSourceNode: (node: EnhancedNode | null) => void;
   setMousePosition: (position: { x: number; y: number } | null) => void;
   setIsSimulationRunning: (isRunning: boolean) => void;
   
@@ -179,11 +184,10 @@ export interface GraphActions {
   setIsLeftToolbarVisible: (isVisible: boolean) => void;
   setActivePanel: (panelId: string | null) => void;
   setCurrentTheme: (theme: GraphTheme) => void;
-  setCopiedStyle: (style: { type: 'node' | 'link'; style: NodeStyle | LinkStyle } | null) => void;
+  setCopiedStyle: (style: { type: 'node' | 'connection'; style: NodeStyle | LinkStyle } | null) => void;
   setIsBoxSelecting: (isSelecting: boolean) => void;
   setBoxSelection: (selection: { x1: number; y1: number; x2: number; y2: number }) => void;
   setIsSettingsPanelOpen: (isOpen: boolean) => void;
-  setIsShortcutsOpen: (isOpen: boolean) => void;
   setToolbarAutoHide: (autoHide: boolean) => void;
   setLeftToolbarAutoHide: (autoHide: boolean) => void;
   
@@ -222,17 +226,17 @@ export interface GraphActions {
   handleNodeClick: (node: EnhancedNode, event: React.MouseEvent) => Promise<void>;
   handleNodeDragStart: (node: EnhancedNode) => void;
   handleNodeDragEnd: (node: EnhancedNode) => void;
-  handleLinkClick: (link: EnhancedGraphLink) => void;
+  handleConnectionClick: (connection: EnhancedGraphConnection) => void;
   handleCanvasClick: () => void;
   handleBoxSelectStart: (x: number, y: number) => void;
   handleBoxSelectUpdate: (x: number, y: number) => void;
   handleBoxSelectEnd: () => void;
   handleUpdateNode: (updatedNode: EnhancedNode) => void;
-  handleUpdateLink: (updatedLink: EnhancedGraphLink) => void;
+  handleUpdateConnection: (updatedConnection: EnhancedGraphConnection) => void;
   handleCopyNodeStyle: () => void;
-  handleCopyLinkStyle: () => void;
+  handleCopyConnectionStyle: () => void;
   handlePasteStyle: () => void;
-  handleImportGraph: (graph: { nodes: EnhancedNode[]; links: EnhancedGraphLink[] }) => void;
+  handleImportGraph: (graph: { nodes: EnhancedNode[]; connections: EnhancedGraphConnection[] }) => void;
   handleSaveLayout: (layout: SavedLayout) => void;
   handleLoadLayout: (layout: SavedLayout) => void;
   handleDeleteLayout: (layoutId: string) => void;

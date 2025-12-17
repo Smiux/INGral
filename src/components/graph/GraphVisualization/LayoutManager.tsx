@@ -34,7 +34,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
   onDeleteLayout?: (layoutId: string) => void;
 }> = ({
   nodes,
-  links,
+  connections,
   layoutType,
   layoutDirection,
   nodeSpacing = 50,
@@ -433,7 +433,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
       )}
       
       <div className="text-xs text-gray-500">
-        节点数: {nodes.length} | 链接数: {links.length}
+        节点数: {nodes.length} | 链接数: {connections.length}
       </div>
     </div>
   );
