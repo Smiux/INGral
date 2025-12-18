@@ -29,7 +29,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
     type: '',
     connections: ''
   });
-  
+
   /**
    * 添加新节点
    */
@@ -40,6 +40,12 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
       connections: 0,
       x: Math.random() * 400 + 100,
       y: Math.random() * 400 + 100,
+      type: 'concept',
+      shape: 'circle',
+      content: '',
+      isExpanded: false,
+      _isAggregated: false,
+      _aggregatedNodes: []
     };
 
     setNodes(prev => [...prev, newNode]);
@@ -52,7 +58,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
       onAddNode(newNode);
     }
   };
-  
+
   /**
    * 处理批量编辑表单变化
    */
@@ -119,7 +125,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
       showNotification('没有可应用的更改', 'info');
     }
   };
-  
+
   /**
    * 取消批量编辑
    */
@@ -322,17 +328,20 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
           {nodes.map(node => (
             <li
               key={node.id}
-              className={`p-2 rounded-md cursor-pointer flex items-center gap-2 ${selectedNodes.some(n => n.id === node.id) ? 'bg-blue-100 border border-blue-500' : 'bg-gray-100 hover:bg-gray-200'}`}
+              className={`flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors ${selectedNodes.some(n => n.id === node.id) ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-50'}`}
               onClick={() => handleSelectNode(node)}
             >
               <input
                 type="checkbox"
                 checked={selectedNodes.some(n => n.id === node.id)}
                 onChange={(e) => handleToggleNodeSelection(node, e)}
-                className="cursor-pointer"
+                className="h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
               />
-              <span className="text-sm font-medium">{node.title}</span>
-              <span className="text-xs text-gray-500">({node.connections} 连接)</span>
+              <div className="flex-1">
+                <div className="text-sm font-medium truncate">{node.title}</div>
+                <div className="text-xs text-gray-500">类型: {node.type || 'concept'} | 连接数: {node.connections}</div>
+              </div>
+              <div className="text-xs px-2 py-1 bg-gray-200 rounded-full">{node.shape || 'circle'}</div>
             </li>
           ))}
         </ul>

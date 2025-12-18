@@ -129,27 +129,15 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
   
   // 监听外部节点变化，更新ReactFlow内部状态
   React.useEffect(() => {
-    // 只有当节点数量变化或节点ID发生变化时，才更新内部状态
-    const currentNodeIds = new Set(reactFlowNodes.map(n => n.id));
-    const newNodeIds = new Set(nodes.map(n => n.id));
-    
-    if (currentNodeIds.size !== newNodeIds.size || 
-        ![...newNodeIds].every(id => currentNodeIds.has(id))) {
-      setReactFlowNodes(convertToReactFlowNodes(nodes));
-    }
-  }, [nodes, convertToReactFlowNodes, reactFlowNodes]);
+    // 当节点数组变化时（包括位置、属性等），更新内部状态
+    setReactFlowNodes(convertToReactFlowNodes(nodes));
+  }, [nodes, convertToReactFlowNodes]);
   
   // 监听外部连接变化，更新ReactFlow内部状态
   React.useEffect(() => {
-    // 只有当连接数量变化或连接ID发生变化时，才更新内部状态
-    const currentEdgeIds = new Set(reactFlowEdges.map(e => e.id));
-    const newEdgeIds = new Set(connections.map(c => c.id));
-    
-    if (currentEdgeIds.size !== newEdgeIds.size || 
-        ![...newEdgeIds].every(id => currentEdgeIds.has(id))) {
-      setReactFlowEdges(convertToReactFlowEdges(connections));
-    }
-  }, [connections, convertToReactFlowEdges, reactFlowEdges]);
+    // 当连接数组变化时，更新内部状态
+    setReactFlowEdges(convertToReactFlowEdges(connections));
+  }, [connections, convertToReactFlowEdges]);
   
   // 处理节点变化事件
   const handleNodesChange = useCallback((changes: ReactFlowNodeChange[]) => {
@@ -213,8 +201,20 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
         type: 'relation'
       };
       actions.addConnection(enhancedConnection);
+      
+      // 更新源节点和目标节点的连接计数
+      const updatedNodes = nodes.map(node => {
+        if (node.id === connection.source || node.id === connection.target) {
+          return {
+            ...node,
+            connections: node.connections + 1
+          };
+        }
+        return node;
+      });
+      actions.setNodes(updatedNodes);
     }
-  }, [actions]);
+  }, [actions, nodes]);
   
   // 处理画布点击
   const onPaneClick = useCallback((event: React.MouseEvent) => {

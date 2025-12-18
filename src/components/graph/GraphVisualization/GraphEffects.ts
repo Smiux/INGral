@@ -1,0 +1,143 @@
+import { useEffect } from 'react';
+import type { GraphState } from './GraphContextType';
+import { graphService } from '../../../services/graphService';
+
+// ===========================
+// 副作用处理
+// ===========================
+
+interface GraphEffectsProps {
+  state: GraphState;
+  dispatch: React.Dispatch<any>;
+}
+
+export const useGraphEffects = ({ state, dispatch }: GraphEffectsProps) => {
+  // 保存状态到localStorage
+  useEffect(() => {
+    localStorage.setItem('graphRightPanelVisible', JSON.stringify(state.isRightPanelVisible));
+  }, [state.isRightPanelVisible]);
+  
+  useEffect(() => {
+    localStorage.setItem('graphToolbarAutoHide', JSON.stringify(state.toolbarAutoHide));
+  }, [state.toolbarAutoHide]);
+  
+  useEffect(() => {
+    localStorage.setItem('graphCurrentTheme', JSON.stringify(state.currentTheme));
+  }, [state.currentTheme]);
+  
+  // 通知自动关闭
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (state.notification) {
+      timer = setTimeout(() => {
+        dispatch({ type: 'CLOSE_NOTIFICATION' });
+      }, 3000);
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [state.notification]);
+  
+  // 工具栏自动隐藏
+  useEffect(() => {
+    if (!state.toolbarAutoHide) return;
+    
+    let timeoutId: NodeJS.Timeout;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      
+      if (e.clientY < 100) {
+        dispatch({ type: 'SET_IS_TOOLBAR_VISIBLE', payload: true });
+      }
+      
+      timeoutId = setTimeout(() => {
+        dispatch({ type: 'SET_IS_TOOLBAR_VISIBLE', payload: false });
+      }, 3000);
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [state.toolbarAutoHide]);
+  
+  // 左侧工具栏自动隐藏
+  useEffect(() => {
+    if (!state.leftToolbarAutoHide) return;
+    
+    let timeoutId: NodeJS.Timeout;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      
+      if (e.clientX < 200) {
+        dispatch({ type: 'SET_IS_LEFT_TOOLBAR_VISIBLE', payload: true });
+      }
+      
+      timeoutId = setTimeout(() => {
+        dispatch({ type: 'SET_IS_LEFT_TOOLBAR_VISIBLE', payload: false });
+      }, 3000);
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [state.leftToolbarAutoHide]);
+  
+  // 加载图谱数据
+  useEffect(() => {
+    const loadGraphData = async () => {
+      try {
+        dispatch({ type: 'SET_NODES', payload: [] });
+        dispatch({ type: 'SET_CONNECTIONS', payload: [] });
+        dispatch({ type: 'SET_IS_SIMULATION_RUNNING', payload: true });
+        
+        const graphs = await graphService.getAllGraphs('unlisted');
+        if (graphs && graphs.length > 0 && graphs[0] && graphs[0].id) {
+          const graphData = await graphService.getGraphById(graphs[0].id);
+          if (graphData && graphData.nodes && graphData.links) {
+            const enhancedNodes = graphData.nodes.map(node => ({
+              ...node,
+              isExpanded: false,
+              _isAggregated: false,
+              _aggregatedNodes: [],
+              type: node.type || 'concept'
+            }));
+            
+            const enhancedConnections = graphData.links.map(connection => ({
+              ...connection,
+              id: `connection-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+              source: connection.source as string,
+              target: connection.target as string
+            }));
+            
+            dispatch({ type: 'SET_NODES', payload: enhancedNodes });
+            dispatch({ type: 'SET_CONNECTIONS', payload: enhancedConnections });
+            dispatch({ type: 'SHOW_NOTIFICATION', payload: { message: '知识图谱加载成功', type: 'success' } });
+          } else {
+            dispatch({ type: 'SHOW_NOTIFICATION', payload: { message: '知识图谱数据为空，您可以创建新节点', type: 'info' } });
+          }
+        } else {
+          dispatch({ type: 'SHOW_NOTIFICATION', payload: { message: '没有找到知识图谱，您可以创建新图谱', type: 'info' } });
+        }
+      } catch (error) {
+        console.error('加载图谱数据失败:', error);
+        dispatch({ type: 'SET_NODES', payload: [] });
+        dispatch({ type: 'SET_CONNECTIONS', payload: [] });
+        dispatch({ type: 'SET_IS_SIMULATION_RUNNING', payload: false });
+        dispatch({ type: 'SHOW_NOTIFICATION', payload: { message: '加载数据失败，请稍后重试', type: 'error' } });
+      } finally {
+        dispatch({ type: 'SET_IS_SIMULATION_RUNNING', payload: false });
+      }
+    };
+    
+    loadGraphData();
+  }, []);
+};

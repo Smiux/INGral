@@ -80,6 +80,7 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
   const renderNodeShape = () => {
     switch (shape) {
       case 'circle':
+      case 'ellipse':
         return (
           <circle
             r={radius}
@@ -89,6 +90,7 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
             className="transition-all duration-200"
           />
         );
+      case 'rect':
       case 'rectangle':
         return (
           <rect
@@ -275,6 +277,21 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
           }}>
             {data.title || data.id}
           </div>
+          {data.content && (
+            <div className="node-content-text" style={{ 
+              color: theme.node.textFill, 
+              fontSize: theme.node.fontSize * 0.8,
+              opacity: 0.9,
+              lineHeight: 1.2,
+              maxWidth: '90%',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              padding: '0 4px'
+            }}>
+              {data.content}
+            </div>
+          )}
           {data.type !== 'aggregate' && (
             <div className="node-connections" style={{ 
               color: theme.node.textFill, 
@@ -308,7 +325,7 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
             right: -8,
             bottom: -8,
             border: `2px solid ${theme.node.stroke}`,
-            borderRadius: shape === 'circle' ? '50%' : shape === 'rectangle' ? '10px' : '50%',
+            borderRadius: shape === 'circle' || shape === 'ellipse' ? '50%' : shape === 'rect' || shape === 'rectangle' ? '10px' : '50%',
             pointerEvents: 'none',
             animation: 'pulse 1.5s infinite',
             boxShadow: `0 0 0 2px ${theme.node.stroke}80`
