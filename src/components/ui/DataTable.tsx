@@ -4,7 +4,7 @@ import styles from './DataTable.module.css';
 interface Column<T> {
   header: string;
   accessor: keyof T | string;
-  render?: <V>(value: V, row: T, index: number) => React.ReactNode;
+  render?: () => React.ReactNode;
   align?: 'left' | 'center' | 'right';
   sortable?: boolean;
 }
@@ -14,26 +14,27 @@ interface DataTableProps<T> {
   data: T[];
   emptyText?: string;
   className?: string;
-  onRowClick?: (row: T, index: number) => void;
+  onRowClick?: () => void;
   loading?: boolean;
 }
 
-export function DataTable<T>({
+export function DataTable<T> ({
   columns,
   data,
   emptyText = '暂无数据',
   className = '',
   onRowClick,
-  loading = false,
+  loading = false
 }: DataTableProps<T>) {
   // 获取单元格值
   const getCellValue = (row: T, column: Column<T>) => {
     if (column.render) {
-      return null; // 自定义渲染，不在此处处理
+      // 自定义渲染，不在此处处理
+      return null;
     }
 
+    // 处理嵌套属性访问，如 'user.name'
     if (typeof column.accessor === 'string' && column.accessor.includes('.')) {
-      // 处理嵌套属性访问，如 'user.name'
       return column.accessor.split('.').reduce((obj: unknown, key: string) => {
         return obj && typeof obj === 'object' ? (obj as Record<string, unknown>)[key] : null;
       }, row as unknown);
@@ -98,12 +99,12 @@ export function DataTable<T>({
             <tr
               key={rowIndex}
               className={`${styles.tr} ${onRowClick ? styles.clickable : ''}`}
-              onClick={() => onRowClick && onRowClick(row, rowIndex)}
+              onClick={() => onRowClick && onRowClick()}
             >
               {columns.map((column, colIndex) => {
                 const cellValue = getCellValue(row, column);
                 const content = column.render
-                  ? column.render(cellValue, row, rowIndex)
+                  ? column.render()
                   : cellValue;
 
                 return (

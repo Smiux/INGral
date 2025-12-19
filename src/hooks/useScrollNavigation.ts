@@ -5,7 +5,7 @@ import { useEffect, useRef, useCallback } from 'react';
  * @param activeHeadingId 当前激活的标题ID
  * @param onActiveHeadingChange 激活标题变化时的回调
  */
-export function useScrollNavigation(activeHeadingId: string, onActiveHeadingChange: (id: string) => void) {
+export function useScrollNavigation (_activeHeadingId: string, onActiveHeadingChange: (_id: string) => void) {
   const headingsRef = useRef<Map<string, HTMLElement>>(new Map());
 
   /**
@@ -14,18 +14,18 @@ export function useScrollNavigation(activeHeadingId: string, onActiveHeadingChan
   const handleScroll = useCallback(() => {
     const scrollPosition = window.scrollY + 100;
     let currentActiveId = '';
-    
+
     headingsRef.current.forEach((heading, id) => {
       const headingTop = heading.offsetTop;
       if (scrollPosition >= headingTop) {
         currentActiveId = id;
       }
     });
-    
-    if (currentActiveId !== activeHeadingId) {
+
+    if (currentActiveId !== _activeHeadingId) {
       onActiveHeadingChange(currentActiveId);
     }
-  }, [activeHeadingId, onActiveHeadingChange]);
+  }, [_activeHeadingId, onActiveHeadingChange]);
 
   /**
    * 添加滚动监听
@@ -35,7 +35,7 @@ export function useScrollNavigation(activeHeadingId: string, onActiveHeadingChan
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [activeHeadingId, onActiveHeadingChange, handleScroll]);
+  }, [_activeHeadingId, onActiveHeadingChange, handleScroll]);
 
   /**
    * 保存标题引用

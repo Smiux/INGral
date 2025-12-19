@@ -10,7 +10,7 @@ import { useGraph } from './useGraph';
 export const GraphToolbar: React.FC = React.memo(() => {
   // 使用useGraph Hook获取状态和操作
   const { state, actions } = useGraph();
-  
+
   // 从state中解构需要的状态
   const {
     isToolbarVisible,
@@ -26,8 +26,8 @@ export const GraphToolbar: React.FC = React.memo(() => {
   const handleCreateNode = () => {
     // 创建一个新的DragEvent对象
     const mockEvent = new DragEvent('drop', {
-      bubbles: true,
-      cancelable: true
+      'bubbles': true,
+      'cancelable': true
     }) as unknown as React.DragEvent<Element>;
     // 调用handleCanvasDrop来创建新节点
     actions.handleCanvasDrop(mockEvent, 0, 0);
@@ -59,7 +59,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
           </button>
         </div>
       </div>
-      
+
       {/* 中央功能工具栏 - 现代化分组 */}
       <div className="flex items-center gap-2">
         {/* 直接创建节点按钮 */}
@@ -71,7 +71,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <Plus className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] whitespace-nowrap">创建节点</span>
         </button>
-        
+
         {/* 布局管理按钮 */}
         <button
           onClick={() => actions.togglePanel(activePanel === 'layout' ? null : 'layout')}
@@ -81,7 +81,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <Layout className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] whitespace-nowrap">布局</span>
         </button>
-        
+
         {/* 主题样式按钮 */}
         <button
           onClick={() => actions.togglePanel(activePanel === 'theme' ? null : 'theme')}
@@ -91,7 +91,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <Palette className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] whitespace-nowrap">主题</span>
         </button>
-        
+
         {/* 导入导出按钮 */}
         <button
           onClick={() => actions.togglePanel(activePanel === 'importExport' ? null : 'importExport')}
@@ -101,7 +101,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <Box className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] whitespace-nowrap">导入</span>
         </button>
-        
+
         {/* 图谱分析按钮 */}
         <button
           onClick={() => actions.togglePanel(activePanel === 'analysis' ? null : 'analysis')}
@@ -112,7 +112,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <span className="text-[10px] whitespace-nowrap">分析</span>
         </button>
       </div>
-      
+
       {/* 右侧工具 - 现代化设计 */}
       <div className="flex items-center gap-2">
         {/* 统计信息按钮 */}
@@ -124,7 +124,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <BarChart className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] whitespace-nowrap">统计</span>
         </button>
-        
+
         {/* 管理按钮 - 合并节点和连接管理 */}
         <button
           onClick={() => actions.togglePanel(activePanel === 'manage' ? null : 'manage')}
@@ -134,7 +134,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <Database className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] whitespace-nowrap">管理</span>
         </button>
-        
+
         {/* 样式调整按钮 */}
         <button
           onClick={() => actions.togglePanel(activePanel === 'style' ? null : 'style')}
@@ -144,7 +144,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <SlidersHorizontal className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] whitespace-nowrap">样式</span>
         </button>
-        
+
         {/* 视图切换按钮组 */}
         <div className="flex items-center gap-1 bg-white/90 rounded-lg shadow-sm p-0.5">
           <button
@@ -164,7 +164,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
             <span className="text-[10px] whitespace-nowrap">3D</span>
           </button>
         </div>
-        
+
         {/* 设置按钮 */}
         <button
           onClick={() => actions.setIsSettingsPanelOpen(!isSettingsPanelOpen)}
@@ -175,7 +175,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <span className="text-[10px] whitespace-nowrap">设置</span>
         </button>
       </div>
-      
+
     </div>
   );
 });

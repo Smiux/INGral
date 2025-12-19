@@ -8,13 +8,13 @@ import { ArrowRight, BookOpen, Network, ExternalLink } from 'lucide-react';
 import type { Article } from '../types';
 import { fetchAllArticles } from '../utils/article';
 
-export function HomePage() {
+export function HomePage () {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
-    articleCount: 0,
-    graphCount: 0,
-    submissionCount: 0,
+    'articleCount': 0,
+    'graphCount': 0,
+    'submissionCount': 0
   });
 
   /**
@@ -34,7 +34,7 @@ export function HomePage() {
       setStats({
         articleCount,
         graphCount,
-        submissionCount,
+        submissionCount
       });
     } catch (error) {
       console.error('Failed to load stats:', error);
@@ -171,8 +171,8 @@ export function HomePage() {
                       <span>{article.view_count} views</span>
                       <span>
                         {article.updated_at ? new Date(article.updated_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
+                          'month': 'short',
+                          'day': 'numeric'
                         }) : 'N/A'}
                       </span>
                     </div>

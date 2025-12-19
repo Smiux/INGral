@@ -11,7 +11,7 @@ export abstract class BaseService {
   /**
    * 检查 Supabase 客户端是否初始化
    */
-  protected checkSupabaseClient(): void {
+  protected checkSupabaseClient (): void {
     if (!this.supabase) {
       throw new Error('Supabase client is not initialized');
     }
@@ -23,7 +23,7 @@ export abstract class BaseService {
    * @param context 错误上下文
    * @param operation 操作描述
    */
-  protected handleError(error: unknown, context: string = 'BaseService', operation: string): never {
+  protected handleError (error: unknown, context: string = 'BaseService', operation: string): never {
     throw errorService.handleError(error, context, operation);
   }
 
@@ -32,7 +32,7 @@ export abstract class BaseService {
    * @param data 响应数据
    * @param defaultData 默认数据（如果 data 为 null 或 undefined）
    */
-  protected handleSuccessResponse<T>(data: T | null | undefined, defaultData: T): T {
+  protected handleSuccessResponse<T> (data: T | null | undefined, defaultData: T): T {
     return data ?? defaultData;
   }
 
@@ -40,7 +40,7 @@ export abstract class BaseService {
    * 生成 Slug
    * @param text 原始文本
    */
-  protected generateSlug(text: string): string {
+  protected generateSlug (text: string): string {
     return text.toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^\w-]/g, '')
@@ -54,20 +54,20 @@ export abstract class BaseService {
    * @param limit 限制数量
    * @param offset 偏移量
    */
-  protected applyPagination<T extends { limit?: (limit: number) => T; range?: (start: number, end: number) => T }>(query: T, limit?: number, offset?: number): T {
+  protected applyPagination<T extends { limit?: (_limit: number) => T; range?: (_start: number, _end: number) => T }>(query: T, limit?: number, offset?: number): T {
     let paginatedQuery = query;
-    
+
     // 应用限制
     if (limit && typeof paginatedQuery.limit === 'function') {
       paginatedQuery = paginatedQuery.limit(limit);
     }
-    
+
     // 应用偏移量
     if (offset && offset > 0 && typeof paginatedQuery.range === 'function') {
       const end = offset + (limit || 100) - 1;
       paginatedQuery = paginatedQuery.range(offset, end);
     }
-    
+
     return paginatedQuery;
   }
 
@@ -76,12 +76,15 @@ export abstract class BaseService {
    * @param table 表名
    * @param id 记录ID
    */
-  protected async getById<T>(table: string, id: string | number): Promise<T | null> {
+  protected async getById<T> (table: string, id: string | number): Promise<T | null> {
     try {
-      const result = await this.supabase.from(table).select('*').eq('id', id).single<T>();
+      const result = await this.supabase.from(table).select('*')
+        .eq('id', id)
+        .single<T>();
       return result.data;
     } catch (error) {
       this.handleError(error, 'BaseService', 'getById');
+      return null;
     }
   }
 
@@ -91,12 +94,15 @@ export abstract class BaseService {
    * @param field 字段名
    * @param value 字段值
    */
-  protected async getByField<T>(table: string, field: string, value: string | number): Promise<T | null> {
+  protected async getByField<T> (table: string, field: string, value: string | number): Promise<T | null> {
     try {
-      const result = await this.supabase.from(table).select('*').eq(field, value).single<T>();
+      const result = await this.supabase.from(table).select('*')
+        .eq(field, value)
+        .single<T>();
       return result.data;
     } catch (error) {
       this.handleError(error, 'BaseService', 'getByField');
+      return null;
     }
   }
 
@@ -105,38 +111,40 @@ export abstract class BaseService {
    * @param table 表名
    * @param params 查询参数
    */
-  protected async getList<T>(table: string, params?: Record<string, string | number | boolean | undefined>): Promise<T[]> {
+  protected async getList<T> (table: string, params?: Record<string, string | number | boolean | undefined>): Promise<T[]> {
     try {
       let query = this.supabase.from(table).select('*');
-      
+
       // 应用查询参数
       if (params) {
         for (const [key, value] of Object.entries(params)) {
-          if (key === 'limit' || key === 'offset' || key === 'order' || key === 'sort') continue;
-          query = query.eq(key, value);
+          if (key !== 'limit' && key !== 'offset' && key !== 'order' && key !== 'sort') {
+            query = query.eq(key, value);
+          }
         }
-        
+
         // 应用分页
         if (params.limit && typeof params.limit === 'number') {
           query = query.limit(params.limit);
         }
-        
+
         if (params.offset && typeof params.offset === 'number') {
           const limitValue = typeof params.limit === 'number' ? params.limit : 100;
           query = query.range(params.offset, (params.offset + limitValue) - 1);
         }
-        
+
         // 应用排序
         if (params.order && typeof params.order === 'string') {
-          const sort = params.sort === 'asc' ? { ascending: true } : { ascending: false };
+          const sort = params.sort === 'asc' ? { 'ascending': true } : { 'ascending': false };
           query = query.order(params.order, sort);
         }
       }
-      
+
       const result = await query;
       return result.data || [];
     } catch (error) {
       this.handleError(error, 'BaseService', 'getList');
+      return [];
     }
   }
 
@@ -145,12 +153,15 @@ export abstract class BaseService {
    * @param table 表名
    * @param data 记录数据
    */
-  protected async create<T>(table: string, data: Record<string, unknown>): Promise<T | null> {
+  protected async create<T> (table: string, data: Record<string, unknown>): Promise<T | null> {
     try {
-      const result = await this.supabase.from(table).insert(data).select().single<T>();
+      const result = await this.supabase.from(table).insert(data)
+        .select()
+        .single<T>();
       return result.data;
     } catch (error) {
       this.handleError(error, 'BaseService', 'create');
+      return null;
     }
   }
 
@@ -159,16 +170,18 @@ export abstract class BaseService {
    * @param table 表名
    * @param data 记录数据数组
    */
-  protected async bulkCreate<T>(table: string, data: Record<string, unknown>[]): Promise<T[] | null> {
+  protected async bulkCreate<T> (table: string, data: Record<string, unknown>[]): Promise<T[] | null> {
     if (data.length === 0) {
       return [];
     }
-    
+
     try {
-      const result = await this.supabase.from(table).insert(data).select();
+      const result = await this.supabase.from(table).insert(data)
+        .select();
       return result.data as T[] | null;
     } catch (error) {
       this.handleError(error, 'BaseService', 'bulkCreate');
+      return [];
     }
   }
 
@@ -178,12 +191,16 @@ export abstract class BaseService {
    * @param id 记录ID
    * @param data 更新数据
    */
-  protected async update<T>(table: string, id: string | number, data: Record<string, unknown>): Promise<T | null> {
+  protected async update<T> (table: string, id: string | number, data: Record<string, unknown>): Promise<T | null> {
     try {
-      const result = await this.supabase.from(table).update(data).eq('id', id).select().single<T>();
+      const result = await this.supabase.from(table).update(data)
+        .eq('id', id)
+        .select()
+        .single<T>();
       return result.data;
     } catch (error) {
       this.handleError(error, 'BaseService', 'update');
+      return null;
     }
   }
 
@@ -193,19 +210,21 @@ export abstract class BaseService {
    * @param data 更新数据
    * @param condition 条件对象
    */
-  protected async updateByCondition<T>(table: string, data: Record<string, unknown>, condition: Record<string, string | number>): Promise<T[] | null> {
+  protected async updateByCondition<T> (table: string, data: Record<string, unknown>, condition: Record<string, string | number>): Promise<T[] | null> {
     try {
-      let query = this.supabase.from(table).update(data).select();
-      
+      let query = this.supabase.from(table).update(data)
+        .select();
+
       // 应用条件
       for (const [key, value] of Object.entries(condition)) {
         query = query.eq(key, value);
       }
-      
+
       const result = await query;
       return result.data as T[] | null;
     } catch (error) {
       this.handleError(error, 'BaseService', 'updateByCondition');
+      return null;
     }
   }
 
@@ -214,12 +233,14 @@ export abstract class BaseService {
    * @param table 表名
    * @param id 记录ID
    */
-  protected async delete(table: string, id: string | number): Promise<boolean> {
+  protected async delete (table: string, id: string | number): Promise<boolean> {
     try {
-      const result = await this.supabase.from(table).delete().eq('id', id);
+      const result = await this.supabase.from(table).delete()
+        .eq('id', id);
       return !result.error;
     } catch (error) {
       this.handleError(error, 'BaseService', 'delete');
+      return false;
     }
   }
 
@@ -228,19 +249,20 @@ export abstract class BaseService {
    * @param table 表名
    * @param condition 条件对象
    */
-  protected async deleteByCondition(table: string, condition: Record<string, string | number>): Promise<boolean> {
+  protected async deleteByCondition (table: string, condition: Record<string, string | number>): Promise<boolean> {
     try {
       let query = this.supabase.from(table).delete();
-      
+
       // 应用条件
       for (const [key, value] of Object.entries(condition)) {
         query = query.eq(key, value);
       }
-      
+
       const result = await query;
       return !result.error;
     } catch (error) {
       this.handleError(error, 'BaseService', 'deleteByCondition');
+      return false;
     }
   }
 }

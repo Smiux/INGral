@@ -18,14 +18,14 @@ export interface SearchHistoryItem {
 interface SearchHistoryProps {
   historyItems: SearchHistoryItem[];
   selectedIndex: number;
-  onHistoryItemClick: (item: SearchHistoryItem) => void;
-  onHistoryItemHover: (index: number) => void;
+  onHistoryItemClick: (_item: SearchHistoryItem) => void;
+  onHistoryItemHover: (_index: number) => void;
   onClearHistory: () => void;
-  onRemoveHistoryItem: (id: string) => void;
+  onRemoveHistoryItem: (_id: string) => void;
   searchQuery: string;
 }
 
-export function SearchHistory({
+export function SearchHistory ({
   historyItems,
   selectedIndex,
   onHistoryItemClick,
@@ -56,7 +56,8 @@ export function SearchHistory({
           key={item.id}
           className={`${styles.suggestionItem} ${styles.historyItem} ${index === selectedIndex ? styles.suggestionItemSelected : ''}`}
           onClick={() => onHistoryItemClick(item)}
-          onMouseDown={(e) => e.preventDefault()} // 防止点击建议时输入框失去焦点
+          // 防止点击建议时输入框失去焦点
+          onMouseDown={(e) => e.preventDefault()}
           onMouseEnter={() => onHistoryItemHover(index)}
           role="option"
           id={`suggestion-${index}`}

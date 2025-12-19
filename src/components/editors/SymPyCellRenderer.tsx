@@ -4,7 +4,7 @@ interface SymPyCellRendererProps {
   contentRef: React.RefObject<HTMLDivElement>;
 }
 
-export function SymPyCellRenderer({ contentRef }: SymPyCellRendererProps) {
+export function SymPyCellRenderer ({ contentRef }: SymPyCellRendererProps) {
   useEffect(() => {
     // 这里可以添加SymPy计算单元格的渲染和交互逻辑
     // 例如，为计算单元格添加运行按钮的点击事件监听器
@@ -12,19 +12,19 @@ export function SymPyCellRenderer({ contentRef }: SymPyCellRendererProps) {
     if (contentElement) {
       // 查找所有SymPy计算单元格占位符
       const placeholders = contentElement.querySelectorAll('.sympy-cell-placeholder');
-      
+
       placeholders.forEach((placeholder) => {
         const code = placeholder.getAttribute('data-sympy-code');
         const id = placeholder.getAttribute('data-sympy-id');
-        
+
         if (code && id) {
           // 创建SymPyCell组件的容器
           const cellContainer = document.createElement('div');
           cellContainer.className = 'sympy-cell-wrapper';
-          
+
           // 替换占位符为SymPyCell组件容器
           placeholder.parentNode?.replaceChild(cellContainer, placeholder);
-          
+
           // 这里可以使用React Portal来渲染SymPyCell组件
           // 由于时间限制，我们暂时使用静态HTML来展示
           cellContainer.innerHTML = `

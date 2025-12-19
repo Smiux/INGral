@@ -2,21 +2,21 @@
 
 // BarChart 相关常量
 export const CHART_COLORS = {
-  primary: '#3b82f6',
-  secondary: '#10b981',
-  accent: '#f59e0b',
-  danger: '#ef4444',
-  warning: '#f59e0b',
-  info: '#3b82f6',
-  success: '#10b981',
-  light: '#f3f4f6',
-  dark: '#1f2937',
+  'primary': '#3b82f6',
+  'secondary': '#10b981',
+  'accent': '#f59e0b',
+  'danger': '#ef4444',
+  'warning': '#f59e0b',
+  'info': '#3b82f6',
+  'success': '#10b981',
+  'light': '#f3f4f6',
+  'dark': '#1f2937'
 };
 
 // 通用图表配置
 export const DEFAULT_CHART_OPTIONS = {
-  responsive: true,
-  maintainAspectRatio: false,
+  'responsive': true,
+  'maintainAspectRatio': false
 };
 
 // 生成随机颜色的工具函数
@@ -44,26 +44,26 @@ export interface ChartDataPoint {
 
 // Mock数据供开发和测试使用
 export const barChartMockData = {
-  labels: ['文章', '评论', '标签', '收藏', '点赞'],
-  datasets: [
+  'labels': ['文章', '评论', '标签', '收藏', '点赞'],
+  'datasets': [
     {
-      label: '数量',
-      data: [150, 450, 80, 230, 520],
-      backgroundColor: 'rgba(79, 70, 229, 0.5)',
-    },
-  ],
+      'label': '数量',
+      'data': [150, 450, 80, 230, 520],
+      'backgroundColor': 'rgba(79, 70, 229, 0.5)'
+    }
+  ]
 };
 
 export const lineChartMockData = {
-  labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
-  datasets: [
+  'labels': ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+  'datasets': [
     {
-      label: '页面访问量',
-      data: [1200, 1900, 1500, 2400, 2100, 3000, 2700],
-      borderColor: '#4f46e5',
-      backgroundColor: 'rgba(79, 70, 229, 0.1)',
-    },
-  ],
+      'label': '页面访问量',
+      'data': [1200, 1900, 1500, 2400, 2100, 3000, 2700],
+      'borderColor': '#4f46e5',
+      'backgroundColor': 'rgba(79, 70, 229, 0.1)'
+    }
+  ]
 };
 
 // PieChart数据类型
@@ -75,8 +75,8 @@ export interface PieDataItem {
 }
 
 export const pieChartMockData: PieDataItem[] = [
-  { name: '直接访问', value: 45, percentage: 45 },
-  { name: '搜索引擎', value: 30, percentage: 30 },
-  { name: '社交媒体', value: 15, percentage: 15 },
-  { name: '外部链接', value: 10, percentage: 10 },
+  { 'name': '直接访问', 'value': 45, 'percentage': 45 },
+  { 'name': '搜索引擎', 'value': 30, 'percentage': 30 },
+  { 'name': '社交媒体', 'value': 15, 'percentage': 15 },
+  { 'name': '外部链接', 'value': 10, 'percentage': 10 }
 ];

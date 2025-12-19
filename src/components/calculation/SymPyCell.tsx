@@ -5,13 +5,13 @@ import calculationService from '../../services/calculationService';
 interface SymPyCellProps {
   id: string;
   initialCode?: string;
-  onResultChange?: (id: string, result: string) => void;
+  onResultChange?: (_id: string, _result: string) => void;
 }
 
-const SymPyCell: React.FC<SymPyCellProps> = ({ 
-  id, 
-  initialCode = '', 
-  onResultChange 
+const SymPyCell: React.FC<SymPyCellProps> = ({
+  id,
+  initialCode = '',
+  onResultChange
 }) => {
   const [code, setCode] = useState(initialCode);
   const [result, setResult] = useState<string>('');
@@ -22,22 +22,24 @@ const SymPyCell: React.FC<SymPyCellProps> = ({
 
   // 计算函数 - 使用calculationService处理SymPy计算
   const calculate = async () => {
-    if (!code.trim()) return;
+    if (!code.trim()) {
+      return;
+    }
 
     setIsCalculating(true);
     setError('');
-    
+
     try {
       // 使用计算服务执行SymPy计算
       const calculationResult = await calculationService.executeSymPyCalculation(code);
-      
+
       if (calculationResult.success) {
         const formattedResult = `${calculationResult.result}\n(计算时间: ${calculationResult.calculationTime}ms)`;
         setResult(formattedResult);
-        
+
         // 添加到计算历史记录
         calculationService.addToHistory(code, calculationResult.result, calculationResult.calculationTime);
-        
+
         if (onResultChange) {
           onResultChange(id, formattedResult);
         }
@@ -70,22 +72,22 @@ const SymPyCell: React.FC<SymPyCellProps> = ({
       <div className={styles.header}>
         <h3 className={styles.title}>SymPy 计算单元格</h3>
         <div className={styles.actions}>
-          <button 
-            className={styles.runButton} 
-            onClick={handleRun} 
+          <button
+            className={styles.runButton}
+            onClick={handleRun}
             disabled={isCalculating}
           >
             {isCalculating ? '计算中...' : '运行'}
           </button>
-          <button 
-            className={styles.clearButton} 
+          <button
+            className={styles.clearButton}
             onClick={handleClear}
           >
             清除
           </button>
         </div>
       </div>
-      
+
       <div className={styles.content}>
         <div className={styles.codeSection}>
           <label className={styles.label}>输入代码:</label>
@@ -97,14 +99,14 @@ const SymPyCell: React.FC<SymPyCellProps> = ({
             rows={5}
           />
         </div>
-        
+
         {error && (
           <div className={styles.errorSection}>
             <label className={styles.label}>错误:</label>
             <pre className={styles.errorOutput}>{error}</pre>
           </div>
         )}
-        
+
         {result && (
           <div className={styles.resultSection}>
             <label className={styles.label}>结果:</label>

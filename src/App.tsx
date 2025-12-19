@@ -18,25 +18,25 @@ interface ErrorBoundaryState {
 }
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+  constructor (props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { 'hasError': false };
   }
 
-  static getDerivedStateFromError(error: Error) {
+  static getDerivedStateFromError (error: Error) {
     // 更新状态，下次渲染时显示降级UI
-    return { hasError: true, error };
+    return { 'hasError': true, error };
   }
 
-  override render() {
+  override render () {
     if (this.state.hasError) {
       // 你可以自定义降级UI
       return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 bg-gray-50 dark:bg-gray-900">
           <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">加载失败</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-6">很抱歉，页面加载时出现了错误。</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             重新加载
@@ -50,18 +50,18 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 }
 
 // 使用React.lazy实现路由级别的代码分割，并优化导入路径
-const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
-const ArticlesPage = lazy(() => import('./pages/ArticlesPage').then(m => ({ default: m.ArticlesPage })));
-const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ default: m.SearchPage })));
-const ArticleViewer = lazy(() => import('./components/articles/ArticleViewer').then(m => ({ default: m.ArticleViewer })));
-const ArticleEditor = lazy(() => import('./components/articles/ArticleEditor').then(m => ({ default: m.ArticleEditor })));
-const GraphVisualization = lazy(() => import('./components/graph/GraphVisualization').then(m => ({ default: m.GraphVisualization })));
-const GraphListPage = lazy(() => import('./pages/GraphListPage').then(m => ({ default: m.GraphListPage })));
-const DiscussionPage = lazy(() => import('./pages/DiscussionPage').then(m => ({ default: m.DiscussionPage })));
-const TopicDetailPage = lazy(() => import('./pages/TopicDetailPage').then(m => ({ default: m.TopicDetailPage })));
-const CreateTopicPage = lazy(() => import('./pages/CreateTopicPage').then(m => ({ default: m.CreateTopicPage })));
+const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ 'default': m.HomePage })));
+const ArticlesPage = lazy(() => import('./pages/ArticlesPage').then(m => ({ 'default': m.ArticlesPage })));
+const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ 'default': m.SearchPage })));
+const ArticleViewer = lazy(() => import('./components/articles/ArticleViewer').then(m => ({ 'default': m.ArticleViewer })));
+const ArticleEditor = lazy(() => import('./components/articles/ArticleEditor').then(m => ({ 'default': m.ArticleEditor })));
+const GraphVisualization = lazy(() => import('./components/graph/GraphVisualization').then(m => ({ 'default': m.GraphVisualization })));
+const GraphListPage = lazy(() => import('./pages/GraphListPage').then(m => ({ 'default': m.GraphListPage })));
+const DiscussionPage = lazy(() => import('./pages/DiscussionPage').then(m => ({ 'default': m.DiscussionPage })));
+const TopicDetailPage = lazy(() => import('./pages/TopicDetailPage').then(m => ({ 'default': m.TopicDetailPage })));
+const CreateTopicPage = lazy(() => import('./pages/CreateTopicPage').then(m => ({ 'default': m.CreateTopicPage })));
 
-function App() {
+function App () {
   // 初始化全局键盘快捷键
   useGlobalKeyboardShortcuts();
 
@@ -86,9 +86,9 @@ function App() {
       <BrowserRouter>
         <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
           <Header />
-          
+
           {/* 主内容区域 - 移除侧边栏后，主内容区域占满整个宽度 */}
-          <main 
+          <main
             className="flex-1 transition-all duration-300 ease-in-out p-4 sm:p-6 lg:p-8"
           >
             <ErrorBoundary>

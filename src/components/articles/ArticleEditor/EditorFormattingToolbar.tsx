@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { 
-  Bold, Italic, Strikethrough, Code, List, ListOrdered, Quote, Link2, Image, 
-  Heading1, Heading2, Heading3, Table, Calculator, GitBranch, BookMarked, 
-  BookOpen, BarChart3, AlignLeft, AlignCenter, AlignRight, AlignJustify, 
-  RotateCcw, RotateCw, 
-  Layers2, FileCode2, CheckSquare, Square, Type, Footprints, Highlighter, 
-  ArrowUpCircle, ArrowDownCircle, Music, ChevronDown, ChevronRight, 
+import {
+  Bold, Italic, Strikethrough, Code, List, ListOrdered, Quote, Link2, Image,
+  Heading1, Heading2, Heading3, Table, Calculator, GitBranch, BookMarked,
+  BookOpen, BarChart3, AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  RotateCcw, RotateCw,
+  Layers2, FileCode2, CheckSquare, Square, Type, Footprints, Highlighter,
+  ArrowUpCircle, ArrowDownCircle, Music, ChevronDown, ChevronRight,
   FileText, MessageSquare, Send
 } from 'lucide-react';
 
 interface EditorFormattingToolbarProps {
-  onFormat: (formatType: string, data?: Record<string, unknown>) => void;
+  onFormat: (_formatType: string, _data?: Record<string, unknown>) => void;
   onCopyFormat: () => void;
   onPasteFormat: () => void;
   onToggleFormatBrush: () => void;
@@ -21,7 +21,7 @@ interface EditorFormattingToolbarProps {
  * 编辑器格式化工具栏组件
  * 提供各种文本格式化功能按钮
  */
-export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat, onToggleFormatBrush, isFormatBrushActive }: EditorFormattingToolbarProps) {
+export function EditorFormattingToolbar ({ onFormat, onCopyFormat, onPasteFormat, onToggleFormatBrush, isFormatBrushActive }: EditorFormattingToolbarProps) {
   // 代码语言下拉菜单状态
   const [showCodeLanguageDropdown, setShowCodeLanguageDropdown] = useState(false);
   // 表格尺寸下拉菜单状态
@@ -43,14 +43,14 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
 
   // 表格尺寸选项
   const tableSizes = [
-    { rows: 2, cols: 2 },
-    { rows: 2, cols: 3 },
-    { rows: 2, cols: 4 },
-    { rows: 3, cols: 2 },
-    { rows: 3, cols: 3 },
-    { rows: 3, cols: 4 },
-    { rows: 4, cols: 3 },
-    { rows: 4, cols: 4 }
+    { 'rows': 2, 'cols': 2 },
+    { 'rows': 2, 'cols': 3 },
+    { 'rows': 2, 'cols': 4 },
+    { 'rows': 3, 'cols': 2 },
+    { 'rows': 3, 'cols': 3 },
+    { 'rows': 3, 'cols': 4 },
+    { 'rows': 4, 'cols': 3 },
+    { 'rows': 4, 'cols': 4 }
   ];
 
   return (
@@ -150,7 +150,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
         </button>
         {/* 标题层级下拉菜单 */}
         {showHeadingDropdown && (
-          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[140px] py-1 opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{animation: 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
+          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[140px] py-1 opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{'animation': 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
             <button
               onClick={() => {
                 onFormat('h1');
@@ -198,7 +198,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
         </button>
         {/* 列表类型下拉菜单 */}
         {showListDropdown && (
-          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[140px] py-1 opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{animation: 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
+          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[140px] py-1 opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{'animation': 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
             <button
               onClick={() => {
                 onFormat('ul');
@@ -246,7 +246,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
         </button>
         {/* 对齐方式下拉菜单 */}
         {showAlignmentDropdown && (
-          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[140px] py-1 opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{animation: 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
+          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[140px] py-1 opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{'animation': 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
             <button
               onClick={() => {
                 onFormat('align-left');
@@ -307,13 +307,13 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
         </button>
         {/* 语法选择下拉菜单 */}
         {showCodeLanguageDropdown && (
-          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[180px] py-1 max-h-[250px] overflow-y-auto opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{animation: 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
+          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[180px] py-1 max-h-[250px] overflow-y-auto opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{'animation': 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
             <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">选择编程语言:</div>
             {programmingLanguages.map((lang) => (
               <button
                 key={lang}
                 onClick={() => {
-                  onFormat('codeblock', { language: lang });
+                  onFormat('codeblock', { 'language': lang });
                   setShowCodeLanguageDropdown(false);
                 }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded-md"
@@ -360,14 +360,14 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
         </button>
         {/* 表格尺寸下拉菜单 */}
         {showTableSizeDropdown && (
-          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[180px] py-2 opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{animation: 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
+          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[180px] py-2 opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{'animation': 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
             <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">选择表格尺寸:</div>
             <div className="grid grid-cols-4 gap-1 px-2">
               {tableSizes.map((size, index) => (
                 <button
                   key={index}
                   onClick={() => {
-                    onFormat('table', { rows: size.rows, cols: size.cols });
+                    onFormat('table', { 'rows': size.rows, 'cols': size.cols });
                     setShowTableSizeDropdown(false);
                   }}
                   className="flex items-center justify-center p-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded-md aspect-square"
@@ -380,7 +380,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
           </div>
         )}
       </div>
-      
+
       {/* 分隔线 */}
       <div className="mx-1 h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
 
@@ -423,7 +423,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
           <span>图表</span>
         </button>
       </div>
-      
+
       {/* 扩展语法 */}
       <div className="relative">
         <button
@@ -437,9 +437,9 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
         </button>
         {/* 扩展语法下拉菜单 */}
         {showExtensionDropdown && (
-          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[180px] py-1 opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{animation: 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
+          <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 min-w-[180px] py-1 opacity-100 visible translate-y-0 transition-all duration-200 ease-out" style={{'animation': 'fadeIn 0.2s ease-out, slideDown 0.2s ease-out'}}>
             <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">扩展语法:</div>
-            
+
             {/* 列表扩展 */}
             <div className="mt-1 border-t border-gray-200 dark:border-gray-700 pt-1">
               <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">列表扩展</div>
@@ -474,7 +474,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
                 <span>定义列表</span>
               </button>
             </div>
-            
+
             {/* 文本扩展 */}
             <div className="mt-1 border-t border-gray-200 dark:border-gray-700 pt-1">
               <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">文本扩展</div>
@@ -529,7 +529,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
                 <span>表情符号</span>
               </button>
             </div>
-            
+
             {/* 媒体扩展 */}
             <div className="mt-1 border-t border-gray-200 dark:border-gray-700 pt-1">
               <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">媒体扩展</div>
@@ -544,7 +544,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
                 <span>音频</span>
               </button>
             </div>
-            
+
             {/* 容器扩展 */}
             <div className="mt-1 border-t border-gray-200 dark:border-gray-700 pt-1">
               <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">容器扩展</div>
@@ -559,7 +559,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
                 <span>可折叠区块</span>
               </button>
             </div>
-            
+
             {/* 图表扩展 */}
             <div className="mt-1 border-t border-gray-200 dark:border-gray-700 pt-1">
               <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">图表扩展</div>
@@ -584,7 +584,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
                 <span>Graphviz</span>
               </button>
             </div>
-            
+
             {/* 数学扩展 */}
             <div className="mt-1 border-t border-gray-200 dark:border-gray-700 pt-1">
               <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">数学扩展</div>
@@ -599,7 +599,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
                 <span>带编号公式</span>
               </button>
             </div>
-            
+
             {/* 链接扩展 */}
             <div className="mt-1 border-t border-gray-200 dark:border-gray-700 pt-1">
               <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">链接扩展</div>
@@ -627,7 +627,7 @@ export function EditorFormattingToolbar({ onFormat, onCopyFormat, onPasteFormat,
           </div>
         )}
       </div>
-      
+
       {/* 引用管理 */}
       <div className="flex items-center gap-1">
         <button

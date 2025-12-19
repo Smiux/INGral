@@ -15,18 +15,18 @@ import { copyFormat, pasteFormat, handleFormat as formatText, insertLatexFormula
 import { useArticleEditor } from './ArticleEditor/useArticleEditor';
 
 // 懒加载非核心组件，优化初始加载时间
-const TemplateManager = lazy(() => import('./TemplateManager').then(m => ({ default: m.TemplateManager })));
-const LatexEditor = lazy(() => import('../editors/LatexEditor').then(m => ({ default: m.LatexEditor })));
-const GraphGenerator = lazy(() => import('./ArticleEditor/GraphGenerator').then(m => ({ default: m.GraphGenerator })));
-const ImageUploadDialog = lazy(() => import('./ArticleEditor/ImageUploadDialog').then(m => ({ default: m.ImageUploadDialog })));
-const FileUploadDialog = lazy(() => import('./ArticleEditor/FileUploadDialog').then(m => ({ default: m.FileUploadDialog })));
-const DraftManager = lazy(() => import('./DraftManager').then(m => ({ default: m.DraftManager })));
+const TemplateManager = lazy(() => import('./TemplateManager').then(m => ({ 'default': m.TemplateManager })));
+const LatexEditor = lazy(() => import('../editors/LatexEditor').then(m => ({ 'default': m.LatexEditor })));
+const GraphGenerator = lazy(() => import('./ArticleEditor/GraphGenerator').then(m => ({ 'default': m.GraphGenerator })));
+const ImageUploadDialog = lazy(() => import('./ArticleEditor/ImageUploadDialog').then(m => ({ 'default': m.ImageUploadDialog })));
+const FileUploadDialog = lazy(() => import('./ArticleEditor/FileUploadDialog').then(m => ({ 'default': m.FileUploadDialog })));
+const DraftManager = lazy(() => import('./DraftManager').then(m => ({ 'default': m.DraftManager })));
 
 /**
  * 文章编辑器组件
  * 管理编辑器的主要状态和逻辑
  */
-function ArticleEditorImpl() {
+function ArticleEditorImpl () {
   // 使用文章编辑器Hook
   const {
     state,
@@ -54,12 +54,12 @@ function ArticleEditorImpl() {
    */
   const handleLoadDraft = React.useCallback((draft: import('../../types/draft').ArticleDraft) => {
     batchUpdateState({
-      title: draft.title || '',
-      content: draft.content || '',
-      visibility: draft.visibility || 'public',
-      authorName: draft.authorName || '',
-      authorEmail: draft.authorEmail || '',
-      authorUrl: draft.authorUrl || ''
+      'title': draft.title || '',
+      'content': draft.content || '',
+      'visibility': draft.visibility || 'public',
+      'authorName': draft.authorName || '',
+      'authorEmail': draft.authorEmail || '',
+      'authorUrl': draft.authorUrl || ''
     });
     showNotification('草稿已加载', 'success');
   }, [batchUpdateState, showNotification]);
@@ -70,12 +70,12 @@ function ArticleEditorImpl() {
   const handleCreateNewDraft = React.useCallback(() => {
     // 重置编辑器状态，创建新草稿
     batchUpdateState({
-      title: '',
-      content: '',
-      visibility: 'public',
-      authorName: '',
-      authorEmail: '',
-      authorUrl: ''
+      'title': '',
+      'content': '',
+      'visibility': 'public',
+      'authorName': '',
+      'authorEmail': '',
+      'authorUrl': ''
     });
     showNotification('已创建新草稿', 'success');
   }, [batchUpdateState, showNotification]);
@@ -89,20 +89,20 @@ function ArticleEditorImpl() {
 
   // 快捷键定义数组
   const SHORTCUTS = [
-    { id: 'bold', name: '加粗', description: '将选中的文本加粗', defaultKey: 'Ctrl+B', category: '文本格式' },
-    { id: 'italic', name: '斜体', description: '将选中的文本变为斜体', defaultKey: 'Ctrl+I', category: '文本格式' },
-    { id: 'heading1', name: '一级标题', description: '将选中的文本设为一级标题', defaultKey: 'Ctrl+1', category: '标题' },
-    { id: 'heading2', name: '二级标题', description: '将选中的文本设为二级标题', defaultKey: 'Ctrl+2', category: '标题' },
-    { id: 'heading3', name: '三级标题', description: '将选中的文本设为三级标题', defaultKey: 'Ctrl+3', category: '标题' },
-    { id: 'ul', name: '无序列表', description: '将选中的文本设为无序列表', defaultKey: 'Ctrl+Shift+U', category: '列表' },
-    { id: 'ol', name: '有序列表', description: '将选中的文本设为有序列表', defaultKey: 'Ctrl+Shift+O', category: '列表' },
-    { id: 'quote', name: '引用', description: '将选中的文本设为引用', defaultKey: 'Ctrl+Shift+Q', category: '文本格式' },
-    { id: 'code', name: '代码块', description: '将选中的文本设为代码块', defaultKey: 'Ctrl+Shift+K', category: '代码' },
-    { id: 'save', name: '保存', description: '保存当前文章', defaultKey: 'Ctrl+S', category: '编辑操作' },
-    { id: 'undo', name: '撤销', description: '撤销上一步操作', defaultKey: 'Ctrl+Z', category: '编辑操作' },
-    { id: 'redo', name: '重做', description: '重做上一步操作', defaultKey: 'Ctrl+Y', category: '编辑操作' },
-    { id: 'preview', name: '切换预览', description: '切换编辑/预览模式', defaultKey: 'Ctrl+P', category: '视图' },
-    { id: 'shortcuts', name: '显示快捷键', description: '显示所有快捷键', defaultKey: 'Ctrl+/', category: '视图' }
+    { 'id': 'bold', 'name': '加粗', 'description': '将选中的文本加粗', 'defaultKey': 'Ctrl+B', 'category': '文本格式' },
+    { 'id': 'italic', 'name': '斜体', 'description': '将选中的文本变为斜体', 'defaultKey': 'Ctrl+I', 'category': '文本格式' },
+    { 'id': 'heading1', 'name': '一级标题', 'description': '将选中的文本设为一级标题', 'defaultKey': 'Ctrl+1', 'category': '标题' },
+    { 'id': 'heading2', 'name': '二级标题', 'description': '将选中的文本设为二级标题', 'defaultKey': 'Ctrl+2', 'category': '标题' },
+    { 'id': 'heading3', 'name': '三级标题', 'description': '将选中的文本设为三级标题', 'defaultKey': 'Ctrl+3', 'category': '标题' },
+    { 'id': 'ul', 'name': '无序列表', 'description': '将选中的文本设为无序列表', 'defaultKey': 'Ctrl+Shift+U', 'category': '列表' },
+    { 'id': 'ol', 'name': '有序列表', 'description': '将选中的文本设为有序列表', 'defaultKey': 'Ctrl+Shift+O', 'category': '列表' },
+    { 'id': 'quote', 'name': '引用', 'description': '将选中的文本设为引用', 'defaultKey': 'Ctrl+Shift+Q', 'category': '文本格式' },
+    { 'id': 'code', 'name': '代码块', 'description': '将选中的文本设为代码块', 'defaultKey': 'Ctrl+Shift+K', 'category': '代码' },
+    { 'id': 'save', 'name': '保存', 'description': '保存当前文章', 'defaultKey': 'Ctrl+S', 'category': '编辑操作' },
+    { 'id': 'undo', 'name': '撤销', 'description': '撤销上一步操作', 'defaultKey': 'Ctrl+Z', 'category': '编辑操作' },
+    { 'id': 'redo', 'name': '重做', 'description': '重做上一步操作', 'defaultKey': 'Ctrl+Y', 'category': '编辑操作' },
+    { 'id': 'preview', 'name': '切换预览', 'description': '切换编辑/预览模式', 'defaultKey': 'Ctrl+P', 'category': '视图' },
+    { 'id': 'shortcuts', 'name': '显示快捷键', 'description': '显示所有快捷键', 'defaultKey': 'Ctrl+/', 'category': '视图' }
   ];
 
   /**
@@ -130,7 +130,7 @@ function ArticleEditorImpl() {
    */
   React.useEffect(() => {
     const handleFullscreenChange = () => {
-      updateState('isFullscreen', !!document.fullscreenElement);
+      updateState('isFullscreen', Boolean(document.fullscreenElement));
     };
 
     // 添加浏览器前缀支持
@@ -158,7 +158,8 @@ function ArticleEditorImpl() {
         if (typeof editorElement.requestFullscreen === 'function') {
           editorElement.requestFullscreen().catch(err => {
             console.error('Error attempting to enable fullscreen:', err);
-            updateState('isFullscreen', false); // 恢复状态
+            // 恢复状态
+            updateState('isFullscreen', false);
           });
         } else {
           // 标准方法不支持，直接恢复状态
@@ -184,7 +185,15 @@ function ArticleEditorImpl() {
     if (format) {
       updateState('copiedFormat', format);
       updateState('isFormatBrushActive', true);
-      showNotification(`已复制${format === 'bold' ? '粗体' : format === 'italic' ? '斜体' : format === 'strikethrough' ? '删除线' : '行内代码'}格式`, 'success');
+      let formatName = '行内代码';
+      if (format === 'bold') {
+        formatName = '粗体';
+      } else if (format === 'italic') {
+        formatName = '斜体';
+      } else if (format === 'strikethrough') {
+        formatName = '删除线';
+      }
+      showNotification(`已复制${formatName}格式`, 'success');
     } else {
       showNotification('请先选择要复制格式的文本', 'info');
     }
@@ -243,7 +252,7 @@ function ArticleEditorImpl() {
       return;
     }
     // 调用编辑器核心的格式化函数
-    formatText(formatType, data, state.content, (newContent: string) => updateState('content', newContent));
+    formatText({ formatType, data, 'content': state.content, 'setContent': (newContent: string) => updateState('content', newContent) });
   }, [state.content, updateState]);
 
   /**
@@ -251,7 +260,7 @@ function ArticleEditorImpl() {
    */
   const handleImageUploaded = React.useCallback((imageUrl: string) => {
     // 插入到当前光标位置
-    formatText('image', { url: imageUrl }, state.content, (newContent: string) => updateState('content', newContent));
+    formatText({ 'formatType': 'image', 'data': { 'url': imageUrl }, 'content': state.content, 'setContent': (newContent: string) => updateState('content', newContent) });
   }, [state.content, updateState]);
 
   /**
@@ -259,7 +268,7 @@ function ArticleEditorImpl() {
    */
   const handleFileUploaded = React.useCallback((fileUrl: string, fileName: string) => {
     // 插入到当前光标位置
-    formatText('file', { url: fileUrl, name: fileName }, state.content, (newContent: string) => updateState('content', newContent));
+    formatText({ 'formatType': 'file', 'data': { 'url': fileUrl, 'name': fileName }, 'content': state.content, 'setContent': (newContent: string) => updateState('content', newContent) });
   }, [state.content, updateState]);
 
   /**
@@ -300,8 +309,12 @@ function ArticleEditorImpl() {
           e.preventDefault();
           // 简化视图切换逻辑，减少依赖
           updateState('viewMode', prevMode => {
-            if (prevMode === 'editor') return 'preview';
-            if (prevMode === 'preview') return 'split';
+            if (prevMode === 'editor') {
+              return 'preview';
+            }
+            if (prevMode === 'preview') {
+              return 'split';
+            }
             return 'editor';
           });
           break;
@@ -309,18 +322,20 @@ function ArticleEditorImpl() {
           e.preventDefault();
           updateState('showShortcuts', prev => !prev);
           break;
-        case 'f': // Ctrl+F 触发搜索
+        case 'f':
+          // Ctrl+F 触发搜索
           e.preventDefault();
           // 这里可以实现搜索功能
           break;
         case 'shift':
-          break; // 忽略单独的Shift键
+          // 忽略单独的Shift键
+          break;
         default:
           // 移除智能建议相关的逻辑
           break;
       }
     }
-    
+
     // 处理Ctrl+Shift快捷键
     if (e.ctrlKey && e.shiftKey) {
       switch (e.key.toLowerCase()) {
@@ -340,7 +355,8 @@ function ArticleEditorImpl() {
           e.preventDefault();
           handleFormat('codeblock');
           break;
-        case 'f': // Ctrl+Shift+F 切换全屏
+        case 'f':
+          // Ctrl+Shift+F 切换全屏
           e.preventDefault();
           updateState('isFullscreen', prev => !prev);
           break;
@@ -447,7 +463,7 @@ function ArticleEditorImpl() {
       )}
 
 
-      
+
       {/* 帮助面板 */}
       {state.showHelp && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -476,7 +492,7 @@ function ArticleEditorImpl() {
                     <p>• 自动保存功能会定期保存您的工作</p>
                   </div>
                 </div>
-                
+
                 {/* 支持的功能 */}
                 <div>
                   <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">支持的功能</h3>
@@ -491,7 +507,7 @@ function ArticleEditorImpl() {
                     <p>• 知识图谱生成</p>
                   </div>
                 </div>
-                
+
                 {/* 快捷键 */}
                 <div>
                   <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">常用快捷键</h3>
@@ -530,7 +546,7 @@ function ArticleEditorImpl() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* 支持和反馈 */}
                 <div>
                   <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">支持和反馈</h3>
@@ -546,7 +562,7 @@ function ArticleEditorImpl() {
           </div>
         </div>
       )}
-      
+
       {/* 主编辑区域 */}
       <div className="flex flex-1 overflow-hidden">
         {/* 编辑器主体 */}
@@ -621,7 +637,7 @@ function ArticleEditorImpl() {
               onCursorPositionChange={handleCursorPositionChange}
               collaborators={state.collaborators}
             />
-            
+
             {/* 智能建议UI已移除 - 自动补全功能已禁用 */}
           </div>
 
@@ -662,8 +678,8 @@ function ArticleEditorImpl() {
                       <div className="flex items-center space-x-4">
                         <button
                           onClick={() => updateState('visibility', 'public')}
-                          className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${state.visibility === 'public' 
-                            ? 'bg-[var(--blue-50)] dark:bg-[var(--blue-900)]/20 text-[var(--blue-700)] dark:text-[var(--blue-400)] border border-[var(--blue-200)] dark:border-[var(--blue-800)]' 
+                          className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${state.visibility === 'public'
+                            ? 'bg-[var(--blue-50)] dark:bg-[var(--blue-900)]/20 text-[var(--blue-700)] dark:text-[var(--blue-400)] border border-[var(--blue-200)] dark:border-[var(--blue-800)]'
                             : 'bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-color)] hover:bg-[var(--bg-hover)]'}`}
                         >
                           <Globe size={16} className="text-[var(--blue-500)] dark:text-[var(--blue-400)]" />
@@ -671,8 +687,8 @@ function ArticleEditorImpl() {
                         </button>
                         <button
                           onClick={() => updateState('visibility', 'unlisted')}
-                          className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${state.visibility === 'unlisted' 
-                            ? 'bg-[var(--blue-50)] dark:bg-[var(--blue-900)]/20 text-[var(--blue-700)] dark:text-[var(--blue-400)] border border-[var(--blue-200)] dark:border-[var(--blue-800)]' 
+                          className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-150 ${state.visibility === 'unlisted'
+                            ? 'bg-[var(--blue-50)] dark:bg-[var(--blue-900)]/20 text-[var(--blue-700)] dark:text-[var(--blue-400)] border border-[var(--blue-200)] dark:border-[var(--blue-800)]'
                             : 'bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-color)] hover:bg-[var(--bg-hover)]'}`}
                         >
                           <Lock size={16} className="text-[var(--purple-500)] dark:text-[var(--purple-400)]" />
@@ -681,7 +697,7 @@ function ArticleEditorImpl() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* 作者信息设置 */}
                   <div>
                     <h3 className="text-lg font-medium text-[var(--text-primary)] mb-3">作者信息</h3>

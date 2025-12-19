@@ -9,14 +9,15 @@ import MDEditor from '@uiw/react-md-editor';
 import type { DiscussionCategory, DiscussionTopic } from '../types';
 import { discussionService } from '../services/discussionService';
 import { fileService } from '../services/fileService';
+import { screenReaderAnnouncer } from '../utils/accessibility';
 
 /**
  * 创建主题页面组件
  */
-export function CreateTopicPage() {
+export function CreateTopicPage () {
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const navigate = useNavigate();
-  
+
   const [category, setCategory] = useState<DiscussionCategory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,12 +38,12 @@ export function CreateTopicPage() {
     try {
       const categories = await discussionService.getCategories();
       const foundCategory = categories.find(cat => cat.slug === categorySlug);
-      
+
       if (!foundCategory) {
         navigate('/discussions');
         return;
       }
-      
+
       setCategory(foundCategory);
     } catch (error) {
       console.error('Failed to load category:', error);
@@ -58,7 +59,7 @@ export function CreateTopicPage() {
   const loadTags = useCallback(async () => {
     try {
       const data = await discussionService.getTags();
-      setAvailableTags(data.map(tag => ({ id: tag.id, name: tag.name })));
+      setAvailableTags(data.map(tag => ({ 'id': tag.id, 'name': tag.name })));
     } catch (error) {
       console.error('Failed to load tags:', error);
     }
@@ -71,9 +72,8 @@ export function CreateTopicPage() {
     setSelectedTags(prev => {
       if (prev.includes(tagId)) {
         return prev.filter(id => id !== tagId);
-      } else {
-        return [...prev, tagId];
       }
+      return [...prev, tagId];
     });
   };
 
@@ -89,20 +89,22 @@ export function CreateTopicPage() {
    */
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     // 检查文件类型
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file.');
+      screenReaderAnnouncer.announceError('Please select an image file.');
       return;
     }
 
     try {
       setIsUploading(true);
-      
+
       // 上传图片到Supabase存储
       const imageUrl = await fileService.uploadFile(file, 'images', 'discussions');
-      
+
       if (imageUrl) {
         // 将图片Markdown语法插入到编辑器内容中
         const imageMarkdown = `![Image](${imageUrl})\n\n`;
@@ -110,7 +112,7 @@ export function CreateTopicPage() {
       }
     } catch (error) {
       console.error('Failed to upload image:', error);
-      alert('Failed to upload image. Please try again.');
+      screenReaderAnnouncer.announceError('Failed to upload image. Please try again.');
     } finally {
       setIsUploading(false);
       // 重置文件输入
@@ -125,28 +127,28 @@ export function CreateTopicPage() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim() || !content.trim() || !authorName.trim() || !category) {
       return;
     }
-    
+
     try {
       setIsSubmitting(true);
-      
+
       // 构建主题数据，只在有值时包含author_email
       const topicData: Omit<DiscussionTopic, 'id' | 'reply_count' | 'view_count' | 'is_pinned' | 'created_at' | 'updated_at'> = {
         title,
         content,
-        author_name: authorName,
-        category_id: category.id
+        'author_name': authorName,
+        'category_id': category.id
       };
-      
+
       if (authorEmail) {
         topicData.author_email = authorEmail;
       }
-      
+
       const newTopic = await discussionService.createTopic(topicData, selectedTags);
-      
+
       if (newTopic) {
         navigate(`/discussions/${category.slug}/${newTopic.id}`);
       }

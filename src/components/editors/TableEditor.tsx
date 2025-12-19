@@ -4,7 +4,7 @@ import { X, Save, RotateCw, PlusCircle, MinusCircle, MoreHorizontal } from 'luci
 interface TableEditorProps {
   isOpen: boolean;
   onClose: () => void;
-  onInsert: (tableMarkdown: string) => void;
+  onInsert: (_tableMarkdown: string) => void;
   initialTable?: string;
 }
 
@@ -18,7 +18,7 @@ interface TableRow {
   cells: TableCell[];
 }
 
-export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: TableEditorProps) {
+export function TableEditor ({ isOpen, onClose, onInsert, initialTable = '' }: TableEditorProps) {
   const [table, setTable] = useState<TableRow[]>([]);
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
   const [selectionRange, setSelectionRange] = useState<{ startRow: number; startCol: number; endRow: number; endCol: number } | null>(null);
@@ -27,6 +27,33 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
   const [startSelectRow, setStartSelectRow] = useState(0);
   const [startSelectCol, setStartSelectCol] = useState(0);
 
+  // 解析Markdown表格为内部表格结构
+  const parseTable = (markdown: string) => {
+    const lines = markdown.trim().split('\n')
+      .filter(line => line.trim());
+    if (lines.length < 2) {
+      return;
+    }
+
+    // 跳过分隔线
+    const dataLines = lines.filter((_, index) => index !== 1);
+    const parsedTable: TableRow[] = [];
+
+    dataLines.forEach(line => {
+      const cells = line.match(/\|(.*?)\|/g) || [];
+      const row: TableRow = { 'cells': [] };
+
+      cells.slice(1, -1).forEach(cell => {
+        const content = cell.substring(1, cell.length - 1).trim();
+        row.cells.push({ content, 'colspan': 1, 'rowspan': 1 });
+      });
+
+      parsedTable.push(row);
+    });
+
+    setTable(parsedTable);
+  };
+
   // 初始化表格
   useEffect(() => {
     if (initialTable.trim()) {
@@ -34,40 +61,18 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
     } else {
       // 默认创建一个2x2的表格
       const defaultTable: TableRow[] = [
-        { cells: [{ content: '标题1', colspan: 1, rowspan: 1 }, { content: '标题2', colspan: 1, rowspan: 1 }] },
-        { cells: [{ content: '内容1', colspan: 1, rowspan: 1 }, { content: '内容2', colspan: 1, rowspan: 1 }] }
+        { 'cells': [{ 'content': '标题1', 'colspan': 1, 'rowspan': 1 }, { 'content': '标题2', 'colspan': 1, 'rowspan': 1 }] },
+        { 'cells': [{ 'content': '内容1', 'colspan': 1, 'rowspan': 1 }, { 'content': '内容2', 'colspan': 1, 'rowspan': 1 }] }
       ];
       setTable(defaultTable);
     }
   }, [initialTable]);
 
-  // 解析Markdown表格为内部表格结构
-  const parseTable = (markdown: string) => {
-    const lines = markdown.trim().split('\n').filter(line => line.trim());
-    if (lines.length < 2) return;
-
-    // 跳过分隔线
-    const dataLines = lines.filter((_, index) => index !== 1);
-    const table: TableRow[] = [];
-
-    dataLines.forEach(line => {
-      const cells = line.match(/\|(.*?)\|/g) || [];
-      const row: TableRow = { cells: [] };
-      
-      cells.slice(1, -1).forEach(cell => {
-        const content = cell.substring(1, cell.length - 1).trim();
-        row.cells.push({ content, colspan: 1, rowspan: 1 });
-      });
-      
-      table.push(row);
-    });
-
-    setTable(table);
-  };
-
   // 生成Markdown表格
   const generateMarkdownTable = useCallback(() => {
-    if (table.length === 0) return '';
+    if (table.length === 0) {
+      return '';
+    }
 
     // 计算每列的最大宽度
     const colCount = Math.max(...table.map(row => row.cells.length));
@@ -81,7 +86,7 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
 
     // 生成表头
     let markdown = '';
-    
+
     // 第一行作为表头
     markdown += '|';
     if (table[0] && table[0].cells) {
@@ -101,14 +106,17 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
     }
 
     // 生成数据行
-    for (let i = 1; i < table.length; i++) {
+    for (let i = 1; i < table.length; i += 1) {
       markdown += '|';
       const currentRow = table[i];
       if (currentRow && currentRow.cells && Array.isArray(currentRow.cells)) {
-        currentRow.cells.forEach((cell, index) => {
-          const padding = ' '.repeat(columnWidths[index] - cell.content.length + 2);
-          markdown += `${cell.content}${padding}|`;
-        });
+        for (let j = 0; j < currentRow.cells.length; j += 1) {
+          const cell = currentRow.cells[j];
+          if (cell) {
+            const padding = ' '.repeat(columnWidths[j] - cell.content.length + 2);
+            markdown += `${cell.content}${padding}|`;
+          }
+        }
       }
       markdown += '\n';
     }
@@ -124,17 +132,19 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
 
   // 添加行
   const handleAddRow = () => {
-    const newRow: TableRow = { cells: [] };
+    const newRow: TableRow = { 'cells': [] };
     const maxCols = Math.max(...table.map(row => row.cells.length));
-    for (let i = 0; i < maxCols; i++) {
-      newRow.cells.push({ content: '', colspan: 1, rowspan: 1 });
+    for (let i = 0; i < maxCols; i += 1) {
+      newRow.cells.push({ 'content': '', 'colspan': 1, 'rowspan': 1 });
     }
     setTable([...table, newRow]);
   };
 
   // 删除行
   const handleDeleteRow = () => {
-    if (table.length <= 1 || !selectedCell) return;
+    if (table.length <= 1 || !selectedCell) {
+      return;
+    }
     const newTable = table.filter((_, index) => index !== selectedCell.row);
     setTable(newTable);
     setSelectedCell(null);
@@ -143,16 +153,18 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
   // 添加列
   const handleAddColumn = () => {
     const newTable = table.map(row => ({
-      cells: [...row.cells, { content: '', colspan: 1, rowspan: 1 }]
+      'cells': [...row.cells, { 'content': '', 'colspan': 1, 'rowspan': 1 }]
     }));
     setTable(newTable);
   };
 
   // 删除列
   const handleDeleteColumn = () => {
-    if (!selectedCell) return;
+    if (!selectedCell) {
+      return;
+    }
     const newTable = table.map(row => ({
-      cells: row.cells.filter((_, index) => index !== selectedCell.col)
+      'cells': row.cells.filter((_, index) => index !== selectedCell.col)
     }));
     setTable(newTable);
     setSelectedCell(null);
@@ -160,10 +172,14 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
 
   // 合并单元格
   const handleMergeCells = () => {
-    if (!selectionRange) return;
-    
+    if (!selectionRange) {
+      return;
+    }
+
     const { startRow, startCol, endRow, endCol } = selectionRange;
-    if (startRow === endRow && startCol === endCol) return;
+    if (startRow === endRow && startCol === endCol) {
+      return;
+    }
 
     // 计算合并后的单元格内容
     if (table[startRow] && table[startRow].cells && table[startRow].cells[startCol]) {
@@ -173,25 +189,31 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
       // 更新起始单元格
       if (newTable[startRow] && newTable[startRow].cells) {
         newTable[startRow].cells[startCol] = {
-          content: mergedContent,
-          colspan: endCol - startCol + 1,
-          rowspan: endRow - startRow + 1
+          'content': mergedContent,
+          'colspan': endCol - startCol + 1,
+          'rowspan': endRow - startRow + 1
+        };
+
+        // 辅助函数：清除被合并的单元格
+        const clearMergedCells = (tableData: typeof newTable) => {
+          for (let i = startRow; i <= endRow; i += 1) {
+            for (let j = startCol; j <= endCol; j += 1) {
+              if (!(i === startRow && j === startCol)) {
+                const row = tableData[i];
+                if (row && row.cells && Array.isArray(row.cells)) {
+                  row.cells[j] = { 'content': '', 'colspan': 0, 'rowspan': 0 };
+                }
+              }
+            }
+          }
         };
 
         // 清除被合并的单元格
-        for (let i = startRow; i <= endRow; i++) {
-          for (let j = startCol; j <= endCol; j++) {
-            if (i === startRow && j === startCol) continue;
-            const row = newTable[i];
-            if (row && row.cells && Array.isArray(row.cells)) {
-              row.cells[j] = { content: '', colspan: 0, rowspan: 0 };
-            }
-          }
-        }
+        clearMergedCells(newTable);
 
         setTable(newTable);
         setSelectionRange(null);
-        setSelectedCell({ row: startRow, col: startCol });
+        setSelectedCell({ 'row': startRow, 'col': startCol });
       }
     }
   };
@@ -200,16 +222,18 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
   const handleSplitCell = (rowIndex: number, colIndex: number) => {
     if (table[rowIndex] && table[rowIndex].cells && table[rowIndex].cells[colIndex]) {
       const cell = table[rowIndex].cells[colIndex];
-      if (cell.colspan === 1 && cell.rowspan === 1) return;
+      if (cell.colspan === 1 && cell.rowspan === 1) {
+        return;
+      }
 
       const newTable = [...table];
-      
+
       // 重置为单个单元格
       if (newTable[rowIndex] && newTable[rowIndex].cells) {
         newTable[rowIndex].cells[colIndex] = {
-          content: cell.content,
-          colspan: 1,
-          rowspan: 1
+          'content': cell.content,
+          'colspan': 1,
+          'rowspan': 1
         };
 
         setTable(newTable);
@@ -228,7 +252,7 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
 
   // 处理单元格点击
   const handleCellClick = (rowIndex: number, colIndex: number) => {
-    setSelectedCell({ row: rowIndex, col: colIndex });
+    setSelectedCell({ 'row': rowIndex, 'col': colIndex });
     setIsSelecting(true);
     setStartSelectRow(rowIndex);
     setStartSelectCol(colIndex);
@@ -260,21 +284,25 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
   // 清除表格
   const handleClear = () => {
     const defaultTable: TableRow[] = [
-      { cells: [{ content: '标题1', colspan: 1, rowspan: 1 }, { content: '标题2', colspan: 1, rowspan: 1 }] },
-      { cells: [{ content: '内容1', colspan: 1, rowspan: 1 }, { content: '内容2', colspan: 1, rowspan: 1 }] }
+      { 'cells': [{ 'content': '标题1', 'colspan': 1, 'rowspan': 1 }, { 'content': '标题2', 'colspan': 1, 'rowspan': 1 }] },
+      { 'cells': [{ 'content': '内容1', 'colspan': 1, 'rowspan': 1 }, { 'content': '内容2', 'colspan': 1, 'rowspan': 1 }] }
     ];
     setTable(defaultTable);
   };
 
   // 检查单元格是否被选中
   const isCellSelected = (rowIndex: number, colIndex: number) => {
-    if (!selectionRange) return false;
-    
+    if (!selectionRange) {
+      return false;
+    }
+
     const { startRow, startCol, endRow, endCol } = selectionRange;
     return rowIndex >= startRow && rowIndex <= endRow && colIndex >= startCol && colIndex <= endCol;
   };
 
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
@@ -358,7 +386,7 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
             {/* 表格编辑器 */}
             <div className="flex-1">
               <div className="mb-2 text-sm font-medium text-gray-700">Table Editor</div>
-              <div 
+              <div
                 className="border border-gray-300 rounded-md overflow-hidden"
                 onMouseLeave={handleMouseLeaveTable}
               >
@@ -373,10 +401,10 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
                             onClick={() => handleCellClick(rowIndex, colIndex)}
                             onMouseEnter={() => handleCellMouseEnter(rowIndex, colIndex)}
                             style={{
-                              minWidth: '100px',
-                              minHeight: '40px',
-                              width: cell.colspan > 1 ? `${cell.colspan * 100}px` : '100px',
-                              height: cell.rowspan > 1 ? `${cell.rowspan * 40}px` : '40px'
+                              'minWidth': '100px',
+                              'minHeight': '40px',
+                              'width': cell.colspan > 1 ? `${cell.colspan * 100}px` : '100px',
+                              'height': cell.rowspan > 1 ? `${cell.rowspan * 40}px` : '40px'
                             }}
                           >
                             {cell.colspan > 0 && cell.rowspan > 0 && (
@@ -402,7 +430,7 @@ export function TableEditor({ isOpen, onClose, onInsert, initialTable = '' }: Ta
               <div className="p-4 bg-gray-50 border border-gray-300 rounded-md">
                 <pre className="font-mono text-sm text-gray-800 whitespace-pre-wrap">{tableMarkdown}</pre>
               </div>
-              
+
               {/* 渲染预览 */}
               <div className="mt-4">
                 <div className="mb-2 text-sm font-medium text-gray-700">Rendered Preview</div>

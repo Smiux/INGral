@@ -14,44 +14,44 @@ export const Loader: React.FC<LoaderProps> = ({
   color = 'var(--primary-color)',
   variant = 'spinner',
   text,
-  className = '',
+  className = ''
 }) => {
   // 根据size获取对应的类名和样式
   const sizeClass = styles[`size_${size}`];
   const spinnerStyle = {
-    borderTopColor: color,
-    borderLeftColor: color,
+    'borderTopColor': color,
+    'borderLeftColor': color
   };
   const dotStyle = {
-    backgroundColor: color,
+    'backgroundColor': color
   };
   const pulseStyle = {
-    backgroundColor: color,
+    'backgroundColor': color
   };
 
   // 渲染不同类型的加载器
   const renderLoader = () => {
     switch (variant) {
-    case 'spinner':
-      return (
-        <div className={`${styles.spinner} ${sizeClass}`} style={spinnerStyle}></div>
-      );
-    case 'dots':
-      return (
-        <div className={`${styles.dotsContainer} ${sizeClass}`}>
-          <div className={styles.dot1} style={dotStyle}></div>
-          <div className={styles.dot2} style={dotStyle}></div>
-          <div className={styles.dot3} style={dotStyle}></div>
-        </div>
-      );
-    case 'pulse':
-      return (
-        <div className={`${styles.pulse} ${sizeClass}`} style={pulseStyle}></div>
-      );
-    default:
-      return (
-        <div className={`${styles.spinner} ${sizeClass}`} style={spinnerStyle}></div>
-      );
+      case 'spinner':
+        return (
+          <div className={`${styles.spinner} ${sizeClass}`} style={spinnerStyle}></div>
+        );
+      case 'dots':
+        return (
+          <div className={`${styles.dotsContainer} ${sizeClass}`}>
+            <div className={styles.dot1} style={dotStyle}></div>
+            <div className={styles.dot2} style={dotStyle}></div>
+            <div className={styles.dot3} style={dotStyle}></div>
+          </div>
+        );
+      case 'pulse':
+        return (
+          <div className={`${styles.pulse} ${sizeClass}`} style={pulseStyle}></div>
+        );
+      default:
+        return (
+          <div className={`${styles.spinner} ${sizeClass}`} style={spinnerStyle}></div>
+        );
     }
   };
 

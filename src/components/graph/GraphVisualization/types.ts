@@ -9,7 +9,8 @@
 export interface NodeData {
   id?: string | number;
   name?: string;
-  title?: string; // 添加title属性
+  // 添加title属性
+  title?: string;
   created_by?: string;
   connections?: number;
   created_at?: string;
@@ -27,11 +28,13 @@ export interface ConnectionData {
 // 图表数据接口
 export interface GraphData {
   id?: string | number;
-  name?: string; // 修改为可选属性
+  // 修改为可选属性
+  name?: string;
   nodes: NodeData[];
   connections: ConnectionData[];
   is_template?: boolean;
-  created_at?: string; // 添加创建时间属性
+  // 添加创建时间属性
+  created_at?: string;
 }
 
 // 增强节点接口
@@ -42,12 +45,16 @@ export interface EnhancedNode {
   connections: number;
   content?: string;
   is_custom?: boolean;
-  created_by?: string; // 改为可选字段，与GraphNode接口保持一致
+  // 改为可选字段，与GraphNode接口保持一致
+  created_by?: string;
   createdAt?: number;
   type?: 'concept' | 'article' | 'resource' | 'aggregate' | string;
-  shape?: 'circle' | 'rectangle' | 'triangle' | 'hexagon' | 'diamond' | string; // 新增：用于自定义节点形状
-  isExpanded?: boolean; // 新增：用于控制节点在树形布局中是否展开
-  isFixed?: boolean; // 新增：用于控制节点是否固定位置
+  // 新增：用于自定义节点形状
+  shape?: 'circle' | 'rectangle' | 'triangle' | 'hexagon' | 'diamond' | string;
+  // 新增：用于控制节点在树形布局中是否展开
+  isExpanded?: boolean;
+  // 新增：用于控制节点是否固定位置
+  isFixed?: boolean;
   x?: number;
   y?: number;
   fx?: number | null;
@@ -68,14 +75,21 @@ export interface EnhancedNode {
   _clusterCenter?: { x: number; y: number };
   _clusterSize?: number;
   // 动画相关属性
-  _targetX?: number; // 目标X坐标，用于平滑动画
-  _targetY?: number; // 目标Y坐标，用于平滑动画
+  // 目标X坐标，用于平滑动画
+  _targetX?: number;
+  // 目标Y坐标，用于平滑动画
+  _targetY?: number;
   // 节点分组相关属性
-  groupId?: string; // 所属分组ID
-  isGroup?: boolean; // 是否为分组节点
-  memberIds?: string[]; // 分组包含的节点ID列表
-  groupTitle?: string; // 分组标题
-  groupType?: string; // 分组类型
+  // 所属分组ID
+  groupId?: string;
+  // 是否为分组节点
+  isGroup?: boolean;
+  // 分组包含的节点ID列表
+  memberIds?: string[];
+  // 分组标题
+  groupTitle?: string;
+  // 分组类型
+  groupType?: string;
 }
 
 // 增强连接接口
@@ -85,8 +99,10 @@ export interface EnhancedGraphConnection {
   // 明确声明source和target的类型，支持节点对象或ID
   source: EnhancedNode | string | number;
   target: EnhancedNode | string | number;
-  weight?: number; // 连接权重，用于力导向布局和重要性排序
-  label?: string; // 连接标签，用于显示连接类型或描述
+  // 连接权重，用于力导向布局和重要性排序
+  weight?: number;
+  // 连接标签，用于显示连接类型或描述
+  label?: string;
 }
 
 // 布局类型
@@ -119,7 +135,7 @@ export interface SavedLayout {
 }
 
 // 操作历史记录类型
-export type RecentAction = 
+export type RecentAction =
   | { type: 'addNode'; nodeId: string; timestamp: number; data: { node: EnhancedNode } }
   | { type: 'deleteNode'; nodeId: string; timestamp: number; data: { node: EnhancedNode; connections: EnhancedGraphConnection[] } }
   | { type: 'addConnection'; connectionId: string; timestamp: number; data: EnhancedGraphConnection }
@@ -130,13 +146,13 @@ export type RecentAction =
 // 图谱控制属性
 export interface GraphControlsProps {
   isEditMode: boolean;
-  setIsEditMode: (isEditMode: boolean) => void;
+  setIsEditMode: (_isEditMode: boolean) => void;
   isSimulationRunning: boolean;
-  setIsSimulationRunning: (isRunning: boolean) => void;
+  setIsSimulationRunning: (_isRunning: boolean) => void;
   layoutType: LayoutType;
-  setLayoutType: (layout: LayoutType) => void;
+  setLayoutType: (_layout: LayoutType) => void;
   layoutDirection: LayoutDirection;
-  setLayoutDirection: (direction: LayoutDirection) => void;
+  setLayoutDirection: (_direction: LayoutDirection) => void;
   isAddingConnection: boolean;
   cancelAddConnection: () => void;
 }
@@ -150,9 +166,9 @@ export interface NodeManagementProps {
   setSelectedNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
   selectedNodes: EnhancedNode[];
   setSelectedNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
-  showNotification: (message: string, type: 'success' | 'info' | 'error') => void;
-  onAddNode?: (node: EnhancedNode) => void;
-  onDeleteNodes?: (nodes: EnhancedNode[], connections: EnhancedGraphConnection[]) => void;
+  showNotification: (_message: string, _type: 'success' | 'info' | 'error') => void;
+  onAddNode?: (_node: EnhancedNode) => void;
+  onDeleteNodes?: (_nodes: EnhancedNode[], _connections: EnhancedGraphConnection[]) => void;
 }
 
 // 连接管理属性
@@ -167,7 +183,7 @@ export interface ConnectionManagementProps {
   setConnectionSourceNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
   mousePosition: { x: number; y: number } | null;
   setMousePosition: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
-  showNotification: (message: string, type: 'success' | 'info' | 'error') => void;
+  showNotification: (_message: string, _type: 'success' | 'info' | 'error') => void;
 }
 
 // 力导向布局参数接口
@@ -190,21 +206,25 @@ export interface GraphCanvasProps {
   forceParameters?: ForceParameters;
   selectedNode: EnhancedNode | null;
   selectedNodes: EnhancedNode[];
-  onNodeClick: (node: EnhancedNode, event: React.MouseEvent) => void;
-  onNodeDragStart: (node: EnhancedNode) => void;
-  onNodeDragEnd: (node: EnhancedNode) => void;
-  onConnectionClick: (connection: EnhancedGraphConnection) => void;
-  onCanvasClick: (event: React.MouseEvent) => void;
-  onCanvasDrop: (event: React.DragEvent, x: number, y: number) => void;
-  onBoxSelectStart: (x: number, y: number) => void;
-  onBoxSelectUpdate: (x: number, y: number) => void;
+  onNodeClick: (_node: EnhancedNode, _event: React.MouseEvent) => void;
+  onNodeDragStart: (_node: EnhancedNode) => void;
+  onNodeDragEnd: (_node: EnhancedNode) => void;
+  onConnectionClick: (_connection: EnhancedGraphConnection) => void;
+  onCanvasClick: (_event: React.MouseEvent) => void;
+  onCanvasDrop: (_event: React.DragEvent, _x: number, _y: number) => void;
+  onBoxSelectStart: (_x: number, _y: number) => void;
+  onBoxSelectUpdate: (_x: number, _y: number) => void;
   onBoxSelectEnd: () => void;
   isBoxSelecting: boolean;
   boxSelection: { x1: number; y1: number; x2: number; y2: number };
-  theme: import('./ThemeTypes').GraphTheme; // 主题样式
-  isAddingConnection?: boolean; // 是否正在添加连接
-  connectionSourceNode?: EnhancedNode | null; // 连接源节点
-  mousePosition?: { x: number; y: number } | null; // 当前鼠标位置
+  // 主题样式
+  theme: import('./ThemeTypes').GraphTheme;
+  // 是否正在添加连接
+  isAddingConnection?: boolean;
+  // 连接源节点
+  connectionSourceNode?: EnhancedNode | null;
+  // 当前鼠标位置
+  mousePosition?: { x: number; y: number } | null;
 }
 
 // 布局管理属性

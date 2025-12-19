@@ -38,15 +38,17 @@ export type AriaRole =
  */
 export const screenReaderAnnouncer = {
   // 通知元素
-  announcementElement: null as HTMLElement | null,
+  'announcementElement': null as HTMLElement | null,
 
   /**
    * 初始化屏幕阅读器通知
    * 创建一个用于发送屏幕阅读器通知的元素
    */
-  init: (): void => {
+  'init': (): void => {
     // 检查是否已经创建了通知元素
-    if (screenReaderAnnouncer.announcementElement) {return;}
+    if (screenReaderAnnouncer.announcementElement) {
+      return;
+    }
 
     // 创建一个用于屏幕阅读器通知的元素
     screenReaderAnnouncer.announcementElement = document.createElement('div');
@@ -65,7 +67,7 @@ export const screenReaderAnnouncer = {
   /**
    * 初始化屏幕阅读器通知（别名，向后兼容）
    */
-  initialize: (): void => {
+  'initialize': (): void => {
     screenReaderAnnouncer.init();
   },
 
@@ -74,9 +76,14 @@ export const screenReaderAnnouncer = {
    * @param message 通知消息
    * @param priority 优先级：'polite'（默认）、'assertive' 或 boolean（true 为 assertive，false 为 polite）
    */
-  announce: (message: string, priority: 'polite' | 'assertive' | boolean | undefined = 'polite'): void => {
+  'announce': (message: string, priority: 'polite' | 'assertive' | boolean | undefined = 'polite'): void => {
     // 处理布尔值优先级，兼容旧代码
-    const priorityValue = typeof priority === 'boolean' ? (priority ? 'assertive' : 'polite') : priority;
+    let priorityValue: 'polite' | 'assertive';
+    if (typeof priority === 'boolean') {
+      priorityValue = priority ? 'assertive' : 'polite';
+    } else {
+      priorityValue = priority;
+    }
 
     // 初始化通知元素
     screenReaderAnnouncer.init();
@@ -100,7 +107,7 @@ export const screenReaderAnnouncer = {
    * 发送状态通知
    * @param message 状态消息
    */
-  announceStatus: (message: string): void => {
+  'announceStatus': (message: string): void => {
     screenReaderAnnouncer.announce(message, 'polite');
   },
 
@@ -108,7 +115,7 @@ export const screenReaderAnnouncer = {
    * 发送错误通知
    * @param message 错误消息
    */
-  announceError: (message: string): void => {
+  'announceError': (message: string): void => {
     screenReaderAnnouncer.announce(message, 'assertive');
   },
 
@@ -116,9 +123,9 @@ export const screenReaderAnnouncer = {
    * 发送成功通知
    * @param message 成功消息
    */
-  announceSuccess: (message: string): void => {
+  'announceSuccess': (message: string): void => {
     screenReaderAnnouncer.announce(message, 'polite');
-  },
+  }
 };
 
 /**
@@ -126,13 +133,13 @@ export const screenReaderAnnouncer = {
  */
 export const focusManager = {
   // 保存的焦点元素
-  savedFocus: null as HTMLElement | null,
+  'savedFocus': null as HTMLElement | null,
 
   /**
    * 聚焦到指定元素
    * @param element 要聚焦的元素
    */
-  focus: (element: HTMLElement | null | undefined): void => {
+  'focus': (element: HTMLElement | null | undefined): void => {
     if (element && element.focus) {
       element.focus();
     }
@@ -141,14 +148,14 @@ export const focusManager = {
   /**
    * 保存当前焦点元素
    */
-  saveFocus: (): void => {
+  'saveFocus': (): void => {
     focusManager.savedFocus = document.activeElement as HTMLElement || null;
   },
 
   /**
    * 恢复焦点到之前保存的元素
    */
-  restoreFocus: (): void => {
+  'restoreFocus': (): void => {
     focusManager.focus(focusManager.savedFocus);
   },
 
@@ -157,12 +164,14 @@ export const focusManager = {
    * 当用户按下 Tab 键时，焦点会在元素内的第一个和最后一个焦点元素之间循环
    * @param element 要陷阱焦点的元素
    */
-  trapFocus: (element: HTMLElement): void => {
+  'trapFocus': (element: HTMLElement): void => {
     const focusableElements = Array.from(element.querySelectorAll(
-      'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
     )) as HTMLElement[];
 
-    if (focusableElements.length === 0) {return;}
+    if (focusableElements.length === 0) {
+      return;
+    }
 
     // 确保数组访问安全
     const firstElement = focusableElements[0] as HTMLElement;
@@ -191,9 +200,9 @@ export const focusManager = {
    * 聚焦到元素内的第一个可聚焦元素
    * @param element 容器元素
    */
-  focusFirstElement: (element: HTMLElement): void => {
+  'focusFirstElement': (element: HTMLElement): void => {
     const focusableElements = Array.from(element.querySelectorAll(
-      'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
     )) as HTMLElement[];
 
     if (focusableElements.length > 0) {
@@ -205,28 +214,30 @@ export const focusManager = {
    * 聚焦到元素内的最后一个可聚焦元素
    * @param element 容器元素
    */
-  focusLastElement: (element: HTMLElement): void => {
+  'focusLastElement': (element: HTMLElement): void => {
     const focusableElements = Array.from(element.querySelectorAll(
-      'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
     )) as HTMLElement[];
 
     if (focusableElements.length > 0) {
       focusManager.focus(focusableElements[focusableElements.length - 1]);
     }
-  },
+  }
 };
 
 /**
  * 无障碍工具函数集合
  */
 export const accessibilityUtils = {
+
   /**
    * 生成唯一的ARIA ID
    * @param prefix ID前缀
    * @returns 唯一的ARIA ID
    */
-  generateAriaId: (prefix = 'aria'): string => {
-    return `${prefix}-${Math.random().toString(36).substring(2, 11)}`;
+  'generateAriaId': (prefix = 'aria'): string => {
+    return `${prefix}-${Math.random().toString(36)
+      .substring(2, 11)}`;
   },
 
   /**
@@ -234,7 +245,7 @@ export const accessibilityUtils = {
    * @param element 要检查的元素
    * @returns 元素是否可见
    */
-  isElementVisible: (element: HTMLElement): boolean => {
+  'isElementVisible': (element: HTMLElement): boolean => {
     const rect = element.getBoundingClientRect();
     return (
       rect.top >= 0 &&
@@ -249,8 +260,8 @@ export const accessibilityUtils = {
    * @param element 要滚动到的元素
    * @param behavior 滚动行为：'smooth'（默认）或 'auto'
    */
-  scrollToElement: (element: HTMLElement, behavior: ScrollBehavior = 'smooth'): void => {
-    element.scrollIntoView({ behavior, block: 'center', inline: 'center' });
+  'scrollToElement': (element: HTMLElement, behavior: ScrollBehavior = 'smooth'): void => {
+    element.scrollIntoView({ behavior, 'block': 'center', 'inline': 'center' });
   },
 
   /**
@@ -259,12 +270,14 @@ export const accessibilityUtils = {
     * @param items 可导航的项目数组
     * @param onSelect 选择项目时的回调函数
     */
-  addKeyboardNavigation: (
+  'addKeyboardNavigation': (
     container: HTMLElement,
     items: HTMLElement[],
-    onSelect: (index: number) => void,
+    onSelect: (_index: number) => void
   ): void => {
-    if (items.length === 0) {return;}
+    if (items.length === 0) {
+      return;
+    }
 
     let currentIndex = 0;
 
@@ -273,33 +286,37 @@ export const accessibilityUtils = {
 
     container.addEventListener('keydown', (event) => {
       switch (event.key) {
-      case 'ArrowUp':
-      case 'ArrowLeft':
-        event.preventDefault();
-        currentIndex = Math.max(0, currentIndex - 1);
-        focusManager.focus(items[currentIndex]);
-        break;
+        case 'ArrowUp':
+        case 'ArrowLeft':
+          event.preventDefault();
+          currentIndex = Math.max(0, currentIndex - 1);
+          focusManager.focus(items[currentIndex]);
+          break;
 
-      case 'ArrowDown':
-      case 'ArrowRight':
-        event.preventDefault();
-        currentIndex = Math.min(items.length - 1, currentIndex + 1);
-        focusManager.focus(items[currentIndex]);
-        break;
+        case 'ArrowDown':
+        case 'ArrowRight':
+          event.preventDefault();
+          currentIndex = Math.min(items.length - 1, currentIndex + 1);
+          focusManager.focus(items[currentIndex]);
+          break;
 
-      case 'Enter':
-      case ' ': // Spacebar
-        event.preventDefault();
-        onSelect(currentIndex);
-        break;
+        case 'Enter':
+          event.preventDefault();
+          onSelect(currentIndex);
+          break;
+        // Spacebar
+        case ' ':
+          event.preventDefault();
+          onSelect(currentIndex);
+          break;
 
-      case 'Escape':
-        event.preventDefault();
-        container.blur();
-        break;
+        case 'Escape':
+          event.preventDefault();
+          container.blur();
+          break;
 
-      default:
-        break;
+        default:
+          break;
       }
     });
   },
@@ -309,7 +326,7 @@ export const accessibilityUtils = {
    * @param element 要检查的元素
    * @returns 无障碍问题数组
    */
-  checkAccessibilityAttributes: (element: HTMLElement): string[] => {
+  'checkAccessibilityAttributes': (element: HTMLElement): string[] => {
     const issues: string[] = [];
 
     // 检查 ARIA 角色是否有相应的属性
@@ -317,40 +334,40 @@ export const accessibilityUtils = {
 
     if (role) {
       switch (role) {
-      case 'button':
+        case 'button':
         // 检查是否有可访问名称
-        if (!element.textContent && !element.getAttribute('aria-label') && !element.getAttribute('aria-labelledby')) {
-          issues.push('Button role requires an accessible name (textContent, aria-label, or aria-labelledby)');
-        }
-        break;
+          if (!element.textContent && !element.getAttribute('aria-label') && !element.getAttribute('aria-labelledby')) {
+            issues.push('Button role requires an accessible name (textContent, aria-label, or aria-labelledby)');
+          }
+          break;
 
-      case 'link':
+        case 'link':
         // 检查是否有 href 属性
-        if (!element.hasAttribute('href')) {
-          issues.push('Link role requires an href attribute');
-        }
-        // 检查是否有可访问名称
-        if (!element.textContent && !element.getAttribute('aria-label') && !element.getAttribute('aria-labelledby')) {
-          issues.push('Link role requires an accessible name');
-        }
-        break;
+          if (!element.hasAttribute('href')) {
+            issues.push('Link role requires an href attribute');
+          }
+          // 检查是否有可访问名称
+          if (!element.textContent && !element.getAttribute('aria-label') && !element.getAttribute('aria-labelledby')) {
+            issues.push('Link role requires an accessible name');
+          }
+          break;
 
-      case 'checkbox':
+        case 'checkbox':
         // 检查是否有 aria-checked 属性
-        if (!element.hasAttribute('aria-checked')) {
-          issues.push('Checkbox role requires an aria-checked attribute');
-        }
-        break;
+          if (!element.hasAttribute('aria-checked')) {
+            issues.push('Checkbox role requires an aria-checked attribute');
+          }
+          break;
 
-      case 'radio':
+        case 'radio':
         // 检查是否有 aria-checked 属性
-        if (!element.hasAttribute('aria-checked')) {
-          issues.push('Radio role requires an aria-checked attribute');
-        }
-        break;
+          if (!element.hasAttribute('aria-checked')) {
+            issues.push('Radio role requires an aria-checked attribute');
+          }
+          break;
 
-      default:
-        break;
+        default:
+          break;
       }
     }
 
@@ -362,7 +379,7 @@ export const accessibilityUtils = {
    * @param element 要生成名称的元素
    * @returns 无障碍名称
    */
-  generateAccessibleName: (element: HTMLElement): string => {
+  'generateAccessibleName': (element: HTMLElement): string => {
     // 优先使用 aria-label
     const ariaLabel = element.getAttribute('aria-label');
     if (ariaLabel) {
@@ -380,26 +397,26 @@ export const accessibilityUtils = {
 
     // 最后使用元素文本
     return element.textContent || '';
-  },
+  }
 };
 
 // 导出单独的函数以保持向后兼容性
-export function announce(message: string, priority: 'polite' | 'assertive' | boolean | undefined = 'polite'): void {
+export function announce (message: string, priority: 'polite' | 'assertive' | boolean | undefined = 'polite'): void {
   screenReaderAnnouncer.announce(message, priority);
 }
 
-export function focusElement(element: HTMLElement | null): void {
+export function focusElement (element: HTMLElement | null): void {
   focusManager.focus(element);
 }
 
-export function saveFocus(): void {
+export function saveFocus (): void {
   focusManager.saveFocus();
 }
 
-export function restoreFocus(): void {
+export function restoreFocus (): void {
   focusManager.restoreFocus();
 }
 
-export function trapFocus(element: HTMLElement): void {
+export function trapFocus (element: HTMLElement): void {
   focusManager.trapFocus(element);
 }

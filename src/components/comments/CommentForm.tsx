@@ -18,27 +18,41 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onCommen
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!content.trim()) return;
-    
+
+    if (!content.trim()) {
+      return;
+    }
+
     setIsSubmitting(true);
-    
+
     try {
-      await commentService.createComment(
+      // 创建评论参数对象，只包含有值的属性
+      const commentParams: { articleId: string; content: string; parentId?: string; authorName?: string; authorEmail?: string; authorUrl?: string } = {
         articleId,
-        content,
-        parentId || undefined,
-        authorName,
-        authorEmail,
-        authorUrl
-      );
-      
+        content
+      };
+
+      if (parentId) {
+        commentParams.parentId = parentId;
+      }
+      if (authorName) {
+        commentParams.authorName = authorName;
+      }
+      if (authorEmail) {
+        commentParams.authorEmail = authorEmail;
+      }
+      if (authorUrl) {
+        commentParams.authorUrl = authorUrl;
+      }
+
+      await commentService.createComment(commentParams);
+
       // 重置表单
       setContent('');
       setAuthorName('');
       setAuthorEmail('');
       setAuthorUrl('');
-      
+
       // 通知父组件评论已创建
       if (onCommentCreated) {
         onCommentCreated();
@@ -64,7 +78,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onCommen
           autoComplete="off"
         />
       </div>
-      
+
       {/* 作者信息 */}
       <div className={styles.authorInfo}>
         <div className="flex items-center mb-2">
@@ -79,7 +93,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onCommen
           </button>
           <span className="text-xs text-gray-500 ml-2">（可选）</span>
         </div>
-        
+
         {showAuthorInfo && (
           <div className={styles.authorFields}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -135,14 +149,22 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onCommen
           </div>
         )}
       </div>
-      
+
       <div className="flex justify-end">
         <button
           type="submit"
           className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isSubmitting || !content.trim()}
         >
-          {isSubmitting ? '提交中...' : parentId ? '回复' : '发表评论'}
+          {(() => {
+            if (isSubmitting) {
+              return '提交中...';
+            }
+            if (parentId) {
+              return '回复';
+            }
+            return '发表评论';
+          })()}
         </button>
       </div>
     </form>

@@ -43,11 +43,11 @@ export interface ManagePanelProps {
   // 设置鼠标位置
   setMousePosition: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
   // 显示通知
-  showNotification: (message: string, type: 'success' | 'error' | 'info') => void;
+  showNotification: (_message: string, _type: 'success' | 'error' | 'info') => void;
   // 添加节点回调
-  onAddNode?: (node: EnhancedNode) => void;
+  onAddNode?: (_node: EnhancedNode) => void;
   // 删除节点回调
-  onDeleteNodes?: (nodes: EnhancedNode[], connections: EnhancedGraphConnection[]) => void;
+  onDeleteNodes?: (_nodes: EnhancedNode[], _connections: EnhancedGraphConnection[]) => void;
 }
 
 /**
@@ -72,7 +72,7 @@ export const ManagePanel: React.FC<ManagePanelProps> = ({
   setMousePosition,
   showNotification,
   onAddNode,
-  onDeleteNodes,
+  onDeleteNodes
 }) => {
   // 初始选中的标签页
   const [activeTab, setActiveTab] = useState<'nodes' | 'connections'>('nodes');

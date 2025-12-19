@@ -2,10 +2,15 @@
  * 错误类型枚举
  */
 export enum ErrorType {
+  // eslint-disable-next-line no-unused-vars
   SUPABASE_ERROR = 'SUPABASE_ERROR',
+  // eslint-disable-next-line no-unused-vars
   VALIDATION_ERROR = 'VALIDATION_ERROR',
+  // eslint-disable-next-line no-unused-vars
   NETWORK_ERROR = 'NETWORK_ERROR',
+  // eslint-disable-next-line no-unused-vars
   AUTH_ERROR = 'AUTH_ERROR',
+  // eslint-disable-next-line no-unused-vars
   UNKNOWN_ERROR = 'UNKNOWN_ERROR'
 }
 
@@ -35,8 +40,8 @@ export const createErrorResponse = (
   return {
     type,
     message,
-    originalError: originalError ?? undefined,
-    statusCode: statusCode ?? undefined
+    'originalError': originalError ?? undefined,
+    'statusCode': statusCode ?? undefined
   };
 };
 
@@ -46,7 +51,7 @@ export const createErrorResponse = (
  */
 export const handleSupabaseError = (error: unknown): ErrorResponse => {
   console.error('Supabase 错误:', error);
-  
+
   // 根据错误代码返回不同的错误响应
   const supabaseError = error as { code?: string };
   switch (supabaseError.code) {
@@ -137,7 +142,7 @@ export const handleSupabaseError = (error: unknown): ErrorResponse => {
  */
 export const handleNetworkError = (error: unknown): ErrorResponse => {
   console.error('网络错误:', error);
-  
+
   return createErrorResponse(
     ErrorType.NETWORK_ERROR,
     '网络连接失败，请检查您的网络设置',
@@ -152,7 +157,7 @@ export const handleNetworkError = (error: unknown): ErrorResponse => {
  */
 export const handleValidationError = (message: string, originalError?: unknown): ErrorResponse => {
   console.error('验证错误:', message, originalError);
-  
+
   return createErrorResponse(
     ErrorType.VALIDATION_ERROR,
     message,
@@ -166,7 +171,7 @@ export const handleValidationError = (message: string, originalError?: unknown):
  */
 export const handleUnknownError = (error: unknown): ErrorResponse => {
   console.error('未知错误:', error);
-  
+
   return createErrorResponse(
     ErrorType.UNKNOWN_ERROR,
     '发生未知错误，请稍后重试',
@@ -197,10 +202,9 @@ export const globalErrorHandler = (error: unknown): ErrorResponse => {
       typedError.message || '认证失败',
       error
     );
-  } else {
-    // 未知错误
-    return handleUnknownError(error);
   }
+  // 未知错误
+  return handleUnknownError(error);
 };
 
 /**

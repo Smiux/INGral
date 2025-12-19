@@ -26,14 +26,14 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
   setMousePosition,
   showNotification,
   selectedConnections = [],
-  setSelectedConnections = () => {},
+  setSelectedConnections = () => {}
 }) => {
   // 批量编辑状态
   const [isBatchEditing, setIsBatchEditing] = useState(false);
   // 批量编辑表单数据
   const [batchEditForm, setBatchEditForm] = useState({
-    type: '',
-    weight: ''
+    'type': '',
+    'weight': ''
   });
 
   /**
@@ -83,10 +83,10 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
         const sourceId = typeof connection.source === 'object' ? (connection.source as EnhancedNode).id : String(connection.source);
         const targetId = typeof connection.target === 'object' ? (connection.target as EnhancedNode).id : String(connection.target);
         if (sourceId === node.id || targetId === node.id) {
-          connectionCount++;
+          connectionCount += 1;
         }
       });
-      return { ...node, connections: connectionCount };
+      return { ...node, 'connections': connectionCount };
     });
 
     setConnections(updatedConnections);
@@ -138,7 +138,7 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
       }
 
       if (hasChanges) {
-        updatedCount++;
+        updatedCount += 1;
       }
 
       return updatedConnection;
@@ -146,7 +146,7 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
 
     if (updatedCount > 0) {
       setConnections(updatedConnections);
-      setBatchEditForm({ type: '', weight: '' });
+      setBatchEditForm({ 'type': '', 'weight': '' });
       setIsBatchEditing(false);
       showNotification(`已更新 ${updatedCount} 个连接`, 'success');
     } else {
@@ -158,9 +158,10 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
    * 取消批量编辑
    */
   const handleCancelBatchEdit = () => {
-    setBatchEditForm({ type: '', weight: '' });
+    setBatchEditForm({ 'type': '', 'weight': '' });
     setIsBatchEditing(false);
   };
+
   /**
    * 取消添加连接
    */
@@ -177,7 +178,9 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
    */
   const handleDeleteConnection = (connectionId: string) => {
     const connectionToDelete = connections.find(connection => connection.id === connectionId);
-    if (!connectionToDelete) {return;}
+    if (!connectionToDelete) {
+      return;
+    }
 
     // 获取连接源和目标ID
     const sourceId = typeof connectionToDelete.source === 'object' ? (connectionToDelete.source as EnhancedNode).id : String(connectionToDelete.source);
@@ -186,7 +189,7 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
     // 更新节点连接数
     setNodes(prev => prev.map(node => {
       if (node.id === sourceId || node.id === targetId) {
-        return { ...node, connections: Math.max(0, node.connections - 1) };
+        return { ...node, 'connections': Math.max(0, node.connections - 1) };
       }
       return node;
     }));
@@ -310,6 +313,7 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
           </div>
         </>
       ) : (
+
         /* 批量编辑表单 */
         <div className="space-y-4">
           <div>
@@ -323,7 +327,7 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
                 取消
               </button>
             </div>
-            
+
             <div className="space-y-3">
               {/* 连接类型 */}
               <div>
@@ -337,7 +341,7 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
                   placeholder="输入连接类型"
                 />
               </div>
-              
+
               {/* 连接权重 */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">连接权重 (可选)</label>
@@ -352,7 +356,7 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
                   step="0.1"
                 />
               </div>
-              
+
               {/* 应用按钮 */}
               <button
                 className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

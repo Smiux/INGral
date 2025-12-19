@@ -27,7 +27,9 @@ export const LazyKaTeX: React.FC<LazyKaTeXProps> = ({ formula, options = {}, cla
 
   // Set up Intersection Observer to detect when formula comes into view
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      return () => {};
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -39,8 +41,10 @@ export const LazyKaTeX: React.FC<LazyKaTeXProps> = ({ formula, options = {}, cla
         });
       },
       {
-        rootMargin: '100px', // Pre-render formulas when they're 100px from viewport
-        threshold: 0.1, // Trigger when 10% of element is visible
+        // Pre-render formulas when they're 100px from viewport
+        'rootMargin': '100px',
+        // Trigger when 10% of element is visible
+        'threshold': 0.1
       }
     );
 
@@ -60,7 +64,7 @@ export const LazyKaTeX: React.FC<LazyKaTeXProps> = ({ formula, options = {}, cla
     <div
       ref={containerRef}
       className={className}
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ '__html': html }}
       aria-label={`Math formula: ${formula}`}
       data-formula={formula}
     >

@@ -8,8 +8,8 @@ interface LineChartProps {
   height?: number;
   options?: Record<string, unknown>;
   className?: string;
-  onPointClick?: (index: number, value: number, label: string) => void;
-  onHover?: (index: number | null, value: number | null, label: string | null) => void;
+  onPointClick?: (_index: number, _value: number, _label: string) => void;
+  onHover?: (_index: number | null, _value: number | null, _label: string | null) => void;
 }
 
 const LineChartComponent: React.FC<LineChartProps> = ({
@@ -18,45 +18,45 @@ const LineChartComponent: React.FC<LineChartProps> = ({
   options = {},
   className = '',
   onPointClick,
-  onHover,
+  onHover
 }) => {
   // 准备图表数据
   const chartData = {
-    labels: data.labels || [],
-    datasets: data.datasets?.map(dataset => ({
-      label: dataset.label || '',
-      data: dataset.data || [],
-      borderColor: dataset.borderColor || '#3b82f6',
-      backgroundColor: dataset.backgroundColor || 'rgba(79, 70, 229, 0.1)',
-      borderWidth: dataset.borderWidth || 2,
-      fill: dataset.fill !== undefined ? dataset.fill : true,
-      tension: dataset.tension || 0.3,
-      pointRadius: dataset.pointRadius || 5,
-      pointHoverRadius: dataset.pointHoverRadius || 8,
-    })) || [],
+    'labels': data.labels || [],
+    'datasets': data.datasets?.map(dataset => ({
+      'label': dataset.label || '',
+      'data': dataset.data || [],
+      'borderColor': dataset.borderColor || '#3b82f6',
+      'backgroundColor': dataset.backgroundColor || 'rgba(79, 70, 229, 0.1)',
+      'borderWidth': dataset.borderWidth || 2,
+      'fill': dataset.fill !== undefined ? dataset.fill : true,
+      'tension': dataset.tension || 0.3,
+      'pointRadius': dataset.pointRadius || 5,
+      'pointHoverRadius': dataset.pointHoverRadius || 8
+    })) || []
   };
 
   // 配置图表选项
   const chartOptions: ChartOptions = {
-    plugins: {
-      legend: {
-        position: 'top',
+    'plugins': {
+      'legend': {
+        'position': 'top'
       },
-      tooltip: {
-        enabled: true,
-      },
+      'tooltip': {
+        'enabled': true
+      }
     },
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
+    'scales': {
+      'y': {
+        'beginAtZero': true
+      }
     },
     // 启用交互
-    interaction: {
-      intersect: false,
-      mode: 'index',
+    'interaction': {
+      'intersect': false,
+      'mode': 'index'
     },
-    ...options,
+    ...options
   };
 
   // 处理点击事件

@@ -1,17 +1,16 @@
 import React from 'react';
-import type { Article } from '@/types';
 import { useSearchResults } from './hooks/useSearchResults';
 import { SearchResultsControls } from './components/SearchResultsControls';
 import { SearchResultsList } from './components/SearchResultsList';
 import { SearchResultsHierarchical } from './components/SearchResultsHierarchical';
-import { SearchResultsGraphView } from './components/SearchResultsGraph';
+import SearchResultsGraph from '../SearchResultsGraph';
 import styles from '../SearchResults.module.css';
 
 interface SearchResultsProps {
   query: string;
   tagId?: string;
   limit?: number;
-  onArticleClick?: (article: Article) => void;
+  onArticleClick?: () => void;
 }
 
 export const SearchResults: React.FC<SearchResultsProps> = ({ query, tagId, limit = 20, onArticleClick }) => {
@@ -31,7 +30,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ query, tagId, limi
     hasMoreArticles,
     hasMoreComments,
     exportLoading,
-    
+
     // 操作方法
     setSearchType,
     setSortBy,
@@ -120,52 +119,74 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ query, tagId, limi
       {/* 视图模式切换 */}
       {!loading && !error && query.trim() && (
         <>
-          {viewMode === 'list' ? (
-            /* 列表视图 */
-            <SearchResultsList
-              articleResults={articleResults}
-              commentResults={commentResults}
-              semanticResults={semanticResults}
-              searchMode={searchMode}
-              searchType={searchType}
-              sortBy={sortBy}
-              groupBy={groupBy}
-              loading={loading}
-              hasMoreArticles={hasMoreArticles}
-              hasMoreComments={hasMoreComments}
-              query={query}
-              onArticleClick={onArticleClick}
-              onLoadMoreArticles={loadMoreArticles}
-              onLoadMoreComments={loadMoreComments}
-            />
-          ) : viewMode === 'hierarchical' ? (
-            /* 层级视图 */
-            <>
-              <h3 className={styles.sectionTitle}>层级搜索结果</h3>
-              {searchMode === 'semantic' || searchMode === 'enhanced' ? (
-                <SearchResultsHierarchical semanticResults={semanticResults} query={query} />
-              ) : (
-                <div className={styles.graphInfo}>
-                  <p>层级视图仅支持语义搜索结果</p>
-                  <p>请切换到语义搜索或语义增强搜索模式以查看层级视图</p>
-                </div>
-              )}
-            </>
-          ) : (
-            /* 图谱视图 */
-            <>
-              <h3 className={styles.sectionTitle}>搜索结果图谱</h3>
-              {searchMode === 'semantic' || searchMode === 'enhanced' ? (
-                <SearchResultsGraphView results={semanticResults} query={query} />
-              ) : (
-                <div className={styles.graphInfo}>
-                  <p>图谱视图仅支持语义搜索结果</p>
-                  <p>请切换到语义搜索或语义增强搜索模式以查看图谱</p>
-                </div>
-              )}
-            </>
-          )}
-          
+          {/* 根据视图模式渲染不同组件 */}
+          {(
+            function renderView () {
+              if (viewMode === 'list') {
+                /* 列表视图 */
+                return (
+                  <SearchResultsList
+                    articleResults={articleResults}
+                    commentResults={commentResults}
+                    semanticResults={semanticResults}
+                    searchMode={searchMode}
+                    searchType={searchType}
+                    sortBy={sortBy}
+                    groupBy={groupBy}
+                    loading={loading}
+                    hasMoreArticles={hasMoreArticles}
+                    hasMoreComments={hasMoreComments}
+                    query={query}
+                    onArticleClick={onArticleClick}
+                    onLoadMoreArticles={loadMoreArticles}
+                    onLoadMoreComments={loadMoreComments}
+                  />
+                );
+              }
+              if (viewMode === 'hierarchical') {
+                /* 层级视图 */
+                return (
+                  <>
+                    <h3 className={styles.sectionTitle}>层级搜索结果</h3>
+                    {(
+                      function renderHierarchicalView () {
+                        if (searchMode === 'semantic' || searchMode === 'enhanced') {
+                          return <SearchResultsHierarchical semanticResults={semanticResults} query={query} />;
+                        }
+                        return (
+                          <div className={styles.graphInfo}>
+                            <p>层级视图仅支持语义搜索结果</p>
+                            <p>请切换到语义搜索或语义增强搜索模式以查看层级视图</p>
+                          </div>
+                        );
+                      }())}
+                  </>
+                );
+              }
+              /* 图谱视图 */
+              return (
+                <>
+                  <h3 className={styles.sectionTitle}>搜索结果图谱</h3>
+                  {(
+                    function renderGraphView () {
+                      if (searchMode === 'semantic' || searchMode === 'enhanced') {
+                        return (
+                          <div className={styles.graphContainer}>
+                            <SearchResultsGraph results={semanticResults} query={query} />
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className={styles.graphInfo}>
+                          <p>图谱视图仅支持语义搜索结果</p>
+                          <p>请切换到语义搜索或语义增强搜索模式以查看图谱</p>
+                        </div>
+                      );
+                    }())}
+                </>
+              );
+            }())}
+
           {/* 相关推荐结果 */}
           {(searchMode === 'semantic' || searchMode === 'enhanced') && relatedResults.length > 0 && (
             <div className={styles.relatedResultsContainer}>

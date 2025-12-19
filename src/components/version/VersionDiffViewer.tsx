@@ -3,100 +3,121 @@ import type { ArticleVersion, VersionDiff } from '../../types/version';
 import versionHistoryService from '../../services/versionHistoryService';
 import styles from './VersionDiffViewer.module.css';
 
+// Helper function to find longest common subsequence in two strings
+function findLongestCommonSubsequence (oldText: string, newText: string) {
+  let maxLength = 0;
+  let oldIndex = 0;
+  let newIndex = 0;
+
+  // Iterate through oldText characters
+  for (let oldStart = 0; oldStart < oldText.length; oldStart += 1) {
+    // Find this character in newText
+    const newPos = newText.indexOf(oldText[oldStart] as string);
+    if (newPos !== -1) {
+      // Check for consecutive characters
+      let currentLength = 0;
+      const currentNewStart = newPos;
+
+      while (oldStart + currentLength < oldText.length &&
+             newPos + currentLength < newText.length &&
+             oldText[oldStart + currentLength] === newText[newPos + currentLength]) {
+        currentLength += 1;
+      }
+
+      if (currentLength > maxLength) {
+        maxLength = currentLength;
+        oldIndex = oldStart;
+        newIndex = currentNewStart;
+      }
+    }
+  }
+
+  return { 'length': maxLength, oldIndex, newIndex };
+}
+
 // Character-level diff utility function
-function getCharacterDiff(oldText: string, newText: string): Array<{ type: 'same' | 'added' | 'deleted'; text: string }> {
+function getCharacterDiff (oldText: string, newText: string): Array<{ type: 'same' | 'added' | 'deleted'; text: string }> {
   const diffs: Array<{ type: 'same' | 'added' | 'deleted'; text: string }> = [];
-  
+
   // Simple implementation - in a real project, use a library like diff-match-patch
   let i = 0;
   let j = 0;
-  
+
+  // Main diff loop
   while (i < oldText.length || j < newText.length) {
+    // Same character case
     if (i < oldText.length && j < newText.length && oldText[i] === newText[j]) {
-      // Same character
+      // Find consecutive same characters
       let sameCount = 0;
+      const sameStart = i;
       while (i + sameCount < oldText.length && j + sameCount < newText.length && oldText[i + sameCount] === newText[j + sameCount]) {
-        sameCount++;
+        sameCount += 1;
       }
-      diffs.push({ type: 'same', text: oldText.substring(i, i + sameCount) });
+      diffs.push({ 'type': 'same', 'text': oldText.substring(sameStart, sameStart + sameCount) });
       i += sameCount;
       j += sameCount;
     } else if (i < oldText.length && j < newText.length) {
-      // Different characters - find the longest common subsequence
-      let maxSame = 0;
-      let maxSameIndex = 0;
-      
-      for (let k = i; k < oldText.length; k++) {
-        for (let l = j; l < newText.length; l++) {
-          let sameLength = 0;
-          while (k + sameLength < oldText.length && l + sameLength < newText.length && oldText[k + sameLength] === newText[l + sameLength]) {
-            sameLength++;
-          }
-          if (sameLength > maxSame) {
-            maxSame = sameLength;
-            maxSameIndex = k;
-          }
-        }
-      }
-      
-      if (maxSame > 0) {
+      // Different characters case
+      // Find longest common subsequence
+      const lcsResult = findLongestCommonSubsequence(oldText.substring(i), newText.substring(j));
+
+      if (lcsResult.length > 0) {
         // Add deleted text
-        if (i < maxSameIndex) {
-          diffs.push({ type: 'deleted', text: oldText.substring(i, maxSameIndex) });
-          i = maxSameIndex;
+        if (lcsResult.oldIndex > 0) {
+          diffs.push({ 'type': 'deleted', 'text': oldText.substring(i, i + lcsResult.oldIndex) });
+          i += lcsResult.oldIndex;
         }
         // Add added text
-        if (j < newText.indexOf(oldText.substring(i, i + maxSame), j)) {
-          const addedText = newText.substring(j, newText.indexOf(oldText.substring(i, i + maxSame), j));
-          diffs.push({ type: 'added', text: addedText });
-          j += addedText.length;
+        if (lcsResult.newIndex > 0) {
+          diffs.push({ 'type': 'added', 'text': newText.substring(j, j + lcsResult.newIndex) });
+          j += lcsResult.newIndex;
         }
       } else {
-        // No common subsequence found - add remaining text
+        // No common subsequence - add remaining text
         if (i < oldText.length) {
-          diffs.push({ type: 'deleted', text: oldText.substring(i) });
+          diffs.push({ 'type': 'deleted', 'text': oldText.substring(i) });
           i = oldText.length;
         }
         if (j < newText.length) {
-          diffs.push({ type: 'added', text: newText.substring(j) });
+          diffs.push({ 'type': 'added', 'text': newText.substring(j) });
           j = newText.length;
         }
       }
     } else if (i < oldText.length) {
       // Only old text remaining
-      diffs.push({ type: 'deleted', text: oldText.substring(i) });
+      diffs.push({ 'type': 'deleted', 'text': oldText.substring(i) });
       i = oldText.length;
     } else {
       // Only new text remaining
-      diffs.push({ type: 'added', text: newText.substring(j) });
+      diffs.push({ 'type': 'added', 'text': newText.substring(j) });
       j = newText.length;
     }
   }
-  
+
   return diffs;
 }
 
 // Syntax highlighting for Markdown and LaTeX
-function highlightSyntax(text: string): string {
+function highlightSyntax (text: string): string {
   // Simple syntax highlighting for demonstration
   let highlighted = text;
-  
+
   // Highlight headings
   highlighted = highlighted.replace(/^(#{1,6})\s+([^\n]+)/gm, '<span class="syntax-heading">$1 $2</span>');
-  
+
   // Highlight bold text
-  highlighted = highlighted.replace(/\*\*([^\*]+)\*\*/g, '<span class="syntax-bold">**$1**</span>');
-  
+  highlighted = highlighted.replace(/\*\*([^*]+)\*\*/g, '<span class="syntax-bold">**$1**</span>');
+
   // Highlight italic text
-  highlighted = highlighted.replace(/\*([^\*]+)\*/g, '<span class="syntax-italic">*$1*</span>');
-  
+  highlighted = highlighted.replace(/\*([^*]+)\*/g, '<span class="syntax-italic">*$1*</span>');
+
   // Highlight code
   highlighted = highlighted.replace(/`([^`]+)`/g, '<span class="syntax-code">`$1`</span>');
-  
+
   // Highlight LaTeX formulas
   highlighted = highlighted.replace(/\$([^$]+)\$/g, '<span class="syntax-math">$1</span>');
   highlighted = highlighted.replace(/\$\$([^$]+)\$\$/g, '<span class="syntax-math-block">$$$1$$</span>');
-  
+
   return highlighted;
 }
 
@@ -110,15 +131,15 @@ const DiffTable: React.FC<DiffTableProps> = ({ oldText, newText }) => {
   // Split text into lines
   const oldLines = oldText.split('\n');
   const newLines = newText.split('\n');
-  
+
   // Generate diff lines with character-level changes
   const diffLines: JSX.Element[] = [];
   const maxLength = Math.max(oldLines.length, newLines.length);
-  
-  for (let i = 0; i < maxLength; i++) {
+
+  for (let i = 0; i < maxLength; i += 1) {
     const oldLine = oldLines[i] || '';
     const newLine = newLines[i] || '';
-    
+
     if (oldLine === newLine) {
       // Same line - add syntax highlighting
       const highlightedText = highlightSyntax(oldLine);
@@ -126,8 +147,8 @@ const DiffTable: React.FC<DiffTableProps> = ({ oldText, newText }) => {
         <tr key={i} className={styles.sameLine}>
           <td className={styles.lineNumber}>{i + 1}</td>
           <td className={styles.lineNumber}>{i + 1}</td>
-          <td className={styles.lineContent} dangerouslySetInnerHTML={{ __html: highlightedText }} />
-        </tr>,
+          <td className={styles.lineContent} dangerouslySetInnerHTML={{ '__html': highlightedText }} />
+        </tr>
       );
     } else if (oldLine && !newLine) {
       // Deleted line
@@ -136,8 +157,8 @@ const DiffTable: React.FC<DiffTableProps> = ({ oldText, newText }) => {
         <tr key={i} className={styles.deletedLine}>
           <td className={styles.lineNumber}>{i + 1}</td>
           <td className={styles.lineNumber}></td>
-          <td className={styles.deletedContent} dangerouslySetInnerHTML={{ __html: highlightedText }} />
-        </tr>,
+          <td className={styles.deletedContent} dangerouslySetInnerHTML={{ '__html': highlightedText }} />
+        </tr>
       );
     } else if (!oldLine && newLine) {
       // Added line
@@ -146,13 +167,13 @@ const DiffTable: React.FC<DiffTableProps> = ({ oldText, newText }) => {
         <tr key={i} className={styles.addedLine}>
           <td className={styles.lineNumber}></td>
           <td className={styles.lineNumber}>{i + 1}</td>
-          <td className={styles.addedContent} dangerouslySetInnerHTML={{ __html: highlightedText }} />
-        </tr>,
+          <td className={styles.addedContent} dangerouslySetInnerHTML={{ '__html': highlightedText }} />
+        </tr>
       );
     } else {
       // Modified line - show character-level changes
       const charDiffs = getCharacterDiff(oldLine, newLine);
-      
+
       // Deleted version
       const deletedContent = charDiffs
         .filter(diff => diff.type !== 'added')
@@ -164,7 +185,7 @@ const DiffTable: React.FC<DiffTableProps> = ({ oldText, newText }) => {
           return highlighted;
         })
         .join('');
-      
+
       // Added version
       const addedContent = charDiffs
         .filter(diff => diff.type !== 'deleted')
@@ -176,22 +197,22 @@ const DiffTable: React.FC<DiffTableProps> = ({ oldText, newText }) => {
           return highlighted;
         })
         .join('');
-      
+
       diffLines.push(
         <tr key={`${i}-old`} className={styles.deletedLine}>
           <td className={styles.lineNumber}>{i + 1}</td>
           <td className={styles.lineNumber}></td>
-          <td className={styles.deletedContent} dangerouslySetInnerHTML={{ __html: deletedContent }} />
+          <td className={styles.deletedContent} dangerouslySetInnerHTML={{ '__html': deletedContent }} />
         </tr>,
         <tr key={`${i}-new`} className={styles.addedLine}>
           <td className={styles.lineNumber}></td>
           <td className={styles.lineNumber}>{i + 1}</td>
-          <td className={styles.addedContent} dangerouslySetInnerHTML={{ __html: addedContent }} />
-        </tr>,
+          <td className={styles.addedContent} dangerouslySetInnerHTML={{ '__html': addedContent }} />
+        </tr>
       );
     }
   }
-  
+
   return (
     <div className={styles.diffTableContainer}>
       <table className={styles.diffTable}>
@@ -273,7 +294,7 @@ interface VersionDiffViewerProps {
 export const VersionDiffViewer: React.FC<VersionDiffViewerProps> = ({
   versionA,
   versionB,
-  onClose,
+  onClose
 }) => {
   const [diff, setDiff] = useState<VersionDiff | null>(null);
   const [loading, setLoading] = useState(true);
@@ -295,23 +316,23 @@ export const VersionDiffViewer: React.FC<VersionDiffViewerProps> = ({
           const versionContent = await versionHistoryService.getVersionById(versionA.id);
           if (versionContent) {
             setDiff({
-              title: {
-                old: '',
-                new: versionContent.title,
-                changed: true,
+              'title': {
+                'old': '',
+                'new': versionContent.title,
+                'changed': true
               },
-              content: {
-                old: '',
-                new: versionContent.content,
-                changed: true,
+              'content': {
+                'old': '',
+                'new': versionContent.content,
+                'changed': true
               },
-              metadata: {
-                old: {},
-                new: versionContent.metadata || {},
-                changed: true,
+              'metadata': {
+                'old': {},
+                'new': versionContent.metadata || {},
+                'changed': true
               },
               versionA,
-              versionB: versionContent,
+              'versionB': versionContent
             });
           }
         }
@@ -353,15 +374,19 @@ export const VersionDiffViewer: React.FC<VersionDiffViewerProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) {return 'N/A';}
+    if (!dateString) {
+      return 'N/A';
+    }
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {return 'N/A';}
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
     return date.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
+      'year': 'numeric',
+      'month': '2-digit',
+      'day': '2-digit',
+      'hour': '2-digit',
+      'minute': '2-digit'
     });
   };
 

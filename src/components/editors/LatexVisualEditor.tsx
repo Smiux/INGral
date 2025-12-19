@@ -4,11 +4,11 @@ import React, { useRef, useEffect } from 'react';
 interface MathField {
   focus(): void;
   blur(): void;
-  latex(latex?: string): string;
+  latex(_latex?: string): string;
   select(): void;
   clearSelection(): void;
-  write(latex: string): void;
-  cmd(cmd: string): void;
+  write(_latex: string): void;
+  cmd(_cmd: string): void;
 }
 
 interface MathQuillOptions {
@@ -30,7 +30,7 @@ interface MathQuillOptions {
 }
 
 interface MathFieldConstructor {
-  new (element: HTMLElement, options: MathQuillOptions): MathField;
+  new (_element: HTMLElement, _options: MathQuillOptions): MathField;
 }
 
 interface MathQuillInterface {
@@ -39,7 +39,7 @@ interface MathQuillInterface {
 
 interface MathQuillInstance {
   MathField: MathFieldConstructor;
-  getInterface(version: string): MathQuillInterface;
+  getInterface(_version: string): MathQuillInterface;
 }
 
 // 扩展Window接口，添加MathQuill属性
@@ -51,9 +51,9 @@ declare global {
 
 interface LatexVisualEditorProps {
   formula: string;
-  onFormulaChange: (formula: string) => void;
+  onFormulaChange: (_formula: string) => void;
   mathFieldRef: React.RefObject<HTMLDivElement>;
-  onMathQuillReady?: (mathField: MathField) => void;
+  onMathQuillReady?: (_mathField: MathField) => void;
 }
 
 /**
@@ -64,11 +64,11 @@ interface LatexVisualEditorProps {
  * @param mathFieldRef - MathQuill容器的引用
  * @param onMathQuillReady - MathQuill初始化完成的回调
  */
-export function LatexVisualEditor({ 
-  formula, 
-  onFormulaChange, 
-  mathFieldRef, 
-  onMathQuillReady 
+export function LatexVisualEditor ({
+  formula,
+  onFormulaChange,
+  mathFieldRef,
+  onMathQuillReady
 }: LatexVisualEditorProps) {
   // MathQuill实例引用
   const mathQuillInstanceRef = useRef<MathField | null>(null);
@@ -77,7 +77,9 @@ export function LatexVisualEditor({
    * 加载MathQuill库并初始化
    */
   useEffect(() => {
-    if (!mathFieldRef.current) return;
+    if (!mathFieldRef.current) {
+      return undefined;
+    }
 
     const loadMathQuill = async () => {
       try {
@@ -87,13 +89,13 @@ export function LatexVisualEditor({
           const script = document.createElement('script');
           script.src = 'https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js';
           script.async = true;
-          
+
           await new Promise((resolve, reject) => {
             script.onload = resolve;
             script.onerror = reject;
             document.head.appendChild(script);
           });
-          
+
           // 加载MathQuill样式
           const link = document.createElement('link');
           link.rel = 'stylesheet';
@@ -104,33 +106,33 @@ export function LatexVisualEditor({
         // 初始化MathQuill
         if (window.MathQuill && mathFieldRef.current) {
           const MathQuill = window.MathQuill.getInterface('0.10.1');
-          
+
           // 创建MathField实例
           const mathField = new MathQuill.MathField(mathFieldRef.current, {
-            handlers: {
-              edit: () => {
+            'handlers': {
+              'edit': () => {
                 const currentFormula = mathQuillInstanceRef.current?.latex() || '';
                 onFormulaChange(currentFormula);
               },
-              focus: () => {
+              'focus': () => {
                 // 聚焦时的处理
               },
-              blur: () => {
+              'blur': () => {
                 // 失焦时的处理
-              },
+              }
             },
-            spaceBehavesLikeTab: true,
-            restrictMismatchedBrackets: true,
-            autoSubscriptNumerals: true,
-            sumStartsWithNEquals: true,
+            'spaceBehavesLikeTab': true,
+            'restrictMismatchedBrackets': true,
+            'autoSubscriptNumerals': true,
+            'sumStartsWithNEquals': true
           });
 
           // 保存MathQuill实例
           mathQuillInstanceRef.current = mathField;
-          
+
           // 初始化公式
           mathField.latex(formula);
-          
+
           // 调用初始化完成回调
           if (onMathQuillReady) {
             onMathQuillReady(mathField);

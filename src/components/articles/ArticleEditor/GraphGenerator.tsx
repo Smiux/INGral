@@ -13,7 +13,7 @@ interface GraphGeneratorProps {
     minConceptOccurrences: number;
     extractionDepth: number;
   };
-  onConfigChange: (config: {
+  onConfigChange: (_config: {
     maxNodes: number;
     maxLinks: number;
     minConceptOccurrences: number;

@@ -8,16 +8,22 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 
 // Define button props interface
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+
   /** Button variant */
   variant?: ButtonVariant;
+
   /** Button size */
   size?: ButtonSize;
+
   /** Is button full width? */
   fullWidth?: boolean;
+
   /** Is button loading? */
   loading?: boolean;
+
   /** Custom class name */
   className?: string;
+
   /** Child elements */
   children: React.ReactNode;
 }
@@ -42,19 +48,19 @@ export const Button: React.FC<ButtonProps> = ({
 
   // Variant classes
   const variantClasses = {
-    primary: 'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500',
-    secondary: 'bg-neutral-600 text-white hover:bg-neutral-700 focus:ring-neutral-500',
-    success: 'bg-success-500 text-white hover:bg-success-600 focus:ring-success-500',
-    warning: 'bg-warning-500 text-white hover:bg-warning-600 focus:ring-warning-500',
-    error: 'bg-error-500 text-white hover:bg-error-600 focus:ring-error-500',
-    outline: 'border-2 border-primary-500 text-primary-500 hover:bg-primary-50 focus:ring-primary-500',
+    'primary': 'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500',
+    'secondary': 'bg-neutral-600 text-white hover:bg-neutral-700 focus:ring-neutral-500',
+    'success': 'bg-success-500 text-white hover:bg-success-600 focus:ring-success-500',
+    'warning': 'bg-warning-500 text-white hover:bg-warning-600 focus:ring-warning-500',
+    'error': 'bg-error-500 text-white hover:bg-error-600 focus:ring-error-500',
+    'outline': 'border-2 border-primary-500 text-primary-500 hover:bg-primary-50 focus:ring-primary-500'
   };
 
   // Size classes
   const sizeClasses = {
-    sm: 'px-3 py-1 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    'sm': 'px-3 py-1 text-sm',
+    'md': 'px-4 py-2 text-base',
+    'lg': 'px-6 py-3 text-lg'
   };
 
   // Full width class
@@ -62,10 +68,10 @@ export const Button: React.FC<ButtonProps> = ({
 
   // Loading spinner
   const loadingSpinner = loading ? (
-    <svg 
-      className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" 
-      xmlns="http://www.w3.org/2000/svg" 
-      fill="none" 
+    <svg
+      className="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
       viewBox="0 0 24 24"
       aria-hidden="true"
       role="img"

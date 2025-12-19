@@ -17,7 +17,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
   const [newCommentContent, setNewCommentContent] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // 新增功能：排序、分页、过滤
   const [sortOption, setSortOption] = useState<SortOption>('latest');
   const [filterOption, setFilterOption] = useState<FilterOption>('all');
@@ -41,20 +41,22 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
 
   // 处理添加新评论
   const handleAddComment = async () => {
-    if (!newCommentContent.trim()) return;
+    if (!newCommentContent.trim()) {
+      return;
+    }
 
     setIsSubmitting(true);
-    await commentService.createComment(
+    await commentService.createComment({
       articleId,
-      newCommentContent,
-      undefined,
+      'content': newCommentContent,
       authorName
-    );
+    });
 
     setNewCommentContent('');
     setAuthorName('');
     setIsSubmitting(false);
-    setCurrentPage(1); // 新评论添加后回到第一页
+    // 新评论添加后回到第一页
+    setCurrentPage(1);
     loadComments();
   };
 
@@ -65,7 +67,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
 
     return rootComments.map(rootComment => ({
       ...rootComment,
-      replies: childComments.filter(comment => comment.parent_id === rootComment.id)
+      'replies': childComments.filter(comment => comment.parent_id === rootComment.id)
     }));
   };
 
@@ -129,7 +131,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
               <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             )}
           </button>
-          
+
           {isSortOpen && (
             <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10">
               <button
@@ -174,7 +176,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
             </div>
           )}
         </div>
-        
+
         {/* 过滤控件 */}
         <div className="relative">
           <button
@@ -192,7 +194,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
               <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             )}
           </button>
-          
+
           {isFilterOpen && (
             <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10">
               <button
@@ -225,7 +227,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
         <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-100 mb-4">
           Add a Comment
         </h3>
-        
+
         <div className="space-y-4">
           <div>
             <label htmlFor="author-name" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
@@ -240,7 +242,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
             />
           </div>
-          
+
           <div>
             <label htmlFor="comment-content" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
               Comment Content
@@ -254,7 +256,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
             ></textarea>
           </div>
-          
+
           <div className="flex justify-end">
             <button
               onClick={handleAddComment}
@@ -272,101 +274,105 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
         <div className="flex justify-center items-center py-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-      ) : currentComments.length > 0 ? (
+      ) : (
         <>
-          <div className="space-y-6">
-            {currentComments.map((comment) => (
-              <div key={comment.id}>
-                <Comment
-                  comment={comment}
-                  articleId={articleId}
-                  onCommentAdded={loadComments}
-                  onCommentDeleted={loadComments}
-                />
-                
-                {/* 显示回复 */}
-                {comment.replies && comment.replies.length > 0 && (
-                  <div className="ml-8 space-y-4 mt-2">
-                    {comment.replies.map((reply) => (
-                      <Comment
-                        key={reply.id}
-                        comment={reply}
-                        articleId={articleId}
-                        onCommentAdded={loadComments}
-                        onCommentDeleted={loadComments}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          
-          {/* 新增：分页控件 */}
-          {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-center gap-2">
-              <button
-                onClick={() => handlePageChange(1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                首页
-              </button>
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronDown className="w-4 h-4 rotate-90" />
-              </button>
-              
-              {/* 页码显示 */}
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(page => 
-                  page === 1 || 
-                  page === totalPages || 
-                  (page >= currentPage - 1 && page <= currentPage + 1)
-                )
-                .map((page, index, arr) => (
-                  <React.Fragment key={page}>
-                    {index > 0 && arr[index - 1] !== page - 1 && (
-                      <span className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400">...</span>
+          {currentComments.length > 0 ? (
+            <>
+              <div className="space-y-6">
+                {currentComments.map((comment) => (
+                  <div key={comment.id}>
+                    <Comment
+                      comment={comment}
+                      articleId={articleId}
+                      onCommentAdded={loadComments}
+                      onCommentDeleted={loadComments}
+                    />
+
+                    {/* 显示回复 */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <div className="ml-8 space-y-4 mt-2">
+                        {comment.replies.map((reply) => (
+                          <Comment
+                            key={reply.id}
+                            comment={reply}
+                            articleId={articleId}
+                            onCommentAdded={loadComments}
+                            onCommentDeleted={loadComments}
+                          />
+                        ))}
+                      </div>
                     )}
-                    <button
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1 text-sm rounded-lg transition-colors ${currentPage === page ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                    >
-                      {page}
-                    </button>
-                  </React.Fragment>
+                  </div>
                 ))}
-              
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronDown className="w-4 h-4 -rotate-90" />
-              </button>
-              <button
-                onClick={() => handlePageChange(totalPages)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                末页
-              </button>
+              </div>
+
+              {/* 新增：分页控件 */}
+              {totalPages > 1 && (
+                <div className="mt-8 flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    首页
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronDown className="w-4 h-4 rotate-90" />
+                  </button>
+
+                  {/* 页码显示 */}
+                  {Array.from({ 'length': totalPages }, (_, i) => i + 1)
+                    .filter(page =>
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    )
+                    .map((page, index, arr) => (
+                      <React.Fragment key={page}>
+                        {index > 0 && arr[index - 1] !== page - 1 && (
+                          <span className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400">...</span>
+                        )}
+                        <button
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-1 text-sm rounded-lg transition-colors ${currentPage === page ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                        >
+                          {page}
+                        </button>
+                      </React.Fragment>
+                    ))}
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronDown className="w-4 h-4 -rotate-90" />
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    末页
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="p-8 bg-neutral-50 dark:bg-gray-800/50 rounded-xl border border-neutral-200 dark:border-gray-700 text-center">
+              <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                No comments yet
+              </h3>
+              <p className="text-neutral-500 dark:text-gray-500 text-sm">
+                Be the first to comment on this article!
+              </p>
             </div>
           )}
         </>
-      ) : (
-        <div className="p-8 bg-neutral-50 dark:bg-gray-800/50 rounded-xl border border-neutral-200 dark:border-gray-700 text-center">
-          <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-            No comments yet
-          </h3>
-          <p className="text-neutral-500 dark:text-gray-500 text-sm">
-            Be the first to comment on this article!
-          </p>
-        </div>
       )}
     </div>
   );

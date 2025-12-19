@@ -6,8 +6,8 @@ import styles from './VersionHistoryList.module.css';
 
 interface VersionHistoryListProps {
   articleId: string;
-  onVersionSelect?: (versionId: string) => void;
-  onRestore?: (versionId: string) => void;
+  onVersionSelect?: (versionId: string) => void; // eslint-disable-line no-unused-vars
+  onRestore?: (versionId: string) => void; // eslint-disable-line no-unused-vars
 }
 
 /**
@@ -16,14 +16,14 @@ interface VersionHistoryListProps {
 const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
   articleId,
   onVersionSelect,
-  onRestore,
+  onRestore
 }) => {
   const [versionHistory, setVersionHistory] = useState<VersionHistoryResult>({
-    versions: [],
-    total: 0,
-    page: 1,
-    limit: 20,
-    totalPages: 0,
+    'versions': [],
+    'total': 0,
+    'page': 1,
+    'limit': 20,
+    'totalPages': 0
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,9 +39,9 @@ const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
     try {
       const result = await versionHistoryService.getArticleVersions({
         articleId,
-        page: versionHistory.page,
-        limit: versionHistory.limit,
-        order: sortOrder,
+        'page': versionHistory.page,
+        'limit': versionHistory.limit,
+        'order': sortOrder
       });
 
       setVersionHistory(result);
@@ -70,8 +70,8 @@ const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
       const currentVersionHistory = versionHistoryRef.current;
       const result = await versionHistoryService.getArticleVersions({
         articleId,
-        page: currentVersionHistory.page,
-        limit: currentVersionHistory.limit,
+        'page': currentVersionHistory.page,
+        'limit': currentVersionHistory.limit
       });
 
       setVersionHistory(result);
@@ -88,15 +88,15 @@ const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
     memoizedLoadVersions();
   }, [memoizedLoadVersions]);
 
+  // 处理页面切换
+  const setPage = (page: number) => {
+    setVersionHistory((prev: VersionHistoryResult) => ({ ...prev, page }));
+  };
+
   // 处理排序切换
   const handleSortToggle = () => {
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
     setPage(1);
-  };
-
-  // 处理页面切换
-  const setPage = (page: number) => {
-    setVersionHistory((prev: VersionHistoryResult) => ({ ...prev, page }));
   };
 
   // 处理版本选择
@@ -107,23 +107,21 @@ const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
 
   // 处理还原版本
   const handleRestore = async (versionId: string) => {
-    if (window.confirm('确定要还原到这个版本吗？这将创建一个新的版本记录。')) {
-      try {
-        await versionHistoryService.restoreVersion({
-          versionId,
-          articleId,
-          restoreComment: '手动还原',
-        });
+    try {
+      await versionHistoryService.restoreVersion({
+        versionId,
+        articleId,
+        'restoreComment': '手动还原'
+      });
 
-        // 重新加载版本历史
-        loadVersions();
+      // 重新加载版本历史
+      loadVersions();
 
-        // 触发还原回调
-        onRestore?.(versionId);
-      } catch (err) {
-        console.error('还原版本失败:', err);
-        alert('还原版本失败，请重试');
-      }
+      // 触发还原回调
+      onRestore?.(versionId);
+    } catch (err) {
+      console.error('还原版本失败:', err);
+      setError('还原版本失败，请重试');
     }
   };
 
@@ -131,9 +129,9 @@ const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
   const handleContextMenu = (e: React.MouseEvent, versionId: string) => {
     e.preventDefault();
     setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      versionId,
+      'x': e.clientX,
+      'y': e.clientY,
+      versionId
     });
   };
 
@@ -153,11 +151,11 @@ const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
+      'year': 'numeric',
+      'month': '2-digit',
+      'day': '2-digit',
+      'hour': '2-digit',
+      'minute': '2-digit'
     }).format(date);
   };
 
@@ -167,7 +165,7 @@ const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
     const pages: number[] = [];
 
     if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) {
+      for (let i = 1; i <= totalPages; i += 1) {
         pages.push(i);
       }
     } else {
@@ -179,7 +177,7 @@ const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
         start = Math.max(1, end - 4);
       }
 
-      for (let i = start; i <= end; i++) {
+      for (let i = start; i <= end; i += 1) {
         pages.push(i);
       }
     }
@@ -316,10 +314,10 @@ const VersionHistoryList: React.FC<VersionHistoryListProps> = ({
         <div
           className={styles.contextMenu}
           style={{
-            position: 'fixed',
-            left: contextMenu.x,
-            top: contextMenu.y,
-            zIndex: 1000,
+            'position': 'fixed',
+            'left': contextMenu.x,
+            'top': contextMenu.y,
+            'zIndex': 1000
           }}
         >
           <button

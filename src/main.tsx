@@ -9,7 +9,7 @@ import './index.css';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
-  </StrictMode>,
+  </StrictMode>
 );
 
 // 注册Service Worker以支持离线功能

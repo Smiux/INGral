@@ -4,7 +4,7 @@
  * 预加载KaTeX字体以提高渲染性能
  * 这个函数会创建预加载链接，帮助浏览器提前缓存字体文件
  */
-export function preloadKaTeXFONTS() {
+export function preloadKaTeXFONTS () {
   try {
     // KaTeX字体URL列表
     const katexFontUrls = [
@@ -22,7 +22,7 @@ export function preloadKaTeXFONTS() {
       'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_SansSerif-Bold.woff2',
       'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_SansSerif-Italic.woff2',
       // 打字机字体
-      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Typewriter-Regular.woff2',
+      'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Typewriter-Regular.woff2'
     ];
 
     // 检查浏览器支持
@@ -58,14 +58,14 @@ export function preloadKaTeXFONTS() {
       // 使用Font Loading API预加载关键字体
       const criticalFonts = [
         'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Main-Regular.woff2',
-        'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Math-Italic.woff2',
+        'https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/fonts/KaTeX_Math-Italic.woff2'
       ];
 
       criticalFonts.forEach(fontUrl => {
         const fontFace = new FontFace(
           'KaTeX_Font',
           `url(${fontUrl}) format('woff2')`,
-          { style: 'normal', weight: 'normal' },
+          { 'style': 'normal', 'weight': 'normal' }
         );
         fontFace.load().catch(error => {
           console.warn('KaTeX字体预加载失败:', error);
@@ -79,15 +79,22 @@ export function preloadKaTeXFONTS() {
 
 /**
  * 延迟加载KaTeX模块，避免阻塞初始渲染
- * @returns Promise<{ katex: { render: (formula: string, element: HTMLElement, options?: KaTeXOptions) => void; renderToString: (formula: string, options?: KaTeXOptions) => string; version: string }, renderToString: (formula: string, options?: KaTeXOptions) => string }>
+ * @returns Promise<{
+ *   katex: {
+ *     render: (formula: string, element: HTMLElement, options?: KaTeXOptions) => void;
+ *     renderToString: (formula: string, options?: KaTeXOptions) => string;
+ *     version: string
+ *   },
+ *   renderToString: (formula: string, options?: KaTeXOptions) => string
+ * }>
  */
-export async function loadKaTeX() {
+export async function loadKaTeX () {
   // 使用动态导入延迟加载KaTeX
   const katexModule = await import('katex');
 
   return {
-    katex: katexModule.default,
-    renderToString: katexModule.default.renderToString,
+    'katex': katexModule.default,
+    'renderToString': katexModule.default.renderToString
   };
 }
 
@@ -96,12 +103,14 @@ export async function loadKaTeX() {
  */
 export class LaTeXCache {
   private cache = new Map<string, string>();
-  private maxSize = 100; // 最大缓存条目数
+
+  // 最大缓存条目数
+  private maxSize = 100;
 
   /**
    * 获取缓存的渲染结果
    */
-  get(expression: string, displayMode: boolean): string | undefined {
+  get (expression: string, displayMode: boolean): string | undefined {
     const key = this.getKey(expression, displayMode);
     return this.cache.get(key);
   }
@@ -112,7 +121,7 @@ export class LaTeXCache {
    * @param displayMode 是否为显示模式
    * @param result 渲染结果
    */
-  set(expression: string, displayMode: boolean, result: string): void {
+  set (expression: string, displayMode: boolean, result: string): void {
     const key = this.getKey(expression, displayMode);
 
     // 缓存满了，移除最早的条目
@@ -130,14 +139,14 @@ export class LaTeXCache {
   /**
    * 清除缓存
    */
-  clear(): void {
+  clear (): void {
     this.cache.clear();
   }
 
   /**
    * 生成缓存键
    */
-  private getKey(expression: string, displayMode: boolean): string {
+  private getKey (expression: string, displayMode: boolean): string {
     return `${displayMode ? 'block' : 'inline'}:${expression}`;
   }
 }

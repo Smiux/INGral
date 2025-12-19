@@ -2,16 +2,22 @@ import React from 'react';
 
 // Define card props interface
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+
   /** Card children */
   children: React.ReactNode;
+
   /** Custom class name */
   className?: string;
+
   /** Card header */
   header?: React.ReactNode;
+
   /** Card footer */
   footer?: React.ReactNode;
+
   /** Whether to show card border */
   bordered?: boolean;
+
   /** Whether to show card shadow */
   shadow?: boolean;
 }

@@ -7,14 +7,14 @@ import { BaseService } from './baseService';
 export class FileService extends BaseService {
   private static instance: FileService;
 
-  private constructor() {
+  private constructor () {
     super();
   }
 
   /**
    * 获取单例实例
    */
-  static getInstance(): FileService {
+  static getInstance (): FileService {
     if (!FileService.instance) {
       FileService.instance = new FileService();
     }
@@ -26,7 +26,7 @@ export class FileService extends BaseService {
    * @param bucketName 存储桶名称
    * @returns 是否存在
    */
-  private async checkBucketExists(bucketName: string): Promise<boolean> {
+  private async checkBucketExists (bucketName: string): Promise<boolean> {
     try {
       this.checkSupabaseClient();
 
@@ -35,8 +35,8 @@ export class FileService extends BaseService {
       const { error } = await this.supabase.storage
         .from(bucketName)
         .list('', {
-          limit: 1,
-          offset: 0,
+          'limit': 1,
+          'offset': 0
         });
 
       return !error;
@@ -53,10 +53,10 @@ export class FileService extends BaseService {
    * @param folderPath 文件夹路径
    * @returns 上传后的文件URL
    */
-  async uploadFile(
+  async uploadFile (
     file: File,
     bucketName = 'avatars',
-    folderPath = '',
+    folderPath = ''
   ): Promise<string | null> {
     try {
       this.checkSupabaseClient();
@@ -74,15 +74,16 @@ export class FileService extends BaseService {
       }
 
       // 生成唯一文件名
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}-${file.name}`;
+      const fileName = `${Date.now()}-${Math.random().toString(36)
+        .substring(2, 10)}-${file.name}`;
       const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
       // 上传文件
       const { error } = await this.supabase.storage
         .from(bucketName)
         .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
+          'cacheControl': '3600',
+          'upsert': false
         });
 
       if (error) {
@@ -103,7 +104,7 @@ export class FileService extends BaseService {
       }
 
       // 获取公共URL
-      const { data: publicUrlData } = this.supabase.storage
+      const { 'data': publicUrlData } = this.supabase.storage
         .from(bucketName)
         .getPublicUrl(filePath);
 
@@ -120,7 +121,7 @@ export class FileService extends BaseService {
    * @param userId 用户ID
    * @returns 头像URL
    */
-  async uploadAvatar(file: File, userId: string): Promise<string | null> {
+  async uploadAvatar (file: File, userId: string): Promise<string | null> {
     return this.uploadFile(file, 'avatars', `users/${userId}`);
   }
 
@@ -130,9 +131,9 @@ export class FileService extends BaseService {
    * @param bucketName 存储桶名称
    * @returns 是否删除成功
    */
-  async deleteFile(
+  async deleteFile (
     filePath: string,
-    bucketName = 'avatars',
+    bucketName = 'avatars'
   ): Promise<boolean> {
     try {
       this.checkSupabaseClient();
@@ -159,9 +160,9 @@ export class FileService extends BaseService {
    * @param bucketName 存储桶名称
    * @returns 文件URL
    */
-  getFileUrl(
+  getFileUrl (
     filePath: string,
-    bucketName = 'avatars',
+    bucketName = 'avatars'
   ): string | null {
     try {
       this.checkSupabaseClient();

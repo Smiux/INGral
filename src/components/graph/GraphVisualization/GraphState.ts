@@ -10,83 +10,83 @@ export const getInitialState = (): GraphState => {
   const savedRightPanelVisible = localStorage.getItem('graphRightPanelVisible');
   const savedToolbarAutoHide = localStorage.getItem('graphToolbarAutoHide');
   const savedTheme = localStorage.getItem('graphCurrentTheme');
-  
+
   return {
     // 节点和连接数据
-    nodes: [],
-    connections: [],
-    selectedNode: null,
-    selectedNodes: [],
-    selectedConnection: null,
-    selectedConnections: [],
+    'nodes': [],
+    'connections': [],
+    'selectedNode': null,
+    'selectedNodes': [],
+    'selectedConnection': null,
+    'selectedConnections': [],
     // ReactFlow实例引用
-    reactFlowInstance: null,
-    
+    'reactFlowInstance': null,
+
     // 交互状态
-    isAddingConnection: false,
-    connectionSourceNode: null,
-    mousePosition: null,
-    isSimulationRunning: true,
-    
+    'isAddingConnection': false,
+    'connectionSourceNode': null,
+    'mousePosition': null,
+    'isSimulationRunning': true,
+
     // 布局状态
-    layoutType: 'force',
-    layoutDirection: 'top-bottom',
-    viewMode: '2d',
-    
+    'layoutType': 'force',
+    'layoutDirection': 'top-bottom',
+    'viewMode': '2d',
+
     // UI状态
-    isRightPanelVisible: savedRightPanelVisible ? JSON.parse(savedRightPanelVisible) : true,
-    isToolbarVisible: true,
-    isLeftToolbarVisible: true,
-    activePanel: null,
-    currentTheme: savedTheme ? JSON.parse(savedTheme) : PRESET_THEMES[0] || {
-      id: 'default',
-      name: '默认主题',
-      node: {
-        fill: '#8b5cf6',
-        stroke: '#fff',
-        strokeWidth: 2,
-        radius: 20,
-        fontSize: 12,
-        textFill: '#fff'
+    'isRightPanelVisible': savedRightPanelVisible ? JSON.parse(savedRightPanelVisible) : true,
+    'isToolbarVisible': true,
+    'isLeftToolbarVisible': true,
+    'activePanel': null,
+    'currentTheme': savedTheme ? JSON.parse(savedTheme) : PRESET_THEMES[0] || {
+      'id': 'default',
+      'name': '默认主题',
+      'node': {
+        'fill': '#8b5cf6',
+        'stroke': '#fff',
+        'strokeWidth': 2,
+        'radius': 20,
+        'fontSize': 12,
+        'textFill': '#fff'
       },
-      link: {
-        stroke: '#999',
-        strokeWidth: 2,
-        strokeOpacity: 0.6
+      'link': {
+        'stroke': '#999',
+        'strokeWidth': 2,
+        'strokeOpacity': 0.6
       },
-      backgroundColor: '#f9fafb'
+      'backgroundColor': '#f9fafb'
     },
-    copiedStyle: null,
-    isBoxSelecting: false,
-    boxSelection: { x1: 0, y1: 0, x2: 0, y2: 0 },
-    isSettingsPanelOpen: false,
-    toolbarAutoHide: savedToolbarAutoHide ? JSON.parse(savedToolbarAutoHide) : false,
-    leftToolbarAutoHide: false,
-    
+    'copiedStyle': null,
+    'isBoxSelecting': false,
+    'boxSelection': { 'x1': 0, 'y1': 0, 'x2': 0, 'y2': 0 },
+    'isSettingsPanelOpen': false,
+    'toolbarAutoHide': savedToolbarAutoHide ? JSON.parse(savedToolbarAutoHide) : false,
+    'leftToolbarAutoHide': false,
+
     // 布局参数
-    nodeSpacing: 50,
-    levelSpacing: 100,
-    forceParameters: {
-      charge: -300,
-      linkStrength: 0.1,
-      linkDistance: 150,
-      gravity: 0.1
+    'nodeSpacing': 50,
+    'levelSpacing': 100,
+    'forceParameters': {
+      'charge': -300,
+      'linkStrength': 0.1,
+      'linkDistance': 150,
+      'gravity': 0.1
     },
-    
+
     // 保存的布局
-    savedLayouts: [],
-    
+    'savedLayouts': [],
+
     // 通知状态
-    notification: null,
-    
+    'notification': null,
+
     // 历史记录
-    history: [],
-    historyIndex: -1,
-    
+    'history': [],
+    'historyIndex': -1,
+
     // 聚类状态
-    clusters: {},
-    clusterColors: [],
-    clusterCount: 3,
-    isClusteringEnabled: false
+    'clusters': {},
+    'clusterColors': [],
+    'clusterCount': 3,
+    'isClusteringEnabled': false
   };
 };

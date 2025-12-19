@@ -9,12 +9,12 @@ interface SearchResultsControlsProps {
   viewMode: 'list' | 'graph' | 'hierarchical';
   exportLoading: boolean;
   query: string;
-  
-  onSearchTypeChange: (type: 'articles' | 'comments' | 'all') => void;
-  onSearchModeChange: (mode: 'traditional' | 'semantic' | 'enhanced') => void;
-  onSortByChange: (sort: 'relevance' | 'date' | 'views' | 'type') => void;
-  onGroupByChange: (group: 'type' | 'relevance_range' | 'date' | 'none') => void;
-  onViewModeChange: (mode: 'list' | 'graph' | 'hierarchical') => void;
+
+  onSearchTypeChange: (_type: 'articles' | 'comments' | 'all') => void;
+  onSearchModeChange: (_mode: 'traditional' | 'semantic' | 'enhanced') => void;
+  onSortByChange: (_sort: 'relevance' | 'date' | 'views' | 'type') => void;
+  onGroupByChange: (_group: 'type' | 'relevance_range' | 'date' | 'none') => void;
+  onViewModeChange: (_view: 'list' | 'graph' | 'hierarchical') => void;
   onExportToJson: () => void;
   onExportToCsv: () => void;
   onExportToGraphml: () => void;
@@ -29,7 +29,7 @@ export const SearchResultsControls: React.FC<SearchResultsControlsProps> = ({
   viewMode,
   exportLoading,
   query,
-  
+
   onSearchTypeChange,
   onSearchModeChange,
   onSortByChange,

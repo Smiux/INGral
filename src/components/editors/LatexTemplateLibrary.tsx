@@ -10,7 +10,7 @@ interface LatexTemplate {
 
 interface LatexTemplateLibraryProps {
   templates: LatexTemplate[];
-  onTemplateClick: (template: string) => void;
+  onTemplateClick: (_template: string) => void;
 }
 
 /**
@@ -19,7 +19,7 @@ interface LatexTemplateLibraryProps {
  * @param templates - 模板分类列表
  * @param onTemplateClick - 点击模板的回调
  */
-export function LatexTemplateLibrary({ templates, onTemplateClick }: LatexTemplateLibraryProps) {
+export function LatexTemplateLibrary ({ templates, onTemplateClick }: LatexTemplateLibraryProps) {
   return (
     <div className="template-library p-4 max-h-[400px] overflow-y-auto">
       {templates.map((category, categoryIndex) => (

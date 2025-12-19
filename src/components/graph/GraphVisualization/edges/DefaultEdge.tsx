@@ -20,39 +20,39 @@ export const DefaultEdge: React.FC<EdgeProps> = ({
   // 计算边的中点位置，用于显示标签
   const midX = (sourceX + targetX) / 2;
   const midY = (sourceY + targetY) / 2;
-  
+
   // 主题样式
   const theme = {
-    link: {
-      stroke: selected ? '#FF6B6B' : '#95A5A6',
-      strokeWidth: selected ? 3 : 2,
-      strokeOpacity: 0.8,
-      selectedStroke: '#FF5252',
-      selectedStrokeWidth: 3
+    'link': {
+      'stroke': selected ? '#FF6B6B' : '#95A5A6',
+      'strokeWidth': selected ? 3 : 2,
+      'strokeOpacity': 0.8,
+      'selectedStroke': '#FF5252',
+      'selectedStrokeWidth': 3
     },
-    text: {
-      fill: '#666',
-      fontSize: 12,
-      selectedFill: '#FF5252'
+    'text': {
+      'fill': '#666',
+      'fontSize': 12,
+      'selectedFill': '#FF5252'
     }
   };
-  
+
   // 边的样式
   const edgeStyle = {
-    stroke: selected ? theme.link.selectedStroke : theme.link.stroke,
-    strokeWidth: selected ? theme.link.selectedStrokeWidth : theme.link.strokeWidth,
-    strokeOpacity: theme.link.strokeOpacity,
+    'stroke': selected ? theme.link.selectedStroke : theme.link.stroke,
+    'strokeWidth': selected ? theme.link.selectedStrokeWidth : theme.link.strokeWidth,
+    'strokeOpacity': theme.link.strokeOpacity,
     ...style
   };
-  
+
   // 标签样式
   const labelStyle = {
-    fill: selected ? theme.text.selectedFill : theme.text.fill,
-    fontSize: theme.text.fontSize,
-    pointerEvents: 'none' as const,
-    userSelect: 'none' as const
+    'fill': selected ? theme.text.selectedFill : theme.text.fill,
+    'fontSize': theme.text.fontSize,
+    'pointerEvents': 'none' as const,
+    'userSelect': 'none' as const
   };
-  
+
   return (
     <>
       {/* 使用SVG原生元素绘制边 */}
@@ -63,7 +63,7 @@ export const DefaultEdge: React.FC<EdgeProps> = ({
         y2={targetY}
         style={edgeStyle}
       />
-      
+
       {/* 边标签 */}
       {data?.label && (
         <text
@@ -77,7 +77,7 @@ export const DefaultEdge: React.FC<EdgeProps> = ({
           {data.label}
         </text>
       )}
-      
+
       {/* 选中状态样式 */}
       {selected && (
         <circle

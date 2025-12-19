@@ -7,7 +7,7 @@ interface LatexSymbol {
 
 interface LatexSymbolLibraryProps {
   symbols: LatexSymbol[];
-  onSymbolClick: (symbol: string) => void;
+  onSymbolClick: (_symbol: string) => void;
 }
 
 /**
@@ -16,7 +16,7 @@ interface LatexSymbolLibraryProps {
  * @param symbols - 符号分类列表
  * @param onSymbolClick - 点击符号的回调
  */
-export function LatexSymbolLibrary({ symbols, onSymbolClick }: LatexSymbolLibraryProps) {
+export function LatexSymbolLibrary ({ symbols, onSymbolClick }: LatexSymbolLibraryProps) {
   return (
     <div className="symbol-library p-4 max-h-[400px] overflow-y-auto">
       {symbols.map((category, categoryIndex) => (

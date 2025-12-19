@@ -9,8 +9,8 @@ interface BarChartProps {
   options?: Record<string, unknown>;
   className?: string;
   horizontal?: boolean;
-  onBarClick?: (index: number, value: number, label: string) => void;
-  onHover?: (index: number | null, value: number | null, label: string | null) => void;
+  onBarClick?: (_index: number, _value: number, _label: string) => void;
+  onHover?: (_index: number | null, _value: number | null, _label: string | null) => void;
 }
 
 const BarChartComponent: React.FC<BarChartProps> = ({
@@ -20,42 +20,42 @@ const BarChartComponent: React.FC<BarChartProps> = ({
   className = '',
   horizontal = false,
   onBarClick,
-  onHover,
+  onHover
 }) => {
   // 准备图表数据
   const chartData = {
-    labels: data.labels || [],
-    datasets: data.datasets?.map(dataset => ({
-      label: dataset.label || '',
-      data: dataset.data || [],
-      backgroundColor: dataset.backgroundColor || 'rgba(79, 70, 229, 0.5)',
-      borderColor: dataset.borderColor || 'rgba(79, 70, 229, 1)',
-      borderWidth: dataset.borderWidth || 1,
-    })) || [],
+    'labels': data.labels || [],
+    'datasets': data.datasets?.map(dataset => ({
+      'label': dataset.label || '',
+      'data': dataset.data || [],
+      'backgroundColor': dataset.backgroundColor || 'rgba(79, 70, 229, 0.5)',
+      'borderColor': dataset.borderColor || 'rgba(79, 70, 229, 1)',
+      'borderWidth': dataset.borderWidth || 1
+    })) || []
   };
 
   // 配置图表选项
   const chartOptions: ChartOptions = {
-    indexAxis: horizontal ? 'y' : 'x',
-    plugins: {
-      legend: {
-        position: 'top',
+    'indexAxis': horizontal ? 'y' : 'x',
+    'plugins': {
+      'legend': {
+        'position': 'top'
       },
-      tooltip: {
-        enabled: true,
-      },
+      'tooltip': {
+        'enabled': true
+      }
     },
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
+    'scales': {
+      'y': {
+        'beginAtZero': true
+      }
     },
     // 启用交互
-    interaction: {
-      intersect: false,
-      mode: 'index',
+    'interaction': {
+      'intersect': false,
+      'mode': 'index'
     },
-    ...options,
+    ...options
   };
 
   // 处理点击事件

@@ -4,7 +4,7 @@ import styles from './DateRangePicker.module.css';
 
 interface DateRangePickerProps {
   value: { start: Date; end: Date };
-  onChange: (range: { start: Date; end: Date }) => void;
+  onChange: () => void;
   maxDate?: Date;
   minDate?: Date;
   className?: string;
@@ -15,7 +15,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   onChange,
   maxDate,
   minDate,
-  className = '',
+  className = ''
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [tempRange, setTempRange] = useState(value);
@@ -47,7 +47,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   // 确认选择
   const handleConfirm = () => {
-    onChange(tempRange);
+    onChange();
     setIsOpen(false);
   };
 
@@ -65,7 +65,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     const start = new Date();
     start.setDate(start.getDate() - days);
     setTempRange({ start, end });
-    onChange({ start, end });
+    onChange();
     setIsOpen(false);
   };
 

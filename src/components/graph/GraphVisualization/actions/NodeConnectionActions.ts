@@ -1,48 +1,49 @@
 import { useCallback } from 'react';
 import type { ReactFlowInstance } from 'reactflow';
 import type { EnhancedNode, EnhancedGraphConnection } from '../types';
+import type { GraphAction } from '../GraphContextType';
 
 interface NodeConnectionActionsProps {
-  dispatch: React.Dispatch<any>;
+  dispatch: React.Dispatch<GraphAction>;
 }
 
 export const useNodeConnectionActions = ({ dispatch }: NodeConnectionActionsProps) => {
   // ReactFlow相关操作
   const setReactFlowInstance = useCallback((instance: ReactFlowInstance | null) => {
-    dispatch({ type: 'SET_REACT_FLOW_INSTANCE', payload: instance });
+    dispatch({ 'type': 'SET_REACT_FLOW_INSTANCE', 'payload': instance });
   }, [dispatch]);
-  
+
   // 节点和连接操作
   const setNodes = useCallback((nodes: EnhancedNode[]) => {
-    dispatch({ type: 'SET_NODES', payload: nodes });
+    dispatch({ 'type': 'SET_NODES', 'payload': nodes });
   }, [dispatch]);
-  
+
   const setConnections = useCallback((connections: EnhancedGraphConnection[]) => {
-    dispatch({ type: 'SET_CONNECTIONS', payload: connections });
+    dispatch({ 'type': 'SET_CONNECTIONS', 'payload': connections });
   }, [dispatch]);
-  
+
   const addNode = useCallback((node: EnhancedNode) => {
-    dispatch({ type: 'ADD_NODE', payload: node });
+    dispatch({ 'type': 'ADD_NODE', 'payload': node });
   }, [dispatch]);
-  
+
   const updateNode = useCallback((node: EnhancedNode) => {
-    dispatch({ type: 'UPDATE_NODE', payload: node });
+    dispatch({ 'type': 'UPDATE_NODE', 'payload': node });
   }, [dispatch]);
-  
+
   const deleteNode = useCallback((nodeId: string) => {
-    dispatch({ type: 'DELETE_NODE', payload: nodeId });
+    dispatch({ 'type': 'DELETE_NODE', 'payload': nodeId });
   }, [dispatch]);
-  
+
   const addConnection = useCallback((connection: EnhancedGraphConnection) => {
-    dispatch({ type: 'ADD_CONNECTION', payload: connection });
+    dispatch({ 'type': 'ADD_CONNECTION', 'payload': connection });
   }, [dispatch]);
-  
+
   const updateConnection = useCallback((connection: EnhancedGraphConnection) => {
-    dispatch({ type: 'UPDATE_CONNECTION', payload: connection });
+    dispatch({ 'type': 'UPDATE_CONNECTION', 'payload': connection });
   }, [dispatch]);
-  
+
   const deleteConnection = useCallback((connectionId: string) => {
-    dispatch({ type: 'DELETE_CONNECTION', payload: connectionId });
+    dispatch({ 'type': 'DELETE_CONNECTION', 'payload': connectionId });
   }, [dispatch]);
 
   return {

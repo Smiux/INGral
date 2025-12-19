@@ -5,61 +5,74 @@ import { fileService } from '@/services/fileService';
 interface ImageUploadDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onImageUploaded: (imageUrl: string) => void;
-  showNotification: (message: string, type: 'success' | 'info' | 'error') => void;
+  onImageUploaded: (_imageUrl: string) => void;
+  showNotification: (_message: string, _type: 'success' | 'info' | 'error') => void;
 }
 
 /**
  * 图片上传对话框组件
  * 提供拖放上传和文件选择功能
  */
-export function ImageUploadDialog({ isOpen, onClose, onImageUploaded, showNotification }: ImageUploadDialogProps) {
+export function ImageUploadDialog ({ isOpen, onClose, onImageUploaded, showNotification }: ImageUploadDialogProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   /**
    * 处理文件选择
    */
+  const processSingleImage = async (file: File) => {
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+      showNotification(`文件 ${file.name} 不是图片，请选择图片文件`, 'error');
+      return;
+    }
+
+    // 验证文件大小（最大5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      showNotification(`文件 ${file.name} 大小超过5MB限制`, 'error');
+      return;
+    }
+
+    try {
+      // 上传文件
+      const imageUrl = await fileService.uploadFile(file, 'images', 'articles');
+
+      if (imageUrl) {
+        // 生成预览
+        const previewUrl = URL.createObjectURL(file);
+        setPreviewUrls(prev => [...prev, previewUrl]);
+
+        // 通知父组件图片已上传
+        onImageUploaded(imageUrl);
+        showNotification(`图片 ${file.name} 上传成功`, 'success');
+      } else {
+        showNotification(`图片 ${file.name} 上传失败`, 'error');
+      }
+    } catch (error) {
+      console.error(`图片 ${file.name} 上传失败:`, error);
+      showNotification(`图片 ${file.name} 上传失败`, 'error');
+    }
+  };
+
   const handleFileSelect = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+      return;
+    }
 
     setUploading(true);
 
     try {
-      for (let i = 0; i < files.length; i++) {
+      for (let i = 0; i < files.length; i += 1) {
         const file = files[i];
-        if (!file) continue;
-        
-        // 验证文件类型
-        if (!file.type.startsWith('image/')) {
-          showNotification(`文件 ${file.name} 不是图片，请选择图片文件`, 'error');
-          continue;
-        }
-
-        // 验证文件大小（最大5MB）
-        if (file.size > 5 * 1024 * 1024) {
-          showNotification(`文件 ${file.name} 大小超过5MB限制`, 'error');
-          continue;
-        }
-
-        // 上传文件
-        const imageUrl = await fileService.uploadFile(file, 'images', 'articles');
-        
-        if (imageUrl) {
-          // 生成预览
-          const previewUrl = URL.createObjectURL(file);
-          setPreviewUrls(prev => [...prev, previewUrl]);
-          
-          // 通知父组件图片已上传
-          onImageUploaded(imageUrl);
-          showNotification(`图片 ${file.name} 上传成功`, 'success');
-        } else {
-          showNotification(`图片 ${file.name} 上传失败`, 'error');
+        if (file) {
+          await processSingleImage(file);
         }
       }
     } catch (error) {
@@ -148,8 +161,8 @@ export function ImageUploadDialog({ isOpen, onClose, onImageUploaded, showNotifi
             onDrop={handleDrop}
             onClick={triggerFileInput}
             className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-all duration-200 ${
-              isDragging 
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+              isDragging
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                 : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
             }`}
           >

@@ -1,5 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Supabase客户端配置和初始化
@@ -21,8 +20,8 @@ const getSupabaseConfig = (): { url: string; anonKey: string } => {
 
     // 提供模拟值以避免应用崩溃
     return {
-      url: url || 'https://mock-url.supabase.co',
-      anonKey: anonKey || 'mock-anon-key',
+      'url': url || 'https://mock-url.supabase.co',
+      'anonKey': anonKey || 'mock-anon-key'
     };
   }
 
@@ -34,42 +33,42 @@ const createMockSupabaseClient = (): SupabaseClient => {
   console.warn('使用模拟Supabase客户端以允许UI正常加载');
 
   return {
-    auth: {
-      getSession: async () => ({ data: { session: null } }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-      signUp: async () => ({ data: null, error: { message: 'Authentication not available' } }),
-      signInWithPassword: async () => ({ data: null, error: { message: 'Authentication not available' } }),
-      signOut: async () => ({}),
-      update: async () => ({ data: null, error: null }),
-      refreshSession: async () => ({ data: { session: null }, error: null }),
+    'auth': {
+      'getSession': async () => ({ 'data': { 'session': null } }),
+      'onAuthStateChange': () => ({ 'data': { 'subscription': { 'unsubscribe': () => {} } } }),
+      'signUp': async () => ({ 'data': null, 'error': { 'message': 'Authentication not available' } }),
+      'signInWithPassword': async () => ({ 'data': null, 'error': { 'message': 'Authentication not available' } }),
+      'signOut': async () => ({}),
+      'update': async () => ({ 'data': null, 'error': null }),
+      'refreshSession': async () => ({ 'data': { 'session': null }, 'error': null })
     },
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          limit: () => ({ data: [], error: null }),
-          order: () => ({ data: [], error: null }),
-          single: () => Promise.resolve({ data: null, error: null }),
+    'from': () => ({
+      'select': () => ({
+        'eq': () => ({
+          'limit': () => ({ 'data': [], 'error': null }),
+          'order': () => ({ 'data': [], 'error': null }),
+          'single': () => Promise.resolve({ 'data': null, 'error': null })
         }),
-        in: () => ({ data: [], error: null }),
-        range: () => ({ data: [], error: null }),
+        'in': () => ({ 'data': [], 'error': null }),
+        'range': () => ({ 'data': [], 'error': null })
       }),
-      insert: () => ({ data: [], error: null }),
-      update: () => ({ data: [], error: null }),
-      delete: () => ({ data: [], error: null }),
-      upsert: () => ({ data: [], error: null }),
+      'insert': () => ({ 'data': [], 'error': null }),
+      'update': () => ({ 'data': [], 'error': null }),
+      'delete': () => ({ 'data': [], 'error': null }),
+      'upsert': () => ({ 'data': [], 'error': null })
     }),
-    functions: {
-      invoke: async () => null,
-      createClient: () => ({ invoke: async () => null }),
+    'functions': {
+      'invoke': async () => null,
+      'createClient': () => ({ 'invoke': async () => null })
     },
-    storage: {
-      from: () => ({
-        upload: async () => ({ data: null, error: null }),
-        download: async () => ({ data: null, error: null }),
-        remove: async () => ({ data: [], error: null }),
-        getPublicUrl: () => ({ publicUrl: '' }),
-      }),
-    },
+    'storage': {
+      'from': () => ({
+        'upload': async () => ({ 'data': null, 'error': null }),
+        'download': async () => ({ 'data': null, 'error': null }),
+        'remove': async () => ({ 'data': [], 'error': null }),
+        'getPublicUrl': () => ({ 'publicUrl': '' })
+      })
+    }
   } as unknown as SupabaseClient;
 };
 
@@ -89,10 +88,10 @@ try {
  * 测试Supabase连接的健康状态
  * @returns 连接是否成功
  */
-export async function testSupabaseConnection(): Promise<boolean> {
+export async function testSupabaseConnection (): Promise<boolean> {
   try {
     // 尝试查询articles表的计数来测试连接
-    await supabase.from('articles').select('id', { count: 'exact', head: true });
+    await supabase.from('articles').select('id', { 'count': 'exact', 'head': true });
     console.log('数据库连接测试成功');
     return true;
   } catch (error) {

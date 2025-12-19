@@ -3,18 +3,18 @@ import { EditorSidebarProps } from '../../../types';
 import { EditorTableOfContents } from './TableOfContents';
 
 
-export function EditorSidebar({
+export function EditorSidebar ({
   showToc,
   onToggleToc,
   tableOfContents,
   expandedTocItems,
   setExpandedTocItems,
   activeTocItem,
-  setActiveTocItem,
+  setActiveTocItem
 }: EditorSidebarProps) {
   return (
     <div className="w-0 overflow-hidden bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out flex flex-col"
-         style={{ width: showToc ? 'var(--sidebar-width)' : '0px' }}>
+      style={{ 'width': showToc ? 'var(--sidebar-width)' : '0px' }}>
       {/* 侧边栏头部 */}
       <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-900">
         <h3 className="font-medium text-sm text-gray-700 dark:text-gray-300 flex items-center space-x-2">

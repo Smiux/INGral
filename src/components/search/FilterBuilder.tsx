@@ -14,8 +14,8 @@ import styles from './FilterBuilder.module.css';
 
 interface FilterBuilderProps {
   filter: CompositeFilter;
-  onFilterChange: (filter: CompositeFilter) => void;
-  onUseCompositeFilterChange: (use: boolean) => void;
+  onFilterChange: (_filter: CompositeFilter) => void;
+  onUseCompositeFilterChange: (_use: boolean) => void;
   useCompositeFilter: boolean;
 }
 
@@ -34,7 +34,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
     if (node.id === id) {
       return node;
     }
-    
+
     if ('conditions' in node) {
       for (const child of node.conditions) {
         const found = findNode(child, id);
@@ -43,27 +43,29 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
         }
       }
     }
-    
+
     return null;
   }, []);
 
   // 更新节点 - 确保返回CompositeFilter类型
-  const updateNode = useCallback((node: CompositeFilter, id: string, updater: (node: FilterNode) => FilterNode): CompositeFilter => {
-    if (node.id === id) {
-      const updated = updater(node);
+  const updateNode = useCallback((compositeFilter: CompositeFilter, id: string, updater: (_node: FilterNode) => FilterNode): CompositeFilter => {
+    if (compositeFilter.id === id) {
+      const updated = updater(compositeFilter);
       if ('conditions' in updated) {
         return updated;
       }
-      return node;
+      return compositeFilter;
     }
-    
+
     return {
-      ...node,
-      conditions: node.conditions.map(child => {
+      ...compositeFilter,
+      'conditions': compositeFilter.conditions.map(child => {
         if ('conditions' in child) {
           return updateNode(child, id, updater);
+        } else if (child.id === id) {
+          return updater(child);
         }
-        return updater(child);
+        return child;
       })
     };
   }, []);
@@ -71,17 +73,17 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
   // 添加条件
   const addCondition = useCallback((parentId: string) => {
     const newCondition = createFilterCondition();
-    
+
     const updatedFilter = updateNode(filter, parentId, (node) => {
       if ('conditions' in node) {
         return {
           ...node,
-          conditions: [...node.conditions, newCondition]
+          'conditions': [...node.conditions, newCondition]
         };
       }
       return node;
     });
-    
+
     onFilterChange(updatedFilter);
     setSelectedNodeId(newCondition.id);
     setEditingNodeId(newCondition.id);
@@ -90,17 +92,17 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
   // 添加组合条件
   const addCompositeFilter = useCallback((parentId: string, operator: LogicOperator = 'AND') => {
     const newComposite = createCompositeFilter(operator);
-    
+
     const updatedFilter = updateNode(filter, parentId, (node) => {
       if ('conditions' in node) {
         return {
           ...node,
-          conditions: [...node.conditions, newComposite]
+          'conditions': [...node.conditions, newComposite]
         };
       }
       return node;
     });
-    
+
     onFilterChange(updatedFilter);
     setSelectedNodeId(newComposite.id);
   }, [filter, updateNode, onFilterChange]);
@@ -111,12 +113,12 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
     if (nodeId === filter.id) {
       return;
     }
-    
+
     // 递归删除节点
     const removeNode = (node: CompositeFilter): CompositeFilter => {
       return {
         ...node,
-        conditions: node.conditions.filter(child => child.id !== nodeId)
+        'conditions': node.conditions.filter(child => child.id !== nodeId)
           .map(child => {
             if ('conditions' in child) {
               return removeNode(child);
@@ -125,7 +127,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
           })
       };
     };
-    
+
     onFilterChange(removeNode(filter));
     setSelectedNodeId(undefined);
     setEditingNodeId(undefined);
@@ -142,7 +144,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
       }
       return node;
     });
-    
+
     onFilterChange(updatedFilter);
   }, [filter, updateNode, onFilterChange]);
 
@@ -157,7 +159,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
       }
       return node;
     });
-    
+
     onFilterChange(updatedFilter);
   }, [filter, updateNode, onFilterChange]);
 
@@ -209,7 +211,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
                 value={condition.field}
                 onChange={(e) => {
                   updateCondition(condition.id, {
-                    field: e.target.value as FilterField
+                    'field': e.target.value as FilterField
                   });
                 }}
               >
@@ -229,7 +231,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
                 value={condition.operator}
                 onChange={(e) => {
                   updateCondition(condition.id, {
-                    operator: e.target.value as FilterOperator
+                    'operator': e.target.value as FilterOperator
                   });
                 }}
               >
@@ -244,108 +246,124 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
             {/* 值输入 */}
             <div className={styles.editorRow}>
               <label className={styles.editorLabel}>值:</label>
-              {config.type === 'select' || config.type === 'multiselect' ? (
-                <select
-                  className={styles.editorSelect}
-                  value={condition.value as string | number | readonly string[] | undefined}
-                  onChange={(e) => {
-                    updateCondition(condition.id, {
-                      value: config.type === 'multiselect' ? [e.target.value] : e.target.value
-                    });
-                  }}
-                  multiple={config.type === 'multiselect'}
-                >
-                  {config.options?.map(option => (
-                    <option 
-                      key={option.value?.toString() || Math.random().toString()} 
-                      value={option.value as string | number | readonly string[] | undefined}
+              {(() => {
+                if (config.type === 'select' || config.type === 'multiselect') {
+                  return (
+                    <select
+                      className={styles.editorSelect}
+                      value={condition.value as string | number | readonly string[] | undefined}
+                      onChange={(e) => {
+                        updateCondition(condition.id, {
+                          'value': config.type === 'multiselect' ? [e.target.value] : e.target.value
+                        });
+                      }}
+                      multiple={config.type === 'multiselect'}
                     >
-                      {option.label}
-                    </option>
-                  )) || (
-                    <option value="">无选项</option>
-                  )}
-                </select>
-              ) : config.type === 'date' ? (
-                <input
-                  type="date"
-                  className={styles.editorInput}
-                  value={condition.value as string || ''}
-                  onChange={(e) => {
-                    updateCondition(condition.id, {
-                      value: e.target.value
-                    });
-                  }}
-                />
-              ) : config.type === 'number' ? (
-                <input
-                  type="number"
-                  className={styles.editorInput}
-                  value={condition.value as number || ''}
-                  onChange={(e) => {
-                    updateCondition(condition.id, {
-                      value: parseFloat(e.target.value) || 0
-                    });
-                  }}
-                  min={config.min}
-                  max={config.max}
-                />
-              ) : (
-                <input
-                  type="text"
-                  className={styles.editorInput}
-                  value={condition.value as string || ''}
-                  onChange={(e) => {
-                    updateCondition(condition.id, {
-                      value: e.target.value
-                    });
-                  }}
-                  placeholder={config.placeholder}
-                />
-              )}
+                      {config.options?.map(option => (
+                        <option
+                          key={option.value?.toString() || Math.random().toString()}
+                          value={option.value as string | number | readonly string[] | undefined}
+                        >
+                          {option.label}
+                        </option>
+                      )) || (
+                        <option value="">无选项</option>
+                      )}
+                    </select>
+                  );
+                } else if (config.type === 'date') {
+                  return (
+                    <input
+                      type="date"
+                      className={styles.editorInput}
+                      value={condition.value as string || ''}
+                      onChange={(e) => {
+                        updateCondition(condition.id, {
+                          'value': e.target.value
+                        });
+                      }}
+                    />
+                  );
+                } else if (config.type === 'number') {
+                  return (
+                    <input
+                      type="number"
+                      className={styles.editorInput}
+                      value={condition.value as number || ''}
+                      onChange={(e) => {
+                        updateCondition(condition.id, {
+                          'value': parseFloat(e.target.value) || 0
+                        });
+                      }}
+                      min={config.min}
+                      max={config.max}
+                    />
+                  );
+                }
+                return (
+                  <input
+                    type="text"
+                    className={styles.editorInput}
+                    value={condition.value as string || ''}
+                    onChange={(e) => {
+                      updateCondition(condition.id, {
+                        'value': e.target.value
+                      });
+                    }}
+                    placeholder={config.placeholder}
+                  />
+                );
+              })()}
             </div>
 
             {/* 第二个值（用于between操作符） */}
             {(condition.operator === 'between' || condition.operator === 'not_between') && (
               <div className={styles.editorRow}>
                 <label className={styles.editorLabel}>至:</label>
-                {config.type === 'date' ? (
-                  <input
-                    type="date"
-                    className={styles.editorInput}
-                    value={condition.value2 as string || ''}
-                    onChange={(e) => {
-                      updateCondition(condition.id, {
-                        value2: e.target.value
-                      });
-                    }}
-                  />
-                ) : config.type === 'number' ? (
-                  <input
-                    type="number"
-                    className={styles.editorInput}
-                    value={condition.value2 as number || ''}
-                    onChange={(e) => {
-                      updateCondition(condition.id, {
-                        value2: parseFloat(e.target.value) || 0
-                      });
-                    }}
-                    min={config.min}
-                    max={config.max}
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    className={styles.editorInput}
-                    value={condition.value2 as string || ''}
-                    onChange={(e) => {
-                      updateCondition(condition.id, {
-                        value2: e.target.value
-                      });
-                    }}
-                    placeholder={config.placeholder}
-                  />
-                )}
+                {(() => {
+                  if (config.type === 'date') {
+                    return (
+                      <input
+                        type="date"
+                        className={styles.editorInput}
+                        value={condition.value2 as string || ''}
+                        onChange={(e) => {
+                          updateCondition(condition.id, {
+                            'value2': e.target.value
+                          });
+                        }}
+                      />
+                    );
+                  } else if (config.type === 'number') {
+                    return (
+                      <input
+                        type="number"
+                        className={styles.editorInput}
+                        value={condition.value2 as number || ''}
+                        onChange={(e) => {
+                          updateCondition(condition.id, {
+                            'value2': parseFloat(e.target.value) || 0
+                          });
+                        }}
+                        min={config.min}
+                        max={config.max}
+                      />
+                    );
+                  }
+                  return (
+                    <input
+                      type="text"
+                      className={styles.editorInput}
+                      value={condition.value2 as string || ''}
+                      onChange={(e) => {
+                        updateCondition(condition.id, {
+                          'value2': e.target.value
+                        });
+                      }}
+                      placeholder={config.placeholder}
+                    />
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -384,7 +402,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
                 value={composite.operator}
                 onChange={(e) => {
                   updateCompositeFilter(composite.id, {
-                    operator: e.target.value as LogicOperator
+                    'operator': e.target.value as LogicOperator
                   });
                 }}
               >

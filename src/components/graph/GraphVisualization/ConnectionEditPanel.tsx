@@ -8,8 +8,8 @@ import type { EnhancedGraphConnection } from './types';
 
 interface ConnectionEditPanelProps {
   selectedConnection: EnhancedGraphConnection | null;
-  onUpdateConnection: (connection: EnhancedGraphConnection) => void;
-  onDeleteConnection: (connectionId: string) => void;
+  onUpdateConnection: (_connection: EnhancedGraphConnection) => void;
+  onDeleteConnection: (_connectionId: string) => void;
   onClose: () => void;
 }
 
@@ -24,12 +24,12 @@ export const ConnectionEditPanel: React.FC<ConnectionEditPanelProps> = ({
 }) => {
   // 表单状态
   const [formData, setFormData] = useState<EnhancedGraphConnection>({
-    id: '',
-    source: '',
-    target: '',
-    type: '',
-    label: '',
-    weight: 1
+    'id': '',
+    'source': '',
+    'target': '',
+    'type': '',
+    'label': '',
+    'weight': 1
   });
 
   // 当选中连接变化时，更新表单数据

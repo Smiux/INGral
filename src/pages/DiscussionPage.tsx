@@ -11,7 +11,7 @@ import { discussionService } from '../services/discussionService';
 /**
  * 讨论主页面组件
  */
-export function DiscussionPage() {
+export function DiscussionPage () {
   const [categories, setCategories] = useState<DiscussionCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('academic');
   const [topics, setTopics] = useState<DiscussionTopic[]>([]);
@@ -44,7 +44,7 @@ export function DiscussionPage() {
   const loadTags = async () => {
     try {
       const data = await discussionService.getTags();
-      setAvailableTags(data.map(tag => ({ id: tag.id, name: tag.name })));
+      setAvailableTags(data.map(tag => ({ 'id': tag.id, 'name': tag.name })));
     } catch (error) {
       console.error('Failed to load tags:', error);
     }
@@ -60,16 +60,16 @@ export function DiscussionPage() {
       if (category) {
         // 计算偏移量
         const offset = (currentPage - 1) * pageSize;
-        
-        const { data, count } = await discussionService.getTopicsByCategory(
-          category.id,
-          pageSize,
+
+        const { data, count } = await discussionService.getTopicsByCategory({
+          'categoryId': category.id,
+          'limit': pageSize,
           offset,
           sortBy,
-          selectedTags,
+          'tags': selectedTags,
           searchQuery
-        );
-        
+        });
+
         setTopics(data);
         if (count !== undefined) {
           setTotalTopics(count);
@@ -96,9 +96,8 @@ export function DiscussionPage() {
     setSelectedTags(prev => {
       if (prev.includes(tagId)) {
         return prev.filter(id => id !== tagId);
-      } else {
-        return [...prev, tagId];
       }
+      return [...prev, tagId];
     });
   };
 
@@ -222,11 +221,12 @@ export function DiscussionPage() {
             </div>
 
             {/* 主题列表 */}
-            {isLoading ? (
+            {isLoading && (
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
               </div>
-            ) : topics.length > 0 ? (
+            )}
+            {!isLoading && topics.length > 0 && (
               <div className="space-y-4">
                 {topics.map(topic => (
                   <Link
@@ -251,7 +251,7 @@ export function DiscussionPage() {
                           </div>
                           <div className="flex items-center gap-1">
                             <Clock className="w-4 h-4" />
-                            <span>{new Date(topic.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                            <span>{new Date(topic.updated_at).toLocaleDateString('en-US', { 'month': 'short', 'day': 'numeric' })}</span>
                           </div>
                         </div>
                       </div>
@@ -271,7 +271,7 @@ export function DiscussionPage() {
                     </div>
                   </Link>
                 ))}
-                
+
                 {/* 分页控件 */}
                 <div className="flex justify-center mt-8">
                   <nav className="inline-flex items-center gap-1">
@@ -282,8 +282,8 @@ export function DiscussionPage() {
                     >
                       Previous
                     </button>
-                    
-                    {Array.from({ length: Math.ceil(totalTopics / pageSize) }, (_, i) => i + 1).map(pageNum => (
+
+                    {Array.from({ 'length': Math.ceil(totalTopics / pageSize) }, (_, i) => i + 1).map(pageNum => (
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
@@ -292,7 +292,7 @@ export function DiscussionPage() {
                         {pageNum}
                       </button>
                     ))}
-                    
+
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(totalTopics / pageSize)))}
                       disabled={currentPage === Math.ceil(totalTopics / pageSize)}
@@ -303,7 +303,8 @@ export function DiscussionPage() {
                   </nav>
                 </div>
               </div>
-            ) : (
+            )}
+            {!isLoading && topics.length === 0 && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
                 <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No topics yet</h3>

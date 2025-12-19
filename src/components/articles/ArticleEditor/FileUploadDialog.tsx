@@ -5,60 +5,68 @@ import { fileService } from '@/services/fileService';
 interface FileUploadDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onFileUploaded: (fileUrl: string, fileName: string) => void;
-  showNotification: (message: string, type: 'success' | 'info' | 'error') => void;
+  onFileUploaded: (_fileUrl: string, _fileName: string) => void;
+  showNotification: (_message: string, _type: 'success' | 'info' | 'error') => void;
 }
 
 /**
  * 文件上传对话框组件
  * 提供拖放上传和文件选择功能，支持多种文件类型
  */
-export function FileUploadDialog({ isOpen, onClose, onFileUploaded, showNotification }: FileUploadDialogProps) {
+export function FileUploadDialog ({ isOpen, onClose, onFileUploaded, showNotification }: FileUploadDialogProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<{ name: string; url: string; size: number; type: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   /**
    * 处理文件选择
    */
+  const processSingleFile = async (file: File) => {
+    if (file.size > 10 * 1024 * 1024) {
+      showNotification(`文件 ${file.name} 大小超过10MB限制`, 'error');
+      return;
+    }
+
+    try {
+      const fileUrl = await fileService.uploadFile(file, 'files', 'articles');
+      if (fileUrl) {
+        // 保存上传的文件信息
+        const fileInfo = {
+          'name': file.name,
+          'url': fileUrl,
+          'size': file.size,
+          'type': file.type
+        };
+        setUploadedFiles(prev => [...prev, fileInfo]);
+        showNotification(`文件 ${file.name} 上传成功`, 'success');
+        onFileUploaded(fileUrl, file.name);
+      } else {
+        showNotification(`文件 ${file.name} 上传失败`, 'error');
+      }
+    } catch (error) {
+      console.error(`文件 ${file.name} 上传失败:`, error);
+      showNotification(`文件 ${file.name} 上传失败`, 'error');
+    }
+  };
+
   const handleFileSelect = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+      return;
+    }
 
     setUploading(true);
 
     try {
-      for (let i = 0; i < files.length; i++) {
+      for (let i = 0; i < files.length; i += 1) {
         const file = files[i];
-        if (!file) continue;
-
-        // 验证文件大小（最大10MB）
-        if (file.size > 10 * 1024 * 1024) {
-          showNotification(`文件 ${file.name} 大小超过10MB限制`, 'error');
-          continue;
-        }
-
-        // 上传文件
-        const fileUrl = await fileService.uploadFile(file, 'files', 'articles');
-        
-        if (fileUrl) {
-          // 保存上传的文件信息
-          const fileInfo = {
-            name: file.name,
-            url: fileUrl,
-            size: file.size,
-            type: file.type
-          };
-          setUploadedFiles(prev => [...prev, fileInfo]);
-          
-          // 通知父组件文件已上传
-          onFileUploaded(fileUrl, file.name);
-          showNotification(`文件 ${file.name} 上传成功`, 'success');
-        } else {
-          showNotification(`文件 ${file.name} 上传失败`, 'error');
+        if (file) {
+          await processSingleFile(file);
         }
       }
     } catch (error) {
@@ -126,9 +134,12 @@ export function FileUploadDialog({ isOpen, onClose, onFileUploaded, showNotifica
    * 格式化文件大小
    */
   const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    else return (bytes / 1048576).toFixed(1) + ' MB';
+    if (bytes < 1024) {
+      return bytes + ' B';
+    } else if (bytes < 1048576) {
+      return (bytes / 1024).toFixed(1) + ' KB';
+    }
+    return (bytes / 1048576).toFixed(1) + ' MB';
   };
 
   /**
@@ -143,8 +154,9 @@ export function FileUploadDialog({ isOpen, onClose, onFileUploaded, showNotifica
    * 获取文件类型对应的图标
    */
   const getFileIcon = (fileName: string, fileType: string) => {
-    const ext = fileName.split('.').pop()?.toLowerCase() || '';
-    
+    const ext = fileName.split('.').pop()
+      ?.toLowerCase() || '';
+
     if (fileType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
       return <FileImage size={20} className="text-blue-500" />;
     } else if (fileType.startsWith('application/pdf') || ext === 'pdf') {
@@ -164,7 +176,7 @@ export function FileUploadDialog({ isOpen, onClose, onFileUploaded, showNotifica
     } else if (fileType.startsWith('video/') || ['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
       return <FileVideo size={20} className="text-orange-500" />;
     }
-    
+
     // 默认图标
     return <FileText size={20} className="text-gray-500" />;
   };
@@ -194,8 +206,8 @@ export function FileUploadDialog({ isOpen, onClose, onFileUploaded, showNotifica
             onDrop={handleDrop}
             onClick={triggerFileInput}
             className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-all duration-200 ${
-              isDragging 
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+              isDragging
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                 : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
             }`}
           >

@@ -18,7 +18,7 @@ import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';
  */
 export interface SearchBoxProps {
   placeholder?: string;
-  onSearch: (query: string, filters?: SearchFilters) => void;
+  onSearch: (_query: string, _filters?: SearchFilters) => void;
   onFocus?: () => void;
   onBlur?: () => void;
   defaultValue?: string;
@@ -31,7 +31,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   onFocus,
   onBlur,
   defaultValue = '',
-  showAdvancedOptions = false,
+  showAdvancedOptions = false
 }) => {
   const [query, setQuery] = useState(defaultValue);
   const [suggestions, setSuggestions] = useState<{ title: string; id: string; excerpt?: string; tags?: string[] }[]>([]);
@@ -44,7 +44,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const advancedRef = useRef<HTMLDivElement>(null);
-  
+
   // 使用自定义Hook管理筛选条件
   const {
     filters,
@@ -71,77 +71,78 @@ const SearchBox: React.FC<SearchBoxProps> = ({
         console.error('Failed to load search history:', error);
       }
     };
-    
+
     loadSearchHistory();
   }, []);
-  
+
   // 保存搜索历史到本地存储
   const saveSearchHistory = (item: SearchHistoryItem) => {
     try {
       // 移除重复项
+      // 只保留最近20条
       const updatedHistory = [
         item,
         ...searchHistory.filter(h => h.query !== item.query)
       ]
-        .slice(0, 20); // 只保留最近20条
-      
+        .slice(0, 20);
+
       setSearchHistory(updatedHistory);
       localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
     } catch (error) {
       console.error('Failed to save search history:', error);
     }
   };
-  
+
   // 高级搜索语法提示数据
   const syntaxTips: SyntaxTip[] = [
     {
-      id: '1',
-      syntax: 'AND',
-      description: '查找包含所有关键词的结果',
-      example: 'AI AND 机器学习',
-      category: 'boolean'
+      'id': '1',
+      'syntax': 'AND',
+      'description': '查找包含所有关键词的结果',
+      'example': 'AI AND 机器学习',
+      'category': 'boolean'
     },
     {
-      id: '2',
-      syntax: 'OR',
-      description: '查找包含任一关键词的结果',
-      example: 'AI OR 机器学习',
-      category: 'boolean'
+      'id': '2',
+      'syntax': 'OR',
+      'description': '查找包含任一关键词的结果',
+      'example': 'AI OR 机器学习',
+      'category': 'boolean'
     },
     {
-      id: '3',
-      syntax: 'NOT',
-      description: '排除包含特定关键词的结果',
-      example: 'AI NOT 深度学习',
-      category: 'boolean'
+      'id': '3',
+      'syntax': 'NOT',
+      'description': '排除包含特定关键词的结果',
+      'example': 'AI NOT 深度学习',
+      'category': 'boolean'
     },
     {
-      id: '4',
-      syntax: '" "',
-      description: '精确搜索短语',
-      example: '"人工智能"',
-      category: 'quote'
+      'id': '4',
+      'syntax': '" "',
+      'description': '精确搜索短语',
+      'example': '"人工智能"',
+      'category': 'quote'
     },
     {
-      id: '5',
-      syntax: 'field:value',
-      description: '按特定字段搜索',
-      example: 'title:AI',
-      category: 'field'
+      'id': '5',
+      'syntax': 'field:value',
+      'description': '按特定字段搜索',
+      'example': 'title:AI',
+      'category': 'field'
     },
     {
-      id: '6',
-      syntax: '[min TO max]',
-      description: '范围搜索',
-      example: 'connections:[5 TO 10]',
-      category: 'range'
+      'id': '6',
+      'syntax': '[min TO max]',
+      'description': '范围搜索',
+      'example': 'connections:[5 TO 10]',
+      'category': 'range'
     }
   ];
-  
+
   // 处理语法提示点击
   const handleSyntaxTipClick = (tip: SyntaxTip) => {
     let newQuery = '';
-    
+
     if (tip.category === 'quote') {
       // 引号搜索：如果有选中文本，包裹在引号中；否则插入引号模板
       const input = inputRef.current;
@@ -157,7 +158,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
       // 其他语法提示：直接添加到当前查询末尾
       newQuery = `${query} ${tip.example}`;
     }
-    
+
     setQuery(newQuery.trim());
     inputRef.current?.focus();
   };
@@ -183,13 +184,13 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   };
 
   // 防抖处理函数
-  const debounce = <T extends (...args: Parameters<T>) => Promise<void> | void>(func: T, delay: number) => {
+  function debounce<T extends (..._params: string[]) => Promise<void>>(func: T, delay: number): (..._args: Parameters<T>) => void {
     let timeoutId: NodeJS.Timeout;
-    return (...args: Parameters<T>) => {
+    return function (..._args: Parameters<T>) {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func(...args), delay);
+      timeoutId = setTimeout(() => func(..._args), delay);
     };
-  };
+  }
 
   // 防抖后的获取搜索建议函数
   const debouncedFetchSuggestions = useRef(
@@ -216,22 +217,23 @@ const SearchBox: React.FC<SearchBoxProps> = ({
     if (query.trim()) {
       onSearch(query.trim(), {
         ...filters,
-        searchType: filters.searchType as 'articles' | 'comments' | 'all',
-        sortBy: filters.sortBy as 'type' | 'date' | 'relevance' | 'views'
+        'searchType': filters.searchType as 'articles' | 'comments' | 'all',
+        'sortBy': filters.sortBy as 'type' | 'date' | 'relevance' | 'views'
       });
       setShowSuggestions(false);
-      
+
       // 保存搜索历史，确保只包含定义的属性
       const historyItem: SearchHistoryItem = {
-        id: `history-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        query: query.trim(),
-        timestamp: Date.now(),
-        filters: {
-          searchType: (filters.searchType || 'articles') as 'articles' | 'comments' | 'all',
-          sortBy: (filters.sortBy || 'relevance') as 'type' | 'date' | 'relevance' | 'views',
-          author: filters.author || '',
-          tags: filters.tags || [],
-          dateRange: filters.dateRange || {}
+        'id': `history-${Date.now()}-${Math.random().toString(36)
+          .substr(2, 9)}`,
+        'query': query.trim(),
+        'timestamp': Date.now(),
+        'filters': {
+          'searchType': (filters.searchType || 'articles') as 'articles' | 'comments' | 'all',
+          'sortBy': (filters.sortBy || 'relevance') as 'type' | 'date' | 'relevance' | 'views',
+          'author': filters.author || '',
+          'tags': filters.tags || [],
+          'dateRange': filters.dateRange || {}
         }
       };
       saveSearchHistory(historyItem);
@@ -289,13 +291,13 @@ const SearchBox: React.FC<SearchBoxProps> = ({
     handleKeyDown
   } = useKeyboardNavigation({
     suggestions,
-    historyItems: searchHistory,
-    searchQuery: query,
-    onSuggestionClick: handleSuggestionClick,
-    onHistoryItemClick: handleHistoryItemClick,
-    onSubmit: handleSubmit,
+    'historyItems': searchHistory,
+    'searchQuery': query,
+    'onSuggestionClick': handleSuggestionClick,
+    'onHistoryItemClick': handleHistoryItemClick,
+    'onSubmit': handleSubmit,
     onCloseSuggestions,
-    onInputBlur: handleBlur
+    'onInputBlur': handleBlur
   });
 
   // 点击外部关闭建议框和高级搜索面板
@@ -401,9 +403,9 @@ const SearchBox: React.FC<SearchBoxProps> = ({
       </form>
 
       {/* 高级搜索语法提示 */}
-      <SearchSyntaxTips 
-        syntaxTips={syntaxTips} 
-        onSyntaxTipClick={handleSyntaxTipClick} 
+      <SearchSyntaxTips
+        syntaxTips={syntaxTips}
+        onSyntaxTipClick={handleSyntaxTipClick}
       />
 
       {showAdvancedOptions && isAdvancedOpen && (
@@ -431,7 +433,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
         >
           {/* 建议列表标题，供屏幕阅读器使用 */}
           <h3 id="search-suggestions" className="sr-only">搜索建议和历史</h3>
-          
+
           {/* 搜索历史部分 */}
           <SearchHistory
             historyItems={searchHistory}
@@ -449,7 +451,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
             }}
             searchQuery={query}
           />
-          
+
           {/* 搜索建议部分 */}
           <SearchSuggestions
             suggestions={suggestions}

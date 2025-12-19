@@ -17,17 +17,17 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ nodes, links }
   // 计算基本统计数据
   const totalNodes = nodes.length;
   const totalLinks = links.length;
-  
+
   // 计算平均连接度
   const avgConnections = totalNodes > 0 ? (totalLinks * 2) / totalNodes : 0;
-  
+
   // 计算不同类型节点的数量
   const nodeTypes = nodes.reduce<Record<string, number>>((acc, node) => {
     const type = node.type || 'concept';
     acc[type] = (acc[type] || 0) + 1;
     return acc;
   }, {});
-  
+
   // 计算不同类型链接的数量
   const linkTypes = links.reduce<Record<string, number>>((acc, link) => {
     const type = link.type || 'related';
@@ -50,7 +50,7 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ nodes, links }
             </div>
           </div>
         </div>
-        
+
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 shadow-sm border border-green-200">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white">
@@ -63,7 +63,7 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ nodes, links }
           </div>
         </div>
       </div>
-      
+
       <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 shadow-sm border border-purple-200">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white">
@@ -75,7 +75,7 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ nodes, links }
           </div>
         </div>
       </div>
-      
+
       {/* 节点类型统计 */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
         <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -88,9 +88,9 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ nodes, links }
               <span className="text-sm text-gray-600 capitalize">{type}</span>
               <div className="flex items-center gap-2">
                 <div className="w-24 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out" 
-                    style={{ width: `${(count / totalNodes) * 100}%` }}
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                    style={{ 'width': `${(count / totalNodes) * 100}%` }}
                   />
                 </div>
                 <span className="text-sm font-medium text-gray-800">{count}</span>
@@ -99,7 +99,7 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ nodes, links }
           ))}
         </div>
       </div>
-      
+
       {/* 链接类型统计 */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
         <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -112,9 +112,9 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ nodes, links }
               <span className="text-sm text-gray-600 capitalize">{type}</span>
               <div className="flex items-center gap-2">
                 <div className="w-24 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-green-600 h-2 rounded-full transition-all duration-300 ease-in-out" 
-                    style={{ width: `${(count / totalLinks) * 100}%` }}
+                  <div
+                    className="bg-green-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                    style={{ 'width': `${(count / totalLinks) * 100}%` }}
                   />
                 </div>
                 <span className="text-sm font-medium text-gray-800">{count}</span>

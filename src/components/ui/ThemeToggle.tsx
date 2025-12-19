@@ -4,7 +4,7 @@ import { useTheme } from '../../hooks/useTheme';
 /**
  * ThemeToggle component for switching between light and dark modes
  */
-export function ThemeToggle() {
+export function ThemeToggle () {
   const { theme, toggleTheme } = useTheme();
 
   return (

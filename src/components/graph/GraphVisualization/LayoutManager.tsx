@@ -20,18 +20,18 @@ export interface ForceParameters {
  * @param props - 组件属性
  */
 export const LayoutManager: React.FC<LayoutManagerProps & {
-  onLayoutTypeChange?: (type: LayoutType) => void;
-  onLayoutDirectionChange?: (direction: LayoutDirection) => void;
+  onLayoutTypeChange?: (_type: LayoutType) => void;
+  onLayoutDirectionChange?: (_direction: LayoutDirection) => void;
   nodeSpacing?: number;
   levelSpacing?: number;
-  onNodeSpacingChange?: (spacing: number) => void;
-  onLevelSpacingChange?: (spacing: number) => void;
+  onNodeSpacingChange?: (_spacing: number) => void;
+  onLevelSpacingChange?: (_spacing: number) => void;
   forceParameters?: ForceParameters;
-  onForceParametersChange?: (params: ForceParameters) => void;
+  onForceParametersChange?: (_params: ForceParameters) => void;
   savedLayouts?: SavedLayout[];
-  onSaveLayout?: (layout: SavedLayout) => void;
-  onLoadLayout?: (layout: SavedLayout) => void;
-  onDeleteLayout?: (layoutId: string) => void;
+  onSaveLayout?: (_layout: SavedLayout) => void;
+  onLoadLayout?: (_layout: SavedLayout) => void;
+  onDeleteLayout?: (_layoutId: string) => void;
 }> = ({
   nodes,
   connections,
@@ -48,59 +48,62 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
   savedLayouts = [],
   onSaveLayout,
   onLoadLayout,
-  onDeleteLayout,
+  onDeleteLayout
 }) => {
   const [showSaveLayoutModal, setShowSaveLayoutModal] = useState(false);
   const [layoutName, setLayoutName] = useState('');
-  
+
   // 生成唯一ID
   const generateId = () => {
-    return `layout_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `layout_${Date.now()}_${Math.random().toString(36)
+      .substr(2, 9)}`;
   };
-  
+
   // 保存布局
   const handleSaveLayout = () => {
-    if (!layoutName.trim()) return;
-    
+    if (!layoutName.trim()) {
+      return;
+    }
+
     const currentLayout: CustomLayout = {
-      id: generateId(),
-      name: layoutName.trim(),
+      'id': generateId(),
+      'name': layoutName.trim(),
       layoutType,
       layoutDirection,
       nodeSpacing,
       levelSpacing,
       forceParameters,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      'createdAt': Date.now(),
+      'updatedAt': Date.now()
     };
-    
+
     // 收集节点位置
     const nodePositions: Record<string, { x: number; y: number }> = {};
     nodes.forEach(node => {
       if (node.x !== undefined && node.y !== undefined) {
-        nodePositions[node.id] = { x: node.x, y: node.y };
+        nodePositions[node.id] = { 'x': node.x, 'y': node.y };
       }
     });
-    
+
     const savedLayout: SavedLayout = {
-      id: generateId(),
-      name: layoutName.trim(),
-      layout: currentLayout,
+      'id': generateId(),
+      'name': layoutName.trim(),
+      'layout': currentLayout,
       nodePositions,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      'createdAt': Date.now(),
+      'updatedAt': Date.now()
     };
-    
+
     onSaveLayout?.(savedLayout);
     setShowSaveLayoutModal(false);
     setLayoutName('');
   };
-  
+
   // 加载布局
   const handleLoadLayout = (layout: SavedLayout) => {
     onLoadLayout?.(layout);
   };
-  
+
   // 删除布局
   const handleDeleteLayout = (layoutId: string) => {
     onDeleteLayout?.(layoutId);
@@ -112,13 +115,13 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
         <div className="grid grid-cols-2 gap-2">
           {
             [
-              { value: 'force', label: '力导向' },
-              { value: 'tree', label: '树形' },
-              { value: 'hierarchical', label: '层次化' },
-              { value: 'circular', label: '圆形' },
-              { value: 'grid', label: '网格' },
-              { value: 'radial', label: '径向' },
-              { value: 'geographic', label: '地理' }
+              { 'value': 'force', 'label': '力导向' },
+              { 'value': 'tree', 'label': '树形' },
+              { 'value': 'hierarchical', 'label': '层次化' },
+              { 'value': 'circular', 'label': '圆形' },
+              { 'value': 'grid', 'label': '网格' },
+              { 'value': 'radial', 'label': '径向' },
+              { 'value': 'geographic', 'label': '地理' }
             ].map((layout) => (
               <button
                 key={layout.value}
@@ -138,10 +141,10 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
           <div className="flex flex-wrap gap-2">
             {
               [
-                { value: 'top-bottom', label: '从上到下' },
-                { value: 'left-right', label: '从左到右' },
-                { value: 'bottom-top', label: '从下到上' },
-                { value: 'right-left', label: '从右到左' }
+                { 'value': 'top-bottom', 'label': '从上到下' },
+                { 'value': 'left-right', 'label': '从左到右' },
+                { 'value': 'bottom-top', 'label': '从下到上' },
+                { 'value': 'right-left', 'label': '从右到左' }
               ].map((direction) => (
                 <button
                   key={direction.value}
@@ -167,7 +170,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
                 max="200"
                 step="10"
                 value={nodeSpacing}
-                onChange={(e) => onNodeSpacingChange?.(parseInt(e.target.value))}
+                onChange={(e) => onNodeSpacingChange?.(parseInt(e.target.value, 10))}
                 className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
               <span className="text-sm font-medium text-gray-700 min-w-[50px] text-right">{nodeSpacing}px</span>
@@ -182,7 +185,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
                 max="300"
                 step="10"
                 value={levelSpacing}
-                onChange={(e) => onLevelSpacingChange?.(parseInt(e.target.value))}
+                onChange={(e) => onLevelSpacingChange?.(parseInt(e.target.value, 10))}
                 className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
               <span className="text-sm font-medium text-gray-700 min-w-[50px] text-right">{levelSpacing}px</span>
@@ -190,7 +193,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
           </div>
         </div>
       )}
-      
+
       {layoutType === 'force' && (
         <div className="space-y-3">
           <div>
@@ -207,7 +210,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
                   max="0"
                   step="50"
                   value={forceParameters?.charge || -300}
-                  onChange={(e) => onForceParametersChange?.({ ...forceParameters, charge: parseInt(e.target.value) })}
+                  onChange={(e) => onForceParametersChange?.({ ...forceParameters, 'charge': parseInt(e.target.value, 10) })}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 />
               </div>
@@ -222,7 +225,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
                   max="1"
                   step="0.1"
                   value={forceParameters?.linkStrength || 0.1}
-                  onChange={(e) => onForceParametersChange?.({ ...forceParameters, linkStrength: parseFloat(e.target.value) })}
+                  onChange={(e) => onForceParametersChange?.({ ...forceParameters, 'linkStrength': parseFloat(e.target.value) })}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 />
               </div>
@@ -237,7 +240,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
                   max="300"
                   step="10"
                   value={forceParameters?.linkDistance || 150}
-                  onChange={(e) => onForceParametersChange?.({ ...forceParameters, linkDistance: parseInt(e.target.value) })}
+                  onChange={(e) => onForceParametersChange?.({ ...forceParameters, 'linkDistance': parseInt(e.target.value, 10) })}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 />
               </div>
@@ -252,7 +255,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
                   max="1"
                   step="0.05"
                   value={forceParameters?.gravity || 0.1}
-                  onChange={(e) => onForceParametersChange?.({ ...forceParameters, gravity: parseFloat(e.target.value) })}
+                  onChange={(e) => onForceParametersChange?.({ ...forceParameters, 'gravity': parseFloat(e.target.value) })}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 />
               </div>
@@ -303,14 +306,16 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
                 导入布局
               </button>
             </label>
-            
+
             {/* 导出布局按钮 */}
             <button
               onClick={() => {
-                if (savedLayouts.length === 0) return;
-                
+                if (savedLayouts.length === 0) {
+                  return;
+                }
+
                 const dataStr = JSON.stringify(savedLayouts, null, 2);
-                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const dataBlob = new Blob([dataStr], { 'type': 'application/json' });
                 const url = URL.createObjectURL(dataBlob);
                 const link = document.createElement('a');
                 link.href = url;
@@ -326,7 +331,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
             >
               导出布局
             </button>
-            
+
             {/* 保存布局按钮 */}
             <button
               onClick={() => setShowSaveLayoutModal(true)}
@@ -337,7 +342,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
             </button>
           </div>
         </div>
-        
+
         {/* 已保存布局列表 */}
         {savedLayouts.length > 0 ? (
           <div className="bg-gray-50 p-3 rounded-lg space-y-2">
@@ -384,7 +389,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
           </div>
         )}
       </div>
-      
+
       {/* 保存布局模态框 */}
       {showSaveLayoutModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -419,8 +424,8 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
                   onClick={handleSaveLayout}
                   disabled={!layoutName.trim()}
                   className={`px-4 py-2 rounded-md transition-colors ${
-                    layoutName.trim() 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    layoutName.trim()
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
                       : 'bg-blue-300 text-white cursor-not-allowed'
                   }`}
                 >
@@ -431,7 +436,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
           </div>
         </div>
       )}
-      
+
       <div className="text-xs text-gray-500">
         节点数: {nodes.length} | 链接数: {connections.length}
       </div>

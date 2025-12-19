@@ -3,6 +3,17 @@ import Chart from 'chart.js/auto';
 import styles from './ChartBase.module.css';
 import type { ChartData, ChartOptions, ChartEvent, ActiveElement } from 'chart.js';
 
+interface ChartBaseProps {
+  chartType: string;
+  data: ChartData;
+  height?: number;
+  options?: ChartOptions;
+  className?: string;
+  onChartClick?: (_event: ChartEvent, _elements: ActiveElement[]) => void;
+  onChartHover?: (_event: ChartEvent, _elements: ActiveElement[]) => void;
+  onChartInit?: (_chart: Chart) => void;
+}
+
 /**
  * 通用图表基础组件，抽象了Chart.js图表的共同逻辑
  * 包括：图表实例管理、初始化、更新和销毁
@@ -15,22 +26,15 @@ export const ChartBase = ({
   className = '',
   onChartClick,
   onChartHover,
-  onChartInit,
-}: {
-  chartType: string;
-  data: ChartData;
-  height?: number;
-  options?: ChartOptions;
-  className?: string;
-  onChartClick?: (event: ChartEvent, elements: ActiveElement[]) => void;
-  onChartHover?: (event: ChartEvent, elements: ActiveElement[]) => void;
-  onChartInit?: (chart: Chart) => void;
-}) => {
+  onChartInit
+}: ChartBaseProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current) {
+      return undefined;
+    }
 
     // 销毁现有图表
     if (chartRef.current) {
@@ -39,27 +43,27 @@ export const ChartBase = ({
 
     // 合并默认选项和用户选项
     const mergedOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      ...options,
+      'responsive': true,
+      'maintainAspectRatio': false,
+      ...options
     };
 
     // 添加事件处理
     if (onChartClick) {
       // 使用类型安全的方式添加onClick事件
-      Object.assign(mergedOptions, { onClick: onChartClick });
+      Object.assign(mergedOptions, { 'onClick': onChartClick });
     }
 
     if (onChartHover) {
       // 使用类型安全的方式添加onHover事件
-      Object.assign(mergedOptions, { onHover: onChartHover });
+      Object.assign(mergedOptions, { 'onHover': onChartHover });
     }
 
     // 创建新图表
     const chart = new Chart(canvasRef.current, {
-      type: chartType as keyof import('chart.js').ChartTypeRegistry,
+      'type': chartType as keyof import('chart.js').ChartTypeRegistry,
       data,
-      options: mergedOptions,
+      'options': mergedOptions
     });
 
     // 保存图表实例
@@ -82,7 +86,7 @@ export const ChartBase = ({
   return (
     <div
       className={`${styles.container} ${className}`}
-      style={{ height: `${height}px` }}
+      style={{ 'height': `${height}px` }}
     >
       <canvas ref={canvasRef} />
     </div>

@@ -45,12 +45,13 @@ interface ServiceMap {
  */
 export class ServiceFactory {
   private static instance: ServiceFactory;
+
   private serviceInstances: Partial<ServiceMap> = {};
 
   /**
    * 私有构造函数，防止外部实例化
    */
-  private constructor() {
+  private constructor () {
     // 初始化错误服务，因为其他服务可能依赖它
     this.serviceInstances.error = ErrorService.getInstance();
   }
@@ -58,7 +59,7 @@ export class ServiceFactory {
   /**
    * 获取服务工厂单例实例
    */
-  public static getInstance(): ServiceFactory {
+  public static getInstance (): ServiceFactory {
     if (!ServiceFactory.instance) {
       ServiceFactory.instance = new ServiceFactory();
     }
@@ -69,7 +70,7 @@ export class ServiceFactory {
    * 获取服务实例
    * @param serviceType 服务类型
    */
-  public getService<T extends keyof ServiceMap>(serviceType: T): ServiceMap[T] {
+  public getService<T extends keyof ServiceMap> (serviceType: T): ServiceMap[T] {
     // 如果服务实例已存在，直接返回
     if (this.serviceInstances[serviceType]) {
       return this.serviceInstances[serviceType] as ServiceMap[T];
@@ -77,7 +78,7 @@ export class ServiceFactory {
 
     // 否则创建新实例
     let instance: ServiceMap[T];
-    
+
     switch (serviceType) {
       case 'article':
         instance = new ArticleService() as ServiceMap[T];
@@ -134,7 +135,7 @@ export class ServiceFactory {
    * 重置服务实例
    * @param serviceType 服务类型（可选，如果不提供则重置所有服务）
    */
-  public resetService<T extends keyof ServiceMap>(serviceType?: T): void {
+  public resetService<T extends keyof ServiceMap> (serviceType?: T): void {
     if (serviceType) {
       // 重置指定服务
       delete this.serviceInstances[serviceType];
@@ -155,14 +156,14 @@ export class ServiceFactory {
    * @param serviceType 服务类型
    * @param instance 服务实例
    */
-  public replaceService<T extends keyof ServiceMap>(serviceType: T, instance: ServiceMap[T]): void {
+  public replaceService<T extends keyof ServiceMap> (serviceType: T, instance: ServiceMap[T]): void {
     this.serviceInstances[serviceType] = instance;
   }
 
   /**
    * 获取所有服务实例
    */
-  public getAllServices(): ServiceMap {
+  public getAllServices (): ServiceMap {
     // 确保所有服务都已初始化
     Object.keys(this.serviceInstances).forEach(key => {
       this.getService(key as keyof ServiceMap);
@@ -177,4 +178,4 @@ export const serviceFactory = ServiceFactory.getInstance();
 // 导出便捷的服务访问方法
 export const getService = <T extends keyof ServiceMap>(serviceType: T): ServiceMap[T] => {
   return serviceFactory.getService(serviceType);
-}
+};

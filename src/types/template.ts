@@ -16,15 +16,19 @@ export interface ContentTemplate {
   id: string;
   name: string;
   description: string;
-  content: string; // 模板的Markdown内容
+  // 模板的Markdown内容
+  content: string;
   category_id: string;
   is_public: boolean;
   created_by: string;
   created_at: Date;
   updated_at: Date;
-  thumbnail?: string; // 模板缩略图URL
-  tags?: string[]; // 模板标签
-  usage_count?: number; // 使用次数
+  // 模板缩略图URL
+  thumbnail?: string;
+  // 模板标签
+  tags?: string[];
+  // 使用次数
+  usage_count?: number;
 }
 
 // 模板元数据接口

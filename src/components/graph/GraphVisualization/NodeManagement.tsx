@@ -19,15 +19,15 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
   setSelectedNodes,
   showNotification,
   onAddNode,
-  onDeleteNodes,
+  onDeleteNodes
 }) => {
   // 批量编辑状态
   const [isBatchEditing, setIsBatchEditing] = useState(false);
   // 批量编辑表单数据
   const [batchEditForm, setBatchEditForm] = useState({
-    title: '',
-    type: '',
-    connections: ''
+    'title': '',
+    'type': '',
+    'connections': ''
   });
 
   /**
@@ -35,24 +35,24 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
    */
   const handleAddNode = () => {
     const newNode: EnhancedNode = {
-      id: `node-${Date.now()}`,
-      title: '新节点',
-      connections: 0,
-      x: Math.random() * 400 + 100,
-      y: Math.random() * 400 + 100,
-      type: 'concept',
-      shape: 'circle',
-      content: '',
-      isExpanded: false,
-      _isAggregated: false,
-      _aggregatedNodes: []
+      'id': `node-${Date.now()}`,
+      'title': '新节点',
+      'connections': 0,
+      'x': Math.random() * 400 + 100,
+      'y': Math.random() * 400 + 100,
+      'type': 'concept',
+      'shape': 'circle',
+      'content': '',
+      'isExpanded': false,
+      '_isAggregated': false,
+      '_aggregatedNodes': []
     };
 
     setNodes(prev => [...prev, newNode]);
     setSelectedNode(newNode);
     setSelectedNodes([newNode]);
     showNotification('节点已添加', 'success');
-    
+
     // 调用onAddNode回调函数
     if (onAddNode) {
       onAddNode(newNode);
@@ -69,7 +69,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
       [name]: value
     }));
   };
-  
+
   /**
    * 应用批量编辑
    */
@@ -78,47 +78,47 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
       showNotification('请先选择要编辑的节点', 'error');
       return;
     }
-    
+
     let updatedCount = 0;
-    
+
     const updatedNodes = nodes.map(node => {
       // 只更新选中的节点
       if (!selectedNodes.some(selected => selected.id === node.id)) {
         return node;
       }
-      
+
       const updatedNode = { ...node };
       let hasChanges = false;
-      
+
       // 应用表单中的变化
       if (batchEditForm.title.trim()) {
         updatedNode.title = batchEditForm.title.trim();
         hasChanges = true;
       }
-      
+
       if (batchEditForm.type.trim()) {
         updatedNode.type = batchEditForm.type.trim();
         hasChanges = true;
       }
-      
+
       if (batchEditForm.connections.trim()) {
-        const connections = parseInt(batchEditForm.connections.trim());
-        if (!isNaN(connections)) {
-          updatedNode.connections = connections;
+        const nodeConnections = parseInt(batchEditForm.connections.trim(), 10);
+        if (!isNaN(nodeConnections)) {
+          updatedNode.connections = nodeConnections;
           hasChanges = true;
         }
       }
-      
+
       if (hasChanges) {
-        updatedCount++;
+        updatedCount += 1;
       }
-      
+
       return updatedNode;
     });
-    
+
     if (updatedCount > 0) {
       setNodes(updatedNodes);
-      setBatchEditForm({ title: '', type: '', connections: '' });
+      setBatchEditForm({ 'title': '', 'type': '', 'connections': '' });
       setIsBatchEditing(false);
       showNotification(`已更新 ${updatedCount} 个节点`, 'success');
     } else {
@@ -130,7 +130,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
    * 取消批量编辑
    */
   const handleCancelBatchEdit = () => {
-    setBatchEditForm({ title: '', type: '', connections: '' });
+    setBatchEditForm({ 'title': '', 'type': '', 'connections': '' });
     setIsBatchEditing(false);
   };
 
@@ -184,9 +184,8 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
     setSelectedNodes(prev => {
       if (prev.some(n => n.id === node.id)) {
         return prev.filter(n => n.id !== node.id);
-      } else {
-        return [...prev, node];
       }
+      return [...prev, node];
     });
 
     setSelectedNode(selectedNodes.length === 1 && selectedNodes[0]?.id === node.id ? null : node);
@@ -244,7 +243,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
                 取消
               </button>
             </div>
-            
+
             <div className="space-y-3">
               {/* 节点标题 */}
               <div>
@@ -258,7 +257,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
                   placeholder="输入新标题"
                 />
               </div>
-              
+
               {/* 节点类型 */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">节点类型 (可选)</label>
@@ -271,7 +270,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
                   placeholder="输入节点类型"
                 />
               </div>
-              
+
               {/* 连接数 */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">连接数 (可选)</label>
@@ -285,7 +284,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
                   min="0"
                 />
               </div>
-              
+
               {/* 应用按钮 */}
               <div className="flex justify-end gap-2 mt-4">
                 <button

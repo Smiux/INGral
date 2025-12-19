@@ -6,13 +6,13 @@ interface VirtualListProps<T> {
   itemHeight: number;
   containerHeight?: number;
   overscan?: number;
-  renderItem: (item: T, index: number) => React.ReactNode;
-  keyExtractor: (item: T, index: number) => string | number;
+  renderItem: () => React.ReactNode;
+  keyExtractor: () => string | number;
   className?: string;
-  onScroll?: (scrollTop: number, visibleRange: { start: number; end: number }) => void;
+  onScroll?: () => void;
 }
 
-export function VirtualList<T>({
+export function VirtualList<T> ({
   items,
   itemHeight,
   containerHeight = 500,
@@ -20,7 +20,7 @@ export function VirtualList<T>({
   renderItem,
   keyExtractor,
   className,
-  onScroll,
+  onScroll
 }: VirtualListProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -30,7 +30,7 @@ export function VirtualList<T>({
     const start = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
     const end = Math.min(
       items.length - 1,
-      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan,
+      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
     );
     return { start, end };
   }, [scrollTop, itemHeight, containerHeight, overscan, items.length]);
@@ -50,9 +50,9 @@ export function VirtualList<T>({
     const newScrollTop = e.currentTarget.scrollTop;
     setScrollTop(newScrollTop);
     if (onScroll) {
-      onScroll(newScrollTop, visibleRange);
+      onScroll();
     }
-  }, [onScroll, visibleRange]);
+  }, [onScroll]);
 
   // 当items变化时重置滚动位置
   useEffect(() => {
@@ -66,31 +66,28 @@ export function VirtualList<T>({
     <div
       ref={containerRef}
       className={`${styles.container} ${className || ''}`}
-      style={{ height: `${containerHeight}px` }}
+      style={{ 'height': `${containerHeight}px` }}
       onScroll={handleScroll}
     >
-      <div style={{ height: `${totalHeight}px`, position: 'relative' }}>
+      <div style={{ 'height': `${totalHeight}px`, 'position': 'relative' }}>
         <div
           style={{
-            transform: `translateY(${offsetY}px)`,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
+            'transform': `translateY(${offsetY}px)`,
+            'position': 'absolute',
+            'top': 0,
+            'left': 0,
+            'right': 0
           }}
         >
-          {visibleItems.map((item, index) => {
-            const actualIndex = visibleRange.start + index;
-            return (
-              <div
-                key={keyExtractor(item, actualIndex)}
-                style={{ height: `${itemHeight}px` }}
-                className={styles.item}
-              >
-                {renderItem(item, actualIndex)}
-              </div>
-            );
-          })}
+          {Array.from({ 'length': visibleItems.length }, () => (
+            <div
+              key={keyExtractor()}
+              style={{ 'height': `${itemHeight}px` }}
+              className={styles.item}
+            >
+              {renderItem()}
+            </div>
+          ))}
         </div>
       </div>
     </div>

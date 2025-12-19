@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Download, Save, Edit, X, Check, Trash2 } from 'lucide-react';
 import { graphService } from '../../services/graphService';
 import { GraphCanvasReactFlow } from './GraphVisualization/GraphCanvasReactFlow';
@@ -13,7 +13,7 @@ interface GraphEmbedProps {
   interactive?: boolean;
   layoutType?: LayoutType;
   theme?: string;
-  onUpdate?: (graphData: { nodes: EnhancedNode[]; links: EnhancedGraphConnection[] }) => void;
+  onUpdate?: (_graphData: { nodes: EnhancedNode[]; links: EnhancedGraphConnection[] }) => void;
 }
 
 export const GraphEmbed: React.FC<GraphEmbedProps> = ({
@@ -50,23 +50,32 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
           // 直接从graphId解析数据（用于嵌入场景）
           const graphData = JSON.parse(graphId);
           const enhancedNodes: EnhancedNode[] = graphData.nodes.map((node: { id?: string; title: string; connections?: number; type?: string; content?: string; x?: number; y?: number }) => ({
-            id: node.id || `node-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            title: node.title,
-            connections: node.connections || 0,
-            type: node.type || 'concept',
-            content: node.content || '',
-            x: node.x || 0,
-            y: node.y || 0
+            'id': node.id || `node-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            'title': node.title,
+            'connections': node.connections || 0,
+            'type': node.type || 'concept',
+            'content': node.content || '',
+            'x': node.x || 0,
+            'y': node.y || 0
           }));
 
-          const enhancedLinks: EnhancedGraphConnection[] = graphData.links.map((link: { id?: string; source: string | number; target: string | number; type?: string; label?: string; weight?: number }, index: number) => ({
-            id: link.id || `link-${index}`,
-            source: link.source,
-            target: link.target,
-            type: link.type || 'related',
-            label: link.label || '',
-            weight: link.weight || 1.0
-          }));
+          const enhancedLinks: EnhancedGraphConnection[] = graphData.links.map(
+            (link: {
+              id?: string;
+              source: string | number;
+              target: string | number;
+              type?: string;
+              label?: string;
+              weight?: number;
+            }, index: number) => ({
+              'id': link.id || `link-${index}`,
+              'source': link.source,
+              'target': link.target,
+              'type': link.type || 'related',
+              'label': link.label || '',
+              'weight': link.weight || 1.0
+            })
+          );
 
           setNodes(enhancedNodes);
           setLinks(enhancedLinks);
@@ -80,23 +89,23 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
 
           // Convert graph nodes to EnhancedNode format
           const enhancedNodes: EnhancedNode[] = graph.nodes.map((node: GraphNode) => ({
-            id: node.id,
-            title: node.title,
-            connections: node.connections,
-            type: node.type || 'concept',
-            content: node.content || '',
-            x: node.x || 0,
-            y: node.y || 0
+            'id': node.id,
+            'title': node.title,
+            'connections': node.connections,
+            'type': node.type || 'concept',
+            'content': node.content || '',
+            'x': node.x || 0,
+            'y': node.y || 0
           }));
 
           // Convert graph links to EnhancedGraphLink format
           const enhancedLinks: EnhancedGraphConnection[] = graph.links.map((link: GraphLink, index: number) => ({
-            id: `link-${index}`,
-            source: link.source,
-            target: link.target,
-            type: link.type || 'related',
-            label: link.label || '',
-            weight: link.weight || 1.0
+            'id': `link-${index}`,
+            'source': link.source,
+            'target': link.target,
+            'type': link.type || 'related',
+            'label': link.label || '',
+            'weight': link.weight || 1.0
           }));
 
           setNodes(enhancedNodes);
@@ -166,8 +175,8 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
         if (node.id === selectedNode.id) {
           return {
             ...node,
-            title: nodeTitle,
-            type: nodeType
+            'title': nodeTitle,
+            'type': nodeType
           };
         }
         return node;
@@ -179,8 +188,8 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
         if (link.id === selectedLink.id) {
           return {
             ...link,
-            label: linkLabel,
-            type: linkType
+            'label': linkLabel,
+            'type': linkType
           };
         }
         return link;
@@ -212,7 +221,7 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
       setSelectedNode(null);
       setEditMode(null);
       // 通知父组件更新
-      onUpdate?.({ nodes: updatedNodes, links: updatedLinks });
+      onUpdate?.({ 'nodes': updatedNodes, 'links': updatedLinks });
     } else if (selectedLink) {
       // 删除链接
       const updatedLinks = links.filter(link => link.id !== selectedLink.id);
@@ -220,20 +229,24 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
       setSelectedLink(null);
       setEditMode(null);
       // 通知父组件更新
-      onUpdate?.({ nodes, links: updatedLinks });
+      onUpdate?.({ nodes, 'links': updatedLinks });
     }
   }, [selectedNode, selectedLink, nodes, links, onUpdate]);
 
   // 导出图表为PNG
   const handleExportPNG = useCallback(() => {
-    if (!svgRef.current) return;
+    if (!svgRef.current) {
+      return;
+    }
 
     try {
       const svg = svgRef.current;
       const svgData = new XMLSerializer().serializeToString(svg);
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+      if (!ctx) {
+        return;
+      }
 
       const img = new Image();
       img.onload = () => {
@@ -247,9 +260,9 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
         link.click();
       };
       img.src = `data:image/svg+xml;base64,${btoa(svgData)}`;
-    } catch (error) {
-      console.error('Error exporting PNG:', error);
-      alert('导出PNG失败');
+    } catch (exportError) {
+      console.error('Error exporting PNG:', exportError);
+      console.log('导出PNG失败');
     }
   }, [graphId]);
 
@@ -263,7 +276,7 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
   const handleSaveGraph = useCallback(() => {
     // 保存图表到服务器或触发更新
     onUpdate?.({ nodes, links });
-    alert('图表已保存');
+    console.log('图表已保存');
   }, [nodes, links, onUpdate]);
 
   if (loading) {
@@ -283,7 +296,7 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
   }
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="border rounded-lg overflow-hidden bg-white shadow-sm flex flex-col"
       style={{ width, height }}
@@ -293,14 +306,14 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={toggleEditMode}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${isEditing 
-              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${isEditing
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
               : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
           >
             {isEditing ? <Check size={16} /> : <Edit size={16} />}
             {isEditing ? '编辑模式' : '开始编辑'}
           </button>
-          
+
           {isEditing && (
             <button
               onClick={handleSaveGraph}
@@ -310,7 +323,7 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
               保存
             </button>
           )}
-          
+
           <button
             onClick={handleExportPNG}
             className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white transition-all"
@@ -319,7 +332,7 @@ export const GraphEmbed: React.FC<GraphEmbedProps> = ({
             导出PNG
           </button>
         </div>
-        
+
         {isEditing && selectedNode && (
           <div className="flex items-center gap-1">
             <button
@@ -503,7 +516,7 @@ export const GraphEmbed3D: React.FC<GraphEmbedProps> = ({
   }
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="border rounded-lg overflow-hidden bg-white shadow-sm"
       style={{ width, height }}

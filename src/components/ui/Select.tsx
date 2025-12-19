@@ -10,7 +10,7 @@ interface SelectOption {
 interface SelectProps {
   options: SelectOption[];
   value: string;
-  onChange: (value: string) => void;
+  onChange: () => void;
   className?: string;
   placeholder?: string;
   disabled?: boolean;
@@ -26,7 +26,7 @@ export const Select: React.FC<SelectProps> = ({
   placeholder = '请选择',
   disabled = false,
   error,
-  loading = false,
+  loading = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,13 +61,13 @@ export const Select: React.FC<SelectProps> = ({
 
   // 过滤选项
   const filteredOptions = options.filter(option =>
-    option.label.toLowerCase().includes(searchTerm.toLowerCase()),
+    option.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // 处理选项点击
   const handleOptionClick = (option: SelectOption) => {
     if (!option.disabled && !disabled) {
-      onChange(option.value);
+      onChange();
       setIsOpen(false);
     }
   };

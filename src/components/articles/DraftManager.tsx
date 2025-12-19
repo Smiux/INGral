@@ -5,7 +5,7 @@ import { ArticleDraft } from '../../types/draft';
 interface DraftManagerProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoadDraft: (draft: ArticleDraft) => void;
+  onLoadDraft: (_draft: ArticleDraft) => void;
   onCreateNewDraft: () => void;
 }
 
@@ -14,9 +14,9 @@ interface DraftManagerProps {
  */
 const getAllDrafts = (): ArticleDraft[] => {
   const drafts: ArticleDraft[] = [];
-  
+
   // 遍历本地存储，找到所有草稿
-  for (let i = 0; i < localStorage.length; i++) {
+  for (let i = 0; i < localStorage.length; i += 1) {
     const key = localStorage.key(i);
     if (key && key.startsWith('draft_anonymous_')) {
       try {
@@ -30,11 +30,33 @@ const getAllDrafts = (): ArticleDraft[] => {
       }
     }
   }
-  
+
   // 按最后保存时间倒序排序
   return drafts.sort((a, b) => {
     return new Date(b.lastSaved).getTime() - new Date(a.lastSaved).getTime();
   });
+};
+
+/**
+ * 检查并删除匹配的草稿
+ */
+const checkAndDeleteDraft = (key: string, draftId: string): boolean => {
+  const draftStr = localStorage.getItem(key);
+  if (!draftStr) {
+    return false;
+  }
+
+  try {
+    const draft = JSON.parse(draftStr) as ArticleDraft;
+    if (draft.id === draftId) {
+      localStorage.removeItem(key);
+      return true;
+    }
+  } catch {
+    // 解析失败，忽略此草稿
+  }
+
+  return false;
 };
 
 /**
@@ -43,22 +65,17 @@ const getAllDrafts = (): ArticleDraft[] => {
 const deleteDraft = (draftId: string): boolean => {
   try {
     // 找到对应的草稿键并删除
-    for (let i = 0; i < localStorage.length; i++) {
+    for (let i = 0; i < localStorage.length; i += 1) {
       const key = localStorage.key(i);
       if (key && key.startsWith('draft_anonymous_')) {
-        const draftStr = localStorage.getItem(key);
-        if (draftStr) {
-          const draft = JSON.parse(draftStr) as ArticleDraft;
-          if (draft.id === draftId) {
-            localStorage.removeItem(key);
-            return true;
-          }
+        if (checkAndDeleteDraft(key, draftId)) {
+          return true;
         }
       }
     }
     return false;
-  } catch (error) {
-    console.error(`删除草稿 ${draftId} 失败:`, error);
+  } catch (e) {
+    console.error('删除草稿失败:', e);
     return false;
   }
 };
@@ -66,7 +83,7 @@ const deleteDraft = (draftId: string): boolean => {
 /**
  * 文章草稿管理组件
  */
-export function DraftManager({
+export function DraftManager ({
   isOpen,
   onClose,
   onLoadDraft,
@@ -74,45 +91,47 @@ export function DraftManager({
 }: DraftManagerProps) {
   const [drafts, setDrafts] = useState<ArticleDraft[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  
+
   // 加载所有草稿
   const loadDrafts = () => {
     setDrafts(getAllDrafts());
   };
-  
+
   // 初始加载草稿
   useEffect(() => {
     if (isOpen) {
       loadDrafts();
     }
   }, [isOpen]);
-  
+
   // 过滤草稿
   const filteredDrafts = drafts.filter(draft => {
     const searchLower = searchTerm.toLowerCase();
-    return draft.title.toLowerCase().includes(searchLower) || 
+    return draft.title.toLowerCase().includes(searchLower) ||
            draft.content.toLowerCase().includes(searchLower);
   });
-  
+
   // 处理删除草稿
   const handleDeleteDraft = (draftId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm('确定要删除这个草稿吗？')) {
-      const success = deleteDraft(draftId);
-      if (success) {
-        loadDrafts(); // 重新加载草稿列表
-      }
+    // 直接删除草稿，不弹出确认
+    const success = deleteDraft(draftId);
+    if (success) {
+      // 重新加载草稿列表
+      loadDrafts();
     }
   };
-  
+
   // 处理加载草稿
   const handleLoadDraft = (draft: ArticleDraft) => {
     onLoadDraft(draft);
     onClose();
   };
-  
-  if (!isOpen) return null;
-  
+
+  if (!isOpen) {
+    return null;
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -129,7 +148,7 @@ export function DraftManager({
             </svg>
           </button>
         </div>
-        
+
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
             <div className="flex-1">
@@ -150,7 +169,7 @@ export function DraftManager({
             </button>
           </div>
         </div>
-        
+
         <div className="p-4">
           {filteredDrafts.length === 0 ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">
@@ -206,7 +225,7 @@ export function DraftManager({
             </div>
           )}
         </div>
-        
+
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-600 dark:text-gray-400">

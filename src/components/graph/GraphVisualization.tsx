@@ -18,7 +18,7 @@ import { ConnectionEditPanel } from './GraphVisualization/ConnectionEditPanel';
 const GraphVisualizationContent: React.FC = () => {
   // 使用useGraph获取状态和操作
   const { state, actions } = useGraph();
-  const { 
+  const {
     viewMode, notification, currentTheme, activePanel, reactFlowInstance,
     selectedNode, selectedConnection
   } = state;
@@ -30,7 +30,7 @@ const GraphVisualizationContent: React.FC = () => {
   };
 
   return (
-    <div className={`w-full h-full flex flex-col ${currentTheme.backgroundColor}`} style={{ width: '100%', height: '100%' }}>
+    <div className={`w-full h-full flex flex-col ${currentTheme.backgroundColor}`} style={{ 'width': '100%', 'height': '100%' }}>
       {/* 顶部工具栏 - 现代化设计 */}
       <GraphToolbar />
 
@@ -73,7 +73,7 @@ const GraphVisualizationContent: React.FC = () => {
             nodes={state.nodes}
             reactFlowInstance={reactFlowInstance}
           />
-          
+
           {/* 图谱画布组件 */}
           {viewMode === '3d' ? (
             <GraphCanvas3D
@@ -89,11 +89,11 @@ const GraphVisualizationContent: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {/* 独立子面板容器 */}
-      <PanelContainer 
-        activePanel={activePanel} 
-        togglePanel={actions.togglePanel} 
+      <PanelContainer
+        activePanel={activePanel}
+        togglePanel={actions.togglePanel}
       />
 
 
@@ -117,7 +117,7 @@ const GraphVisualizationContent: React.FC = () => {
  * - 操作历史记录（撤销/前进）
  * - 键盘快捷键支持
  */
-export function GraphVisualization() {
+export function GraphVisualization () {
   return (
     <GraphProvider>
       <GraphVisualizationContent />

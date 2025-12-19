@@ -9,23 +9,27 @@ import type { DiscussionCategory, DiscussionTopic, DiscussionReply, DiscussionTa
 export class DiscussionService extends BaseService {
   // 表名常量
   private readonly CATEGORIES_TABLE = 'discussion_categories';
+
   private readonly TOPICS_TABLE = 'discussion_topics';
+
   private readonly REPLIES_TABLE = 'discussion_replies';
+
   private readonly TAGS_TABLE = 'discussion_tags';
+
   private readonly TOPIC_TAGS_TABLE = 'topic_tags';
 
   /**
    * 获取所有讨论分类
    * @returns 讨论分类数组
    */
-  async getCategories(): Promise<DiscussionCategory[]> {
+  async getCategories (): Promise<DiscussionCategory[]> {
     try {
       this.checkSupabaseClient();
-      
+
       const { data, error } = await this.supabase
         .from(this.CATEGORIES_TABLE)
         .select('*')
-        .order('name', { ascending: true });
+        .order('name', { 'ascending': true });
 
       if (error) {
         this.handleError(error, '获取讨论分类', 'DiscussionService');
@@ -43,10 +47,10 @@ export class DiscussionService extends BaseService {
    * @param slug 分类Slug
    * @returns 讨论分类
    */
-  async getCategoryBySlug(slug: string): Promise<DiscussionCategory | null> {
+  async getCategoryBySlug (slug: string): Promise<DiscussionCategory | null> {
     try {
       this.checkSupabaseClient();
-      
+
       const { data, error } = await this.supabase
         .from(this.CATEGORIES_TABLE)
         .select('*')
@@ -74,21 +78,28 @@ export class DiscussionService extends BaseService {
    * @param searchQuery 搜索关键词
    * @returns 主题数组和总数
    */
-  async getTopicsByCategory(
-    categoryId: number,
+  async getTopicsByCategory ({
+    categoryId,
     limit = 20,
     offset = 0,
-    sortBy: 'time' | 'random' = 'time',
-    tags?: number[],
-    searchQuery?: string
-  ): Promise<{ data: DiscussionTopic[]; count: number | undefined }> {
+    sortBy = 'time',
+    tags,
+    searchQuery
+  }: {
+    categoryId: number;
+    limit?: number;
+    offset?: number;
+    sortBy?: 'time' | 'random';
+    tags?: number[];
+    searchQuery?: string;
+  }): Promise<{ data: DiscussionTopic[]; count: number | undefined }> {
     try {
       this.checkSupabaseClient();
-      
+
       // 构建查询，包含关联的topic_tags表用于过滤
       let query = this.supabase
         .from(this.TOPICS_TABLE)
-        .select('*, topic_tags(*)', { count: 'exact' })
+        .select('*, topic_tags(*)', { 'count': 'exact' })
         .eq('category_id', categoryId);
 
       // 应用搜索查询
@@ -106,7 +117,7 @@ export class DiscussionService extends BaseService {
           .from(this.TOPIC_TAGS_TABLE)
           .select('topic_id')
           .in('tag_id', tags);
-        
+
         query = query.in('id', tagResults.data?.map(tag => tag.topic_id) || []);
       }
 
@@ -115,7 +126,7 @@ export class DiscussionService extends BaseService {
         query = query.order('RANDOM()');
       } else {
         // 默认按更新时间排序，置顶主题优先
-        query = query.order('is_pinned', { ascending: false }).order('updated_at', { ascending: false });
+        query = query.order('is_pinned', { 'ascending': false }).order('updated_at', { 'ascending': false });
       }
 
       // 应用分页
@@ -128,12 +139,12 @@ export class DiscussionService extends BaseService {
       }
 
       return {
-        data: this.handleSuccessResponse(data, []),
-        count: count || undefined
+        'data': this.handleSuccessResponse(data, []),
+        'count': count || undefined
       };
     } catch (error) {
       console.error('获取分类主题列表错误:', error);
-      return { data: [], count: undefined };
+      return { 'data': [], 'count': undefined };
     }
   }
 
@@ -142,14 +153,14 @@ export class DiscussionService extends BaseService {
    * @param topicId 主题ID
    * @returns 主题详情
    */
-  async getTopicById(topicId: number): Promise<DiscussionTopic | null> {
+  async getTopicById (topicId: number): Promise<DiscussionTopic | null> {
     try {
       this.checkSupabaseClient();
-      
+
       // 增加浏览次数
       await this.supabase
         .from(this.TOPICS_TABLE)
-        .update({ view_count: this.supabase.rpc('increment', { value: 1 }) })
+        .update({ 'view_count': this.supabase.rpc('increment', { 'value': 1 }) })
         .eq('id', topicId);
 
       const { data, error } = await this.supabase
@@ -175,14 +186,14 @@ export class DiscussionService extends BaseService {
    * @param tags 标签ID数组
    * @returns 创建的主题
    */
-  async createTopic(
+  async createTopic (
     topic: Omit<DiscussionTopic, 'id' | 'reply_count' | 'view_count' | 'is_pinned' | 'created_at' | 'updated_at'>,
     tags?: number[]
   ): Promise<DiscussionTopic | null> {
     try {
       this.checkSupabaseClient();
-      
-      const { data: newTopic, error } = await this.supabase
+
+      const { 'data': newTopic, error } = await this.supabase
         .from(this.TOPICS_TABLE)
         .insert(topic)
         .select('*')
@@ -198,7 +209,7 @@ export class DiscussionService extends BaseService {
 
       // 添加标签关联
       if (tags && tags.length > 0) {
-        const topicTags = tags.map(tagId => ({ topic_id: newTopic.id, tag_id: tagId }));
+        const topicTags = tags.map(tagId => ({ 'topic_id': newTopic.id, 'tag_id': tagId }));
         await this.supabase.from(this.TOPIC_TAGS_TABLE).insert(topicTags);
       }
 
@@ -216,14 +227,14 @@ export class DiscussionService extends BaseService {
    * @param offset 偏移量
    * @returns 回复数组和总数
    */
-  async getTopicReplies(topicId: number, limit = 20, offset = 0): Promise<{ data: DiscussionReply[]; count: number | undefined }> {
+  async getTopicReplies (topicId: number, limit = 20, offset = 0): Promise<{ data: DiscussionReply[]; count: number | undefined }> {
     try {
       this.checkSupabaseClient();
-      
+
       // 先获取所有回复，用于构建回复树
-      const { data: allReplies, count, error } = await this.supabase
+      const { 'data': allReplies, count, error } = await this.supabase
         .from(this.REPLIES_TABLE)
-        .select('*', { count: 'exact' })
+        .select('*', { 'count': 'exact' })
         .eq('topic_id', topicId);
 
       if (error) {
@@ -233,17 +244,17 @@ export class DiscussionService extends BaseService {
       // 构建回复树
       const replies = this.handleSuccessResponse(allReplies, []);
       const replyTree = this.buildReplyTree(replies);
-      
+
       // 应用分页
       const paginatedReplies = replyTree.slice(offset, offset + limit);
 
       return {
-        data: paginatedReplies,
-        count: count || undefined
+        'data': paginatedReplies,
+        'count': count || undefined
       };
     } catch (error) {
       console.error('获取主题回复错误:', error);
-      return { data: [], count: undefined };
+      return { 'data': [], 'count': undefined };
     }
   }
 
@@ -252,13 +263,13 @@ export class DiscussionService extends BaseService {
    * @param replies 回复数组
    * @returns 回复树
    */
-  private buildReplyTree(replies: DiscussionReply[]): DiscussionReply[] {
+  private buildReplyTree (replies: DiscussionReply[]): DiscussionReply[] {
     const replyMap = new Map<number, DiscussionReply>();
     const rootReplies: DiscussionReply[] = [];
 
     // 首先将所有回复放入映射中
     replies.forEach(reply => {
-      replyMap.set(reply.id, { ...reply, replies: [] });
+      replyMap.set(reply.id, { ...reply, 'replies': [] });
     });
 
     // 然后构建树结构
@@ -282,12 +293,12 @@ export class DiscussionService extends BaseService {
    * @param reply 回复数据
    * @returns 创建的回复
    */
-  async createReply(
+  async createReply (
     reply: Omit<DiscussionReply, 'id' | 'created_at' | 'replies'>
   ): Promise<DiscussionReply | null> {
     try {
       this.checkSupabaseClient();
-      
+
       const { data, error } = await this.supabase
         .from(this.REPLIES_TABLE)
         .insert(reply)
@@ -309,14 +320,14 @@ export class DiscussionService extends BaseService {
    * 获取所有标签
    * @returns 标签数组
    */
-  async getTags(): Promise<DiscussionTag[]> {
+  async getTags (): Promise<DiscussionTag[]> {
     try {
       this.checkSupabaseClient();
-      
+
       const { data, error } = await this.supabase
         .from(this.TAGS_TABLE)
         .select('*')
-        .order('usage_count', { ascending: false });
+        .order('usage_count', { 'ascending': false });
 
       if (error) {
         this.handleError(error, '获取所有标签', 'DiscussionService');
@@ -335,12 +346,12 @@ export class DiscussionService extends BaseService {
    * @param description 标签描述
    * @returns 创建的标签
    */
-  async createTag(name: string, description?: string): Promise<DiscussionTag | null> {
+  async createTag (name: string, description?: string): Promise<DiscussionTag | null> {
     try {
       this.checkSupabaseClient();
-      
+
       const slug = this.generateSlug(name);
-      
+
       const { data, error } = await this.supabase
         .from(this.TAGS_TABLE)
         .insert({ name, slug, description })
@@ -364,10 +375,10 @@ export class DiscussionService extends BaseService {
    * @param limit 限制数量
    * @returns 匹配的主题数组
    */
-  async searchTopics(query: string, limit = 20): Promise<DiscussionTopic[]> {
+  async searchTopics (query: string, limit = 20): Promise<DiscussionTopic[]> {
     try {
       this.checkSupabaseClient();
-      
+
       const { data, error } = await this.supabase
         .from(this.TOPICS_TABLE)
         .select('*')

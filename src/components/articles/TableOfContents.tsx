@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useScrollNavigation } from '../../hooks/useScrollNavigation';
 import { TableOfContentsItem, ArticleTableOfContentsProps } from '../../types';
 
-function ArticleTableOfContentsImpl({ contentRef, activeHeadingId, onActiveHeadingChange }: ArticleTableOfContentsProps) {
+function ArticleTableOfContentsImpl ({ contentRef, activeHeadingId, onActiveHeadingChange }: ArticleTableOfContentsProps) {
   const [tableOfContents, setTableOfContents] = useState<TableOfContentsItem[]>([]);
   const [expandedTocItems, setExpandedTocItems] = useState<Set<string>>(new Set());
   const headingsRef = useRef<Map<string, HTMLElement>>(new Map());
-  
+
   // 使用自定义Hook处理滚动导航
   const { saveHeadingRef } = useScrollNavigation(activeHeadingId, onActiveHeadingChange);
 
@@ -15,34 +15,37 @@ function ArticleTableOfContentsImpl({ contentRef, activeHeadingId, onActiveHeadi
    */
   const generateTableOfContents = useCallback(() => {
     const contentElement = contentRef.current;
-    if (!contentElement) return [];
+    if (!contentElement) {
+      return [];
+    }
 
     const headings = contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6');
     const toc: TableOfContentsItem[] = [];
     const headingStack: TableOfContentsItem[] = [];
-    
+
     headings.forEach((heading) => {
       // 确保标题有id
       if (!heading.id) {
-        heading.id = heading.textContent?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '';
+        heading.id = heading.textContent?.toLowerCase().replace(/\s+/g, '-')
+          .replace(/[^a-z0-9-]/g, '') || '';
       }
-      
+
       // 保存标题引用 - 确保heading是HTMLElement
       if (heading instanceof HTMLElement) {
         headingsRef.current.set(heading.id, heading);
         saveHeadingRef(heading.id, heading);
       }
-      
-      const level = parseInt(heading.tagName.charAt(1));
+
+      const level = parseInt(heading.tagName.charAt(1), 10);
       const text = heading.textContent || '';
-      
+
       const tocItem: TableOfContentsItem = {
-        id: heading.id,
+        'id': heading.id,
         text,
         level,
-        children: []
+        'children': []
       };
-      
+
       // 构建嵌套目录结构
       if (level === 1) {
         toc.push(tocItem);
@@ -57,7 +60,7 @@ function ArticleTableOfContentsImpl({ contentRef, activeHeadingId, onActiveHeadi
             break;
           }
         }
-        
+
         if (headingStack.length > 0) {
           const lastItem = headingStack[headingStack.length - 1];
           if (lastItem) {
@@ -68,11 +71,11 @@ function ArticleTableOfContentsImpl({ contentRef, activeHeadingId, onActiveHeadi
         } else {
           toc.push(tocItem);
         }
-        
+
         headingStack.push(tocItem);
       }
     });
-    
+
     return toc;
   }, [contentRef, saveHeadingRef]);
 
@@ -93,8 +96,8 @@ function ArticleTableOfContentsImpl({ contentRef, activeHeadingId, onActiveHeadi
     const heading = headingsRef.current.get(id);
     if (heading) {
       window.scrollTo({
-        top: heading.offsetTop - 80,
-        behavior: 'smooth'
+        'top': heading.offsetTop - 80,
+        'behavior': 'smooth'
       });
       onActiveHeadingChange(id);
     }
@@ -118,8 +121,9 @@ function ArticleTableOfContentsImpl({ contentRef, activeHeadingId, onActiveHeadi
    */
   const renderTocItem = (item: TableOfContentsItem, level: number = 0) => {
     const indentation = level * 12;
-    const isExpanded = expandedTocItems.has(item.id) || level < 2; // 前两级默认展开
-    
+    // 前两级默认展开
+    const isExpanded = expandedTocItems.has(item.id) || level < 2;
+
     return (
       <li key={item.id} className="mb-1">
         <div className="flex items-center gap-1">
@@ -127,7 +131,7 @@ function ArticleTableOfContentsImpl({ contentRef, activeHeadingId, onActiveHeadi
             <button
               onClick={() => toggleTocItemExpanded(item.id)}
               className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded flex items-center justify-center transition-colors"
-              style={{ width: '16px', height: '16px' }}
+              style={{ 'width': '16px', 'height': '16px' }}
               aria-label={isExpanded ? 'Collapse' : 'Expand'}
             >
               <svg
@@ -145,7 +149,7 @@ function ArticleTableOfContentsImpl({ contentRef, activeHeadingId, onActiveHeadi
           <button
             onClick={() => scrollToHeading(item.id)}
             className={`text-left text-sm transition-all duration-200 ease-in-out ${activeHeadingId === item.id ? 'text-primary-600 dark:text-primary-400 font-medium bg-primary-100 dark:bg-primary-900/20' : 'text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-            style={{ paddingLeft: `${indentation}px` }}
+            style={{ 'paddingLeft': `${indentation}px` }}
             aria-current={activeHeadingId === item.id ? 'location' : undefined}
           >
             {item.text}
@@ -177,14 +181,14 @@ function ArticleTableOfContentsImpl({ contentRef, activeHeadingId, onActiveHeadi
           Table of Contents
         </h2>
         <nav className="text-sm">
-            <ul className="space-y-1">
-              {tableOfContents.map((item) => (
-                <li key={item.id} className="transition-all duration-200 ease-in-out hover:pl-1">
-                  {renderTocItem(item)}
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <ul className="space-y-1">
+            {tableOfContents.map((item) => (
+              <li key={item.id} className="transition-all duration-200 ease-in-out hover:pl-1">
+                {renderTocItem(item)}
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
     </aside>
   );

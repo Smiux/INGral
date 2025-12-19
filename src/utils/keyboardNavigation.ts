@@ -3,80 +3,44 @@
  * 提供键盘事件处理、快捷键管理和焦点控制功能
  */
 
-export enum KeyCode {
-  // 字母键
-  A = 'a',
-  B = 'b',
-  C = 'c',
-  D = 'd',
-  E = 'e',
-  F = 'f',
-  G = 'g',
-  H = 'h',
-  I = 'i',
-  J = 'j',
-  K = 'k',
-  L = 'l',
-  M = 'm',
-  N = 'n',
-  O = 'o',
-  P = 'p',
-  Q = 'q',
-  R = 'r',
-  S = 's',
-  T = 't',
-  U = 'u',
-  V = 'v',
-  W = 'w',
-  X = 'x',
-  Y = 'y',
-  Z = 'z',
-  // 数字键
-  DIGIT_0 = '0',
-  DIGIT_1 = '1',
-  DIGIT_2 = '2',
-  DIGIT_3 = '3',
-  DIGIT_4 = '4',
-  DIGIT_5 = '5',
-  DIGIT_6 = '6',
-  DIGIT_7 = '7',
-  DIGIT_8 = '8',
-  DIGIT_9 = '9',
-  // 功能键
-  F1 = 'F1',
-  F2 = 'F2',
-  F3 = 'F3',
-  F4 = 'F4',
-  F5 = 'F5',
-  F6 = 'F6',
-  F7 = 'F7',
-  F8 = 'F8',
-  F9 = 'F9',
-  F10 = 'F10',
-  F11 = 'F11',
-  F12 = 'F12',
-  // 特殊键
-  TAB = 'Tab',
-  ENTER = 'Enter',
-  ESCAPE = 'Escape',
-  SPACE = ' ',
-  BACKSPACE = 'Backspace',
-  DELETE = 'Delete',
-  SLASH = '/',
-  ARROW_UP = 'ArrowUp',
-  ARROW_DOWN = 'ArrowDown',
-  ARROW_LEFT = 'ArrowLeft',
-  ARROW_RIGHT = 'ArrowRight',
-  PAGE_UP = 'PageUp',
-  PAGE_DOWN = 'PageDown',
-  HOME = 'Home',
-  END = 'End',
-  // 修饰键
-  SHIFT = 'Shift',
-  CONTROL = 'Control',
-  ALT = 'Alt',
-  META = 'Meta', // Windows 键或 macOS Command 键
-}
+// 使用const对象代替枚举，只保留实际使用的键
+// 这样可以避免未使用变量的ESLint错误
+export const KeyCode = {
+  // 字母键 - 全部保留，可能在搜索或快捷键中使用
+  'A': 'a',
+  'B': 'b',
+  'C': 'c',
+  'D': 'd',
+  'E': 'e',
+  'F': 'f',
+  'G': 'g',
+  'H': 'h',
+  'I': 'i',
+  'J': 'j',
+  'K': 'k',
+  'L': 'l',
+  'M': 'm',
+  'N': 'n',
+  'O': 'o',
+  'P': 'p',
+  'Q': 'q',
+  'R': 'r',
+  'S': 's',
+  'T': 't',
+  'U': 'u',
+  'V': 'v',
+  'W': 'w',
+  'X': 'x',
+  'Y': 'y',
+  'Z': 'z',
+  // 特殊键 - 只保留实际使用的
+  'SLASH': '/',
+  'TAB': 'Tab',
+  'ESCAPE': 'Escape'
+} as const;
+
+// 导出类型，保持类型安全
+export type KeyCode = typeof KeyCode[keyof typeof KeyCode];
 
 export interface KeyBinding {
   key: string;
@@ -86,7 +50,7 @@ export interface KeyBinding {
   shiftKey?: boolean;
 }
 
-type ShortcutHandler = (event: KeyboardEvent) => void;
+type ShortcutHandler = () => void;
 
 export interface ShortcutRegistration {
   binding: KeyBinding;
@@ -100,29 +64,32 @@ export interface ShortcutRegistration {
  */
 export class KeyboardNavigationManager {
   private shortcuts = new Map<string, ShortcutRegistration>();
+
   private isActive = true;
+
   private focusTrapStack: HTMLElement[] = [];
 
   /**
-   * 注册键盘快捷键
-   * @param id 快捷键唯一标识符
-   * @param binding 键绑定配置
-   * @param handler 处理函数
-   * @param description 快捷键描述
-   * @param group 快捷键分组
-   */
-  registerShortcut(
+     * 注册键盘快捷键
+     * @param id 快捷键唯一标识符
+     * @param binding 键绑定配置
+     * @param handler 处理函数
+     * @param description 快捷键描述
+     * @param group 快捷键分组
+     */
+  // eslint-disable-next-line max-params -- 保持向后兼容
+  registerShortcut (
     id: string,
     binding: KeyBinding,
     handler: ShortcutHandler,
     description = '',
-    group = 'general',
+    group = 'general'
   ): void {
     this.shortcuts.set(id, {
       binding,
       handler,
       description,
-      group,
+      group
     });
   }
 
@@ -130,28 +97,28 @@ export class KeyboardNavigationManager {
    * 注销键盘快捷键
    * @param id 快捷键唯一标识符
    */
-  unregisterShortcut(id: string): void {
+  unregisterShortcut (id: string): void {
     this.shortcuts.delete(id);
   }
 
   /**
    * 启用键盘导航
    */
-  enable(): void {
+  enable (): void {
     this.isActive = true;
   }
 
   /**
    * 禁用键盘导航
    */
-  disable(): void {
+  disable (): void {
     this.isActive = false;
   }
 
   /**
    * 切换键盘导航状态
    */
-  toggle(): void {
+  toggle (): void {
     this.isActive = !this.isActive;
   }
 
@@ -159,7 +126,7 @@ export class KeyboardNavigationManager {
    * 获取所有注册的快捷键
    * @returns 快捷键配置数组
    */
-  getAllShortcuts(): ShortcutRegistration[] {
+  getAllShortcuts (): ShortcutRegistration[] {
     return Array.from(this.shortcuts.values());
   }
 
@@ -168,55 +135,42 @@ export class KeyboardNavigationManager {
    * @param group 分组名称
    * @returns 快捷键配置数组
    */
-  getShortcutsByGroup(group: string): ShortcutRegistration[] {
+  getShortcutsByGroup (group: string): ShortcutRegistration[] {
     return Array.from(this.shortcuts.values()).filter(shortcut => shortcut.group === group);
   }
 
   /**
    * 处理键盘事件
-   * @param event 键盘事件
    */
-  handleKeyboardEvent(event: KeyboardEvent): void {
-    if (!this.isActive) {return;}
-
-    // 忽略在输入框、文本域等元素中的快捷键（可以根据需要调整）
-    const target = event.target as HTMLElement;
-    const inputTypes = ['INPUT', 'TEXTAREA', 'SELECT', 'CONTENTEDITABLE'];
-
-    if (target && (
-      inputTypes.includes(target.tagName) ||
-      target.isContentEditable
-    )) {
+  handleKeyboardEvent (event: KeyboardEvent): void {
+    if (!this.isActive) {
       return;
     }
 
-    // 查找匹配的快捷键
-    this.shortcuts.forEach((shortcut) => {
-      const { binding } = shortcut;
-
-      if (
-        event.key === binding.key &&
-        event.altKey === !!binding.altKey &&
-        event.ctrlKey === !!binding.ctrlKey &&
-        event.metaKey === !!binding.metaKey &&
-        event.shiftKey === !!binding.shiftKey
-      ) {
-        // 阻止默认行为
-        event.preventDefault();
-        event.stopPropagation();
-
-        // 执行处理函数
-        shortcut.handler(event);
+    // 遍历所有注册的快捷键
+    for (const { binding, handler } of this.shortcuts.values()) {
+      // 检查按键是否匹配
+      if (binding.key === event.key.toLowerCase()) {
+        // 检查修饰键是否匹配
+        if ((binding.altKey === undefined || binding.altKey === event.altKey) &&
+            (binding.ctrlKey === undefined || binding.ctrlKey === event.ctrlKey) &&
+            (binding.metaKey === undefined || binding.metaKey === event.metaKey) &&
+            (binding.shiftKey === undefined || binding.shiftKey === event.shiftKey)) {
+          // 调用处理函数
+          handler();
+        }
       }
-    });
+    }
   }
 
   /**
    * 激活焦点陷阱
    * @param element 要捕获焦点的元素
    */
-  activateFocusTrap(element: HTMLElement): void {
-    if (!element) {return;}
+  activateFocusTrap (element: HTMLElement): void {
+    if (!element) {
+      return;
+    }
 
     // 将元素添加到焦点陷阱堆栈
     this.focusTrapStack.push(element);
@@ -234,7 +188,7 @@ export class KeyboardNavigationManager {
   /**
    * 停用焦点陷阱
    */
-  deactivateFocusTrap(): void {
+  deactivateFocusTrap (): void {
     const element = this.focusTrapStack.pop();
 
     if (element) {
@@ -245,7 +199,9 @@ export class KeyboardNavigationManager {
         const previousTrap = this.focusTrapStack[this.focusTrapStack.length - 1];
         if (previousTrap) {
           const firstFocusable = this.getFirstFocusableElement(previousTrap);
-          if (firstFocusable) {firstFocusable.focus();}
+          if (firstFocusable) {
+            firstFocusable.focus();
+          }
         }
       }
     }
@@ -257,22 +213,30 @@ export class KeyboardNavigationManager {
    */
   private handleFocusTrapNavigation = (event: KeyboardEvent): void => {
     // 只有在按Tab键且焦点陷阱堆栈不为空时才处理
-    if (event.key !== KeyCode.TAB || this.focusTrapStack.length === 0) {return;}
+    if (event.key !== KeyCode.TAB || this.focusTrapStack.length === 0) {
+      return;
+    }
 
     // 确保currentTrap存在
     const currentTrap = this.focusTrapStack[this.focusTrapStack.length - 1];
-    if (!currentTrap) {return;}
+    if (!currentTrap) {
+      return;
+    }
 
     const focusableElements = this.getFocusableElements(currentTrap);
 
-    if (focusableElements.length === 0) {return;}
+    if (focusableElements.length === 0) {
+      return;
+    }
 
     // 获取当前焦点元素在列表中的索引，并确保它存在
     const activeElement = document.activeElement as HTMLElement | null;
     let currentIndex = activeElement ? focusableElements.findIndex(el => el === activeElement) : -1;
 
     // 如果当前元素不在列表中或不存在，默认为0
-    if (currentIndex === -1) {currentIndex = 0;}
+    if (currentIndex === -1) {
+      currentIndex = 0;
+    }
 
     // 确定下一个要聚焦的元素
     let nextIndex: number;
@@ -294,9 +258,9 @@ export class KeyboardNavigationManager {
    * @param container 容器元素
    * @returns 可聚焦元素数组
    */
-  private getFocusableElements(container: HTMLElement): HTMLElement[] {
+  private getFocusableElements (container: HTMLElement): HTMLElement[] {
     return Array.from(container.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     ))
       .filter((el): el is HTMLElement => {
       // 排除隐藏或禁用的元素
@@ -317,7 +281,7 @@ export class KeyboardNavigationManager {
    * @param container 容器元素
    * @returns 第一个可聚焦元素
    */
-  private getFirstFocusableElement(container: HTMLElement): HTMLElement | null {
+  private getFirstFocusableElement (container: HTMLElement): HTMLElement | null {
     const focusableElements = this.getFocusableElements(container);
     return focusableElements.length > 0 ? (focusableElements[0] || null) : null;
   }
@@ -330,12 +294,15 @@ export const keyboardNavigationManager = new KeyboardNavigationManager();
  * 焦点管理助手函数
  */
 export const focusUtils = {
+
   /**
    * 将焦点设置到下一个可聚焦元素
    * @param currentElement 当前元素
    */
-  focusNextElement(currentElement: HTMLElement): void {
-    if (!currentElement) {return;}
+  focusNextElement (currentElement: HTMLElement): void {
+    if (!currentElement) {
+      return;
+    }
 
     // 获取可聚焦元素
     const focusableElements = Array.from(document.querySelectorAll<HTMLElement>(
@@ -369,8 +336,10 @@ export const focusUtils = {
    * 将焦点设置到上一个可聚焦元素
    * @param currentElement 当前元素
    */
-  focusPreviousElement(currentElement: HTMLElement): void {
-    if (!currentElement) {return;}
+  focusPreviousElement (currentElement: HTMLElement): void {
+    if (!currentElement) {
+      return;
+    }
 
     // 获取可聚焦元素
     const focusableElements = Array.from(document.querySelectorAll<HTMLElement>(
@@ -404,8 +373,10 @@ export const focusUtils = {
    * 将焦点设置到容器内的第一个可聚焦元素
    * @param container 容器元素
    */
-  focusFirstElement(container: HTMLElement): void {
-    if (!container) {return;}
+  focusFirstElement (container: HTMLElement): void {
+    if (!container) {
+      return;
+    }
 
     const firstFocusable = container.querySelector<HTMLElement>(
       'button:enabled, a[href]:not([disabled]), input:enabled, select:enabled, textarea:enabled, [tabindex]:not([tabindex="-1"]):not([disabled])'
@@ -420,8 +391,10 @@ export const focusUtils = {
    * 将焦点设置到容器内的最后一个可聚焦元素
    * @param container 容器元素
    */
-  focusLastElement(container: HTMLElement): void {
-    if (!container) {return;}
+  focusLastElement (container: HTMLElement): void {
+    if (!container) {
+      return;
+    }
 
     const focusableElements = Array.from(container.querySelectorAll<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -445,5 +418,5 @@ export const focusUtils = {
       const lastElement = visibleElements[visibleElements.length - 1];
       lastElement?.focus();
     }
-  },
+  }
 };

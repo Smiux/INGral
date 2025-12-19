@@ -10,23 +10,25 @@ export interface ExtendedSearchFilters {
   author: string;
   tags: string[];
   dateRange: { start?: string; end?: string };
-  compositeFilter?: CompositeFilter; // 组合筛选条件
-  useCompositeFilter?: boolean; // 是否使用组合筛选
+  // 组合筛选条件
+  compositeFilter?: CompositeFilter;
+  // 是否使用组合筛选
+  useCompositeFilter?: boolean;
 }
 
 interface AdvancedSearchOptionsProps {
   filters: ExtendedSearchFilters;
-  onFilterChange: <K extends keyof ExtendedSearchFilters>(key: K, value: ExtendedSearchFilters[K]) => void;
-  onTagChange: (tags: string[]) => void;
-  onDateRangeChange: (dateRange: { start?: string; end?: string }) => void;
+  onFilterChange: <K extends keyof ExtendedSearchFilters>(_key: K, _value: ExtendedSearchFilters[K]) => void;
+  onTagChange: (_tags: string[]) => void;
+  onDateRangeChange: (_dateRange: { start?: string; end?: string }) => void;
   onResetFilters: () => void;
   useCompositeFilter: boolean;
   compositeFilter: CompositeFilter;
-  onUseCompositeFilterChange: (use: boolean) => void;
-  onCompositeFilterChange: (filter: CompositeFilter) => void;
+  onUseCompositeFilterChange: (_use: boolean) => void;
+  onCompositeFilterChange: (_filter: CompositeFilter) => void;
 }
 
-export function AdvancedSearchOptions({
+export function AdvancedSearchOptions ({
   filters,
   onFilterChange,
   onTagChange,

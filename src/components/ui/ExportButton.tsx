@@ -15,28 +15,30 @@ interface ExportButtonProps {
 const ExportButton: React.FC<ExportButtonProps> = ({ article, className = '' }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // 处理导出操作
   const handleExport = async (format: 'markdown' | 'html' | 'pdf') => {
     setIsExporting(true);
     setIsMenuOpen(false);
+    setErrorMessage(null);
 
     try {
       switch (format) {
-      case 'markdown':
-        await exportService.exportArticleToMarkdown(article);
-        break;
-      case 'html':
-        await exportService.exportArticleToHtml(article);
-        break;
-      case 'pdf':
-        await exportService.exportArticleToPdf(article);
-        break;
+        case 'markdown':
+          await exportService.exportArticleToMarkdown(article);
+          break;
+        case 'html':
+          await exportService.exportArticleToHtml(article);
+          break;
+        case 'pdf':
+          await exportService.exportArticleToPdf(article);
+          break;
       }
     } catch (error) {
       console.error(`导出为${format}失败:`, error);
       // 这里可以添加错误提示
-      alert(`导出失败: ${(error as Error).message || '未知错误'}`);
+      setErrorMessage(`导出失败: ${(error as Error).message || '未知错误'}`);
     } finally {
       setIsExporting(false);
     }
@@ -57,6 +59,20 @@ const ExportButton: React.FC<ExportButtonProps> = ({ article, className = '' }) 
 
   return (
     <div className={`${styles.exportButtonWrapper} ${className}`}>
+      {/* 错误信息显示 */}
+      {errorMessage && (
+        <div className={styles.errorMessage}>
+          {errorMessage}
+          <button
+            className={styles.closeError}
+            onClick={() => setErrorMessage(null)}
+            aria-label="关闭错误信息"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <button
         className={`${styles.exportButton} ${isMenuOpen ? styles.active : ''}`}
         onClick={() => setIsMenuOpen(!isMenuOpen)}

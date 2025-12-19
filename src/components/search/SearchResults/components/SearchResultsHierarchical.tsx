@@ -34,7 +34,7 @@ export const SearchResultsHierarchical: React.FC<SearchResultsHierarchicalProps>
     <div className={styles.hierarchicalContainer}>
       {(() => {
         const { concepts, conceptToArticles } = buildHierarchicalStructure(semanticResults);
-        
+
         if (concepts.length === 0) {
           // 没有概念，直接显示所有结果
           return (
@@ -70,7 +70,7 @@ export const SearchResultsHierarchical: React.FC<SearchResultsHierarchicalProps>
             </div>
           );
         }
-        
+
         return (
           <div className={styles.hierarchicalTree}>
             {concepts.map((concept) => (
@@ -92,13 +92,13 @@ export const SearchResultsHierarchical: React.FC<SearchResultsHierarchicalProps>
                     语义分数: {Math.round(concept.semantic_score * 100)}%
                   </span>
                 </div>
-                
+
                 {isExpanded(concept.id) && (
                   <div className={styles.hierarchicalItemContent}>
                     <div className={styles.hierarchicalItemSummary}>
                       {highlightText(truncateText(concept.content || ''), query)}
                     </div>
-                    
+
                     {conceptToArticles.get(concept.id) && conceptToArticles.get(concept.id)!.length > 0 && (
                       <div className={styles.hierarchicalChildren}>
                         <h4 className={styles.hierarchicalChildrenTitle}>相关文章</h4>

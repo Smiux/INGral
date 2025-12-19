@@ -1,37 +1,26 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { ShortcutRegistration } from '../../utils/keyboardNavigation';
-import { keyboardNavigationManager, KeyCode } from '../../utils/keyboardNavigation';
+import { keyboardNavigationManager, KeyCode, type ShortcutRegistration } from '../../utils/keyboardNavigation';
 import { screenReaderAnnouncer } from '../../utils/accessibility';
 import { X, ChevronsDown, ChevronsUp } from 'lucide-react';
 
 // 快捷键信息模态框组件 - 支持自定义按钮
 interface KeyboardShortcutsProps {
-  renderButton?: () => React.ReactNode;
-  isOpen?: boolean;
-  onOpenChange?: (isOpen: boolean) => void;
+   renderButton?: () => React.ReactNode;
+  onOpenChange?: () => void;
 }
 
-export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButton, isOpen: propIsOpen, onOpenChange }) => {
-  // 使用外部控制的isOpen状态或内部状态
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
-  const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
-  
-  // 当外部isOpen变化时，更新内部状态
-  useEffect(() => {
-    if (propIsOpen !== undefined) {
-      setInternalIsOpen(propIsOpen);
-    }
-  }, [propIsOpen]);
-  
+export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButton, onOpenChange }) => {
+  // 使用内部状态控制模态框开关
+  const [isOpen, setIsOpen] = useState(false);
+
   // 更新isOpen状态的函数
-  const setIsOpen = useCallback((value: boolean) => {
+  const handleIsOpenChange = useCallback((value: boolean) => {
+    setIsOpen(value);
     if (onOpenChange) {
-      onOpenChange(value);
-    } else {
-      setInternalIsOpen(value);
+      onOpenChange();
     }
-  }, [onOpenChange, setInternalIsOpen]);
-  
+  }, [onOpenChange]);
+
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -44,13 +33,14 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButt
       } else {
         screenReaderAnnouncer.announce('键盘快捷键帮助已关闭。', false);
       }
-      setIsOpen(newValue);
+      handleIsOpenChange(newValue);
     };
+
 
     // 注册快捷键Alt+K用于打开/关闭快捷键帮助
     keyboardNavigationManager.registerShortcut(
       'toggle-shortcuts-help',
-      { key: KeyCode.K, altKey: true },
+      { 'key': KeyCode.K, 'altKey': true },
       toggleShortcutsHelp,
       '显示或隐藏键盘快捷键帮助',
       '通用'
@@ -59,7 +49,7 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButt
     // 关闭模态框的快捷键
     const closeModal = (event: KeyboardEvent) => {
       if (event.key === KeyCode.ESCAPE && isOpen) {
-        setIsOpen(false);
+        handleIsOpenChange(false);
         screenReaderAnnouncer.announce('键盘快捷键帮助已关闭。', false);
       }
     };
@@ -71,7 +61,7 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButt
       keyboardNavigationManager.unregisterShortcut('toggle-shortcuts-help');
       window.removeEventListener('keydown', closeModal);
     };
-  }, [isOpen, setIsOpen]);
+  }, [isOpen, handleIsOpenChange]);
 
   // 获取所有快捷键并按组分类
   const getGroupedShortcuts = () => {
@@ -108,11 +98,12 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButt
 
     return groupKeys.map(groupKey => {
       const shortcuts = groupedShortcuts[groupKey] || [];
-      const isExpanded = expandedGroups[groupKey] !== false; // 默认展开
+      // 默认展开
+      const isExpanded = expandedGroups[groupKey] !== false;
 
       return (
         <div key={groupKey} className="mb-6">
-          <div 
+          <div
             className="flex items-center justify-between cursor-pointer mb-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             onClick={() => toggleGroup(groupKey)}
             role="button"
@@ -122,9 +113,9 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButt
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
               {groupKey}
             </h3>
-            {isExpanded ? 
-              <ChevronsUp className="h-5 w-5 text-gray-600 dark:text-gray-400" /> : 
-              <ChevronsDown className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            {isExpanded
+              ? <ChevronsUp className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              : <ChevronsDown className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             }
           </div>
 
@@ -171,7 +162,7 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButt
   const renderDefaultButton = () => {
     return (
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => handleIsOpenChange(true)}
         className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         aria-label="显示键盘快捷键"
       >
@@ -189,7 +180,7 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButt
       {/* 快捷键信息模态框 */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
-          <div 
+          <div
             ref={modalRef}
             className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             role="dialog"
@@ -198,14 +189,14 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ renderButt
           >
             {/* 模态框头部 */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
-              <h2 
-                id="keyboard-shortcuts-title" 
+              <h2
+                id="keyboard-shortcuts-title"
                 className="text-2xl font-bold text-gray-800 dark:text-gray-200"
               >
                 键盘快捷键
               </h2>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => handleIsOpenChange(false)}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 aria-label="关闭"
               >

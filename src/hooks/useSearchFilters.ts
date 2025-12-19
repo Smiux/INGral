@@ -8,31 +8,33 @@ export interface ExtendedSearchFilters {
   author: string;
   tags: string[];
   dateRange: { start?: string; end?: string };
-  compositeFilter?: CompositeFilter; // 组合筛选条件
-  useCompositeFilter?: boolean; // 是否使用组合筛选
+  // 组合筛选条件
+  compositeFilter?: CompositeFilter;
+  // 是否使用组合筛选
+  useCompositeFilter?: boolean;
 }
 
 /**
  * 搜索筛选条件管理Hook
  * 负责管理搜索筛选条件的状态和更新逻辑
  */
-export function useSearchFilters() {
+export function useSearchFilters () {
   // 初始化筛选条件状态
   const [filters, setFilters] = useState<ExtendedSearchFilters>({
-    searchType: 'articles',
-    sortBy: 'relevance',
-    author: '',
-    tags: [],
-    dateRange: {},
-    useCompositeFilter: false,
-    compositeFilter: createDefaultFilter()
+    'searchType': 'articles',
+    'sortBy': 'relevance',
+    'author': '',
+    'tags': [],
+    'dateRange': {},
+    'useCompositeFilter': false,
+    'compositeFilter': createDefaultFilter()
   });
 
   // 更新筛选条件
   const onFilterChange = useCallback(<K extends keyof ExtendedSearchFilters>(key: K, value: ExtendedSearchFilters[K]) => {
     setFilters(prev => {
       const newFilters = { ...prev };
-      
+
       // Handle optional properties with exactOptionalPropertyTypes
       if (key === 'dateRange') {
         const dateRangeValue = value as ExtendedSearchFilters['dateRange'];
@@ -48,7 +50,7 @@ export function useSearchFilters() {
       } else {
         newFilters[key] = value;
       }
-      
+
       return newFilters;
     });
   }, []);
@@ -69,13 +71,13 @@ export function useSearchFilters() {
   // 重置筛选条件
   const onResetFilters = useCallback(() => {
     setFilters({
-      searchType: 'articles',
-      sortBy: 'relevance',
-      author: '',
-      tags: [],
-      dateRange: {},
-      useCompositeFilter: false,
-      compositeFilter: createDefaultFilter()
+      'searchType': 'articles',
+      'sortBy': 'relevance',
+      'author': '',
+      'tags': [],
+      'dateRange': {},
+      'useCompositeFilter': false,
+      'compositeFilter': createDefaultFilter()
     });
   }, []);
 

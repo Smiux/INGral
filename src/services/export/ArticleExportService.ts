@@ -12,10 +12,10 @@ export class ArticleExportService {
    * 使用jsPDF导出文章为PDF
    * @param article 文章对象
    */
-  async exportArticleToPdfWithJsPdf(article: Article): Promise<void> {
+  async exportArticleToPdfWithJsPdf (article: Article): Promise<void> {
     try {
       const htmlContent = await this.exportToHtml(article);
-      
+
       // 创建一个临时的HTML元素
       const tempElement = document.createElement('div');
       tempElement.innerHTML = htmlContent;
@@ -24,33 +24,36 @@ export class ArticleExportService {
       tempElement.style.width = '210mm';
       tempElement.style.backgroundColor = 'white';
       document.body.appendChild(tempElement);
-      
+
       // 使用html2canvas将HTML转换为canvas
       const canvas = await html2canvas(tempElement, {
-        scale: 2, // 提高分辨率
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false
+      // 提高分辨率
+        'scale': 2,
+        'useCORS': true,
+        'backgroundColor': '#ffffff',
+        'logging': false
       });
-      
+
       // 清理临时元素
       document.body.removeChild(tempElement);
-      
+
       // 创建PDF
       const imgData = canvas.toDataURL('image/png');
+      // jsPDF是一个特殊情况，虽然导入为小写，但实际上是构造函数
+      // eslint-disable-next-line new-cap
       const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
+        'orientation': 'portrait',
+        'unit': 'mm',
+        'format': 'a4'
       });
-      
+
       const imgProps = pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
+
       const position = 0;
       pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      
+
       // 保存PDF
       const safeFilename = ExportUtils.sanitizeFilename(article.title) + '.pdf';
       pdf.save(safeFilename);
@@ -65,7 +68,7 @@ export class ArticleExportService {
    * @param article 文章对象
    * @returns LaTeX格式的文本
    */
-  async exportToLatex(article: Article): Promise<string> {
+  async exportToLatex (article: Article): Promise<string> {
     try {
       // 创建LaTeX内容
       const latexContent = `\\documentclass{article}
@@ -102,7 +105,7 @@ ${this.markdownToLatex(article.content)}
 ${article.tags ? article.tags.map(tag => `\\#${tag}`).join(' ') : ''}
 
 \\end{document}`;
-      
+
       return latexContent;
     } catch (error) {
       console.error('导出LaTeX失败:', error);
@@ -115,67 +118,69 @@ ${article.tags ? article.tags.map(tag => `\\#${tag}`).join(' ') : ''}
    * @param markdown Markdown文本
    * @returns LaTeX格式的文本
    */
-  private markdownToLatex(markdown: string): string {
+  private markdownToLatex (markdown: string): string {
     try {
       // 简单的Markdown到LaTeX转换
       let latex = markdown;
-      
+
       // 标题转换
       latex = latex.replace(/^#\s+(.*$)/gm, '\\section{$1}');
       latex = latex.replace(/^##\s+(.*$)/gm, '\\subsection{$1}');
       latex = latex.replace(/^###\s+(.*$)/gm, '\\subsubsection{$1}');
-      
+
       // 段落转换
       latex = latex.replace(/^\s*\n\s*$/, '\\par');
-      
+
       // 粗体和斜体转换
       latex = latex.replace(/\*\*(.*?)\*\*/g, '\\textbf{$1}');
       latex = latex.replace(/\*(.*?)\*/g, '\\textit{$1}');
-      
+
       // 代码块转换
       latex = latex.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
         return `\\begin{lstlisting}[language=${lang || 'text'}]
 ${code}
 \\end{lstlisting}`;
       });
-      
+
       // 行内代码转换
       latex = latex.replace(/`(.*?)`/g, '\\texttt{$1}');
-      
+
       // 列表转换
       latex = latex.replace(/^-\s+(.*$)/gm, '\\item $1');
       latex = latex.replace(/^\d+\.\s+(.*$)/gm, '\\item $1');
       latex = latex.replace(/(\\item.*?)(?=\\item|$)/gs, '\\begin{itemize}$1\\end{itemize}');
 
-      
+
       // 引用转换
       latex = latex.replace(/^>\s+(.*$)/gm, '\\begin{quote}$1\\end{quote}');
-      
+
       // 表格转换（简单实现）
       latex = latex.replace(/\|(.*?)\|\n\|(.*?)\|\n((?:\|.*?\|\n)*)/g, (_, headers, _separator, rows) => {
-        const headerCols = headers.split('|').map((col: string) => col.trim()).filter((col: string) => col);
+        const headerCols = headers.split('|').map((col: string) => col.trim())
+          .filter((col: string) => col);
         const dataRows = rows.split('\n')
           .filter((row: string) => row.trim())
-          .map((row: string) => row.split('|').map((col: string) => col.trim()).filter((col: string) => col));
-        
+          .map((row: string) => row.split('|').map((col: string) => col.trim())
+            .filter((col: string) => col));
+
         let tableLatex = '\\begin{table}[h]\n\\centering\n\\begin{tabular}{';
-        
+
         // 添加表格列格式
         tableLatex += '|c'.repeat(headerCols.length) + '|\\\\hline\n';
-        
+
         // 添加表头
         tableLatex += headerCols.join('|') + '\\\\hline\n';
-        
+
         // 添加数据行
         dataRows.forEach((row: string[]) => {
           tableLatex += row.join('|') + '\\\\hline\n';
         });
-        
+
         tableLatex += '\\end{tabular}\n\\end{table}';
-        
+
         return tableLatex;
       });
-      
+
       return latex;
     } catch (error) {
       console.error('Markdown到LaTeX转换失败:', error);
@@ -187,7 +192,7 @@ ${code}
    * 导出文章为LaTeX文件
    * @param article 文章对象
    */
-  async exportArticleToLatex(article: Article): Promise<void> {
+  async exportArticleToLatex (article: Article): Promise<void> {
     try {
       const latexContent = await this.exportToLatex(article);
       const safeFilename = ExportUtils.sanitizeFilename(article.title) + '.tex';
@@ -203,7 +208,7 @@ ${code}
    * @param article 文章对象
    * @returns Markdown格式的文本
    */
-  async exportToMarkdown(article: Article): Promise<string> {
+  async exportToMarkdown (article: Article): Promise<string> {
     try {
       // 创建Markdown内容
       const markdownContent = `# ${article.title}
@@ -234,7 +239,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
    * @param article 文章对象
    * @returns HTML格式的文本
    */
-  async exportToHtml(article: Article): Promise<string> {
+  async exportToHtml (article: Article): Promise<string> {
     try {
       // 渲染文章内容为HTML
       const contentHtml = renderMarkdown(article.content).html || '';
@@ -474,7 +479,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
    * 导出文章为Markdown文件
    * @param article 文章对象
    */
-  async exportArticleToMarkdown(article: Article): Promise<void> {
+  async exportArticleToMarkdown (article: Article): Promise<void> {
     try {
       const markdownContent = await this.exportToMarkdown(article);
       // 清理文件名，移除特殊字符
@@ -490,7 +495,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
    * 导出文章为HTML文件
    * @param article 文章对象
    */
-  async exportArticleToHtml(article: Article): Promise<void> {
+  async exportArticleToHtml (article: Article): Promise<void> {
     try {
       const htmlContent = await this.exportToHtml(article);
       // 清理文件名，移除特殊字符
@@ -506,7 +511,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
    * 导出文章为PDF（使用浏览器打印功能）
    * @param article 文章对象
    */
-  async exportArticleToPdf(article: Article): Promise<void> {
+  async exportArticleToPdf (article: Article): Promise<void> {
     try {
       const htmlContent = await this.exportToHtml(article);
 

@@ -7,7 +7,7 @@ export type Theme = 'light' | 'dark';
 export interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
-  setTheme: (theme: Theme) => void;
+    setTheme: (_theme: Theme) => void;
 }
 
 // Create context with default values

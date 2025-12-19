@@ -13,7 +13,7 @@ interface StyleAdjustmentPanelProps {
   handleCopyNodeStyle: () => void;
   handleCopyLinkStyle: () => void;
   handlePasteStyle: () => void;
-  setCurrentTheme: (theme: GraphTheme) => void;
+  setCurrentTheme: (_theme: GraphTheme) => void;
 }
 
 /**
@@ -33,23 +33,23 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
   // 检查是否有选中的节点或链接
   const hasSelectedNodes = selectedNodes.length > 0 || selectedNode !== null;
   const hasSelectedLinks = selectedLinks.length > 0;
-  
+
   // 更新节点样式
   const updateNodeStyle = (style: Partial<NodeStyle>) => {
     setCurrentTheme({
       ...currentTheme,
-      node: {
+      'node': {
         ...currentTheme.node,
         ...style
       }
     });
   };
-  
+
   // 更新链接样式
   const updateLinkStyle = (style: Partial<LinkStyle>) => {
     setCurrentTheme({
       ...currentTheme,
-      link: {
+      'link': {
         ...currentTheme.link,
         ...style
       }
@@ -65,7 +65,7 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
           <p>请先选中节点或链接以调整样式</p>
         </div>
       )}
-      
+
       {/* 复制粘贴样式功能 */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
         <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -101,7 +101,7 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
           </button>
         </div>
       </div>
-      
+
       {/* 节点样式调整 */}
       {hasSelectedNodes && (
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
@@ -109,7 +109,7 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
             <PaintBucket className="w-4 h-4 text-blue-500" />
             节点样式调整
           </h3>
-          
+
           {/* 节点大小调整 */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -121,11 +121,11 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
               min="10"
               max="100"
               value={currentTheme.node.radius}
-              onChange={(e) => updateNodeStyle({ radius: parseInt(e.target.value) })}
+              onChange={(e) => updateNodeStyle({ 'radius': parseInt(e.target.value, 10) })}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 transition-all duration-200 ease-in-out"
             />
           </div>
-          
+
           {/* 节点颜色调整 */}
           <div className="space-y-2 mt-3">
             <label className="text-sm text-gray-600 block">节点颜色</label>
@@ -133,18 +133,18 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
               <input
                 type="color"
                 value={currentTheme.node.fill}
-                onChange={(e) => updateNodeStyle({ fill: e.target.value })}
+                onChange={(e) => updateNodeStyle({ 'fill': e.target.value })}
                 className="w-12 h-10 rounded-lg cursor-pointer border border-gray-300 transition-all duration-200 ease-in-out hover:scale-[1.05]"
               />
               <input
                 type="text"
                 value={currentTheme.node.fill}
-                onChange={(e) => updateNodeStyle({ fill: e.target.value })}
+                onChange={(e) => updateNodeStyle({ 'fill': e.target.value })}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
-          
+
           {/* 节点边框调整 */}
           <div className="space-y-2 mt-3">
             <div className="flex items-center justify-between">
@@ -156,13 +156,13 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
               min="0"
               max="10"
               value={currentTheme.node.strokeWidth}
-              onChange={(e) => updateNodeStyle({ strokeWidth: parseInt(e.target.value) })}
+              onChange={(e) => updateNodeStyle({ 'strokeWidth': parseInt(e.target.value, 10) })}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 transition-all duration-200 ease-in-out"
             />
           </div>
         </div>
       )}
-      
+
       {/* 链接样式调整 */}
       {hasSelectedLinks && (
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
@@ -170,7 +170,7 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
             <LinkIcon className="w-4 h-4 text-green-500" />
             链接样式调整
           </h3>
-          
+
           {/* 链接宽度调整 */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -182,11 +182,11 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
               min="1"
               max="10"
               value={currentTheme.link.strokeWidth}
-              onChange={(e) => updateLinkStyle({ strokeWidth: parseInt(e.target.value) })}
+              onChange={(e) => updateLinkStyle({ 'strokeWidth': parseInt(e.target.value, 10) })}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600 transition-all duration-200 ease-in-out"
             />
           </div>
-          
+
           {/* 链接颜色调整 */}
           <div className="space-y-2 mt-3">
             <label className="text-sm text-gray-600 block">链接颜色</label>
@@ -194,18 +194,18 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
               <input
                 type="color"
                 value={currentTheme.link.stroke}
-                onChange={(e) => updateLinkStyle({ stroke: e.target.value })}
+                onChange={(e) => updateLinkStyle({ 'stroke': e.target.value })}
                 className="w-12 h-10 rounded-lg cursor-pointer border border-gray-300 transition-all duration-200 ease-in-out hover:scale-[1.05]"
               />
               <input
                 type="text"
                 value={currentTheme.link.stroke}
-                onChange={(e) => updateLinkStyle({ stroke: e.target.value })}
+                onChange={(e) => updateLinkStyle({ 'stroke': e.target.value })}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
-          
+
           {/* 链接透明度调整 */}
           <div className="space-y-2 mt-3">
             <div className="flex items-center justify-between">
@@ -218,7 +218,7 @@ export const StyleAdjustmentPanel: React.FC<StyleAdjustmentPanelProps> = ({
               max="1"
               step="0.1"
               value={currentTheme.link.strokeOpacity}
-              onChange={(e) => updateLinkStyle({ strokeOpacity: parseFloat(e.target.value) })}
+              onChange={(e) => updateLinkStyle({ 'strokeOpacity': parseFloat(e.target.value) })}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600 transition-all duration-200 ease-in-out"
             />
           </div>

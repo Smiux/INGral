@@ -1,16 +1,11 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
-import type {
-  AriaRole } from '../utils/accessibility';
-import {
-  screenReaderAnnouncer,
-  focusManager,
-  accessibilityUtils,
-} from '../utils/accessibility';
+import { type AriaRole, screenReaderAnnouncer, focusManager, accessibilityUtils } from '../utils/accessibility';
 
 /**
  * 可访问性属性接口
  */
 export interface AccessibilityProps {
+
   /**
    * ARIA角色
    */
@@ -71,7 +66,7 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
     ariaDisabled,
     statusText,
     isActive = false,
-    ariaAttributes = {},
+    ariaAttributes = {}
   } = options;
 
   const ref = useRef<HTMLElement>(null);
@@ -88,7 +83,9 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
   // 设置元素的ARIA属性
   useEffect(() => {
     const element = ref.current;
-    if (!element) {return;}
+    if (!element) {
+      return undefined;
+    }
 
     // 设置角色
     if (role) {
@@ -200,9 +197,9 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
   // 生成可访问性属性对象
   const getAccessibilityProps = useCallback(() => ({
     ref,
-    onFocus: handleFocus,
-    onBlur: handleBlur,
-    tabIndex: ariaDisabled ? -1 : undefined,
+    'onFocus': handleFocus,
+    'onBlur': handleBlur,
+    'tabIndex': ariaDisabled ? -1 : undefined
   }), [handleFocus, handleBlur, ariaDisabled]);
 
   return {
@@ -225,7 +222,7 @@ export const useAccessibility = (options: AccessibilityProps = {}) => {
     getAccessibilityProps,
 
     // 描述ID
-    descriptionId: descriptionIdRef.current,
+    'descriptionId': descriptionIdRef.current
   };
 };
 
@@ -251,8 +248,8 @@ export const useFormFieldAccessibility = (label: string, error?: string, isRequi
   }
 
   const { getAccessibilityProps, announceError } = useAccessibility({
-    ariaLabel: label,
-    ariaAttributes,
+    'ariaLabel': label,
+    ariaAttributes
   });
 
   // 处理错误通知
@@ -263,15 +260,15 @@ export const useFormFieldAccessibility = (label: string, error?: string, isRequi
   }, [error, announceError]);
 
   return {
-    inputProps: {
+    'inputProps': {
       ...getAccessibilityProps(),
-      ...(isRequired ? { required: true } : {}),
+      ...(isRequired ? { 'required': true } : {})
     },
-    errorProps: {
-      id: errorId,
-      role: 'alert' as AriaRole,
-      'aria-live': 'assertive',
-    },
+    'errorProps': {
+      'id': errorId,
+      'role': 'alert' as AriaRole,
+      'aria-live': 'assertive'
+    }
   };
 };
 
@@ -287,7 +284,9 @@ export const useModalAccessibility = () => {
   // 初始化模态框可访问性
   useEffect(() => {
     const modalElement = modalRef.current;
-    if (!modalElement) {return;}
+    if (!modalElement) {
+      return undefined;
+    }
 
     // 保存当前焦点
     focusManager.saveFocus();
@@ -326,7 +325,7 @@ export const useModalAccessibility = () => {
 
   return {
     modalRef,
-    initialFocusRef,
+    initialFocusRef
   };
 };
 
@@ -350,8 +349,12 @@ export const useLiveRegion = (initialText = '', mode: 'polite' | 'assertive' = '
     if (regionRef.current) {
       // 触发屏幕阅读器重新读取
       regionRef.current.textContent = '';
-      void regionRef.current.offsetWidth; // 触发重绘
-      regionRef.current.textContent = newText;
+      // 触发重绘 - 使用 requestAnimationFrame 确保浏览器有时间处理
+      requestAnimationFrame(() => {
+        if (regionRef.current) {
+          regionRef.current.textContent = newText;
+        }
+      });
     }
   }, []);
 
@@ -360,16 +363,16 @@ export const useLiveRegion = (initialText = '', mode: 'polite' | 'assertive' = '
    * @returns 活动区域的可访问性属性
    */
   const getLiveRegionProps = useCallback(() => ({
-    ref: regionRef,
+    'ref': regionRef,
     'aria-live': mode,
     'aria-atomic': 'true',
-    className: 'sr-only',
-    role: 'status' as AriaRole,
+    'className': 'sr-only',
+    'role': 'status' as AriaRole
   }), [mode]);
 
   return {
     text,
     updateText,
-    getLiveRegionProps,
+    getLiveRegionProps
   };
 };

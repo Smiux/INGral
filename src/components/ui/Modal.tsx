@@ -7,28 +7,40 @@ export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
 // Define modal props interface
 interface ModalProps {
+
   /** Whether the modal is open */
   isOpen: boolean;
+
   /** Called when the modal is closed */
   onClose: () => void;
+
   /** Modal title */
   title?: React.ReactNode;
+
   /** Modal content */
   children: React.ReactNode;
+
   /** Modal footer */
   footer?: React.ReactNode;
+
   /** Modal size */
   size?: ModalSize;
+
   /** Custom class name */
   className?: string;
+
   /** Whether to show the close button */
   showCloseButton?: boolean;
+
   /** Whether to close the modal when clicking the backdrop */
   closeOnBackdropClick?: boolean;
+
   /** Whether to close the modal when pressing the ESC key */
   closeOnEsc?: boolean;
+
   /** Modal aria-label */
   ariaLabel?: string;
+
   /** Modal role */
   role?: 'dialog' | 'alertdialog';
 }
@@ -48,7 +60,7 @@ export const Modal: React.FC<ModalProps> = ({
   closeOnBackdropClick = true,
   closeOnEsc = true,
   ariaLabel,
-  role = 'dialog',
+  role = 'dialog'
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -93,15 +105,17 @@ export const Modal: React.FC<ModalProps> = ({
   }, [isOpen, onClose, closeOnEsc]);
 
   // Don't render if modal is not open
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   // Size classes
   const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    full: 'max-w-full',
+    'sm': 'max-w-sm',
+    'md': 'max-w-md',
+    'lg': 'max-w-lg',
+    'xl': 'max-w-xl',
+    'full': 'max-w-full'
   };
 
   return (
@@ -168,8 +182,10 @@ export const Modal: React.FC<ModalProps> = ({
  * Modal header component
  */
 interface ModalHeaderProps {
+
   /** Header content */
   children: React.ReactNode;
+
   /** Custom class name */
   className?: string;
 }
@@ -186,8 +202,10 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({ children, className = 
  * Modal content component
  */
 interface ModalContentProps {
+
   /** Content */
   children: React.ReactNode;
+
   /** Custom class name */
   className?: string;
 }
@@ -204,8 +222,10 @@ export const ModalContent: React.FC<ModalContentProps> = ({ children, className 
  * Modal footer component
  */
 interface ModalFooterProps {
+
   /** Footer content */
   children: React.ReactNode;
+
   /** Custom class name */
   className?: string;
 }

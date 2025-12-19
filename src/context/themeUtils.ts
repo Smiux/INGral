@@ -15,22 +15,22 @@ export interface ThemeConfig {
 
 // 浅色主题配置
 export const lightThemeConfig: ThemeConfig = {
-  colors: {
-    textPrimary: '#333',
-    borderColor: '#e0e0e0',
-    bgPrimary: '#fff',
-    primaryColor: '#4f46e5',
-  },
+  'colors': {
+    'textPrimary': '#333',
+    'borderColor': '#e0e0e0',
+    'bgPrimary': '#fff',
+    'primaryColor': '#4f46e5'
+  }
 };
 
 // 深色主题配置
 export const darkThemeConfig: ThemeConfig = {
-  colors: {
-    textPrimary: '#fff',
-    borderColor: '#333',
-    bgPrimary: '#121212',
-    primaryColor: '#818cf8',
-  },
+  'colors': {
+    'textPrimary': '#fff',
+    'borderColor': '#333',
+    'bgPrimary': '#121212',
+    'primaryColor': '#818cf8'
+  }
 };
 
 // 获取主题配置

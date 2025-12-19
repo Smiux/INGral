@@ -5,14 +5,19 @@ export type TextareaSize = 'sm' | 'md' | 'lg';
 
 // Define textarea props interface
 interface TextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
+
   /** Textarea size */
   size?: TextareaSize;
+
   /** Custom class name */
   className?: string;
+
   /** Label text */
   label?: string;
+
   /** Error message */
   error?: string;
+
   /** Helper text */
   helperText?: string;
 }
@@ -32,18 +37,29 @@ export const Textarea: React.FC<TextareaProps> = ({
   ...props
 }) => {
   // Generate a unique ID if not provided
-  const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+  const textareaId = id || `textarea-${Math.random().toString(36)
+    .substr(2, 9)}`;
   const descriptionId = `${textareaId}-description`;
   const errorId = error ? `${textareaId}-error` : undefined;
+
+  // Calculate aria-describedby value to avoid nested ternary
+  let describedBy;
+  if (error) {
+    describedBy = errorId;
+  } else if (helperText) {
+    describedBy = descriptionId;
+  } else {
+    describedBy = undefined;
+  }
 
   // Base textarea classes
   const baseClasses = 'block w-full rounded-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed resize-y';
 
   // Size classes
   const sizeClasses = {
-    sm: 'px-3 py-1 text-sm min-h-[80px]',
-    md: 'px-4 py-2 text-base min-h-[120px]',
-    lg: 'px-6 py-3 text-lg min-h-[160px]',
+    'sm': 'px-3 py-1 text-sm min-h-[80px]',
+    'md': 'px-4 py-2 text-base min-h-[120px]',
+    'lg': 'px-6 py-3 text-lg min-h-[160px]'
   };
 
   // State classes
@@ -55,8 +71,8 @@ export const Textarea: React.FC<TextareaProps> = ({
     <div className="w-full">
       {/* Label */}
       {label && (
-        <label 
-          htmlFor={textareaId} 
+        <label
+          htmlFor={textareaId}
           className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
         >
           {label}
@@ -68,8 +84,8 @@ export const Textarea: React.FC<TextareaProps> = ({
       <textarea
         id={textareaId}
         className={`${baseClasses} ${sizeClasses[size]} ${stateClasses} ${className}`}
-        aria-describedby={error ? errorId : helperText ? descriptionId : undefined}
-        aria-invalid={!!error || !!ariaInvalid || false}
+        aria-describedby={describedBy}
+        aria-invalid={Boolean(error) || Boolean(ariaInvalid) || false}
         aria-required={ariaRequired || props.required || false}
         {...props}
       />

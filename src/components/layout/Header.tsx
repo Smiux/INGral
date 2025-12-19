@@ -5,7 +5,7 @@ import { ThemeToggle } from '../ui/ThemeToggle';
 // KeyboardShortcuts组件不存在，已移除
 // import { KeyboardShortcuts } from './keyboard/KeyboardShortcuts';
 
-export function Header() {
+export function Header () {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -46,37 +46,37 @@ export function Header() {
 
           <div className="flex items-center gap-4" role="group" aria-label="导航和操作按钮组">
             <nav className="hidden md:flex items-center gap-4" aria-label="主导航" role="menubar">
-            <Link
-              to="/graph"
-              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
-              aria-label="知识图谱"
-              role="menuitem"
-              tabIndex={0}
-            >
-              <Brain className="w-4 h-4" aria-hidden="true" />
-              <span className="text-sm">Knowledge Graph</span>
-            </Link>
-            <Link
-              to="/articles"
-              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
-              aria-label="文章"
-              role="menuitem"
-              tabIndex={0}
-            >
-              <BookOpen className="w-4 h-4" aria-hidden="true" />
-              <span className="text-sm">Articles</span>
-            </Link>
-            <Link
-              to="/discussions"
-              className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
-              aria-label="讨论"
-              role="menuitem"
-              tabIndex={0}
-            >
-              <Users className="w-4 h-4" aria-hidden="true" />
-              <span className="text-sm">Discussions</span>
-            </Link>
-          </nav>
+              <Link
+                to="/graph"
+                className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
+                aria-label="知识图谱"
+                role="menuitem"
+                tabIndex={0}
+              >
+                <Brain className="w-4 h-4" aria-hidden="true" />
+                <span className="text-sm">Knowledge Graph</span>
+              </Link>
+              <Link
+                to="/articles"
+                className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
+                aria-label="文章"
+                role="menuitem"
+                tabIndex={0}
+              >
+                <BookOpen className="w-4 h-4" aria-hidden="true" />
+                <span className="text-sm">Articles</span>
+              </Link>
+              <Link
+                to="/discussions"
+                className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
+                aria-label="讨论"
+                role="menuitem"
+                tabIndex={0}
+              >
+                <Users className="w-4 h-4" aria-hidden="true" />
+                <span className="text-sm">Discussions</span>
+              </Link>
+            </nav>
 
             {/* Theme Toggle */}
             <div className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30 p-1 rounded-full">

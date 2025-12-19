@@ -17,7 +17,7 @@ import { useGraph } from './useGraph';
 
 interface PanelContainerProps {
   activePanel: string | null;
-  togglePanel: (panelId: string | null) => void;
+  togglePanel: (_panelId: string | null) => void;
 }
 
 /**
@@ -27,7 +27,7 @@ interface PanelContainerProps {
 export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, togglePanel }) => {
   // 使用useGraph Hook获取状态和操作
   const { state, actions } = useGraph();
-  
+
   // 从state中解构需要的状态
   const {
     nodes,
@@ -45,7 +45,7 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
     savedLayouts,
     currentTheme
   } = state;
-  
+
   // 从actions中解构需要的操作
   const {
     setNodes,
@@ -94,10 +94,10 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             showNotification={showNotification}
             onAddNode={(node) => {
               addHistory({
-                type: 'addNode',
-                nodeId: node.id,
-                timestamp: Date.now(),
-                data: { node }
+                'type': 'addNode',
+                'nodeId': node.id,
+                'timestamp': Date.now(),
+                'data': { node }
               });
             }}
             onDeleteNodes={() => {}}
@@ -134,15 +134,17 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             onImportGraph={(graph) => {
               // 将Graph类型转换为handleImportGraph期望的类型
               handleImportGraph({
-                nodes: graph.nodes,
-                connections: graph.links.map(link => ({
+                'nodes': graph.nodes,
+                'connections': graph.links.map(link => ({
                   ...link,
-                  id: `connection-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                  source: link.source,
-                  target: link.target
+                  'id': `connection-${Date.now()}-${Math.random().toString(36)
+                    .substr(2, 9)}`,
+                  'source': link.source,
+                  'target': link.target
                 }))
               });
             }}
+            showNotification={showNotification}
           />
         );
       case 'theme':

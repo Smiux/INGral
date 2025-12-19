@@ -8,7 +8,8 @@ export interface PageView {
   user_agent?: string;
   ip_address?: string;
   referrer?: string;
-  duration: number; // 停留时间（秒）
+  // 停留时间（秒）
+  duration: number;
   created_at: string;
   updated_at: string;
 }
@@ -32,7 +33,8 @@ export interface UserActivity {
   articles_viewed: number;
   articles_created: number;
   comments_posted: number;
-  total_time: number; // 总在线时间（秒）
+  // 总在线时间（秒）
+  total_time: number;
   last_active: string;
 }
 
@@ -79,7 +81,8 @@ export interface ChartDataset {
 export interface StatCard {
   title: string;
   value: number;
-  change: number; // 百分比变化
+  // 百分比变化
+  change: number;
   isPositive: boolean;
   icon: string;
   color: string;
@@ -109,7 +112,8 @@ export interface UserEngagement {
   daily_active_users: number;
   weekly_active_users: number;
   monthly_active_users: number;
-  average_session_duration: number; // 分钟
+  // 分钟
+  average_session_duration: number;
   pages_per_session: number;
 }
 

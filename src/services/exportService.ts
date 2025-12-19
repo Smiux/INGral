@@ -15,11 +15,14 @@ export class ExportService extends BaseService {
 
   // 子服务实例
   private articleExportService: ArticleExportService;
+
   private graphExportService: GraphExportService;
+
   private searchResultsExportService: SearchResultsExportService;
+
   private graphImportService: GraphImportService;
 
-  private constructor() {
+  private constructor () {
     super();
     // 初始化子服务实例
     this.articleExportService = new ArticleExportService();
@@ -31,7 +34,7 @@ export class ExportService extends BaseService {
   /**
    * 获取单例实例
    */
-  static getInstance(): ExportService {
+  static getInstance (): ExportService {
     if (!ExportService.instance) {
       ExportService.instance = new ExportService();
     }
@@ -46,7 +49,7 @@ export class ExportService extends BaseService {
    * 使用jsPDF导出文章为PDF
    * @param article 文章对象
    */
-  async exportArticleToPdfWithJsPdf(article: Article): Promise<void> {
+  async exportArticleToPdfWithJsPdf (article: Article): Promise<void> {
     return this.articleExportService.exportArticleToPdfWithJsPdf(article);
   }
 
@@ -55,7 +58,7 @@ export class ExportService extends BaseService {
    * @param article 文章对象
    * @returns LaTeX格式的文本
    */
-  async exportToLatex(article: Article): Promise<string> {
+  async exportToLatex (article: Article): Promise<string> {
     return this.articleExportService.exportToLatex(article);
   }
 
@@ -63,7 +66,7 @@ export class ExportService extends BaseService {
    * 导出文章为LaTeX文件
    * @param article 文章对象
    */
-  async exportArticleToLatex(article: Article): Promise<void> {
+  async exportArticleToLatex (article: Article): Promise<void> {
     return this.articleExportService.exportArticleToLatex(article);
   }
 
@@ -72,7 +75,7 @@ export class ExportService extends BaseService {
    * @param article 文章对象
    * @returns Markdown格式的文本
    */
-  async exportToMarkdown(article: Article): Promise<string> {
+  async exportToMarkdown (article: Article): Promise<string> {
     return this.articleExportService.exportToMarkdown(article);
   }
 
@@ -81,7 +84,7 @@ export class ExportService extends BaseService {
    * @param article 文章对象
    * @returns HTML格式的文本
    */
-  async exportToHtml(article: Article): Promise<string> {
+  async exportToHtml (article: Article): Promise<string> {
     return this.articleExportService.exportToHtml(article);
   }
 
@@ -89,7 +92,7 @@ export class ExportService extends BaseService {
    * 导出文章为Markdown文件
    * @param article 文章对象
    */
-  async exportArticleToMarkdown(article: Article): Promise<void> {
+  async exportArticleToMarkdown (article: Article): Promise<void> {
     return this.articleExportService.exportArticleToMarkdown(article);
   }
 
@@ -97,7 +100,7 @@ export class ExportService extends BaseService {
    * 导出文章为HTML文件
    * @param article 文章对象
    */
-  async exportArticleToHtml(article: Article): Promise<void> {
+  async exportArticleToHtml (article: Article): Promise<void> {
     return this.articleExportService.exportArticleToHtml(article);
   }
 
@@ -105,7 +108,7 @@ export class ExportService extends BaseService {
    * 导出文章为PDF（使用浏览器打印功能）
    * @param article 文章对象
    */
-  async exportArticleToPdf(article: Article): Promise<void> {
+  async exportArticleToPdf (article: Article): Promise<void> {
     return this.articleExportService.exportArticleToPdf(article);
   }
 
@@ -118,7 +121,7 @@ export class ExportService extends BaseService {
    * @param graph 图谱数据
    * @returns JSON格式的图谱数据
    */
-  async exportGraphToJson(graph: Graph): Promise<string> {
+  async exportGraphToJson (graph: Graph): Promise<string> {
     return this.graphExportService.exportGraphToJson(graph);
   }
 
@@ -127,7 +130,7 @@ export class ExportService extends BaseService {
    * @param graph 图谱数据
    * @returns GraphML格式的图谱数据
    */
-  async exportGraphToGraphml(graph: Graph): Promise<string> {
+  async exportGraphToGraphml (graph: Graph): Promise<string> {
     return this.graphExportService.exportGraphToGraphml(graph);
   }
 
@@ -136,7 +139,7 @@ export class ExportService extends BaseService {
    * @param graph 图谱数据
    * @returns 包含节点和链接CSV数据的对象
    */
-  async exportGraphToCsv(graph: Graph): Promise<{ nodesCsv: string; linksCsv: string }> {
+  async exportGraphToCsv (graph: Graph): Promise<{ nodesCsv: string; linksCsv: string }> {
     return this.graphExportService.exportGraphToCsv(graph);
   }
 
@@ -144,7 +147,7 @@ export class ExportService extends BaseService {
    * 导出图谱为JSON文件
    * @param graph 图谱数据
    */
-  async exportGraphAsJsonFile(graph: Graph): Promise<void> {
+  async exportGraphAsJsonFile (graph: Graph): Promise<void> {
     return this.graphExportService.exportGraphAsJsonFile(graph);
   }
 
@@ -152,7 +155,7 @@ export class ExportService extends BaseService {
    * 导出图谱为GraphML文件
    * @param graph 图谱数据
    */
-  async exportGraphAsGraphmlFile(graph: Graph): Promise<void> {
+  async exportGraphAsGraphmlFile (graph: Graph): Promise<void> {
     return this.graphExportService.exportGraphAsGraphmlFile(graph);
   }
 
@@ -160,7 +163,7 @@ export class ExportService extends BaseService {
    * 导出图谱为CSV文件（生成zip包）
    * @param graph 图谱数据
    */
-  async exportGraphAsCsvFiles(graph: Graph): Promise<void> {
+  async exportGraphAsCsvFiles (graph: Graph): Promise<void> {
     return this.graphExportService.exportGraphAsCsvFiles(graph);
   }
 
@@ -169,7 +172,7 @@ export class ExportService extends BaseService {
    * @param svgSelector 图谱SVG的选择器
    * @param filename 文件名
    */
-  async exportGraphAsPng(svgSelector: string, filename: string): Promise<void> {
+  async exportGraphAsPng (svgSelector: string, filename: string): Promise<void> {
     return this.graphExportService.exportGraphAsPng(svgSelector, filename);
   }
 
@@ -178,7 +181,7 @@ export class ExportService extends BaseService {
    * @param svgSelector 图谱SVG的选择器
    * @param graph 图谱数据
    */
-  async exportGraphAsPdf(svgSelector: string, graph: Graph): Promise<void> {
+  async exportGraphAsPdf (svgSelector: string, graph: Graph): Promise<void> {
     return this.graphExportService.exportGraphAsPdf(svgSelector, graph);
   }
 
@@ -192,7 +195,7 @@ export class ExportService extends BaseService {
    * @param query 搜索查询
    * @returns JSON格式的搜索结果
    */
-  async exportSearchResultsToJson(
+  async exportSearchResultsToJson (
     results: SemanticSearchResult[],
     query: string
   ): Promise<string> {
@@ -204,7 +207,7 @@ export class ExportService extends BaseService {
    * @param results 搜索结果数组
    * @returns CSV格式的搜索结果
    */
-  async exportSearchResultsToCsv(
+  async exportSearchResultsToCsv (
     results: SemanticSearchResult[]
   ): Promise<string> {
     return this.searchResultsExportService.exportSearchResultsToCsv(results);
@@ -215,7 +218,7 @@ export class ExportService extends BaseService {
    * @param results 搜索结果数组
    * @returns GraphML格式的搜索结果
    */
-  async exportSearchResultsToGraphml(
+  async exportSearchResultsToGraphml (
     results: SemanticSearchResult[]
   ): Promise<string> {
     return this.searchResultsExportService.exportSearchResultsToGraphml(results);
@@ -226,7 +229,7 @@ export class ExportService extends BaseService {
    * @param results 搜索结果数组
    * @param query 搜索查询
    */
-  async exportSearchResultsToPdf(
+  async exportSearchResultsToPdf (
     results: SemanticSearchResult[],
     query: string
   ): Promise<void> {
@@ -238,7 +241,7 @@ export class ExportService extends BaseService {
    * @param results 搜索结果数组
    * @param query 搜索查询
    */
-  async exportSearchResultsAsJsonFile(
+  async exportSearchResultsAsJsonFile (
     results: SemanticSearchResult[],
     query: string
   ): Promise<void> {
@@ -250,7 +253,7 @@ export class ExportService extends BaseService {
    * @param results 搜索结果数组
    * @param query 搜索查询
    */
-  async exportSearchResultsAsCsvFile(
+  async exportSearchResultsAsCsvFile (
     results: SemanticSearchResult[],
     query: string
   ): Promise<void> {
@@ -262,7 +265,7 @@ export class ExportService extends BaseService {
    * @param results 搜索结果数组
    * @param query 搜索查询
    */
-  async exportSearchResultsAsGraphmlFile(
+  async exportSearchResultsAsGraphmlFile (
     results: SemanticSearchResult[],
     query: string
   ): Promise<void> {
@@ -278,7 +281,7 @@ export class ExportService extends BaseService {
    * @param file 文件对象
    * @returns 解析后的图谱数据
    */
-  async importGraphFromFile(file: File): Promise<Graph> {
+  async importGraphFromFile (file: File): Promise<Graph> {
     return this.graphImportService.importGraphFromFile(file);
   }
 
@@ -292,7 +295,7 @@ export class ExportService extends BaseService {
    * @param filename 文件名
    * @param mimeType MIME类型
    */
-  triggerDownload(content: string | Blob, filename: string, mimeType: string): void {
+  triggerDownload (content: string | Blob, filename: string, mimeType: string): void {
     return ExportUtils.triggerDownload(content, filename, mimeType);
   }
 
@@ -301,7 +304,7 @@ export class ExportService extends BaseService {
    * @param filename 原始文件名
    * @returns 清理后的文件名
    */
-  sanitizeFilename(filename: string): string {
+  sanitizeFilename (filename: string): string {
     return ExportUtils.sanitizeFilename(filename);
   }
 }

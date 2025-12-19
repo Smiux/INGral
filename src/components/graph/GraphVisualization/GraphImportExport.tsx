@@ -1,15 +1,15 @@
 import React, { useState, useRef } from 'react';
 import { exportService } from '../../../services/exportService';
-import type { Graph } from '../../../types';
-import { GraphNodeType, GraphVisibility } from '../../../types';
+import { type Graph, GraphNodeType, GraphVisibility } from '../../../types';
 import type { EnhancedNode, EnhancedGraphConnection } from './types';
 
 interface GraphImportExportProps {
   nodes: EnhancedNode[];
   links: EnhancedGraphConnection[];
-  onImportGraph: (graph: Graph) => void;
+  onImportGraph: (_graph: Graph) => void;
   graphTitle?: string;
   svgSelector?: string;
+  showNotification: (_message: string, _type: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 export const GraphImportExport: React.FC<GraphImportExportProps> = ({
@@ -17,7 +17,8 @@ export const GraphImportExport: React.FC<GraphImportExportProps> = ({
   links,
   onImportGraph,
   graphTitle = 'knowledge-graph',
-  svgSelector = 'svg'
+  svgSelector = 'svg',
+  showNotification
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -30,33 +31,33 @@ export const GraphImportExport: React.FC<GraphImportExportProps> = ({
     try {
       // 转换节点和链接格式
       const graph: Graph = {
-        id: `exported-${Date.now()}`,
-        author_id: 'exported',
-        author_name: 'Exported',
-        title: graphTitle,
-        nodes: nodes.map(node => ({
-          id: node.id,
-          title: node.title,
-          connections: node.connections,
-          type: GraphNodeType[(node.type?.toUpperCase() as keyof typeof GraphNodeType) || 'CONCEPT'],
-          content: node.content || ''
+        'id': `exported-${Date.now()}`,
+        'author_id': 'exported',
+        'author_name': 'Exported',
+        'title': graphTitle,
+        'nodes': nodes.map(node => ({
+          'id': node.id,
+          'title': node.title,
+          'connections': node.connections,
+          'type': GraphNodeType[(node.type?.toUpperCase() as keyof typeof GraphNodeType) || 'CONCEPT'],
+          'content': node.content || ''
         })),
-        links: links.map(link => ({
-          source: typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source),
-          target: typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target),
-          type: link.type
+        'links': links.map(link => ({
+          'source': typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source),
+          'target': typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target),
+          'type': link.type
         })),
-        is_template: false,
-        visibility: GraphVisibility.PUBLIC,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        'is_template': false,
+        'visibility': GraphVisibility.PUBLIC,
+        'created_at': new Date().toISOString(),
+        'updated_at': new Date().toISOString(),
         // 编辑限制相关字段
-        edit_count_24h: 0,
-        edit_count_7d: 0,
-        last_edit_date: new Date().toISOString(),
-        is_change_public: true,
-        is_slow_mode: false,
-        is_unstable: false
+        'edit_count_24h': 0,
+        'edit_count_7d': 0,
+        'last_edit_date': new Date().toISOString(),
+        'is_change_public': true,
+        'is_slow_mode': false,
+        'is_unstable': false
       };
 
       switch (format) {
@@ -79,7 +80,7 @@ export const GraphImportExport: React.FC<GraphImportExportProps> = ({
       }
     } catch (error) {
       console.error(`导出为${format}失败:`, error);
-      alert(`导出失败: ${(error as Error).message || '未知错误'}`);
+      showNotification(`导出失败: ${(error as Error).message || '未知错误'}`, 'error');
     } finally {
       setIsExporting(false);
     }
@@ -88,7 +89,9 @@ export const GraphImportExport: React.FC<GraphImportExportProps> = ({
   // 处理导入操作
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     setIsImporting(true);
 
@@ -97,7 +100,7 @@ export const GraphImportExport: React.FC<GraphImportExportProps> = ({
       onImportGraph(graph);
     } catch (error) {
       console.error('导入图谱失败:', error);
-      alert(`导入失败: ${(error as Error).message || '未知错误'}`);
+      showNotification(`导入失败: ${(error as Error).message || '未知错误'}`, 'error');
     } finally {
       setIsImporting(false);
       // 重置文件输入
@@ -110,7 +113,7 @@ export const GraphImportExport: React.FC<GraphImportExportProps> = ({
   return (
     <div className="bg-white p-4 rounded-lg shadow-md">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">图谱导入/导出</h3>
-      
+
       <div className="space-y-4">
         {/* 导出部分 */}
         <div>

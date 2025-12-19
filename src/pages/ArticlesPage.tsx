@@ -10,7 +10,7 @@ import { fetchAllArticles } from '../utils/article';
 import { TagCloud } from '../components/tags';
 import { tagService } from '../services/tagService';
 
-export function ArticlesPage() {
+export function ArticlesPage () {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,10 +63,10 @@ export function ArticlesPage() {
   const filteredArticles = articles.filter((article) => {
     // 标题搜索过滤
     const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // 标签过滤
     const matchesTag = !selectedTag || article.tags?.some(tag => tag.id === selectedTag.id);
-    
+
     return matchesSearch && matchesTag;
   });
 
@@ -123,11 +123,11 @@ export function ArticlesPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <TagCloud 
-            tags={tags} 
-            selectedTagId={selectedTag?.id} 
-            onTagClick={handleTagClick} 
-            maxTags={20} 
+          <TagCloud
+            tags={tags}
+            selectedTagId={selectedTag?.id}
+            onTagClick={handleTagClick}
+            maxTags={20}
           />
         )}
       </div>
@@ -148,11 +148,15 @@ export function ArticlesPage() {
         </div>
       )}
 
-      {isLoading ? (
+      {/* 加载状态 */}
+      {isLoading && (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-      ) : filteredArticles.length > 0 ? (
+      )}
+
+      {/* 有文章时显示列表 */}
+      {!isLoading && filteredArticles.length > 0 && (
         <div className="space-y-4">
           {filteredArticles.map((article) => (
             <Link
@@ -173,16 +177,16 @@ export function ArticlesPage() {
                     <span>
                       Updated{
                         article.updated_at ? new Date(article.updated_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: article.updated_at && new Date(article.updated_at).getFullYear() !== new Date().getFullYear()
+                          'month': 'short',
+                          'day': 'numeric',
+                          'year': article.updated_at && new Date(article.updated_at).getFullYear() !== new Date().getFullYear()
                             ? 'numeric'
-                            : undefined,
+                            : undefined
                         }) : 'N/A'
                       }
                     </span>
                   </div>
-                  
+
                   {/* 文章标签 */}
                   {article.tags && article.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
@@ -196,9 +200,9 @@ export function ArticlesPage() {
                           }}
                           className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
                           style={{
-                            backgroundColor: `${tag.color}10`,
-                            color: tag.color,
-                            border: `1px solid ${tag.color}30`,
+                            'backgroundColor': `${tag.color}10`,
+                            'color': tag.color,
+                            'border': `1px solid ${tag.color}30`
                           }}
                         >
                           {tag.name}
@@ -216,7 +220,10 @@ export function ArticlesPage() {
             </Link>
           ))}
         </div>
-      ) : (
+      )}
+
+      {/* 无文章时显示空状态 */}
+      {!isLoading && filteredArticles.length === 0 && (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <p className="text-gray-600 mb-4">
             {searchQuery ? 'No articles match your search.' : 'No articles yet.'}

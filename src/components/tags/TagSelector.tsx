@@ -5,7 +5,7 @@ import styles from './TagSelector.module.css';
 
 interface TagSelectorProps {
   selectedTags: string[];
-  onChange: (selectedTags: string[]) => void;
+  onChange: () => void;
   maxTags?: number;
   disabled?: boolean;
 }
@@ -14,7 +14,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   selectedTags = [],
   onChange,
   maxTags = 5,
-  disabled = false,
+  disabled = false
 }) => {
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +60,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
       .filter(tag => !selectedTags.includes(tag.id))
       .filter(tag =>
         searchQuery.trim() === '' ||
-        tag.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        tag.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     setFilteredTags(filtered);
   }, [searchQuery, availableTags, selectedTags]);
@@ -84,15 +84,15 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     }
 
     if (!selectedTags.includes(tagId)) {
-      onChange([...selectedTags, tagId]);
+      onChange();
       setSearchQuery('');
       setShowDropdown(false);
     }
   };
 
   // 处理标签移除
-  const handleTagRemove = (tagId: string) => {
-    onChange(selectedTags.filter(id => id !== tagId));
+  const handleTagRemove = () => {
+    onChange();
   };
 
   // 创建新标签
@@ -104,7 +104,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     try {
       setCreatingTag(true);
       const newTag = await tagService.createTag({
-        name: newTagName.trim(),
+        'name': newTagName.trim()
       });
 
       if (newTag) {
@@ -144,12 +144,12 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     return (
       <div className={styles.selectedTags}>
         {selectedTagsDetails.map(tag => (
-          <div key={tag.id} className={styles.selectedTag} style={{ backgroundColor: tag.color }}>
+          <div key={tag.id} className={styles.selectedTag} style={{ 'backgroundColor': tag.color }}>
             <span className={styles.tagName}>{tag.name}</span>
             {!disabled && (
               <button
                 className={styles.removeTagBtn}
-                onClick={() => handleTagRemove(tag.id)}
+                onClick={() => handleTagRemove()}
                 aria-label={`移除标签 ${tag.name}`}
               >
                 ×
@@ -163,15 +163,24 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
 
   // 显示下拉框
   const renderDropdown = () => {
-    if (!showDropdown) {return null;}
+    if (!showDropdown) {
+      return null;
+    }
 
     return (
       <div className={styles.dropdown} ref={dropdownRef}>
-        {loading ? (
+        {/* 加载状态 */}
+        {loading && (
           <div className={styles.loading}>加载中...</div>
-        ) : error ? (
+        )}
+
+        {/* 错误状态 */}
+        {!loading && error && (
           <div className={styles.error}>{error}</div>
-        ) : (
+        )}
+
+        {/* 正常状态 */}
+        {!loading && !error && (
           <>
             {/* 搜索结果 */}
             {filteredTags.length > 0 && (
@@ -184,7 +193,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                   >
                     <div
                       className={styles.tagColorIndicator}
-                      style={{ backgroundColor: tag.color }}
+                      style={{ 'backgroundColor': tag.color }}
                     />
                     <span className={styles.tagName}>{tag.name}</span>
                     {tag.usage_count > 0 && (

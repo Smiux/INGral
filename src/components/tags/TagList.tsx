@@ -4,9 +4,9 @@ import { tagService } from '../../services/tagService';
 import styles from './TagList.module.css';
 
 interface TagListProps {
-  onTagClick?: (tag: Tag) => void;
+  onTagClick?: () => void;
   selectedTags?: string[];
-  onTagsChange?: (selectedTags: string[]) => void;
+  onTagsChange?: () => void;
   showSearch?: boolean;
   showCount?: boolean;
 }
@@ -16,7 +16,7 @@ export const TagList: React.FC<TagListProps> = ({
   selectedTags = [],
   onTagsChange,
   showSearch = true,
-  showCount = true,
+  showCount = true
 }) => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,26 +45,26 @@ export const TagList: React.FC<TagListProps> = ({
   }, []);
 
   // 递归过滤标签树
-  const filterTagTree = useCallback((tags: Tag[], query: string): Tag[] => {
+  const filterTagTree = useCallback((tagTree: Tag[], query: string): Tag[] => {
     if (!query.trim()) {
-      return tags;
+      return tagTree;
     }
 
-    return tags.flatMap(tag => {
+    return tagTree.flatMap(tag => {
       const hasMatchingName = tag.name.toLowerCase().includes(query.toLowerCase());
       const hasChildren = tag.children && tag.children.length > 0;
-      
+
       // 递归过滤子标签
       const filteredChildren = hasChildren ? filterTagTree(tag.children || [], query) : [];
-      
+
       // 如果标签名称匹配或者有匹配的子标签，则保留该标签
       if (hasMatchingName || filteredChildren.length > 0) {
         return [{
           ...tag,
-          children: filteredChildren
+          'children': filteredChildren
         }];
       }
-      
+
       return [];
     });
   }, []);
@@ -75,19 +75,16 @@ export const TagList: React.FC<TagListProps> = ({
   }, [searchQuery, tags, filterTagTree]);
 
   // 处理标签点击
-  const handleTagClick = useCallback((tag: Tag) => {
+  const handleTagClick = useCallback(() => {
     if (onTagClick) {
-      onTagClick(tag);
+      onTagClick();
       return;
     }
 
     if (onTagsChange) {
-      const newSelectedTags = selectedTags.includes(tag.id)
-        ? selectedTags.filter(id => id !== tag.id)
-        : [...selectedTags, tag.id];
-      onTagsChange(newSelectedTags);
+      onTagsChange();
     }
-  }, [onTagClick, onTagsChange, selectedTags]);
+  }, [onTagClick, onTagsChange]);
 
   // 处理搜索输入变化
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,22 +108,22 @@ export const TagList: React.FC<TagListProps> = ({
   }, []);
 
   // 递归渲染标签树
-  const renderTagTree = useCallback((tags: Tag[], level = 0) => {
-    return tags.map(tag => {
-      const isSelected = selectedTags.includes(tag.id);
-      const hasChildren = tag.children && tag.children.length > 0;
-      const isExpanded = expandedTags.has(tag.id);
-      
+  const renderTagTree = useCallback((tagList: Tag[], level = 0) => {
+    return tagList.map(tagItem => {
+      const isSelected = selectedTags.includes(tagItem.id);
+      const hasChildren = tagItem.children && tagItem.children.length > 0;
+      const isExpanded = expandedTags.has(tagItem.id);
+
       return (
-        <div key={tag.id} className={styles.tagTreeItem}>
+        <div key={tagItem.id} className={styles.tagTreeItem}>
           <div
             className={`${styles.tagItem} ${isSelected ? styles.selected : ''}`}
-            onClick={() => handleTagClick(tag)}
+            onClick={() => handleTagClick()}
             style={{
-              backgroundColor: isSelected ? tag.color : 'transparent',
-              borderColor: tag.color,
-              color: isSelected ? '#fff' : tag.color,
-              paddingLeft: `${level * 20}px`,
+              'backgroundColor': isSelected ? tagItem.color : 'transparent',
+              'borderColor': tagItem.color,
+              'color': isSelected ? '#fff' : tagItem.color,
+              'paddingLeft': `${level * 20}px`
             }}
           >
             {hasChildren && (
@@ -134,21 +131,21 @@ export const TagList: React.FC<TagListProps> = ({
                 className={styles.expandButton}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleToggleExpand(tag.id);
+                  handleToggleExpand(tagItem.id);
                 }}
-                style={{ marginRight: '5px' }}
+                style={{ 'marginRight': '5px' }}
               >
                 {isExpanded ? '▼' : '▶'}
               </button>
             )}
-            <span className={styles.tagName}>{tag.name}</span>
+            <span className={styles.tagName}>{tagItem.name}</span>
             {showCount && (
-              <span className={styles.tagCount}>({tag.usage_count})</span>
+              <span className={styles.tagCount}>({tagItem.usage_count})</span>
             )}
           </div>
           {hasChildren && isExpanded && (
             <div className={styles.tagChildren}>
-              {renderTagTree(tag.children || [], level + 1)}
+              {renderTagTree(tagItem.children || [], level + 1)}
             </div>
           )}
         </div>
@@ -183,11 +180,9 @@ export const TagList: React.FC<TagListProps> = ({
 
       {/* 标签树 */}
       <div className={styles.tagsContainer}>
-        {searchQuery.trim() === '' ? (
-          renderTagTree(tags)
-        ) : filteredTagTree.length > 0 ? (
-          renderTagTree(filteredTagTree)
-        ) : (
+        {searchQuery.trim() === '' && renderTagTree(tags)}
+        {searchQuery.trim() !== '' && filteredTagTree.length > 0 && renderTagTree(filteredTagTree)}
+        {searchQuery.trim() !== '' && filteredTagTree.length === 0 && (
           <div className={styles.empty}>没有找到匹配的标签</div>
         )}
       </div>

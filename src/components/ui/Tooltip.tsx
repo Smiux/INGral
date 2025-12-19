@@ -5,20 +5,28 @@ export type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
 
 // Define tooltip props interface
 interface TooltipProps {
+
   /** Tooltip content */
   content: React.ReactNode;
+
   /** Tooltip children */
   children: React.ReactNode;
+
   /** Tooltip placement */
   placement?: TooltipPlacement;
+
   /** Tooltip delay in milliseconds */
   delay?: number;
+
   /** Custom class name */
   className?: string;
+
   /** Whether the tooltip is always visible */
   isVisible?: boolean;
+
   /** Tooltip aria-label */
   ariaLabel?: string;
+
   /** Whether to disable the tooltip */
   disabled?: boolean;
 }
@@ -32,14 +40,13 @@ export const Tooltip: React.FC<TooltipProps> = ({
   placement = 'top',
   delay = 200,
   className = '',
-  isVisible: propIsVisible,
+  'isVisible': propIsVisible,
   ariaLabel,
-  disabled = false,
+  disabled = false
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
   // Determine if the tooltip should be controlled or uncontrolled
@@ -58,12 +65,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
   // Handle mouse enter
   const handleMouseEnter = () => {
-    if (disabled || isControlled) return;
-    
+    if (disabled || isControlled) {
+      return;
+    }
+
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
-    
+
     timerRef.current = setTimeout(() => {
       setIsVisible(true);
     }, delay);
@@ -71,41 +80,47 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
   // Handle mouse leave
   const handleMouseLeave = () => {
-    if (disabled || isControlled) return;
-    
+    if (disabled || isControlled) {
+      return;
+    }
+
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
-    
+
     setIsVisible(false);
   };
 
   // Handle focus
   const handleFocus = () => {
-    if (disabled || isControlled) return;
+    if (disabled || isControlled) {
+      return;
+    }
     setIsVisible(true);
   };
 
   // Handle blur
   const handleBlur = () => {
-    if (disabled || isControlled) return;
+    if (disabled || isControlled) {
+      return;
+    }
     setIsVisible(false);
   };
 
   // Placement classes
   const placementClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+    'top': 'bottom-full left-1/2 -translate-x-1/2 mb-2',
+    'bottom': 'top-full left-1/2 -translate-x-1/2 mt-2',
+    'left': 'right-full top-1/2 -translate-y-1/2 mr-2',
+    'right': 'left-full top-1/2 -translate-y-1/2 ml-2'
   };
 
   // Arrow classes
   const arrowClasses = {
-    top: 'bottom-[-5px] left-1/2 -translate-x-1/2 rotate-45',
-    bottom: 'top-[-5px] left-1/2 -translate-x-1/2 -rotate-45',
-    left: 'right-[-5px] top-1/2 -translate-y-1/2 -rotate-45',
-    right: 'left-[-5px] top-1/2 -translate-y-1/2 rotate-45',
+    'top': 'bottom-[-5px] left-1/2 -translate-x-1/2 rotate-45',
+    'bottom': 'top-[-5px] left-1/2 -translate-x-1/2 -rotate-45',
+    'left': 'right-[-5px] top-1/2 -translate-y-1/2 -rotate-45',
+    'right': 'left-[-5px] top-1/2 -translate-y-1/2 rotate-45'
   };
 
   return (
@@ -121,13 +136,16 @@ export const Tooltip: React.FC<TooltipProps> = ({
     >
       {/* Trigger element */}
       {React.Children.only(children)}
-      
+
       {/* Tooltip */}
       {visible && isMounted && (
         <div
-          ref={tooltipRef}
           id="tooltip-content"
-          className={`absolute z-50 px-3 py-1.5 text-sm font-medium text-white bg-neutral-900 dark:bg-neutral-800 rounded-md shadow-lg opacity-90 transition-all duration-200 transform opacity-100 pointer-events-none ${placementClasses[placement]} ${className}`}
+          className={`absolute z-50 px-3 py-1.5 text-sm font-medium text-white 
+            bg-neutral-900 dark:bg-neutral-800 rounded-md shadow-lg 
+            opacity-90 transition-all duration-200 transform opacity-100 pointer-events-none 
+            ${placementClasses[placement]} 
+            ${className}`}
           role="tooltip"
         >
           {content}

@@ -6,7 +6,7 @@ import { UITableOfContentsProps } from '../../types';
  * TableOfContents component for displaying a dynamic table of contents
  * based on Markdown headings
  */
-export function TableOfContents({ content, className = '', title = 'Table of Contents' }: UITableOfContentsProps) {
+export function TableOfContents ({ content, className = '', title = 'Table of Contents' }: UITableOfContentsProps) {
   const [tocHtml, setTocHtml] = useState<string>('');
   const [activeId, setActiveId] = useState<string>('');
   const tocRef = useRef<HTMLDivElement>(null);
@@ -28,8 +28,9 @@ export function TableOfContents({ content, className = '', title = 'Table of Con
         });
       },
       {
-        rootMargin: '-100px 0px -80% 0px', // Trigger when heading is near top of viewport
-        threshold: 0.1,
+        // Trigger when heading is near top of viewport
+        'rootMargin': '-100px 0px -80% 0px',
+        'threshold': 0.1
       }
     );
 
@@ -52,7 +53,7 @@ export function TableOfContents({ content, className = '', title = 'Table of Con
       <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">{title}</h2>
       <div
         className="prose dark:prose-invert prose-sm max-w-none"
-        dangerouslySetInnerHTML={{ __html: tocHtml }}
+        dangerouslySetInnerHTML={{ '__html': tocHtml }}
         aria-label="Table of contents"
       />
       {activeId && (

@@ -17,22 +17,23 @@ interface HistoryItem {
 interface HistoryManagerProps {
   title: string;
   content: string;
-  setTitle: (title: string) => void;
-  setContent: (content: string) => void;
+  setTitle: (_title: string) => void;
+  setContent: (_content: string) => void;
 }
 
-export function HistoryManager({
-  title,
-  content,
-  setTitle,
-  setContent,
+export function HistoryManager ({
+  'title': _title,
+  'content': _content,
+  'setTitle': setTitle,
+  'setContent': setContent
 }: HistoryManagerProps) {
   // 历史记录状态
   const [history, setHistory] = useState<HistoryItem[]>([]);
   // 当前历史记录索引
   const [historyIndex, setHistoryIndex] = useState(-1);
   // 最大历史记录长度
-  const MAX_HISTORY_SIZE = 100; // 增加历史记录容量
+  // 增加历史记录容量
+  const MAX_HISTORY_SIZE = 100;
   // 防抖定时器引用
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   // 上一次保存的内容哈希，用于避免保存相同内容
@@ -44,14 +45,15 @@ export function HistoryManager({
    * 计算内容哈希值，用于检测内容是否变化
    * 使用更可靠的哈希算法，避免误判
    */
-  const computeContentHash = useCallback((title: string, content: string): string => {
+  const computeContentHash = useCallback((titleStr: string, contentStr: string): string => {
     // 使用更可靠的哈希计算方式
     let hash = 0;
-    const combined = title + content;
-    for (let i = 0; i < combined.length; i++) {
+    const combined = titleStr + contentStr;
+    for (let i = 0; i < combined.length; i += 1) {
       const char = combined.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
+      // Convert to 32bit integer
+      hash &= hash;
     }
     return hash.toString();
   }, []);
@@ -66,47 +68,49 @@ export function HistoryManager({
    */
   const addToHistory = useCallback(() => {
     // 计算当前内容哈希
-    const currentHash = computeContentHash(title, content);
-    
+    const currentHash = computeContentHash(_title, _content);
+
     // 只有当内容或标题变化时才添加历史记录
     if (currentHash !== lastContentHashRef.current) {
       // 使用useRef保存当前索引，避免直接依赖historyIndex state
       const currentIndex = historyIndexRef.current;
-      
+
       setHistory(prev => {
         // 如果当前不是在历史记录的最后，截断历史记录
         const newHistory = prev.slice(0, currentIndex + 1);
-        
+
         // 创建新的历史记录项
         const newHistoryItem: HistoryItem = {
-          title,
-          content,
-          timestamp: new Date(),
-          id: `history_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          'title': _title,
+          'content': _content,
+          'timestamp': new Date(),
+          'id': `history_${Date.now()}_${Math.random().toString(36)
+            .substr(2, 9)}`
         };
-        
+
         // 添加到历史记录末尾
         newHistory.push(newHistoryItem);
-        
+
         // 限制历史记录的最大长度
         if (newHistory.length > MAX_HISTORY_SIZE) {
           newHistory.shift();
         }
-        
+
         return newHistory;
       });
-      
+
       // 更新索引，使用函数式更新获取最新值
       setHistoryIndex(prev => {
         const newIndex = prev + 1;
         // 如果历史记录被截断，调整索引
         return Math.min(newIndex, MAX_HISTORY_SIZE - 1);
       });
-      
+
       // 更新最后保存的哈希
       lastContentHashRef.current = currentHash;
     }
-  }, [title, content, computeContentHash]); // 完全移除historyIndex依赖
+  // 完全移除historyIndex依赖
+  }, [_title, _content, computeContentHash]);
 
   /**
    * 防抖处理，避免过于频繁保存历史记录
@@ -115,18 +119,18 @@ export function HistoryManager({
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    
+
     // 1秒保存一次历史记录，提高响应速度
     debounceTimerRef.current = setTimeout(() => {
       addToHistory();
     }, 1000);
-    
+
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [title, content, addToHistory]);
+  }, [_title, _content, addToHistory]);
 
   /**
    * 撤销操作

@@ -10,7 +10,7 @@ const MAX_RECENT_FORMULAS = 10;
  * 负责管理最近使用的公式和收藏的公式
  * @returns 存储管理相关的状态和方法
  */
-export function useLatexStorage() {
+export function useLatexStorage () {
   // 最近使用的公式
   const [recentFormulas, setRecentFormulas] = useState<string[]>([]);
   // 收藏的公式
@@ -59,7 +59,9 @@ export function useLatexStorage() {
    * @param formula - LaTeX公式
    */
   const addToRecent = (formula: string) => {
-    if (!formula.trim()) return;
+    if (!formula.trim()) {
+      return;
+    }
 
     setRecentFormulas(prev => {
       // 移除已存在的相同公式
@@ -92,7 +94,9 @@ export function useLatexStorage() {
    * @param formula - LaTeX公式
    */
   const toggleFavorite = (formula: string) => {
-    if (!formula.trim()) return;
+    if (!formula.trim()) {
+      return;
+    }
 
     setFavoriteFormulas(prev => {
       let updated;

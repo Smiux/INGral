@@ -8,6 +8,7 @@ export type Theme = 'light' | 'dark';
 interface ThemeState {
   theme: Theme;
   toggleTheme: () => void;
+  // eslint-disable-next-line no-unused-vars
   setTheme: (theme: Theme) => void;
 }
 
@@ -16,25 +17,27 @@ export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
       // Initialize theme from system preference or default to light
-      theme: (() => {
+      'theme': (() => {
         // Check if we're in a browser environment
         if (typeof window !== 'undefined') {
-          return (localStorage.getItem('theme') as Theme) || 
+          return (localStorage.getItem('theme') as Theme) ||
             (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         }
         return 'light';
       })(),
-      
-      toggleTheme: () => set((state) => ({
-        theme: state.theme === 'light' ? 'dark' : 'light'
+
+      'toggleTheme': () => set((state) => ({
+        'theme': state.theme === 'light' ? 'dark' : 'light'
       })),
-      
-      setTheme: (theme) => set({ theme })
+
+      'setTheme': (theme) => {
+        set({ theme });
+      }
     }),
     {
-      name: 'theme-storage',
+      'name': 'theme-storage',
       // Only persist theme state
-      partialize: (state) => ({ theme: state.theme })
+      'partialize': (state) => ({ 'theme': state.theme })
     }
   )
 );

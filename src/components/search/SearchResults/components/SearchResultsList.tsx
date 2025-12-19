@@ -26,7 +26,7 @@ interface SearchResultsListProps {
   hasMoreArticles: boolean;
   hasMoreComments: boolean;
   query: string;
-  onArticleClick?: ((article: Article) => void) | undefined;
+  onArticleClick?: (() => void) | undefined;
   onLoadMoreArticles: () => void;
   onLoadMoreComments: () => void;
 }
@@ -73,14 +73,14 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
       {(searchMode === 'semantic' || searchMode === 'enhanced') && semanticResults.length > 0 && (
         <>
           <h3 className={styles.sectionTitle}>语义搜索结果</h3>
-          
+
           {/* 处理分组和排序 */}
           {(() => {
             const sortedResults = sortSearchResults(semanticResults, sortBy);
-            const resultGroups = groupBy === 'none' 
+            const resultGroups = groupBy === 'none'
               ? new Map([['全部结果', sortedResults]])
               : groupSearchResults(sortedResults, groupBy);
-            
+
             return (
               <>
                 {Array.from(resultGroups.entries()).map(([groupKey, groupResults]) => (
@@ -95,7 +95,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                     </div>
                   </div>
                 ))}
-                
+
                 {/* 加载更多语义搜索结果按钮 */}
                 {hasMoreArticles && (
                   <div className={styles.loadMoreContainer}>

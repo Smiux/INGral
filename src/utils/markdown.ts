@@ -52,39 +52,173 @@ export type CitationStyle = 'apa' | 'mla' | 'chicago' | 'ieee';
  * @param content Markdown内容
  * @returns 提取的引用数组
  */
-export function extractCitations(content: string): Citation[] {
+export function extractCitations (content: string): Citation[] {
   const citations: Citation[] = [];
   const citationRegex = /\[\^(\w+):\s*([^\]]+)\]/g;
   let match;
-  const contentMap = new Map<string, Citation>(); // 使用Map优化查找性能
-  
+  // 使用Map优化查找性能
+  const contentMap = new Map<string, Citation>();
+
   while ((match = citationRegex.exec(content)) !== null) {
     if (match[1] && match[2]) {
       const type = match[1].toLowerCase() as Citation['type'];
       const citationContent = match[2].trim();
-      
+
       // 检查是否已存在相同内容的引用，使用Map优化查找
       const existingCitation = contentMap.get(citationContent);
-      
+
       if (existingCitation) {
         // 更新引用计数
-        existingCitation.count++;
+        existingCitation.count += 1;
       } else {
         // 添加新引用
         const newCitation = {
-          id: `citation-${citations.length + 1}`,
+          'id': `citation-${citations.length + 1}`,
           type,
-          content: citationContent,
-          position: match.index,
-          count: 1
+          'content': citationContent,
+          'position': match.index,
+          'count': 1
         };
         citations.push(newCitation);
         contentMap.set(citationContent, newCitation);
       }
     }
   }
-  
+
   return citations;
+}
+
+/**
+ * 格式化APA风格引用
+ * @param citation 引用对象
+ * @returns APA格式引用
+ */
+function formatApaCitation (citation: Citation): string {
+  const { metadata, type, content } = citation;
+
+  if (metadata) {
+    const { authors, year, title, publisher, journal, volume, issue, pages, doi, url } = metadata;
+
+    if (type === 'article' && authors && title && journal && year) {
+      // 期刊文章
+      const authorStr = authors.join(', ');
+      const pagesStr = pages ? `, ${pages}` : '';
+      const volumeIssueStr = issue ? `${volume}(${issue})` : `${volume}`;
+      return `${authorStr} (${year}). ${title}. ${journal}, ${volumeIssueStr}${pagesStr}. ${doi || url}`;
+    }
+
+    if (type === 'book' && authors && title && publisher && year) {
+      // 书籍
+      const authorStr = authors.join(', ');
+      return `${authorStr} (${year}). ${title}. ${publisher}. ${doi || url}`;
+    }
+
+    if (type === 'website' && title && url && year) {
+      // 网站
+      const authorStr = authors ? `${authors.join(', ')} ` : '';
+      return `${authorStr}(${year}). ${title}. Retrieved from ${url}`;
+    }
+  }
+
+  // 简单格式
+  return `${content} (${new Date().getFullYear()})`;
+}
+
+/**
+ * 格式化MLA风格引用
+ * @param citation 引用对象
+ * @returns MLA格式引用
+ */
+function formatMlaCitation (citation: Citation): string {
+  const { metadata, type, content } = citation;
+
+  if (metadata) {
+    const { authors, title, journal, volume, issue, pages, year, publisher, url } = metadata;
+
+    if (type === 'article' && authors && title && journal && year) {
+      // 期刊文章
+      const authorStr = authors.join(', ');
+      const pagesStr = pages ? ` ${pages}` : '';
+      return `${authorStr}. "${title}." ${journal}, vol. ${volume}, no. ${issue}, ${year}, p${pagesStr}. ${url || content}`;
+    }
+
+    if (type === 'book' && authors && title && publisher && year) {
+      // 书籍
+      const authorStr = authors.join(', ');
+      return `${authorStr}. ${title}. ${publisher}, ${year}.`;
+    }
+
+    if (type === 'website' && title && url) {
+      // 网站
+      const authorStr = authors ? `${authors.join(', ')}. ` : '';
+      const yearStr = year ? `${year}. ` : '';
+      return `${authorStr}${title}. ${yearStr}Web. ${new Date().toLocaleDateString()}.`;
+    }
+  }
+
+  // 简单格式
+  return `${content}`;
+}
+
+/**
+ * 格式化Chicago风格引用
+ * @param citation 引用对象
+ * @returns Chicago格式引用
+ */
+function formatChicagoCitation (citation: Citation): string {
+  const { metadata, type, content } = citation;
+
+  if (metadata) {
+    const { authors, title, publisher, year, journal, volume, issue, pages, doi, url } = metadata;
+
+    if (type === 'article' && authors && title && journal && year) {
+      // 期刊文章
+      const authorStr = authors.join(', ');
+      const pagesStr = pages ? `: ${pages}` : '';
+      const volumeIssueStr = issue ? `${volume}, no. ${issue} (${year})` : `${volume} (${year})`;
+      return `${authorStr}. "${title}." ${journal} ${volumeIssueStr}${pagesStr}. ${doi || url}`;
+    }
+
+    if (type === 'book' && authors && title && publisher && year) {
+      // 书籍
+      const authorStr = authors.join(', ');
+      return `${authorStr}. ${title}. ${publisher}, ${year}.`;
+    }
+  }
+
+  // 简单格式
+  return `${content}, ${new Date().getFullYear()}`;
+}
+
+
+/**
+ * 格式化IEEE风格引用
+ * @param citation 引用对象
+ * @param index 引用索引
+ * @returns IEEE格式引用
+ */
+function formatIeeeCitation (citation: Citation, index: number): string {
+  const { metadata, type, content } = citation;
+
+  if (metadata) {
+    const { authors, title, publisher, year, journal, volume, issue, pages, doi, url } = metadata;
+
+    if (type === 'article' && authors && title && journal && year) {
+      // 期刊文章
+      const authorStr = authors.map((author, i) => i < 3 ? author : 'et al.').join(', ');
+      const pagesStr = pages ? `, pp. ${pages}` : '';
+      return `[${index}] ${authorStr}, "${title}," ${journal}, vol. ${volume}, no. ${issue},${pagesStr}, ${year}. ${doi || url}`;
+    }
+
+    if (type === 'book' && authors && title && publisher && year) {
+      // 书籍
+      const authorStr = authors.map((author, i) => i < 3 ? author : 'et al.').join(', ');
+      return `[${index}] ${authorStr}, ${title}. ${publisher}, ${year}. ${doi || url}`;
+    }
+  }
+
+  // 简单格式
+  return `[${index}] ${content}, ${new Date().getFullYear()}`;
 }
 
 /**
@@ -94,9 +228,9 @@ export function extractCitations(content: string): Citation[] {
  * @param index 引用索引（用于IEEE格式）
  * @returns 格式化后的引用字符串
  */
-export function formatCitation(citation: Citation, style: CitationStyle, index?: number): string {
+export function formatCitation (citation: Citation, style: CitationStyle, index?: number): string {
   const { content } = citation;
-  
+
   switch (style) {
     case 'apa':
       return formatApaCitation(citation);
@@ -112,157 +246,25 @@ export function formatCitation(citation: Citation, style: CitationStyle, index?:
 }
 
 /**
- * 格式化APA风格引用
- * @param citation 引用对象
- * @returns APA格式引用
- */
-function formatApaCitation(citation: Citation): string {
-  const { metadata, type, content } = citation;
-  
-  if (metadata) {
-    const { authors, year, title, publisher, journal, volume, issue, pages, doi, url } = metadata;
-    
-    if (type === 'article' && authors && title && journal && year) {
-      // 期刊文章
-      const authorStr = authors.join(', ');
-      const pagesStr = pages ? `, ${pages}` : '';
-      const volumeIssueStr = issue ? `${volume}(${issue})` : `${volume}`;
-      return `${authorStr} (${year}). ${title}. ${journal}, ${volumeIssueStr}${pagesStr}. ${doi || url}`;
-    }
-    
-    if (type === 'book' && authors && title && publisher && year) {
-      // 书籍
-      const authorStr = authors.join(', ');
-      return `${authorStr} (${year}). ${title}. ${publisher}. ${doi || url}`;
-    }
-    
-    if (type === 'website' && title && url && year) {
-      // 网站
-      const authorStr = authors ? `${authors.join(', ')} ` : '';
-      return `${authorStr}(${year}). ${title}. Retrieved from ${url}`;
-    }
-  }
-  
-  // 简单格式
-  return `${content} (${new Date().getFullYear()})`;
-}
-
-/**
- * 格式化MLA风格引用
- * @param citation 引用对象
- * @returns MLA格式引用
- */
-function formatMlaCitation(citation: Citation): string {
-  const { metadata, type, content } = citation;
-  
-  if (metadata) {
-    const { authors, title, journal, volume, issue, pages, year, publisher, url } = metadata;
-    
-    if (type === 'article' && authors && title && journal && year) {
-      // 期刊文章
-      const authorStr = authors.join(', ');
-      const pagesStr = pages ? ` ${pages}` : '';
-      return `${authorStr}. "${title}." ${journal}, vol. ${volume}, no. ${issue}, ${year}, p${pagesStr}. ${url || content}`;
-    }
-    
-    if (type === 'book' && authors && title && publisher && year) {
-      // 书籍
-      const authorStr = authors.join(', ');
-      return `${authorStr}. ${title}. ${publisher}, ${year}.`;
-    }
-    
-    if (type === 'website' && title && url) {
-      // 网站
-      const authorStr = authors ? `${authors.join(', ')}. ` : '';
-      const yearStr = year ? `${year}. ` : '';
-      return `${authorStr}${title}. ${yearStr}Web. ${new Date().toLocaleDateString()}.`;
-    }
-  }
-  
-  // 简单格式
-  return `${content}`;
-}
-
-/**
- * 格式化Chicago风格引用
- * @param citation 引用对象
- * @returns Chicago格式引用
- */
-function formatChicagoCitation(citation: Citation): string {
-  const { metadata, type, content } = citation;
-  
-  if (metadata) {
-    const { authors, title, publisher, year, journal, volume, issue, pages, doi, url } = metadata;
-    
-    if (type === 'article' && authors && title && journal && year) {
-      // 期刊文章
-      const authorStr = authors.join(', ');
-      const pagesStr = pages ? `: ${pages}` : '';
-      const volumeIssueStr = issue ? `${volume}, no. ${issue} (${year})` : `${volume} (${year})`;
-      return `${authorStr}. "${title}." ${journal} ${volumeIssueStr}${pagesStr}. ${doi || url}`;
-    }
-    
-    if (type === 'book' && authors && title && publisher && year) {
-      // 书籍
-      const authorStr = authors.join(', ');
-      return `${authorStr}. ${title}. ${publisher}, ${year}.`;
-    }
-  }
-  
-  // 简单格式
-  return `${content}, ${new Date().getFullYear()}`;
-}
-
-/**
- * 格式化IEEE风格引用
- * @param citation 引用对象
- * @param index 引用索引
- * @returns IEEE格式引用
- */
-function formatIeeeCitation(citation: Citation, index: number): string {
-  const { metadata, type, content } = citation;
-  
-  if (metadata) {
-    const { authors, title, publisher, year, journal, volume, issue, pages, doi, url } = metadata;
-    
-    if (type === 'article' && authors && title && journal && year) {
-      // 期刊文章
-      const authorStr = authors.map((author, i) => i < 3 ? author : 'et al.').join(', ');
-      const pagesStr = pages ? `, pp. ${pages}` : '';
-      return `[${index}] ${authorStr}, "${title}," ${journal}, vol. ${volume}, no. ${issue},${pagesStr}, ${year}. ${doi || url}`;
-    }
-    
-    if (type === 'book' && authors && title && publisher && year) {
-      // 书籍
-      const authorStr = authors.map((author, i) => i < 3 ? author : 'et al.').join(', ');
-      return `[${index}] ${authorStr}, ${title}. ${publisher}, ${year}. ${doi || url}`;
-    }
-  }
-  
-  // 简单格式
-  return `[${index}] ${content}, ${new Date().getFullYear()}`;
-}
-
-/**
  * 生成参考文献列表HTML
  * @param citations 引用数组
  * @param style 引用格式
  * @returns 参考文献HTML
  */
-export function generateBibliography(citations: Citation[], style: CitationStyle = 'apa'): string {
+export function generateBibliography (citations: Citation[], style: CitationStyle = 'apa'): string {
   if (citations.length === 0) {
     return '<p class="text-gray-500 dark:text-gray-400">No citations found</p>';
   }
-  
+
   let html = '<div class="bibliography">\n<h2>参考文献</h2>\n<ol class="citation-list space-y-2">\n';
-  
+
   citations.forEach((citation, index) => {
     const formattedCitation = formatCitation(citation, style, index + 1);
     html += `<li id="cite-${citation.id}" class="citation-item">${formattedCitation}</li>\n`;
   });
-  
+
   html += '</ol>\n</div>\n';
-  
+
   return html;
 }
 
@@ -271,7 +273,7 @@ export function generateBibliography(citations: Citation[], style: CitationStyle
  * @param text Markdown内容
  * @returns 处理后的内容
  */
-function processCitations(text: string): string {
+function processCitations (text: string): string {
   return text.replace(/\[\^(\w+):\s*([^\]]+)\]/g, (_match, type, content) => {
     // 生成唯一引用ID
     const id = `cite-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -286,13 +288,20 @@ import 'highlight.js/styles/github-dark.css';
 /**
  * Markdown渲染缓存配置 - 优化版
  */
+// 缓存配置
 const CACHE_CONFIG = {
-  EXPIRY_TIME: 30 * 60 * 1000, // 延长缓存时间到30分钟，进一步提高命中率
-  MAX_ENTRIES: 300, // 增加最大缓存条目数到300
-  MAX_SIZE: 50 * 1024 * 1024, // 增加最大缓存大小到50MB
-  CLEANUP_INTERVAL: 10 * 60 * 1000, // 减少清理频率到10分钟，降低CPU开销
-  MIN_ACCESS_COUNT: 0, // 移除最小访问次数限制，允许所有条目被缓存
-  PRUNE_RATIO: 0.1 // 降低清理比例到10%，减少缓存震荡
+  // 延长缓存时间到30分钟，进一步提高命中率
+  'EXPIRY_TIME': 30 * 60 * 1000,
+  // 增加最大缓存条目数到300
+  'MAX_ENTRIES': 300,
+  // 增加最大缓存大小到50MB
+  'MAX_SIZE': 50 * 1024 * 1024,
+  // 减少清理频率到10分钟，降低CPU开销
+  'CLEANUP_INTERVAL': 10 * 60 * 1000,
+  // 移除最小访问次数限制，允许所有条目被缓存
+  'MIN_ACCESS_COUNT': 0,
+  // 降低清理比例到10%，减少缓存震荡
+  'PRUNE_RATIO': 0.1
 };
 
 /**
@@ -303,20 +312,23 @@ interface CacheEntry {
   accessedAt: number;
   accessCount: number;
   contentSize: number;
-  hash: string; // 内容哈希，用于快速比较
-  lastUsed: number; // 最后使用时间，用于LRU清理
+  // 内容哈希，用于快速比较
+  hash: string;
+  // 最后使用时间，用于LRU清理
+  lastUsed: number;
 }
 
 const markdownRenderCache = new Map<string, CacheEntry>();
-const markdownHighlightCache = new Map<string, { value: string; accessedAt: number }>(); // 增强高亮缓存，添加访问时间
+// 增强高亮缓存，添加访问时间
+const markdownHighlightCache = new Map<string, { value: string; accessedAt: number }>();
 
 // 缓存统计信息
 const cacheStats = {
-  hits: 0,
-  misses: 0,
-  totalSize: 0,
-  entries: 0,
-  lastCleanup: Date.now()
+  'hits': 0,
+  'misses': 0,
+  'totalSize': 0,
+  'entries': 0,
+  'lastCleanup': Date.now()
 };
 
 /**
@@ -324,7 +336,7 @@ const cacheStats = {
  * @param content 要哈希的内容
  * @returns 哈希字符串
  */
-export function generateHash(content: string): string {
+export function generateHash (content: string): string {
   // 使用更高效的哈希算法，基于DJB2算法，优化性能
   let hash = 5381;
   const len = content.length;
@@ -334,10 +346,10 @@ export function generateHash(content: string): string {
     const char2 = content.charCodeAt(i + 1) || 0;
     const char3 = content.charCodeAt(i + 2) || 0;
     const char4 = content.charCodeAt(i + 3) || 0;
-    hash = ((hash << 5) + hash) + char1;
-    hash = ((hash << 5) + hash) + char2;
-    hash = ((hash << 5) + hash) + char3;
-    hash = ((hash << 5) + hash) + char4;
+    hash = (hash << 5) + hash + char1;
+    hash = (hash << 5) + hash + char2;
+    hash = (hash << 5) + hash + char3;
+    hash = (hash << 5) + hash + char4;
   }
   return Math.abs(hash).toString(16);
 }
@@ -348,7 +360,7 @@ export function generateHash(content: string): string {
  * @param options 渲染选项
  * @returns 缓存键
  */
-function generateCacheKey(content: string, options?: {
+function generateCacheKey (content: string, options?: {
   includeBibliography?: boolean;
   citationStyle?: CitationStyle;
 }): string {
@@ -362,19 +374,19 @@ function generateCacheKey(content: string, options?: {
 /**
  * 清理过期缓存条目
  */
-function cleanupCache(): void {
+function cleanupCache (): void {
   const now = Date.now();
   const entries = Array.from(markdownRenderCache.entries());
-  
+
   // 移除过期条目
   for (const [key, entry] of entries) {
     if (now - entry.accessedAt > CACHE_CONFIG.EXPIRY_TIME) {
       cacheStats.totalSize -= entry.contentSize;
-      cacheStats.entries--;
+      cacheStats.entries -= 1;
       markdownRenderCache.delete(key);
     }
   }
-  
+
   // 如果缓存条目数或大小超过限制，进行清理
   if (markdownRenderCache.size > CACHE_CONFIG.MAX_ENTRIES || cacheStats.totalSize > CACHE_CONFIG.MAX_SIZE) {
     const sortedEntries = Array.from(markdownRenderCache.entries())
@@ -385,43 +397,43 @@ function cleanupCache(): void {
         }
         return b.lastUsed - a.lastUsed;
       });
-    
+
     // 计算需要清理的条目数
     const excessEntries = markdownRenderCache.size - CACHE_CONFIG.MAX_ENTRIES;
     const entriesToRemove = Math.max(
       excessEntries,
       Math.floor(markdownRenderCache.size * CACHE_CONFIG.PRUNE_RATIO)
     );
-    
+
     // 只保留前N个条目
     const entriesToKeep = sortedEntries.slice(0, sortedEntries.length - entriesToRemove);
     const keysToRemove = new Set(markdownRenderCache.keys());
     entriesToKeep.forEach(([key]) => keysToRemove.delete(key));
-    
+
     // 删除多余的条目
     keysToRemove.forEach(key => {
       const entry = markdownRenderCache.get(key);
       if (entry) {
         cacheStats.totalSize -= entry.contentSize;
-        cacheStats.entries--;
+        cacheStats.entries -= 1;
         markdownRenderCache.delete(key);
       }
     });
   }
-  
+
   // 清理highlight缓存：优化清理策略，按访问时间排序，只保留最近使用的条目
   if (markdownHighlightCache.size > 200) {
     // 按访问时间排序，保留最近使用的150个条目
     const sortedHighlightEntries = Array.from(markdownHighlightCache.entries())
       .sort(([, a], [, b]) => b.accessedAt - a.accessedAt);
-    
+
     const entriesToKeep = sortedHighlightEntries.slice(0, 150);
     markdownHighlightCache.clear();
     entriesToKeep.forEach(([key, { value }]) => {
-      markdownHighlightCache.set(key, { value, accessedAt: now });
+      markdownHighlightCache.set(key, { value, 'accessedAt': now });
     });
   }
-  
+
   cacheStats.lastCleanup = now;
 }
 
@@ -433,11 +445,11 @@ let cleanupTimer: NodeJS.Timeout | null = null;
 /**
  * 启动定期缓存清理
  */
-function startPeriodicCleanup(): void {
+function startPeriodicCleanup (): void {
   if (cleanupTimer) {
     clearInterval(cleanupTimer);
   }
-  
+
   cleanupTimer = setInterval(() => {
     cleanupCache();
   }, CACHE_CONFIG.CLEANUP_INTERVAL);
@@ -449,7 +461,7 @@ startPeriodicCleanup();
 /**
  * 停止定期缓存清理（用于测试）
  */
-export function stopPeriodicCleanup(): void {
+export function stopPeriodicCleanup (): void {
   if (cleanupTimer) {
     clearInterval(cleanupTimer);
     cleanupTimer = null;
@@ -459,23 +471,27 @@ export function stopPeriodicCleanup(): void {
 /**
  * 获取缓存统计信息
  */
-export function getCacheStats(): typeof cacheStats {
+export function getCacheStats (): typeof cacheStats {
   return { ...cacheStats };
 }
 
 /**
  * MarkdownIt 实例配置
  */
+// 配置MarkdownIt
 const md = new MarkdownIt({
-  html: true,           // 允许 HTML 标签
-  linkify: true,        // 自动识别链接
-  typographer: true,    // 启用排版优化
-  highlight: function (str, lang) {
+  // 允许 HTML 标签
+  'html': true,
+  // 自动识别链接
+  'linkify': true,
+  // 启用排版优化
+  'typographer': true,
+  'highlight' (str, lang) {
     if (lang && hljs.getLanguage(lang)) {
       try {
         // 生成缓存键
         const cacheKey = `highlight:${lang}:${str}`;
-        
+
         // 检查缓存
         if (markdownHighlightCache.has(cacheKey)) {
           const cachedEntry = markdownHighlightCache.get(cacheKey);
@@ -485,26 +501,28 @@ const md = new MarkdownIt({
             return cachedEntry.value;
           }
         }
-        
+
         // 渲染并缓存结果
-        const result = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
+        const result = hljs.highlight(str, { 'language': lang, 'ignoreIllegals': true }).value;
         // 缓存结果，存储对象
-        markdownHighlightCache.set(cacheKey, { 
-          value: result, 
-          accessedAt: Date.now() 
+        markdownHighlightCache.set(cacheKey, {
+          'value': result,
+          'accessedAt': Date.now()
         });
         return result;
       } catch {
         // 忽略语法高亮错误
       }
     }
-    return ''; // 使用默认的转义
+    // 使用默认的转义
+    return '';
   }
 });
 
 // 自定义图片渲染规则，添加懒加载支持
 const defaultImageRender = md.renderer.rules.image;
-md.renderer.rules.image = function(tokens, idx, options, env, self) {
+// eslint-disable-next-line max-params -- 保持与markdown-it接口兼容
+md.renderer.rules.image = function (tokens, idx, options, env, self) {
   // 添加 loading="lazy" 属性，确保tokens[idx]存在
   if (tokens[idx]) {
     tokens[idx].attrPush(['loading', 'lazy']);
@@ -513,18 +531,20 @@ md.renderer.rules.image = function(tokens, idx, options, env, self) {
 };
 
 // 自定义代码块渲染规则，集成highlight.js，添加行号、复制按钮和语言标识
-md.renderer.rules.fence = function(tokens, idx, options) {
+md.renderer.rules.fence = function (tokens, idx, options) {
   const token = tokens[idx];
-  if (!token) return '';
-  
+  if (!token) {
+    return '';
+  }
+
   const code = token.content.trim();
   const lang = token.info.trim();
   const attrs = '';
-  
+
   // 生成缓存键
   const cacheKey = `highlight:${lang}:${code}`;
   let highlighted = '';
-  
+
   // 检查缓存
   if (markdownHighlightCache.has(cacheKey)) {
     const cachedEntry = markdownHighlightCache.get(cacheKey);
@@ -537,23 +557,23 @@ md.renderer.rules.fence = function(tokens, idx, options) {
     // 渲染并缓存结果
     highlighted = options.highlight?.(code, lang, attrs) || code;
     // 缓存结果
-    markdownHighlightCache.set(cacheKey, { 
-      value: highlighted, 
-      accessedAt: Date.now() 
+    markdownHighlightCache.set(cacheKey, {
+      'value': highlighted,
+      'accessedAt': Date.now()
     });
   }
-  
+
   // 生成行号
   const lines = code.split('\n');
   const lineNumbersHtml = lines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('\n');
-  
+
   // 构建代码块HTML，添加行号、复制按钮和语言标识
   return `<div class="code-block-container relative rounded-lg overflow-hidden mb-4">
     <div class="code-header flex items-center justify-between bg-neutral-700 dark:bg-gray-800 px-4 py-2">
       <span class="code-language text-xs font-medium text-gray-300">${lang || 'plaintext'}</span>
       <button 
         class="copy-button text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1"
-        onclick="navigator.clipboard.writeText('${code.replace(/'/g, "\\'")}').then(() => {
+        onclick="navigator.clipboard.writeText('${code.replace(/'/g, '\\\'')}').then(() => {
           this.textContent = '已复制!'; this.classList.add('bg-green-600');
           setTimeout(() => { this.textContent = '复制代码'; this.classList.remove('bg-green-600'); }, 1500);
         })"
@@ -573,20 +593,23 @@ md.renderer.rules.fence = function(tokens, idx, options) {
  * @param title 标题文本
  * @returns Slug 字符串
  */
-export function titleToSlug(title: string): string {
+export function titleToSlug (title: string): string {
   return title
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '')       // 移除特殊字符
-    .replace(/[\s_]+/g, '-')        // 替换空格和下划线为连字符
-    .replace(/^-+|-+$/g, '');        // 移除首尾连字符
+    // 移除特殊字符
+    .replace(/[^\w\s-]/g, '')
+    // 替换空格和下划线为连字符
+    .replace(/[\s_]+/g, '-')
+    // 移除首尾连字符
+    .replace(/^-+|-+$/g, '');
 }
 
 /**
  * 处理 Markdown 文本中的 Wiki 链接
  * @param text Markdown 文本
  */
-function processWikiLinks(text: string): string {
+function processWikiLinks (text: string): string {
   // 优化正则表达式性能，使用更高效的匹配方式
   return text.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match: string, title: string, displayText: string) => {
     const trimmedTitle = title?.trim() || '';
@@ -600,15 +623,15 @@ function processWikiLinks(text: string): string {
  * 处理 Markdown 文本中的数学公式
  * @param text Markdown 文本
  */
-function processMathFormulas(text: string): string {
+function processMathFormulas (text: string): string {
   let result = text;
-  
+
   // 只在有数学公式时才处理，减少不必要的正则匹配
   if (result.includes('$') || result.includes('\\[')) {
     // 处理块级数学公式：\\[...\\] 格式
     result = result.replace(/(?<!\\)\\\[([\s\S]*?)(?<!\\)\\\]/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { displayMode: true });
+        return katexCache.render(p1.trim(), { 'displayMode': true });
       } catch (error) {
         console.error('Error rendering block math [\\...\\]:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
@@ -618,7 +641,7 @@ function processMathFormulas(text: string): string {
     // 处理内联数学公式：\\(...\\) 格式
     result = result.replace(/(?<!\\)\\\(([\s\S]*?)(?<!\\)\\\)/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { displayMode: false });
+        return katexCache.render(p1.trim(), { 'displayMode': false });
       } catch (error) {
         console.error('Error rendering inline math \\(...\\):', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
@@ -628,7 +651,7 @@ function processMathFormulas(text: string): string {
     // 处理块级数学公式：$$...$$ 格式
     result = result.replace(/(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { displayMode: true });
+        return katexCache.render(p1.trim(), { 'displayMode': true });
       } catch (error) {
         console.error('Error rendering block math $$...$$:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
@@ -638,14 +661,14 @@ function processMathFormulas(text: string): string {
     // 处理内联数学公式：$...$ 格式
     result = result.replace(/(?<!\\)\$([^$\\]*(?:\\.[^$\\]*)*)(?<!\\)\$/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { displayMode: false });
+        return katexCache.render(p1.trim(), { 'displayMode': false });
       } catch (error) {
         console.error('Error rendering inline math $...$:', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
       }
     });
   }
-  
+
   return result;
 }
 
@@ -654,15 +677,15 @@ function processMathFormulas(text: string): string {
  * 更健壮的公式处理，解决公式位置和相邻文本问题
  * @param html 渲染后的HTML文本
  */
-function processMathFormulasPostRender(html: string): string {
+function processMathFormulasPostRender (html: string): string {
   let result = html;
-  
+
   // 只在有数学公式时才处理，减少不必要的正则匹配
   if (result.includes('$') || result.includes('\\[')) {
     // 处理块级数学公式：\\[...\\] 格式
     result = result.replace(/(?<!\\)\\\[([\s\S]*?)(?<!\\)\\\]/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { displayMode: true });
+        return katexCache.render(p1.trim(), { 'displayMode': true });
       } catch (error) {
         console.error('Error rendering block math [\\...\\]:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
@@ -672,7 +695,7 @@ function processMathFormulasPostRender(html: string): string {
     // 处理内联数学公式：\\(...\\) 格式
     result = result.replace(/(?<!\\)\\\(([\s\S]*?)(?<!\\)\\\)/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { displayMode: false });
+        return katexCache.render(p1.trim(), { 'displayMode': false });
       } catch (error) {
         console.error('Error rendering inline math \\(...\\):', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
@@ -682,7 +705,7 @@ function processMathFormulasPostRender(html: string): string {
     // 处理块级数学公式：$$...$$ 格式
     result = result.replace(/(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { displayMode: true });
+        return katexCache.render(p1.trim(), { 'displayMode': true });
       } catch (error) {
         console.error('Error rendering block math $$...$$:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
@@ -698,14 +721,14 @@ function processMathFormulasPostRender(html: string): string {
         return '$ $';
       }
       try {
-        return katexCache.render(cleanedFormula, { displayMode: false });
+        return katexCache.render(cleanedFormula, { 'displayMode': false });
       } catch (error) {
         console.error('Error rendering inline math $...$:', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
       }
     });
   }
-  
+
   return result;
 }
 
@@ -719,13 +742,13 @@ md.renderer.rules.text = function (tokens: { content?: string }[], idx: number) 
   const text = token?.content || '';
 
   let result = text;
-  
+
   // 处理 Wiki 链接
   result = processWikiLinks(result);
-  
+
   // 处理数学公式
   result = processMathFormulas(result);
-  
+
   // 处理引用
   result = processCitations(result);
 
@@ -736,14 +759,14 @@ md.renderer.rules.text = function (tokens: { content?: string }[], idx: number) 
  * 处理 Markdown 文本中的 Mermaid 图表
  * @param text Markdown 文本
  */
-function processMermaidDiagrams(text: string): string {
+function processMermaidDiagrams (text: string): string {
   return text.replace(/```mermaid([\s\S]*?)```/g, (_match: string, code: string) => {
     // 清理代码内容，移除首尾空白
     const cleanedCode = code.trim();
-    
+
     // 生成唯一ID
     const id = `mermaid-diagram-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
+
     // 返回包含Mermaid图表的HTML
     return `
       <div class="mermaid" id="${id}">
@@ -757,14 +780,14 @@ function processMermaidDiagrams(text: string): string {
  * 处理 Markdown 文本中的 Chart.js 图表
  * @param text Markdown 文本
  */
-function processChartJsDiagrams(text: string): string {
+function processChartJsDiagrams (text: string): string {
   return text.replace(/\[chartjs\]([\s\S]*?)\[\/chartjs\]/g, (_match: string, config: string) => {
     // 清理配置内容，移除首尾空白
     const cleanedConfig = config.trim();
-    
+
     // 生成唯一ID
     const id = `chartjs-chart-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
+
     // 返回包含Chart.js图表的HTML，使用自定义属性标记
     return `
       <canvas class="chartjs-placeholder" id="${id}" data-chart-config="${encodeURIComponent(cleanedConfig)}"></canvas>
@@ -776,14 +799,14 @@ function processChartJsDiagrams(text: string): string {
  * 处理 Markdown 文本中的 SymPy 计算单元格
  * @param text Markdown 文本
  */
-function processSymPyCells(text: string): string {
+function processSymPyCells (text: string): string {
   return text.replace(/\[sympy-cell\]([\s\S]*?)\[\/sympy-cell\]/g, (_match: string, code: string) => {
     // 清理代码内容，移除首尾空白
     const cleanedCode = code.trim();
-    
+
     // 生成唯一ID
     const id = `sympy-cell-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
+
     // 返回包含计算单元格的HTML，使用自定义属性标记，以便后续React组件处理
     return `
       <div class="sympy-cell-placeholder" data-sympy-code="${encodeURIComponent(cleanedCode)}" data-sympy-id="${id}"></div>
@@ -795,12 +818,12 @@ function processSymPyCells(text: string): string {
  * 处理 Markdown 文本中的知识图谱嵌入
  * @param text Markdown 文本
  */
-function processGraphEmbeds(text: string): string {
+function processGraphEmbeds (text: string): string {
   return text.replace(/\[graph(?:\s+([^\]]+))?\]([\s\S]*?)\[\/graph\]/g, (_match: string, attrs: string, content: string) => {
     // 清理内容和属性
     const cleanedContent = content.trim();
     const cleanedAttrs = attrs ? attrs.trim() : '';
-    
+
     // 解析属性
     const attrsObj: Record<string, string> = {};
     if (cleanedAttrs) {
@@ -809,22 +832,23 @@ function processGraphEmbeds(text: string): string {
       for (const pair of attrPairs) {
         const [key, value] = pair.split('=');
         if (key && value) {
-          attrsObj[key] = value.replace(/^['"]|['"]$/g, ''); // 移除引号
+          // 移除引号
+          attrsObj[key] = value.replace(/^['"]|['"]$/g, '');
         }
       }
     }
-    
+
     // 生成唯一ID
     const id = `graph-embed-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
+
     // 尝试解析图谱数据
-    let graphData = { nodes: [], links: [] };
+    let graphData = { 'nodes': [], 'links': [] };
     try {
       graphData = JSON.parse(cleanedContent);
     } catch (error) {
       console.error('Error parsing graph data:', error);
     }
-    
+
     // 返回包含图谱嵌入的HTML，使用自定义属性标记
     return `
       <div 
@@ -847,7 +871,7 @@ function processGraphEmbeds(text: string): string {
  * @param content Markdown 文本
  * @returns 提取的公式数组
  */
-export function extractFormulas(content: string): Array<{ id: string; content: string; type: 'inline' | 'block'; label?: string; position: number }> {
+export function extractFormulas (content: string): Array<{ id: string; content: string; type: 'inline' | 'block'; label?: string; position: number }> {
   const formulas: Array<{ id: string; content: string; type: 'inline' | 'block'; label?: string; position: number }> = [];
 
   // 生成唯一ID的辅助函数
@@ -859,10 +883,10 @@ export function extractFormulas(content: string): Array<{ id: string; content: s
   while ((match = blockRegex.exec(content)) !== null) {
     if (match[1]) {
       formulas.push({
-        id: generateId(),
-        content: match[1].trim(),
-        type: 'block',
-        position: match.index
+        'id': generateId(),
+        'content': match[1].trim(),
+        'type': 'block',
+        'position': match.index
       });
     }
   }
@@ -872,10 +896,10 @@ export function extractFormulas(content: string): Array<{ id: string; content: s
   while ((match = inlineRegex.exec(content)) !== null) {
     if (match[1]) {
       formulas.push({
-        id: generateId(),
-        content: match[1].trim(),
-        type: 'inline',
-        position: match.index
+        'id': generateId(),
+        'content': match[1].trim(),
+        'type': 'inline',
+        'position': match.index
       });
     }
   }
@@ -886,11 +910,11 @@ export function extractFormulas(content: string): Array<{ id: string; content: s
     if (match[2]) {
       const label = match[1]?.trim();
       formulas.push({
-        id: generateId(),
-        content: match[2].trim(),
-        type: 'block',
+        'id': generateId(),
+        'content': match[2].trim(),
+        'type': 'block',
         ...(label && { label }),
-        position: match.index
+        'position': match.index
       });
     }
   }
@@ -901,6 +925,54 @@ export function extractFormulas(content: string): Array<{ id: string; content: s
 /**
  * 渲染Markdown结果接口
  */
+// 先定义需要在renderMarkdown中使用的函数
+
+/**
+ * 从 Markdown 文本中提取标题信息
+ * @param content Markdown 文本
+ * @returns 标题数组，包含级别、文本和 slug
+ */
+export function extractHeadings (content: string): Array<{ level: number; text: string; slug: string }> {
+  const headings: Array<{ level: number; text: string; slug: string }> = [];
+
+  // 匹配所有 Markdown 标题
+  const headingRegex = /^(#{1,6})\s+([^\n]+)/gm;
+  let match;
+  while ((match = headingRegex.exec(content)) !== null) {
+    if (match && match[1] && match[2]) {
+      // 标题级别 (1-6)
+      const level = match[1].length;
+      // 标题文本
+      const text = match[2].trim();
+      // 生成 slug
+      const slug = titleToSlug(text);
+
+      headings.push({ level, text, slug });
+    }
+  }
+
+  return headings;
+}
+
+/**
+ * 从 Markdown 内容中提取所有 Wiki 链接（详细信息）
+ * @param content Markdown 文本
+ * @returns 包含标题、显示文本和 Slug 的 Wiki 链接数组
+ */
+export function extractWikiLinksDetailed (content: string): { title: string; displayText: string; slug: string }[] {
+  const links: { title: string; displayText: string; slug: string }[] = [];
+
+  content.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match, title, displayText) => {
+    const trimmedTitle = title?.trim() || '';
+    const trimmedDisplayText = displayText?.trim() || trimmedTitle;
+    const slug = titleToSlug(trimmedTitle || trimmedDisplayText);
+    links.push({ 'title': trimmedTitle, 'displayText': trimmedDisplayText, slug });
+    return _match;
+  });
+
+  return links;
+}
+
 export interface RenderMarkdownResult {
   html: string;
   citations: Citation[];
@@ -915,78 +987,79 @@ export interface RenderMarkdownResult {
  * @param options 渲染选项
  * @returns 渲染后的 HTML 字符串和相关信息
  */
-export function renderMarkdown(content: string, options?: {
+export function renderMarkdown (content: string, options?: {
   includeBibliography?: boolean;
   citationStyle?: CitationStyle;
 }): RenderMarkdownResult {
   // 生成优化的缓存键
   const cacheKey = generateCacheKey(content, options);
   const contentHash = generateHash(content);
-  
+
   // 检查缓存
   if (markdownRenderCache.has(cacheKey)) {
     const cachedEntry = markdownRenderCache.get(cacheKey);
     if (cachedEntry) {
       // 更新访问统计
-      cachedEntry.accessedAt = Date.now();
-      cachedEntry.accessCount++;
-      cachedEntry.lastUsed = Date.now();
+      const now = Date.now();
+      cachedEntry.accessedAt = now;
+      cachedEntry.accessCount += 1;
+      cachedEntry.lastUsed = now;
       // 增加缓存命中统计
-      cacheStats.hits++;
+      cacheStats.hits += 1;
       return cachedEntry.data;
     }
   }
-  
+
   // 增加缓存未命中统计
-  cacheStats.misses++;
-  
+  cacheStats.misses += 1;
+
   // 按顺序处理各种扩展语法，只处理需要的部分
   let processedContent = content;
-  
+
   // 处理SymPy计算单元格
   if (processedContent.includes('[sympy-cell]')) {
     processedContent = processSymPyCells(processedContent);
   }
-  
+
   // 处理Mermaid图表
   if (processedContent.includes('```mermaid')) {
     processedContent = processMermaidDiagrams(processedContent);
   }
-  
+
   // 处理Chart.js图表
   if (processedContent.includes('[chartjs]')) {
     processedContent = processChartJsDiagrams(processedContent);
   }
-  
+
   // 处理知识图谱嵌入
   if (processedContent.includes('[graph')) {
     processedContent = processGraphEmbeds(processedContent);
   }
-  
+
   // 渲染Markdown
   let html = md.render(processedContent);
-  
+
   // 提取引用
   const citations = extractCitations(content);
-  
+
   // 提取标题
   const headings = extractHeadings(content);
-  
+
   // 提取Wiki链接
   const wikiLinks = extractWikiLinksDetailed(content);
-  
+
   // 提取公式
   const formulas = extractFormulas(content);
-  
+
   // 后期处理：统一处理数学公式，确保在所有其他Markdown处理完成后进行
   html = processMathFormulasPostRender(html);
-  
+
   // 添加参考文献
   if (options?.includeBibliography && citations.length > 0) {
     const bibliography = generateBibliography(citations, options.citationStyle);
     html += `\n\n${bibliography}`;
   }
-  
+
   const result: RenderMarkdownResult = {
     html,
     citations,
@@ -994,27 +1067,27 @@ export function renderMarkdown(content: string, options?: {
     wikiLinks,
     formulas
   };
-  
+
   // 计算内容大小（大致估计）
   const contentSize = new Blob([JSON.stringify(result)]).size;
-  
+
   // 缓存结果
   const cacheEntry: CacheEntry = {
-    data: result,
-    accessedAt: Date.now(),
-    accessCount: 1,
+    'data': result,
+    'accessedAt': Date.now(),
+    'accessCount': 1,
     contentSize,
-    hash: contentHash,
-    lastUsed: Date.now()
+    'hash': contentHash,
+    'lastUsed': Date.now()
   };
-  
+
   markdownRenderCache.set(cacheKey, cacheEntry);
   cacheStats.totalSize += contentSize;
-  cacheStats.entries++;
-  
+  cacheStats.entries += 1;
+
   // 定期清理过期缓存
   cleanupCache();
-  
+
   return result;
 }
 
@@ -1023,7 +1096,7 @@ export function renderMarkdown(content: string, options?: {
  * @param content Markdown 文本
  * @returns 渲染后的 HTML 字符串
  */
-export function renderMarkdownSimple(content: string): string {
+export function renderMarkdownSimple (content: string): string {
   return renderMarkdown(content).html;
 }
 
@@ -1032,32 +1105,13 @@ export function renderMarkdownSimple(content: string): string {
  * @param content Markdown 文本
  * @returns Wiki 链接标题数组
  */
-export function extractWikiLinks(content: string): string[] {
+export function extractWikiLinks (content: string): string[] {
   const matches: string[] = content.match(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g) || [];
   return matches.map((match: string) => {
-    const titleMatch = /\[\[([^\]|]+)/.exec(match);
+    const titleMatch = (/\[\[([^\]|]+)/).exec(match);
     const title = titleMatch ? titleMatch[1]?.trim() || '' : '';
     return title;
   });
-}
-
-/**
- * 从 Markdown 内容中提取所有 Wiki 链接（详细信息）
- * @param content Markdown 文本
- * @returns 包含标题、显示文本和 Slug 的 Wiki 链接数组
- */
-export function extractWikiLinksDetailed(content: string): { title: string; displayText: string; slug: string }[] {
-  const links: { title: string; displayText: string; slug: string }[] = [];
-  
-  content.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match, title, displayText) => {
-    const trimmedTitle = title?.trim() || '';
-    const trimmedDisplayText = displayText?.trim() || trimmedTitle;
-    const slug = titleToSlug(trimmedTitle || trimmedDisplayText);
-    links.push({ title: trimmedTitle, displayText: trimmedDisplayText, slug });
-    return _match;
-  });
-  
-  return links;
 }
 
 /**
@@ -1065,7 +1119,7 @@ export function extractWikiLinksDetailed(content: string): { title: string; disp
  * @param content Markdown 文本
  * @returns 清理后的 Markdown 文本
  */
-export function cleanMarkdown(content: string): string {
+export function cleanMarkdown (content: string): string {
   return content
     .trim()
     .replace(/\n+/g, '\n')
@@ -1078,46 +1132,22 @@ export function cleanMarkdown(content: string): string {
  * @param length 摘要长度（默认 150 个字符）
  * @returns 纯文本摘要
  */
-export function getMarkdownSummary(content: string, length = 150): string {
+export function getMarkdownSummary (content: string, length = 150): string {
   // 移除所有 Markdown 标记
   const plainText = content
     .replace(/\[\[([^\]]+)\]\]/g, '$1')
     .replace(/\$\$([^$]+)\$\$/g, '')
     .replace(/(?<!\\)\$([^$]+)(?<!\\)\$/g, '')
-    .replace(/[#*`~_\[\](){}]/g, '')
+    .replace(/[#*`~_[\](){}]/g, '')
     .replace(/\n+/g, ' ')
     .trim();
-  
+
   // 截取摘要
   if (plainText.length <= length) {
     return plainText;
   }
-  
-  return plainText.substring(0, length) + '...';
-}
 
-/**
- * 从 Markdown 文本中提取标题信息
- * @param content Markdown 文本
- * @returns 标题数组，包含级别、文本和 slug
- */
-export function extractHeadings(content: string): Array<{ level: number; text: string; slug: string }> {
-  const headings: Array<{ level: number; text: string; slug: string }> = [];
-  
-  // 匹配所有 Markdown 标题
-  const headingRegex = /^(#{1,6})\s+([^\n]+)/gm;
-  let match;
-  while ((match = headingRegex.exec(content)) !== null) {
-      if (match && match[1] && match[2]) {
-        const level = match[1].length; // 标题级别 (1-6)
-        const text = match[2].trim(); // 标题文本
-        const slug = titleToSlug(text); // 生成 slug
-        
-        headings.push({ level, text, slug });
-      }
-    }
-  
-  return headings;
+  return plainText.substring(0, length) + '...';
 }
 
 /**
@@ -1125,46 +1155,46 @@ export function extractHeadings(content: string): Array<{ level: number; text: s
  * @param content Markdown 文本
  * @returns 目录 HTML 字符串
  */
-export function generateTableOfContents(content: string): string {
+export function generateTableOfContents (content: string): string {
   const headings = extractHeadings(content);
-  
+
   if (headings.length === 0) {
     return '<p class="text-gray-500 dark:text-gray-400">No headings found</p>';
   }
-  
+
   // 生成嵌套的目录结构
   let tocHtml = '<ul class="space-y-2">';
   let currentLevel = 1;
-  
+
   for (const heading of headings) {
     const { level, text, slug } = heading;
-    
+
     // 处理嵌套级别
     if (level > currentLevel) {
       // 增加嵌套级别
-      for (let i = currentLevel; i < level; i++) {
+      for (let i = currentLevel; i < level; i += 1) {
         tocHtml += '<ul class="ml-4 space-y-1">';
       }
     } else if (level < currentLevel) {
       // 减少嵌套级别
-      for (let i = currentLevel; i > level; i--) {
+      for (let i = currentLevel; i > level; i -= 1) {
         tocHtml += '</ul>';
       }
     }
-    
+
     // 添加标题链接
     tocHtml += `<li><a href="#${slug}" class="text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200">${text}</a></li>`;
-    
+
     currentLevel = level;
   }
-  
+
   // 关闭所有未关闭的列表
-  for (let i = 1; i < currentLevel; i++) {
+  for (let i = 1; i < currentLevel; i += 1) {
     tocHtml += '</ul>';
   }
-  
+
   tocHtml += '</ul>';
-  
+
   return tocHtml;
 }
 
@@ -1173,7 +1203,7 @@ export function generateTableOfContents(content: string): string {
  * @param content Markdown 文本
  * @returns 是否为空
  */
-export function isEmptyMarkdown(content: string): boolean {
+export function isEmptyMarkdown (content: string): boolean {
   const cleaned = cleanMarkdown(content);
   return cleaned === '' || cleaned === '#';
 }

@@ -8,13 +8,13 @@ import type { ContentTemplate, TemplateCategory, CreateTemplateRequest } from '.
 import { templateService } from '../../services/templateService';
 
 interface TemplateManagerProps {
-  onSelectTemplate: (template: ContentTemplate) => void;
+  onSelectTemplate: (_template: ContentTemplate) => void;
   onClose: () => void;
 }
 
 interface CreateTemplateDialogProps {
   categories: TemplateCategory[];
-  onSave: (template: CreateTemplateRequest) => void;
+  onSave: (_template: CreateTemplateRequest) => void;
   onCancel: () => void;
 }
 
@@ -46,16 +46,15 @@ const CreateTemplateDialog: React.FC<CreateTemplateDialogProps> = ({ categories,
 
   const handleSubmit = useCallback(() => {
     if (!name.trim() || !description.trim() || !content.trim()) {
-      alert('请填写所有必填字段');
       return;
     }
 
     onSave({
-      name: name.trim(),
-      description: description.trim(),
-      content: content.trim(),
-      category_id: categoryId,
-      is_public: isPublic,
+      'name': name.trim(),
+      'description': description.trim(),
+      'content': content.trim(),
+      'category_id': categoryId,
+      'is_public': isPublic,
       tags
     });
   }, [name, description, content, categoryId, isPublic, tags, onSave]);
@@ -66,7 +65,7 @@ const CreateTemplateDialog: React.FC<CreateTemplateDialogProps> = ({ categories,
         <div className="p-4 border-b dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">创建新模板</h3>
         </div>
-        
+
         <div className="p-4 overflow-y-auto flex-1">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -81,7 +80,7 @@ const CreateTemplateDialog: React.FC<CreateTemplateDialogProps> = ({ categories,
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 分类 *
@@ -98,7 +97,7 @@ const CreateTemplateDialog: React.FC<CreateTemplateDialogProps> = ({ categories,
                 ))}
               </select>
             </div>
-            
+
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 模板描述 *
@@ -111,7 +110,7 @@ const CreateTemplateDialog: React.FC<CreateTemplateDialogProps> = ({ categories,
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
+
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 模板内容 *
@@ -124,7 +123,7 @@ const CreateTemplateDialog: React.FC<CreateTemplateDialogProps> = ({ categories,
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
               />
             </div>
-            
+
             <div className="md:col-span-2">
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -140,7 +139,7 @@ const CreateTemplateDialog: React.FC<CreateTemplateDialogProps> = ({ categories,
                   公开模板
                 </label>
               </div>
-              
+
               <div className="flex flex-wrap gap-2 mb-2">
                 {tags.map(tag => (
                   <span
@@ -157,7 +156,7 @@ const CreateTemplateDialog: React.FC<CreateTemplateDialogProps> = ({ categories,
                   </span>
                 ))}
               </div>
-              
+
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -177,7 +176,7 @@ const CreateTemplateDialog: React.FC<CreateTemplateDialogProps> = ({ categories,
             </div>
           </div>
         </div>
-        
+
         <div className="p-4 border-t dark:border-gray-700 flex justify-end gap-3">
           <button
             onClick={onCancel}
@@ -215,14 +214,14 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose }) 
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         <div className="p-4 overflow-y-auto flex-1">
           <div className="space-y-4">
             <div>
               <h4 className="text-xl font-bold text-gray-900 dark:text-white">{template.name}</h4>
               <p className="text-gray-600 dark:text-gray-400 mt-1">{template.description}</p>
             </div>
-            
+
             <div className="flex flex-wrap gap-2 items-center text-sm text-gray-500 dark:text-gray-400">
               <span className="inline-flex items-center gap-1">
                 <Folder className="w-3 h-3" />
@@ -247,7 +246,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose }) 
                 </div>
               )}
             </div>
-            
+
             <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
               <pre className="font-mono text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
                 {template.content}
@@ -255,7 +254,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, onClose }) 
             </div>
           </div>
         </div>
-        
+
         <div className="p-4 border-t dark:border-gray-700 flex justify-end">
           <button
             onClick={onClose}
@@ -307,7 +306,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onSelectTempla
     // 按搜索查询过滤
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(template => 
+      filtered = filtered.filter(template =>
         template.name.toLowerCase().includes(query) ||
         template.description.toLowerCase().includes(query) ||
         template.tags?.some(tag => tag.toLowerCase().includes(query))
@@ -380,7 +379,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onSelectTempla
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         <div className="p-4 border-b dark:border-gray-700">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
@@ -393,7 +392,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onSelectTempla
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
+
             <div className="flex gap-2">
               <select
                 value={selectedCategory}
@@ -407,7 +406,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onSelectTempla
                   </option>
                 ))}
               </select>
-              
+
               <button
                 onClick={() => setShowCreateDialog(true)}
                 className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center gap-1"
@@ -418,7 +417,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onSelectTempla
             </div>
           </div>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto p-4">
           {Object.entries(groupedTemplates).length === 0 ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">
@@ -447,7 +446,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onSelectTempla
                       <ChevronDown className="w-4 h-4 text-gray-500" />
                     )}
                   </div>
-                  
+
                   {expandedCategories.has(categoryName) && (
                     <div className="divide-y divide-gray-200 dark:divide-gray-700">
                       {categoryTemplates.map(template => (
@@ -461,7 +460,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onSelectTempla
                                 {template.description}
                               </p>
                             </div>
-                            
+
                             <div className="flex items-center gap-1 ml-3">
                               <button
                                 onClick={() => {
@@ -489,7 +488,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onSelectTempla
             </div>
           )}
         </div>
-        
+
         <div className="p-4 border-t dark:border-gray-700 flex justify-between items-center">
           <div className="text-sm text-gray-500 dark:text-gray-400">
             共找到 {filteredTemplates.length} 个模板
@@ -502,7 +501,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onSelectTempla
           </button>
         </div>
       </div>
-      
+
       {/* 创建模板对话框 */}
       {showCreateDialog && (
         <CreateTemplateDialog
@@ -511,7 +510,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onSelectTempla
           onCancel={() => setShowCreateDialog(false)}
         />
       )}
-      
+
       {/* 模板预览对话框 */}
       {showPreviewDialog && selectedTemplate && (
         <TemplatePreview

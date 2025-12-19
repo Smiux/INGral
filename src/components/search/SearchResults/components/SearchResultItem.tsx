@@ -6,13 +6,13 @@ import styles from '../../SearchResults.module.css';
 interface SearchResultItemProps {
   article: Article & { search_rank: number };
   query: string;
-  onArticleClick?: ((article: Article) => void) | undefined;
+  onArticleClick?: (() => void) | undefined;
 }
 
 export const SearchResultItem: React.FC<SearchResultItemProps> = ({ article, query, onArticleClick }) => {
   const handleClick = () => {
     if (onArticleClick) {
-      onArticleClick(article);
+      onArticleClick();
     } else {
       // 默认行为：导航到文章详情页
       window.location.href = `/article/${article.slug}`;

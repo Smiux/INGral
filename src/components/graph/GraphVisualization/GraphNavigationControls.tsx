@@ -24,11 +24,11 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
     if (reactFlowInstance) {
       // 使用ReactFlow的API重置缩放和平移
       reactFlowInstance.setViewport({
-        x: 0,
-        y: 0,
-        zoom: 1
+        'x': 0,
+        'y': 0,
+        'zoom': 1
       }, {
-        duration: 500
+        'duration': 500
       });
     }
   };
@@ -38,8 +38,8 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
     if (reactFlowInstance && nodes.length > 0) {
       // 使用ReactFlow的fitView方法自动适应视图
       reactFlowInstance.fitView({
-        padding: 100,
-        duration: 500
+        'padding': 100,
+        'duration': 500
       });
     }
   };
@@ -48,7 +48,7 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
   const handleZoomIn = () => {
     if (reactFlowInstance) {
       // 使用ReactFlow的API放大
-      reactFlowInstance.zoomIn({ duration: 200 });
+      reactFlowInstance.zoomIn({ 'duration': 200 });
     }
   };
 
@@ -56,7 +56,7 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
   const handleZoomOut = () => {
     if (reactFlowInstance) {
       // 使用ReactFlow的API缩小
-      reactFlowInstance.zoomOut({ duration: 200 });
+      reactFlowInstance.zoomOut({ 'duration': 200 });
     }
   };
 
@@ -88,7 +88,7 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
           </svg>
         </button>
       </div>
-      
+
       {/* 视图控制 */}
       <div className="flex gap-1.5">
         <button

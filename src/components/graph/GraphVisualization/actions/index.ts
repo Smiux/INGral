@@ -6,10 +6,10 @@ import { useUIActions, type UIActions } from './UIActions';
 import { useHistoryActions, type HistoryActions } from './HistoryActions';
 import { useClusteringActions, type ClusteringActions } from './ClusteringActions';
 import { useBusinessLogicActions, type BusinessLogicActions } from './BusinessLogicActions';
-import { GraphActions as GraphActionsInterface } from '../GraphContextType';
+import { GraphActions as GraphActionsInterface, type GraphState, type GraphAction } from '../GraphContextType';
 
 // 整合所有actions类型
-export type AllActions = 
+export type AllActions =
   & NodeConnectionActions
   & SelectionActions
   & InteractionActions
@@ -24,12 +24,12 @@ export type AllActions =
 export type _EnsureActionsCompatibility = AllActions extends GraphActionsInterface ? true : never;
 
 // 整合所有actions hook
-export const useAllActions = (dispatch: React.Dispatch<any>, state: any) => {
+export const useAllActions = (dispatch: React.Dispatch<GraphAction>, state: GraphState) => {
   // 先获取UIActions，因为其他actions可能依赖showNotification
   const uiActions = useUIActions({ dispatch });
   // 提取showNotification以便传递给其他actions
   const { showNotification } = uiActions;
-  
+
   const nodeConnectionActions = useNodeConnectionActions({ dispatch });
   const selectionActions = useSelectionActions({ dispatch });
   const interactionActions = useInteractionActions({ dispatch });

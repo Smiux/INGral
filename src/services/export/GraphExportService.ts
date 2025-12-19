@@ -10,7 +10,7 @@ export class GraphExportService {
    * @param graph 图谱数据
    * @returns JSON格式的图谱数据
    */
-  async exportGraphToJson(graph: Graph): Promise<string> {
+  async exportGraphToJson (graph: Graph): Promise<string> {
     try {
       return JSON.stringify(graph, null, 2);
     } catch (error) {
@@ -24,7 +24,7 @@ export class GraphExportService {
    * @param graph 图谱数据
    * @returns GraphML格式的图谱数据
    */
-  async exportGraphToGraphml(graph: Graph): Promise<string> {
+  async exportGraphToGraphml (graph: Graph): Promise<string> {
     try {
       // 创建GraphML文件头部
       let graphmlContent = `<?xml version="1.0" encoding="UTF-8"?>
@@ -99,7 +99,7 @@ export class GraphExportService {
    * @param graph 图谱数据
    * @returns 包含节点和链接CSV数据的对象
    */
-  async exportGraphToCsv(graph: Graph): Promise<{ nodesCsv: string; linksCsv: string }> {
+  async exportGraphToCsv (graph: Graph): Promise<{ nodesCsv: string; linksCsv: string }> {
     try {
       // 节点CSV
       let nodesCsv = 'id,title,connections,type,description\n';
@@ -124,7 +124,7 @@ export class GraphExportService {
    * 导出图谱为JSON文件
    * @param graph 图谱数据
    */
-  async exportGraphAsJsonFile(graph: Graph): Promise<void> {
+  async exportGraphAsJsonFile (graph: Graph): Promise<void> {
     try {
       const jsonContent = await this.exportGraphToJson(graph);
       const safeFilename = ExportUtils.sanitizeFilename(graph.title || 'knowledge-graph') + '.json';
@@ -139,7 +139,7 @@ export class GraphExportService {
    * 导出图谱为GraphML文件
    * @param graph 图谱数据
    */
-  async exportGraphAsGraphmlFile(graph: Graph): Promise<void> {
+  async exportGraphAsGraphmlFile (graph: Graph): Promise<void> {
     try {
       const graphmlContent = await this.exportGraphToGraphml(graph);
       const safeFilename = ExportUtils.sanitizeFilename(graph.title || 'knowledge-graph') + '.graphml';
@@ -154,7 +154,7 @@ export class GraphExportService {
    * 导出图谱为CSV文件（生成zip包）
    * @param graph 图谱数据
    */
-  async exportGraphAsCsvFiles(graph: Graph): Promise<void> {
+  async exportGraphAsCsvFiles (graph: Graph): Promise<void> {
     try {
       const { nodesCsv, linksCsv } = await this.exportGraphToCsv(graph);
       const safeFilename = ExportUtils.sanitizeFilename(graph.title || 'knowledge-graph');
@@ -164,7 +164,7 @@ export class GraphExportService {
         // 使用CompressionStream生成zip文件
         const zipContent = await this.generateZipFile({
           [`${safeFilename}_nodes.csv`]: nodesCsv,
-          [`${safeFilename}_links.csv`]: linksCsv,
+          [`${safeFilename}_links.csv`]: linksCsv
         });
 
         ExportUtils.triggerDownload(zipContent, `${safeFilename}_csv.zip`, 'application/zip');
@@ -184,56 +184,56 @@ export class GraphExportService {
    * @param svgElement SVG元素
    * @returns Canvas元素
    */
-  private async svgToCanvas(svgElement: SVGSVGElement): Promise<HTMLCanvasElement> {
+  private async svgToCanvas (svgElement: SVGSVGElement): Promise<HTMLCanvasElement> {
     return new Promise((resolve, reject) => {
       try {
         // 克隆SVG元素，避免修改原始元素
         const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
-        
+
         // 设置SVG的XML命名空间
         svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        
+
         // 获取SVG的尺寸
         const width = svgElement.clientWidth;
         const height = svgElement.clientHeight;
-        
+
         // 设置SVG的尺寸属性
         svgClone.setAttribute('width', width.toString());
         svgClone.setAttribute('height', height.toString());
         svgClone.setAttribute('viewBox', `0 0 ${width} ${height}`);
-        
+
         // 转换SVG为XML字符串
         const serializer = new XMLSerializer();
         const svgString = serializer.serializeToString(svgClone);
-        
+
         // 创建Data URL
         const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
-        
+
         // 创建Image元素
         const img = new Image();
         img.crossOrigin = 'anonymous';
-        
+
         img.onload = () => {
           // 创建Canvas元素
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
-          
+
           // 绘制Image到Canvas
           const ctx = canvas.getContext('2d');
           if (!ctx) {
             reject(new Error('无法获取Canvas上下文'));
             return;
           }
-          
+
           ctx.drawImage(img, 0, 0, width, height);
           resolve(canvas);
         };
-        
+
         img.onerror = () => {
           reject(new Error('无法加载SVG图像'));
         };
-        
+
         // 设置Image的src
         img.src = svgDataUrl;
       } catch (error) {
@@ -247,14 +247,14 @@ export class GraphExportService {
    * @param svgSelector 图谱SVG的选择器
    * @param filename 文件名
    */
-  async exportGraphAsPng(svgSelector: string, filename: string): Promise<void> {
+  async exportGraphAsPng (svgSelector: string, filename: string): Promise<void> {
     try {
       // 获取SVG元素
       const svgElement = document.querySelector<SVGSVGElement>(svgSelector);
       if (!svgElement) {
         throw new Error('找不到图谱SVG元素');
       }
-      
+
       // 转换SVG为Canvas
       const canvas = await this.svgToCanvas(svgElement);
 
@@ -276,20 +276,20 @@ export class GraphExportService {
    * @param svgSelector 图谱SVG的选择器
    * @param graph 图谱数据
    */
-  async exportGraphAsPdf(svgSelector: string, graph: Graph): Promise<void> {
+  async exportGraphAsPdf (svgSelector: string, graph: Graph): Promise<void> {
     try {
       // 获取SVG元素
       const svgElement = document.querySelector<SVGSVGElement>(svgSelector);
       if (!svgElement) {
         throw new Error('找不到图谱SVG元素');
       }
-      
+
       // 转换SVG为Canvas
       const canvas = await this.svgToCanvas(svgElement);
-      
+
       // 将Canvas转换为图片URL
       const imgData = canvas.toDataURL('image/png');
-      
+
       // 创建PDF内容
       const pdfContent = `
         <!DOCTYPE html>
@@ -386,9 +386,9 @@ export class GraphExportService {
    * @param files 文件对象映射
    * @returns Zip文件内容
    */
-  private async generateZipFile(files: Record<string, string>): Promise<Blob> {
+  private async generateZipFile (files: Record<string, string>): Promise<Blob> {
     const stream = new ReadableStream({
-      async start(controller) {
+      async start (controller) {
         // 简单的Zip文件生成（仅支持文本文件）
         // 注意：这是一个简化实现，不支持完整的Zip规范
         let offset = 0;
@@ -397,31 +397,44 @@ export class GraphExportService {
         for (const [filename, content] of Object.entries(files)) {
           // 文件头
           const fileHeader = new Uint8Array(30);
-          fileHeader.set(new TextEncoder().encode('PK\x03\x04'), 0); // 签名
+          // 签名
+          fileHeader.set(new TextEncoder().encode('PK\x03\x04'), 0);
           fileHeader[4] = 0x14;
-          fileHeader[5] = 0x00; // 版本
+          // 版本
+          fileHeader[5] = 0x00;
           fileHeader[6] = 0x00;
-          fileHeader[7] = 0x00; // 标志
+          // 标志
+          fileHeader[7] = 0x00;
           fileHeader[8] = 0x00;
-          fileHeader[9] = 0x00; // 压缩方法（存储）
+          // 压缩方法（存储）
+          fileHeader[9] = 0x00;
           fileHeader[10] = 0x00;
-          fileHeader[11] = 0x00; // 修改时间
+          // 修改时间
+          fileHeader[11] = 0x00;
           fileHeader[12] = 0x00;
-          fileHeader[13] = 0x00; // 修改日期
+          // 修改日期
+          fileHeader[13] = 0x00;
           fileHeader[14] = 0x00;
-          fileHeader[15] = 0x00; // CRC32
+          // CRC32
+          fileHeader[15] = 0x00;
           fileHeader[16] = 0x00;
           fileHeader[17] = 0x00;
           fileHeader[18] = 0x00;
-          fileHeader[19] = 0x00; // 压缩大小
+          // 压缩大小
+          fileHeader[19] = 0x00;
           fileHeader[20] = 0x00;
           fileHeader[21] = 0x00;
           fileHeader[22] = 0x00;
-          fileHeader[23] = 0x00; // 未压缩大小
-          fileHeader[24] = filename.length & 0xFF;
-          fileHeader[25] = (filename.length >> 8) & 0xFF; // 文件名长度
+          // 未压缩大小
+          fileHeader[23] = 0x00;
+          fileHeader[24] = 0x00;
+          fileHeader[25] = 0x00;
           fileHeader[26] = 0x00;
-          fileHeader[27] = 0x00; // 额外字段长度
+          // 文件名长度
+          fileHeader[27] = 0x00;
+          fileHeader[28] = filename.length & 0xff;
+          // 额外字段长度
+          fileHeader[29] = (filename.length >> 8) & 0xff;
 
           controller.enqueue(fileHeader);
           offset += fileHeader.length;
@@ -438,52 +451,70 @@ export class GraphExportService {
 
           // 记录到中央目录
           const centralDirRecord = new Uint8Array(46);
-          centralDirRecord.set(new TextEncoder().encode('PK\x01\x02'), 0); // 签名
+          // 签名
+          centralDirRecord.set(new TextEncoder().encode('PK\x01\x02'), 0);
           centralDirRecord[4] = 0x14;
-          centralDirRecord[5] = 0x00; // 版本
+          // 版本
+          centralDirRecord[5] = 0x00;
           centralDirRecord[6] = 0x14;
-          centralDirRecord[7] = 0x00; // 版本所需
+          // 版本所需
+          centralDirRecord[7] = 0x00;
           centralDirRecord[8] = 0x00;
-          centralDirRecord[9] = 0x00; // 标志
+          // 标志
+          centralDirRecord[9] = 0x00;
           centralDirRecord[10] = 0x00;
-          centralDirRecord[11] = 0x00; // 压缩方法
+          // 压缩方法
+          centralDirRecord[11] = 0x00;
           centralDirRecord[12] = 0x00;
-          centralDirRecord[13] = 0x00; // 修改时间
+          // 修改时间
+          centralDirRecord[13] = 0x00;
           centralDirRecord[14] = 0x00;
-          centralDirRecord[15] = 0x00; // 修改日期
+          // 修改日期
+          centralDirRecord[15] = 0x00;
           centralDirRecord[16] = 0x00;
           centralDirRecord[17] = 0x00;
           centralDirRecord[18] = 0x00;
-          centralDirRecord[19] = 0x00; // CRC32
+          // CRC32
+          centralDirRecord[19] = 0x00;
           centralDirRecord[20] = 0x00;
           centralDirRecord[21] = 0x00;
           centralDirRecord[22] = 0x00;
-          centralDirRecord[23] = 0x00; // 压缩大小
+          // 压缩大小
+          centralDirRecord[23] = 0x00;
           centralDirRecord[24] = 0x00;
           centralDirRecord[25] = 0x00;
           centralDirRecord[26] = 0x00;
-          centralDirRecord[27] = 0x00; // 未压缩大小
+          // 未压缩大小
+          centralDirRecord[27] = 0x00;
           centralDirRecord[28] = filename.length & 0xFF;
-          centralDirRecord[29] = (filename.length >> 8) & 0xFF; // 文件名长度
+          // 文件名长度
+          centralDirRecord[29] = (filename.length >> 8) & 0xFF;
           centralDirRecord[30] = 0x00;
-          centralDirRecord[31] = 0x00; // 额外字段长度
+          // 额外字段长度
+          centralDirRecord[31] = 0x00;
           centralDirRecord[32] = 0x00;
-          centralDirRecord[33] = 0x00; // 文件注释长度
+          // 文件注释长度
+          centralDirRecord[33] = 0x00;
           centralDirRecord[34] = 0x00;
-          centralDirRecord[35] = 0x00; // 磁盘号
+          // 磁盘号
+          centralDirRecord[35] = 0x00;
           centralDirRecord[36] = 0x00;
-          centralDirRecord[37] = 0x00; // 内部文件属性
+          // 内部文件属性
+          centralDirRecord[37] = 0x00;
           centralDirRecord[38] = 0x00;
           centralDirRecord[39] = 0x00;
           centralDirRecord[40] = 0x00;
-          centralDirRecord[41] = 0x00; // 外部文件属性
+          // 外部文件属性
+          centralDirRecord[41] = 0x00;
           const fileOffset = offset - fileHeader.length - filenameBytes.length;
           centralDirRecord[42] = fileOffset & 0xFF;
           centralDirRecord[43] = (fileOffset >> 8) & 0xFF;
           centralDirRecord[44] = (fileOffset >> 16) & 0xFF;
-          centralDirRecord[45] = (fileOffset >> 24) & 0xFF; // 本地文件头偏移
+          // 本地文件头偏移
+          centralDirRecord[45] = (fileOffset >> 24) & 0xFF;
 
-          centralDirectory.push(Array.from(centralDirRecord).map(b => String.fromCharCode(b)).join(''));
+          centralDirectory.push(Array.from(centralDirRecord).map(b => String.fromCharCode(b))
+            .join(''));
           centralDirectory.push(filename);
         }
 
@@ -494,30 +525,38 @@ export class GraphExportService {
 
         // 中央目录结束
         const endOfCentralDirectory = new Uint8Array(22);
-        endOfCentralDirectory.set(new TextEncoder().encode('PK\x05\x06'), 0); // 签名
+        // 签名
+        endOfCentralDirectory.set(new TextEncoder().encode('PKx05x06'), 0);
         endOfCentralDirectory[4] = 0x00;
-        endOfCentralDirectory[5] = 0x00; // 磁盘号
+        // 磁盘号
+        endOfCentralDirectory[5] = 0x00;
         endOfCentralDirectory[6] = 0x00;
-        endOfCentralDirectory[7] = 0x00; // 中央目录开始磁盘
+        // 中央目录开始磁盘
+        endOfCentralDirectory[7] = 0x00;
         const fileCount = Object.keys(files).length;
         endOfCentralDirectory[8] = fileCount & 0xFF;
-        endOfCentralDirectory[9] = (fileCount >> 8) & 0xFF; // 本磁盘文件数
+        // 本磁盘文件数
+        endOfCentralDirectory[9] = (fileCount >> 8) & 0xFF;
         endOfCentralDirectory[10] = fileCount & 0xFF;
-        endOfCentralDirectory[11] = (fileCount >> 8) & 0xFF; // 总文件数
+        // 总文件数
+        endOfCentralDirectory[11] = (fileCount >> 8) & 0xFF;
         endOfCentralDirectory[12] = centralDirectoryBytes.length & 0xFF;
         endOfCentralDirectory[13] = (centralDirectoryBytes.length >> 8) & 0xFF;
         endOfCentralDirectory[14] = (centralDirectoryBytes.length >> 16) & 0xFF;
-        endOfCentralDirectory[15] = (centralDirectoryBytes.length >> 24) & 0xFF; // 中央目录大小
+        // 中央目录大小
+        endOfCentralDirectory[15] = (centralDirectoryBytes.length >> 24) & 0xFF;
         endOfCentralDirectory[16] = offset & 0xFF;
         endOfCentralDirectory[17] = (offset >> 8) & 0xFF;
         endOfCentralDirectory[18] = (offset >> 16) & 0xFF;
-        endOfCentralDirectory[19] = (offset >> 24) & 0xFF; // 中央目录偏移
+        // 中央目录偏移
+        endOfCentralDirectory[19] = (offset >> 24) & 0xFF;
         endOfCentralDirectory[20] = 0x00;
-        endOfCentralDirectory[21] = 0x00; // 注释长度
+        // 注释长度
+        endOfCentralDirectory[21] = 0x00;
 
         controller.enqueue(endOfCentralDirectory);
         controller.close();
-      },
+      }
     });
 
     return new Response(stream).blob();

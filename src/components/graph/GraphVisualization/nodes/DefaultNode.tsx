@@ -27,55 +27,63 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
   const isSelected = selected;
   // 可以在需要时从useGraph获取状态
   // const { state } = useGraph();
-  
+
   // 根据节点类型获取颜色
   const getNodeColor = () => {
     const baseColor = isSelected ? '#FF6B6B' : '#4ECDC4';
-    
+
     switch (data.type) {
       case 'concept':
-        return isSelected ? '#FF6B6B' : '#8B5CF6'; // 紫色
+        // 紫色
+        return isSelected ? '#FF6B6B' : '#8B5CF6';
       case 'article':
-        return isSelected ? '#FF6B6B' : '#3B82F6'; // 蓝色
+        // 蓝色
+        return isSelected ? '#FF6B6B' : '#3B82F6';
       case 'resource':
-        return isSelected ? '#FF6B6B' : '#10B981'; // 绿色
+        // 绿色
+        return isSelected ? '#FF6B6B' : '#10B981';
       case 'aggregate':
-        return isSelected ? '#FF6B6B' : '#F59E0B'; // 橙色
+        // 橙色
+        return isSelected ? '#FF6B6B' : '#F59E0B';
       default:
         return baseColor;
     }
   };
-  
+
   // 根据节点类型获取边框颜色
   const getNodeStrokeColor = () => {
     const baseStroke = isSelected ? '#FF5252' : '#26A69A';
-    
+
     switch (data.type) {
       case 'concept':
-        return isSelected ? '#FF5252' : '#7C3AED'; // 深紫色
+        // 深紫色
+        return isSelected ? '#FF5252' : '#7C3AED';
       case 'article':
-        return isSelected ? '#FF5252' : '#2563EB'; // 深蓝色
+        // 深蓝色
+        return isSelected ? '#FF5252' : '#2563EB';
       case 'resource':
-        return isSelected ? '#FF5252' : '#059669'; // 深绿色
+        // 深绿色
+        return isSelected ? '#FF5252' : '#059669';
       case 'aggregate':
-        return isSelected ? '#FF5252' : '#D97706'; // 深橙色
+        // 深橙色
+        return isSelected ? '#FF5252' : '#D97706';
       default:
         return baseStroke;
     }
   };
-  
+
   // 主题样式
   const theme = {
-    node: {
-      fill: getNodeColor(),
-      stroke: getNodeStrokeColor(),
-      strokeWidth: isSelected ? 3 : 2,
-      textFill: '#FFFFFF',
-      fontSize: 12,
-      radius: radius
+    'node': {
+      'fill': getNodeColor(),
+      'stroke': getNodeStrokeColor(),
+      'strokeWidth': isSelected ? 3 : 2,
+      'textFill': '#FFFFFF',
+      'fontSize': 12,
+      radius
     }
   };
-  
+
   // 根据形状渲染不同的节点样式
   const renderNodeShape = () => {
     switch (shape) {
@@ -148,13 +156,15 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
         );
     }
   };
-  
+
   // 渲染节点图标
   const renderNodeIcon = () => {
-    if (!data.type) return null;
-    
+    if (!data.type) {
+      return null;
+    }
+
     const iconSize = radius * 0.5;
-    
+
     switch (data.type) {
       case 'concept':
         return (
@@ -197,142 +207,153 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
         return null;
     }
   };
-  
+
   return (
-    <div className="graph-node-container" style={{ width: radius * 2, height: radius * 2 }}>
+    <div className="graph-node-container" style={{ 'width': radius * 2, 'height': radius * 2 }}>
       {/* 四个方向的连接点 */}
       <Handle
         type="target"
         position={Position.Left}
         className="node-handle"
-        style={{ background: theme.node.fill, borderColor: theme.node.stroke }}
+        style={{ 'background': theme.node.fill, 'borderColor': theme.node.stroke }}
       />
-      
+
       <Handle
         type="source"
         position={Position.Right}
         className="node-handle"
-        style={{ background: theme.node.fill, borderColor: theme.node.stroke }}
+        style={{ 'background': theme.node.fill, 'borderColor': theme.node.stroke }}
       />
-      
+
       <Handle
         type="target"
         position={Position.Top}
         className="node-handle"
-        style={{ background: theme.node.fill, borderColor: theme.node.stroke }}
+        style={{ 'background': theme.node.fill, 'borderColor': theme.node.stroke }}
       />
-      
+
       <Handle
         type="source"
         position={Position.Bottom}
         className="node-handle"
-        style={{ background: theme.node.fill, borderColor: theme.node.stroke }}
+        style={{ 'background': theme.node.fill, 'borderColor': theme.node.stroke }}
       />
-      
+
       {/* 节点形状 */}
       <svg className="node-svg" width={radius * 2} height={radius * 2} viewBox={`-${radius} -${radius} ${radius * 2} ${radius * 2}`}>
         {renderNodeShape()}
       </svg>
-      
+
       {/* 节点内容 */}
-      <div className="node-content" style={{ 
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        textAlign: 'center',
-        pointerEvents: 'none',
-        zIndex: 1
+      <div className="node-content" style={{
+        'position': 'absolute',
+        'top': 0,
+        'left': 0,
+        'right': 0,
+        'bottom': 0,
+        'display': 'flex',
+        'flexDirection': 'column',
+        'justifyContent': 'center',
+        'alignItems': 'center',
+        'textAlign': 'center',
+        'pointerEvents': 'none',
+        'zIndex': 1
       }}>
         {/* 节点图标 */}
-        <div style={{ 
-          marginBottom: data.type && data.title ? 4 : 0,
-          color: theme.node.textFill
+        <div style={{
+          'marginBottom': data.type && data.title ? 4 : 0,
+          'color': theme.node.textFill
         }}>
           {renderNodeIcon()}
         </div>
-        
+
         {/* 节点文本 */}
-        <div className="node-text" style={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 2
+        <div className="node-text" style={{
+          'display': 'flex',
+          'flexDirection': 'column',
+          'alignItems': 'center',
+          'gap': 2
         }}>
-          <div className="node-title" style={{ 
-            color: theme.node.textFill, 
-            fontSize: theme.node.fontSize,
-            fontWeight: 'bold',
-            lineHeight: 1.2,
-            maxWidth: '100%',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            padding: '0 4px'
+          <div className="node-title" style={{
+            'color': theme.node.textFill,
+            'fontSize': theme.node.fontSize,
+            'fontWeight': 'bold',
+            'lineHeight': 1.2,
+            'maxWidth': '100%',
+            'overflow': 'hidden',
+            'textOverflow': 'ellipsis',
+            'whiteSpace': 'nowrap',
+            'padding': '0 4px'
           }}>
             {data.title || data.id}
           </div>
           {data.content && (
-            <div className="node-content-text" style={{ 
-              color: theme.node.textFill, 
-              fontSize: theme.node.fontSize * 0.8,
-              opacity: 0.9,
-              lineHeight: 1.2,
-              maxWidth: '90%',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              padding: '0 4px'
+            <div className="node-content-text" style={{
+              'color': theme.node.textFill,
+              'fontSize': theme.node.fontSize * 0.8,
+              'opacity': 0.9,
+              'lineHeight': 1.2,
+              'maxWidth': '90%',
+              'overflow': 'hidden',
+              'textOverflow': 'ellipsis',
+              'whiteSpace': 'nowrap',
+              'padding': '0 4px'
             }}>
               {data.content}
             </div>
           )}
           {data.type !== 'aggregate' && (
-            <div className="node-connections" style={{ 
-              color: theme.node.textFill, 
-              fontSize: theme.node.fontSize * 0.8,
-              opacity: 0.8
+            <div className="node-connections" style={{
+              'color': theme.node.textFill,
+              'fontSize': theme.node.fontSize * 0.8,
+              'opacity': 0.8
             }}>
               {data.connections} 连接
             </div>
           )}
           {data.type && (
-            <div className="node-type" style={{ 
-              color: theme.node.textFill, 
-              fontSize: theme.node.fontSize * 0.7,
-              opacity: 0.7,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5
+            <div className="node-type" style={{
+              'color': theme.node.textFill,
+              'fontSize': theme.node.fontSize * 0.7,
+              'opacity': 0.7,
+              'textTransform': 'uppercase',
+              'letterSpacing': 0.5
             }}>
               {data.type}
             </div>
           )}
         </div>
       </div>
-      
+
       {/* 选中状态样式 */}
       {isSelected && (
-        <div 
+        <div
           style={{
-            position: 'absolute',
-            top: -8,
-            left: -8,
-            right: -8,
-            bottom: -8,
-            border: `2px solid ${theme.node.stroke}`,
-            borderRadius: shape === 'circle' || shape === 'ellipse' ? '50%' : shape === 'rect' || shape === 'rectangle' ? '10px' : '50%',
-            pointerEvents: 'none',
-            animation: 'pulse 1.5s infinite',
-            boxShadow: `0 0 0 2px ${theme.node.stroke}80`
+            'position': 'absolute',
+            'top': -8,
+            'left': -8,
+            'right': -8,
+            'bottom': -8,
+            'border': `2px solid ${theme.node.stroke}`,
+            'borderRadius': (() => {
+              switch (shape) {
+                case 'circle':
+                case 'ellipse':
+                  return '50%';
+                case 'rect':
+                case 'rectangle':
+                  return '10px';
+                default:
+                  return '50%';
+              }
+            })(),
+            'pointerEvents': 'none',
+            'animation': 'pulse 1.5s infinite',
+            'boxShadow': `0 0 0 2px ${theme.node.stroke}80`
           }}
         />
       )}
-      
+
       {/* 全局CSS动画定义 */}
       <style>{`
         @keyframes pulse {

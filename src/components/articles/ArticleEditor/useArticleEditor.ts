@@ -1,10 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { ContentTemplate } from '../../../types/template';
-import type { Article } from '../../../types';
+import type { Article, GraphNode, GraphLink } from '../../../types';
 import { articleService } from '../../../services/articleService';
 import { generateGraphFromArticle } from '../../../utils/GraphGenerationUtils';
-import type { GraphNode, GraphLink } from '../../../types';
 import { generateTableOfContents } from './EditorUtils';
 import { supabase } from '../../../lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -36,60 +35,60 @@ export interface ArticleEditorState {
   isSaving: boolean;
   isLoading: boolean;
   error: string;
-  
+
   // 编辑器配置状态
   visibility: 'public' | 'unlisted';
   authorName: string;
   authorEmail: string;
   authorUrl: string;
   lastEdited: Date | null;
-  
+
   // 编辑器视图状态
   viewMode: ViewMode;
   isMobile: boolean;
   livePreview: boolean;
   isFullscreen: boolean;
-  
+
   // 编辑器面板状态
   showSettingsPanel: boolean;
   showHelp: boolean;
   showTemplateManager: boolean;
   showToc: boolean;
-  
+
   // 未保存更改状态
   hasUnsavedChanges: boolean;
-  
+
   // 目录状态
   tableOfContents: TableOfContentsItem[];
   expandedTocItems: Set<string>;
   activeTocItem: string;
-  
+
   // 格式刷状态
   copiedFormat: string | null;
   isFormatBrushActive: boolean;
-  
+
   // 工具栏折叠状态
   showToolbar: boolean;
-  
+
   // 光标位置状态
   cursorPosition: { line: number; column: number };
-  
+
   // 通知状态
   notification: { message: string; type: 'success' | 'info' | 'error' } | null;
-  
+
   // LaTeX编辑器状态
   latexEditorOpen: boolean;
   selectedText: string;
-  
+
   // 图片上传对话框状态
   imageUploadDialogOpen: boolean;
-  
+
   // 文件上传对话框状态
   fileUploadDialogOpen: boolean;
-  
+
   // 快捷键相关状态
   showShortcuts: boolean;
-  
+
   // 知识图表相关状态
   showGraphGenerator: boolean;
   generatedGraph: { nodes: GraphNode[]; links: GraphLink[] } | null;
@@ -99,7 +98,7 @@ export interface ArticleEditorState {
     minConceptOccurrences: number;
     extractionDepth: number;
   };
-  
+
   // 协作编辑状态
   isCollaborative: boolean;
   collaborators: {
@@ -115,89 +114,90 @@ export interface ArticleEditorState {
  * 文章编辑器Hook
  * 管理编辑器的核心状态和逻辑
  */
-export function useArticleEditor() {
+export function useArticleEditor () {
   const { slug } = useParams<{ slug?: string }>();
   const navigate = useNavigate();
-  
+
   // 初始化状态
   const [state, setState] = useState<ArticleEditorState>({
     // 文章核心状态
-    article: null,
-    title: '',
-    content: '',
-    slug: slug || null,
-    isSaving: false,
-    isLoading: !!slug,
-    error: '',
-    
+    'article': null,
+    'title': '',
+    'content': '',
+    'slug': slug || null,
+    'isSaving': false,
+    'isLoading': Boolean(slug),
+    'error': '',
+
     // 编辑器配置状态
-    visibility: 'public',
-    authorName: '',
-    authorEmail: '',
-    authorUrl: '',
-    lastEdited: null,
-    
+    'visibility': 'public',
+    'authorName': '',
+    'authorEmail': '',
+    'authorUrl': '',
+    'lastEdited': null,
+
     // 编辑器视图状态
-    viewMode: 'editor',
-    isMobile: window.innerWidth < 768,
-    livePreview: true,
-    isFullscreen: false,
-    
+    'viewMode': 'editor',
+    'isMobile': window.innerWidth < 768,
+    'livePreview': true,
+    'isFullscreen': false,
+
     // 编辑器面板状态
-    showSettingsPanel: false,
-    showHelp: false,
-    showTemplateManager: false,
-    showToc: false,
-    
+    'showSettingsPanel': false,
+    'showHelp': false,
+    'showTemplateManager': false,
+    'showToc': false,
+
     // 未保存更改状态
-    hasUnsavedChanges: false,
-    
+    'hasUnsavedChanges': false,
+
     // 目录状态
-    tableOfContents: [],
-    expandedTocItems: new Set(),
-    activeTocItem: '',
-    
+    'tableOfContents': [],
+    'expandedTocItems': new Set(),
+    'activeTocItem': '',
+
     // 格式刷状态
-    copiedFormat: null,
-    isFormatBrushActive: false,
-    
+    'copiedFormat': null,
+    'isFormatBrushActive': false,
+
     // 工具栏折叠状态
-    showToolbar: true,
-    
+    'showToolbar': true,
+
     // 光标位置状态
-    cursorPosition: { line: 1, column: 1 },
-    
+    'cursorPosition': { 'line': 1, 'column': 1 },
+
     // 通知状态
-    notification: null,
-    
+    'notification': null,
+
     // LaTeX编辑器状态
-    latexEditorOpen: false,
-    selectedText: '',
-    
+    'latexEditorOpen': false,
+    'selectedText': '',
+
     // 图片上传对话框状态
-    imageUploadDialogOpen: false,
-    
+    'imageUploadDialogOpen': false,
+
     // 文件上传对话框状态
-    fileUploadDialogOpen: false,
-    
+    'fileUploadDialogOpen': false,
+
     // 快捷键相关状态
-    showShortcuts: false,
-    
+    'showShortcuts': false,
+
     // 知识图表相关状态
-    showGraphGenerator: false,
-    generatedGraph: null,
-    graphGenerationConfig: {
-      maxNodes: 30,
-      maxLinks: 50,
-      minConceptOccurrences: 2,
-      extractionDepth: 2
+    'showGraphGenerator': false,
+    'generatedGraph': null,
+    'graphGenerationConfig': {
+      'maxNodes': 30,
+      'maxLinks': 50,
+      'minConceptOccurrences': 2,
+      'extractionDepth': 2
     },
-    
+
     // 协作编辑状态
-    isCollaborative: !!slug, // 已存在的文章默认开启协作
-    collaborators: [],
-    remoteChange: null,
-    isResolvingConflict: false
+    // 已存在的文章默认开启协作
+    'isCollaborative': Boolean(slug),
+    'collaborators': [],
+    'remoteChange': null,
+    'isResolvingConflict': false
   });
 
   // 实时订阅通道引用
@@ -208,12 +208,12 @@ export function useArticleEditor() {
   const stateRef = useRef<ArticleEditorState>(state);
 
   // 更新状态的辅助函数
-  const updateState = useCallback(<K extends keyof ArticleEditorState>(key: K, value: ArticleEditorState[K] | ((prev: ArticleEditorState[K]) => ArticleEditorState[K])) => {
+  const updateState = useCallback(<K extends keyof ArticleEditorState>(key: K, value: ArticleEditorState[K] | ((_prev: ArticleEditorState[K]) => ArticleEditorState[K])) => {
     setState(prev => {
       const newState = {
         ...prev,
-        [key]: typeof value === 'function' 
-          ? (value as (prev: ArticleEditorState[K]) => ArticleEditorState[K])(prev[key])
+        [key]: typeof value === 'function'
+          ? (value as (_prev: ArticleEditorState[K]) => ArticleEditorState[K])(prev[key])
           : value
       };
       // 更新stateRef，确保始终指向最新状态
@@ -228,7 +228,7 @@ export function useArticleEditor() {
   }, [state]);
 
   // 批量更新状态的辅助函数
-  const batchUpdateState = useCallback((updates: Partial<ArticleEditorState> | ((prev: ArticleEditorState) => Partial<ArticleEditorState>)) => {
+  const batchUpdateState = useCallback((updates: Partial<ArticleEditorState> | ((_prev: ArticleEditorState) => Partial<ArticleEditorState>)) => {
     setState(prev => {
       const finalUpdates = typeof updates === 'function' ? updates(prev) : updates;
       const newState = { ...prev, ...finalUpdates };
@@ -293,22 +293,22 @@ export function useArticleEditor() {
         }
 
         batchUpdateState({
-          article: data,
-          title: data.title,
-          content: data.content,
-          visibility: data.visibility || 'public',
-          authorName: data.author_name || '',
-          authorEmail: data.author_email || '',
-          authorUrl: data.author_url || '',
-          lastEdited: data.updated_at ? new Date(data.updated_at) : null,
-          isLoading: false
+          'article': data,
+          'title': data.title,
+          'content': data.content,
+          'visibility': data.visibility || 'public',
+          'authorName': data.author_name || '',
+          'authorEmail': data.author_email || '',
+          'authorUrl': data.author_url || '',
+          'lastEdited': data.updated_at ? new Date(data.updated_at) : null,
+          'isLoading': false
         });
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : '加载文章失败';
         console.error('加载文章错误:', errorMessage);
         batchUpdateState({
-          error: errorMessage,
-          isLoading: false
+          'error': errorMessage,
+          'isLoading': false
         });
       }
     };
@@ -328,12 +328,12 @@ export function useArticleEditor() {
       const initialTitle = state.article?.title || '';
       const initialContent = state.article?.content || '';
       const initialVisibility = state.article?.visibility || 'public';
-      
-      const hasChanges = 
-        state.title !== initialTitle || 
-        state.content !== initialContent || 
+
+      const hasChanges =
+        state.title !== initialTitle ||
+        state.content !== initialContent ||
         state.visibility !== initialVisibility;
-      
+
       updateState('hasUnsavedChanges', hasChanges);
     }
   }, [state.title, state.content, state.visibility, state.article, state.isLoading, updateState]);
@@ -353,24 +353,25 @@ export function useArticleEditor() {
    * 保存草稿到本地存储
    */
   const saveDraft = useCallback(() => {
-    if (!state.article) { // 只有未上传的文章才保存为草稿
+    // 只有未上传的文章才保存为草稿
+    if (!state.article) {
       try {
         const draftKey = `draft_anonymous_${slug || 'new'}`;
         const currentDate = new Date();
-        
+
         // 创建草稿对象
         const draft = {
-          title: state.title,
-          content: state.content,
-          visibility: state.visibility,
-          authorName: state.authorName,
-          authorEmail: state.authorEmail,
-          authorUrl: state.authorUrl,
-          lastSaved: currentDate.toISOString(),
-          createdAt: currentDate.toISOString(),
-          id: `${slug || 'new'}_${Date.now()}`
+          'title': state.title,
+          'content': state.content,
+          'visibility': state.visibility,
+          'authorName': state.authorName,
+          'authorEmail': state.authorEmail,
+          'authorUrl': state.authorUrl,
+          'lastSaved': currentDate.toISOString(),
+          'createdAt': currentDate.toISOString(),
+          'id': `${slug || 'new'}_${Date.now()}`
         };
-        
+
         // 保存到本地存储
         localStorage.setItem(draftKey, JSON.stringify(draft));
         showNotification('草稿已保存', 'success');
@@ -395,12 +396,12 @@ export function useArticleEditor() {
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (state.hasUnsavedChanges && !state.article) {
-        // 对于未上传的文章，自定义确认提示
+        // 对于未上传的文章，自定义确认提示} else {
         const message = '您有未保存的更改，是否保存为草稿？';
         (e as BeforeUnloadEvent).returnValue = message;
         return message;
       }
-      return;
+      return undefined;
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -409,27 +410,20 @@ export function useArticleEditor() {
   }, [state.hasUnsavedChanges, state.article]);
 
   /**
-   * 监听路由变化，实现自定义离开确认
+   * 监听路由变化，自动保存草稿
    */
   useEffect(() => {
-    const handleRouteChange = (e: PopStateEvent) => {
+    const handleRouteChange = (_e: PopStateEvent) => {
       if (state.hasUnsavedChanges && !state.article) {
-        const shouldSave = window.confirm('您有未保存的更改，是否保存为草稿？');
-        if (shouldSave) {
-          saveDraft();
-        } else if (shouldSave === false) {
-          // 用户取消离开，阻止路由跳转
-          e.preventDefault();
-        }
+        // 自动保存草稿，不弹出确认
+        saveDraft();
       }
     };
 
     // 添加路由变化监听
     window.addEventListener('popstate', handleRouteChange);
 
-    return () => {
-      window.removeEventListener('popstate', handleRouteChange);
-    };
+    return () => window.removeEventListener('popstate', handleRouteChange);
   }, [state.hasUnsavedChanges, state.article, saveDraft]);
 
   /**
@@ -445,7 +439,7 @@ export function useArticleEditor() {
   const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     updateState('title', newTitle);
-    
+
     // 标题长度提示
     if (newTitle.length > 100) {
       showNotification('标题长度建议不超过100个字符', 'info');
@@ -464,7 +458,7 @@ export function useArticleEditor() {
     try {
       // 使用stateRef获取最新状态，避免闭包问题和无限循环
       const currentState = stateRef.current;
-      
+
       const title = currentState.title;
       const content = currentState.content;
       const visibility = currentState.visibility;
@@ -472,7 +466,7 @@ export function useArticleEditor() {
       const authorEmail = currentState.authorEmail;
       const authorUrl = currentState.authorUrl;
       const article = currentState.article;
-      
+
       if (!title.trim()) {
         const errorMsg = '文章标题不能为空';
         updateState('error', errorMsg);
@@ -495,24 +489,24 @@ export function useArticleEditor() {
 
       let result: Article | null | undefined;
       if (article) {
-        result = await articleService.updateArticle(
-          article.id, 
-          title, 
-          content, 
-          visibility, 
-          authorName, 
-          authorEmail, 
+        result = await articleService.updateArticle({
+          'id': article.id,
+          title,
+          content,
+          visibility,
+          authorName,
+          authorEmail,
           authorUrl
-        );
+        });
       } else {
-        result = await articleService.createArticle(
-          title, 
-          content, 
-          visibility, 
-          authorName, 
-          authorEmail, 
+        result = await articleService.createArticle({
+          title,
+          content,
+          visibility,
+          authorName,
+          authorEmail,
           authorUrl
-        );
+        });
       }
 
       if (!result) {
@@ -520,10 +514,10 @@ export function useArticleEditor() {
       }
 
       batchUpdateState({
-        article: result,
-        lastEdited: now,
-        hasUnsavedChanges: false,
-        isSaving: false
+        'article': result,
+        'lastEdited': now,
+        'hasUnsavedChanges': false,
+        'isSaving': false
       });
 
       // 清除草稿
@@ -541,7 +535,7 @@ export function useArticleEditor() {
           const newSlug = result.slug;
           // 稍微延迟一下，让用户看到通知
           setTimeout(() => {
-            navigate(`/article/${newSlug}`, { replace: true });
+            navigate(`/article/${newSlug}`, { 'replace': true });
           }, 500);
         } else {
           console.error('保存成功，但无法获取文章链接');
@@ -563,8 +557,8 @@ export function useArticleEditor() {
       }
 
       batchUpdateState({
-        error: userFriendlyError,
-        isSaving: false
+        'error': userFriendlyError,
+        'isSaving': false
       });
       showNotification(userFriendlyError, 'error');
     }
@@ -607,8 +601,8 @@ export function useArticleEditor() {
   }) => {
     // 检查更新是否来自当前用户的操作
     if (payload.eventType === 'UPDATE' && payload.new) {
-      const { new: updatedArticle } = payload;
-      
+      const { 'new': updatedArticle } = payload;
+
       // 检查是否是自己的更新（通过比较最后编辑时间）
       const serverUpdatedAt = new Date(updatedArticle.updated_at);
       if (serverUpdatedAt > localEditTimestampRef.current) {
@@ -619,23 +613,22 @@ export function useArticleEditor() {
             // 有未保存的本地更改，触发冲突解决流程
             return {
               ...prevState,
-              isResolvingConflict: true,
-              remoteChange: {
-                field: 'content',
-                value: updatedArticle.content,
-                timestamp: serverUpdatedAt
+              'isResolvingConflict': true,
+              'remoteChange': {
+                'field': 'content',
+                'value': updatedArticle.content,
+                'timestamp': serverUpdatedAt
               }
             };
-          } else {
-            // 无未保存更改，直接应用远程更新
-            return {
-              ...prevState,
-              article: updatedArticle,
-              content: updatedArticle.content,
-              title: updatedArticle.title,
-              lastEdited: serverUpdatedAt
-            };
           }
+          // 无未保存更改，直接应用远程更新
+          return {
+            ...prevState,
+            'article': updatedArticle,
+            'content': updatedArticle.content,
+            'title': updatedArticle.title,
+            'lastEdited': serverUpdatedAt
+          };
         });
         // 显示通知
         showNotification('检测到远程更改，需要解决冲突', 'info');
@@ -653,10 +646,10 @@ export function useArticleEditor() {
         .on(
           'postgres_changes',
           {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'articles',
-            filter: `id=eq.${state.article.id}`
+            'event': 'UPDATE',
+            'schema': 'public',
+            'table': 'articles',
+            'filter': `id=eq.${state.article.id}`
           },
           handleRemoteUpdate
         )
@@ -667,9 +660,9 @@ export function useArticleEditor() {
       // 获取当前协作者列表（模拟实现，实际可以从数据库获取）
       const mockCollaborators = [
         {
-          id: 'user1',
-          name: '协作编辑者1',
-          cursorPosition: { line: 5, column: 10 }
+          'id': 'user1',
+          'name': '协作编辑者1',
+          'cursorPosition': { 'line': 5, 'column': 10 }
         }
       ];
       updateState('collaborators', mockCollaborators);
@@ -701,7 +694,7 @@ export function useArticleEditor() {
         }
         showNotification('已应用远程更改', 'info');
       }
-      
+
       // 重置冲突状态
       updateState('isResolvingConflict', false);
       updateState('remoteChange', null);
@@ -714,7 +707,7 @@ export function useArticleEditor() {
   const handleContentChange = useCallback((newContent: string) => {
     // 更新本地编辑时间戳
     localEditTimestampRef.current = new Date();
-    
+
     updateState('content', newContent);
   }, [updateState]);
 
@@ -738,15 +731,15 @@ export function useArticleEditor() {
       }
 
       const graph = generateGraphFromArticle({
-        title: state.title || '未命名文章',
-        content: state.content,
-        visibility: state.visibility,
-        author_name: state.authorName,
-        author_email: state.authorEmail,
-        author_url: state.authorUrl
+        'title': state.title || '未命名文章',
+        'content': state.content,
+        'visibility': state.visibility,
+        'author_name': state.authorName,
+        'author_email': state.authorEmail,
+        'author_url': state.authorUrl
       } as Article, state.graphGenerationConfig);
 
-      updateState('generatedGraph', { nodes: graph.nodes, links: graph.links });
+      updateState('generatedGraph', { 'nodes': graph.nodes, 'links': graph.links });
       showNotification(`成功生成知识图表，包含 ${graph.nodes.length} 个节点和 ${graph.links.length} 条关系`, 'success');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '生成知识图表失败';

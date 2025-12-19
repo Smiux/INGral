@@ -5,14 +5,19 @@ export type InputSize = 'sm' | 'md' | 'lg';
 
 // Define input props interface
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+
   /** Input size */
   size?: InputSize;
+
   /** Custom class name */
   className?: string;
+
   /** Label text */
   label?: string;
+
   /** Error message */
   error?: string;
+
   /** Helper text */
   helperText?: string;
 }
@@ -32,18 +37,29 @@ export const Input: React.FC<InputProps> = ({
   ...props
 }) => {
   // Generate a unique ID if not provided
-  const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+  const inputId = id || `input-${Math.random().toString(36)
+    .substr(2, 9)}`;
   const descriptionId = `${inputId}-description`;
   const errorId = error ? `${inputId}-error` : undefined;
+
+  // Calculate aria-describedby value to avoid nested ternary
+  let describedBy;
+  if (error) {
+    describedBy = errorId;
+  } else if (helperText) {
+    describedBy = descriptionId;
+  } else {
+    describedBy = undefined;
+  }
 
   // Base input classes
   const baseClasses = 'block w-full rounded-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed';
 
   // Size classes
   const sizeClasses = {
-    sm: 'px-3 py-1 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    'sm': 'px-3 py-1 text-sm',
+    'md': 'px-4 py-2 text-base',
+    'lg': 'px-6 py-3 text-lg'
   };
 
   // State classes
@@ -55,8 +71,8 @@ export const Input: React.FC<InputProps> = ({
     <div className="w-full">
       {/* Label */}
       {label && (
-        <label 
-          htmlFor={inputId} 
+        <label
+          htmlFor={inputId}
           className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
         >
           {label}
@@ -68,8 +84,8 @@ export const Input: React.FC<InputProps> = ({
       <input
         id={inputId}
         className={`${baseClasses} ${sizeClasses[size]} ${stateClasses} ${className}`}
-        aria-describedby={error ? errorId : helperText ? descriptionId : undefined}
-        aria-invalid={!!error || !!ariaInvalid || false}
+        aria-describedby={describedBy}
+        aria-invalid={Boolean(error) || Boolean(ariaInvalid) || false}
         aria-required={ariaRequired || props.required || false}
         {...props}
       />

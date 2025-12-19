@@ -12,8 +12,9 @@ export class GraphService extends BaseService {
    * 获取所有图谱
    * @param visibility 图谱可见性
    */
-  async getAllGraphs(visibility: 'public' | 'unlisted' = 'public'): Promise<Graph[]> {
-    const result = await this.supabase.from(this.TABLE_NAME).select('*').eq('visibility', visibility);
+  async getAllGraphs (visibility: 'public' | 'unlisted' = 'public'): Promise<Graph[]> {
+    const result = await this.supabase.from(this.TABLE_NAME).select('*')
+      .eq('visibility', visibility);
     return result.data || [];
   }
 
@@ -21,24 +22,28 @@ export class GraphService extends BaseService {
    * 获取图谱详情
    * @param graphId 图谱ID
    */
-  async getGraphById(graphId: string): Promise<Graph | null> {
+  async getGraphById (graphId: string): Promise<Graph | null> {
     // 获取图谱基本信息
-    const graphResult = await this.supabase.from(this.TABLE_NAME).select('*').eq('id', graphId).single<Graph>();
-    
+    const graphResult = await this.supabase.from(this.TABLE_NAME).select('*')
+      .eq('id', graphId)
+      .single<Graph>();
+
     if (!graphResult.data) {
       return null;
     }
 
     // 获取图谱节点
-    const nodesResult = await this.supabase.from('graph_nodes').select('*').eq('graph_id', graphId);
+    const nodesResult = await this.supabase.from('graph_nodes').select('*')
+      .eq('graph_id', graphId);
 
     // 获取图谱链接
-    const linksResult = await this.supabase.from('graph_links').select('*').eq('graph_id', graphId);
+    const linksResult = await this.supabase.from('graph_links').select('*')
+      .eq('graph_id', graphId);
 
     return {
       ...graphResult.data,
-      nodes: nodesResult.data || [],
-      links: linksResult.data || []
+      'nodes': nodesResult.data || [],
+      'links': linksResult.data || []
     };
   }
 
@@ -47,7 +52,7 @@ export class GraphService extends BaseService {
    * @param graphId 图谱ID
    * @param options 分页选项
    */
-  async getGraphByIdWithPagination(graphId: string, options: {
+  async getGraphByIdWithPagination (graphId: string, options: {
     nodePage?: number;
     nodeLimit?: number;
     linkPage?: number;
@@ -61,12 +66,14 @@ export class GraphService extends BaseService {
       linkLimit = 100,
       includeBasicInfo = true
     } = options;
-    
+
     // 获取图谱基本信息
-    const graphResult = includeBasicInfo 
-      ? await this.supabase.from(this.TABLE_NAME).select('*').eq('id', graphId).single<Graph>()
-      : { data: { id: graphId, nodes: [], links: [] } as unknown as Graph };
-    
+    const graphResult = includeBasicInfo
+      ? await this.supabase.from(this.TABLE_NAME).select('*')
+        .eq('id', graphId)
+        .single<Graph>()
+      : { 'data': { 'id': graphId, 'nodes': [], 'links': [] } as unknown as Graph };
+
     if (!graphResult.data) {
       return null;
     }
@@ -75,7 +82,7 @@ export class GraphService extends BaseService {
     const nodesResult = await this.supabase.from('graph_nodes')
       .select('*')
       .eq('graph_id', graphId)
-      .order('connections', { ascending: false })
+      .order('connections', { 'ascending': false })
       .limit(nodeLimit)
       .range((nodePage - 1) * nodeLimit, nodePage * nodeLimit - 1);
 
@@ -88,8 +95,8 @@ export class GraphService extends BaseService {
 
     return {
       ...graphResult.data,
-      nodes: nodesResult.data || [],
-      links: linksResult.data || []
+      'nodes': nodesResult.data || [],
+      'links': linksResult.data || []
     };
   }
 
@@ -98,7 +105,7 @@ export class GraphService extends BaseService {
    * @param graphId 图谱ID
    * @param nodeId 节点ID
    */
-  async getNeighborNodes(graphId: string, nodeId: string): Promise<{
+  async getNeighborNodes (graphId: string, nodeId: string): Promise<{
     nodes: GraphNode[];
     links: GraphLink[];
   }> {
@@ -110,7 +117,7 @@ export class GraphService extends BaseService {
       .single<GraphNode>();
 
     if (!nodeResult.data) {
-      return { nodes: [], links: [] };
+      return { 'nodes': [], 'links': [] };
     }
 
     // 获取直接相连的链接
@@ -149,23 +156,23 @@ export class GraphService extends BaseService {
    * @param page 页码
    * @param limit 每页数量
    */
-  async getNodesByGraphIdWithPagination(graphId: string, page: number = 1, limit: number = 50): Promise<{
+  async getNodesByGraphIdWithPagination (graphId: string, page: number = 1, limit: number = 50): Promise<{
     nodes: GraphNode[];
     total: number;
     hasMore: boolean;
   }> {
     const offset = (page - 1) * limit;
-    
+
     // 获取节点总数
     const countResult = await this.supabase.from('graph_nodes')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { 'count': 'exact', 'head': true })
       .eq('graph_id', graphId);
 
     // 获取节点数据
     const nodesResult = await this.supabase.from('graph_nodes')
       .select('*')
       .eq('graph_id', graphId)
-      .order('connections', { ascending: false })
+      .order('connections', { 'ascending': false })
       .limit(limit)
       .range(offset, offset + limit - 1);
 
@@ -182,23 +189,23 @@ export class GraphService extends BaseService {
    * @param page 页码
    * @param limit 每页数量
    */
-  async getLinksByGraphIdWithPagination(graphId: string, page: number = 1, limit: number = 100): Promise<{
+  async getLinksByGraphIdWithPagination (graphId: string, page: number = 1, limit: number = 100): Promise<{
     links: GraphLink[];
     total: number;
     hasMore: boolean;
   }> {
     const offset = (page - 1) * limit;
-    
+
     // 获取链接总数
     const countResult = await this.supabase.from('graph_links')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { 'count': 'exact', 'head': true })
       .eq('graph_id', graphId);
 
     // 获取链接数据
     const linksResult = await this.supabase.from('graph_links')
       .select('*')
       .eq('graph_id', graphId)
-      .order('weight', { ascending: false })
+      .order('weight', { 'ascending': false })
       .limit(limit)
       .range(offset, offset + limit - 1);
 
@@ -213,7 +220,7 @@ export class GraphService extends BaseService {
    * 创建图谱
    * @param graphData 图谱数据
    */
-  async createGraph(graphData: {
+  async createGraph (graphData: {
     title: string;
     is_template?: boolean;
     visibility?: 'public' | 'unlisted';
@@ -222,16 +229,18 @@ export class GraphService extends BaseService {
     author_url?: string;
   }): Promise<Graph | null> {
     const graphRecord = {
-      title: graphData.title,
-      is_template: graphData.is_template || false,
-      visibility: graphData.visibility || 'unlisted',
-      author_name: graphData.author_name || 'Anonymous',
-      author_email: graphData.author_email,
-      author_url: graphData.author_url,
-      graph_data: {}
+      'title': graphData.title,
+      'is_template': graphData.is_template || false,
+      'visibility': graphData.visibility || 'unlisted',
+      'author_name': graphData.author_name || 'Anonymous',
+      'author_email': graphData.author_email,
+      'author_url': graphData.author_url,
+      'graph_data': {}
     };
 
-    const result = await this.supabase.from(this.TABLE_NAME).insert(graphRecord).select('*').single<Graph>();
+    const result = await this.supabase.from(this.TABLE_NAME).insert(graphRecord)
+      .select('*')
+      .single<Graph>();
     return result.data || null;
   }
 
@@ -240,7 +249,7 @@ export class GraphService extends BaseService {
    * @param graphId 图谱ID
    * @param updates 更新数据
    */
-  async updateGraph(graphId: string, updates: Partial<{
+  async updateGraph (graphId: string, updates: Partial<{
     title: string;
     is_template: boolean;
     visibility: 'public' | 'unlisted';
@@ -256,22 +265,25 @@ export class GraphService extends BaseService {
     const currentGraph = await this.getGraphById(graphId);
 
     // 计算编辑限制状态
-    const editLimitStatus = calculateEditLimitStatus(
-      currentGraph?.edit_count_24h || 0,
-      currentGraph?.edit_count_7d || 0,
-      currentGraph?.last_edit_date
-    );
+    const editLimitStatus = calculateEditLimitStatus({
+      'currentEditCount24h': currentGraph?.edit_count_24h || 0,
+      'currentEditCount7d': currentGraph?.edit_count_7d || 0,
+      'lastEditDate': currentGraph?.last_edit_date ?? null
+    });
 
     // 构建最终更新对象，包含编辑限制字段
     const finalUpdates = buildUpdateWithEditLimit(
       {
         ...updates,
-        updated_at: nowISO
+        'updated_at': nowISO
       },
       editLimitStatus
     );
 
-    const result = await this.supabase.from(this.TABLE_NAME).update(finalUpdates).eq('id', graphId).select('*').single<Graph>();
+    const result = await this.supabase.from(this.TABLE_NAME).update(finalUpdates)
+      .eq('id', graphId)
+      .select('*')
+      .single<Graph>();
     return result.data || null;
   }
 
@@ -279,21 +291,24 @@ export class GraphService extends BaseService {
    * 删除图谱
    * @param graphId 图谱ID
    */
-  async deleteGraph(graphId: string): Promise<boolean> {
+  async deleteGraph (graphId: string): Promise<boolean> {
     try {
       // 删除图谱
-      const graphResult = await this.supabase.from(this.TABLE_NAME).delete().eq('id', graphId);
-      
+      const graphResult = await this.supabase.from(this.TABLE_NAME).delete()
+        .eq('id', graphId);
+
       if (graphResult.error) {
         throw new Error('Failed to delete graph');
       }
 
       // 删除关联的节点
-      await this.supabase.from('graph_nodes').delete().eq('graph_id', graphId);
-      
+      await this.supabase.from('graph_nodes').delete()
+        .eq('graph_id', graphId);
+
       // 删除关联的链接
-      await this.supabase.from('graph_links').delete().eq('graph_id', graphId);
-      
+      await this.supabase.from('graph_links').delete()
+        .eq('graph_id', graphId);
+
       return true;
     } catch (err) {
       this.handleError(err, 'GraphService', '删除图谱');
@@ -305,7 +320,7 @@ export class GraphService extends BaseService {
    * 创建图谱节点
    * @param nodeData 节点数据
    */
-  async createNode(nodeData: {
+  async createNode (nodeData: {
     graph_id: string;
     title: string;
     type?: 'article' | 'concept' | 'resource';
@@ -320,20 +335,22 @@ export class GraphService extends BaseService {
     const tableName = 'graph_nodes';
 
     const nodeRecord = {
-      graph_id: nodeData.graph_id,
-      title: nodeData.title,
-      type: nodeData.type || 'concept',
-      description: nodeData.description,
-      content: nodeData.content,
-      color: nodeData.color || 'var(--neutral-500)',
-      size: nodeData.size || 20,
-      x: nodeData.x || 0,
-      y: nodeData.y || 0,
-      z: nodeData.z || 0,
-      connections: 0
+      'graph_id': nodeData.graph_id,
+      'title': nodeData.title,
+      'type': nodeData.type || 'concept',
+      'description': nodeData.description,
+      'content': nodeData.content,
+      'color': nodeData.color || 'var(--neutral-500)',
+      'size': nodeData.size || 20,
+      'x': nodeData.x || 0,
+      'y': nodeData.y || 0,
+      'z': nodeData.z || 0,
+      'connections': 0
     };
 
-    const result = await this.supabase.from(tableName).insert(nodeRecord).select('*').single<GraphNode>();
+    const result = await this.supabase.from(tableName).insert(nodeRecord)
+      .select('*')
+      .single<GraphNode>();
     return result.data || null;
   }
 
@@ -341,7 +358,7 @@ export class GraphService extends BaseService {
    * 创建图谱链接
    * @param linkData 链接数据
    */
-  async createLink(linkData: {
+  async createLink (linkData: {
     graph_id: string;
     source_id: string;
     target_id: string;
@@ -353,16 +370,18 @@ export class GraphService extends BaseService {
     const tableName = 'graph_links';
 
     const linkRecord = {
-      graph_id: linkData.graph_id,
-      source_id: linkData.source_id,
-      target_id: linkData.target_id,
-      type: linkData.type || 'related',
-      label: linkData.label,
-      weight: linkData.weight || 1.0,
-      color: linkData.color || 'var(--neutral-400)'
+      'graph_id': linkData.graph_id,
+      'source_id': linkData.source_id,
+      'target_id': linkData.target_id,
+      'type': linkData.type || 'related',
+      'label': linkData.label,
+      'weight': linkData.weight || 1.0,
+      'color': linkData.color || 'var(--neutral-400)'
     };
 
-    const result = await this.supabase.from(tableName).insert(linkRecord).select('*').single<GraphLink>();
+    const result = await this.supabase.from(tableName).insert(linkRecord)
+      .select('*')
+      .single<GraphLink>();
     return result.data || null;
   }
 
@@ -372,16 +391,18 @@ export class GraphService extends BaseService {
    * @param nodeId 节点ID
    * @param mappingType 映射类型
    */
-  async createArticleNodeMapping(articleId: string, nodeId: string, mappingType: string = 'primary') {
+  async createArticleNodeMapping (articleId: string, nodeId: string, mappingType: string = 'primary') {
     const tableName = 'article_node_mappings';
 
     const mappingRecord = {
-      article_id: articleId,
-      node_id: nodeId,
-      mapping_type: mappingType
+      'article_id': articleId,
+      'node_id': nodeId,
+      'mapping_type': mappingType
     };
 
-    const result = await this.supabase.from(tableName).insert(mappingRecord).select('*').single();
+    const result = await this.supabase.from(tableName).insert(mappingRecord)
+      .select('*')
+      .single();
     return result.data;
   }
 
@@ -389,11 +410,11 @@ export class GraphService extends BaseService {
    * 获取文章关联的节点
    * @param articleId 文章ID
    */
-  async getNodesByArticleId(articleId: string): Promise<GraphNode[]> {
+  async getNodesByArticleId (articleId: string): Promise<GraphNode[]> {
     const result = await this.supabase.from('article_node_mappings')
       .select('node:node_id(*)')
       .eq('article_id', articleId);
-    
+
     const data = result.data || [];
     return data
       .filter(item => item?.node !== undefined && typeof item.node === 'object' && !Array.isArray(item.node))
@@ -407,11 +428,11 @@ export class GraphService extends BaseService {
    * 获取节点关联的文章
    * @param nodeId 节点ID
    */
-  async getArticlesByNodeId(nodeId: string): Promise<Article[]> {
+  async getArticlesByNodeId (nodeId: string): Promise<Article[]> {
     const result = await this.supabase.from('article_node_mappings')
       .select('article:article_id(*)')
       .eq('node_id', nodeId);
-    
+
     const data = result.data || [];
     return data
       .filter(item => item?.article !== undefined && typeof item.article === 'object' && !Array.isArray(item.article))
@@ -426,7 +447,7 @@ export class GraphService extends BaseService {
    * @param articleId 文章ID
    * @param nodeId 节点ID
    */
-  async deleteArticleNodeMapping(articleId: string, nodeId: string): Promise<boolean> {
+  async deleteArticleNodeMapping (articleId: string, nodeId: string): Promise<boolean> {
     const tableName = 'article_node_mappings';
 
     try {
@@ -434,7 +455,7 @@ export class GraphService extends BaseService {
         .delete()
         .eq('article_id', articleId)
         .eq('node_id', nodeId);
-      
+
       return true;
     } catch (err) {
       this.handleError(err, 'GraphService', '删除文章-节点映射');
@@ -445,9 +466,9 @@ export class GraphService extends BaseService {
   /**
    * 获取所有图谱分类
    */
-  async getAllCategories() {
+  async getAllCategories () {
     const tableName = 'graph_categories';
-    
+
     const result = await this.supabase.from(tableName).select('*');
     return result.data || [];
   }
@@ -456,13 +477,13 @@ export class GraphService extends BaseService {
    * 获取分类下的图谱
    * @param categoryId 分类ID
    */
-  async getGraphsByCategory(categoryId: string): Promise<Graph[]> {
+  async getGraphsByCategory (categoryId: string): Promise<Graph[]> {
     const result = await this.supabase.from(this.TABLE_NAME)
       .select('*')
       .eq('category_id', categoryId)
       .eq('visibility', 'public')
-      .order('created_at', { ascending: false });
-    
+      .order('created_at', { 'ascending': false });
+
     return result.data || [];
   }
 
@@ -470,7 +491,7 @@ export class GraphService extends BaseService {
    * 导出图谱数据
    * @param graphId 图谱ID
    */
-  async exportGraph(graphId: string): Promise<{
+  async exportGraph (graphId: string): Promise<{
     id: string;
     title: string;
     nodes: GraphNode[];
@@ -479,15 +500,17 @@ export class GraphService extends BaseService {
     updated_at: string;
   } | null> {
     const graph = await this.getGraphById(graphId);
-    if (!graph) return null;
+    if (!graph) {
+      return null;
+    }
 
     return {
-      id: graph.id,
-      title: graph.title,
-      nodes: graph.nodes,
-      links: graph.links,
-      created_at: graph.created_at,
-      updated_at: graph.updated_at
+      'id': graph.id,
+      'title': graph.title,
+      'nodes': graph.nodes,
+      'links': graph.links,
+      'created_at': graph.created_at,
+      'updated_at': graph.updated_at
     };
   }
 
@@ -495,7 +518,7 @@ export class GraphService extends BaseService {
    * 导入图谱数据
    * @param graphData 图谱数据
    */
-  async importGraph(graphData: {
+  async importGraph (graphData: {
     title: string;
     nodes: Array<Record<string, unknown>>;
     links: Array<Record<string, unknown>>;
@@ -504,9 +527,9 @@ export class GraphService extends BaseService {
     try {
       // 创建图谱
       const graph = await this.createGraph({
-        title: graphData.title,
-        visibility: graphData.visibility || 'unlisted',
-        is_template: false
+        'title': graphData.title,
+        'visibility': graphData.visibility || 'unlisted',
+        'is_template': false
       });
 
       if (!graph) {
@@ -519,16 +542,16 @@ export class GraphService extends BaseService {
       // 创建节点
       for (const node of graphData.nodes) {
         const createdNode = await this.createNode({
-          graph_id: graph.id,
-          title: (node as Record<string, unknown>).title as string || 'Untitled Node',
-          type: (node as Record<string, unknown>).type as 'article' | 'concept' | 'resource' || 'concept',
-          description: (node as Record<string, unknown>).description as string || '',
-          content: (node as Record<string, unknown>).content as string || '',
-          color: (node as Record<string, unknown>).color as string || 'var(--neutral-500)',
-          size: (node as Record<string, unknown>).size as number || 20,
-          x: (node as Record<string, unknown>).x as number || 0,
-          y: (node as Record<string, unknown>).y as number || 0,
-          z: (node as Record<string, unknown>).z as number || 0
+          'graph_id': graph.id,
+          'title': (node as Record<string, unknown>).title as string || 'Untitled Node',
+          'type': (node as Record<string, unknown>).type as 'article' | 'concept' | 'resource' || 'concept',
+          'description': (node as Record<string, unknown>).description as string || '',
+          'content': (node as Record<string, unknown>).content as string || '',
+          'color': (node as Record<string, unknown>).color as string || 'var(--neutral-500)',
+          'size': (node as Record<string, unknown>).size as number || 20,
+          'x': (node as Record<string, unknown>).x as number || 0,
+          'y': (node as Record<string, unknown>).y as number || 0,
+          'z': (node as Record<string, unknown>).z as number || 0
         });
 
         if (createdNode) {
@@ -543,13 +566,13 @@ export class GraphService extends BaseService {
 
         if (sourceId && targetId) {
           await this.createLink({
-            graph_id: graph.id,
-            source_id: sourceId,
-            target_id: targetId,
-            type: (link as Record<string, unknown>).type as string || 'related',
-            label: (link as Record<string, unknown>).label as string || '',
-            weight: (link as Record<string, unknown>).weight as number || 1.0,
-            color: (link as Record<string, unknown>).color as string || 'var(--neutral-400)'
+            'graph_id': graph.id,
+            'source_id': sourceId,
+            'target_id': targetId,
+            'type': (link as Record<string, unknown>).type as string || 'related',
+            'label': (link as Record<string, unknown>).label as string || '',
+            'weight': (link as Record<string, unknown>).weight as number || 1.0,
+            'color': (link as Record<string, unknown>).color as string || 'var(--neutral-400)'
           });
         }
       }
@@ -567,13 +590,13 @@ export class GraphService extends BaseService {
    * @param title 图谱标题
    * @param visibility 图谱可见性
    */
-  async autoGenerateGraph(articleId: string, title: string, visibility: 'public' | 'unlisted' = 'unlisted'): Promise<Graph | null> {
+  async autoGenerateGraph (articleId: string, title: string, visibility: 'public' | 'unlisted' = 'unlisted'): Promise<Graph | null> {
     try {
       // 创建图谱
       const graph = await this.createGraph({
-        title: title,
-        visibility: visibility,
-        is_template: false
+        title,
+        visibility,
+        'is_template': false
       });
 
       if (!graph) {
@@ -581,7 +604,7 @@ export class GraphService extends BaseService {
       }
 
       // 获取文章内容
-      const { data: article } = await this.supabase
+      const { 'data': article } = await this.supabase
         .from('articles')
         .select('title, content, tags, summary')
         .eq('id', articleId)
@@ -593,34 +616,34 @@ export class GraphService extends BaseService {
 
       // 提取关键词和概念（增强版，使用TF-IDF算法）
       const concepts = this.extractConcepts(article.content, article.tags || []);
-      
+
       // 创建节点映射
       const nodeIdMap: Record<string, string> = {};
 
       // 创建文章节点
       const articleNode = await this.createNode({
-        graph_id: graph.id,
-        title: article.title,
-        type: 'article',
-        description: article.summary || '',
-        content: article.content,
-        color: 'var(--primary-500)',
-        size: 30
+        'graph_id': graph.id,
+        'title': article.title,
+        'type': 'article',
+        'description': article.summary || '',
+        'content': article.content,
+        'color': 'var(--primary-500)',
+        'size': 30
       });
 
       if (articleNode) {
-        nodeIdMap['article'] = articleNode.id;
+        nodeIdMap.article = articleNode.id;
       }
 
       // 创建概念节点
       for (const concept of concepts) {
         const createdNode = await this.createNode({
-          graph_id: graph.id,
-          title: concept.text,
-          type: 'concept',
-          description: concept.description,
-          color: concept.color || 'var(--neutral-500)',
-          size: 20
+          'graph_id': graph.id,
+          'title': concept.text,
+          'type': 'concept',
+          'description': concept.description,
+          'color': concept.color || 'var(--neutral-500)',
+          'size': 20
         });
 
         if (createdNode) {
@@ -630,17 +653,17 @@ export class GraphService extends BaseService {
 
       // 创建链接：文章与概念之间的链接
       for (const concept of concepts) {
-        const articleNodeId = nodeIdMap['article'];
+        const articleNodeId = nodeIdMap.article;
         const conceptNodeId = nodeIdMap[concept.text];
 
         if (articleNodeId && conceptNodeId) {
           await this.createLink({
-            graph_id: graph.id,
-            source_id: articleNodeId,
-            target_id: conceptNodeId,
-            type: 'related',
-            label: concept.relation || '提到',
-            weight: concept.weight || 1.0
+            'graph_id': graph.id,
+            'source_id': articleNodeId,
+            'target_id': conceptNodeId,
+            'type': 'related',
+            'label': concept.relation || '提到',
+            'weight': concept.weight || 1.0
           });
         }
       }
@@ -648,87 +671,97 @@ export class GraphService extends BaseService {
       // 创建概念之间的链接（优化版）
       if (concepts.length > 1) {
         const content = article.content.toLowerCase();
-        
+
         // 预计算所有概念在内容中的位置，避免重复搜索
         const conceptPositions: Record<string, number[]> = {};
         for (const concept of concepts) {
           const text = concept.text.toLowerCase();
           const positions: number[] = [];
           let index = content.indexOf(text);
-          
+
           while (index !== -1) {
             positions.push(index);
             index = content.indexOf(text, index + 1);
           }
-          
+
           if (positions.length > 0) {
             conceptPositions[concept.text] = positions;
           }
         }
-        
+
         // 创建概念对映射，避免重复处理
         const processedPairs = new Set<string>();
-        
+
         // 只处理前10个最重要的概念，减少O(n^2)复杂度
         const topConcepts = concepts.slice(0, 10);
-        
+
+        // 辅助函数：检查两个位置数组是否有任何位置对在200个字符内
+        const arePositionsClose = (positions1: number[], positions2: number[]): boolean => {
+          for (const pos1 of positions1) {
+            for (const pos2 of positions2) {
+              if (Math.abs(pos1 - pos2) < 200) {
+                return true;
+              }
+            }
+          }
+          return false;
+        };
+
+        // 辅助函数：检查两个概念是否应该连接
+        const shouldConnectConcepts = (conceptA: typeof concepts[number], conceptB: typeof concepts[number]): boolean => {
+          if (!conceptA || !conceptB) {
+            return false;
+          }
+
+          const pairKey = `${conceptA.text}-${conceptB.text}`;
+          if (processedPairs.has(pairKey)) {
+            return false;
+          }
+
+          processedPairs.add(pairKey);
+
+          const positions1 = conceptPositions[conceptA.text] || [];
+          const positions2 = conceptPositions[conceptB.text] || [];
+
+          // 检查是否有任何位置对在200个字符内
+          return arePositionsClose(positions1, positions2);
+        };
+
+        // 辅助函数：创建概念之间的连接
+        const createConceptLink = async (concept1: typeof concepts[number] | undefined, concept2: typeof concepts[number] | undefined) => {
+          if (!concept1 || !concept2) {
+            return;
+          }
+          if (!shouldConnectConcepts(concept1, concept2)) {
+            return;
+          }
+
+          const nodeId1 = nodeIdMap[concept1.text];
+          const nodeId2 = nodeIdMap[concept2.text];
+
+          if (nodeId1 && nodeId2) {
+            await this.createLink({
+              'graph_id': graph.id,
+              'source_id': nodeId1,
+              'target_id': nodeId2,
+              'type': 'related',
+              'label': '关联',
+              'weight': 0.5
+            });
+          }
+        };
+
         // 检查概念之间的关联
-        for (let i = 0; i < topConcepts.length; i++) {
-          for (let j = i + 1; j < topConcepts.length; j++) {
-            const concept1 = topConcepts[i];
-            const concept2 = topConcepts[j];
-            
-            // 添加类型检查，确保概念存在
-            if (!concept1 || !concept2) {
-              continue;
-            }
-            
-            // 生成唯一的概念对标识，避免重复处理
-            const pairKey = `${concept1.text}-${concept2.text}`;
-            if (processedPairs.has(pairKey)) {
-              continue;
-            }
-            processedPairs.add(pairKey);
-            
-            const positions1 = conceptPositions[concept1.text] || [];
-            const positions2 = conceptPositions[concept2.text] || [];
-            
-            // 检查是否有任何位置对在200个字符内
-            let hasClosePositions = false;
-            for (const pos1 of positions1) {
-              for (const pos2 of positions2) {
-                if (Math.abs(pos1 - pos2) < 200) {
-                  hasClosePositions = true;
-                  break; // 找到匹配，退出内层循环
-                }
-              }
-              if (hasClosePositions) {
-                break; // 找到匹配，退出外层循环
-              }
-            }
-            
-            if (hasClosePositions) {
-              const nodeId1 = nodeIdMap[concept1.text];
-              const nodeId2 = nodeIdMap[concept2.text];
-              
-              if (nodeId1 && nodeId2) {
-                await this.createLink({
-                  graph_id: graph.id,
-                  source_id: nodeId1,
-                  target_id: nodeId2,
-                  type: 'related',
-                  label: '关联',
-                  weight: 0.5
-                });
-              }
-            }
+        for (let i = 0; i < topConcepts.length; i += 1) {
+          for (let j = i + 1; j < topConcepts.length; j += 1) {
+            await createConceptLink(topConcepts[i], topConcepts[j]);
           }
         }
       }
 
       // 创建文章-图谱映射
-      await this.createArticleNodeMapping(articleId, nodeIdMap['article'] || '', 'primary');
-      
+      await this.createArticleNodeMapping(articleId, nodeIdMap.article || '', 'primary');
+
       return graph;
     } catch (err) {
       this.handleError(err, 'GraphService', '自动生成图谱');
@@ -741,39 +774,39 @@ export class GraphService extends BaseService {
    * @param content 文章内容
    * @param tags 文章标签
    */
-  private extractConcepts(content: string, tags: Array<{ name: string }>): Array<{ text: string; weight: number; description: string; relation?: string; color?: string }> {
+  private extractConcepts (content: string, tags: Array<{ name: string }>): Array<{ text: string; weight: number; description: string; relation?: string; color?: string }> {
     // 增强版概念提取，使用TF-IDF算法
     const concepts: Array<{ text: string; weight: number; description: string; relation?: string; color?: string }> = [];
-    
+
     // 从标签中提取概念
     const tagColors: readonly string[] = ['var(--success-500)', 'var(--warning-500)', 'var(--error-500)', 'var(--secondary-500)', 'var(--primary-500)'];
-    
-    for (let i = 0; i < tags.length; i++) {
+
+    for (let i = 0; i < tags.length; i += 1) {
       const tag = tags[i];
       if (tag && tag.name) {
         concepts.push({
-          text: tag.name as string,
-          weight: 2.0,
-          description: `文章标签: ${tag.name}`,
-          color: tagColors[i % tagColors.length] as string
+          'text': tag.name as string,
+          'weight': 2.0,
+          'description': `文章标签: ${tag.name}`,
+          'color': tagColors[i % tagColors.length] as string
         });
       }
     }
-    
+
     // 从内容中提取关键词（使用TF-IDF算法）
     const keywords = this.extractKeywords(content);
-    
+
     for (const keyword of keywords) {
       if (!concepts.some(c => c.text === keyword.text)) {
         concepts.push({
-          text: keyword.text,
-          weight: keyword.weight,
-          description: `文章中提到的概念: ${keyword.text}`,
-          color: 'var(--neutral-500)'
+          'text': keyword.text,
+          'weight': keyword.weight,
+          'description': `文章中提到的概念: ${keyword.text}`,
+          'color': 'var(--neutral-500)'
         });
       }
     }
-    
+
     return concepts;
   }
 
@@ -782,72 +815,72 @@ export class GraphService extends BaseService {
    * @param content 文章内容
    * @param limit 关键词数量限制
    */
-  private extractKeywords(content: string, limit: number = 15): Array<{ text: string; weight: number }> {
+  private extractKeywords (content: string, limit: number = 15): Array<{ text: string; weight: number }> {
     // 扩展后的停用词列表
     const stopWords = new Set([
-      '的', '了', '和', '是', '在', '有', '我', '这', '那', '你', '他', '她', '它', 
-      '我们', '你们', '他们', '她们', '它们', '也', '还', '但', '却', '而', '就', 
-      '都', '只', '又', '很', '更', '最', '太', '非常', '极', '及', '与', '同', 
-      '并', '或', '若', '如', '因', '为', '所以', '由于', '因此', '但是', '不过', 
-      '然而', '可是', '虽然', '尽管', '即使', '如果', '假如', '倘若', '要是', 
-      '只要', '只有', '无论', '不管', '还是', '要么', '或者', '与其', '不如', 
-      '宁可', '宁愿', '也不', '啊', '呀', '呢', '吧', '吗', '啦', '哦', '嗯', 
-      '哎', '唉', '喂', '咳', '嘿', '嘻', '哈', '哦', '哟', '哇', '呀', '啦', 
-      '呢', '吧', '吗', '了', '着', '过', '的', '地', '得', '所', '以', '之', 
-      '而', '与', '及', '或', '且', '但', '却', '然', '而', '乃', '则', '虽', 
-      '然', '纵', '然', '即', '使', '如', '若', '倘', '若', '假', '如', '假', 
-      '使', '只', '要', '只', '有', '除', '非', '无', '论', '不', '管', '任', 
-      '凭', '别', '特', '别', '非', '常', '十', '分', '很', '极', '其', '尤', 
-      '为', '更', '加', '最', '顶', '太', '过', '异', '常', '超', '级', '极', 
-      '端', '相', '当', '比', '较', '差', '不', '多', '大', '概', '也', '许', 
-      '或', '许', '恐', '怕', '难', '道', '难', '免', '必', '须', '务', '必', 
-      '应', '该', '可', '能', '会', '要', '想', '将', '即', '将', '正', '在', 
-      '已', '经', '曾', '经', '刚', '刚', '才', '刚', '恰', '好', '恰', '巧', 
-      '刚', '巧', '正', '好', '就', '是', '对', '于', '关', '于', '至', '于', 
-      '由', '于', '因', '为', '所', '以', '因', '此', '于', '是', '然', '后', 
-      '接', '着', '先', '后', '最', '初', '开', '始', '最', '终', '结', '果', 
-      '到', '底', '究', '竟', '难', '道', '难', '不成', '难', '怪', '反', '正', 
-      '事', '实', '上', '实', '际', '上', '说', '实', '话', '总', '之', '总', 
-      '的', '来', '说', '归', '根', '结', '底', '归', '根', '到', '底', '据', 
-      '说', '听', '说', '据', '悉', '了', '解', '知', '道', '明', '白', '清', 
-      '楚', '懂', '得', '认', '为', '觉', '得', '想', '法', '观', '点', '意', 
-      '见', '看', '法', '态', '度', '觉', '得', '感', '到', '觉', '着', '感', 
-      '受', '认', '为', '以', '为', '觉', '得', '想', '要', '希', '望', '期', 
-      '望', '盼', '望', '企', '盼', '渴', '望', '憧', '憬', '梦', '想', '希', 
-      '图', '企', '图', '试', '图', '试', '着', '尝', '试', '努', '力', '尽', 
-      '力', '竭', '力', '致', '力', '专', '心', '专', '注', '认', '真', '仔', 
-      '细', '精', '心', '周', '到', '全', '面', '完', '整', '完', '美', '美', 
-      '好', '优', '秀', '杰', '出', '卓', '越', '伟', '大', '高', '尚', '正', 
-      '直', '善', '良', '美', '丽', '漂', '亮', '帅', '气', '可', '爱', '迷', 
-      '人', '有', '趣', '有', '用', '有', '益', '有', '效', '有', '用', '实', 
-      '用', '实', '际', '有', '效', '有', '用', '真', '实', '可', '靠', '可', 
-      '信', '确', '实', '的', '确', '真', '的', '实', '在', '实', '际', '上', 
-      '事', '实', '上', '说', '实', '话', '诚', '实', '坦', '诚', '直', '率', 
-      '坦', '白', '真', '诚', '老', '实', '可', '信', '可', '靠', '可', '行', 
-      '可', '能', '会', '要', '想', '将', '即', '将', '正', '在', '已', '经', 
-      '曾', '经', '刚', '刚', '才', '刚', '恰', '好', '恰', '巧', '刚', '巧', 
-      '正', '好', '就', '是', '对', '于', '关', '于', '至', '于', '由', '于', 
-      '因', '为', '所', '以', '因', '此', '于', '是', '然', '后', '接', '着', 
-      '先', '后', '最', '初', '开', '始', '最', '终', '结', '果', '到', '底', 
-      '究', '竟', '难', '道', '难', '不成', '难', '怪', '反', '正', '事', '实', 
-      '上', '实', '际', '上', '说', '实', '话', '总', '之', '总', '的', '来', 
-      '说', '归', '根', '结', '底', '归', '根', '到', '底', '据', '说', '听', 
-      '说', '据', '悉', '了', '解', '知', '道', '明', '白', '清', '楚', '懂', 
-      '得', '认', '为', '觉', '得', '想', '法', '观', '点', '意', '见', '看', 
-      '法', '态', '度', '觉', '得', '感', '到', '觉', '着', '感', '受', '认', 
-      '为', '以', '为', '觉', '得', '想', '要', '希', '望', '期', '望', '盼', 
-      '望', '企', '盼', '渴', '望', '憧', '憬', '梦', '想', '希', '图', '企', 
-      '图', '试', '图', '试', '着', '尝', '试', '努', '力', '尽', '力', '竭', 
-      '力', '致', '力', '专', '心', '专', '注', '认', '真', '仔', '细', '精', 
-      '心', '周', '到', '全', '面', '完', '整', '完', '美', '美', '好', '优', 
-      '秀', '杰', '出', '卓', '越', '伟', '大', '高', '尚', '正', '直', '善', 
-      '良', '美', '丽', '漂', '亮', '帅', '气', '可', '爱', '迷', '人', '有', 
-      '趣', '有', '用', '有', '益', '有', '效', '有', '用', '实', '用', '实', 
-      '际', '有', '效', '有', '用', '真', '实', '可', '靠', '可', '信', '确', 
-      '实', '的', '确', '真', '的', '实', '在', '实', '际', '上', '事', '实', 
-      '上', '说', '实', '话', '诚', '实', '坦', '诚', '直', '率', '坦', '白', 
-      '真', '诚', '老', '实', '可', '信', '可', '靠', '可', '行', '可', '能', 
-      '会', '要', '想', '将', '即', '将', '正', '在', '已', '经', '曾', '经', 
+      '的', '了', '和', '是', '在', '有', '我', '这', '那', '你', '他', '她', '它',
+      '我们', '你们', '他们', '她们', '它们', '也', '还', '但', '却', '而', '就',
+      '都', '只', '又', '很', '更', '最', '太', '非常', '极', '及', '与', '同',
+      '并', '或', '若', '如', '因', '为', '所以', '由于', '因此', '但是', '不过',
+      '然而', '可是', '虽然', '尽管', '即使', '如果', '假如', '倘若', '要是',
+      '只要', '只有', '无论', '不管', '还是', '要么', '或者', '与其', '不如',
+      '宁可', '宁愿', '也不', '啊', '呀', '呢', '吧', '吗', '啦', '哦', '嗯',
+      '哎', '唉', '喂', '咳', '嘿', '嘻', '哈', '哦', '哟', '哇', '呀', '啦',
+      '呢', '吧', '吗', '了', '着', '过', '的', '地', '得', '所', '以', '之',
+      '而', '与', '及', '或', '且', '但', '却', '然', '而', '乃', '则', '虽',
+      '然', '纵', '然', '即', '使', '如', '若', '倘', '若', '假', '如', '假',
+      '使', '只', '要', '只', '有', '除', '非', '无', '论', '不', '管', '任',
+      '凭', '别', '特', '别', '非', '常', '十', '分', '很', '极', '其', '尤',
+      '为', '更', '加', '最', '顶', '太', '过', '异', '常', '超', '级', '极',
+      '端', '相', '当', '比', '较', '差', '不', '多', '大', '概', '也', '许',
+      '或', '许', '恐', '怕', '难', '道', '难', '免', '必', '须', '务', '必',
+      '应', '该', '可', '能', '会', '要', '想', '将', '即', '将', '正', '在',
+      '已', '经', '曾', '经', '刚', '刚', '才', '刚', '恰', '好', '恰', '巧',
+      '刚', '巧', '正', '好', '就', '是', '对', '于', '关', '于', '至', '于',
+      '由', '于', '因', '为', '所', '以', '因', '此', '于', '是', '然', '后',
+      '接', '着', '先', '后', '最', '初', '开', '始', '最', '终', '结', '果',
+      '到', '底', '究', '竟', '难', '道', '难', '不成', '难', '怪', '反', '正',
+      '事', '实', '上', '实', '际', '上', '说', '实', '话', '总', '之', '总',
+      '的', '来', '说', '归', '根', '结', '底', '归', '根', '到', '底', '据',
+      '说', '听', '说', '据', '悉', '了', '解', '知', '道', '明', '白', '清',
+      '楚', '懂', '得', '认', '为', '觉', '得', '想', '法', '观', '点', '意',
+      '见', '看', '法', '态', '度', '觉', '得', '感', '到', '觉', '着', '感',
+      '受', '认', '为', '以', '为', '觉', '得', '想', '要', '希', '望', '期',
+      '望', '盼', '望', '企', '盼', '渴', '望', '憧', '憬', '梦', '想', '希',
+      '图', '企', '图', '试', '图', '试', '着', '尝', '试', '努', '力', '尽',
+      '力', '竭', '力', '致', '力', '专', '心', '专', '注', '认', '真', '仔',
+      '细', '精', '心', '周', '到', '全', '面', '完', '整', '完', '美', '美',
+      '好', '优', '秀', '杰', '出', '卓', '越', '伟', '大', '高', '尚', '正',
+      '直', '善', '良', '美', '丽', '漂', '亮', '帅', '气', '可', '爱', '迷',
+      '人', '有', '趣', '有', '用', '有', '益', '有', '效', '有', '用', '实',
+      '用', '实', '际', '有', '效', '有', '用', '真', '实', '可', '靠', '可',
+      '信', '确', '实', '的', '确', '真', '的', '实', '在', '实', '际', '上',
+      '事', '实', '上', '说', '实', '话', '诚', '实', '坦', '诚', '直', '率',
+      '坦', '白', '真', '诚', '老', '实', '可', '信', '可', '靠', '可', '行',
+      '可', '能', '会', '要', '想', '将', '即', '将', '正', '在', '已', '经',
+      '曾', '经', '刚', '刚', '才', '刚', '恰', '好', '恰', '巧', '刚', '巧',
+      '正', '好', '就', '是', '对', '于', '关', '于', '至', '于', '由', '于',
+      '因', '为', '所', '以', '因', '此', '于', '是', '然', '后', '接', '着',
+      '先', '后', '最', '初', '开', '始', '最', '终', '结', '果', '到', '底',
+      '究', '竟', '难', '道', '难', '不成', '难', '怪', '反', '正', '事', '实',
+      '上', '实', '际', '上', '说', '实', '话', '总', '之', '总', '的', '来',
+      '说', '归', '根', '结', '底', '归', '根', '到', '底', '据', '说', '听',
+      '说', '据', '悉', '了', '解', '知', '道', '明', '白', '清', '楚', '懂',
+      '得', '认', '为', '觉', '得', '想', '法', '观', '点', '意', '见', '看',
+      '法', '态', '度', '觉', '得', '感', '到', '觉', '着', '感', '受', '认',
+      '为', '以', '为', '觉', '得', '想', '要', '希', '望', '期', '望', '盼',
+      '望', '企', '盼', '渴', '望', '憧', '憬', '梦', '想', '希', '图', '企',
+      '图', '试', '图', '试', '着', '尝', '试', '努', '力', '尽', '力', '竭',
+      '力', '致', '力', '专', '心', '专', '注', '认', '真', '仔', '细', '精',
+      '心', '周', '到', '全', '面', '完', '整', '完', '美', '美', '好', '优',
+      '秀', '杰', '出', '卓', '越', '伟', '大', '高', '尚', '正', '直', '善',
+      '良', '美', '丽', '漂', '亮', '帅', '气', '可', '爱', '迷', '人', '有',
+      '趣', '有', '用', '有', '益', '有', '效', '有', '用', '实', '用', '实',
+      '际', '有', '效', '有', '用', '真', '实', '可', '靠', '可', '信', '确',
+      '实', '的', '确', '真', '的', '实', '在', '实', '际', '上', '事', '实',
+      '上', '说', '实', '话', '诚', '实', '坦', '诚', '直', '率', '坦', '白',
+      '真', '诚', '老', '实', '可', '信', '可', '靠', '可', '行', '可', '能',
+      '会', '要', '想', '将', '即', '将', '正', '在', '已', '经', '曾', '经',
       '刚', '刚', '才', '刚', '恰', '好', '恰', '巧', '刚', '巧', '正', '好',
       // 数字和单位
       '一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '百', '千', '万', '亿',
@@ -871,24 +904,25 @@ export class GraphService extends BaseService {
       'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should',
       'now'
     ]);
-    
+
     // 改进的分词和去停用词
+    // 保留中英文和数字
     const words = content
       .toLowerCase()
-      .replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, ' ') // 保留中英文和数字
+      .replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, ' ')
       .split(/\s+/)
       .filter(word => word.length > 1 && !stopWords.has(word));
-    
+
     // 统计词频 (TF)
     const wordCounts: Record<string, number> = {};
-    
+
     for (const word of words) {
       wordCounts[word] = (wordCounts[word] || 0) + 1;
     }
-    
+
     // 计算TF-IDF
     const tfidfScores: Array<{ text: string; weight: number }> = [];
-    
+
     for (const [word, freq] of Object.entries(wordCounts)) {
       // TF: 词频 / 总词数，增加对数平滑
       const tf = 1 + Math.log10(freq);
@@ -896,16 +930,17 @@ export class GraphService extends BaseService {
       // 更长的单词通常具有更强的语义信息
       const wordLengthFactor = Math.min(1.5, 1 + word.length / 10);
       // 简化的IDF，实际应用中应根据语料库计算
-      const idf = 1 + Math.log10(1000 / (1 + freq)); // 假设有1000篇文档的语料库
+      // 假设有1000篇文档的语料库
+      const idf = 1 + Math.log10(1000 / (1 + freq));
       // TF-IDF 分数，结合单词长度因子
       const tfidf = tf * idf * wordLengthFactor;
-      
+
       tfidfScores.push({
-        text: word,
-        weight: parseFloat(tfidf.toFixed(6))
+        'text': word,
+        'weight': parseFloat(tfidf.toFixed(6))
       });
     }
-    
+
     // 按TF-IDF分数排序，取前N个
     return tfidfScores
       .sort((a, b) => b.weight - a.weight)
@@ -917,7 +952,7 @@ export class GraphService extends BaseService {
    * @param graphId1 第一个图谱ID
    * @param graphId2 第二个图谱ID
    */
-  async compareGraphs(graphId1: string, graphId2: string): Promise<{ 
+  async compareGraphs (graphId1: string, graphId2: string): Promise<{
     nodesAdded: GraphNode[];
     nodesRemoved: GraphNode[];
     nodesUpdated: Array<{ old: GraphNode; new: GraphNode }>;
@@ -942,25 +977,25 @@ export class GraphService extends BaseService {
 
       // 添加的节点
       const nodesAdded = Array.from(nodes2.values()).filter(node => !nodes1.has(node.id));
-      
+
       // 删除的节点
       const nodesRemoved = Array.from(nodes1.values()).filter(node => !nodes2.has(node.id));
-      
+
       // 更新的节点（优化版：只比较关键属性，不使用JSON.stringify）
       const nodesUpdated: Array<{ old: GraphNode; new: GraphNode }> = [];
       nodes1.forEach((node1, id) => {
         const node2 = nodes2.get(id);
         if (node2) {
           // 只比较关键属性，避免全量比较
-          const isUpdated = 
+          const isUpdated =
             node1.title !== node2.title ||
             node1.type !== node2.type ||
             node1.description !== node2.description ||
             node1.color !== node2.color ||
             node1.size !== node2.size;
-            
+
           if (isUpdated) {
-            nodesUpdated.push({ old: node1, new: node2 });
+            nodesUpdated.push({ 'old': node1, 'new': node2 });
           }
         }
       });
@@ -968,30 +1003,30 @@ export class GraphService extends BaseService {
       // 链接比较
       // 使用source和target的组合作为链接的唯一标识
       const getLinkKey = (link: GraphLink) => `${link.source}-${link.target}-${link.type}`;
-      
+
       // 预计算链接映射
       const links1 = new Map(graph1.links.map(link => [getLinkKey(link), link]));
       const links2 = new Map(graph2.links.map(link => [getLinkKey(link), link]));
 
       // 添加的链接
       const linksAdded = Array.from(links2.values()).filter(link => !links1.has(getLinkKey(link)));
-      
+
       // 删除的链接
       const linksRemoved = Array.from(links1.values()).filter(link => !links2.has(getLinkKey(link)));
-      
+
       // 更新的链接（优化版：只比较关键属性，不使用JSON.stringify）
       const linksUpdated: Array<{ old: GraphLink; new: GraphLink }> = [];
       links1.forEach((link1, key) => {
         const link2 = links2.get(key);
         if (link2) {
           // 只比较关键属性，避免全量比较
-          const isUpdated = 
+          const isUpdated =
             link1.label !== link2.label ||
             link1.weight !== link2.weight ||
             link1.color !== link2.color;
-            
+
           if (isUpdated) {
-            linksUpdated.push({ old: link1, new: link2 });
+            linksUpdated.push({ 'old': link1, 'new': link2 });
           }
         }
       });

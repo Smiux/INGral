@@ -7,19 +7,19 @@ import type { ContentTemplate, TemplateCategory, CreateTemplateRequest, UpdateTe
 
 // 预设模板分类
 const PRESET_CATEGORIES: Omit<TemplateCategory, 'id' | 'created_at' | 'updated_at'>[] = [
-  { name: '文章', description: '各种类型的文章模板' },
-  { name: '报告', description: '专业报告和文档模板' },
-  { name: '教程', description: '教程和学习资料模板' },
-  { name: '笔记', description: '个人笔记和学习记录模板' },
-  { name: '演示文稿', description: '演示文稿和幻灯片模板' },
+  { 'name': '文章', 'description': '各种类型的文章模板' },
+  { 'name': '报告', 'description': '专业报告和文档模板' },
+  { 'name': '教程', 'description': '教程和学习资料模板' },
+  { 'name': '笔记', 'description': '个人笔记和学习记录模板' },
+  { 'name': '演示文稿', 'description': '演示文稿和幻灯片模板' }
 ];
 
 // 预设模板
 const PRESET_TEMPLATES: Omit<ContentTemplate, 'id' | 'created_by' | 'created_at' | 'updated_at'>[] = [
   {
-    name: '学术论文',
-    description: '标准学术论文模板，包含摘要、引言、方法、结果和结论',
-    content: `# 论文标题
+    'name': '学术论文',
+    'description': '标准学术论文模板，包含摘要、引言、方法、结果和结论',
+    'content': `# 论文标题
 
 ## 摘要
 [在这里填写论文摘要]
@@ -53,14 +53,14 @@ const PRESET_TEMPLATES: Omit<ContentTemplate, 'id' | 'created_by' | 'created_at'
 2. [参考文献2]
 3. [参考文献3]
 `,
-    category_id: '', // 会在初始化时分配
-    is_public: true,
-    tags: ['学术', '论文', '研究']
+    'category_id': '',
+    'is_public': true,
+    'tags': ['学术', '论文', '研究']
   },
   {
-    name: '技术教程',
-    description: '技术教程模板，包含章节、代码示例和练习',
-    content: `# 教程标题
+    'name': '技术教程',
+    'description': '技术教程模板，包含章节、代码示例和练习',
+    'content': `# 教程标题
 
 ## 介绍
 [在这里介绍教程内容和目标]
@@ -95,14 +95,14 @@ console.log('Hello, World!');
 ## 5. 总结
 [总结教程内容和要点]
 `,
-    category_id: '', // 会在初始化时分配
-    is_public: true,
-    tags: ['教程', '技术', '编程']
+    'category_id': '',
+    'is_public': true,
+    'tags': ['教程', '技术', '编程']
   },
   {
-    name: '会议记录',
-    description: '会议记录模板，包含会议信息、议程和决议',
-    content: `# 会议记录
+    'name': '会议记录',
+    'description': '会议记录模板，包含会议信息、议程和决议',
+    'content': `# 会议记录
 
 ## 会议信息
 - **日期**: [会议日期]
@@ -147,9 +147,9 @@ console.log('Hello, World!');
 - **时间**: [下次会议时间]
 - **议题**: [下次会议议题]
 `,
-    category_id: '', // 会在初始化时分配
-    is_public: true,
-    tags: ['会议', '记录', '办公']
+    'category_id': '',
+    'is_public': true,
+    'tags': ['会议', '记录', '办公']
   }
 ];
 
@@ -157,7 +157,7 @@ export class TemplateService extends BaseService {
   private static instance: TemplateService;
 
 
-  private constructor() {
+  private constructor () {
     super();
     this.initializeTemplates();
   }
@@ -165,7 +165,7 @@ export class TemplateService extends BaseService {
   /**
    * 获取单例实例
    */
-  static getInstance(): TemplateService {
+  static getInstance (): TemplateService {
     if (!TemplateService.instance) {
       TemplateService.instance = new TemplateService();
     }
@@ -175,39 +175,39 @@ export class TemplateService extends BaseService {
   /**
    * 初始化模板，创建预设分类和模板
    */
-  private async initializeTemplates(): Promise<void> {
+  private async initializeTemplates (): Promise<void> {
     try {
       this.checkSupabaseClient();
-      
+
       // 检查是否已初始化
-      const { data: existingCategories } = await this.supabase
+      const { 'data': existingCategories } = await this.supabase
         .from('template_categories')
         .select('id')
         .limit(1);
 
       if (existingCategories && existingCategories.length > 0) {
-        return; // 已初始化
+        return;
       }
 
       // 创建预设分类
       const now = new Date();
       const categories: TemplateCategory[] = PRESET_CATEGORIES.map((cat, index) => ({
-        id: `cat_${index + 1}`,
+        'id': `cat_${index + 1}`,
         ...cat,
-        created_at: now,
-        updated_at: now
+        'created_at': now,
+        'updated_at': now
       }));
 
       await this.supabase.from('template_categories').insert(categories);
 
       // 创建预设模板
       const templates: ContentTemplate[] = PRESET_TEMPLATES.map((template, index) => ({
-        id: `template_${index + 1}`,
+        'id': `template_${index + 1}`,
         ...template,
-        category_id: categories[0]?.id || 'default', // 默认为第一个分类或default
-        created_by: 'system',
-        created_at: now,
-        updated_at: now
+        'category_id': categories[0]?.id || 'default',
+        'created_by': 'system',
+        'created_at': now,
+        'updated_at': now
       }));
 
       await this.supabase.from('templates').insert(templates);
@@ -219,7 +219,7 @@ export class TemplateService extends BaseService {
   /**
    * 获取模板分类列表
    */
-  async getTemplateCategories(): Promise<TemplateCategory[]> {
+  async getTemplateCategories (): Promise<TemplateCategory[]> {
     try {
       this.checkSupabaseClient();
       const { data, error } = await this.supabase
@@ -242,10 +242,11 @@ export class TemplateService extends BaseService {
   /**
    * 获取模板列表
    */
-  async getTemplates(categoryId?: string): Promise<ContentTemplate[]> {
+  async getTemplates (categoryId?: string): Promise<ContentTemplate[]> {
     try {
       this.checkSupabaseClient();
-      let query = this.supabase.from('templates').select('*').order('created_at', { ascending: false });
+      let query = this.supabase.from('templates').select('*')
+        .order('created_at', { 'ascending': false });
 
       if (categoryId) {
         query = query.eq('category_id', categoryId);
@@ -268,7 +269,7 @@ export class TemplateService extends BaseService {
   /**
    * 获取单个模板
    */
-  async getTemplateById(id: string): Promise<ContentTemplate | null> {
+  async getTemplateById (id: string): Promise<ContentTemplate | null> {
     try {
       this.checkSupabaseClient();
       const { data, error } = await this.supabase
@@ -292,7 +293,7 @@ export class TemplateService extends BaseService {
   /**
    * 创建模板
    */
-  async createTemplate(templateData: CreateTemplateRequest): Promise<ContentTemplate | null> {
+  async createTemplate (templateData: CreateTemplateRequest): Promise<ContentTemplate | null> {
     try {
       this.checkSupabaseClient();
       const now = new Date();
@@ -300,9 +301,9 @@ export class TemplateService extends BaseService {
         .from('templates')
         .insert({
           ...templateData,
-          created_by: 'user', // 实际应用中应该使用真实用户ID
-          created_at: now,
-          updated_at: now
+          'created_by': 'user',
+          'created_at': now,
+          'updated_at': now
         })
         .select('*')
         .single();
@@ -322,7 +323,7 @@ export class TemplateService extends BaseService {
   /**
    * 更新模板
    */
-  async updateTemplate(id: string, templateData: UpdateTemplateRequest): Promise<ContentTemplate | null> {
+  async updateTemplate (id: string, templateData: UpdateTemplateRequest): Promise<ContentTemplate | null> {
     try {
       this.checkSupabaseClient();
       const now = new Date();
@@ -330,7 +331,7 @@ export class TemplateService extends BaseService {
         .from('templates')
         .update({
           ...templateData,
-          updated_at: now
+          'updated_at': now
         })
         .eq('id', id)
         .select('*')
@@ -351,7 +352,7 @@ export class TemplateService extends BaseService {
   /**
    * 删除模板
    */
-  async deleteTemplate(id: string): Promise<boolean> {
+  async deleteTemplate (id: string): Promise<boolean> {
     try {
       this.checkSupabaseClient();
       const { error } = await this.supabase
@@ -374,7 +375,7 @@ export class TemplateService extends BaseService {
   /**
    * 搜索模板
    */
-  async searchTemplates(query: string): Promise<ContentTemplate[]> {
+  async searchTemplates (query: string): Promise<ContentTemplate[]> {
     try {
       this.checkSupabaseClient();
       const { data, error } = await this.supabase
@@ -382,7 +383,7 @@ export class TemplateService extends BaseService {
         .select('*')
         .ilike('name', `%${query}%`)
         .or(`ilike(description, '%${query}%')`)
-        .order('created_at', { ascending: false });
+        .order('created_at', { 'ascending': false });
 
       if (error) {
         this.handleError(error, '搜索模板', 'TemplateService');

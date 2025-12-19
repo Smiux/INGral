@@ -63,8 +63,10 @@ export const LazyImage: React.FC<LazyImageProps> = ({
         });
       },
       {
-        rootMargin: '200px 0px', // 提前 200px 开始加载
-        threshold: 0.1, // 当图片 10% 进入视口时开始加载
+        // 提前 200px 开始加载
+        'rootMargin': '200px 0px',
+        // 当图片 10% 进入视口时开始加载
+        'threshold': 0.1
       }
     );
 
@@ -90,7 +92,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   };
 
   return (
-    <div 
+    <div
       className={`relative overflow-hidden ${className}`}
       style={aspectRatio ? { aspectRatio } : undefined}
     >
@@ -101,10 +103,10 @@ export const LazyImage: React.FC<LazyImageProps> = ({
           src={blurPlaceholder || placeholder}
           alt={alt}
           className={`absolute inset-0 w-full h-full object-cover ${isBlurLoaded ? 'blur-sm' : 'opacity-0'} transition-all duration-300`}
-          style={{ 
-            filter: isLoaded ? 'blur(0px)' : 'blur(8px)',
-            opacity: isLoaded ? 0 : 1,
-            transition: isLoaded ? 'filter 0.5s ease-out, opacity 0.5s ease-out' : 'filter 0.3s ease-in, opacity 0.3s ease-in'
+          style={{
+            'filter': isLoaded ? 'blur(0px)' : 'blur(8px)',
+            'opacity': isLoaded ? 0 : 1,
+            'transition': isLoaded ? 'filter 0.5s ease-out, opacity 0.5s ease-out' : 'filter 0.3s ease-in, opacity 0.3s ease-in'
           }}
           aria-hidden={true}
         />
@@ -115,9 +117,9 @@ export const LazyImage: React.FC<LazyImageProps> = ({
         src={imageSrc}
         alt={alt}
         className="w-full h-full object-cover transition-all duration-500"
-        style={{ 
-          opacity: isLoaded ? 1 : 0,
-          transition: 'opacity 0.5s ease-out'
+        style={{
+          'opacity': isLoaded ? 1 : 0,
+          'transition': 'opacity 0.5s ease-out'
         }}
         onLoad={handleLoad}
         onError={onError}

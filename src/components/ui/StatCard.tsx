@@ -18,9 +18,9 @@ export const StatCard: React.FC<StatCardProps> = ({
   isPositive = true,
   icon,
   color,
-  className = '',
+  className = ''
 }) => {
-  const containerStyle = color ? { borderLeftColor: color } : {};
+  const containerStyle = color ? { 'borderLeftColor': color } : {};
 
   return (
     <div

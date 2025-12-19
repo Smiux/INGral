@@ -38,93 +38,93 @@ export interface GraphTheme {
 // 预设样式主题列表
 export const PRESET_THEMES: GraphTheme[] = [
   {
-    id: 'default',
-    name: '默认主题',
-    node: {
-      fill: '#8b5cf6',
-      stroke: '#fff',
-      strokeWidth: 2,
-      radius: 20,
-      fontSize: 12,
-      textFill: '#fff'
+    'id': 'default',
+    'name': '默认主题',
+    'node': {
+      'fill': '#8b5cf6',
+      'stroke': '#fff',
+      'strokeWidth': 2,
+      'radius': 20,
+      'fontSize': 12,
+      'textFill': '#fff'
     },
-    link: {
-      stroke: '#999',
-      strokeWidth: 2,
-      strokeOpacity: 0.6
+    'link': {
+      'stroke': '#999',
+      'strokeWidth': 2,
+      'strokeOpacity': 0.6
     },
-    backgroundColor: '#f9fafb'
+    'backgroundColor': '#f9fafb'
   },
   {
-    id: 'dark',
-    name: '深色主题',
-    node: {
-      fill: '#3b82f6',
-      stroke: '#1e293b',
-      strokeWidth: 2,
-      radius: 20,
-      fontSize: 12,
-      textFill: '#fff'
+    'id': 'dark',
+    'name': '深色主题',
+    'node': {
+      'fill': '#3b82f6',
+      'stroke': '#1e293b',
+      'strokeWidth': 2,
+      'radius': 20,
+      'fontSize': 12,
+      'textFill': '#fff'
     },
-    link: {
-      stroke: '#64748b',
-      strokeWidth: 2,
-      strokeOpacity: 0.8
+    'link': {
+      'stroke': '#64748b',
+      'strokeWidth': 2,
+      'strokeOpacity': 0.8
     },
-    backgroundColor: '#0f172a'
+    'backgroundColor': '#0f172a'
   },
   {
-    id: 'vibrant',
-    name: '活力主题',
-    node: {
-      fill: '#ec4899',
-      stroke: '#fff',
-      strokeWidth: 2,
-      radius: 20,
-      fontSize: 12,
-      textFill: '#fff'
+    'id': 'vibrant',
+    'name': '活力主题',
+    'node': {
+      'fill': '#ec4899',
+      'stroke': '#fff',
+      'strokeWidth': 2,
+      'radius': 20,
+      'fontSize': 12,
+      'textFill': '#fff'
     },
-    link: {
-      stroke: '#f59e0b',
-      strokeWidth: 2,
-      strokeOpacity: 0.8
+    'link': {
+      'stroke': '#f59e0b',
+      'strokeWidth': 2,
+      'strokeOpacity': 0.8
     },
-    backgroundColor: '#fef3c7'
+    'backgroundColor': '#fef3c7'
   },
   {
-    id: 'nature',
-    name: '自然主题',
-    node: {
-      fill: '#10b981',
-      stroke: '#fff',
-      strokeWidth: 2,
-      radius: 20,
-      fontSize: 12,
-      textFill: '#fff'
+    'id': 'nature',
+    'name': '自然主题',
+    'node': {
+      'fill': '#10b981',
+      'stroke': '#fff',
+      'strokeWidth': 2,
+      'radius': 20,
+      'fontSize': 12,
+      'textFill': '#fff'
     },
-    link: {
-      stroke: '#059669',
-      strokeWidth: 2,
-      strokeOpacity: 0.8
+    'link': {
+      'stroke': '#059669',
+      'strokeWidth': 2,
+      'strokeOpacity': 0.8
     },
-    backgroundColor: '#d1fae5'
+    'backgroundColor': '#d1fae5'
   },
   {
-    id: 'monochrome',
-    name: '黑白主题',
-    node: {
-      fill: '#6b7280',
-      stroke: '#fff',
-      strokeWidth: 2,
-      radius: 20,
-      fontSize: 12,
-      textFill: '#fff'
+    'id': 'monochrome',
+    'name': '黑白主题',
+    'node': {
+      'fill': '#6b7280',
+      'stroke': '#fff',
+      'strokeWidth': 2,
+      'radius': 20,
+      'fontSize': 12,
+      'textFill': '#fff'
     },
-    link: {
-      stroke: '#9ca3af',
-      strokeWidth: 2,
-      strokeOpacity: 0.8
+    'link': {
+      'stroke': '#9ca3af',
+      'strokeWidth': 2,
+      'strokeOpacity': 0.8
     },
-    backgroundColor: '#f3f4f6'
+    'backgroundColor': '#f3f4f6'
   }
 ];

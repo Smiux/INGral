@@ -14,7 +14,7 @@ const CachedLatexRenderer = ({
   content,
   displayMode = false,
   throwOnError = false,
-  errorColor = '#cc0000',
+  errorColor = '#cc0000'
 }: LatexRendererProps) => {
   const [renderedHTML, setRenderedHTML] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +37,8 @@ const CachedLatexRenderer = ({
           displayMode,
           throwOnError,
           errorColor,
-          strict: 'warn',
-          trust: false,
+          'strict': 'warn',
+          'trust': false
         });
 
         // 缓存结果
@@ -73,7 +73,7 @@ const CachedLatexRenderer = ({
   return (
     <span
       className={displayMode ? 'block' : 'inline'}
-      dangerouslySetInnerHTML={{ __html: renderedHTML || '' }}
+      dangerouslySetInnerHTML={{ '__html': renderedHTML || '' }}
     />
   );
 };
@@ -91,7 +91,7 @@ export const LazyLatexRenderer = ({
   content,
   displayMode = false,
   throwOnError = false,
-  errorColor = '#cc0000',
+  errorColor = '#cc0000'
 }: LatexRendererProps) => {
   // 组件挂载时预加载KaTeX CSS
   useEffect(() => {

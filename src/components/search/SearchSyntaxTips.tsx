@@ -12,10 +12,10 @@ export interface SyntaxTip {
 
 interface SearchSyntaxTipsProps {
   syntaxTips: SyntaxTip[];
-  onSyntaxTipClick: (tip: SyntaxTip) => void;
+  onSyntaxTipClick: (_tip: SyntaxTip) => void;
 }
 
-export function SearchSyntaxTips({
+export function SearchSyntaxTips ({
   syntaxTips,
   onSyntaxTipClick
 }: SearchSyntaxTipsProps) {

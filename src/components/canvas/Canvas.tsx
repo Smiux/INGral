@@ -3,7 +3,7 @@ import { forwardRef, useImperativeHandle, useRef, useEffect } from 'react';
 interface CanvasProps {
   height?: number;
   width?: number;
-  onDraw?: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void;
+  onDraw?: (_ctx: CanvasRenderingContext2D, _canvas: HTMLCanvasElement) => void;
   className?: string;
 }
 
@@ -17,15 +17,15 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(({
   height = 300,
   width = '100%',
   onDraw,
-  className = '',
+  className = ''
 }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // 暴露给父组件的方法
   useImperativeHandle(ref, () => ({
-    canvas: canvasRef.current,
-    getContext: () => canvasRef.current?.getContext('2d') || null,
-    redraw: () => {
+    'canvas': canvasRef.current,
+    'getContext': () => canvasRef.current?.getContext('2d') || null,
+    'redraw': () => {
       const canvas = canvasRef.current;
       if (canvas && onDraw) {
         const ctx = canvas.getContext('2d');
@@ -36,13 +36,15 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(({
           onDraw(ctx, canvas);
         }
       }
-    },
+    }
   }), [onDraw]);
 
   // 调整画布大小以匹配容器
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) {return;}
+    if (!canvas) {
+      return undefined;
+    }
 
     const resizeCanvas = () => {
       const container = canvas.parentElement;
@@ -72,6 +74,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(({
     // 监听窗口大小变化
     window.addEventListener('resize', resizeCanvas);
 
+    // 清理函数
     return () => {
       window.removeEventListener('resize', resizeCanvas);
     };
@@ -93,11 +96,11 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(({
       ref={canvasRef}
       className={className}
       style={{
-        display: 'block',
+        'display': 'block',
         width,
         height,
-        maxWidth: '100%',
-        maxHeight: '100%',
+        'maxWidth': '100%',
+        'maxHeight': '100%'
       }}
     />
   );

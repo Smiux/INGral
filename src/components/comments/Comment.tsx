@@ -19,13 +19,15 @@ export const Comment: React.FC<CommentProps> = ({ comment, articleId, onCommentA
 
   // 处理回复评论
   const handleReply = async () => {
-    if (!replyContent.trim()) return;
+    if (!replyContent.trim()) {
+      return;
+    }
 
-    await commentService.createComment(
+    await commentService.createComment({
       articleId,
-      replyContent,
-      comment.id
-    );
+      'content': replyContent,
+      'parentId': comment.id
+    });
 
     setReplyContent('');
     setIsReplying(false);
@@ -50,12 +52,10 @@ export const Comment: React.FC<CommentProps> = ({ comment, articleId, onCommentA
 
   // 处理删除评论
   const handleDelete = async () => {
-    if (window.confirm('确定要删除这条评论吗？')) {
-      setIsDeleting(true);
-      await commentService.deleteComment(comment.id);
-      setIsDeleting(false);
-      onCommentDeleted();
-    }
+    setIsDeleting(true);
+    await commentService.deleteComment(comment.id);
+    setIsDeleting(false);
+    onCommentDeleted();
   };
 
   return (

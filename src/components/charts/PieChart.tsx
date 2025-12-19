@@ -17,13 +17,13 @@ interface PieChartProps {
   className?: string;
   showLabels?: boolean;
   showPercentages?: boolean;
-  onSliceClick?: (index: number, value: number, label: string, percentage: number) => void;
-  onHover?: (index: number | null, value: number | null, label: string | null, percentage: number | null) => void;
+  onSliceClick?: (_index: number, _value: number, _label: string, _percentage: number) => void;
+  onHover?: (_index: number | null, _value: number | null, _label: string | null, _percentage: number | null) => void;
 }
 
 const defaultColors = [
   '#4f46e5', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444',
-  '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f97316',
+  '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f97316'
 ];
 
 const PieChartComponent: React.FC<PieChartProps> = ({
@@ -34,16 +34,16 @@ const PieChartComponent: React.FC<PieChartProps> = ({
   showLabels = true,
   showPercentages = true,
   onSliceClick,
-  onHover,
+  onHover
 }) => {
   // 准备图表数据
   const prepareChartData = useCallback(() => {
     return data.map((item, index) => {
       return {
-        name: item?.name || '',
-        value: item?.value || 0,
-        color: (item?.color || defaultColors[index % defaultColors.length]) as string,
-        percentage: item?.percentage || (item?.value / data.reduce((sum, i) => sum + (i?.value || 0), 0) * 100),
+        'name': item?.name || '',
+        'value': item?.value || 0,
+        'color': (item?.color || defaultColors[index % defaultColors.length]) as string,
+        'percentage': item?.percentage || (item?.value / data.reduce((sum, i) => sum + (i?.value || 0), 0) * 100)
       };
     });
   }, [data]);
@@ -52,39 +52,39 @@ const PieChartComponent: React.FC<PieChartProps> = ({
 
   // 转换数据格式
   const chartJsData = {
-    labels: chartData.map(item => item.name),
-    datasets: [
+    'labels': chartData.map(item => item.name),
+    'datasets': [
       {
-        data: chartData.map(item => item.value),
-        backgroundColor: chartData.map(item => item.color),
-        borderColor: '#ffffff',
-        borderWidth: 2,
-        hoverOffset: 10,
-      },
-    ],
+        'data': chartData.map(item => item.value),
+        'backgroundColor': chartData.map(item => item.color),
+        'borderColor': '#ffffff',
+        'borderWidth': 2,
+        'hoverOffset': 10
+      }
+    ]
   };
 
   // 配置图表选项
   const chartOptions: ChartOptions = {
-    plugins: {
-      legend: {
-        display: showLabels,
-        position: 'top',
+    'plugins': {
+      'legend': {
+        'display': showLabels,
+        'position': 'top'
       },
-      tooltip: {
-          enabled: true,
-          callbacks: {
-            label: function(tooltipItem: import('chart.js').TooltipItem<'pie'>) {
-              const label = tooltipItem.label || '';
-              const value = tooltipItem.parsed;
-              const total = tooltipItem.dataset.data.reduce((sum: number, val: number) => sum + val, 0);
-              const percentage = ((value / total) * 100).toFixed(1);
-              return `${label}: ${value} (${percentage}%)`;
-            },
-          },
-        },
+      'tooltip': {
+        'enabled': true,
+        'callbacks': {
+          'label' (tooltipItem: import('chart.js').TooltipItem<'pie'>) {
+            const label = tooltipItem.label || '';
+            const value = tooltipItem.parsed;
+            const total = tooltipItem.dataset.data.reduce((sum: number, val: number) => sum + val, 0);
+            const percentage = ((value / total) * 100).toFixed(1);
+            return `${label}: ${value} (${percentage}%)`;
+          }
+        }
+      }
     },
-    ...options,
+    ...options
   };
 
   // 处理点击事件
@@ -122,7 +122,7 @@ const PieChartComponent: React.FC<PieChartProps> = ({
   return (
     <div
       className={`${styles.container} ${className}`}
-      style={{ height: `${height}px` }}
+      style={{ 'height': `${height}px` }}
     >
       <ChartBase
         chartType="pie"
@@ -138,7 +138,7 @@ const PieChartComponent: React.FC<PieChartProps> = ({
             <div key={index} className={styles.legendItem}>
               <div
                 className={styles.legendColor}
-                style={{ backgroundColor: item.color }}
+                style={{ 'backgroundColor': item.color }}
               />
               <span className={styles.legendText}>
                 {item.name}

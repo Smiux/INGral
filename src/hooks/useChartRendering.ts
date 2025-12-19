@@ -7,24 +7,26 @@ import Chart from 'chart.js/auto';
  * @param contentRef 文章内容的DOM引用
  * @param article 文章数据，用于触发重新渲染
  */
-export function useChartRendering<T extends { id: string }>(contentRef: React.RefObject<HTMLDivElement>, article: T | null) {
+export function useChartRendering<T extends { id: string }> (contentRef: React.RefObject<HTMLDivElement>, article: T | null) {
   useEffect(() => {
     // 配置Mermaid
     mermaid.initialize({
-      startOnLoad: false,
-      theme: 'default',
-      securityLevel: 'loose',
-      flowchart: {
-        useMaxWidth: true,
-        htmlLabels: true
+      'startOnLoad': false,
+      'theme': 'default',
+      'securityLevel': 'loose',
+      'flowchart': {
+        'useMaxWidth': true,
+        'htmlLabels': true
       }
     });
-    
+
     // 渲染Mermaid图表
     const renderMermaidDiagrams = async () => {
       const contentElement = contentRef.current;
-      if (!contentElement) return;
-      
+      if (!contentElement) {
+        return;
+      }
+
       const mermaidElements = contentElement.querySelectorAll('.mermaid');
       if (mermaidElements.length > 0) {
         for (const element of mermaidElements) {
@@ -39,12 +41,14 @@ export function useChartRendering<T extends { id: string }>(contentRef: React.Re
         }
       }
     };
-    
+
     // 渲染Chart.js图表
     const renderChartJsCharts = () => {
       const contentElement = contentRef.current;
-      if (!contentElement) return;
-      
+      if (!contentElement) {
+        return;
+      }
+
       const chartElements = contentElement.querySelectorAll('.chartjs-placeholder');
       if (chartElements.length > 0) {
         chartElements.forEach((element) => {
@@ -66,13 +70,13 @@ export function useChartRendering<T extends { id: string }>(contentRef: React.Re
         });
       }
     };
-    
+
     // 当文章内容更新时，重新渲染图表
     const renderAllCharts = async () => {
       await renderMermaidDiagrams();
       renderChartJsCharts();
     };
-    
+
     renderAllCharts();
   }, [contentRef, article]);
 }

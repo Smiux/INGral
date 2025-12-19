@@ -4,12 +4,12 @@
  */
 import { TableOfContentsItem, EditorTableOfContentsProps } from '../../../types';
 
-export function EditorTableOfContents({
+export function EditorTableOfContents ({
   items,
   expandedItems,
   activeItem,
   onItemClick,
-  onToggleExpand,
+  onToggleExpand
 }: EditorTableOfContentsProps) {
   /**
    * 递归渲染目录项
@@ -17,17 +17,17 @@ export function EditorTableOfContents({
   const renderTocItem = (item: TableOfContentsItem, depth: number = 0) => {
     const isExpanded = expandedItems.has(item.id);
     const hasChildren = item.children.length > 0;
-    
+
     // 根据深度计算缩进
     const indent = depth * 16;
-    
+
     return (
       <div key={item.id} className="mb-1">
         <div
           className={`flex items-center space-x-1 py-1 px-2 rounded-md cursor-pointer transition-colors ${activeItem === item.id
             ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-          style={{ paddingLeft: `${16 + indent}px` }}
+          style={{ 'paddingLeft': `${16 + indent}px` }}
         >
           {/* 展开/折叠按钮 */}
           {hasChildren && (
@@ -60,7 +60,7 @@ export function EditorTableOfContents({
               </svg>
             </button>
           )}
-          
+
           {/* 目录项文本 */}
           <span
             onClick={() => onItemClick(item.id)}
@@ -69,7 +69,7 @@ export function EditorTableOfContents({
             {item.text}
           </span>
         </div>
-        
+
         {/* 子目录项 */}
         {hasChildren && isExpanded && (
           <div className="mt-1">

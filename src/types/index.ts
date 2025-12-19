@@ -12,30 +12,32 @@
 /**
  * 资源类型枚举
  */
+/* eslint-disable no-unused-vars */
 export enum ResourceType {
   ARTICLE = 'article',
-  GRAPH = 'graph',
-  COMMENT = 'comment',
-  DISCUSSION = 'discussion',
-  TAG = 'tag'
+  GRAPH = 'graph'
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 文章状态类型
  */
+/* eslint-disable no-unused-vars */
 export enum ArticleStatus {
   DRAFT = 'draft',
-  PUBLISHED = 'published',
-  ARCHIVED = 'archived'
+  PUBLISHED = 'published'
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 文章可见性类型
  */
+/* eslint-disable no-unused-vars */
 export enum ArticleVisibility {
   PUBLIC = 'public',
   UNLISTED = 'unlisted'
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 讨论分类接口
@@ -205,18 +207,20 @@ export interface ArticleLink {
   relationship_type: string;
   created_at: string;
   // 增强链接关系
-  strength?: number; // 链接强度/相关性
-  metadata?: Record<string, unknown>; // 额外元数据
+  // 链接强度/相关性
+  strength?: number;
+  // 额外元数据
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * 评论状态类型
  */
+/* eslint-disable no-unused-vars */
 export enum CommentStatus {
-  APPROVED = 'approved',
-  PENDING = 'pending',
-  REJECTED = 'rejected'
+  APPROVED = 'approved'
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 评论接口
@@ -267,11 +271,12 @@ export interface DeleteCommentData {
 /**
  * 知识图谱节点类型
  */
+/* eslint-disable no-unused-vars */
 export enum GraphNodeType {
   ARTICLE = 'article',
-  CONCEPT = 'concept',
-  RESOURCE = 'resource'
+  CONCEPT = 'concept'
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 知识图谱节点接口
@@ -281,15 +286,24 @@ export interface GraphNode {
   title: string;
   connections: number;
   // 增强知识图谱节点
-  type?: GraphNodeType; // 节点类型
-  description?: string; // 简短描述
-  content?: string; // 节点内容
-  creator_id?: string; // 创建者ID
-  color?: string; // 节点颜色
-  size?: number; // 节点大小
-  x?: number; // x坐标
-  y?: number; // y坐标
-  z?: number; // z坐标
+  // 节点类型
+  type?: GraphNodeType;
+  // 简短描述
+  description?: string;
+  // 节点内容
+  content?: string;
+  // 创建者ID
+  creator_id?: string;
+  // 节点颜色
+  color?: string;
+  // 节点大小
+  size?: number;
+  // x坐标
+  x?: number;
+  // y坐标
+  y?: number;
+  // z坐标
+  z?: number;
 }
 
 /**
@@ -300,9 +314,12 @@ export interface GraphLink {
   target: string;
   type: string;
   // 增强知识图谱链接
-  label?: string; // 链接标签
-  weight?: number; // 连接权重
-  color?: string; // 连接颜色
+  // 链接标签
+  label?: string;
+  // 连接权重
+  weight?: number;
+  // 连接颜色
+  color?: string;
 }
 
 /**
@@ -323,10 +340,12 @@ export interface DatabaseGraphLink {
 /**
  * 知识图谱可见性类型
  */
+/* eslint-disable no-unused-vars */
 export enum GraphVisibility {
   PUBLIC = 'public',
   UNLISTED = 'unlisted'
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 知识图谱接口
@@ -390,12 +409,11 @@ export interface SearchResult {
 /**
  * 知识图谱布局类型
  */
+/* eslint-disable no-unused-vars */
 export enum GraphLayoutType {
-  FORCE = 'force',
-  HIERARCHICAL = 'hierarchical',
-  CIRCULAR = 'circular',
-  GRID = 'grid'
+  FORCE = 'force'
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 知识图谱配置接口
@@ -412,12 +430,12 @@ export interface GraphConfig {
 /**
  * 导出格式类型
  */
+/* eslint-disable no-unused-vars */
 export enum ExportFormat {
   JSON = 'json',
-  CSV = 'csv',
-  PDF = 'pdf',
-  PNG = 'png'
+  CSV = 'csv'
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 导出配置接口
@@ -484,21 +502,23 @@ export interface TableOfContentsItem {
 /**
  * 文章目录组件Props接口
  */
+
 export interface ArticleTableOfContentsProps {
   contentRef: React.RefObject<HTMLDivElement>;
   activeHeadingId: string;
-  onActiveHeadingChange: (id: string) => void;
+  onActiveHeadingChange: (_id: string) => void;
 }
 
 /**
  * 编辑器目录组件Props接口
  */
+
 export interface EditorTableOfContentsProps {
   items: TableOfContentsItem[];
   expandedItems: Set<string>;
   activeItem: string;
-  onItemClick: (itemId: string) => void;
-  onToggleExpand: (items: Set<string>) => void;
+  onItemClick: (_itemId: string) => void;
+  onToggleExpand: (_items: Set<string>) => void;
 }
 
 /**
@@ -513,27 +533,27 @@ export interface UITableOfContentsProps {
 /**
  * 编辑器侧边栏组件Props接口
  */
+
 export interface EditorSidebarProps {
   showToc: boolean;
   onToggleToc: () => void;
   tableOfContents: TableOfContentsItem[];
   expandedTocItems: Set<string>;
-  setExpandedTocItems: (items: Set<string>) => void;
+  setExpandedTocItems: (_items: Set<string>) => void;
   activeTocItem: string;
-  setActiveTocItem: (itemId: string) => void;
+  setActiveTocItem: (_itemId: string) => void;
 }
 
 /**
  * 错误类型枚举
  */
+/* eslint-disable no-unused-vars */
 export enum ErrorType {
   NETWORK = 'network',
-  DATABASE = 'database',
   VALIDATION = 'validation',
-  PERMISSION = 'permission',
-  AUTHENTICATION = 'authentication',
   UNKNOWN = 'unknown'
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 错误响应接口

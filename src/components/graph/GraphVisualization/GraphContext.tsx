@@ -3,6 +3,8 @@ import React, { useReducer, ReactNode } from 'react';
 // 导入Context和类型
 import { GraphContext } from './GraphContextType';
 
+export { GraphContext };
+
 // 导入外部模块
 import { getInitialState } from './GraphState';
 import { graphReducer } from './GraphReducer';
@@ -16,10 +18,10 @@ import { useAllActions } from './actions';
 export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // 使用Reducer管理状态
   const [state, dispatch] = useReducer(graphReducer, getInitialState());
-  
+
   // 应用所有副作用
   useGraphEffects({ state, dispatch });
-  
+
   // 生成所有actions
   const actions = useAllActions(dispatch, state);
 

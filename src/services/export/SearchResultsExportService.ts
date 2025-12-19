@@ -11,15 +11,15 @@ export class SearchResultsExportService {
    * @param query 搜索查询
    * @returns JSON格式的搜索结果
    */
-  async exportSearchResultsToJson(
+  async exportSearchResultsToJson (
     results: SemanticSearchResult[],
     query: string
   ): Promise<string> {
     try {
       const exportData = {
         query,
-        export_time: new Date().toISOString(),
-        result_count: results.length,
+        'export_time': new Date().toISOString(),
+        'result_count': results.length,
         results
       };
       return JSON.stringify(exportData, null, 2);
@@ -34,18 +34,18 @@ export class SearchResultsExportService {
    * @param results 搜索结果数组
    * @returns CSV格式的搜索结果
    */
-  async exportSearchResultsToCsv(
+  async exportSearchResultsToCsv (
     results: SemanticSearchResult[]
   ): Promise<string> {
     try {
       // CSV表头
       let csvContent = 'id,title,type,semantic_score,search_rank,matched_concepts\n';
-      
+
       // 添加每一行数据
       results.forEach(result => {
         csvContent += `${result.id},"${ExportUtils.escapeCsv(result.title)}",${result.type},${result.semantic_score},${result.search_rank || ''},"${ExportUtils.escapeCsv(result.matched_concepts?.join(';') || '')}"\n`;
       });
-      
+
       return csvContent;
     } catch (error) {
       console.error('导出搜索结果CSV失败:', error);
@@ -58,7 +58,7 @@ export class SearchResultsExportService {
    * @param results 搜索结果数组
    * @returns GraphML格式的搜索结果
    */
-  async exportSearchResultsToGraphml(
+  async exportSearchResultsToGraphml (
     results: SemanticSearchResult[]
   ): Promise<string> {
     try {
@@ -87,17 +87,17 @@ export class SearchResultsExportService {
 `;
         graphmlContent += `      <data key="d2">${result.semantic_score}</data>
 `;
-        
+
         if (result.search_rank) {
           graphmlContent += `      <data key="d3">${result.search_rank}</data>
 `;
         }
-        
+
         if (result.matched_concepts && result.matched_concepts.length > 0) {
           graphmlContent += `      <data key="d4">${ExportUtils.escapeXml(result.matched_concepts.join(';'))}</data>
 `;
         }
-        
+
         graphmlContent += `    </node>
 `;
       });
@@ -119,14 +119,14 @@ export class SearchResultsExportService {
       const addedLinks = new Set<string>();
       conceptToResults.forEach((conceptResults, concept) => {
         // 为每个概念组内的结果创建完全连接
-        for (let i = 0; i < conceptResults.length; i++) {
-          for (let j = i + 1; j < conceptResults.length; j++) {
+        for (let i = 0; i < conceptResults.length; i += 1) {
+          for (let j = i + 1; j < conceptResults.length; j += 1) {
             const source = conceptResults[i];
             const target = conceptResults[j];
             // 使用字符串比较生成唯一链接键，确保顺序一致
             if (source && target) {
               const linkKey = source < target ? `${source}-${target}` : `${target}-${source}`;
-            
+
               if (!addedLinks.has(linkKey)) {
                 addedLinks.add(linkKey);
                 graphmlContent += `    <edge source="${source}" target="${target}">
@@ -158,7 +158,7 @@ export class SearchResultsExportService {
    * @param query 搜索查询
    * @returns HTML格式的搜索结果
    */
-  private createSearchResultsHtml(
+  private createSearchResultsHtml (
     results: SemanticSearchResult[],
     query: string
   ): string {
@@ -308,7 +308,7 @@ export class SearchResultsExportService {
    * @param results 搜索结果数组
    * @param query 搜索查询
    */
-  async exportSearchResultsToPdf(
+  async exportSearchResultsToPdf (
     results: SemanticSearchResult[],
     query: string
   ): Promise<void> {
@@ -353,7 +353,7 @@ export class SearchResultsExportService {
    * @param results 搜索结果数组
    * @param query 搜索查询
    */
-  async exportSearchResultsAsJsonFile(
+  async exportSearchResultsAsJsonFile (
     results: SemanticSearchResult[],
     query: string
   ): Promise<void> {
@@ -372,7 +372,7 @@ export class SearchResultsExportService {
    * @param results 搜索结果数组
    * @param query 搜索查询
    */
-  async exportSearchResultsAsCsvFile(
+  async exportSearchResultsAsCsvFile (
     results: SemanticSearchResult[],
     query: string
   ): Promise<void> {
@@ -391,7 +391,7 @@ export class SearchResultsExportService {
    * @param results 搜索结果数组
    * @param query 搜索查询
    */
-  async exportSearchResultsAsGraphmlFile(
+  async exportSearchResultsAsGraphmlFile (
     results: SemanticSearchResult[],
     query: string
   ): Promise<void> {

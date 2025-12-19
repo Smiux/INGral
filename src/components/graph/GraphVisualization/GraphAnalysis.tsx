@@ -30,80 +30,93 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
   const [selectedSource, setSelectedSource] = useState<string>('');
   const [selectedTarget, setSelectedTarget] = useState<string>('');
   const [isCalculating, setIsCalculating] = useState(false);
-  
+
   // 通用工具函数：获取节点的邻居
   const getNodeNeighbors = useCallback((nodeId: string, unique: boolean = true): string[] => {
     const neighbors: string[] = [];
-    
+
     links.forEach(link => {
       const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
       const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
-      
-      if (sourceId === nodeId) neighbors.push(targetId);
-      if (targetId === nodeId) neighbors.push(sourceId);
+
+      if (sourceId === nodeId) {
+        neighbors.push(targetId);
+      }
+      if (targetId === nodeId) {
+        neighbors.push(sourceId);
+      }
     });
-    
+
     return unique ? Array.from(new Set(neighbors)) : neighbors;
   }, [links]);
-  
+
   // 新增：基础统计信息
   const calculateBasicStats = useCallback(() => {
     const nodeCount = nodes.length;
     const linkCount = links.length;
-    
+
     // 计算平均度
-    const totalDegree = nodes.reduce((sum, node) => {
-      const degree = links.filter(link => 
-        (typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source)) === node.id ||
-        (typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target)) === node.id
-      ).length;
-      return sum + degree;
-    }, 0);
+    let totalDegree = 0;
+    for (const node of nodes) {
+      let degree = 0;
+      for (const link of links) {
+        const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
+        const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
+        if (sourceId === node.id || targetId === node.id) {
+          degree += 1;
+        }
+      }
+      totalDegree += degree;
+    }
     const averageDegree = nodeCount > 0 ? totalDegree / nodeCount : 0;
-    
+
     // 计算网络密度
     const maxPossibleLinks = nodeCount * (nodeCount - 1) / 2;
     const density = maxPossibleLinks > 0 ? linkCount / maxPossibleLinks : 0;
-    
+
     // 计算聚类系数（简化版）
     let totalTriangles = 0;
     let totalPossibleTriangles = 0;
-    
+
     nodes.forEach(node => {
       // 获取邻居
       const uniqueNeighbors = getNodeNeighbors(node.id);
       const k = uniqueNeighbors.length;
-      
+
       // 计算可能的三角形数量
       if (k >= 2) {
         totalPossibleTriangles += k * (k - 1) / 2;
       }
-      
+
       // 计算实际的三角形数量
-      for (let i = 0; i < uniqueNeighbors.length; i++) {
-        for (let j = i + 1; j < uniqueNeighbors.length; j++) {
+      for (let i = 0; i < uniqueNeighbors.length; i += 1) {
+        for (let j = i + 1; j < uniqueNeighbors.length; j += 1) {
           const neighbor1 = uniqueNeighbors[i];
           const neighbor2 = uniqueNeighbors[j];
-          
+
           // 检查是否存在链接
-          const hasLink = links.some(link => {
+          let hasLink = false;
+          for (const link of links) {
             const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
             const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
-            
-            return (sourceId === neighbor1 && targetId === neighbor2) ||
-                   (sourceId === neighbor2 && targetId === neighbor1);
-          });
-          
+
+            if ((sourceId === neighbor1 && targetId === neighbor2) ||
+                (sourceId === neighbor2 && targetId === neighbor1)) {
+              hasLink = true;
+              break;
+            }
+          }
+
           if (hasLink) {
             totalTriangles += 1;
           }
         }
       }
     });
-    
+
     // 全局聚类系数
     const clusteringCoefficient = totalPossibleTriangles > 0 ? totalTriangles / totalPossibleTriangles : 0;
-    
+
     return {
       nodeCount,
       linkCount,
@@ -112,106 +125,135 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
       clusteringCoefficient
     };
   }, [nodes, getNodeNeighbors, links]);
-  
+
   // 新增：连通分量分析
   const calculateConnectedComponents = useCallback(() => {
     const visited = new Set<string>();
     const components: EnhancedNode[][] = [];
-    
-    // BFS遍历找出所有连通分量
-    nodes.forEach(node => {
-      if (!visited.has(node.id)) {
-        const queue: string[] = [node.id];
-        const component: EnhancedNode[] = [];
-        
-        while (queue.length > 0) {
-          const currentId = queue.shift()!;
-          if (visited.has(currentId)) continue;
-          
+
+    // 创建节点ID到节点的映射，避免每次查找时遍历所有节点
+    const nodeMap = new Map<string, EnhancedNode>();
+    nodes.forEach(node => nodeMap.set(node.id, node));
+
+    // 辅助函数：处理单个节点的BFS
+    const processNodeBFS = (startNode: EnhancedNode) => {
+      if (visited.has(startNode.id)) {
+        return;
+      }
+
+      const queue: string[] = [startNode.id];
+      const component: EnhancedNode[] = [];
+
+      while (queue.length > 0) {
+        const currentId = queue.shift()!;
+        if (!visited.has(currentId)) {
           visited.add(currentId);
-          const currentNode = nodes.find(n => n.id === currentId)!;
-          component.push(currentNode);
-          
+
+          // 使用映射快速查找当前节点
+          const currentNode = nodeMap.get(currentId);
+          if (currentNode) {
+            component.push(currentNode);
+          }
+
           // 获取邻居
           const neighbors = getNodeNeighbors(currentId, false);
-          
+
           // 添加未访问的邻居到队列
-          neighbors.forEach(neighborId => {
+          for (const neighborId of neighbors) {
             if (!visited.has(neighborId)) {
               queue.push(neighborId);
             }
-          });
+          }
         }
-        
-        components.push(component);
       }
-    });
-    
+
+      components.push(component);
+    };
+
+    // BFS遍历找出所有连通分量
+    nodes.forEach(node => processNodeBFS(node));
+
     return components;
   }, [nodes, getNodeNeighbors]);
-  
+
   // 新增：计算直径（简化版，只计算最大连通分量的直径）
   const calculateDiameter = useCallback(() => {
     const components = calculateConnectedComponents();
-    if (components.length === 0) return 0;
-    
+    if (components.length === 0) {
+      return 0;
+    }
+
     // 找到最大连通分量
-    const largestComponent = components.reduce((max, component) => 
+    const largestComponent = components.reduce((max, component) =>
       max && component.length > max.length ? component : max, components[0]
     );
-    
+
     let diameter = 0;
-    
+
+    // 辅助函数：BFS计算单源最短路径并返回最大距离
+    const bfsAndGetMaxDistance = (sourceNodeId: string) => {
+      const distances: Record<string, number> = {};
+      const queue: { nodeId: string; distance: number }[] = [{ 'nodeId': sourceNodeId, 'distance': 0 }];
+      distances[sourceNodeId] = 0;
+      let maxDistance = 0;
+
+      while (queue.length > 0) {
+        const { nodeId, distance } = queue.shift()!;
+
+        // 获取邻居
+        const neighbors = getNodeNeighbors(nodeId, false);
+
+        // 遍历邻居
+        for (const neighborId of neighbors) {
+          if (neighborId && !(neighborId in distances)) {
+            const neighborDistance = distance + 1;
+            distances[neighborId] = neighborDistance;
+            queue.push({ 'nodeId': neighborId, 'distance': neighborDistance });
+
+            // 更新当前BFS的最大距离
+            if (neighborDistance > maxDistance) {
+              maxDistance = neighborDistance;
+            }
+          }
+        }
+      }
+      return maxDistance;
+    };
+
     // 对最大连通分量中的每个节点计算BFS
     if (largestComponent) {
-      largestComponent.forEach(sourceNode => {
-        // BFS计算到所有其他节点的最短距离
-        const distances: Record<string, number> = {};
-        const queue: { nodeId: string; distance: number }[] = [{ nodeId: sourceNode.id, distance: 0 }];
-        distances[sourceNode.id] = 0;
-        
-        while (queue.length > 0) {
-          const { nodeId, distance } = queue.shift()!;
-          
-          // 获取邻居
-        const neighbors = getNodeNeighbors(nodeId, false);
-        
-        neighbors.forEach(neighborId => {
-            if (!(neighborId in distances)) {
-              const neighborDistance = distance + 1;
-              distances[neighborId] = neighborDistance;
-              queue.push({ nodeId: neighborId, distance: neighborDistance });
-              
-              // 更新直径
-              if (neighborDistance > diameter) {
-                diameter = neighborDistance;
-              }
-            }
-          });
+      for (const sourceNode of largestComponent) {
+        const maxDistance = bfsAndGetMaxDistance(sourceNode.id);
+        if (maxDistance > diameter) {
+          diameter = maxDistance;
         }
-      });
+      }
     }
-    
+
     return diameter;
   }, [calculateConnectedComponents, getNodeNeighbors]);
 
   // 计算度中心性
   const calculateDegreeCentrality = useCallback(() => {
     const result: CentralityResult[] = [];
-    
-    nodes.forEach(node => {
-      const degree = links.filter(link => 
-        (typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source)) === node.id ||
-        (typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target)) === node.id
-      ).length;
-      
+
+    for (const node of nodes) {
+      let degree = 0;
+      for (const link of links) {
+        const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
+        const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
+        if (sourceId === node.id || targetId === node.id) {
+          degree += 1;
+        }
+      }
+
       result.push({
-        nodeId: node.id,
-        value: degree,
+        'nodeId': node.id,
+        'value': degree,
         node
       });
-    });
-    
+    }
+
     return result.sort((a, b) => b.value - a.value);
   }, [nodes, links]);
 
@@ -219,46 +261,48 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
   const calculateBetweennessCentrality = useCallback(() => {
     const result: CentralityResult[] = [];
     const nodeIds = nodes.map(node => node.id);
-    
+
     // 初始化介数为0
     const betweenness: Record<string, number> = {};
-    nodeIds.forEach(id => betweenness[id] = 0);
-    
+    for (const id of nodeIds) {
+      betweenness[id] = 0;
+    }
+
     // 对每个节点执行BFS
-    nodeIds.forEach(s => {
+    for (const s of nodeIds) {
       const stack: string[] = [];
       const predecessors: Record<string, string[]> = {};
       const distance: Record<string, number> = {};
       const sigma: Record<string, number> = {};
       const delta: Record<string, number> = {};
-      
+
       // 初始化
-      nodeIds.forEach(id => {
+      for (const id of nodeIds) {
         predecessors[id] = [];
         distance[id] = -1;
         sigma[id] = 0;
         delta[id] = 0;
-      });
-      
+      }
+
       distance[s] = 0;
       sigma[s] = 1;
       const queue: string[] = [s];
-      
+
       // BFS
       while (queue.length > 0) {
         const v = queue.shift()!;
         stack.push(v);
-        
+
         // 获取邻居
         const neighbors = getNodeNeighbors(v, false);
-        
+
         neighbors.forEach(w => {
           // 第一次访问
           if ((distance[w] ?? -1) < 0) {
             queue.push(w);
             distance[w] = (distance[v] ?? 0) + 1;
           }
-          
+
           // 最短路径
           if ((distance[w] ?? -1) === (distance[v] ?? 0) + 1) {
             sigma[w] = (sigma[w] ?? 0) + (sigma[v] ?? 0);
@@ -267,7 +311,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
           }
         });
       }
-      
+
       // 累积介数
       while (stack.length > 0) {
         const w = stack.pop()!;
@@ -279,66 +323,65 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
           betweenness[w] = (betweenness[w] ?? 0) + (delta[w] ?? 0);
         }
       }
-    });
-    
+    }
+
     // 转换为结果格式
-    nodeIds.forEach(id => {
+    for (const id of nodeIds) {
       const node = nodes.find(n => n.id === id)!;
       result.push({
-        nodeId: id,
-        value: betweenness[id] ?? 0,
+        'nodeId': id,
+        'value': betweenness[id] ?? 0,
         node
       });
-    });
-    
+    }
+
     return result.sort((a, b) => b.value - a.value);
   }, [nodes, getNodeNeighbors]);
 
   // 计算接近中心性
   const calculateClosenessCentrality = useCallback(() => {
     const result: CentralityResult[] = [];
-    
-    nodes.forEach(node => {
+
+    for (const node of nodes) {
       // 使用BFS计算到所有其他节点的最短距离
       const distances: Record<string, number> = {};
-      const queue: { nodeId: string; distance: number }[] = [{ nodeId: node.id, distance: 0 }];
+      const queue: { nodeId: string; distance: number }[] = [{ 'nodeId': node.id, 'distance': 0 }];
       distances[node.id] = 0;
-      
+
       while (queue.length > 0) {
         const { nodeId, distance } = queue.shift()!;
-        
+
         // 获取邻居
         const neighbors = getNodeNeighbors(nodeId, false);
-        
-        neighbors.forEach(neighborId => {
+
+        for (const neighborId of neighbors) {
           if (!(neighborId in distances)) {
             distances[neighborId] = distance + 1;
-            queue.push({ nodeId: neighborId, distance: distance + 1 });
+            queue.push({ 'nodeId': neighborId, 'distance': distance + 1 });
           }
-        });
+        }
       }
-      
+
       // 计算平均距离
       const reachableNodes = Object.keys(distances).length;
       if (reachableNodes <= 1) {
         result.push({
-          nodeId: node.id,
-          value: 0,
+          'nodeId': node.id,
+          'value': 0,
           node
         });
-        return;
+      } else {
+        const totalDistance = Object.values(distances).reduce((sum, d) => sum + d, 0);
+        const closeness = (reachableNodes - 1) / totalDistance;
+
+        result.push({
+          'nodeId': node.id,
+          'value': closeness,
+          node
+        });
       }
-      
-      const totalDistance = Object.values(distances).reduce((sum, d) => sum + d, 0);
-      const closeness = (reachableNodes - 1) / totalDistance;
-      
-      result.push({
-        nodeId: node.id,
-        value: closeness,
-        node
-      });
-    });
-    
+    }
+
     return result.sort((a, b) => b.value - a.value);
   }, [nodes, getNodeNeighbors]);
 
@@ -347,79 +390,83 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
     const result: CentralityResult[] = [];
     const nodeIds = nodes.map(node => node.id);
     const n = nodeIds.length;
-    
+
     // 初始化邻接矩阵
-    const adjacencyMatrix: number[][] = Array(n).fill(0).map(() => Array(n).fill(0));
+    const adjacencyMatrix: number[][] = Array(n).fill(0)
+      .map(() => Array(n).fill(0));
     const idToIndex = new Map(nodeIds.map((id, index) => [id, index]));
-    
+
     // 构建邻接矩阵
     links.forEach(link => {
       const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
       const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
-      
+
       const sourceIndex = idToIndex.get(sourceId);
       const targetIndex = idToIndex.get(targetId);
-      
+
       if (sourceIndex !== undefined && targetIndex !== undefined && adjacencyMatrix[sourceIndex] && adjacencyMatrix[targetIndex]) {
         adjacencyMatrix[sourceIndex][targetIndex] = 1;
         adjacencyMatrix[targetIndex][sourceIndex] = 1;
       }
     });
-    
+
     // 幂迭代法计算特征向量中心性
     let eigenvector = Array(n).fill(1 / Math.sqrt(n));
     const iterations = 100;
     const tolerance = 1e-6;
-    
-    for (let i = 0; i < iterations; i++) {
+
+    for (let i = 0; i < iterations; i += 1) {
       const newEigenvector = Array(n).fill(0);
-      
-      for (let j = 0; j < n; j++) {
+
+      for (let j = 0; j < n; j += 1) {
         const row = adjacencyMatrix[j];
         if (row) {
-          for (let k = 0; k < n; k++) {
+          for (let k = 0; k < n; k += 1) {
             newEigenvector[j] += (row[k] || 0) * eigenvector[k];
           }
         }
       }
-      
+
       // 归一化
       const norm = Math.sqrt(newEigenvector.reduce((sum, v) => sum + v * v, 0));
       const normalized = newEigenvector.map(v => v / norm);
-      
+
       // 检查收敛
       const diff = eigenvector.reduce((sum, v, idx) => sum + Math.abs(v - (normalized[idx] || 0)), 0);
       if (diff < tolerance) {
         eigenvector = normalized;
         break;
       }
-      
+
       eigenvector = normalized;
     }
-    
+
     // 转换为结果格式
-    nodeIds.forEach((id, index) => {
-      const node = nodes.find(n => n.id === id)!;
-      result.push({
-        nodeId: id,
-        value: eigenvector[index] || 0,
-        node
-      });
-    });
-    
+    for (let index = 0; index < nodeIds.length; index += 1) {
+      const id = nodeIds[index];
+      if (id) {
+        const foundNode = nodes.find(nodeItem => nodeItem.id === id)!;
+        result.push({
+          'nodeId': id,
+          'value': eigenvector[index] || 0,
+          'node': foundNode
+        });
+      }
+    }
+
     return result.sort((a, b) => b.value - a.value);
   }, [nodes, links]);
 
   // 计算所有中心性指标
   const calculateCentralityMetrics = useCallback(() => {
     setIsCalculating(true);
-    
+
     setTimeout(() => {
       const degree = calculateDegreeCentrality();
       const betweenness = calculateBetweennessCentrality();
       const closeness = calculateClosenessCentrality();
       const eigenvector = calculateEigenvectorCentrality();
-      
+
       setCentralityMetrics({
         degree,
         betweenness,
@@ -432,70 +479,84 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
 
   // Dijkstra算法寻找最短路径
   const findShortestPath = useCallback(() => {
-    if (!selectedSource || !selectedTarget) return;
-    
+    if (!selectedSource || !selectedTarget) {
+      return;
+    }
+
     setIsCalculating(true);
-    
+
     setTimeout(() => {
       // 初始化距离和前驱
       const distances: Record<string, number> = {};
       const predecessors: Record<string, string | null> = {};
       const visited: Set<string> = new Set();
-      
+
       // 初始化所有节点的距离为无穷大
-      nodes.forEach(node => {
+      for (const node of nodes) {
         distances[node.id] = Infinity;
         predecessors[node.id] = null;
-      });
-      
+      }
+
       // 源节点距离为0
       distances[selectedSource] = 0;
-      
+
       // 优先队列（简化版）
       const getUnvisitedNodeWithMinDistance = () => {
         let minDistance = Infinity;
         let minNodeId = '';
-        
-        nodes.forEach(node => {
+
+        // 遍历所有节点，找到未访问且距离最小的节点
+        for (const node of nodes) {
           const nodeDistance = distances[node.id] || Infinity;
           if (!visited.has(node.id) && nodeDistance < minDistance) {
             minDistance = nodeDistance;
             minNodeId = node.id;
           }
-        });
-        
+        }
+
         return minNodeId;
       };
-      
+
       // 执行Dijkstra算法
-      for (let i = 0; i < nodes.length; i++) {
-        const current = getUnvisitedNodeWithMinDistance();
-        const currentDistance = distances[current] || Infinity;
-        if (current === '' || currentDistance === Infinity) break;
-        
-        visited.add(current);
-        
+      for (let i = 0; i < nodes.length; i += 1) {
+        const currentNode = getUnvisitedNodeWithMinDistance();
+        const currentDistance = distances[currentNode] || Infinity;
+        if (currentNode === '' || currentDistance === Infinity) {
+          break;
+        }
+
+        visited.add(currentNode);
+
         // 获取邻居
-        const neighbors = getNodeNeighbors(current, false);
-        
-        neighbors.forEach(neighbor => {
-          if (!visited.has(neighbor)) {
-            const distance = currentDistance + 1; // 假设所有边权重为1
+        const neighbors = getNodeNeighbors(currentNode, false);
+
+        for (let j = 0; j < neighbors.length; j += 1) {
+          const neighbor = neighbors[j];
+          if (neighbor && !visited.has(neighbor)) {
+            // 假设所有边权重为1
+            const newDistance = currentDistance + 1;
             const neighborDistance = distances[neighbor] || Infinity;
-            if (distance < neighborDistance) {
-              distances[neighbor] = distance;
-              predecessors[neighbor] = current;
+            if (newDistance < neighborDistance) {
+              distances[neighbor] = newDistance;
+              predecessors[neighbor] = currentNode;
             }
           }
-        });
+        }
       }
-      
+
       // 构建路径
       const path: EnhancedNode[] = [];
       let current = selectedTarget;
-      
+
       while (current && current !== selectedSource) {
-        const node = nodes.find(n => n.id === current);
+        let node = null;
+        for (let i = 0; i < nodes.length; i += 1) {
+          const currentNode = nodes[i];
+          if (currentNode && currentNode.id === current) {
+            node = currentNode;
+            break;
+          }
+        }
         if (node) {
           path.unshift(node);
           current = predecessors[current] || '';
@@ -503,16 +564,23 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
           break;
         }
       }
-      
+
       // 添加源节点
-      const sourceNode = nodes.find(n => n.id === selectedSource);
+      let sourceNode = null;
+      for (let i = 0; i < nodes.length; i += 1) {
+        const currentNode = nodes[i];
+        if (currentNode && currentNode.id === selectedSource) {
+          sourceNode = currentNode;
+          break;
+        }
+      }
       if (sourceNode) {
         path.unshift(sourceNode);
       }
-      
+
       setPathResult({
         path,
-        distance: distances[selectedTarget] || Infinity
+        'distance': distances[selectedTarget] || Infinity
       });
       setIsCalculating(false);
     }, 100);
@@ -520,12 +588,14 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
 
   // 渲染中心性结果
   const renderCentralityResults = () => {
-    if (!centralityMetrics) return null;
-    
+    if (!centralityMetrics) {
+      return null;
+    }
+
     return (
       <div className="space-y-6 mt-6">
         <h4 className="text-lg font-semibold text-gray-900">中心性指标结果</h4>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 度中心性 */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -549,7 +619,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
               </table>
             </div>
           </div>
-          
+
           {/* 介数中心性 */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <h5 className="font-medium text-gray-800 mb-2">介数中心性</h5>
@@ -572,7 +642,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
               </table>
             </div>
           </div>
-          
+
           {/* 接近中心性 */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <h5 className="font-medium text-gray-800 mb-2">接近中心性</h5>
@@ -595,7 +665,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
               </table>
             </div>
           </div>
-          
+
           {/* 特征向量中心性 */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <h5 className="font-medium text-gray-800 mb-2">特征向量中心性</h5>
@@ -625,8 +695,10 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
 
   // 渲染路径结果
   const renderPathResult = () => {
-    if (!pathResult) return null;
-    
+    if (!pathResult) {
+      return null;
+    }
+
     return (
       <div className="mt-6">
         <h4 className="text-lg font-semibold text-gray-900">最短路径结果</h4>
@@ -636,7 +708,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
               路径长度: {pathResult.distance === Infinity ? '不可达' : pathResult.distance}
             </p>
           </div>
-          
+
           {pathResult.path.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {pathResult.path.map((node, index) => (
@@ -663,11 +735,11 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
     const stats = calculateBasicStats();
     const components = calculateConnectedComponents();
     const diameter = calculateDiameter();
-    
+
     return (
       <div className="mt-6">
         <h4 className="text-lg font-semibold text-gray-900">基础统计信息</h4>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
           {/* 基础指标 */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -703,7 +775,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
               </div>
             </div>
           </div>
-          
+
           {/* 连通分量 */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <h5 className="font-medium text-gray-800 mb-3">连通分量</h5>
@@ -744,10 +816,10 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">图谱分析</h3>
-      
+
       {/* 基础统计信息 */}
       {renderBasicStats()}
-      
+
       {/* 中心性指标计算 */}
       <div className="mt-4">
         <h4 className="text-sm font-medium text-gray-700 mb-2">中心性指标</h4>
@@ -759,7 +831,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
           {isCalculating ? '计算中...' : '计算中心性指标'}
         </button>
       </div>
-      
+
       {/* 最短路径查找 */}
       <div className="mt-4">
         <h4 className="text-sm font-medium text-gray-700 mb-2">最短路径查找</h4>
@@ -797,7 +869,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
           </button>
         </div>
       </div>
-      
+
       {/* 结果显示 */}
       {renderCentralityResults()}
       {renderPathResult()}

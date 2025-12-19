@@ -4,9 +4,9 @@ import { Star, StarOff, X } from 'lucide-react';
 interface LatexHistoryFavoritesProps {
   recentFormulas: string[];
   favoriteFormulas: string[];
-  onFormulaClick: (formula: string) => void;
-  onRemoveRecent: (index: number) => void;
-  onToggleFavorite: (formula: string) => void;
+  onFormulaClick: (_formula: string) => void;
+  onRemoveRecent: (_index: number) => void;
+  onToggleFavorite: (_formula: string) => void;
 }
 
 /**
@@ -18,12 +18,12 @@ interface LatexHistoryFavoritesProps {
  * @param onRemoveRecent - 移除最近公式的回调
  * @param onToggleFavorite - 切换收藏状态的回调
  */
-export function LatexHistoryFavorites({ 
-  recentFormulas, 
-  favoriteFormulas, 
-  onFormulaClick, 
-  onRemoveRecent, 
-  onToggleFavorite 
+export function LatexHistoryFavorites ({
+  recentFormulas,
+  favoriteFormulas,
+  onFormulaClick,
+  onRemoveRecent,
+  onToggleFavorite
 }: LatexHistoryFavoritesProps) {
   return (
     <div className="history-favorites p-4 space-y-6">

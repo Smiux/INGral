@@ -10,7 +10,7 @@ import { SearchResults } from '../components/search/SearchResults';
 import { SearchFilters } from '../services/searchService';
 import styles from './SearchPage.module.css';
 
-export function SearchPage() {
+export function SearchPage () {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
   const [isLoading, setIsLoading] = useState(false);
@@ -38,31 +38,31 @@ export function SearchPage() {
       } else {
         params.delete('type');
       }
-      
+
       if (filters.sortBy && filters.sortBy !== 'relevance') {
         params.set('sort', filters.sortBy);
       } else {
         params.delete('sort');
       }
-      
+
       if (filters.author) {
         params.set('author', filters.author);
       } else {
         params.delete('author');
       }
-      
+
       if (filters.tags && filters.tags.length > 0) {
         params.set('tags', filters.tags.join(','));
       } else {
         params.delete('tags');
       }
-      
+
       if (filters.dateRange?.start) {
         params.set('startDate', filters.dateRange.start);
       } else {
         params.delete('startDate');
       }
-      
+
       if (filters.dateRange?.end) {
         params.set('endDate', filters.dateRange.end);
       } else {

@@ -6,8 +6,8 @@ import { Save, HelpCircle, FileText, Network, Eye, EyeOff, Code, LayoutGrid, Fil
  */
 interface EditorToolbarProps {
   viewMode: 'split' | 'editor' | 'preview';
-  onToggleViewMode: (mode: 'split' | 'editor' | 'preview') => void;
-  onSave: (e: React.FormEvent) => void;
+  onToggleViewMode: (_mode: 'split' | 'editor' | 'preview') => void;
+  onSave: (_e: React.FormEvent) => void;
   isSaving: boolean;
   onSelectTemplate: () => void;
   onGenerateGraph?: () => void;
@@ -26,7 +26,7 @@ interface EditorToolbarProps {
   onSaveDraft?: () => void;
 }
 
-export function EditorToolbar({
+export function EditorToolbar ({
   viewMode,
   onToggleViewMode,
   onSave,
@@ -41,7 +41,7 @@ export function EditorToolbar({
   onToggleLivePreview,
   collaborators,
   onOpenDraftManager,
-  onSaveDraft,
+  onSaveDraft
 }: EditorToolbarProps) {
   return (
     <div className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)] shadow-[var(--shadow-sm)] transition-all duration-300">
@@ -65,8 +65,8 @@ export function EditorToolbar({
           <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden shadow-sm transition-all duration-250">
             <button
               onClick={() => onToggleViewMode('editor')}
-              className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-250 ease-in-out ${viewMode === 'editor' 
-                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-inner transform scale-105' 
+              className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-250 ease-in-out ${viewMode === 'editor'
+                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-inner transform scale-105'
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transform hover:scale-105'}`}
             >
               <Code size={16} className="transition-transform duration-250 hover:scale-125" />
@@ -74,8 +74,8 @@ export function EditorToolbar({
             </button>
             <button
               onClick={() => onToggleViewMode('preview')}
-              className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-250 ease-in-out ${viewMode === 'preview' 
-                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-inner transform scale-105' 
+              className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-250 ease-in-out ${viewMode === 'preview'
+                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-inner transform scale-105'
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transform hover:scale-105'}`}
             >
               <Eye size={16} className="transition-transform duration-250 hover:scale-125" />
@@ -83,8 +83,8 @@ export function EditorToolbar({
             </button>
             <button
               onClick={() => onToggleViewMode('split')}
-              className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-250 ease-in-out ${viewMode === 'split' 
-                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-inner transform scale-105' 
+              className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-all duration-250 ease-in-out ${viewMode === 'split'
+                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-inner transform scale-105'
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transform hover:scale-105'}`}
             >
               <LayoutGrid size={16} className="transition-transform duration-250 hover:scale-125" />
@@ -95,8 +95,8 @@ export function EditorToolbar({
           {/* 实时预览切换按钮 */}
           <button
             onClick={onToggleLivePreview}
-            className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-250 ease-in-out ${livePreview 
-              ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 shadow-sm transform scale-105' 
+            className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-250 ease-in-out ${livePreview
+              ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 shadow-sm transform scale-105'
               : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm transform hover:scale-105'}`}
             title={livePreview ? '关闭实时预览' : '开启实时预览'}
           >
@@ -179,14 +179,14 @@ export function EditorToolbar({
                     const colors = ['var(--error-500)', 'var(--primary-400)', 'var(--success-400)', 'var(--warning-500)', 'var(--secondary-500)', 'var(--primary-600)'];
                     const colorIndex = collaborators.findIndex(c => c.id === collaborator.id) % colors.length;
                     const cursorColor = colors[colorIndex];
-                    
+
                     return (
                       <div key={collaborator.id} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors">
                         <div className="flex items-center space-x-2">
                           {/* 协作者颜色指示器 */}
-                          <div 
+                          <div
                             className="w-3 h-3 rounded-full transition-all duration-200"
-                            style={{ backgroundColor: cursorColor }}
+                            style={{ 'backgroundColor': cursorColor }}
                           />
                           {/* 协作者名称 */}
                           <span className="text-sm text-gray-800 dark:text-gray-200">
@@ -206,7 +206,7 @@ export function EditorToolbar({
               </div>
             </div>
           )}
-          
+
           {/* 工具栏折叠/展开按钮 */}
           <button
             onClick={onToggleToolbar}
@@ -227,7 +227,7 @@ export function EditorToolbar({
           <button
             onClick={onToggleHelp}
             className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-250 ease-in-out ${showHelp
-              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm transform scale-105' 
+              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm transform scale-105'
               : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm transform hover:scale-105'}`}
             title="帮助"
           >

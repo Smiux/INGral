@@ -13,8 +13,10 @@ import { graphService } from '../services/graphService';
  * 图谱卡片属性接口
  */
 interface GraphCardProps {
+
   /** 图谱数据 */
   graph: Graph;
+
   /** 点击事件处理函数 */
   onClick: () => void;
 }
@@ -108,11 +110,12 @@ export const GraphListPage: React.FC = () => {
         </div>
 
         {/* Graph List */}
-        {loading ? (
+        {loading && (
           <div className="flex items-center justify-center py-16">
             <Loader size="large" text="Loading graphs..." />
           </div>
-        ) : graphs.length > 0 ? (
+        )}
+        {!loading && graphs.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {graphs.map((graph) => (
               <GraphCard
@@ -122,7 +125,8 @@ export const GraphListPage: React.FC = () => {
               />
             ))}
           </div>
-        ) : (
+        )}
+        {!loading && graphs.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
             <Grid className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900">No graphs found</h3>

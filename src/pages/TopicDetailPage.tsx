@@ -4,19 +4,20 @@
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { MessageSquare, Users, Eye, Clock, ArrowLeft, Send, Tag, Image } from 'lucide-react';
+import { ArrowLeft, Send, Image, MessageSquare, Clock, Users, Eye, Tag } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import type { DiscussionTopic, DiscussionReply, DiscussionCategory } from '../types';
 import { discussionService } from '../services/discussionService';
 import { fileService } from '../services/fileService';
+import { screenReaderAnnouncer } from '../utils/accessibility';
 
 /**
  * 主题详情页面组件
  */
-export function TopicDetailPage() {
+export function TopicDetailPage () {
   const { categorySlug, topicId } = useParams<{ categorySlug: string; topicId: string }>();
   const navigate = useNavigate();
-  
+
   const [topic, setTopic] = useState<DiscussionTopic | null>(null);
   const [replies, setReplies] = useState<DiscussionReply[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,15 +45,15 @@ export function TopicDetailPage() {
         navigate('/discussions');
         return;
       }
-      
+
       const data = await discussionService.getTopicById(numericTopicId);
       if (!data) {
         navigate('/discussions');
         return;
       }
-      
+
       setTopic(data);
-      
+
       // 加载分类信息
       const categoryData = await discussionService.getCategories();
       const foundCategory = categoryData.find(cat => cat.id === data.category_id);
@@ -69,11 +70,13 @@ export function TopicDetailPage() {
   const loadReplies = useCallback(async () => {
     try {
       const numericTopicId = parseInt(topicId || '', 10);
-      if (isNaN(numericTopicId)) return;
-      
+      if (isNaN(numericTopicId)) {
+        return;
+      }
+
       // 计算偏移量
       const offset = (currentPage - 1) * pageSize;
-      
+
       const { data, count } = await discussionService.getTopicReplies(numericTopicId, pageSize, offset);
       setReplies(data);
       if (count !== undefined) {
@@ -89,31 +92,31 @@ export function TopicDetailPage() {
    */
   const handleReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!replyContent.trim() || !authorName.trim() || !topic) {
       return;
     }
-    
+
     try {
       setIsSubmitting(true);
       const numericTopicId = parseInt(topicId || '', 10);
-      
+
       const replyData: Omit<DiscussionReply, 'id' | 'created_at' | 'replies'> = {
-        topic_id: numericTopicId,
-        content: replyContent,
-        author_name: authorName
+        'topic_id': numericTopicId,
+        'content': replyContent,
+        'author_name': authorName
       };
-      
+
       if (authorEmail) {
         replyData.author_email = authorEmail;
       }
-      
+
       await discussionService.createReply(replyData);
-      
+
       // 重置表单
       setReplyContent('');
       setAuthorEmail('');
-      
+
       // 重新加载回复
       await loadReplies();
     } catch (error) {
@@ -143,20 +146,22 @@ export function TopicDetailPage() {
    */
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     // 检查文件类型
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file.');
+      screenReaderAnnouncer.announceError('Please select an image file.');
       return;
     }
 
     try {
       setIsUploading(true);
-      
+
       // 上传图片到Supabase存储
       const imageUrl = await fileService.uploadFile(file, 'images', 'discussions');
-      
+
       if (imageUrl) {
         // 将图片Markdown语法插入到编辑器内容中
         const imageMarkdown = `![Image](${imageUrl})\n\n`;
@@ -164,7 +169,7 @@ export function TopicDetailPage() {
       }
     } catch (error) {
       console.error('Failed to upload image:', error);
-      alert('Failed to upload image. Please try again.');
+      screenReaderAnnouncer.announceError('Failed to upload image. Please try again.');
     } finally {
       setIsUploading(false);
       // 重置文件输入
@@ -243,7 +248,7 @@ export function TopicDetailPage() {
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  <span>{new Date(topic.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  <span>{new Date(topic.created_at).toLocaleDateString('en-US', { 'month': 'long', 'day': 'numeric', 'year': 'numeric' })}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <MessageSquare className="w-4 h-4" />
@@ -357,7 +362,7 @@ export function TopicDetailPage() {
         {/* 回复列表 */}
         <div className="space-y-6">
           <h2 className="text-lg font-semibold text-gray-900">Replies ({topic.reply_count})</h2>
-          
+
           {replies.length > 0 ? (
             <div className="space-y-4">
               {replies.map(reply => (
@@ -367,7 +372,7 @@ export function TopicDetailPage() {
                       <Users className="w-4 h-4 text-gray-500" />
                       <span className="font-medium text-gray-900">{reply.author_name}</span>
                       <span className="text-sm text-gray-500">
-                        {new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(reply.created_at).toLocaleDateString('en-US', { 'month': 'short', 'day': 'numeric', 'hour': '2-digit', 'minute': '2-digit' })}
                       </span>
                     </div>
                     <button
@@ -390,7 +395,7 @@ export function TopicDetailPage() {
                               <Users className="w-4 h-4 text-gray-500" />
                               <span className="font-medium text-gray-900">{nestedReply.author_name}</span>
                               <span className="text-sm text-gray-500">
-                                {new Date(nestedReply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                {new Date(nestedReply.created_at).toLocaleDateString('en-US', { 'month': 'short', 'day': 'numeric', 'hour': '2-digit', 'minute': '2-digit' })}
                               </span>
                             </div>
                             <button
@@ -409,7 +414,7 @@ export function TopicDetailPage() {
                   )}
                 </div>
               ))}
-              
+
               {/* 回复分页控件 */}
               <div className="flex justify-center mt-8">
                 <nav className="inline-flex items-center gap-1">
@@ -420,8 +425,8 @@ export function TopicDetailPage() {
                   >
                     Previous
                   </button>
-                  
-                  {Array.from({ length: Math.ceil(totalReplies / pageSize) }, (_, i) => i + 1).map(pageNum => (
+
+                  {Array.from({ 'length': Math.ceil(totalReplies / pageSize) }, (_, i) => i + 1).map(pageNum => (
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
@@ -430,7 +435,7 @@ export function TopicDetailPage() {
                       {pageNum}
                     </button>
                   ))}
-                  
+
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(totalReplies / pageSize)))}
                     disabled={currentPage === Math.ceil(totalReplies / pageSize)}

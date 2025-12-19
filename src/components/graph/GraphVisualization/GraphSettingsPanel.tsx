@@ -7,10 +7,10 @@ import { useGraph } from './useGraph';
 export const GraphSettingsPanel: React.FC = () => {
   // 使用useGraph Hook获取状态和操作
   const { state, actions } = useGraph();
-  
+
   // 从state中解构需要的状态
   const { isSettingsPanelOpen, toolbarAutoHide, currentTheme } = state;
-  
+
   if (!isSettingsPanelOpen) {
     return null;
   }
@@ -18,7 +18,7 @@ export const GraphSettingsPanel: React.FC = () => {
   return (
     <div className={`fixed top-16 right-4 shadow-xl rounded-md p-4 w-80 z-50 ${currentTheme.backgroundColor} border border-gray-200`}>
       <h3 className="font-medium mb-3 text-gray-800">设置</h3>
-      
+
       {/* 顶部工具栏显示模式 */}
       <div className="mb-4">
         <h4 className="text-sm font-medium text-gray-700 mb-2">顶部工具栏显示模式</h4>
@@ -38,7 +38,7 @@ export const GraphSettingsPanel: React.FC = () => {
         </div>
         <p className="text-xs text-gray-500 mt-1">自动收起：鼠标离开工具栏3秒后自动隐藏，鼠标移到顶部区域时显示</p>
       </div>
-      
+
       {/* 关闭按钮 */}
       <button
         onClick={() => actions.setIsSettingsPanelOpen(false)}

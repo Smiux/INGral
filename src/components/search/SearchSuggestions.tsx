@@ -12,12 +12,12 @@ interface SearchSuggestionsProps {
   suggestions: SearchSuggestion[];
   loading: boolean;
   selectedIndex: number;
-  onSuggestionClick: (suggestion: SearchSuggestion) => void;
-  onSuggestionHover: (index: number) => void;
+  onSuggestionClick: (_suggestion: SearchSuggestion) => void;
+  onSuggestionHover: (_index: number) => void;
   searchQuery: string;
 }
 
-export function SearchSuggestions({
+export function SearchSuggestions ({
   suggestions,
   loading,
   selectedIndex,
@@ -31,19 +31,26 @@ export function SearchSuggestions({
 
   return (
     <div className={styles.suggestionsSection}>
-      {loading ? (
+      {/* 渲染加载状态 */}
+      {loading && (
         <div className={styles.loadingContainer} role="status" aria-live="polite">
           <div className={styles.loadingIndicator} aria-hidden="true"></div>
           <span>搜索中...</span>
         </div>
-      ) : suggestions.length > 0 ? (
+      )}
+
+      {/* 渲染建议列表 */}
+      {!loading && suggestions.length > 0 && (
         <div className={styles.suggestionsList}>
           {suggestions.map((suggestion, index) => (
             <div
               key={suggestion.id}
               className={`${styles.suggestionItem} ${index === selectedIndex ? styles.suggestionItemSelected : ''}`}
               onClick={() => onSuggestionClick(suggestion)}
-              onMouseDown={(e) => e.preventDefault()} // 防止点击建议时输入框失去焦点
+              onMouseDown={(e) => {
+                // 防止点击建议时输入框失去焦点
+                e.preventDefault();
+              }}
               onMouseEnter={() => onSuggestionHover(index)}
               role="option"
               id={`suggestion-${index}`}
@@ -56,7 +63,10 @@ export function SearchSuggestions({
             </div>
           ))}
         </div>
-      ) : (
+      )}
+
+      {/* 渲染无建议状态 */}
+      {!loading && suggestions.length === 0 && (
         <div className={styles.noSuggestions} role="status">
           没有找到相关建议
         </div>

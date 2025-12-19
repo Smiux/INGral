@@ -8,10 +8,10 @@ export class ExportUtils {
    * @param filename 文件名
    * @param mimeType MIME类型
    */
-  static triggerDownload(content: string | Blob, filename: string, mimeType: string): void {
+  static triggerDownload (content: string | Blob, filename: string, mimeType: string): void {
     try {
       // 创建Blob对象
-      const blob = typeof content === 'string' ? new Blob([content], { type: mimeType }) : content;
+      const blob = typeof content === 'string' ? new Blob([content], { 'type': mimeType }) : content;
 
       // 创建下载链接
       const url = URL.createObjectURL(blob);
@@ -39,13 +39,17 @@ export class ExportUtils {
    * @param filename 原始文件名
    * @returns 清理后的文件名
    */
-  static sanitizeFilename(filename: string): string {
+  static sanitizeFilename (filename: string): string {
     // 移除或替换非法字符
     return filename
-      .replace(/[<>:/|?*"\\]/g, '_') // 移除Windows文件名中的非法字符
-      .replace(/\s+/g, ' ')           // 合并多个空格
-      .trim()                         // 移除首尾空格
-      .slice(0, 100);                 // 限制长度
+      // 移除Windows文件名中的非法字符
+      .replace(/[<>:/|?*"\\]/g, '_')
+      // 合并多个空格
+      .replace(/\s+/g, ' ')
+      // 移除首尾空格
+      .trim()
+      // 限制长度
+      .slice(0, 100);
   }
 
   /**
@@ -53,7 +57,7 @@ export class ExportUtils {
    * @param text 原始文本
    * @returns 转义后的文本
    */
-  static escapeXml(text: string): string {
+  static escapeXml (text: string): string {
     return text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -67,7 +71,7 @@ export class ExportUtils {
    * @param text 原始文本
    * @returns 转义后的文本
    */
-  static escapeCsv(text: string): string {
+  static escapeCsv (text: string): string {
     return text
       .replace(/"/g, '""')
       .replace(/\n/g, ' ')

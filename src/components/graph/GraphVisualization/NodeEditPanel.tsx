@@ -8,8 +8,8 @@ import type { EnhancedNode } from './types';
 
 interface NodeEditPanelProps {
   selectedNode: EnhancedNode | null;
-  onUpdateNode: (node: EnhancedNode) => void;
-  onDeleteNode: (nodeId: string) => void;
+  onUpdateNode: (_node: EnhancedNode) => void;
+  onDeleteNode: (_nodeId: string) => void;
   onClose: () => void;
 }
 
@@ -24,17 +24,17 @@ export const NodeEditPanel: React.FC<NodeEditPanelProps> = ({
 }) => {
   // 表单状态
   const [formData, setFormData] = useState<EnhancedNode>({
-    id: '',
-    title: '',
-    connections: 0,
-    x: 0,
-    y: 0,
-    type: 'concept',
-    content: '',
-    shape: 'rect',
-    isExpanded: false,
-    _isAggregated: false,
-    _aggregatedNodes: []
+    'id': '',
+    'title': '',
+    'connections': 0,
+    'x': 0,
+    'y': 0,
+    'type': 'concept',
+    'content': '',
+    'shape': 'rect',
+    'isExpanded': false,
+    '_isAggregated': false,
+    '_aggregatedNodes': []
   });
 
   // 当选中节点变化时，更新表单数据

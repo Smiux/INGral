@@ -9,7 +9,7 @@
  * 数据验证错误类
  */
 export class ValidationError extends Error {
-  constructor(public field: string, message: string) {
+  constructor (public _field: string, message: string) {
     super(message);
     this.name = 'ValidationError';
   }
@@ -24,66 +24,64 @@ export class ArticleValidator {
    * @param articleData 文章数据
    * @throws ValidationError 当数据验证失败时
    */
-  static validate(articleData: Record<string, unknown>): void {
+  static validate (articleData: Record<string, unknown>): void {
     // 验证标题
-    if (!articleData['title'] || typeof articleData['title'] !== 'string') {
+    if (!articleData.title || typeof articleData.title !== 'string') {
       throw new ValidationError('title', '文章标题不能为空且必须是字符串');
     }
-    if ((articleData['title'] as string).length < 2) {
+    if ((articleData.title as string).length < 2) {
       throw new ValidationError('title', '文章标题至少需要2个字符');
     }
-    if ((articleData['title'] as string).length > 200) {
+    if ((articleData.title as string).length > 200) {
       throw new ValidationError('title', '文章标题不能超过200个字符');
     }
 
     // 验证内容
-    if (!articleData['content'] || typeof articleData['content'] !== 'string') {
+    if (!articleData.content || typeof articleData.content !== 'string') {
       throw new ValidationError('content', '文章内容不能为空且必须是字符串');
     }
-    if ((articleData['content'] as string).length < 10) {
+    if ((articleData.content as string).length < 10) {
       throw new ValidationError('content', '文章内容至少需要10个字符');
     }
 
     // 验证slug
-    if (articleData['slug'] !== undefined && articleData['slug'] !== null) {
-      if (typeof articleData['slug'] !== 'string') {
+    if (articleData.slug !== undefined && articleData.slug !== null) {
+      if (typeof articleData.slug !== 'string') {
         throw new ValidationError('slug', '文章slug必须是字符串');
       }
       // 验证slug格式
       const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-      if (!slugRegex.test(articleData['slug'] as string)) {
+      if (!slugRegex.test(articleData.slug as string)) {
         throw new ValidationError('slug', '文章slug只能包含小写字母、数字和短横线');
       }
     }
 
     // 验证发布日期
-    if (articleData['publishDate']) {
-      if (typeof articleData['publishDate'] !== 'string' && !(articleData['publishDate'] instanceof Date)) {
+    if (articleData.publishDate) {
+      if (typeof articleData.publishDate !== 'string' && !(articleData.publishDate instanceof Date)) {
         throw new ValidationError('publishDate', '发布日期必须是字符串或Date对象');
       }
     }
 
     // 验证状态
-    if (articleData['status']) {
+    if (articleData.status) {
       const validStatuses = ['draft', 'published', 'archived'];
-      if (typeof articleData['status'] === 'string' && !validStatuses.includes(articleData['status'])) {
+      if (typeof articleData.status === 'string' && !validStatuses.includes(articleData.status)) {
         throw new ValidationError('status', '文章状态必须是draft、published或archived之一');
       }
     }
 
     // 验证标签
-    if (articleData['tags']) {
-      if (!Array.isArray(articleData['tags'])) {
+    if (articleData.tags) {
+      if (!Array.isArray(articleData.tags)) {
         throw new ValidationError('tags', '文章标签必须是数组');
       }
-      (articleData['tags'] as unknown[]).forEach((tag: unknown, index: number) => {
+      (articleData.tags as unknown[]).forEach((tag: unknown, index: number) => {
         if (typeof tag !== 'string') {
           throw new ValidationError(`tags[${index}]`, '标签必须是字符串');
         }
       });
     }
-
-
   }
 
   /**
@@ -91,30 +89,31 @@ export class ArticleValidator {
    * @param articleData 原始文章数据
    * @returns 清理后的文章数据
    */
-  static sanitize(articleData: { title?: unknown; content?: unknown; status?: unknown; [key: string]: unknown }): Record<string, unknown> {
+  static sanitize (articleData: { title?: unknown; content?: unknown; status?: unknown; [key: string]: unknown }): Record<string, unknown> {
     // 使用正确的类型初始化sanitized对象
     const sanitized: Record<string, unknown> = {
-      title: articleData['title'] ? String(articleData['title']).trim() : '',
-      content: articleData['content'] ? String(articleData['content']).trim() : '',
-      status: articleData['status'] || 'draft',
-      createdAt: articleData['createdAt'] || new Date().toISOString(),
-      tags: [] as string[],
-      publishDate: null,
-      slug: '',
+      'title': articleData.title ? String(articleData.title).trim() : '',
+      'content': articleData.content ? String(articleData.content).trim() : '',
+      'status': articleData.status || 'draft',
+      'createdAt': articleData.createdAt || new Date().toISOString(),
+      'tags': [] as string[],
+      'publishDate': null,
+      'slug': ''
     };
 
     // 可选字段
-    if ('slug' in articleData && articleData['slug'] !== undefined && articleData['slug'] !== null) {
-      sanitized['slug'] = String(articleData['slug']).trim().toLowerCase();
+    if ('slug' in articleData && articleData.slug !== undefined && articleData.slug !== null) {
+      sanitized.slug = String(articleData.slug).trim()
+        .toLowerCase();
     }
-    if (articleData['publishDate']) {
-      sanitized['publishDate'] = String(articleData['publishDate']);
+    if (articleData.publishDate) {
+      sanitized.publishDate = String(articleData.publishDate);
     }
     // 可选字段
-    if (articleData['tags'] && Array.isArray(articleData['tags'])) {
+    if (articleData.tags && Array.isArray(articleData.tags)) {
       // 确保tags是字符串数组
       const stringTags: string[] = [];
-      (articleData['tags'] as unknown[]).forEach(tag => {
+      (articleData.tags as unknown[]).forEach(tag => {
         if (typeof tag === 'string') {
           const trimmedTag = tag.trim();
           if (trimmedTag) {
@@ -122,7 +121,7 @@ export class ArticleValidator {
           }
         }
       });
-      sanitized['tags'] = stringTags;
+      sanitized.tags = stringTags;
     }
 
     return sanitized;
@@ -138,34 +137,32 @@ export class GraphValidator {
    * @param graphData 图表数据
    * @throws ValidationError 当数据验证失败时
    */
-  static validate(graphData: { type?: string; [key: string]: unknown }): void {
+  static validate (graphData: { type?: string; [key: string]: unknown }): void {
     // 验证图表类型
     const validTypes = ['bar', 'line', 'pie', 'scatter', 'area'];
-    if (!graphData['type'] || (typeof graphData['type'] !== 'string' || !validTypes.includes(graphData['type']))) {
+    if (!graphData.type || (typeof graphData.type !== 'string' || !validTypes.includes(graphData.type))) {
       throw new ValidationError('type', `图表类型必须是${validTypes.join('、')}之一`);
     }
 
     // 验证标题
-    if (!graphData['title'] || typeof graphData['title'] !== 'string') {
+    if (!graphData.title || typeof graphData.title !== 'string') {
       throw new ValidationError('title', '图表标题不能为空且必须是字符串');
     }
 
     // 验证数据
-    if (!graphData['data'] || !Array.isArray(graphData['data'])) {
+    if (!graphData.data || !Array.isArray(graphData.data)) {
       throw new ValidationError('data', '图表数据不能为空且必须是数组');
     }
-    if (graphData['data'].length === 0) {
+    if (graphData.data.length === 0) {
       throw new ValidationError('data', '图表数据数组不能为空');
     }
 
     // 验证元数据
-    if (graphData['metadata']) {
-      if (typeof graphData['metadata'] !== 'object' || graphData['metadata'] === null) {
+    if (graphData.metadata) {
+      if (typeof graphData.metadata !== 'object' || graphData.metadata === null) {
         throw new ValidationError('metadata', '图表元数据必须是对象');
       }
     }
-
-
   }
 
   /**
@@ -173,13 +170,13 @@ export class GraphValidator {
    * @param graphData 原始图表数据
    * @returns 清理后的图表数据
    */
-  static sanitize(graphData: { type?: unknown; title?: unknown; data?: unknown; metadata?: unknown; [key: string]: unknown }): Record<string, unknown> {
+  static sanitize (graphData: { type?: unknown; title?: unknown; data?: unknown; metadata?: unknown; [key: string]: unknown }): Record<string, unknown> {
     return {
-      type: graphData['type'] || 'bar',
-      title: graphData['title'] ? String(graphData['title']).trim() : '',
-      data: graphData['data'] || [],
-      metadata: graphData['metadata'] || {},
-      createdAt: graphData['createdAt'] || new Date().toISOString(),
+      'type': graphData.type || 'bar',
+      'title': graphData.title ? String(graphData.title).trim() : '',
+      'data': graphData.data || [],
+      'metadata': graphData.metadata || {},
+      'createdAt': graphData.createdAt || new Date().toISOString()
     };
   }
 }
@@ -193,46 +190,44 @@ export class UserValidator {
    * @param userData 用户数据
    * @throws ValidationError 当数据验证失败时
    */
-  static validate(userData: Record<string, unknown>): void {
+  static validate (userData: Record<string, unknown>): void {
     // 验证用户名
-    if (!userData['username'] || typeof userData['username'] !== 'string') {
+    if (!userData.username || typeof userData.username !== 'string') {
       throw new ValidationError('username', '用户名不能为空且必须是字符串');
     }
-    if ((userData['username'] as string).length < 3) {
+    if ((userData.username as string).length < 3) {
       throw new ValidationError('username', '用户名至少需要3个字符');
     }
-    if ((userData['username'] as string).length > 50) {
+    if ((userData.username as string).length > 50) {
       throw new ValidationError('username', '用户名不能超过50个字符');
     }
 
     // 验证邮箱
-    if (!userData['email'] || typeof userData['email'] !== 'string') {
+    if (!userData.email || typeof userData.email !== 'string') {
       throw new ValidationError('email', '邮箱不能为空且必须是字符串');
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(userData['email'] as string)) {
+    if (!emailRegex.test(userData.email as string)) {
       throw new ValidationError('email', '邮箱格式不正确');
     }
 
     // 验证角色
-    if (userData['role']) {
+    if (userData.role) {
       const validRoles = ['admin', 'editor', 'user'];
-      if (typeof userData['role'] === 'string' && !validRoles.includes(userData['role'] as string)) {
+      if (typeof userData.role === 'string' && !validRoles.includes(userData.role as string)) {
         throw new ValidationError('role', '用户角色必须是admin、editor或user之一');
       }
     }
 
     // 密码验证（仅在创建或更新密码时）
-    if (userData['password']) {
-      if (typeof userData['password'] !== 'string') {
+    if (userData.password) {
+      if (typeof userData.password !== 'string') {
         throw new ValidationError('password', '密码必须是字符串');
       }
-      if ((userData['password'] as string).length < 6) {
+      if ((userData.password as string).length < 6) {
         throw new ValidationError('password', '密码至少需要6个字符');
       }
     }
-
-
   }
 
   /**
@@ -240,26 +235,27 @@ export class UserValidator {
    * @param userData 原始用户数据
    * @returns 清理后的用户数据
    */
-  static sanitize(userData: { username?: unknown; email?: unknown; role?: unknown; name?: unknown; avatar?: unknown; [key: string]: unknown }): Record<string, unknown> {
+  static sanitize (userData: { username?: unknown; email?: unknown; role?: unknown; name?: unknown; avatar?: unknown; [key: string]: unknown }): Record<string, unknown> {
     // 使用Record类型以允许动态添加name属性
     const sanitized: Record<string, unknown> = {
-      username: userData['username'] ? String(userData['username']).trim() : '',
-      email: userData['email'] ? String(userData['email']).trim().toLowerCase() : '',
-      role: userData['role'] || 'viewer',
-      createdAt: userData['createdAt'] || new Date().toISOString(),
-      avatar: '',
+      'username': userData.username ? String(userData.username).trim() : '',
+      'email': userData.email ? String(userData.email).trim()
+        .toLowerCase() : '',
+      'role': userData.role || 'viewer',
+      'createdAt': userData.createdAt || new Date().toISOString(),
+      'avatar': ''
     };
 
     // 可选字段
-    if (userData['name']) {
+    if (userData.name) {
       // 修复：使用name而不是重复的username
-      const nameValue = String(userData['name']).trim();
+      const nameValue = String(userData.name).trim();
       if (nameValue) {
-        sanitized['name'] = nameValue;
+        sanitized.name = nameValue;
       }
     }
-    if (userData['avatar']) {
-      sanitized['avatar'] = String(userData['avatar']);
+    if (userData.avatar) {
+      sanitized.avatar = String(userData.avatar);
     }
 
     return sanitized;
@@ -276,7 +272,7 @@ export class DataWriteGuard {
    * @param operation 数据库操作函数
    * @returns 操作结果
    */
-  static async safeWrite<T>(operation: () => Promise<T>): Promise<T> {
+  static async safeWrite<T> (operation: () => Promise<T>): Promise<T> {
     try {
       // 执行操作
       const result = await operation();
@@ -293,10 +289,10 @@ export class DataWriteGuard {
    * @param maxRetries 最大重试次数，默认3次
    * @returns 操作结果
    */
-  static async writeWithRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
+  static async writeWithRetry<T> (operation: () => Promise<T>, maxRetries = 3): Promise<T> {
     let lastError: Error | null = null;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    for (let attempt = 1; attempt <= maxRetries; attempt += 1) {
       try {
         return await operation();
       } catch (error) {
@@ -319,10 +315,10 @@ export class DataWriteGuard {
    * @param operations 操作列表
    * @returns 所有操作的结果
    */
-  static async safeBatchWrite<T>(operations: (() => Promise<T>)[]): Promise<(T | null)[]> {
+  static async safeBatchWrite<T> (operations: (() => Promise<T>)[]): Promise<(T | null)[]> {
     const results: (T | null)[] = [];
 
-    for (let i = 0; i < operations.length; i++) {
+    for (let i = 0; i < operations.length; i += 1) {
       try {
         // 添加额外的类型检查，确保operations[i]是一个有效的函数
         const operation = operations[i];
@@ -333,7 +329,8 @@ export class DataWriteGuard {
           results.push(null);
         }
       } catch {
-        results.push(null); // 用null标记失败的操作
+        // 用null标记失败的操作
+        results.push(null);
       }
     }
 
@@ -347,23 +344,23 @@ export class DataWriteGuard {
  */
 // 定义事务类型接口
 export interface TableOperations<T = Record<string, unknown>> {
-  select: (...args: unknown[]) => TableOperations<T>;
-  insert: (data: Record<string, unknown>) => Promise<{ data: T[]; error: unknown }>;
-  update: (data: Partial<Record<string, unknown>>) => Promise<{ data: T[]; error: unknown }>;
+  select: (..._args: unknown[]) => TableOperations<T>;
+  insert: (_data: Record<string, unknown>) => Promise<{ data: T[]; error: unknown }>;
+  update: (_data: Partial<Record<string, unknown>>) => Promise<{ data: T[]; error: unknown }>;
   delete: () => Promise<{ data: T[]; error: unknown }>;
-  eq: (field: string, value: unknown) => TableOperations<T>;
-  gt: (field: string, value: unknown) => TableOperations<T>;
-  lt: (field: string, value: unknown) => TableOperations<T>;
-  gte: (field: string, value: unknown) => TableOperations<T>;
-  lte: (field: string, value: unknown) => TableOperations<T>;
-  in: (field: string, values: unknown[]) => TableOperations<T>;
-  order: (field: string, options?: { ascending?: boolean }) => TableOperations<T>;
-  limit: (limit: number) => TableOperations<T>;
+  eq: (_field: string, _value: unknown) => TableOperations<T>;
+  gt: (_field: string, _value: unknown) => TableOperations<T>;
+  lt: (_field: string, _value: unknown) => TableOperations<T>;
+  gte: (_field: string, _value: unknown) => TableOperations<T>;
+  lte: (_field: string, _value: unknown) => TableOperations<T>;
+  in: (_field: string, _values: unknown[]) => TableOperations<T>;
+  order: (_field: string, _options?: { ascending?: boolean }) => TableOperations<T>;
+  limit: (_limit: number) => TableOperations<T>;
   single: () => Promise<{ data: T; error: unknown }>;
 }
 
 export interface TransactionObject {
-  from: <T = Record<string, unknown>>(table: string) => TableOperations<T>;
+  from: <T = Record<string, unknown>>(_table: string) => TableOperations<T>;
   commit?: () => Promise<void>;
   rollback?: () => Promise<void>;
 }
@@ -375,8 +372,8 @@ export class TransactionManager {
    * @returns 事务结果
    */
 
-  static async executeTransaction<T>(
-    operations: (tx: TransactionObject) => Promise<T>,
+  static async executeTransaction<T> (
+    operations: (_tx: TransactionObject) => Promise<T>
   ): Promise<T> {
     // 导入supabase（仅在需要时导入以避免循环依赖）
     const { supabase } = await import('../lib/supabase');
@@ -388,13 +385,13 @@ export class TransactionManager {
       // 执行事务操作
       // 构造符合 TransactionObject 接口的事务对象
       const tx: TransactionObject = {
-        from: <T = Record<string, unknown>>(table: string): TableOperations<T> => {
+        'from': <U = Record<string, unknown>>(_table: string): TableOperations<U> => {
           if (!supabase) {
             throw new Error('Supabase client is not initialized');
           }
-          const tableOps = supabase.from(table);
-          return tableOps as unknown as TableOperations<T>;
-        },
+          const tableOps = supabase.from(_table);
+          return tableOps as unknown as TableOperations<U>;
+        }
       };
 
       const result = await operations(tx);
@@ -416,7 +413,7 @@ export class DataConsistencyChecker {
    * @param expectedData 期望的数据结构
    * @returns 一致性检查结果
    */
-  static checkConsistency(actualData: Record<string, unknown>, expectedData: Record<string, unknown>): {
+  static checkConsistency (actualData: Record<string, unknown>, expectedData: Record<string, unknown>): {
     consistent: boolean;
     missingFields: string[];
     typeMismatches: { field: string; expected: string; actual: string }[];
@@ -438,7 +435,8 @@ export class DataConsistencyChecker {
           expectedType !== null &&
           Object.prototype.hasOwnProperty.call(expectedType, 'required') &&
           (expectedType as OptionalTypeDefinition).required === false;
-        if (!isOptional) { // 默认所有字段都是必需的
+        // 默认所有字段都是必需的
+        if (!isOptional) {
           missingFields.push(field);
         }
       } else {
@@ -451,8 +449,8 @@ export class DataConsistencyChecker {
           if (typeDef.type && actualType !== typeDef.type) {
             typeMismatches.push({
               field,
-              expected: typeDef.type,
-              actual: actualType,
+              'expected': typeDef.type,
+              'actual': actualType
             });
           }
         }
@@ -460,9 +458,9 @@ export class DataConsistencyChecker {
     });
 
     return {
-      consistent: missingFields.length === 0 && typeMismatches.length === 0,
+      'consistent': missingFields.length === 0 && typeMismatches.length === 0,
       missingFields,
-      typeMismatches,
+      typeMismatches
     };
   }
 
@@ -472,9 +470,9 @@ export class DataConsistencyChecker {
    * @param dataType 数据类型
    * @returns 格式化的报告字符串
    */
-  static generateConsistencyReport(
+  static generateConsistencyReport (
     checkResult: ReturnType<typeof DataConsistencyChecker.checkConsistency>,
-    dataType: string,
+    dataType: string
   ): string {
     const report: string[] = [];
     report.push(`=== ${dataType} 数据一致性报告 ===`);
