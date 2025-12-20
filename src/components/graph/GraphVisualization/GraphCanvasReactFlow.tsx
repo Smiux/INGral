@@ -36,10 +36,25 @@ const edgeTypes: EdgeTypes = {
   'default': DefaultEdge
 };
 
-// 隐藏React Flow水印的CSS
+// 隐藏React Flow水印和优化节点样式的CSS
 const hideAttributionStyle = `
   .react-flow__attribution {
     display: none !important;
+  }
+  
+  /* 确保React Flow生成的外层节点div没有视觉样式，只保留我们自定义的内层div样式 */
+  .react-flow__node {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* 确保selectable类不会添加额外的边框 */
+  .selectable {
+    border: none !important;
+    outline: none !important;
   }
 `;
 
@@ -87,7 +102,7 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
         'type': node.type,
         'shape': node.shape
       },
-      'className': 'graph-node',
+      'className': 'graph-node selectable',
       // 移除手动设置的selected属性，让ReactFlow自己管理选中状态
       'draggable': true,
       'selectable': true,
@@ -97,9 +112,27 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
 
   // 将EnhancedGraphConnection转换为React Flow Edge
   const convertToReactFlowEdges = useCallback((enhancedConnections: EnhancedGraphConnection[]): Array<import('reactflow').Edge> => {
+    // 按源节点和目标节点分组，计算同节点间的连接索引
+    const connectionGroups: Record<string, EnhancedGraphConnection[]> = {};
+
+    enhancedConnections.forEach(connection => {
+      const source = typeof connection.source === 'string' ? connection.source : (connection.source as EnhancedNode).id;
+      const target = typeof connection.target === 'string' ? connection.target : (connection.target as EnhancedNode).id;
+      const key = `${source}-${target}`;
+
+      if (!connectionGroups[key]) {
+        connectionGroups[key] = [];
+      }
+      connectionGroups[key].push(connection);
+    });
+
     return enhancedConnections.map(connection => {
       const source = typeof connection.source === 'string' ? connection.source : (connection.source as EnhancedNode).id;
       const target = typeof connection.target === 'string' ? connection.target : (connection.target as EnhancedNode).id;
+      const key = `${source}-${target}`;
+
+      // 计算连接索引，用于区分同节点间的多个连接
+      const connectionIndex = connectionGroups[key] ? connectionGroups[key].indexOf(connection) : 0;
 
       return ({
         'id': connection.id,
@@ -110,7 +143,11 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
         'label': connection.label || connection.type,
         'className': 'graph-edge',
         'selected': false,
-        'deletable': true
+        'deletable': true,
+        'data': {
+          ...connection,
+          connectionIndex
+        }
       });
     });
   }, []);

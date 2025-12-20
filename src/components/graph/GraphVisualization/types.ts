@@ -68,6 +68,11 @@ export interface EnhancedNode extends BaseNodeData {
   groupTitle?: string;
   groupType?: string;
 
+  // 连接点相关
+  handleCount?: number;
+  handlePositions?: Position[];
+  lockedHandles?: Record<string, boolean>;
+
   // 自定义属性扩展
   [key: string]: unknown;
 }
@@ -87,6 +92,11 @@ export interface EnhancedGraphConnection extends BaseConnectionData {
 
   // 连接标签
   label?: string;
+
+  // 曲线控制属性
+  controlPointsCount?: number;
+  dynamicEffect?: string;
+  controlPoints?: Array<{ x: number; y: number; isLocked?: boolean }>;
 
   // 样式属性
   style?: {
@@ -179,10 +189,21 @@ export interface HandleConfig {
 // 连接点位置类型
 export type Position = 'left' | 'top' | 'right' | 'bottom' | { x: number; y: number };
 
+// 连接点配置
+export interface ConnectionPoint {
+  id: string;
+  position: Position;
+  type: 'source' | 'target' | 'both';
+  style?: React.CSSProperties;
+  isVisible?: boolean;
+  isLocked?: boolean;
+}
+
 // 节点形状渲染配置
 export interface ShapeConfig {
-  render: (_props: { style: NodeStyle; radius: number; [key: string]: unknown }) => React.ReactNode;
+  render: (_props: { style: NodeStyle; radius: number; contentWidth?: number; contentHeight?: number; [key: string]: unknown }) => React.ReactNode;
   handlePositions?: Position[];
+  generateHandlePositions?: (_props: { radius: number; count: number; shape: string }) => Position[];
   [key: string]: unknown;
 }
 

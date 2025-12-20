@@ -29,7 +29,9 @@ export const ConnectionEditPanel: React.FC<ConnectionEditPanelProps> = ({
     'target': '',
     'type': '',
     'label': '',
-    'weight': 1
+    'weight': 1,
+    'controlPointsCount': 1,
+    'dynamicEffect': 'none'
   });
 
   // 当选中连接变化时，更新表单数据
@@ -117,7 +119,7 @@ export const ConnectionEditPanel: React.FC<ConnectionEditPanelProps> = ({
         {/* 连接权重 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
-            连接权重
+          连接权重
           </label>
           <input
             type="number"
@@ -131,7 +133,47 @@ export const ConnectionEditPanel: React.FC<ConnectionEditPanelProps> = ({
           />
         </div>
 
+        {/* 曲线控制 */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-gray-700 mt-4 mb-2">
+          曲线控制
+          </h3>
 
+          {/* 控制点数量 */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+            控制点数量
+            </label>
+            <select
+              name="controlPointsCount"
+              value={formData.controlPointsCount?.toString() || '1'}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {[1, 2, 3, 4, 5].map(count => (
+                <option key={count} value={count.toString()}>{count} 个</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 曲线动态效果 */}
+          <div className="space-y-2 mt-4">
+            <h4 className="text-sm font-medium text-gray-700">
+            动态效果
+            </h4>
+            <select
+              name="dynamicEffect"
+              value={formData.dynamicEffect || 'none'}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="none">无效果</option>
+              <option value="flow">流动动画</option>
+              <option value="pulse">脉冲效果</option>
+              <option value="gradient">渐变过渡</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* 面板底部操作栏 */}

@@ -34,8 +34,31 @@ export const NodeEditPanel: React.FC<NodeEditPanelProps> = ({
     'shape': 'rect',
     'isExpanded': false,
     '_isAggregated': false,
-    '_aggregatedNodes': []
+    '_aggregatedNodes': [],
+    'handleCount': 4 as number
   });
+
+  // 确保selectedNode中的handleCount被正确初始化为数值类型
+  useEffect(() => {
+    if (selectedNode) {
+      setFormData(prev => ({
+        ...prev,
+        'handleCount': typeof selectedNode.handleCount === 'number' ? selectedNode.handleCount : 4
+      }));
+    }
+  }, [selectedNode]);
+
+  // 处理连接点数量增减按钮点击
+  const handleHandleCountChange = (delta: number) => {
+    setFormData(prev => {
+      const currentCount = typeof prev.handleCount === 'number' ? prev.handleCount : 4;
+      const newCount = Math.max(1, Math.min(20, currentCount + delta));
+      return {
+        ...prev,
+        'handleCount': newCount
+      };
+    });
+  };
 
   // 面板位置状态
   const [panelPosition, setPanelPosition] = useState({
@@ -115,11 +138,22 @@ export const NodeEditPanel: React.FC<NodeEditPanelProps> = ({
 
   // 处理表单变化
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const { name, value, type } = e.target;
+
+    // 处理数值类型输入
+    if (name === 'handleCount' && type === 'number') {
+      const numValue = parseInt(value, 10) || 4;
+      setFormData(prev => ({
+        ...prev,
+        'handleCount': numValue
+      }));
+    } else {
+      // 处理其他类型输入
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   // 处理保存节点
@@ -223,10 +257,61 @@ export const NodeEditPanel: React.FC<NodeEditPanelProps> = ({
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="rect">矩形</option>
+            <option value="rectangle">矩形</option>
             <option value="circle">圆形</option>
             <option value="ellipse">椭圆形</option>
             <option value="triangle">三角形</option>
+            <option value="diamond">菱形</option>
+            <option value="hexagon">六边形</option>
           </select>
+        </div>
+
+        {/* 连接点配置 */}
+        <div className="space-y-4 mt-4">
+          <h3 className="text-sm font-semibold text-gray-700">连接点配置</h3>
+
+          {/* 连接点数量 */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              连接点数量
+            </label>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleHandleCountChange(-1)}
+                className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                title="减少连接点"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                name="handleCount"
+                min="1"
+                max="20"
+                value={typeof formData.handleCount === 'number' ? formData.handleCount : 4}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value, 10) || 4;
+                  setFormData(prev => ({
+                    ...prev,
+                    'handleCount': Math.max(1, Math.min(20, value))
+                  }));
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+              />
+              <button
+                type="button"
+                onClick={() => handleHandleCountChange(1)}
+                className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                title="增加连接点"
+              >
+                +
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              连接点会根据节点形状自动分布在节点外围
+            </p>
+          </div>
         </div>
       </div>
 

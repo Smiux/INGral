@@ -311,14 +311,41 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
       'memberIds': nodes.map(n => n.id)
     };
 
+    // 调用GROUP_NODES动作
     dispatch({ 'type': 'GROUP_NODES', 'payload': { nodes, group } });
+    // 添加分组操作到历史记录
+    dispatch({
+      'type': 'ADD_HISTORY',
+      'payload': {
+        'type': 'groupNodes',
+        'groupId': group.id,
+        'timestamp': Date.now(),
+        'data': { nodes, group }
+      }
+    });
     showNotification('节点已分组', 'success');
   }, [state.nodes, showNotification, dispatch]);
 
   const ungroupNodes = useCallback((groupId: string) => {
+    // 找到分组节点及其成员
+    const groupNode = state.nodes.find(node => node.id === groupId && node.type === 'group');
+    if (groupNode && groupNode.memberIds) {
+      const memberNodes = state.nodes.filter(node => groupNode.memberIds?.includes(node.id));
+      // 添加取消分组操作到历史记录
+      dispatch({
+        'type': 'ADD_HISTORY',
+        'payload': {
+          'type': 'ungroupNodes',
+          groupId,
+          'timestamp': Date.now(),
+          'data': { 'nodes': memberNodes, 'group': groupNode }
+        }
+      });
+    }
+    // 调用UNGROUP_NODES动作
     dispatch({ 'type': 'UNGROUP_NODES', 'payload': groupId });
     showNotification('节点已取消分组', 'success');
-  }, [dispatch, showNotification]);
+  }, [dispatch, showNotification, state.nodes]);
 
   const toggleGroupExpansion = useCallback((nodeId: string) => {
     // 找到分组节点

@@ -132,15 +132,23 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             nodes={nodes}
             links={connections}
             onImportGraph={(graph) => {
-              // 将Graph类型转换为handleImportGraph期望的类型
+              // 将Graph类型转换为handleImportGraph期望的EnhancedNode[]和EnhancedGraphConnection[]类型
               handleImportGraph({
-                'nodes': graph.nodes,
+                'nodes': graph.nodes.map(node => ({
+                  ...node,
+                  'id': node.id,
+                  'title': node.title,
+                  'connections': node.connections || 0,
+                  'type': node.type || 'concept',
+                  'shape': 'rect'
+                })),
                 'connections': graph.links.map(link => ({
-                  ...link,
                   'id': `connection-${Date.now()}-${Math.random().toString(36)
                     .substr(2, 9)}`,
                   'source': link.source,
-                  'target': link.target
+                  'target': link.target,
+                  'type': link.type || 'default',
+                  'weight': 1
                 }))
               });
             }}

@@ -184,21 +184,47 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
         // 根据操作类型执行撤销
         switch (actionToUndo.type) {
           case 'addNode':
-            // 撤销添加节点，删除该节点
+          // 撤销添加节点，删除该节点
             newNodes = newNodes.filter(node => node.id !== actionToUndo.nodeId);
             break;
           case 'deleteNode':
-            // 撤销删除节点，重新添加该节点和关联的连接
+          // 撤销删除节点，重新添加该节点和关联的连接
             newNodes.push(actionToUndo.data.node);
             newConnections.push(...actionToUndo.data.connections);
             break;
           case 'addConnection':
-            // 撤销添加连接，删除该连接
+          // 撤销添加连接，删除该连接
             newConnections = newConnections.filter(connection => connection.id !== actionToUndo.connectionId);
             break;
           case 'deleteConnection':
-            // 撤销删除连接，重新添加该连接
+          // 撤销删除连接，重新添加该连接
             newConnections.push(actionToUndo.data);
+            break;
+          case 'groupNodes':
+          // 撤销分组操作：删除分组节点，移除成员节点的groupId属性
+            const groupToRemove = actionToUndo.data.group;
+            newNodes = newNodes.filter(node => node.id !== groupToRemove.id);
+            // 更新成员节点，移除groupId属性
+            newNodes = newNodes.map(node => {
+              if (actionToUndo.data.nodes.some(n => n.id === node.id)) {
+              // 创建新对象，不包含groupId属性
+                const updatedNode = { ...node };
+                delete updatedNode.groupId;
+                return updatedNode;
+              }
+              return node;
+            });
+            break;
+          case 'ungroupNodes':
+          // 撤销取消分组操作：重新添加分组节点，为成员节点添加groupId属性
+            newNodes.push(actionToUndo.data.group);
+            // 更新成员节点，添加groupId属性
+            newNodes = newNodes.map(node => {
+              if (actionToUndo.data.nodes.some(n => n.id === node.id)) {
+                return { ...node, 'groupId': actionToUndo.data.group.id };
+              }
+              return node;
+            });
             break;
         }
 
@@ -224,23 +250,50 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
         // 根据操作类型执行重做
         switch (actionToRedo.type) {
           case 'addNode':
-            // 重做添加节点，重新添加该节点
+          // 重做添加节点，重新添加该节点
             newNodes.push(actionToRedo.data.node);
             break;
           case 'deleteNode':
-            // 重做删除节点，删除该节点和关联的连接
+          // 重做删除节点，删除该节点和关联的连接
             newNodes = newNodes.filter(node => node.id !== actionToRedo.nodeId);
             newConnections = newConnections.filter(connection => {
               return !actionToRedo.data.connections.some((l: EnhancedGraphConnection) => l.id === connection.id);
             });
             break;
           case 'addConnection':
-            // 重做添加连接，重新添加该连接
+          // 重做添加连接，重新添加该连接
             newConnections.push(actionToRedo.data);
             break;
           case 'deleteConnection':
-            // 重做删除连接，删除该连接
+          // 重做删除连接，删除该连接
             newConnections = newConnections.filter(connection => connection.id !== actionToRedo.connectionId);
+            break;
+          case 'groupNodes':
+          // 重做分组操作：添加分组节点，为成员节点添加groupId属性
+            const groupToAdd = actionToRedo.data.group;
+            newNodes.push(groupToAdd);
+            // 更新成员节点，添加groupId属性
+            newNodes = newNodes.map(node => {
+              if (actionToRedo.data.nodes.some(n => n.id === node.id)) {
+                return { ...node, 'groupId': groupToAdd.id };
+              }
+              return node;
+            });
+            break;
+          case 'ungroupNodes':
+          // 重做取消分组操作：删除分组节点，移除成员节点的groupId属性
+            const groupToRemove = actionToRedo.data.group;
+            newNodes = newNodes.filter(node => node.id !== groupToRemove.id);
+            // 更新成员节点，移除groupId属性
+            newNodes = newNodes.map(node => {
+              if (actionToRedo.data.nodes.some(n => n.id === node.id)) {
+              // 创建新对象，不包含groupId属性
+                const updatedNode = { ...node };
+                delete updatedNode.groupId;
+                return updatedNode;
+              }
+              return node;
+            });
             break;
         }
 
