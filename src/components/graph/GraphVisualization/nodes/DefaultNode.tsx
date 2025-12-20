@@ -5,8 +5,8 @@
 import React from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import type { EnhancedNode } from '../types';
-// 可以在需要时导入useGraph
-// import { useGraph } from '../useGraph';
+import { defaultStyleRegistry } from '../utils/NodeStyleRegistry';
+import { defaultShapeRegistry } from '../utils/NodeShapeRegistry';
 
 // 节点数据接口，扩展React Flow的NodeProps.data
 interface DefaultNodeData extends EnhancedNode {
@@ -19,153 +19,36 @@ interface DefaultNodeData extends EnhancedNode {
 
 /**
  * 默认节点组件
+ * 使用注册表系统实现高度可扩展的节点渲染
  */
 export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, selected }) => {
-  // 使用默认主题或从数据中获取样式
-  const shape = data.shape || 'circle';
+  // 获取节点类型和形状
+  const nodeType = data.type || 'default';
+  const shape = data.shape || 'rect';
   const radius = data.type === 'aggregate' ? 40 : 30;
-  const isSelected = selected;
-  // 可以在需要时从useGraph获取状态
-  // const { state } = useGraph();
 
-  // 根据节点类型获取颜色
-  const getNodeColor = () => {
-    const baseColor = isSelected ? '#FF6B6B' : '#4ECDC4';
+  // 获取基础样式
+  const baseStyle = defaultStyleRegistry.getStyleOrDefault(nodeType, {
+    'fill': '#4ECDC4',
+    'stroke': '#26A69A',
+    'strokeWidth': 2,
+    'textFill': '#FFFFFF',
+    'fontSize': 12
+  });
 
-    switch (data.type) {
-      case 'concept':
-        // 紫色
-        return isSelected ? '#FF6B6B' : '#8B5CF6';
-      case 'article':
-        // 蓝色
-        return isSelected ? '#FF6B6B' : '#3B82F6';
-      case 'resource':
-        // 绿色
-        return isSelected ? '#FF6B6B' : '#10B981';
-      case 'aggregate':
-        // 橙色
-        return isSelected ? '#FF6B6B' : '#F59E0B';
-      default:
-        return baseColor;
-    }
-  };
+  // 获取节点样式（如果选中则使用选中样式，否则使用基础样式）
+  const style = selected
+    ? defaultStyleRegistry.getSelectedStyle(nodeType, baseStyle)
+    : baseStyle;
 
-  // 根据节点类型获取边框颜色
-  const getNodeStrokeColor = () => {
-    const baseStroke = isSelected ? '#FF5252' : '#26A69A';
-
-    switch (data.type) {
-      case 'concept':
-        // 深紫色
-        return isSelected ? '#FF5252' : '#7C3AED';
-      case 'article':
-        // 深蓝色
-        return isSelected ? '#FF5252' : '#2563EB';
-      case 'resource':
-        // 深绿色
-        return isSelected ? '#FF5252' : '#059669';
-      case 'aggregate':
-        // 深橙色
-        return isSelected ? '#FF5252' : '#D97706';
-      default:
-        return baseStroke;
-    }
-  };
-
-  // 主题样式
-  const theme = {
-    'node': {
-      'fill': getNodeColor(),
-      'stroke': getNodeStrokeColor(),
-      'strokeWidth': isSelected ? 3 : 2,
-      'textFill': '#FFFFFF',
-      'fontSize': 12,
-      radius
-    }
-  };
-
-  // 根据形状渲染不同的节点样式
-  const renderNodeShape = () => {
-    switch (shape) {
-      case 'circle':
-      case 'ellipse':
-        return (
-          <circle
-            r={radius}
-            fill={theme.node.fill}
-            stroke={theme.node.stroke}
-            strokeWidth={theme.node.strokeWidth}
-            className="transition-all duration-200"
-          />
-        );
-      case 'rect':
-      case 'rectangle':
-        return (
-          <rect
-            width={radius * 2.5}
-            height={radius * 1.5}
-            x={-radius * 1.25}
-            y={-radius * 0.75}
-            rx={5}
-            ry={5}
-            fill={theme.node.fill}
-            stroke={theme.node.stroke}
-            strokeWidth={theme.node.strokeWidth}
-            className="transition-all duration-200"
-          />
-        );
-      case 'triangle':
-        return (
-          <path
-            d={`M 0 ${-radius} L ${radius} ${radius} L ${-radius} ${radius} Z`}
-            fill={theme.node.fill}
-            stroke={theme.node.stroke}
-            strokeWidth={theme.node.strokeWidth}
-            className="transition-all duration-200"
-          />
-        );
-      case 'diamond':
-        return (
-          <path
-            d={`M 0 ${-radius} L ${radius} 0 L 0 ${radius} L ${-radius} 0 Z`}
-            fill={theme.node.fill}
-            stroke={theme.node.stroke}
-            strokeWidth={theme.node.strokeWidth}
-            className="transition-all duration-200"
-          />
-        );
-      case 'hexagon':
-        return (
-          <path
-            d={`M 0 ${-radius} L ${radius * 0.866} ${-radius * 0.5} L ${radius * 0.866} ${radius * 0.5} L 0 ${radius} L ${-radius * 0.866} ${radius * 0.5} L ${-radius * 0.866} ${-radius * 0.5} Z`}
-            fill={theme.node.fill}
-            stroke={theme.node.stroke}
-            strokeWidth={theme.node.strokeWidth}
-            className="transition-all duration-200"
-          />
-        );
-      default:
-        return (
-          <circle
-            r={radius}
-            fill={theme.node.fill}
-            stroke={theme.node.stroke}
-            strokeWidth={theme.node.strokeWidth}
-            className="transition-all duration-200"
-          />
-        );
-    }
-  };
+  // 获取形状配置
+  const shapeConfig = defaultShapeRegistry.getShape(shape) || defaultShapeRegistry.getShape('rect')!;
 
   // 渲染节点图标
   const renderNodeIcon = () => {
-    if (!data.type) {
-      return null;
-    }
-
     const iconSize = radius * 0.5;
 
-    switch (data.type) {
+    switch (nodeType) {
       case 'concept':
         return (
           <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -208,6 +91,99 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
     }
   };
 
+  // 渲染选中状态边框
+  const renderSelectedBorder = () => {
+    if (!selected) {
+      return null;
+    }
+
+    const borderRadius = radius + 4;
+
+    return (
+      <svg
+        className="node-selected-border"
+        width={radius * 2 + 16}
+        height={radius * 2 + 16}
+        viewBox={`-${radius + 8} -${radius + 8} ${radius * 2 + 16} ${radius * 2 + 16}`}
+        style={{
+          'position': 'absolute',
+          'top': 0,
+          'left': 0,
+          'pointerEvents': 'none',
+          'animation': 'pulse 1.5s infinite',
+          'zIndex': 2
+        }}
+      >
+        {/* 根据形状渲染边框 */}
+        {(() => {
+          switch (shape) {
+            case 'circle':
+            case 'ellipse':
+              return (
+                <circle
+                  r={borderRadius}
+                  fill="transparent"
+                  stroke={style.stroke}
+                  strokeWidth={2}
+                />
+              );
+            case 'rect':
+            case 'rectangle':
+              return (
+                <rect
+                  width={borderRadius * 2.5}
+                  height={borderRadius * 1.5}
+                  x={-borderRadius * 1.25}
+                  y={-borderRadius * 0.75}
+                  rx={7}
+                  ry={7}
+                  fill="transparent"
+                  stroke={style.stroke}
+                  strokeWidth={2}
+                />
+              );
+            case 'triangle':
+              return (
+                <path
+                  d={`M 0 ${-borderRadius} L ${borderRadius} ${borderRadius} L ${-borderRadius} ${borderRadius} Z`}
+                  fill="transparent"
+                  stroke={style.stroke}
+                  strokeWidth={2}
+                />
+              );
+            case 'diamond':
+              return (
+                <path
+                  d={`M 0 ${-borderRadius} L ${borderRadius} 0 L 0 ${borderRadius} L ${-borderRadius} 0 Z`}
+                  fill="transparent"
+                  stroke={style.stroke}
+                  strokeWidth={2}
+                />
+              );
+            case 'hexagon':
+              return (
+                <path
+                  d={`M 0 ${-borderRadius} L ${borderRadius * 0.866} ${-borderRadius * 0.5} L ${borderRadius * 0.866} ${borderRadius * 0.5} L 0 ${borderRadius} L ${-borderRadius * 0.866} ${borderRadius * 0.5} L ${-borderRadius * 0.866} ${-borderRadius * 0.5} Z`}
+                  fill="transparent"
+                  stroke={style.stroke}
+                  strokeWidth={2}
+                />
+              );
+            default:
+              return (
+                <circle
+                  r={borderRadius}
+                  fill="transparent"
+                  stroke={style.stroke}
+                  strokeWidth={2}
+                />
+              );
+          }
+        })()}
+      </svg>
+    );
+  };
+
   return (
     <div className="graph-node-container" style={{ 'width': radius * 2, 'height': radius * 2 }}>
       {/* 四个方向的连接点 */}
@@ -215,33 +191,49 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
         type="target"
         position={Position.Left}
         className="node-handle"
-        style={{ 'background': theme.node.fill, 'borderColor': theme.node.stroke }}
+        style={{
+          'background': style.fill,
+          'borderColor': style.stroke,
+          'transition': 'all 0.2s ease'
+        }}
       />
 
       <Handle
         type="source"
         position={Position.Right}
         className="node-handle"
-        style={{ 'background': theme.node.fill, 'borderColor': theme.node.stroke }}
+        style={{
+          'background': style.fill,
+          'borderColor': style.stroke,
+          'transition': 'all 0.2s ease'
+        }}
       />
 
       <Handle
         type="target"
         position={Position.Top}
         className="node-handle"
-        style={{ 'background': theme.node.fill, 'borderColor': theme.node.stroke }}
+        style={{
+          'background': style.fill,
+          'borderColor': style.stroke,
+          'transition': 'all 0.2s ease'
+        }}
       />
 
       <Handle
         type="source"
         position={Position.Bottom}
         className="node-handle"
-        style={{ 'background': theme.node.fill, 'borderColor': theme.node.stroke }}
+        style={{
+          'background': style.fill,
+          'borderColor': style.stroke,
+          'transition': 'all 0.2s ease'
+        }}
       />
 
-      {/* 节点形状 */}
+      {/* 节点形状 - 使用注册表渲染 */}
       <svg className="node-svg" width={radius * 2} height={radius * 2} viewBox={`-${radius} -${radius} ${radius * 2} ${radius * 2}`}>
-        {renderNodeShape()}
+        {shapeConfig.render({ style, radius })}
       </svg>
 
       {/* 节点内容 */}
@@ -262,7 +254,7 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
         {/* 节点图标 */}
         <div style={{
           'marginBottom': data.type && data.title ? 4 : 0,
-          'color': theme.node.textFill
+          'color': style.textFill
         }}>
           {renderNodeIcon()}
         </div>
@@ -275,8 +267,8 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
           'gap': 2
         }}>
           <div className="node-title" style={{
-            'color': theme.node.textFill,
-            'fontSize': theme.node.fontSize,
+            'color': style.textFill,
+            'fontSize': style.fontSize,
             'fontWeight': 'bold',
             'lineHeight': 1.2,
             'maxWidth': '100%',
@@ -289,8 +281,8 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
           </div>
           {data.content && (
             <div className="node-content-text" style={{
-              'color': theme.node.textFill,
-              'fontSize': theme.node.fontSize * 0.8,
+              'color': style.textFill,
+              'fontSize': style.fontSize * 0.8,
               'opacity': 0.9,
               'lineHeight': 1.2,
               'maxWidth': '90%',
@@ -304,8 +296,8 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
           )}
           {data.type !== 'aggregate' && (
             <div className="node-connections" style={{
-              'color': theme.node.textFill,
-              'fontSize': theme.node.fontSize * 0.8,
+              'color': style.textFill,
+              'fontSize': style.fontSize * 0.8,
               'opacity': 0.8
             }}>
               {data.connections} 连接
@@ -313,8 +305,8 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
           )}
           {data.type && (
             <div className="node-type" style={{
-              'color': theme.node.textFill,
-              'fontSize': theme.node.fontSize * 0.7,
+              'color': style.textFill,
+              'fontSize': style.fontSize * 0.7,
               'opacity': 0.7,
               'textTransform': 'uppercase',
               'letterSpacing': 0.5
@@ -325,34 +317,8 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
         </div>
       </div>
 
-      {/* 选中状态样式 */}
-      {isSelected && (
-        <div
-          style={{
-            'position': 'absolute',
-            'top': -8,
-            'left': -8,
-            'right': -8,
-            'bottom': -8,
-            'border': `2px solid ${theme.node.stroke}`,
-            'borderRadius': (() => {
-              switch (shape) {
-                case 'circle':
-                case 'ellipse':
-                  return '50%';
-                case 'rect':
-                case 'rectangle':
-                  return '10px';
-                default:
-                  return '50%';
-              }
-            })(),
-            'pointerEvents': 'none',
-            'animation': 'pulse 1.5s infinite',
-            'boxShadow': `0 0 0 2px ${theme.node.stroke}80`
-          }}
-        />
-      )}
+      {/* 选中状态边框 */}
+      {renderSelectedBorder()}
 
       {/* 全局CSS动画定义 */}
       <style>{`

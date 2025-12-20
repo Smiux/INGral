@@ -5,104 +5,204 @@
 
 
 
-// 节点数据接口
-export interface NodeData {
-  id?: string | number;
-  name?: string;
-  // 添加title属性
-  title?: string;
-  created_by?: string;
-  connections?: number;
-  created_at?: string;
-}
-
-// 连接数据接口
-export interface ConnectionData {
-  id?: string | number;
-  source?: string | number | NodeData;
-  target?: string | number | NodeData;
-  type?: string;
-  created_at?: string;
-}
-
-// 图表数据接口
-export interface GraphData {
-  id?: string | number;
-  // 修改为可选属性
-  name?: string;
-  nodes: NodeData[];
-  connections: ConnectionData[];
-  is_template?: boolean;
-  // 添加创建时间属性
-  created_at?: string;
-}
-
-// 增强节点接口
-export interface EnhancedNode {
+// 基础节点数据接口
+export interface BaseNodeData {
   id: string;
   title: string;
-  slug?: string;
   connections: number;
+}
+
+// 节点形状类型
+export type NodeShape = 'circle' | 'rect' | 'triangle' | 'diamond' | 'hexagon' | string;
+
+// 节点类型
+export type NodeType = 'concept' | 'article' | 'resource' | 'aggregate' | string;
+
+// 增强节点接口
+export interface EnhancedNode extends BaseNodeData {
+  // 基础属性
+  slug?: string;
   content?: string;
   is_custom?: boolean;
-  // 改为可选字段，与GraphNode接口保持一致
   created_by?: string;
   createdAt?: number;
-  type?: 'concept' | 'article' | 'resource' | 'aggregate' | string;
-  // 新增：用于自定义节点形状
-  shape?: 'circle' | 'rectangle' | 'triangle' | 'hexagon' | 'diamond' | string;
-  // 新增：用于控制节点在树形布局中是否展开
+
+  // 类型和形状
+  type?: NodeType;
+  shape?: NodeShape;
+
+  // 布局相关
   isExpanded?: boolean;
-  // 新增：用于控制节点是否固定位置
   isFixed?: boolean;
   x?: number;
   y?: number;
   fx?: number | null;
   fy?: number | null;
-  // 地理布局相关属性
+
+  // 地理布局相关
   latitude?: number;
   longitude?: number;
   location?: string;
-  // 语义搜索相关属性
+
+  // 语义搜索相关
   semantic_score?: number;
   search_rank?: number;
   entity_matches?: Array<{ text: string; type: string }>;
   matched_concepts?: string[];
-  // 节点聚合相关属性
+
+  // 节点聚合相关
   _aggregatedNodes?: EnhancedNode[];
   _isAggregated?: boolean;
   _averageImportance?: number;
   _clusterCenter?: { x: number; y: number };
   _clusterSize?: number;
-  // 动画相关属性
-  // 目标X坐标，用于平滑动画
+
+  // 动画相关
   _targetX?: number;
-  // 目标Y坐标，用于平滑动画
   _targetY?: number;
-  // 节点分组相关属性
-  // 所属分组ID
+
+  // 节点分组相关
   groupId?: string;
-  // 是否为分组节点
   isGroup?: boolean;
-  // 分组包含的节点ID列表
   memberIds?: string[];
-  // 分组标题
   groupTitle?: string;
-  // 分组类型
   groupType?: string;
+
+  // 自定义属性扩展
+  [key: string]: unknown;
+}
+
+// 基础连接数据接口
+export interface BaseConnectionData {
+  id: string;
+  source: EnhancedNode | string | number;
+  target: EnhancedNode | string | number;
+  type: string;
 }
 
 // 增强连接接口
-export interface EnhancedGraphConnection {
-  type: string;
-  id: string;
-  // 明确声明source和target的类型，支持节点对象或ID
-  source: EnhancedNode | string | number;
-  target: EnhancedNode | string | number;
-  // 连接权重，用于力导向布局和重要性排序
+export interface EnhancedGraphConnection extends BaseConnectionData {
+  // 连接权重
   weight?: number;
-  // 连接标签，用于显示连接类型或描述
+
+  // 连接标签
   label?: string;
+
+  // 样式属性
+  style?: {
+    stroke?: string;
+    strokeWidth?: number;
+    strokeDasharray?: string;
+    animation?: string;
+    arrowCount?: number;
+    [key: string]: unknown;
+  };
+
+  // 自定义属性扩展
+  [key: string]: unknown;
+}
+
+// 图表数据接口
+export interface GraphData {
+  id?: string | number;
+  name?: string;
+  nodes: EnhancedNode[];
+  connections: EnhancedGraphConnection[];
+  is_template?: boolean;
+  created_at?: string;
+  [key: string]: unknown;
+}
+
+// 节点样式配置
+export interface NodeStyle {
+  fill: string;
+  stroke: string;
+  strokeWidth: number;
+  radius?: number;
+  fontSize: number;
+  textFill: string;
+  hoverStrokeWidth?: number;
+  borderRadius?: number;
+  selectedStrokeWidth?: number;
+  hoverTextFill?: string;
+  selectedFill?: string;
+  selectedStroke?: string;
+  [key: string]: unknown;
+}
+
+// 节点主题配置
+export interface NodeTheme {
+  [type: string]: NodeStyle;
+}
+
+// 连接样式配置
+export interface ConnectionStyle {
+  stroke?: string;
+  strokeWidth?: number;
+  strokeDasharray?: string;
+  animation?: string;
+  arrowCount?: number;
+  strokeOpacity?: number;
+  [key: string]: unknown;
+}
+
+// 连接主题配置
+export interface ConnectionTheme {
+  [type: string]: ConnectionStyle;
+}
+
+// 链接样式接口
+export interface LinkStyle {
+  stroke: string;
+  strokeWidth: number;
+  strokeOpacity: number;
+}
+
+// 图表主题接口
+export interface GraphTheme {
+  id: string;
+  name: string;
+  node: NodeStyle;
+  link: LinkStyle;
+  backgroundColor: string;
+}
+
+// 连接点配置
+export interface HandleConfig {
+  id: string;
+  type: 'source' | 'target' | 'both';
+  position: Position;
+  style?: React.CSSProperties;
+  [key: string]: unknown;
+}
+
+// 连接点位置类型
+export type Position = 'left' | 'top' | 'right' | 'bottom' | { x: number; y: number };
+
+// 节点形状渲染配置
+export interface ShapeConfig {
+  render: (_props: { style: NodeStyle; radius: number; [key: string]: unknown }) => React.ReactNode;
+  handlePositions?: Position[];
+  [key: string]: unknown;
+}
+
+// 节点形状配置映射
+export interface ShapeConfigMap {
+  [shape: string]: ShapeConfig;
+}
+
+// 节点配置
+export interface NodeConfig {
+  type: string;
+  shape?: string;
+  handles?: HandleConfig[];
+  style?: NodeStyle;
+  [key: string]: unknown;
+}
+
+// 节点配置映射
+export interface NodeConfigMap {
+  [type: string]: NodeConfig;
 }
 
 // 布局类型

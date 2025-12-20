@@ -37,10 +37,79 @@ export const NodeEditPanel: React.FC<NodeEditPanelProps> = ({
     '_aggregatedNodes': []
   });
 
-  // 当选中节点变化时，更新表单数据
+  // 面板位置状态
+  const [panelPosition, setPanelPosition] = useState({
+    'left': 0,
+    'top': 0,
+    'right': 0,
+    'isVisible': false,
+    'position': 'left' as 'left' | 'right'
+  });
+
+  // 计算面板位置
+  const calculatePanelPosition = (node: EnhancedNode) => {
+    // Get viewport dimensions
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    // 工具栏高度（保守估计，确保不重叠）
+    const toolbarHeight = 80;
+    // Panel height (approximate)
+    const panelHeight = 400;
+
+    // 获取节点位置 - 用于判断在屏幕左侧还是右侧
+    const nodeX = node.x || 0;
+
+    // 核心逻辑：根据节点位置决定面板出现在左侧还是右侧
+    // 如果节点在屏幕右半部分，面板出现在左侧；否则出现在右侧
+    const displayOnRight = nodeX < viewportWidth / 2;
+
+    // 计算垂直位置 - 居中显示在视口中，确保不与工具栏重叠
+    // 垂直居中，减去工具栏高度的一半来调整
+    let top = (viewportHeight - panelHeight) / 2;
+
+    // 确保面板完全在工具栏下方，不重叠
+    top = Math.max(top, toolbarHeight + 20);
+
+    // 确保面板不超出视口底部
+    top = Math.min(top, viewportHeight - panelHeight - 20);
+
+    // 设置最终位置
+    if (displayOnRight) {
+      // 右侧出现：固定在右侧边缘，距离右侧10px
+      setPanelPosition({
+        'left': 0,
+        'right': 10,
+        top,
+        'isVisible': false,
+        'position': 'right'
+      });
+    } else {
+      // 左侧出现：固定在左侧边缘，距离左侧10px
+      setPanelPosition({
+        'left': 10,
+        'right': 0,
+        top,
+        'isVisible': false,
+        'position': 'left'
+      });
+    }
+  };
+
+  // 当选中节点变化时，更新表单数据和面板位置
   useEffect(() => {
     if (selectedNode) {
       setFormData(selectedNode);
+
+      // Calculate panel position
+      calculatePanelPosition(selectedNode);
+
+      // Show panel with animation
+      setTimeout(() => {
+        setPanelPosition(prev => ({ ...prev, 'isVisible': true }));
+      }, 10);
+    } else {
+      // Hide panel with animation
+      setPanelPosition(prev => ({ ...prev, 'isVisible': false }));
     }
   }, [selectedNode]);
 
@@ -68,13 +137,21 @@ export const NodeEditPanel: React.FC<NodeEditPanelProps> = ({
     }
   };
 
-  // 如果没有选中节点，不渲染面板
-  if (!selectedNode) {
+  // 如果没有选中节点且 panel 不可见，不渲染
+  if (!selectedNode && !panelPosition.isVisible) {
     return null;
   }
 
   return (
-    <div className="fixed left-0 top-0 bottom-0 w-80 bg-white border-r border-gray-200 shadow-lg z-40 flex flex-col overflow-hidden">
+    <div
+      className={`fixed w-80 bg-white border border-gray-200 shadow-lg z-40 flex flex-col overflow-hidden transition-all duration-300 ease-in-out transform ${panelPosition.isVisible ? 'opacity-100 translate-x-0' : `opacity-0 ${panelPosition.position === 'right' ? 'translate-x-4' : '-translate-x-4'}`}`}
+      style={{
+        ...(panelPosition.position === 'right' ? { 'right': panelPosition.right, 'left': 'auto' } : { 'left': panelPosition.left, 'right': 'auto' }),
+        'top': panelPosition.top,
+        'maxHeight': 'calc(100vh - 80px)',
+        'boxShadow': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+      }}
+    >
       {/* 面板头部 */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white/90 backdrop-blur-sm z-10">
         <h2 className="text-lg font-semibold">编辑节点</h2>
