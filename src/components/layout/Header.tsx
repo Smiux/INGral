@@ -47,7 +47,7 @@ export function Header () {
           <div className="flex items-center gap-4" role="group" aria-label="导航和操作按钮组">
             <nav className="hidden md:flex items-center gap-4" aria-label="主导航" role="menubar">
               <Link
-                to="/graph"
+                to="/graphs"
                 className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
                 aria-label="知识图谱"
                 role="menuitem"

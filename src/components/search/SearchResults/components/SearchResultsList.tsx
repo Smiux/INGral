@@ -164,7 +164,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                 className={`${styles.resultItem} ${styles.commentResultItem}`}
                 onClick={() => {
                   // 点击评论跳转到对应文章
-                  window.location.href = `/article/${comment.article_id}#comment-${comment.id}`;
+                  window.location.href = `/articles/${comment.article_id}#comment-${comment.id}`;
                 }}
               >
                 <div className={styles.resultHeader}>

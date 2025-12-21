@@ -45,7 +45,7 @@ export const SearchResultsHierarchical: React.FC<SearchResultsHierarchicalProps>
                   className={`${styles.resultItem} ${result.type === 'concept' ? styles.conceptResultItem : ''}`}
                   onClick={() => {
                     if (result.type === 'article') {
-                      window.location.href = `/article/${result.id}`;
+                      window.location.href = `/articles/${result.id}`;
                     } else if (result.type === 'concept') {
                       console.log('Concept clicked:', result);
                     }
@@ -108,7 +108,7 @@ export const SearchResultsHierarchical: React.FC<SearchResultsHierarchicalProps>
                             className={styles.hierarchicalChildItem}
                             onClick={(e) => {
                               e.stopPropagation();
-                              window.location.href = `/article/${article.id}`;
+                              window.location.href = `/articles/${article.id}`;
                             }}
                           >
                             <span className={styles.resultTypeBadge}>

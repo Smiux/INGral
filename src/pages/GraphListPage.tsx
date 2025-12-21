@@ -81,7 +81,7 @@ export const GraphListPage: React.FC = () => {
    * 处理创建新图谱
    */
   const handleCreateGraph = () => {
-    navigate('/graph/create');
+    window.open('/graphs/create', '_blank', 'noopener noreferrer');
   };
 
   /**
@@ -89,7 +89,7 @@ export const GraphListPage: React.FC = () => {
    * @param graphId - 图谱ID
    */
   const handleGraphClick = (graphId: string) => {
-    navigate(`/graph/${graphId}`);
+    navigate(`/graphs/${graphId}`);
   };
 
   return (

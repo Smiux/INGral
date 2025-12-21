@@ -75,7 +75,7 @@ export function HomePage () {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Link
-              to="/graph"
+              to="/graphs"
               className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-semibold text-lg group"
             >
               <Network className="w-5 h-5" />
@@ -158,7 +158,7 @@ export function HomePage () {
                 {articles.map((article) => (
                   <Link
                     key={article.id}
-                    to={`/article/${article.slug}`}
+                    to={`/articles/${article.slug}`}
                     className="group p-6 bg-white rounded-lg border border-gray-200 hover:shadow-lg hover:border-blue-300 transition"
                   >
                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition mb-2 line-clamp-2">

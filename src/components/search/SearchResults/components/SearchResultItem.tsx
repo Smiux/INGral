@@ -15,7 +15,7 @@ export const SearchResultItem: React.FC<SearchResultItemProps> = ({ article, que
       onArticleClick();
     } else {
       // 默认行为：导航到文章详情页
-      window.location.href = `/article/${article.slug}`;
+      window.location.href = `/articles/${article.slug}`;
     }
   };
 

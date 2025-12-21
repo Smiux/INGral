@@ -96,13 +96,15 @@ export function ArticlesPage () {
 
       <div className="flex flex-col md:flex-row items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">All Articles</h1>
-        <Link
-          to="/create"
+        <a
+          href="/articles/create"
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
         >
           <Plus className="w-4 h-4" />
           Create Article
-        </Link>
+        </a>
       </div>
 
       <div className="mb-8">
@@ -161,7 +163,7 @@ export function ArticlesPage () {
           {filteredArticles.map((article) => (
             <Link
               key={article.id}
-              to={`/article/${article.slug}`}
+              to={`/articles/${article.slug}`}
               className="block p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg hover:border-blue-300 transition group"
             >
               <div className="flex items-start justify-between">

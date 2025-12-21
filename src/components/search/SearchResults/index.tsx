@@ -198,7 +198,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ query, tagId, limi
                     className={`${styles.resultItem} ${styles.relatedResultItem}`}
                     onClick={() => {
                       if (result.type === 'article') {
-                        window.location.href = `/article/${result.id}`;
+                        window.location.href = `/articles/${result.id}`;
                       } else if (result.type === 'concept') {
                         console.log('Related concept clicked:', result);
                       }

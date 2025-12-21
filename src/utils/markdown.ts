@@ -615,7 +615,7 @@ function processWikiLinks (text: string): string {
     const trimmedTitle = title?.trim() || '';
     const trimmedDisplayText = displayText?.trim() || trimmedTitle;
     const slug = titleToSlug(trimmedTitle || trimmedDisplayText);
-    return `<a href="/article/${slug}" class="wiki-link">${trimmedDisplayText}</a>`;
+    return `<a href="/articles/${slug}" class="wiki-link">${trimmedDisplayText}</a>`;
   });
 }
 

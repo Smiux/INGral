@@ -148,7 +148,7 @@ export function RelatedContent ({ article }: RelatedContentProps) {
                 {relatedArticles.map((related) => (
                   <Link
                     key={related.id}
-                    to={`/article/${related.slug}`}
+                    to={`/articles/${related.slug}`}
                     className="p-5 border border-neutral-200 dark:border-gray-700 rounded-xl hover:border-primary-500 dark:hover:border-primary-400 hover:shadow-lg transition-all duration-300 group block bg-white dark:bg-gray-800 overflow-hidden"
                   >
                     <div className="flex justify-between items-start mb-3">
@@ -209,7 +209,7 @@ export function RelatedContent ({ article }: RelatedContentProps) {
                       <div className="flex justify-between items-start mb-4">
                         <h3 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100 line-clamp-1">{graph.title}</h3>
                         <Link
-                          to={`/graph/${graph.id}`}
+                          to={`/graphs/${graph.id}`}
                           className="inline-flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition transform hover:translate-x-1"
                         >
                       View Full Graph

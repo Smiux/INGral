@@ -102,18 +102,18 @@ function App () {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/articles" element={<ArticlesPage />} />
+                  <Route path="/articles/:slug" element={<ArticleViewer />} />
+                  <Route path="/articles/create" element={<ArticleEditor />} />
+                  <Route path="/articles/:slug/edit" element={<ArticleEditor />} />
                   <Route path="/search" element={<SearchPage />} />
-                  <Route path="/article/:slug" element={<ArticleViewer />} />
-                  <Route path="/create" element={<ArticleEditor />} />
-                  <Route path="/edit/:slug" element={<ArticleEditor />} />
-                  <Route path="/graph" element={<GraphListPage />} />
-                  <Route path="/graph/create" element={<GraphVisualization />} />
-                  <Route path="/graph/:graphId" element={<GraphVisualization />} />
+                  <Route path="/graphs" element={<GraphListPage />} />
+                  <Route path="/graphs/create" element={<GraphVisualization />} />
+                  <Route path="/graphs/:graphId" element={<GraphVisualization />} />
                   {/* 讨论区路由 */}
                   <Route path="/discussions" element={<DiscussionPage />} />
                   <Route path="/discussions/:categorySlug" element={<DiscussionPage />} />
-                  <Route path="/topic/:topicId" element={<TopicDetailPage />} />
-                  <Route path="/create-topic" element={<CreateTopicPage />} />
+                  <Route path="/discussions/:topicId" element={<TopicDetailPage />} />
+                  <Route path="/discussions/create" element={<CreateTopicPage />} />
                   {/* 404页面重定向到首页 */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

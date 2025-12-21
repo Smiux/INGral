@@ -12,7 +12,7 @@ export const SemanticSearchResultItem: React.FC<SemanticSearchResultItemProps> =
   const handleClick = () => {
     if (result.type === 'article') {
       // 点击文章跳转到文章详情页
-      window.location.href = `/article/${result.id}`;
+      window.location.href = `/articles/${result.id}`;
     } else if (result.type === 'concept') {
       // 点击概念可以跳转到概念详情页或显示概念信息
       console.log('Concept clicked:', result);

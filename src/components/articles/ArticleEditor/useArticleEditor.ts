@@ -535,7 +535,7 @@ export function useArticleEditor () {
           const newSlug = result.slug;
           // 稍微延迟一下，让用户看到通知
           setTimeout(() => {
-            navigate(`/article/${newSlug}`, { 'replace': true });
+            navigate(`/articles/${newSlug}`, { 'replace': true });
           }, 500);
         } else {
           console.error('保存成功，但无法获取文章链接');
