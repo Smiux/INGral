@@ -1,4 +1,6 @@
-import { Save, HelpCircle, FileText, Network, Eye, EyeOff, Code, LayoutGrid, FileText as DraftIcon } from 'lucide-react';
+import { Save, HelpCircle, FileText, Network, Eye, EyeOff, Code, LayoutGrid, FileText as DraftIcon, Brain } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ThemeToggle } from '../../ui/ThemeToggle';
 
 /**
  * 编辑器工具栏组件
@@ -47,6 +49,12 @@ export function EditorToolbar ({
     <div className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)] shadow-[var(--shadow-sm)] transition-all duration-300">
       {/* 顶部工具栏 */}
       <div className="flex flex-wrap items-center justify-between px-3 py-2 gap-2 transition-all duration-300">
+        {/* Logo和主页链接 */}
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity mr-2">
+          <Brain className="w-5 h-5 text-primary-600 dark:text-primary-500" />
+          <span className="font-bold text-sm tracking-tight text-gray-800 dark:text-gray-200">MyMathWiki</span>
+        </Link>
+
         {/* 左侧操作按钮 */}
         <div className="flex items-center gap-1">
           {/* 保存按钮 - 主操作按钮 */}
@@ -234,6 +242,11 @@ export function EditorToolbar ({
             <HelpCircle size={16} className="transition-transform duration-250 hover:pulse hover:scale-125" />
             <span className="hidden sm:inline">帮助</span>
           </button>
+
+          {/* 夜间模式切换 */}
+          <div className="ml-2">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </div>

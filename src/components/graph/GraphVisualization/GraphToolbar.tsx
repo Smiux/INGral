@@ -1,8 +1,11 @@
 import React from 'react';
-import { Undo, Redo, Plus, Layout, Palette, PieChart, Box, Grid, Settings, BarChart, SlidersHorizontal, Database } from 'lucide-react';
+import { Undo, Redo, Plus, Layout, Palette, PieChart, Box, Grid, Settings, BarChart, SlidersHorizontal, Database, Brain } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // 导入自定义Hook
 import { useGraph } from './useGraph';
+// 导入主题切换组件
+import { ThemeToggle } from '../../ui/ThemeToggle';
 
 /**
  * 图谱工具栏组件
@@ -35,6 +38,12 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
   return (
     <div className={`${currentTheme.backgroundColor} border-b border-gray-200 shadow-md p-1 flex items-center justify-between gap-1 transition-all duration-300 ease-in-out ${isToolbarVisible ? 'translate-y-0' : '-translate-y-full'} z-50 backdrop-blur-sm`}>
+      {/* Logo和主页链接 */}
+      <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity mr-3 px-2">
+        <Brain className="w-5 h-5 text-primary-600 dark:text-primary-500" />
+        <span className="font-bold text-sm tracking-tight text-gray-800 dark:text-gray-200">MyMathWiki</span>
+      </Link>
+
       {/* 左侧基本操作 */}
       <div className="flex items-center gap-2">
         {/* 撤销/重做按钮组 */}
@@ -174,6 +183,11 @@ export const GraphToolbar: React.FC = React.memo(() => {
           <Settings className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] whitespace-nowrap">设置</span>
         </button>
+
+        {/* 夜间模式切换 */}
+        <div className="flex items-center justify-center p-2 ml-2">
+          <ThemeToggle />
+        </div>
       </div>
 
     </div>

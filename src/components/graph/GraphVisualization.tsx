@@ -30,7 +30,7 @@ const GraphVisualizationContent: React.FC = () => {
   };
 
   return (
-    <div className={`w-full h-full flex flex-col ${currentTheme.backgroundColor}`} style={{ 'width': '100%', 'height': '100%' }}>
+    <div className={`w-full h-full flex flex-col ${currentTheme.backgroundColor}`} style={{ 'width': '100%', 'height': '100vh' }}>
       {/* 顶部工具栏 - 现代化设计 */}
       <GraphToolbar />
 

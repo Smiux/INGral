@@ -332,7 +332,7 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
   // 主题配置 - ReactFlow v11 不再支持theme属性，使用CSS变量或自定义样式
 
   return (
-    <div className="w-full h-full flex flex-col" style={{ 'backgroundColor': theme.backgroundColor, 'minHeight': '600px' }} ref={reactFlowWrapper}>
+    <div className="w-full h-full flex flex-col" style={{ 'backgroundColor': theme.backgroundColor }} ref={reactFlowWrapper}>
       {/* 添加CSS来隐藏React Flow水印 */}
       <style dangerouslySetInnerHTML={{ '__html': hideAttributionStyle }} />
       <div className="flex-1">
