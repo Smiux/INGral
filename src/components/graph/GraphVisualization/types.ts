@@ -12,117 +12,6 @@ export interface BaseNodeData {
   connections: number;
 }
 
-// 节点形状类型
-export type NodeShape = 'circle' | 'rect' | 'triangle' | 'diamond' | 'hexagon' | string;
-
-// 节点类型
-export type NodeType = 'concept' | 'article' | 'resource' | 'aggregate' | string;
-
-// 增强节点接口
-export interface EnhancedNode extends BaseNodeData {
-  // 基础属性
-  slug?: string;
-  content?: string;
-  is_custom?: boolean;
-  created_by?: string;
-  createdAt?: number;
-
-  // 类型和形状
-  type?: NodeType;
-  shape?: NodeShape;
-
-  // 布局相关
-  isExpanded?: boolean;
-  isFixed?: boolean;
-  x?: number;
-  y?: number;
-  fx?: number | null;
-  fy?: number | null;
-
-  // 地理布局相关
-  latitude?: number;
-  longitude?: number;
-  location?: string;
-
-  // 语义搜索相关
-  semantic_score?: number;
-  search_rank?: number;
-  entity_matches?: Array<{ text: string; type: string }>;
-  matched_concepts?: string[];
-
-  // 节点聚合相关
-  _aggregatedNodes?: EnhancedNode[];
-  _isAggregated?: boolean;
-  _averageImportance?: number;
-  _clusterCenter?: { x: number; y: number };
-  _clusterSize?: number;
-
-  // 动画相关
-  _targetX?: number;
-  _targetY?: number;
-
-  // 节点分组相关
-  groupId?: string;
-  isGroup?: boolean;
-  memberIds?: string[];
-  groupTitle?: string;
-  groupType?: string;
-
-  // 连接点相关
-  handleCount?: number;
-  handlePositions?: Position[];
-  lockedHandles?: Record<string, boolean>;
-
-  // 自定义属性扩展
-  [key: string]: unknown;
-}
-
-// 基础连接数据接口
-export interface BaseConnectionData {
-  id: string;
-  source: EnhancedNode | string | number;
-  target: EnhancedNode | string | number;
-  type: string;
-}
-
-// 增强连接接口
-export interface EnhancedGraphConnection extends BaseConnectionData {
-  // 连接权重
-  weight?: number;
-
-  // 连接标签
-  label?: string;
-
-  // 曲线控制属性
-  controlPointsCount?: number;
-  dynamicEffect?: string;
-  controlPoints?: Array<{ x: number; y: number; isLocked?: boolean }>;
-
-  // 样式属性
-  style?: {
-    stroke?: string;
-    strokeWidth?: number;
-    strokeDasharray?: string;
-    animation?: string;
-    arrowCount?: number;
-    [key: string]: unknown;
-  };
-
-  // 自定义属性扩展
-  [key: string]: unknown;
-}
-
-// 图表数据接口
-export interface GraphData {
-  id?: string | number;
-  name?: string;
-  nodes: EnhancedNode[];
-  connections: EnhancedGraphConnection[];
-  is_template?: boolean;
-  created_at?: string;
-  [key: string]: unknown;
-}
-
 // 节点样式配置
 export interface NodeStyle {
   fill: string;
@@ -140,11 +29,6 @@ export interface NodeStyle {
   [key: string]: unknown;
 }
 
-// 节点主题配置
-export interface NodeTheme {
-  [type: string]: NodeStyle;
-}
-
 // 连接样式配置
 export interface ConnectionStyle {
   stroke?: string;
@@ -154,6 +38,376 @@ export interface ConnectionStyle {
   arrowCount?: number;
   strokeOpacity?: number;
   [key: string]: unknown;
+}
+
+// 节点形状类型
+export type NodeShape = 'circle' | 'rect' | 'triangle' | 'diamond' | 'hexagon' | string;
+
+// 节点类型
+export type NodeType = 'concept' | 'article' | 'resource' | 'aggregate' | string;
+
+// 节点样式接口（增强版）
+export interface NodeStyleEnhanced extends NodeStyle {
+  // 扩展样式属性
+  boxShadow?: string;
+  textShadow?: string;
+  opacity?: number;
+  fontFamily?: string;
+  fontWeight?: string | number;
+  lineHeight?: string | number;
+  letterSpacing?: string;
+}
+
+// 节点状态接口
+export interface NodeState {
+  isExpanded: boolean;
+  isFixed: boolean;
+  isSelected: boolean;
+  isHovered: boolean;
+  isDragging: boolean;
+  isCollapsed: boolean;
+}
+
+// 节点元数据接口
+export interface NodeMetadata {
+  slug?: string;
+  content?: string;
+  is_custom: boolean;
+  created_by?: string;
+  createdAt: number;
+  updatedAt: number;
+  version: number;
+}
+
+// 节点布局接口
+export interface NodeLayout {
+  // 2D布局
+  x: number;
+  y: number;
+  fx?: number | null;
+  fy?: number | null;
+
+  // 3D布局（预留）
+  z?: number;
+  fz?: number | null;
+
+  // 固定状态
+  isFixed: boolean;
+
+  // 扩展状态
+  isExpanded: boolean;
+}
+
+// 节点地理信息接口
+export interface NodeGeolocation {
+  latitude?: number;
+  longitude?: number;
+  location?: string;
+  region?: string;
+  country?: string;
+}
+
+// 节点语义信息接口
+export interface NodeSemantics {
+  semantic_score?: number;
+  search_rank?: number;
+  entity_matches?: Array<{ text: string; type: string; score: number }>;
+  matched_concepts?: Array<{ id: string; name: string; relevance: number }>;
+  keywords?: Array<{ text: string; weight: number }>;
+  topics?: Array<{ id: string; name: string; confidence: number }>;
+}
+
+// 节点聚合信息接口
+export interface NodeAggregation {
+  _aggregatedNodes: EnhancedNode[];
+  _isAggregated: boolean;
+  _averageImportance: number;
+  _clusterCenter: { x: number; y: number };
+  _clusterSize: number;
+  _aggregationLevel: number;
+}
+
+// 节点动画信息接口
+export interface NodeAnimation {
+  _targetX?: number;
+  _targetY?: number;
+  _targetZ?: number;
+  _velocityX?: number;
+  _velocityY?: number;
+  _velocityZ?: number;
+  _animationProgress?: number;
+}
+
+// 节点分组信息接口
+export interface NodeGroup {
+  groupId?: string;
+  isGroup: boolean;
+  memberIds: string[];
+  groupTitle?: string;
+  groupType?: string;
+  isGroupExpanded: boolean;
+}
+
+// 节点连接点信息接口
+export interface NodeHandles {
+  handleCount: number;
+  handlePositions: Position[];
+  lockedHandles: Record<string, boolean>;
+  handleLabels: Record<string, string>;
+}
+
+// 增强节点接口（优化版）
+export interface EnhancedNode extends BaseNodeData {
+  // 基础属性
+  type: NodeType;
+  shape: NodeShape;
+
+  // 样式
+  style?: NodeStyleEnhanced;
+
+  // 状态
+  state: NodeState;
+
+  // 元数据
+  metadata: NodeMetadata;
+
+  // 布局
+  layout: NodeLayout;
+
+  // 地理信息
+  geolocation?: NodeGeolocation;
+
+  // 语义信息
+  semantics?: NodeSemantics;
+
+  // 聚合信息
+  aggregation?: NodeAggregation;
+
+  // 动画信息
+  animation?: NodeAnimation;
+
+  // 分组信息
+  group: NodeGroup;
+
+  // 连接点信息
+  handles: NodeHandles;
+
+  // 自定义数据扩展（使用泛型增强类型安全性）
+  customData?: Record<string, unknown>;
+}
+
+// 基础连接数据接口
+export interface BaseConnectionData {
+  id: string;
+  source: EnhancedNode | string | number;
+  target: EnhancedNode | string | number;
+  type: string;
+}
+
+// 连接样式接口（增强版）
+export interface ConnectionStyleEnhanced extends ConnectionStyle {
+  // 扩展样式属性
+  strokeLinecap?: string;
+  strokeLinejoin?: string;
+  strokeDashoffset?: string;
+  opacity?: number;
+  arrowSize?: number;
+  arrowColor?: string;
+  arrowType?: 'default' | 'triangle' | 'circle' | 'diamond' | 'none';
+  labelStyle?: {
+    fill?: string;
+    fontSize?: number;
+    fontFamily?: string;
+    fontWeight?: string | number;
+    backgroundColor?: string;
+    padding?: number;
+    borderRadius?: number;
+  };
+}
+
+// 连接元数据接口
+export interface ConnectionMetadata {
+  created_by?: string;
+  createdAt: number;
+  updatedAt: number;
+  version: number;
+  description?: string;
+}
+
+// 连接状态接口
+export interface ConnectionState {
+  isSelected: boolean;
+  isHovered: boolean;
+  isEditing: boolean;
+}
+
+// 连接曲线控制接口
+export interface ConnectionCurveControl {
+  controlPointsCount: number;
+  controlPoints: Array<{
+    x: number;
+    y: number;
+    isLocked: boolean;
+    label?: string;
+  }>;
+  curveType: 'default' | 'smoothstep' | 'step' | 'straight' | 'custom';
+  tension?: number;
+}
+
+// 连接语义信息接口
+export interface ConnectionSemantics {
+  relevanceScore?: number;
+  relationshipType?: string;
+  confidenceLevel?: number;
+  tags?: string[];
+  description?: string;
+  sourceAnchor?: string;
+  targetAnchor?: string;
+}
+
+// 连接动画信息接口
+export interface ConnectionAnimation {
+  dynamicEffect?: string;
+  animationType?: 'none' | 'pulse' | 'flow' | 'bounce';
+  animationSpeed?: number;
+  animationDirection?: 'forward' | 'backward' | 'alternate';
+  isAnimating: boolean;
+}
+
+// 增强连接接口（优化版）
+export interface EnhancedGraphConnection extends BaseConnectionData {
+  // 基础属性
+  weight: number;
+  label?: string;
+
+  // 样式
+  style: ConnectionStyleEnhanced;
+
+  // 元数据
+  metadata: ConnectionMetadata;
+
+  // 状态
+  state: ConnectionState;
+
+  // 曲线控制
+  curveControl: ConnectionCurveControl;
+
+  // 语义信息
+  semantics?: ConnectionSemantics;
+
+  // 动画信息
+  animation: ConnectionAnimation;
+
+  // 自定义属性扩展
+  customData?: Record<string, unknown>;
+
+  // 确保source和target可以是字符串或EnhancedNode对象
+  source: string | number | EnhancedNode;
+  target: string | number | EnhancedNode;
+}
+
+// 图谱元数据接口
+export interface GraphMetadata {
+  id: string;
+  name: string;
+  description?: string;
+  created_by?: string;
+  createdAt: number;
+  updatedAt: number;
+  version: number;
+  is_template: boolean;
+  tags?: string[];
+  category?: string;
+  visibility?: 'public' | 'private' | 'shared';
+  thumbnail?: string;
+  is_published: boolean;
+  publish_date?: number;
+}
+
+// 图谱配置接口
+export interface GraphConfig {
+  // 布局配置
+  defaultLayout: {
+    type: LayoutType;
+    direction: LayoutDirection;
+    nodeSpacing: number;
+    levelSpacing: number;
+    forceParameters?: ForceParameters;
+  };
+
+  // 主题配置
+  defaultTheme: string;
+
+  // 交互配置
+  interaction: {
+    enableDrag: boolean;
+    enableZoom: boolean;
+    enablePan: boolean;
+    enableSelection: boolean;
+    enableConnection: boolean;
+    enableBoxSelection: boolean;
+    enableNodeResizing: boolean;
+    enableNodeRotation: boolean;
+  };
+
+  // 渲染配置
+  rendering: {
+    enableAnimations: boolean;
+    animationSpeed: number;
+    enableLabels: boolean;
+    enableTooltips: boolean;
+    enableContextMenu: boolean;
+    enableAutoLayout: boolean;
+  };
+
+  // 性能配置
+  performance: {
+    maxNodes: number;
+    maxConnections: number;
+    enableNodeCulling: boolean;
+    enableConnectionCulling: boolean;
+    cullingDistance: number;
+  };
+}
+
+// 图谱统计信息接口
+export interface GraphStats {
+  nodeCount: number;
+  connectionCount: number;
+  nodeTypes: Record<string, number>;
+  connectionTypes: Record<string, number>;
+  averageNodeConnections: number;
+  graphDensity: number;
+  clusteringCoefficient: number;
+  diameter: number;
+  radius: number;
+}
+
+// 图表数据接口（优化版）
+export interface GraphData {
+  // 元数据
+  metadata: GraphMetadata;
+
+  // 配置
+  config: GraphConfig;
+
+  // 数据
+  nodes: EnhancedNode[];
+  connections: EnhancedGraphConnection[];
+
+  // 统计信息（动态计算）
+  stats?: GraphStats;
+
+  // 保存的布局
+  savedLayouts?: SavedLayout[];
+
+  // 自定义数据扩展
+  customData?: Record<string, unknown>;
+}
+
+// 节点主题配置
+export interface NodeTheme {
+  [type: string]: NodeStyle;
 }
 
 // 连接主题配置
@@ -282,11 +536,11 @@ export interface GraphControlsProps {
 export interface NodeManagementProps {
   nodes: EnhancedNode[];
   connections: EnhancedGraphConnection[];
-  setNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
+  setNodes: (_nodes: EnhancedNode[]) => void;
   selectedNode: EnhancedNode | null;
-  setSelectedNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
+  setSelectedNode: (_node: EnhancedNode | null) => void;
   selectedNodes: EnhancedNode[];
-  setSelectedNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
+  setSelectedNodes: (_nodes: EnhancedNode[]) => void;
   showNotification: (_message: string, _type: 'success' | 'info' | 'error') => void;
   onAddNode?: (_node: EnhancedNode) => void;
   onDeleteNodes?: (_nodes: EnhancedNode[], _connections: EnhancedGraphConnection[]) => void;
@@ -295,15 +549,15 @@ export interface NodeManagementProps {
 // 连接管理属性
 export interface ConnectionManagementProps {
   connections: EnhancedGraphConnection[];
-  setConnections: React.Dispatch<React.SetStateAction<EnhancedGraphConnection[]>>;
+  setConnections: (_connections: EnhancedGraphConnection[]) => void;
   nodes: EnhancedNode[];
-  setNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
+  setNodes: (_nodes: EnhancedNode[]) => void;
   isAddingConnection: boolean;
-  setIsAddingConnection: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsAddingConnection: (_isAddingConnection: boolean) => void;
   connectionSourceNode: EnhancedNode | null;
-  setConnectionSourceNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
+  setConnectionSourceNode: (_node: EnhancedNode | null) => void;
   mousePosition: { x: number; y: number } | null;
-  setMousePosition: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
+  setMousePosition: (_position: { x: number; y: number } | null) => void;
   showNotification: (_message: string, _type: 'success' | 'info' | 'error') => void;
 }
 

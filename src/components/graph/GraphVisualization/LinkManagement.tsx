@@ -12,7 +12,7 @@ import type { ConnectionManagementProps, EnhancedNode, EnhancedGraphConnection }
  */
 export const LinkManagement: React.FC<ConnectionManagementProps & {
   selectedConnections?: EnhancedGraphConnection[];
-  setSelectedConnections?: React.Dispatch<React.SetStateAction<EnhancedGraphConnection[]>>;
+  setSelectedConnections?: (_connections: EnhancedGraphConnection[]) => void;
 }> = ({
   connections,
   setConnections,
@@ -43,10 +43,10 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
   const handleToggleConnectionSelection = (connection: EnhancedGraphConnection) => {
     if (selectedConnections.some(c => c.id === connection.id)) {
       // 已选中，移除
-      setSelectedConnections(prev => prev.filter(c => c.id !== connection.id));
+      setSelectedConnections(selectedConnections.filter(c => c.id !== connection.id));
     } else {
       // 未选中，添加
-      setSelectedConnections(prev => [...prev, connection]);
+      setSelectedConnections([...selectedConnections, connection]);
     }
   };
 
@@ -100,10 +100,10 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
    */
   const handleBatchEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setBatchEditForm(prev => ({
-      ...prev,
+    setBatchEditForm({
+      ...batchEditForm,
       [name]: value
-    }));
+    });
   };
 
   /**
@@ -187,15 +187,18 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
     const targetId = typeof connectionToDelete.target === 'object' ? (connectionToDelete.target as EnhancedNode).id : String(connectionToDelete.target);
 
     // 更新节点连接数
-    setNodes(prev => prev.map(node => {
+    const updatedNodes = nodes.map(node => {
       if (node.id === sourceId || node.id === targetId) {
         return { ...node, 'connections': Math.max(0, node.connections - 1) };
       }
       return node;
-    }));
+    });
 
     // 删除连接
-    setConnections(prev => prev.filter(connection => connection.id !== connectionId));
+    const updatedConnections = connections.filter(connection => connection.id !== connectionId);
+
+    setNodes(updatedNodes);
+    setConnections(updatedConnections);
     showNotification('连接已删除', 'success');
   };
 

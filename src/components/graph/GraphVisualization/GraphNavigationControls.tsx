@@ -22,14 +22,22 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
   // 中心对齐功能
   const handleCenterAlign = () => {
     if (reactFlowInstance) {
-      // 使用ReactFlow的API重置缩放和平移
-      reactFlowInstance.setViewport({
-        'x': 0,
-        'y': 0,
-        'zoom': 1
-      }, {
-        'duration': 500
-      });
+      if (nodes.length > 0) {
+        // 如果有节点，使用fitView将节点居中
+        reactFlowInstance.fitView({
+          'padding': 100,
+          'duration': 500
+        });
+      } else {
+        // 如果没有节点，重置视图位置和缩放
+        reactFlowInstance.setViewport({
+          'x': 0,
+          'y': 0,
+          'zoom': 1
+        }, {
+          'duration': 500
+        });
+      }
     }
   };
 

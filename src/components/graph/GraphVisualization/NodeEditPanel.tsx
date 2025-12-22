@@ -27,35 +27,75 @@ export const NodeEditPanel: React.FC<NodeEditPanelProps> = ({
     'id': '',
     'title': '',
     'connections': 0,
-    'x': 0,
-    'y': 0,
     'type': 'concept',
-    'content': '',
     'shape': 'rect',
-    'isExpanded': false,
-    '_isAggregated': false,
-    '_aggregatedNodes': [],
-    'handleCount': 4 as number
+    'style': {
+      'fill': '#3b82f6',
+      'stroke': '#2563eb',
+      'strokeWidth': 2,
+      'fontSize': 14,
+      'textFill': '#fff'
+    },
+    'state': {
+      'isExpanded': false,
+      'isFixed': false,
+      'isSelected': false,
+      'isHovered': false,
+      'isDragging': false,
+      'isCollapsed': false
+    },
+    'metadata': {
+      'is_custom': true,
+      'createdAt': Date.now(),
+      'updatedAt': Date.now(),
+      'version': 1,
+      'content': ''
+    },
+    'layout': {
+      'x': 0,
+      'y': 0,
+      'isFixed': false,
+      'isExpanded': false
+    },
+    'group': {
+      'isGroup': false,
+      'memberIds': [],
+      'isGroupExpanded': false
+    },
+    'handles': {
+      'handleCount': 4,
+      'handlePositions': ['top', 'right', 'bottom', 'left'],
+      'lockedHandles': {},
+      'handleLabels': {}
+    },
+    'aggregation': {
+      '_isAggregated': false,
+      '_aggregatedNodes': [],
+      '_averageImportance': 0,
+      '_clusterCenter': { 'x': 0, 'y': 0 },
+      '_clusterSize': 0,
+      '_aggregationLevel': 0
+    }
   });
 
   // 确保selectedNode中的handleCount被正确初始化为数值类型
   useEffect(() => {
     if (selectedNode) {
-      setFormData(prev => ({
-        ...prev,
-        'handleCount': typeof selectedNode.handleCount === 'number' ? selectedNode.handleCount : 4
-      }));
+      setFormData(selectedNode);
     }
   }, [selectedNode]);
 
   // 处理连接点数量增减按钮点击
   const handleHandleCountChange = (delta: number) => {
     setFormData(prev => {
-      const currentCount = typeof prev.handleCount === 'number' ? prev.handleCount : 4;
+      const currentCount = prev.handles.handleCount;
       const newCount = Math.max(1, Math.min(20, currentCount + delta));
       return {
         ...prev,
-        'handleCount': newCount
+        'handles': {
+          ...prev.handles,
+          'handleCount': newCount
+        }
       };
     });
   };
@@ -80,7 +120,7 @@ export const NodeEditPanel: React.FC<NodeEditPanelProps> = ({
     const panelHeight = 400;
 
     // 获取节点位置 - 用于判断在屏幕左侧还是右侧
-    const nodeX = node.x || 0;
+    const nodeX = node.layout.x || 0;
 
     // 核心逻辑：根据节点位置决定面板出现在左侧还是右侧
     // 如果节点在屏幕右半部分，面板出现在左侧；否则出现在右侧
@@ -237,8 +277,16 @@ export const NodeEditPanel: React.FC<NodeEditPanelProps> = ({
           </label>
           <textarea
             name="content"
-            value={formData.content}
-            onChange={handleChange}
+            value={formData.metadata.content}
+            onChange={(e) => {
+              setFormData(prev => ({
+                ...prev,
+                'metadata': {
+                  ...prev.metadata,
+                  'content': e.target.value
+                }
+              }));
+            }}
             rows={4}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="输入节点内容"
@@ -289,12 +337,15 @@ export const NodeEditPanel: React.FC<NodeEditPanelProps> = ({
                 name="handleCount"
                 min="1"
                 max="20"
-                value={typeof formData.handleCount === 'number' ? formData.handleCount : 4}
+                value={formData.handles.handleCount}
                 onChange={(e) => {
                   const value = parseInt(e.target.value, 10) || 4;
                   setFormData(prev => ({
                     ...prev,
-                    'handleCount': Math.max(1, Math.min(20, value))
+                    'handles': {
+                      ...prev.handles,
+                      'handleCount': Math.max(1, Math.min(20, value))
+                    }
                   }));
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"

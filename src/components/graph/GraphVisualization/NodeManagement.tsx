@@ -38,17 +38,60 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
       'id': `node-${Date.now()}`,
       'title': '新节点',
       'connections': 0,
-      'x': Math.random() * 400 + 100,
-      'y': Math.random() * 400 + 100,
       'type': 'concept',
       'shape': 'circle',
-      'content': '',
-      'isExpanded': false,
-      '_isAggregated': false,
-      '_aggregatedNodes': []
+      'style': {
+        'fill': '#3b82f6',
+        'stroke': '#2563eb',
+        'strokeWidth': 2,
+        'fontSize': 14,
+        'textFill': '#fff'
+      },
+      'state': {
+        'isExpanded': false,
+        'isFixed': false,
+        'isSelected': false,
+        'isHovered': false,
+        'isDragging': false,
+        'isCollapsed': false
+      },
+      'metadata': {
+        'is_custom': true,
+        'createdAt': Date.now(),
+        'updatedAt': Date.now(),
+        'version': 1,
+        'content': ''
+      },
+      'layout': {
+        'x': Math.random() * 400 + 100,
+        'y': Math.random() * 400 + 100,
+        'isFixed': false,
+        'isExpanded': false
+      },
+      'group': {
+        'isGroup': false,
+        'memberIds': [],
+        'isGroupExpanded': false
+      },
+      'handles': {
+        'handleCount': 4,
+        'handlePositions': ['top', 'right', 'bottom', 'left'],
+        'lockedHandles': {},
+        'handleLabels': {}
+      },
+      'aggregation': {
+        '_isAggregated': false,
+        '_aggregatedNodes': [],
+        '_averageImportance': 0,
+        '_clusterCenter': { 'x': 0, 'y': 0 },
+        '_clusterSize': 0,
+        '_aggregationLevel': 0
+      }
     };
 
-    setNodes(prev => [...prev, newNode]);
+    // 添加新节点到节点列表
+    const updatedNodes = [...nodes, newNode];
+    setNodes(updatedNodes);
     setSelectedNode(newNode);
     setSelectedNodes([newNode]);
     showNotification('节点已添加', 'success');
@@ -158,7 +201,8 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
     }
 
     // 删除选中节点
-    setNodes(prev => prev.filter(node => !selectedNodeIds.has(node.id)));
+    const updatedNodes = nodes.filter(node => !selectedNodeIds.has(node.id));
+    setNodes(updatedNodes);
     setSelectedNode(null);
     setSelectedNodes([]);
     showNotification(`已删除 ${selectedNodes.length} 个节点`, 'success');
@@ -181,14 +225,15 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
   const handleToggleNodeSelection = (node: EnhancedNode, event: React.ChangeEvent<HTMLInputElement>) => {
     event.stopPropagation();
 
-    setSelectedNodes(prev => {
-      if (prev.some(n => n.id === node.id)) {
-        return prev.filter(n => n.id !== node.id);
-      }
-      return [...prev, node];
-    });
+    let updatedSelectedNodes: EnhancedNode[];
+    if (selectedNodes.some(n => n.id === node.id)) {
+      updatedSelectedNodes = selectedNodes.filter(n => n.id !== node.id);
+    } else {
+      updatedSelectedNodes = [...selectedNodes, node];
+    }
 
-    setSelectedNode(selectedNodes.length === 1 && selectedNodes[0]?.id === node.id ? null : node);
+    setSelectedNodes(updatedSelectedNodes);
+    setSelectedNode(updatedSelectedNodes.length === 1 ? updatedSelectedNodes[0] as EnhancedNode : null);
   };
 
   return (

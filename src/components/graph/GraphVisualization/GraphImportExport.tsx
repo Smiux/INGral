@@ -40,7 +40,7 @@ export const GraphImportExport: React.FC<GraphImportExportProps> = ({
           'title': node.title,
           'connections': node.connections,
           'type': GraphNodeType[(node.type?.toUpperCase() as keyof typeof GraphNodeType) || 'CONCEPT'],
-          'content': node.content || ''
+          'content': node.metadata.content || ''
         })),
         'links': links.map(link => ({
           'source': typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source),

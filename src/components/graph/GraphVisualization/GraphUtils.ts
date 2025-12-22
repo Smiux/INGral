@@ -83,16 +83,12 @@ export class GraphUtils {
     node: EnhancedNode,
     box: { x1: number; y1: number; x2: number; y2: number }
   ): boolean {
-    if (node.x === undefined || node.y === undefined) {
-      return false;
-    }
-
     const minX = Math.min(box.x1, box.x2);
     const maxX = Math.max(box.x1, box.x2);
     const minY = Math.min(box.y1, box.y2);
     const maxY = Math.max(box.y1, box.y2);
 
-    return node.x >= minX && node.x <= maxX && node.y >= minY && node.y <= maxY;
+    return node.layout.x >= minX && node.layout.x <= maxX && node.layout.y >= minY && node.layout.y <= maxY;
   }
 
   /**
@@ -159,15 +155,33 @@ export class GraphUtils {
   static convertToEnhancedNodes (nodes: unknown[]): EnhancedNode[] {
     return nodes.map((node) => {
       const typedNode = node as Record<string, unknown>;
+      const x = typedNode.x as number || Math.random() * 400 + 100;
+      const y = typedNode.y as number || Math.random() * 400 + 100;
+
       return {
         'id': String(typedNode.id || GraphUtils.generateNodeId()),
         'title': (typedNode.title as string) || '新节点',
         'connections': (typedNode.connections as number) || 0,
-        'x': Math.random() * 400 + 100,
-        'y': Math.random() * 400 + 100,
         'type': (typedNode.type as string) || 'concept',
-        'content': (typedNode.content as string) ?? '',
-        'is_custom': true
+        'shape': 'rect',
+        'style': {
+          'fill': '#3b82f6',
+          'stroke': '#fff',
+          'strokeWidth': 2,
+          'fontSize': 14,
+          'textFill': '#fff'
+        },
+        'state': { 'isExpanded': false, 'isFixed': false, 'isSelected': false, 'isHovered': false, 'isDragging': false, 'isCollapsed': false },
+        'metadata': {
+          'is_custom': true,
+          'createdAt': Date.now(),
+          'updatedAt': Date.now(),
+          'version': 1,
+          'content': (typedNode.content as string) ?? ''
+        },
+        'layout': { x, y, 'isFixed': false, 'isExpanded': false },
+        'group': { 'isGroup': false, 'memberIds': [], 'isGroupExpanded': false },
+        'handles': { 'handleCount': 4, 'handlePositions': ['top', 'right', 'bottom', 'left'], 'lockedHandles': {}, 'handleLabels': {} }
       };
     });
   }
@@ -193,7 +207,12 @@ export class GraphUtils {
         source,
         target,
         'label': (typedLink.label as string) || '',
-        'weight': (typedLink.weight as number) || 1.0
+        'weight': (typedLink.weight as number) || 1.0,
+        'style': {},
+        'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
+        'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'animation': { 'isAnimating': false }
       };
     });
   }

@@ -201,27 +201,35 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
             newConnections.push(actionToUndo.data);
             break;
           case 'groupNodes':
-          // 撤销分组操作：删除分组节点，移除成员节点的groupId属性
+          // 撤销分组操作：删除分组节点，重置成员节点的group属性
             const groupToRemove = actionToUndo.data.group;
             newNodes = newNodes.filter(node => node.id !== groupToRemove.id);
-            // 更新成员节点，移除groupId属性
+            // 更新成员节点，重置group属性
             newNodes = newNodes.map(node => {
               if (actionToUndo.data.nodes.some(n => n.id === node.id)) {
-              // 创建新对象，不包含groupId属性
-                const updatedNode = { ...node };
-                delete updatedNode.groupId;
-                return updatedNode;
+                // 创建新对象，重置group属性
+                return {
+                  ...node,
+                  'group': { 'isGroup': false, 'memberIds': [], 'isGroupExpanded': false }
+                };
               }
               return node;
             });
             break;
           case 'ungroupNodes':
-          // 撤销取消分组操作：重新添加分组节点，为成员节点添加groupId属性
+          // 撤销取消分组操作：重新添加分组节点，更新成员节点的group属性
             newNodes.push(actionToUndo.data.group);
-            // 更新成员节点，添加groupId属性
+            // 更新成员节点，更新group属性
             newNodes = newNodes.map(node => {
               if (actionToUndo.data.nodes.some(n => n.id === node.id)) {
-                return { ...node, 'groupId': actionToUndo.data.group.id };
+                return {
+                  ...node,
+                  'group': {
+                    'isGroup': false,
+                    'memberIds': [],
+                    'isGroupExpanded': false
+                  }
+                };
               }
               return node;
             });
@@ -269,28 +277,36 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
             newConnections = newConnections.filter(connection => connection.id !== actionToRedo.connectionId);
             break;
           case 'groupNodes':
-          // 重做分组操作：添加分组节点，为成员节点添加groupId属性
+          // 重做分组操作：添加分组节点，更新成员节点的group属性
             const groupToAdd = actionToRedo.data.group;
             newNodes.push(groupToAdd);
-            // 更新成员节点，添加groupId属性
+            // 更新成员节点，更新group属性
             newNodes = newNodes.map(node => {
               if (actionToRedo.data.nodes.some(n => n.id === node.id)) {
-                return { ...node, 'groupId': groupToAdd.id };
+                return {
+                  ...node,
+                  'group': {
+                    'isGroup': false,
+                    'memberIds': [],
+                    'isGroupExpanded': false
+                  }
+                };
               }
               return node;
             });
             break;
           case 'ungroupNodes':
-          // 重做取消分组操作：删除分组节点，移除成员节点的groupId属性
+          // 重做取消分组操作：删除分组节点，重置成员节点的group属性
             const groupToRemove = actionToRedo.data.group;
             newNodes = newNodes.filter(node => node.id !== groupToRemove.id);
-            // 更新成员节点，移除groupId属性
+            // 更新成员节点，重置group属性
             newNodes = newNodes.map(node => {
               if (actionToRedo.data.nodes.some(n => n.id === node.id)) {
-              // 创建新对象，不包含groupId属性
-                const updatedNode = { ...node };
-                delete updatedNode.groupId;
-                return updatedNode;
+                // 创建新对象，重置group属性
+                return {
+                  ...node,
+                  'group': { 'isGroup': false, 'memberIds': [], 'isGroupExpanded': false }
+                };
               }
               return node;
             });
@@ -321,16 +337,30 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
       const { 'nodes': nodesToGroup, group } = action.payload;
       const nodeIdsToGroup = new Set(nodesToGroup.map(node => node.id));
 
+      // 更新分组节点的memberIds
+      const updatedGroup = {
+        ...group,
+        'isGroup': true,
+        'memberIds': nodesToGroup.map(node => node.id)
+      };
+
       // 过滤掉要分组的节点，添加分组节点
       const newNodes = [
         ...state.nodes.filter(node => !nodeIdsToGroup.has(node.id)),
-        group
+        updatedGroup
       ];
 
       // 更新被分组节点的属性
       const updatedNodes = newNodes.map(node => {
         if (nodeIdsToGroup.has(node.id)) {
-          return { ...node, 'groupId': group.id };
+          return {
+            ...node,
+            'group': {
+              'isGroup': false,
+              'memberIds': [],
+              'isGroupExpanded': false
+            }
+          };
         }
         return node;
       });
@@ -345,23 +375,25 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
 
       // 找到分组节点
       const groupNode = state.nodes.find(node => node.id === groupId);
-      if (!groupNode || !groupNode.memberIds) {
+      if (!groupNode || !groupNode.group.memberIds) {
         return state;
       }
 
-      // 移除分组节点，更新成员节点的groupId属性
+      // 移除分组节点，更新成员节点的group属性
       const newNodes = state.nodes
         // 移除分组节点
         .filter(node => node.id !== groupId)
         .map(node => {
-          if (groupNode.memberIds?.includes(node.id)) {
-            // 移除成员节点的groupId属性
-            // 创建一个新对象，不包含groupId属性
-            // 使用类型断言确保类型安全
-            const rest = { ...node };
-            // 删除groupId属性
-            delete rest.groupId;
-            return rest;
+          if (groupNode.group.memberIds?.includes(node.id)) {
+            // 重置成员节点的group属性
+            return {
+              ...node,
+              'group': {
+                'isGroup': false,
+                'memberIds': [],
+                'isGroupExpanded': false
+              }
+            };
           }
           return node;
         });

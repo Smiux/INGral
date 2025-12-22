@@ -98,20 +98,20 @@ export const useLayoutActions = ({ dispatch, state, showNotification }: LayoutAc
             // 设置节点位置
             switch (direction) {
               case 'top-bottom':
-                node.x = x;
-                node.y = y + level * state.levelSpacing;
+                node.layout.x = x;
+                node.layout.y = y + level * state.levelSpacing;
                 break;
               case 'bottom-top':
-                node.x = x;
-                node.y = y - level * state.levelSpacing;
+                node.layout.x = x;
+                node.layout.y = y - level * state.levelSpacing;
                 break;
               case 'left-right':
-                node.x = x + level * state.levelSpacing;
-                node.y = y;
+                node.layout.x = x + level * state.levelSpacing;
+                node.layout.y = y;
                 break;
               case 'right-left':
-                node.x = x - level * state.levelSpacing;
-                node.y = y;
+                node.layout.x = x - level * state.levelSpacing;
+                node.layout.y = y;
                 break;
             }
 
@@ -197,8 +197,8 @@ export const useLayoutActions = ({ dispatch, state, showNotification }: LayoutAc
 
           // 设置中心节点位置
           if (centerNode) {
-            centerNode.x = centerX;
-            centerNode.y = centerY;
+            centerNode.layout.x = centerX;
+            centerNode.layout.y = centerY;
 
             // 布局其他节点
             let angle = 0;
@@ -209,8 +209,11 @@ export const useLayoutActions = ({ dispatch, state, showNotification }: LayoutAc
                 const radius = state.nodeSpacing;
                 const newNode = {
                   ...node,
-                  'x': centerX + radius * Math.cos(angle),
-                  'y': centerY + radius * Math.sin(angle)
+                  'layout': {
+                    ...node.layout,
+                    'x': centerX + radius * Math.cos(angle),
+                    'y': centerY + radius * Math.sin(angle)
+                  }
                 };
                 angle += angleStep;
                 return newNode;
@@ -251,20 +254,20 @@ export const useLayoutActions = ({ dispatch, state, showNotification }: LayoutAc
             // 设置节点位置
             switch (direction) {
               case 'top-bottom':
-                node.x = x;
-                node.y = y + level * state.levelSpacing;
+                node.layout.x = x;
+                node.layout.y = y + level * state.levelSpacing;
                 break;
               case 'bottom-top':
-                node.x = x;
-                node.y = y - level * state.levelSpacing;
+                node.layout.x = x;
+                node.layout.y = y - level * state.levelSpacing;
                 break;
               case 'left-right':
-                node.x = x + level * state.levelSpacing;
-                node.y = y;
+                node.layout.x = x + level * state.levelSpacing;
+                node.layout.y = y;
                 break;
               case 'right-left':
-                node.x = x - level * state.levelSpacing;
-                node.y = y;
+                node.layout.x = x - level * state.levelSpacing;
+                node.layout.y = y;
                 break;
             }
 

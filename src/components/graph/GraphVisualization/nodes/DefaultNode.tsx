@@ -11,8 +11,6 @@ interface DefaultNodeData extends EnhancedNode {
   title: string;
   connections: number;
   content?: string;
-  type?: string;
-  shape?: string;
 }
 
 /**

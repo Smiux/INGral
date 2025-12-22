@@ -30,8 +30,29 @@ export const ConnectionEditPanel: React.FC<ConnectionEditPanelProps> = ({
     'type': '',
     'label': '',
     'weight': 1,
-    'controlPointsCount': 1,
-    'dynamicEffect': 'none'
+    'style': {
+      'stroke': '#94a3b8',
+      'strokeWidth': 2
+    },
+    'metadata': {
+      'createdAt': Date.now(),
+      'updatedAt': Date.now(),
+      'version': 1
+    },
+    'state': {
+      'isSelected': false,
+      'isHovered': false,
+      'isEditing': false
+    },
+    'curveControl': {
+      'controlPointsCount': 1,
+      'controlPoints': [],
+      'curveType': 'default'
+    },
+    'animation': {
+      'dynamicEffect': 'none',
+      'isAnimating': false
+    }
   });
 
   // 当选中连接变化时，更新表单数据
@@ -44,10 +65,29 @@ export const ConnectionEditPanel: React.FC<ConnectionEditPanelProps> = ({
   // 处理表单变化
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 1 : value
-    }));
+
+    if (name === 'controlPointsCount') {
+      setFormData(prev => ({
+        ...prev,
+        'curveControl': {
+          ...prev.curveControl,
+          'controlPointsCount': parseInt(value, 10) || 1
+        }
+      }));
+    } else if (name === 'dynamicEffect') {
+      setFormData(prev => ({
+        ...prev,
+        'animation': {
+          ...prev.animation,
+          'dynamicEffect': value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'number' ? parseFloat(value) || 1 : value
+      }));
+    }
   };
 
   // 处理保存连接
@@ -146,7 +186,7 @@ export const ConnectionEditPanel: React.FC<ConnectionEditPanelProps> = ({
             </label>
             <select
               name="controlPointsCount"
-              value={formData.controlPointsCount?.toString() || '1'}
+              value={formData.curveControl.controlPointsCount?.toString() || '1'}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
@@ -163,7 +203,7 @@ export const ConnectionEditPanel: React.FC<ConnectionEditPanelProps> = ({
             </h4>
             <select
               name="dynamicEffect"
-              value={formData.dynamicEffect || 'none'}
+              value={formData.animation.dynamicEffect || 'none'}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >

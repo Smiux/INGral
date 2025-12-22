@@ -113,18 +113,90 @@ export const useGraphEffects = ({ state, dispatch }: GraphEffectsProps) => {
           const graphData = await graphService.getGraphById(graphs[0].id);
           if (graphData && graphData.nodes && graphData.links) {
             const enhancedNodes = graphData.nodes.map(node => ({
-              ...node,
-              'isExpanded': false,
-              '_isAggregated': false,
-              '_aggregatedNodes': [],
-              'type': node.type || 'concept'
+              'id': node.id,
+              'title': node.title,
+              'connections': node.connections || 0,
+              'type': node.type || 'concept',
+              'shape': 'rect' as const,
+              'style': {
+                'fill': '#3b82f6',
+                'stroke': '#2563eb',
+                'strokeWidth': 2,
+                'fontSize': 14,
+                'textFill': '#fff'
+              },
+              'state': {
+                'isExpanded': false,
+                'isFixed': false,
+                'isSelected': false,
+                'isHovered': false,
+                'isDragging': false,
+                'isCollapsed': false
+              },
+              'metadata': {
+                'is_custom': true,
+                'createdAt': Date.now(),
+                'updatedAt': Date.now(),
+                'version': 1,
+                'content': node.content || ''
+              },
+              'layout': {
+                'x': node.x || 0,
+                'y': node.y || 0,
+                'isFixed': false,
+                'isExpanded': false
+              },
+              'group': {
+                'isGroup': false,
+                'memberIds': [],
+                'isGroupExpanded': false
+              },
+              'handles': {
+                'handleCount': 4,
+                'handlePositions': ['top' as const, 'right' as const, 'bottom' as const, 'left' as const],
+                'lockedHandles': {},
+                'handleLabels': {}
+              },
+              'aggregation': {
+                '_isAggregated': false,
+                '_aggregatedNodes': [],
+                '_averageImportance': 0,
+                '_clusterCenter': { 'x': 0, 'y': 0 },
+                '_clusterSize': 0,
+                '_aggregationLevel': 0
+              }
             }));
 
             const enhancedConnections = graphData.links.map(connection => ({
-              ...connection,
               'id': `connection-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
               'source': connection.source as string,
-              'target': connection.target as string
+              'target': connection.target as string,
+              'type': connection.type || 'related',
+              'label': connection.label || '',
+              'weight': connection.weight || 1.0,
+              'style': {
+                'stroke': '#94a3b8',
+                'strokeWidth': 2
+              },
+              'metadata': {
+                'createdAt': Date.now(),
+                'updatedAt': Date.now(),
+                'version': 1
+              },
+              'state': {
+                'isSelected': false,
+                'isHovered': false,
+                'isEditing': false
+              },
+              'curveControl': {
+                'controlPointsCount': 1,
+                'controlPoints': [],
+                'curveType': 'default' as const
+              },
+              'animation': {
+                'dynamicEffect': 'none',
+                'isAnimating': false
+              }
             }));
 
             dispatch({ 'type': 'SET_NODES', 'payload': enhancedNodes });

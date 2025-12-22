@@ -11,16 +11,23 @@ interface BusinessLogicActionsProps {
 export const useBusinessLogicActions = ({ dispatch, state, showNotification }: BusinessLogicActionsProps) => {
   // 业务逻辑操作
   const handleNodeClick = useCallback(async (node: EnhancedNode, event: React.MouseEvent) => {
-    if (node._isAggregated && node._aggregatedNodes) {
-      const updatedNode = { ...node, 'isExpanded': !node.isExpanded };
+    if (node.aggregation?._isAggregated && node.aggregation?._aggregatedNodes) {
+      const isExpanded = !node.state.isExpanded;
+      const updatedNode = {
+        ...node,
+        'state': {
+          ...node.state,
+          isExpanded
+        }
+      };
 
-      if (updatedNode.isExpanded && node._aggregatedNodes) {
+      if (isExpanded && node.aggregation._aggregatedNodes) {
         // 展开聚合节点，添加子节点
-        const newNodes = [...state.nodes.filter(n => n.id !== node.id), ...node._aggregatedNodes];
+        const newNodes = [...state.nodes.filter(n => n.id !== node.id), ...node.aggregation._aggregatedNodes];
         dispatch({ 'type': 'SET_NODES', 'payload': newNodes });
-      } else if (node._aggregatedNodes) {
+      } else if (node.aggregation._aggregatedNodes) {
         // 折叠聚合节点，移除子节点
-        const aggregatedNodeIds = new Set(node._aggregatedNodes.map(n => n.id));
+        const aggregatedNodeIds = new Set(node.aggregation._aggregatedNodes.map((n: EnhancedNode) => n.id));
         const newNodes = state.nodes.filter(n => !aggregatedNodeIds.has(n.id));
         dispatch({ 'type': 'SET_NODES', 'payload': newNodes });
       }
@@ -61,21 +68,16 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
       'payload': state.nodes.map(n => {
         if (n.id === node.id) {
           // 使用拖拽后的位置更新节点，确保属性有值
-          const updatedNode = {
+          return {
             ...n,
-            'x': node.x || 0,
-            'y': node.y || 0
+            'layout': {
+              ...n.layout,
+              'x': node.layout.x || 0,
+              'y': node.layout.y || 0,
+              'fx': node.layout.fx !== undefined ? node.layout.fx : null,
+              'fy': node.layout.fy !== undefined ? node.layout.fy : null
+            }
           };
-
-          // 只有当fx/fy有值时才添加它们
-          if (node.fx !== undefined && node.fx !== null) {
-            updatedNode.fx = node.fx;
-          }
-          if (node.fy !== undefined && node.fy !== null) {
-            updatedNode.fy = node.fy;
-          }
-
-          return updatedNode;
         }
         return n;
       })
@@ -107,9 +109,9 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
     const maxY = Math.max(y1, y2);
 
     const selectedNodes = state.nodes.filter(node => {
-      return node.x !== undefined && node.y !== undefined &&
-             node.x >= minX && node.x <= maxX &&
-             node.y >= minY && node.y <= maxY;
+      return node.layout.x !== undefined && node.layout.y !== undefined &&
+             node.layout.x >= minX && node.layout.x <= maxX &&
+             node.layout.y >= minY && node.layout.y <= maxY;
     });
 
     if (selectedNodes.length > 0) {
@@ -171,12 +173,54 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
         .substr(2, 9)}`),
       'title': node.title || '新节点',
       'connections': node.connections || 0,
-      'x': Math.random() * 400 + 100,
-      'y': Math.random() * 400 + 100,
       'type': node.type || 'concept',
-      'isExpanded': false,
-      '_isAggregated': false,
-      '_aggregatedNodes': []
+      'shape': node.shape || 'rect',
+      'style': node.style || {
+        'fill': '#3b82f6',
+        'stroke': '#2563eb',
+        'strokeWidth': 2,
+        'fontSize': 14,
+        'textFill': '#fff'
+      },
+      'state': {
+        'isExpanded': node.state?.isExpanded || false,
+        'isFixed': node.state?.isFixed || false,
+        'isSelected': node.state?.isSelected || false,
+        'isHovered': node.state?.isHovered || false,
+        'isDragging': node.state?.isDragging || false,
+        'isCollapsed': node.state?.isCollapsed || false
+      },
+      'metadata': {
+        'is_custom': node.metadata?.is_custom || true,
+        'createdAt': node.metadata?.createdAt || Date.now(),
+        'updatedAt': node.metadata?.updatedAt || Date.now(),
+        'version': node.metadata?.version || 1
+      },
+      'layout': {
+        'x': node.layout?.x || Math.random() * 400 + 100,
+        'y': node.layout?.y || Math.random() * 400 + 100,
+        'isFixed': node.layout?.isFixed || false,
+        'isExpanded': node.layout?.isExpanded || false
+      },
+      'group': {
+        'isGroup': node.group?.isGroup || false,
+        'memberIds': node.group?.memberIds || [],
+        'isGroupExpanded': node.group?.isGroupExpanded || false
+      },
+      'handles': {
+        'handleCount': node.handles?.handleCount || 4,
+        'handlePositions': node.handles?.handlePositions || ['top', 'right', 'bottom', 'left'],
+        'lockedHandles': node.handles?.lockedHandles || {},
+        'handleLabels': node.handles?.handleLabels || {}
+      },
+      'aggregation': {
+        '_isAggregated': node.aggregation?._isAggregated || false,
+        '_aggregatedNodes': node.aggregation?._aggregatedNodes || [],
+        '_averageImportance': node.aggregation?._averageImportance || 0,
+        '_clusterCenter': node.aggregation?._clusterCenter || { 'x': 0, 'y': 0 },
+        '_clusterSize': node.aggregation?._clusterSize || 0,
+        '_aggregationLevel': node.aggregation?._aggregationLevel || 0
+      }
     }));
 
     const newConnections: EnhancedGraphConnection[] = graph.connections.map((connection: EnhancedGraphConnection) => {
@@ -190,7 +234,30 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
         source,
         target,
         'label': connection.label || '',
-        'weight': connection.weight || 1.0
+        'weight': connection.weight || 1.0,
+        'style': connection.style || {
+          'stroke': '#94a3b8',
+          'strokeWidth': 2
+        },
+        'metadata': {
+          'createdAt': connection.metadata?.createdAt || Date.now(),
+          'updatedAt': connection.metadata?.updatedAt || Date.now(),
+          'version': connection.metadata?.version || 1
+        },
+        'state': {
+          'isSelected': connection.state?.isSelected || false,
+          'isHovered': connection.state?.isHovered || false,
+          'isEditing': connection.state?.isEditing || false
+        },
+        'curveControl': {
+          'controlPointsCount': connection.curveControl?.controlPointsCount || 1,
+          'controlPoints': connection.curveControl?.controlPoints || [],
+          'curveType': connection.curveControl?.curveType || 'default'
+        },
+        'animation': {
+          'dynamicEffect': connection.animation?.dynamicEffect || 'none',
+          'isAnimating': connection.animation?.isAnimating || false
+        }
       };
     });
 
@@ -243,8 +310,8 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
         // 检查当前位置是否与任何现有节点重叠
         for (const node of state.nodes) {
           const distance = Math.sqrt(
-            Math.pow(finalX - (node.x || 0), 2) +
-            Math.pow(finalY - (node.y || 0), 2)
+            Math.pow(finalX - (node.layout.x || 0), 2) +
+            Math.pow(finalY - (node.layout.y || 0), 2)
           );
 
           if (distance < MIN_DISTANCE) {
@@ -254,13 +321,13 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
             // 优化：在现有节点附近寻找合适位置，而不是总是从原始位置偏移
             // 随机选择一个现有节点
             const randomIndex = Math.floor(Math.random() * state.nodes.length);
-            const randomNode = state.nodes[randomIndex] || { 'x': 0, 'y': 0 };
+            const randomNode = state.nodes[randomIndex] || { 'layout': { 'x': 0, 'y': 0 } };
             // 计算随机角度
             const angle = Math.random() * Math.PI * 2;
             // 计算新位置，在随机节点周围的合理范围内
             const newDistance = MIN_DISTANCE + Math.random() * (MAX_DISTANCE - MIN_DISTANCE);
-            finalX = (randomNode.x || 0) + Math.cos(angle) * newDistance;
-            finalY = (randomNode.y || 0) + Math.sin(angle) * newDistance;
+            finalX = (randomNode.layout.x || 0) + Math.cos(angle) * newDistance;
+            finalY = (randomNode.layout.y || 0) + Math.sin(angle) * newDistance;
             break;
           }
         }
@@ -277,12 +344,54 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
       'id': `node_${Date.now()}`,
       'title': '新节点',
       'connections': 0,
-      'x': finalX,
-      'y': finalY,
       'type': 'concept',
-      'isExpanded': false,
-      '_isAggregated': false,
-      '_aggregatedNodes': []
+      'shape': 'rect',
+      'style': {
+        'fill': '#3b82f6',
+        'stroke': '#2563eb',
+        'strokeWidth': 2,
+        'fontSize': 14,
+        'textFill': '#fff'
+      },
+      'state': {
+        'isExpanded': false,
+        'isFixed': false,
+        'isSelected': false,
+        'isHovered': false,
+        'isDragging': false,
+        'isCollapsed': false
+      },
+      'metadata': {
+        'is_custom': true,
+        'createdAt': Date.now(),
+        'updatedAt': Date.now(),
+        'version': 1
+      },
+      'layout': {
+        'x': finalX,
+        'y': finalY,
+        'isFixed': false,
+        'isExpanded': false
+      },
+      'group': {
+        'isGroup': false,
+        'memberIds': [],
+        'isGroupExpanded': false
+      },
+      'handles': {
+        'handleCount': 4,
+        'handlePositions': ['top', 'right', 'bottom', 'left'],
+        'lockedHandles': {},
+        'handleLabels': {}
+      },
+      'aggregation': {
+        '_isAggregated': false,
+        '_aggregatedNodes': [],
+        '_averageImportance': 0,
+        '_clusterCenter': { 'x': 0, 'y': 0 },
+        '_clusterSize': 0,
+        '_aggregationLevel': 0
+      }
     };
 
     dispatch({ 'type': 'ADD_NODE', 'payload': newNode });
@@ -297,18 +406,57 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
       return;
     }
 
+    // 计算分组中心位置
+    const centerX = nodes.reduce((sum, node) => sum + (node.layout.x || 0), 0) / nodes.length;
+    const centerY = nodes.reduce((sum, node) => sum + (node.layout.y || 0), 0) / nodes.length;
+
     // 创建分组节点
     const group: EnhancedNode = {
       'id': `group_${Date.now()}`,
       'title': `分组 ${state.nodes.filter(n => n.type === 'group').length + 1}`,
-      'type': 'group',
-      'x': nodes.reduce((sum, node) => sum + (node.x || 0), 0) / nodes.length,
-      'y': nodes.reduce((sum, node) => sum + (node.y || 0), 0) / nodes.length,
       'connections': 0,
-      'isExpanded': true,
-      '_isAggregated': false,
-      '_aggregatedNodes': [],
-      'memberIds': nodes.map(n => n.id)
+      'type': 'group',
+      'shape': 'rect',
+      'style': {
+        'fill': '#6366f1',
+        'stroke': '#4f46e5',
+        'strokeWidth': 2,
+        'fontSize': 14,
+        'textFill': '#fff',
+        'borderRadius': 8,
+        'opacity': 0.8
+      },
+      'state': {
+        'isExpanded': true,
+        'isFixed': false,
+        'isSelected': false,
+        'isHovered': false,
+        'isDragging': false,
+        'isCollapsed': false
+      },
+      'metadata': {
+        'is_custom': true,
+        'createdAt': Date.now(),
+        'updatedAt': Date.now(),
+        'version': 1
+      },
+      'layout': {
+        'x': centerX,
+        'y': centerY,
+        'isFixed': false,
+        'isExpanded': true
+      },
+      'group': {
+        'isGroup': true,
+        'memberIds': nodes.map(n => n.id),
+        'isGroupExpanded': true
+      },
+      'handles': {
+        'handleCount': 4,
+        'handlePositions': ['top', 'right', 'bottom', 'left'],
+        'lockedHandles': {},
+        'handleLabels': {}
+      }
     };
 
     // 调用GROUP_NODES动作
@@ -329,8 +477,8 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
   const ungroupNodes = useCallback((groupId: string) => {
     // 找到分组节点及其成员
     const groupNode = state.nodes.find(node => node.id === groupId && node.type === 'group');
-    if (groupNode && groupNode.memberIds) {
-      const memberNodes = state.nodes.filter(node => groupNode.memberIds?.includes(node.id));
+    if (groupNode && groupNode.group.memberIds) {
+      const memberNodes = state.nodes.filter(node => groupNode.group.memberIds?.includes(node.id));
       // 添加取消分组操作到历史记录
       dispatch({
         'type': 'ADD_HISTORY',
@@ -355,9 +503,16 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
     }
 
     // 切换展开状态
-    const updatedNode = { ...groupNode, 'isExpanded': !groupNode.isExpanded };
+    const isExpanded = !groupNode.group.isGroupExpanded;
+    const updatedNode = {
+      ...groupNode,
+      'group': {
+        ...groupNode.group,
+        'isGroupExpanded': isExpanded
+      }
+    };
     dispatch({ 'type': 'UPDATE_NODE', 'payload': updatedNode });
-    showNotification(`分组已${updatedNode.isExpanded ? '展开' : '折叠'}`, 'success');
+    showNotification(`分组已${isExpanded ? '展开' : '折叠'}`, 'success');
   }, [state.nodes, showNotification, dispatch]);
 
   // 面板切换

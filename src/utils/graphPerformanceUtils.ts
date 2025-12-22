@@ -140,21 +140,35 @@ export class NodeAggregationUtils {
     nearbyNodes: EnhancedNode[],
     nodeImportance: Map<string, number>
   ): EnhancedNode {
+    // 计算平均坐标
+    const avgX = ((mainNode.layout.x || 0) + nearbyNodes.reduce((sum, node) => sum + (node.layout.x || 0), 0)) / (nearbyNodes.length + 1);
+    const avgY = ((mainNode.layout.y || 0) + nearbyNodes.reduce((sum, node) => sum + (node.layout.y || 0), 0)) / (nearbyNodes.length + 1);
+
+    // 计算平均重要性
+    const avgImportance = (nodeImportance.get(mainNode.id) || 0 +
+        nearbyNodes.reduce((sum, node) => sum + (nodeImportance.get(node.id) || 0), 0)) / (nearbyNodes.length + 1);
+
     // 创建聚合节点，使用主要节点的属性作为基础
     const aggregatedNode: EnhancedNode = {
       ...mainNode,
       'id': `aggregated-${mainNode.id}-${Date.now()}`,
       'title': `${mainNode.title} (${nearbyNodes.length + 1}个节点)`,
-      '_isAggregated': true,
-      '_aggregatedNodes': [mainNode, ...nearbyNodes],
       'connections': 0,
       'shape': 'rect',
-      // 计算平均坐标
-      'x': ((mainNode.x || 0) + nearbyNodes.reduce((sum, node) => sum + (node.x || 0), 0)) / (nearbyNodes.length + 1),
-      'y': ((mainNode.y || 0) + nearbyNodes.reduce((sum, node) => sum + (node.y || 0), 0)) / (nearbyNodes.length + 1),
-      // 更新聚合节点的连接数
-      '_averageImportance': (nodeImportance.get(mainNode.id) || 0 +
-        nearbyNodes.reduce((sum, node) => sum + (nodeImportance.get(node.id) || 0), 0)) / (nearbyNodes.length + 1)
+      'layout': {
+        'x': avgX,
+        'y': avgY,
+        'isFixed': false,
+        'isExpanded': false
+      },
+      'aggregation': {
+        '_aggregatedNodes': [mainNode, ...nearbyNodes],
+        '_isAggregated': true,
+        '_averageImportance': avgImportance,
+        '_clusterCenter': { 'x': avgX, 'y': avgY },
+        '_clusterSize': nearbyNodes.length + 1,
+        '_aggregationLevel': 1
+      }
     };
 
     return aggregatedNode;
@@ -204,10 +218,10 @@ export class NodeAggregationUtils {
    * @returns 节点间的距离
    */
   private static calculateDistance (node1: EnhancedNode, node2: EnhancedNode): number {
-    const x1 = node1.x || 0;
-    const y1 = node1.y || 0;
-    const x2 = node2.x || 0;
-    const y2 = node2.y || 0;
+    const x1 = node1.layout.x || 0;
+    const y1 = node1.layout.y || 0;
+    const x2 = node2.layout.x || 0;
+    const y2 = node2.layout.y || 0;
 
     return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   }
@@ -273,7 +287,7 @@ export class NodeAggregationUtils {
     const aggregatedNode = nodes[aggregatedNodeIndex];
 
     // 如果节点不是聚合节点，返回原始数据
-    if (!aggregatedNode || !aggregatedNode._isAggregated || !aggregatedNode._aggregatedNodes) {
+    if (!aggregatedNode || !aggregatedNode.aggregation?._isAggregated || !aggregatedNode.aggregation?._aggregatedNodes) {
       return {
         nodes,
         links,
@@ -284,49 +298,26 @@ export class NodeAggregationUtils {
 
     // 创建节点副本，避免修改原始数据
     const nodesCopy = [...nodes];
-    const linksCopy = [...links];
 
     // 移除聚合节点
     nodesCopy.splice(aggregatedNodeIndex, 1);
 
     // 添加被聚合的节点
-    if (aggregatedNode && aggregatedNode._aggregatedNodes) {
-      nodesCopy.push(...aggregatedNode._aggregatedNodes);
+    if (aggregatedNode && aggregatedNode.aggregation && aggregatedNode.aggregation._aggregatedNodes) {
+      nodesCopy.push(...aggregatedNode.aggregation._aggregatedNodes);
     }
 
     // 移除与聚合节点相关的链接
-    const linksWithoutAggregatedNode = linksCopy.filter(link => {
+    const linksWithoutAggregatedNode = links.filter(link => {
       const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
       const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
 
       return sourceId !== aggregatedNodeId && targetId !== aggregatedNodeId;
     });
 
-    // 重新添加原始链接
-    const originalLinks = links.filter(link => {
-      const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
-      const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
-
-      return aggregatedNode._aggregatedNodes?.some(node =>
-        node.id === sourceId || node.id === targetId
-      ) || false;
-    });
-
-    // 合并链接
-    const allLinks = [...linksWithoutAggregatedNode, ...originalLinks];
-
-    // 移除重复的链接
-    const uniqueLinks = new Map<string, EnhancedGraphConnection>();
-    allLinks.forEach(link => {
-      const key = `${link.source}-${link.target}-${link.type}`;
-      if (!uniqueLinks.has(key)) {
-        uniqueLinks.set(key, link);
-      }
-    });
-
     return {
       'nodes': nodesCopy,
-      'links': Array.from(uniqueLinks.values()),
+      'links': linksWithoutAggregatedNode,
       'expanded': true,
       'expandedNodeId': aggregatedNodeId
     };

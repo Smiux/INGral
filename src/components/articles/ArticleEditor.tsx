@@ -586,29 +586,76 @@ function ArticleEditorImpl () {
             onSaveDraft={handleManualSaveDraft}
           />
 
+          {/* 自动保存状态指示器 */}
+          {state.autosaveStatus && (
+            /* 根据autosave状态确定样式 */
+            ((status) => {
+              const statusType = status.type;
+              let bgColor, textColor, borderColor;
+
+              if (statusType === 'saved') {
+                bgColor = 'green';
+                textColor = 'green';
+                borderColor = 'green';
+              } else if (statusType === 'error') {
+                bgColor = 'red';
+                textColor = 'red';
+                borderColor = 'red';
+              } else {
+                bgColor = 'yellow';
+                textColor = 'yellow';
+                borderColor = 'yellow';
+              }
+
+              return (
+                <div className={`bg-${bgColor}-50 text-${textColor}-700 text-xs px-4 py-1 border-b border-${borderColor}-200 flex items-center gap-2`}>
+                  <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {(() => {
+                      if (statusType === 'saving') {
+                        return <circle className="animate-spin" cx="12" cy="12" r="10" strokeWidth="4" strokeLinecap="round" />;
+                      } else if (statusType === 'saved') {
+                        return <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />;
+                      }
+                      return <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M6 18L18 6M6 6l12 12" />;
+                    })()}
+                  </svg>
+                  <span>{status.message}</span>
+                </div>
+              );
+            })(state.autosaveStatus)
+          )}
+
           {/* 文章标题输入区域 */}
-          <div className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)] p-3 transition-all">
+          <div className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)] p-4 transition-all duration-300 shadow-sm">
             <input
               type="text"
               value={state.title}
               onChange={handleTitleChange}
-              className="w-full text-2xl font-bold bg-transparent border-none outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)]"
+              className="w-full text-2xl font-bold bg-transparent border-none outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] placeholder-opacity-70 transition-colors duration-200"
               placeholder="请输入文章标题..."
               autoFocus
             />
-            <div className="text-xs text-[var(--text-secondary)] mt-1 flex items-center justify-between">
-              <span>{state.title.length} / 100 字符</span>
-              <div className="flex items-center space-x-4">
-                <span className="flex items-center">
+            <div className="text-xs text-[var(--text-secondary)] mt-2 flex items-center justify-between gap-4 flex-wrap">
+              <span className="flex items-center">
+                {state.title.length} / 100 字符
+                {state.title.length > 90 && (
+                  <span className="ml-2 text-[var(--warning-500)]">即将达到字符限制</span>
+                )}
+                {state.title.length >= 100 && (
+                  <span className="ml-2 text-[var(--error-500)]">已达到字符限制</span>
+                )}
+              </span>
+              <div className="flex items-center gap-4">
+                <span className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-[var(--bg-hover)] transition-all duration-200 hover:bg-[var(--bg-active)]">
                   {state.visibility === 'public' ? (
-                    <Globe size={14} className="mr-1 text-[var(--blue-500)]" />
+                    <Globe size={14} className="text-[var(--primary-500)]" />
                   ) : (
-                    <Lock size={14} className="mr-1 text-[var(--purple-500)]" />
+                    <Lock size={14} className="text-[var(--secondary-500)]" />
                   )}
-                  {state.visibility === 'public' ? '公开' : '仅分享'}
+                  <span>{state.visibility === 'public' ? '公开' : '仅分享'}</span>
                 </span>
-                <span>
-                  {state.content.length} 字符
+                <span className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-[var(--bg-hover)] transition-all duration-200 hover:bg-[var(--bg-active)]">
+                  <span>{state.content.length} 字符</span>
                 </span>
               </div>
             </div>
@@ -626,7 +673,7 @@ function ArticleEditorImpl () {
           )}
 
           {/* 编辑器内容区域 */}
-          <div className={`editor-content-area ${state.isFullscreen ? 'fullscreen' : ''}`}>
+          <div className={`editor-content-area relative flex-1 overflow-hidden transition-all duration-300 ${state.isFullscreen ? 'fullscreen' : ''}`} style={{'backgroundColor': 'var(--bg-primary)'}}>
             <EditorContentArea
               content={state.content}
               setContent={handleContentChange}
@@ -639,6 +686,25 @@ function ArticleEditorImpl () {
             />
 
             {/* 智能建议UI已移除 - 自动补全功能已禁用 */}
+
+            {/* 编辑器状态指示器 - 显示当前编辑模式 */}
+            <div className="absolute bottom-4 right-4 z-10 flex items-center space-x-3">
+              <span className="px-3 py-1 bg-[var(--bg-secondary)] text-xs font-medium rounded-full border border-[var(--border-color)] shadow-sm transition-all duration-200 hover:shadow-md">
+                {(() => {
+                  if (state.viewMode === 'editor') {
+                    return '编辑模式';
+                  } else if (state.viewMode === 'preview') {
+                    return '预览模式';
+                  }
+                  return '分屏模式';
+                })()}
+              </span>
+              {state.livePreview && state.viewMode === 'editor' && (
+                <span className="px-3 py-1 bg-[var(--success-50)] dark:bg-[var(--success-900)]/30 text-[var(--success-700)] dark:text-[var(--success-400)] text-xs font-medium rounded-full border border-[var(--success-200)] dark:border-[var(--success-800)] shadow-sm">
+                  实时预览
+                </span>
+              )}
+            </div>
           </div>
 
           {/* 文章发布设置 */}

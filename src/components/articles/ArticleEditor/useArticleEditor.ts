@@ -36,6 +36,9 @@ export interface ArticleEditorState {
   isLoading: boolean;
   error: string;
 
+  // 自动保存状态
+  autosaveStatus: { message: string; type: 'saving' | 'saved' | 'error' } | null;
+
   // 编辑器配置状态
   visibility: 'public' | 'unlisted';
   authorName: string;
@@ -128,6 +131,9 @@ export function useArticleEditor () {
     'isSaving': false,
     'isLoading': Boolean(slug),
     'error': '',
+
+    // 自动保存状态
+    'autosaveStatus': null,
 
     // 编辑器配置状态
     'visibility': 'public',
@@ -765,6 +771,32 @@ export function useArticleEditor () {
     updateState('content', content);
   }, [updateState]);
 
+  // 处理自动保存状态变化
+  const handleAutosaveStatusChange = useCallback((status: 'saving' | 'saved' | 'error', message?: string) => {
+    // 确定自动保存状态消息
+    const defaultMessage = (() => {
+      if (status === 'saving') {
+        return '正在自动保存...';
+      }
+      if (status === 'saved') {
+        return '自动保存成功';
+      }
+      return '自动保存失败';
+    })();
+
+    updateState('autosaveStatus', {
+      'type': status,
+      'message': message || defaultMessage
+    });
+
+    // 3秒后自动清除保存状态
+    if (status === 'saved' || status === 'error') {
+      setTimeout(() => {
+        updateState('autosaveStatus', null);
+      }, 3000);
+    }
+  }, [updateState]);
+
   // 返回状态和方法
   return {
     state,
@@ -782,6 +814,7 @@ export function useArticleEditor () {
     resolveConflict,
     setTitle,
     setContent,
-    handleManualSaveDraft
+    handleManualSaveDraft,
+    handleAutosaveStatusChange
   };
 }

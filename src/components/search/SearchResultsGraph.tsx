@@ -35,14 +35,65 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
         'id': result.id,
         'title': result.title,
         'type': result.type,
-        'content': result.content || '',
-        'x': Math.random() * width,
-        'y': Math.random() * height,
+        'shape': 'rect',
         'connections': 0,
-        'semantic_score': result.semantic_score,
-        'search_rank': result.search_rank || 0,
-        'entity_matches': result.entity_matches || [],
-        'matched_concepts': result.matched_concepts || []
+        'style': {
+          'fill': '#3b82f6',
+          'stroke': '#2563eb',
+          'strokeWidth': 2,
+          'fontSize': 14,
+          'textFill': '#fff'
+        },
+        'state': {
+          'isExpanded': false,
+          'isFixed': false,
+          'isSelected': false,
+          'isHovered': false,
+          'isDragging': false,
+          'isCollapsed': false
+        },
+        'metadata': {
+          'is_custom': true,
+          'createdAt': Date.now(),
+          'updatedAt': Date.now(),
+          'version': 1,
+          'content': result.content || ''
+        },
+        'layout': {
+          'x': Math.random() * width,
+          'y': Math.random() * height,
+          'isFixed': false,
+          'isExpanded': false
+        },
+        'group': {
+          'isGroup': false,
+          'memberIds': [],
+          'isGroupExpanded': false
+        },
+        'handles': {
+          'handleCount': 4,
+          'handlePositions': ['top', 'right', 'bottom', 'left'],
+          'lockedHandles': {},
+          'handleLabels': {}
+        },
+        'aggregation': {
+          '_isAggregated': false,
+          '_aggregatedNodes': [],
+          '_averageImportance': 0,
+          '_clusterCenter': { 'x': 0, 'y': 0 },
+          '_clusterSize': 0,
+          '_aggregationLevel': 0
+        },
+        'semantics': {
+          'semantic_score': result.semantic_score,
+          'search_rank': result.search_rank || 0,
+          'entity_matches': result.entity_matches ? result.entity_matches.map(entity => ({
+            'text': entity.text || '',
+            'type': entity.type || '',
+            'score': 0
+          })) : [],
+          'matched_concepts': result.matched_concepts ? result.matched_concepts.map(concept => ({ 'id': concept.toLowerCase(), 'name': concept, 'relevance': 1 })) : []
+        }
       };
 
       nodeMap.set(result.id, node);
@@ -64,7 +115,31 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
               'id': linkId,
               'type': 'related',
               'source': result.id,
-              'target': conceptNode.id
+              'target': conceptNode.id,
+              'weight': 1.0,
+              'style': {
+                'stroke': '#94a3b8',
+                'strokeWidth': 2
+              },
+              'metadata': {
+                'createdAt': Date.now(),
+                'updatedAt': Date.now(),
+                'version': 1
+              },
+              'state': {
+                'isSelected': false,
+                'isHovered': false,
+                'isEditing': false
+              },
+              'curveControl': {
+                'controlPointsCount': 1,
+                'controlPoints': [],
+                'curveType': 'default'
+              },
+              'animation': {
+                'dynamicEffect': 'none',
+                'isAnimating': false
+              }
             });
 
             // 更新连接数
@@ -83,10 +158,10 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
         const article1 = articleNodes[i];
         const article2 = articleNodes[j];
 
-        if (article1 && article2 && article1.matched_concepts && article2.matched_concepts) {
+        if (article1 && article2 && article1.semantics?.matched_concepts && article2.semantics?.matched_concepts) {
           // 查找共同概念
-          const commonConcepts = article1.matched_concepts.filter((concept1: string) =>
-            article2.matched_concepts!.some((concept2: string) => concept1 === concept2)
+          const commonConcepts = article1.semantics.matched_concepts.filter((concept1: { name: string }) =>
+            article2.semantics!.matched_concepts!.some((concept2: { name: string }) => concept1.name.toLowerCase() === concept2.name.toLowerCase())
           );
 
           if (commonConcepts.length > 0) {
@@ -95,7 +170,31 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
               'id': linkId,
               'type': 'similar',
               'source': article1.id,
-              'target': article2.id
+              'target': article2.id,
+              'weight': 1.0,
+              'style': {
+                'stroke': '#94a3b8',
+                'strokeWidth': 2
+              },
+              'metadata': {
+                'createdAt': Date.now(),
+                'updatedAt': Date.now(),
+                'version': 1
+              },
+              'state': {
+                'isSelected': false,
+                'isHovered': false,
+                'isEditing': false
+              },
+              'curveControl': {
+                'controlPointsCount': 1,
+                'controlPoints': [],
+                'curveType': 'default'
+              },
+              'animation': {
+                'dynamicEffect': 'none',
+                'isAnimating': false
+              }
             });
 
             // 更新连接数
@@ -174,7 +273,7 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
         'title': node.title,
         'connections': node.connections || 0,
         'type': GraphNodeType[(node.type as keyof typeof GraphNodeType) || 'ARTICLE'],
-        'description': node.content || ''
+        'description': node.metadata.content || ''
       }));
       // Convert EnhancedGraphLink to GraphLink
       const graphLinks = links.map(link => ({

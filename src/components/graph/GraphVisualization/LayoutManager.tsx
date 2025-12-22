@@ -80,9 +80,7 @@ export const LayoutManager: React.FC<LayoutManagerProps & {
     // 收集节点位置
     const nodePositions: Record<string, { x: number; y: number }> = {};
     nodes.forEach(node => {
-      if (node.x !== undefined && node.y !== undefined) {
-        nodePositions[node.id] = { 'x': node.x, 'y': node.y };
-      }
+      nodePositions[node.id] = { 'x': node.layout.x, 'y': node.layout.y };
     });
 
     const savedLayout: SavedLayout = {

@@ -181,7 +181,8 @@ export class ArticleService extends BaseService {
         'author_email': authorEmail || null,
         'author_url': authorUrl || null,
         visibility,
-        'status': 'published'
+        'status': 'published',
+        'version': 1
       };
 
       const article = await this.create<Article>(this.TABLE_NAME, articleData);
@@ -189,6 +190,23 @@ export class ArticleService extends BaseService {
       if (!article) {
         throw new Error('Failed to create article');
       }
+
+      // 创建初始版本记录
+      await this.supabase.from('article_versions').insert({
+        'article_id': article.id,
+        'version_number': 1,
+        title,
+        'content': sanitizedContent,
+        'metadata': {
+          visibility,
+          'author_name': authorName || 'Anonymous',
+          'author_email': authorEmail || null,
+          'author_url': authorUrl || null
+        },
+        'author_id': 'user',
+        'change_summary': '初始版本',
+        'is_published': true
+      });
 
       // 如果提供了标签，处理标签关联
       if (tags && tags.length > 0) {
@@ -334,26 +352,58 @@ export class ArticleService extends BaseService {
     try {
       // 如果不是离线文章，尝试更新到数据库
       if (!isOfflineArticle) {
-        // 更新文章
+        // 1. 获取当前文章内容，创建版本快照
+        const latestArticle = await this.getArticleById(id);
+        if (latestArticle) {
+          // 获取当前最大版本号
+          const versionResult = await this.supabase.from('article_versions')
+            .select('version_number')
+            .eq('article_id', id)
+            .order('version_number', { 'ascending': false })
+            .limit(1)
+            .maybeSingle();
+          const maxVersion = versionResult?.data?.version_number || 0;
+
+          // 创建版本快照
+          await this.supabase.from('article_versions').insert({
+            'article_id': id,
+            'version_number': maxVersion + 1,
+            'title': latestArticle.title,
+            'content': latestArticle.content,
+            'metadata': {
+              'visibility': latestArticle.visibility,
+              'author_name': latestArticle.author_name,
+              'author_email': latestArticle.author_email,
+              'author_url': latestArticle.author_url
+            },
+            'author_id': 'user',
+            'change_summary': '自动保存版本',
+            'is_published': latestArticle.status === 'published'
+          });
+        }
+
+        // 2. 更新文章
         const article = await this.update<Article>(this.TABLE_NAME, id, updateData);
 
         if (!article) {
           throw new Error('Article not found');
         }
 
-        // 如果提供了标签，更新文章标签
+        // 3. 如果提供了标签，更新文章标签
         if (tags !== undefined) {
           await this.updateArticleTags(id, tags);
         }
 
-        // 处理文章链接更新
+        // 4. 处理文章链接更新
         await this.updateArticleLinks(id, content);
 
-        // 提取并处理数学公式
+        // 5. 提取并处理数学公式
         const formulas = extractFormulas(content);
         if (formulas.length > 0) {
           article.formulas = formulas;
         }
+
+
 
         return article;
       }

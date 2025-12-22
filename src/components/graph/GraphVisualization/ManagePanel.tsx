@@ -17,31 +17,31 @@ export interface ManagePanelProps {
   // 连接数据
   connections: EnhancedGraphConnection[];
   // 设置节点
-  setNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
+  setNodes: (_nodes: EnhancedNode[]) => void;
   // 设置连接
-  setConnections: React.Dispatch<React.SetStateAction<EnhancedGraphConnection[]>>;
+  setConnections: (_connections: EnhancedGraphConnection[]) => void;
   // 选中的节点
   selectedNode: EnhancedNode | null;
   // 设置选中的节点
-  setSelectedNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
+  setSelectedNode: (_node: EnhancedNode | null) => void;
   // 选中的节点列表
   selectedNodes: EnhancedNode[];
   // 设置选中的节点列表
-  setSelectedNodes: React.Dispatch<React.SetStateAction<EnhancedNode[]>>;
+  setSelectedNodes: (_nodes: EnhancedNode[]) => void;
   // 选中的连接
   selectedConnections: EnhancedGraphConnection[];
   // 设置选中的连接
-  setSelectedConnections: React.Dispatch<React.SetStateAction<EnhancedGraphConnection[]>>;
+  setSelectedConnections: (_connections: EnhancedGraphConnection[]) => void;
   // 是否正在添加连接
   isAddingConnection: boolean;
   // 设置是否正在添加连接
-  setIsAddingConnection: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsAddingConnection: (_isAddingConnection: boolean) => void;
   // 连接源节点
   connectionSourceNode: EnhancedNode | null;
   // 设置连接源节点
-  setConnectionSourceNode: React.Dispatch<React.SetStateAction<EnhancedNode | null>>;
+  setConnectionSourceNode: (_node: EnhancedNode | null) => void;
   // 设置鼠标位置
-  setMousePosition: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
+  setMousePosition: (_position: { x: number; y: number } | null) => void;
   // 显示通知
   showNotification: (_message: string, _type: 'success' | 'error' | 'info') => void;
   // 添加节点回调
@@ -76,6 +76,8 @@ export const ManagePanel: React.FC<ManagePanelProps> = ({
 }) => {
   // 初始选中的标签页
   const [activeTab, setActiveTab] = useState<'nodes' | 'connections'>('nodes');
+
+  // 不再需要转换函数，直接使用GraphActions方法
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md">

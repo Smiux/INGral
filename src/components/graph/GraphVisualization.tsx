@@ -13,6 +13,8 @@ import { GraphNavigationControls } from './GraphVisualization/GraphNavigationCon
 import { PanelContainer } from './GraphVisualization/PanelContainer';
 import { NodeEditPanel } from './GraphVisualization/NodeEditPanel';
 import { ConnectionEditPanel } from './GraphVisualization/ConnectionEditPanel';
+import { StyleManagement } from './GraphVisualization/StyleManagement';
+import { ManagePanel } from './GraphVisualization/ManagePanel';
 
 // 内部组件，用于访问GraphContext
 const GraphVisualizationContent: React.FC = () => {
@@ -63,6 +65,44 @@ const GraphVisualizationContent: React.FC = () => {
             onUpdateNode={actions.updateNode}
             onDeleteNode={actions.deleteNode}
             onClose={handleCloseEditPanel}
+          />
+        )}
+        {/* 管理面板 */}
+        {state.selectedNodes.length > 0 && (
+          <ManagePanel
+            nodes={state.nodes}
+            connections={state.connections}
+            setNodes={actions.setNodes}
+            setConnections={actions.setConnections}
+            selectedNode={state.selectedNode}
+            setSelectedNode={actions.selectNode}
+            selectedNodes={state.selectedNodes}
+            setSelectedNodes={actions.selectNodes}
+            selectedConnections={state.selectedConnections}
+            setSelectedConnections={actions.selectConnections}
+            isAddingConnection={state.isAddingConnection}
+            setIsAddingConnection={actions.setIsAddingConnection}
+            connectionSourceNode={state.connectionSourceNode}
+            setConnectionSourceNode={actions.setConnectionSourceNode}
+            setMousePosition={actions.setMousePosition}
+            showNotification={actions.showNotification}
+          />
+        )}
+        {/* 样式管理面板 */}
+        {(state.selectedNodes.length > 0 || state.selectedConnections.length > 0) && (
+          <StyleManagement
+            nodes={state.nodes}
+            connections={state.connections}
+            selectedNodes={state.selectedNodes}
+            selectedConnections={state.selectedConnections}
+            setNodes={actions.setNodes}
+            setConnections={actions.setConnections}
+            currentTheme={state.currentTheme}
+            handleCopyNodeStyle={actions.handleCopyNodeStyle}
+            handleCopyConnectionStyle={actions.handleCopyConnectionStyle}
+            handlePasteStyle={actions.handlePasteStyle}
+            setCurrentTheme={actions.setCurrentTheme}
+            showNotification={actions.showNotification}
           />
         )}
 

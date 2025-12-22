@@ -93,12 +93,11 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
     return enhancedNodes.map(node => ({
       'id': node.id,
       'type': 'default',
-      'position': { 'x': node.x || 0, 'y': node.y || 0 },
+      'position': { 'x': node.layout?.x || 0, 'y': node.layout?.y || 0 },
       'data': {
         ...node,
         'title': node.title,
         'connections': node.connections,
-        'content': node.content,
         'type': node.type,
         'shape': node.shape
       },
@@ -195,8 +194,11 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
           dragDebounceRef.current = setTimeout(() => {
             const updatedNode = {
               ...enhancedNode,
-              'x': position.x,
-              'y': position.y
+              'layout': {
+                ...enhancedNode.layout,
+                'x': position.x,
+                'y': position.y
+              }
             };
             actions.updateNode(updatedNode);
           }, 100);
@@ -235,7 +237,32 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
         'id': newEdgeId,
         'source': connection.source as string,
         'target': connection.target as string,
-        'type': 'relation'
+        'type': 'relation',
+        'weight': 1.0,
+        'style': {
+          'stroke': '#3b82f6',
+          'strokeWidth': 2,
+          'arrowSize': 6,
+          'arrowType': 'triangle'
+        },
+        'metadata': {
+          'createdAt': Date.now(),
+          'updatedAt': Date.now(),
+          'version': 1
+        },
+        'state': {
+          'isSelected': false,
+          'isHovered': false,
+          'isEditing': false
+        },
+        'curveControl': {
+          'controlPointsCount': 0,
+          'controlPoints': [],
+          'curveType': 'default'
+        },
+        'animation': {
+          'isAnimating': false
+        }
       };
       actions.addConnection(enhancedConnection);
 

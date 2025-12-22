@@ -9,9 +9,12 @@ import { GraphAnalysis } from './GraphAnalysis';
 import { StatisticsPanel } from './StatisticsPanel';
 import { StyleAdjustmentPanel } from './StyleAdjustmentPanel';
 import { ManagePanel } from './ManagePanel';
+import { TemplateSelectionPanel } from './components/TemplateSelectionPanel';
 
 // 导入自定义Hook
 import { useGraph } from './useGraph';
+// 导入类型定义
+import type { LayoutType, LayoutDirection, ForceParameters } from './types';
 
 
 
@@ -81,16 +84,16 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             selectedNode={selectedNode}
             selectedNodes={selectedNodes}
             selectedConnections={selectedConnections}
-            setNodes={(value) => setNodes(typeof value === 'function' ? value(nodes) : value)}
-            setSelectedNode={(value) => actions.selectNode(typeof value === 'function' ? value(selectedNode) : value)}
-            setSelectedNodes={(value) => actions.selectNodes(typeof value === 'function' ? value(selectedNodes) : value)}
-            setConnections={(value) => setConnections(typeof value === 'function' ? value(connections) : value)}
-            setSelectedConnections={(value) => actions.selectConnections(typeof value === 'function' ? value(selectedConnections) : value)}
+            setNodes={setNodes}
+            setSelectedNode={actions.selectNode}
+            setSelectedNodes={actions.selectNodes}
+            setConnections={setConnections}
+            setSelectedConnections={actions.selectConnections}
             isAddingConnection={isAddingConnection}
-            setIsAddingConnection={(value) => actions.setIsAddingConnection(typeof value === 'function' ? value(isAddingConnection) : value)}
+            setIsAddingConnection={actions.setIsAddingConnection}
             connectionSourceNode={connectionSourceNode}
-            setConnectionSourceNode={(value) => actions.setConnectionSourceNode(typeof value === 'function' ? value(connectionSourceNode) : value)}
-            setMousePosition={(value) => actions.setMousePosition(typeof value === 'function' ? value(state.mousePosition) : value)}
+            setConnectionSourceNode={actions.setConnectionSourceNode}
+            setMousePosition={actions.setMousePosition}
             showNotification={showNotification}
             onAddNode={(node) => {
               addHistory({
@@ -135,12 +138,58 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
               // 将Graph类型转换为handleImportGraph期望的EnhancedNode[]和EnhancedGraphConnection[]类型
               handleImportGraph({
                 'nodes': graph.nodes.map(node => ({
-                  ...node,
                   'id': node.id,
                   'title': node.title,
                   'connections': node.connections || 0,
                   'type': node.type || 'concept',
-                  'shape': 'rect'
+                  'shape': 'rect',
+                  'style': {
+                    'fill': '#3b82f6',
+                    'stroke': '#2563eb',
+                    'strokeWidth': 2,
+                    'fontSize': 14,
+                    'textFill': '#fff'
+                  },
+                  'state': {
+                    'isExpanded': false,
+                    'isFixed': false,
+                    'isSelected': false,
+                    'isHovered': false,
+                    'isDragging': false,
+                    'isCollapsed': false
+                  },
+                  'metadata': {
+                    'is_custom': true,
+                    'createdAt': Date.now(),
+                    'updatedAt': Date.now(),
+                    'version': 1,
+                    'content': node.content || ''
+                  },
+                  'layout': {
+                    'x': node.x || 0,
+                    'y': node.y || 0,
+                    'isFixed': false,
+                    'isExpanded': false
+                  },
+                  'group': {
+                    'isGroup': false,
+                    'memberIds': [],
+                    'isGroupExpanded': false
+                  },
+                  'handles': {
+                    'handleCount': 4,
+                    'handlePositions': ['top', 'right', 'bottom', 'left'],
+                    'lockedHandles': {},
+                    'handleLabels': {}
+                  },
+                  'aggregation': {
+                    '_isAggregated': false,
+                    '_aggregatedNodes': [],
+                    '_averageImportance': 0,
+                    '_clusterCenter': { 'x': 0, 'y': 0 },
+                    '_clusterSize': 0,
+                    '_aggregationLevel': 0
+                  }
                 })),
                 'connections': graph.links.map(link => ({
                   'id': `connection-${Date.now()}-${Math.random().toString(36)
@@ -148,7 +197,30 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
                   'source': link.source,
                   'target': link.target,
                   'type': link.type || 'default',
-                  'weight': 1
+                  'weight': link.weight || 1,
+                  'style': {
+                    'stroke': '#94a3b8',
+                    'strokeWidth': 2
+                  },
+                  'metadata': {
+                    'createdAt': Date.now(),
+                    'updatedAt': Date.now(),
+                    'version': 1
+                  },
+                  'state': {
+                    'isSelected': false,
+                    'isHovered': false,
+                    'isEditing': false
+                  },
+                  'curveControl': {
+                    'controlPointsCount': 1,
+                    'controlPoints': [],
+                    'curveType': 'default'
+                  },
+                  'animation': {
+                    'dynamicEffect': 'none',
+                    'isAnimating': false
+                  }
                 }))
               });
             }}
@@ -189,6 +261,39 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             setCurrentTheme={setCurrentTheme}
           />
         );
+      case 'templates':
+        return (
+          <TemplateSelectionPanel
+            onSelectTemplate={(template) => {
+              // 处理模板选择逻辑
+              actions.handleImportGraph({
+                'nodes': template.nodes,
+                'connections': template.connections
+              });
+              // 应用模板的默认布局
+              if (template.defaultLayout) {
+                actions.setLayoutType(template.defaultLayout.type as LayoutType);
+                if (template.defaultLayout.direction) {
+                  actions.setLayoutDirection(template.defaultLayout.direction as LayoutDirection);
+                }
+                if (template.defaultLayout.parameters) {
+                  const params = template.defaultLayout.parameters;
+                  if (params.nodeSpacing) {
+                    actions.setNodeSpacing(params.nodeSpacing);
+                  }
+                  if (params.levelSpacing) {
+                    actions.setLevelSpacing(params.levelSpacing);
+                  }
+                  if (params.force) {
+                    actions.setForceParameters(params.force as ForceParameters);
+                  }
+                }
+              }
+              actions.showNotification('模板已应用', 'success');
+            }}
+            onClose={closePanel}
+          />
+        );
       default:
         return null;
     }
@@ -219,6 +324,7 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             {activePanel === 'analysis' && '图谱分析'}
             {activePanel === 'statistics' && '统计信息'}
             {activePanel === 'style' && '样式调整'}
+            {activePanel === 'templates' && '选择模板'}
           </h2>
           <button
             onClick={closePanel}

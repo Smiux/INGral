@@ -129,14 +129,14 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
   });
 
   // 控制点数量
-  const controlPointsCount = data?.controlPointsCount || 1;
+  const controlPointsCount = data?.curveControl?.controlPointsCount || 1;
 
   // 动态效果
-  const dynamicEffect = data?.dynamicEffect;
+  const dynamicEffect = data?.animation?.dynamicEffect;
 
   // 控制点状态管理
   const [controlPoints, setControlPoints] = React.useState<Array<{ x: number; y: number; isLocked?: boolean }>>(
-    data?.controlPoints || []
+    data?.curveControl?.controlPoints || []
   );
 
   // 控制点交互状态
@@ -156,7 +156,7 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
         targetX,
         targetY,
         controlPointsCount,
-        'connectionIndex': Number(data?.connectionIndex || 0)
+        'connectionIndex': Number(data?.customData?.connectionIndex || 0)
       });
     }
 
