@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Undo, Redo, Plus, Layout, Palette, PieChart, Box, Grid, Settings, HelpCircle,
-  BarChart, SlidersHorizontal, Database, Brain, FileText,
+  BarChart, Database, Brain, FileText,
   ZoomIn, ZoomOut, Maximize2, RefreshCw,
   Download, Filter, Eye, EyeOff, ChevronDown, Edit3,
   Layers, View, Activity, Target
@@ -209,15 +209,6 @@ export const GraphToolbar: React.FC = React.memo(() => {
                 title="主题样式"
               >
                 <Palette size={16} />
-              </button>
-
-              {/* 样式调整按钮 */}
-              <button
-                onClick={() => actions.togglePanel(activePanel === 'style' ? null : 'style')}
-                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'style' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-                title="调整样式"
-              >
-                <SlidersHorizontal size={16} />
               </button>
 
               {/* 刷新布局按钮 */}

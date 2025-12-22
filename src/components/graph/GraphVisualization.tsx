@@ -10,10 +10,7 @@ import { GraphSettingsPanel } from './GraphVisualization/GraphSettingsPanel';
 import { GraphCanvas3D } from './GraphVisualization/GraphCanvas3D';
 import { GraphCanvasReactFlow } from './GraphVisualization/GraphCanvasReactFlow';
 import { PanelContainer } from './GraphVisualization/PanelContainer';
-import { NodeEditPanel } from './GraphVisualization/NodeEditPanel';
-import { ConnectionEditPanel } from './GraphVisualization/ConnectionEditPanel';
-import { StyleManagement } from './GraphVisualization/StyleManagement';
-import { ManagePanel } from './GraphVisualization/ManagePanel';
+import { UnifiedControlPanel } from './GraphVisualization/UnifiedControlPanel';
 
 // 内部组件，用于访问GraphContext
 const GraphVisualizationContent: React.FC = () => {
@@ -21,14 +18,44 @@ const GraphVisualizationContent: React.FC = () => {
   const { state, actions } = useGraph();
   const {
     viewMode, notification, currentTheme, activePanel,
-    selectedNode, selectedConnection
+    selectedNode, selectedConnection, selectedNodes
   } = state;
 
   // 处理关闭编辑面板
   const handleCloseEditPanel = () => {
     actions.selectNode(null);
     actions.selectConnection(null);
+    actions.selectNodes([]);
+    actions.selectConnections([]);
   };
+
+  // 计算控制面板位置
+  const calculatePanelPosition = (): 'left' | 'right' => {
+    // 如果没有选中节点，返回默认位置
+    if (!selectedNode && selectedNodes.length === 0) {
+      return 'left';
+    }
+
+    // 获取选中的节点
+    const targetNode = selectedNode || selectedNodes[0];
+    if (!targetNode) {
+      return 'left';
+    }
+
+    // 获取节点位置
+    const nodeX = targetNode.layout?.x || 0;
+
+    // 获取画布宽度（假设画布宽度为窗口宽度减去控制面板宽度）
+    // 288 = 72 * 4 (w-72)
+    const canvasWidth = window.innerWidth - 288;
+
+    // 如果节点在画布左半部分，面板显示在右侧；否则显示在左侧
+    // 这样可以避免面板遮挡节点
+    return nodeX < canvasWidth / 2 ? 'right' : 'left';
+  };
+
+  // 计算面板位置
+  const panelPosition = calculatePanelPosition();
 
   return (
     <div className={`w-full h-full flex flex-col ${currentTheme.backgroundColor}`} style={{ 'width': '100%', 'height': '100vh' }}>
@@ -48,62 +75,31 @@ const GraphVisualizationContent: React.FC = () => {
       )}
 
       {/* 主内容区域 */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* 左侧编辑面板 - 仅在有选中节点或连接时显示 */}
-        {selectedConnection && (
-          <ConnectionEditPanel
-            selectedConnection={selectedConnection}
-            onUpdateConnection={actions.updateConnection}
-            onDeleteConnection={actions.deleteConnection}
-            onClose={handleCloseEditPanel}
-          />
-        )}
-        {selectedNode && (
-          <NodeEditPanel
-            selectedNode={selectedNode}
-            onUpdateNode={actions.updateNode}
-            onDeleteNode={actions.deleteNode}
-            onClose={handleCloseEditPanel}
-          />
-        )}
-        {/* 管理面板 */}
-        {state.selectedNodes.length > 0 && (
-          <ManagePanel
-            nodes={state.nodes}
-            connections={state.connections}
-            setNodes={actions.setNodes}
-            setConnections={actions.setConnections}
-            selectedNode={state.selectedNode}
-            setSelectedNode={actions.selectNode}
-            selectedNodes={state.selectedNodes}
-            setSelectedNodes={actions.selectNodes}
-            selectedConnections={state.selectedConnections}
-            setSelectedConnections={actions.selectConnections}
-            isAddingConnection={state.isAddingConnection}
-            setIsAddingConnection={actions.setIsAddingConnection}
-            connectionSourceNode={state.connectionSourceNode}
-            setConnectionSourceNode={actions.setConnectionSourceNode}
-            setMousePosition={actions.setMousePosition}
-            showNotification={actions.showNotification}
-          />
-        )}
-        {/* 样式管理面板 */}
-        {(state.selectedNodes.length > 0 || state.selectedConnections.length > 0) && (
-          <StyleManagement
-            nodes={state.nodes}
-            connections={state.connections}
-            selectedNodes={state.selectedNodes}
-            selectedConnections={state.selectedConnections}
-            setNodes={actions.setNodes}
-            setConnections={actions.setConnections}
-            currentTheme={state.currentTheme}
-            handleCopyNodeStyle={actions.handleCopyNodeStyle}
-            handleCopyConnectionStyle={actions.handleCopyConnectionStyle}
-            handlePasteStyle={actions.handlePasteStyle}
-            setCurrentTheme={actions.setCurrentTheme}
-            showNotification={actions.showNotification}
-          />
-        )}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* 统一控制面板 - 仅在有选中节点、连接或多选时显示 */}
+        <UnifiedControlPanel
+          selectedNode={selectedNode}
+          selectedConnection={selectedConnection}
+          selectedNodes={state.selectedNodes}
+          selectedConnections={state.selectedConnections}
+          onUpdateNode={actions.updateNode}
+          onDeleteNode={actions.deleteNode}
+          onUpdateConnection={actions.updateConnection}
+          onDeleteConnection={actions.deleteConnection}
+          onClose={handleCloseEditPanel}
+          // 样式管理相关属性
+          nodes={state.nodes}
+          connections={state.connections}
+          setNodes={actions.setNodes}
+          setConnections={actions.setConnections}
+          currentTheme={state.currentTheme}
+          handleCopyNodeStyle={actions.handleCopyNodeStyle}
+          handleCopyConnectionStyle={actions.handleCopyConnectionStyle}
+          handlePasteStyle={actions.handlePasteStyle}
+          setCurrentTheme={actions.setCurrentTheme}
+          showNotification={actions.showNotification}
+          panelPosition={panelPosition}
+        />
 
         {/* 中央画布区域 */}
         <div className="flex-1 relative">

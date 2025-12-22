@@ -147,6 +147,7 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
           ...connection,
           connectionIndex
         }
+        // 移除固定样式，让DefaultEdge组件根据连接类型计算样式
       });
     });
   }, []);
@@ -171,7 +172,6 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
 
   // 监听外部连接变化，更新ReactFlow内部状态
   React.useEffect(() => {
-    // 当连接数组变化时，更新内部状态
     setReactFlowEdges(convertToReactFlowEdges(connections));
   }, [connections, convertToReactFlowEdges, setReactFlowEdges]);
 
@@ -237,13 +237,13 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
         'id': newEdgeId,
         'source': connection.source as string,
         'target': connection.target as string,
-        'type': 'relation',
+        // 使用'related'而不是'relation'，与ConnectionStyleRegistry中的注册名称匹配
+        'type': 'related',
         'weight': 1.0,
         'style': {
           'stroke': '#3b82f6',
           'strokeWidth': 2,
-          'arrowSize': 6,
-          'arrowType': 'triangle'
+          'strokeOpacity': 0.8
         },
         'metadata': {
           'createdAt': Date.now(),
@@ -256,11 +256,12 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
           'isEditing': false
         },
         'curveControl': {
-          'controlPointsCount': 0,
+          'controlPointsCount': 1,
           'controlPoints': [],
           'curveType': 'default'
         },
         'animation': {
+          'dynamicEffect': 'none',
           'isAnimating': false
         }
       };
@@ -308,28 +309,19 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
   // 定义一个ref来追踪前一次的节点数量
   const prevNodesLengthRef = React.useRef(nodes.length);
 
-  // 监听ReactFlow节点数量变化，优化视图聚焦
+  // 监听ReactFlow节点数量变化，仅在初始化时调整视图
   React.useEffect(() => {
     if (reactFlowInstance.current && reactFlowNodes.length > 0) {
-      // 只有在特定条件下才调整视图：
-      // 1. 从0个节点增加到1个节点
-      // 2. 从1个节点增加到2个节点
-      // 3. 节点数量减少到1个节点
+      // 只有在首次渲染或节点数量从0变为1时才调整视图
       const prevLength = prevNodesLengthRef.current;
       const currentLength = reactFlowNodes.length;
 
-      if (prevLength === 0 && currentLength === 1 ||
-          prevLength === 1 && currentLength === 2 ||
-          currentLength === 1) {
-        // 无论节点数量多少，都使用fitView来适应节点位置
-        // 这样可以确保节点始终显示在视图中心
+      // 仅在初始化或节点从无到有时调整视图，避免点击节点时的强制移动
+      if (prevLength === 0 && currentLength === 1) {
         reactFlowInstance.current.fitView({
-          // 增加内边距，让节点在视图中居中更美观
           'padding': 150,
           'duration': 500,
-          // 设置最小缩放级别
           'minZoom': 0.2,
-          // 设置最大缩放级别
           'maxZoom': 1.5
         });
       }
@@ -357,6 +349,16 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
   // 处理节点拖拽结束 - 注意：ReactFlow v11 中没有 onNodeDragEnd 属性，使用 onNodesChange 处理位置变化
 
   // 主题配置 - ReactFlow v11 不再支持theme属性，使用CSS变量或自定义样式
+
+  // 调试：检查传递给ReactFlow的props
+  React.useEffect(() => {
+    console.log('ReactFlow props:', {
+      'nodes': reactFlowNodes.length,
+      'edges': reactFlowEdges.length,
+      'nodeTypes': Object.keys(nodeTypes),
+      'edgeTypes': Object.keys(edgeTypes)
+    });
+  }, [reactFlowNodes.length, reactFlowEdges.length]);
 
   return (
     <div className="w-full h-full flex flex-col" style={{ 'backgroundColor': theme.backgroundColor }} ref={reactFlowWrapper}>
