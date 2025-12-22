@@ -9,7 +9,6 @@ import { GraphToolbar } from './GraphVisualization/GraphToolbar';
 import { GraphSettingsPanel } from './GraphVisualization/GraphSettingsPanel';
 import { GraphCanvas3D } from './GraphVisualization/GraphCanvas3D';
 import { GraphCanvasReactFlow } from './GraphVisualization/GraphCanvasReactFlow';
-import { GraphNavigationControls } from './GraphVisualization/GraphNavigationControls';
 import { PanelContainer } from './GraphVisualization/PanelContainer';
 import { NodeEditPanel } from './GraphVisualization/NodeEditPanel';
 import { ConnectionEditPanel } from './GraphVisualization/ConnectionEditPanel';
@@ -21,7 +20,7 @@ const GraphVisualizationContent: React.FC = () => {
   // 使用useGraph获取状态和操作
   const { state, actions } = useGraph();
   const {
-    viewMode, notification, currentTheme, activePanel, reactFlowInstance,
+    viewMode, notification, currentTheme, activePanel,
     selectedNode, selectedConnection
   } = state;
 
@@ -108,12 +107,6 @@ const GraphVisualizationContent: React.FC = () => {
 
         {/* 中央画布区域 */}
         <div className="flex-1 relative">
-          {/* 导航控制按钮 */}
-          <GraphNavigationControls
-            nodes={state.nodes}
-            reactFlowInstance={reactFlowInstance}
-          />
-
           {/* 图谱画布组件 */}
           {viewMode === '3d' ? (
             <GraphCanvas3D

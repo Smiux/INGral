@@ -1,4 +1,4 @@
-import { Save, HelpCircle, FileText, Network, Eye, EyeOff, Code, LayoutGrid, FileText as DraftIcon, Brain } from 'lucide-react';
+import { Save, HelpCircle, FileText, FileText as DraftIcon, Eye, EyeOff, Code, LayoutGrid, Brain, Users, ChevronUp, ChevronDown, BrainCircuit } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '../../ui/ThemeToggle';
 
@@ -129,7 +129,7 @@ export function EditorToolbar ({
               className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-250 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm transform hover:scale-105"
               title="生成知识图表"
             >
-              <Network size={16} className="transition-transform duration-250 hover:scale-125" />
+              <BrainCircuit size={16} className="transition-transform duration-250 hover:scale-125" />
               <span className="hidden sm:inline">知识图表</span>
             </button>
           )}
@@ -169,9 +169,7 @@ export function EditorToolbar ({
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-250 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm transform hover:scale-105"
                 title="当前协作者"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transition-transform duration-250 hover:scale-125" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
+                <Users size={20} className="transition-transform duration-250 hover:scale-125" />
                 <span className="hidden sm:inline">
                   协作者 ({collaborators.length})
                 </span>
@@ -221,13 +219,11 @@ export function EditorToolbar ({
             className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-250 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm transform hover:scale-105"
             title={showToolbar ? '折叠工具栏' : '展开工具栏'}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transition-transform duration-300 ease-in-out" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              {showToolbar ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              )}
-            </svg>
+            {showToolbar ? (
+              <ChevronUp size={20} className="transition-transform duration-300 ease-in-out" />
+            ) : (
+              <ChevronDown size={20} className="transition-transform duration-300 ease-in-out" />
+            )}
             <span className="hidden sm:inline">{showToolbar ? '折叠' : '展开'}</span>
           </button>
 

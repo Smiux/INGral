@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import {
-  Undo, Redo, Plus, Layout, Palette, PieChart, Box, Grid, Settings,
+import { Undo, Redo, Plus, Layout, Palette, PieChart, Box, Grid, Settings, HelpCircle,
   BarChart, SlidersHorizontal, Database, Brain, FileText,
   ZoomIn, ZoomOut, Maximize2, RefreshCw,
-  Download, Upload, Filter, Eye, EyeOff
+  Download, Filter, Eye, EyeOff, ChevronDown, Edit3,
+  Layers, View, Activity, Target
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -126,7 +126,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
             onClick={() => toggleGroup('edit')}
             title="编辑操作"
           >
-            <Plus size={16} />
+            {collapsedGroups.edit ? <Edit3 size={16} /> : <ChevronDown size={16} />}
           </button>
 
           {!collapsedGroups.edit && (
@@ -169,23 +169,14 @@ export const GraphToolbar: React.FC = React.memo(() => {
                 <FileText size={16} />
               </button>
 
-              {/* 导入导出按钮 */}
-              <div className="flex items-center gap-0.5">
-                <button
-                  onClick={() => actions.togglePanel(activePanel === 'importExport' ? null : 'importExport')}
-                  className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'importExport' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-                  title="导入导出"
-                >
-                  <Download size={16} />
-                </button>
-                <button
-                  onClick={() => actions.togglePanel(activePanel === 'importExport' ? null : 'importExport')}
-                  className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'importExport' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-                  title="导入"
-                >
-                  <Upload size={16} />
-                </button>
-              </div>
+              {/* 导入导出按钮 - 只保留一个 */}
+              <button
+                onClick={() => actions.togglePanel(activePanel === 'importExport' ? null : 'importExport')}
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'importExport' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                title="导入导出"
+              >
+                <Download size={16} />
+              </button>
             </>
           )}
         </div>
@@ -197,7 +188,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
             onClick={() => toggleGroup('layout')}
             title="布局与样式"
           >
-            <Layout size={16} />
+            {collapsedGroups.layout ? <Layers size={16} /> : <ChevronDown size={16} />}
           </button>
 
           {!collapsedGroups.layout && (
@@ -261,7 +252,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
             onClick={() => toggleGroup('analysis')}
             title="分析与统计"
           >
-            <PieChart size={16} />
+            {collapsedGroups.analysis ? <Activity size={16} /> : <ChevronDown size={16} />}
           </button>
 
           {!collapsedGroups.analysis && (
@@ -311,7 +302,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
             onClick={() => toggleGroup('view')}
             title="视图控制"
           >
-            <Grid size={16} />
+            {collapsedGroups.view ? <View size={16} /> : <ChevronDown size={16} />}
           </button>
 
           {!collapsedGroups.view && (
@@ -359,6 +350,34 @@ export const GraphToolbar: React.FC = React.memo(() => {
                 </button>
               </div>
 
+              {/* 中心对齐 */}
+              <button
+                onClick={() => {
+                  if (state.reactFlowInstance) {
+                    if (nodes.length > 0) {
+                      // 如果有节点，使用fitView将节点居中
+                      state.reactFlowInstance.fitView({
+                        'padding': 100,
+                        'duration': 500
+                      });
+                    } else {
+                      // 如果没有节点，重置视图位置和缩放
+                      state.reactFlowInstance.setViewport({
+                        'x': 0,
+                        'y': 0,
+                        'zoom': 1
+                      }, {
+                        'duration': 500
+                      });
+                    }
+                  }
+                }}
+                className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
+                title="中心对齐"
+              >
+                <Target size={16} />
+              </button>
+
               {/* 全屏控制 */}
               <button
                 onClick={() => {
@@ -371,7 +390,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
                 className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
                 title="全屏"
               >
-                <Maximize2 size={16} />
+                <Maximize2 size={16} className="rotate-45" />
               </button>
             </>
           )}
@@ -384,6 +403,15 @@ export const GraphToolbar: React.FC = React.memo(() => {
         <div className="flex items-center justify-center p-2">
           <ThemeToggle />
         </div>
+
+        {/* 帮助按钮 */}
+        <button
+          onClick={() => console.log('帮助中心功能开发中...')}
+          className='flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out text-gray-700'
+          title="帮助"
+        >
+          <HelpCircle size={16} />
+        </button>
 
         {/* 设置按钮 */}
         <button

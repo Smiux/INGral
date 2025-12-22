@@ -6,7 +6,7 @@ import {
   RotateCcw, RotateCw,
   Layers2, FileCode2, CheckSquare, Square, Type, Footprints, Highlighter,
   ArrowUpCircle, ArrowDownCircle, Music, ChevronDown, ChevronRight,
-  FileText, MessageSquare, Send
+  FileText, MessageSquare, Send, ClipboardCopy, ClipboardPaste, Brush
 } from 'lucide-react';
 
 interface EditorFormattingToolbarProps {
@@ -103,10 +103,7 @@ export function EditorFormattingToolbar ({ onFormat, onCopyFormat, onPasteFormat
           title="复制格式 (Ctrl+Shift+C)"
           aria-label="复制格式"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-          </svg>
+          <ClipboardCopy size={14} />
           <span>复制格式</span>
         </button>
         <button
@@ -115,10 +112,7 @@ export function EditorFormattingToolbar ({ onFormat, onCopyFormat, onPasteFormat
           title="粘贴格式 (Ctrl+Shift+V)"
           aria-label="粘贴格式"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-            <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
-          </svg>
+          <ClipboardPaste size={14} />
           <span>粘贴格式</span>
         </button>
         <button
@@ -127,9 +121,7 @@ export function EditorFormattingToolbar ({ onFormat, onCopyFormat, onPasteFormat
           title={isFormatBrushActive ? '关闭格式刷' : '格式刷'}
           aria-label="格式刷"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
-          </svg>
+          <Brush size={14} />
           <span>格式刷</span>
         </button>
       </div>
