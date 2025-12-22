@@ -173,6 +173,67 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
     'userSelect': 'none' as const
   };
 
+  // 生成箭头标记
+  const getArrowMarkerId = () => `arrow-${selected ? 'selected' : connectionType}`;
+
+  // 计算箭头上的均匀分布位置
+  const calculateArrowPositions = () => {
+    const arrowCount = connectionStyle.arrowCount || 1;
+    if (arrowCount <= 1) {
+      // 只在中间显示一个箭头
+      return [0.5];
+    }
+
+    // 均匀分布箭头位置
+    const positions: number[] = [];
+    const step = 1 / (arrowCount + 1);
+    for (let i = 1; i <= arrowCount; i += 1) {
+      positions.push(step * i);
+    }
+    return positions;
+  };
+
+  // 渲染箭头
+  const renderArrows = () => {
+    const arrowPositions = calculateArrowPositions();
+
+    return arrowPositions.map((_, index) => (
+      <use
+        key={index}
+        href={`#${getArrowMarkerId()}`}
+        transform={`translate(${midX} ${midY}) rotate(0)`}
+        style={{
+          'transformOrigin': 'center center',
+          'pointerEvents': 'none' as const
+        }}
+      />
+    ));
+  };
+
+  // 渲染控制点
+  const renderControlPoints = () => {
+    if (!selected || !data?.curveControl?.controlPoints) {
+      return null;
+    }
+
+    return data.curveControl.controlPoints.map((point, index) => (
+      <circle
+        key={index}
+        cx={point.x}
+        cy={point.y}
+        r={6}
+        fill={data.curveControl.locked ? '#94a3b8' : '#3b82f6'}
+        stroke="white"
+        strokeWidth={2}
+        style={{
+          'cursor': data.curveControl.locked ? 'not-allowed' : 'move',
+          'pointerEvents': data.curveControl.locked ? 'none' : 'auto',
+          'zIndex': 10
+        }}
+      />
+    ));
+  };
+
   return (
     <svg width="100%" height="100%" style={{ 'pointerEvents': 'auto' }}>
       {/* 渐变定义（用于渐变过渡效果） */}
@@ -186,6 +247,24 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
         </defs>
       )}
 
+      {/* 箭头标记定义 */}
+      <defs>
+        <marker
+          id={getArrowMarkerId()}
+          markerWidth="10"
+          markerHeight="10"
+          refX="9"
+          refY="3"
+          orient="auto"
+          markerUnits="strokeWidth"
+        >
+          <path
+            d="M0,0 L0,6 L9,3 z"
+            fill={selected ? '#FF5252' : connectionStyle.stroke}
+          />
+        </marker>
+      </defs>
+
       {/* 使用SVG path元素绘制贝塞尔曲线 */}
       <path
         d={path}
@@ -193,7 +272,11 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
+        markerEnd={connectionStyle.arrowCount ? `url(#${getArrowMarkerId()})` : undefined}
       />
+
+      {/* 渲染均匀分布的箭头 */}
+      {renderArrows()}
 
       {/* 边标签 */}
       {data?.label && (
@@ -220,6 +303,9 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
           pointerEvents="auto"
         />
       )}
+
+      {/* 渲染控制点 */}
+      {renderControlPoints()}
 
       {/* 动态效果CSS */}
       <style>{`

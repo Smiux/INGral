@@ -252,6 +252,7 @@ export interface ConnectionCurveControl {
   }>;
   curveType: 'default' | 'smoothstep' | 'step' | 'straight' | 'custom';
   tension?: number;
+  locked: boolean;
 }
 
 // 连接语义信息接口

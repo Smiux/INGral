@@ -215,7 +215,8 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
                   'curveControl': {
                     'controlPointsCount': 1,
                     'controlPoints': [],
-                    'curveType': 'default'
+                    'curveType': 'default',
+                    'locked': false
                   },
                   'animation': {
                     'dynamicEffect': 'none',

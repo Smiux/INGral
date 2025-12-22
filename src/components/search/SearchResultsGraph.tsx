@@ -132,9 +132,10 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
                 'isEditing': false
               },
               'curveControl': {
-                'controlPointsCount': 1,
+                'controlPointsCount': 0,
                 'controlPoints': [],
-                'curveType': 'default'
+                'curveType': 'default',
+                'locked': false
               },
               'animation': {
                 'dynamicEffect': 'none',
@@ -187,9 +188,10 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
                 'isEditing': false
               },
               'curveControl': {
-                'controlPointsCount': 1,
+                'controlPointsCount': 0,
                 'controlPoints': [],
-                'curveType': 'default'
+                'curveType': 'default',
+                'locked': false
               },
               'animation': {
                 'dynamicEffect': 'none',

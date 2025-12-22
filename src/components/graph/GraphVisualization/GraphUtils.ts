@@ -211,8 +211,8 @@ export class GraphUtils {
         'style': {},
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
-        'animation': { 'isAnimating': false }
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
+        'animation': { 'dynamicEffect': 'none', 'isAnimating': false }
       };
     });
   }

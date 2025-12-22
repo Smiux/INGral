@@ -252,7 +252,8 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
         'curveControl': {
           'controlPointsCount': connection.curveControl?.controlPointsCount || 1,
           'controlPoints': connection.curveControl?.controlPoints || [],
-          'curveType': connection.curveControl?.curveType || 'default'
+          'curveType': connection.curveControl?.curveType || 'default',
+          'locked': connection.curveControl?.locked || false
         },
         'animation': {
           'dynamicEffect': connection.animation?.dynamicEffect || 'none',

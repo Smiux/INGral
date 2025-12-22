@@ -191,7 +191,8 @@ export const useGraphEffects = ({ state, dispatch }: GraphEffectsProps) => {
               'curveControl': {
                 'controlPointsCount': 1,
                 'controlPoints': [],
-                'curveType': 'default' as const
+                'curveType': 'default' as const,
+                'locked': false
               },
               'animation': {
                 'dynamicEffect': 'none',

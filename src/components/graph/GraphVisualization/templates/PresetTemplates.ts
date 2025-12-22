@@ -116,7 +116,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -134,7 +134,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       }
     ],
@@ -315,7 +315,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -333,7 +333,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -351,7 +351,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -369,7 +369,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -387,7 +387,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       }
     ],
@@ -550,7 +550,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -568,7 +568,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -586,7 +586,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -604,7 +604,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       }
     ],
@@ -767,7 +767,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -785,7 +785,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -803,7 +803,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -821,7 +821,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       }
     ],
@@ -984,7 +984,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -1002,7 +1002,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -1020,7 +1020,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       },
       {
@@ -1038,7 +1038,7 @@ export const PRESET_TEMPLATES: GraphTemplate[] = [
         },
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default' },
+        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
         'animation': { 'isAnimating': false }
       }
     ],

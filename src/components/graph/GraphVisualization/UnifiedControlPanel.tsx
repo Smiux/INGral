@@ -132,7 +132,8 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     'weight': 1,
     'style': {
       'stroke': '#94a3b8',
-      'strokeWidth': 2
+      'strokeWidth': 2,
+      'arrowCount': 1
     },
     'metadata': {
       'createdAt': Date.now(),
@@ -147,13 +148,52 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     'curveControl': {
       'controlPointsCount': 1,
       'controlPoints': [],
-      'curveType': 'default'
+      'curveType': 'default',
+      'locked': false
     },
     'animation': {
       'dynamicEffect': 'none',
       'isAnimating': false
     }
   });
+
+  // 撤销/重做历史
+  const [history, setHistory] = useState<EnhancedGraphConnection[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
+  // 保存当前状态到历史记录
+  const saveToHistory = (connection: EnhancedGraphConnection) => {
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push({ ...connection });
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
+  // 撤销操作
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      const connection = history[newIndex];
+      if (connection) {
+        setHistoryIndex(newIndex);
+        setConnectionFormData(connection);
+        onUpdateConnection(connection);
+      }
+    }
+  };
+
+  // 重做操作
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      const connection = history[newIndex];
+      if (connection) {
+        setHistoryIndex(newIndex);
+        setConnectionFormData(connection);
+        onUpdateConnection(connection);
+      }
+    }
+  };
 
   // 连接点数量增减处理
   const handleHandleCountChange = (delta: number) => {
@@ -227,7 +267,16 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
         ...prev,
         'animation': {
           ...prev.animation,
-          'dynamicEffect': value
+          'dynamicEffect': value,
+          'isAnimating': value !== 'none'
+        }
+      }));
+    } else if (name === 'arrowCount') {
+      setConnectionFormData(prev => ({
+        ...prev,
+        'style': {
+          ...prev.style,
+          'arrowCount': parseInt(value, 10) || 1
         }
       }));
     } else {
@@ -236,6 +285,17 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
         [name]: type === 'number' ? parseFloat(value) || 1 : value
       }));
     }
+  };
+
+  // 处理控制点锁定/解锁
+  const handleToggleLock = () => {
+    setConnectionFormData(prev => ({
+      ...prev,
+      'curveControl': {
+        ...prev.curveControl,
+        'locked': !prev.curveControl.locked
+      }
+    }));
   };
 
   // 处理保存节点
@@ -256,6 +316,9 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
   // 处理保存连接
   const handleSaveConnection = () => {
     if (selectedConnection) {
+      // 保存当前状态到历史记录
+      saveToHistory(connectionFormData);
+      // 更新连接
       onUpdateConnection(connectionFormData);
     }
   };
@@ -434,16 +497,36 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           />
         </div>
 
+        {/* 连接线样式 */}
+        <div className="space-y-4 mt-4">
+          <h3 className="text-sm font-semibold text-gray-700">连接线样式</h3>
+
+          {/* 箭头数量 */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              箭头数量
+            </label>
+            <select
+              name="arrowCount"
+              value={connectionFormData.style.arrowCount?.toString() || '1'}
+              onChange={handleConnectionChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {[1, 2, 3, 4, 5].map(count => (
+                <option key={count} value={count.toString()}>{count} 个</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* 曲线控制 */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-700 mt-4 mb-2">
-          曲线控制
-          </h3>
+        <div className="space-y-4 mt-4">
+          <h3 className="text-sm font-semibold text-gray-700">曲线控制</h3>
 
           {/* 控制点数量 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-            控制点数量
+              控制点数量
             </label>
             <select
               name="controlPointsCount"
@@ -457,23 +540,94 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
             </select>
           </div>
 
-          {/* 曲线动态效果 */}
-          <div className="space-y-2 mt-4">
-            <h4 className="text-sm font-medium text-gray-700">
-            动态效果
-            </h4>
-            <select
-              name="dynamicEffect"
-              value={connectionFormData.animation.dynamicEffect || 'none'}
-              onChange={handleConnectionChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          {/* 控制点锁定 */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              控制点状态
+            </label>
+            <button
+              type="button"
+              onClick={handleToggleLock}
+              className={`w-full px-3 py-2 rounded-md shadow-sm transition-colors ${
+                connectionFormData.curveControl.locked
+                  ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+              }`}
             >
-              <option value="none">无效果</option>
-              <option value="flow">流动动画</option>
-              <option value="pulse">脉冲效果</option>
-              <option value="gradient">渐变过渡</option>
-            </select>
+              {connectionFormData.curveControl.locked ? '已锁定' : '已解锁'}
+            </button>
           </div>
+        </div>
+
+        {/* 动态效果系统 */}
+        <div className="space-y-4 mt-4">
+          <h3 className="text-sm font-semibold text-gray-700">动态效果</h3>
+
+          {/* 效果开关与预设选择 */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-700">
+                效果开关
+              </label>
+              <input
+                type="checkbox"
+                checked={connectionFormData.animation.isAnimating}
+                onChange={(e) => {
+                  setConnectionFormData(prev => ({
+                    ...prev,
+                    'animation': {
+                      ...prev.animation,
+                      'isAnimating': e.target.checked,
+                      'dynamicEffect': e.target.checked ? (prev.animation.dynamicEffect || 'none') : 'none'
+                    }
+                  }));
+                }}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                预设效果
+              </label>
+              <select
+                name="dynamicEffect"
+                value={connectionFormData.animation.dynamicEffect || 'none'}
+                onChange={handleConnectionChange}
+                disabled={!connectionFormData.animation.isAnimating}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  !connectionFormData.animation.isAnimating ? 'opacity-50 cursor-not-allowed' : ''
+                }"
+              >
+                <option value="none">无效果</option>
+                <option value="flow">流动动画</option>
+                <option value="pulse">脉冲效果</option>
+                <option value="gradient">渐变过渡</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* 操作栏 */}
+        <div className="flex gap-2 mt-4">
+          <button
+            type="button"
+            onClick={handleUndo}
+            disabled={historyIndex <= 0}
+            className="flex-1 px-3 py-2 bg-gray-100 text-gray-600 rounded-md shadow-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title="撤销"
+          >
+            撤销
+          </button>
+          <button
+            type="button"
+            onClick={handleRedo}
+            disabled={historyIndex >= history.length - 1}
+            className="flex-1 px-3 py-2 bg-gray-100 text-gray-600 rounded-md shadow-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title="重做"
+          >
+            重做
+          </button>
         </div>
       </div>
     );

@@ -258,7 +258,8 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
         'curveControl': {
           'controlPointsCount': 1,
           'controlPoints': [],
-          'curveType': 'default'
+          'curveType': 'default',
+          'locked': false
         },
         'animation': {
           'dynamicEffect': 'none',
