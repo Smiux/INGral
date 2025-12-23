@@ -113,10 +113,6 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
       return { ...state, 'isLeftToolbarVisible': action.payload };
     case 'SET_ACTIVE_PANEL':
       return { ...state, 'activePanel': action.payload };
-    case 'SET_CURRENT_THEME':
-      return { ...state, 'currentTheme': action.payload };
-    case 'SET_COPIED_STYLE':
-      return { ...state, 'copiedStyle': action.payload };
     case 'SET_IS_BOX_SELECTING':
       return { ...state, 'isBoxSelecting': action.payload };
     case 'SET_BOX_SELECTION':

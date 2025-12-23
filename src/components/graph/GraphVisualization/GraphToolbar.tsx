@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { Undo, Redo, Plus, Layout, Palette, PieChart, Box, Grid, Settings, HelpCircle,
+import { Undo, Redo, Plus, Layout, PieChart, Box, Grid, Settings,
   BarChart, Database, Brain, FileText,
   ZoomIn, ZoomOut, Maximize2, RefreshCw,
-  Download, Filter, Eye, EyeOff, ChevronDown, Edit3,
+  Download, Eye, EyeOff, ChevronDown, Edit3,
   Layers, View, Activity, Target
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // 导入自定义Hook
 import { useGraph } from './useGraph';
-// 导入主题切换组件
-import { ThemeToggle } from '../../ui/ThemeToggle';
+
 
 /**
  * 图谱工具栏组件
@@ -28,7 +27,6 @@ export const GraphToolbar: React.FC = React.memo(() => {
     activePanel,
     historyIndex,
     history,
-    currentTheme,
     isSimulationRunning,
     nodes,
     connections
@@ -97,7 +95,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
   };
 
   return (
-    <div className={`${currentTheme.backgroundColor} border-b border-gray-200 shadow-md p-1 flex flex-wrap items-center justify-between gap-1 transition-all duration-300 ease-in-out ${isToolbarVisible ? 'translate-y-0' : '-translate-y-full'} z-50 backdrop-blur-sm`}>
+    <div className={`bg-white border-b border-gray-200 shadow-md p-1 flex flex-wrap items-center justify-between gap-1 transition-all duration-300 ease-in-out ${isToolbarVisible ? 'translate-y-0' : '-translate-y-full'} z-50 backdrop-blur-sm`}>
       {/* Logo和主页链接 */}
       <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity mr-3 px-2 flex-shrink-0">
         <Brain className="w-5 h-5 text-primary-600 dark:text-primary-500" />
@@ -202,15 +200,6 @@ export const GraphToolbar: React.FC = React.memo(() => {
                 <Layout size={16} />
               </button>
 
-              {/* 主题样式按钮 */}
-              <button
-                onClick={() => actions.togglePanel(activePanel === 'theme' ? null : 'theme')}
-                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'theme' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-                title="主题样式"
-              >
-                <Palette size={16} />
-              </button>
-
               {/* 刷新布局按钮 */}
               <button
                 onClick={handleRefreshLayout}
@@ -273,14 +262,6 @@ export const GraphToolbar: React.FC = React.memo(() => {
                 title="节点与连接管理"
               >
                 <Database size={16} />
-              </button>
-
-              {/* 筛选按钮 */}
-              <button
-                className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
-                title="筛选"
-              >
-                <Filter size={16} />
               </button>
             </>
           )}
@@ -390,20 +371,6 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
       {/* 右侧设置组 */}
       <div className="flex items-center gap-1 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm flex-shrink-0">
-        {/* 主题切换 */}
-        <div className="flex items-center justify-center p-2">
-          <ThemeToggle />
-        </div>
-
-        {/* 帮助按钮 */}
-        <button
-          onClick={() => console.log('帮助中心功能开发中...')}
-          className='flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out text-gray-700'
-          title="帮助"
-        >
-          <HelpCircle size={16} />
-        </button>
-
         {/* 设置按钮 */}
         <button
           onClick={() => actions.setIsSettingsPanelOpen(!isSettingsPanelOpen)}

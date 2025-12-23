@@ -5,7 +5,6 @@
 import React from 'react';
 import { EdgeProps } from 'reactflow';
 import type { EnhancedGraphConnection } from '../types';
-import { defaultConnectionStyleRegistry } from '../utils/ConnectionStyleRegistry';
 
 /**
  * 生成贝塞尔曲线路径
@@ -120,15 +119,6 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
   // 获取连接类型
   const connectionType = data?.type || 'default';
 
-  // 获取连接样式
-  const connectionStyle = defaultConnectionStyleRegistry.getStyleOrDefault(connectionType, {
-    // 使用更明显的默认颜色
-    'stroke': '#3b82f6',
-    'strokeWidth': 2,
-    'strokeOpacity': 0.8,
-    'arrowCount': 1
-  });
-
   // 控制点数量
   const controlPointsCount = data?.curveControl?.controlPointsCount || 1;
 
@@ -148,11 +138,17 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
     connectionIndex
   });
 
+  // 默认连接样式
+  const defaultStroke = '#3b82f6';
+  const defaultStrokeWidth = 2;
+  const defaultStrokeOpacity = 0.8;
+  const defaultArrowCount = 1;
+
   // 基础边样式
   const baseEdgeStyle = {
-    'stroke': selected ? '#FF5252' : connectionStyle.stroke,
-    'strokeWidth': selected ? 3 : connectionStyle.strokeWidth,
-    'strokeOpacity': connectionStyle.strokeOpacity,
+    'stroke': selected ? '#FF5252' : defaultStroke,
+    'strokeWidth': selected ? 3 : defaultStrokeWidth,
+    'strokeOpacity': defaultStrokeOpacity,
     ...style
   };
 
@@ -178,7 +174,7 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
 
   // 计算箭头上的均匀分布位置
   const calculateArrowPositions = () => {
-    const arrowCount = connectionStyle.arrowCount || 1;
+    const arrowCount = defaultArrowCount;
     if (arrowCount <= 1) {
       // 只在中间显示一个箭头
       return [0.5];
@@ -260,7 +256,7 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
         >
           <path
             d="M0,0 L0,6 L9,3 z"
-            fill={selected ? '#FF5252' : connectionStyle.stroke}
+            fill={selected ? '#FF5252' : defaultStroke}
           />
         </marker>
       </defs>
@@ -272,7 +268,7 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
-        markerEnd={connectionStyle.arrowCount ? `url(#${getArrowMarkerId()})` : undefined}
+        markerEnd={defaultArrowCount ? `url(#${getArrowMarkerId()})` : undefined}
       />
 
       {/* 渲染均匀分布的箭头 */}

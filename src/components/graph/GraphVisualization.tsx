@@ -17,7 +17,7 @@ const GraphVisualizationContent: React.FC = () => {
   // 使用useGraph获取状态和操作
   const { state, actions } = useGraph();
   const {
-    viewMode, notification, currentTheme, activePanel,
+    viewMode, notification, activePanel,
     selectedNode, selectedConnection, selectedNodes
   } = state;
 
@@ -58,7 +58,7 @@ const GraphVisualizationContent: React.FC = () => {
   const panelPosition = calculatePanelPosition();
 
   return (
-    <div className={`w-full h-full flex flex-col ${currentTheme.backgroundColor}`} style={{ 'width': '100%', 'height': '100vh' }}>
+    <div className="w-full h-full flex flex-col" style={{ 'width': '100%', 'height': '100vh' }}>
       {/* 顶部工具栏 - 现代化设计 */}
       <GraphToolbar />
 
@@ -87,16 +87,11 @@ const GraphVisualizationContent: React.FC = () => {
           onUpdateConnection={actions.updateConnection}
           onDeleteConnection={actions.deleteConnection}
           onClose={handleCloseEditPanel}
-          // 样式管理相关属性
+          // 样式管理相关属性已移除
           nodes={state.nodes}
           connections={state.connections}
           setNodes={actions.setNodes}
           setConnections={actions.setConnections}
-          currentTheme={state.currentTheme}
-          handleCopyNodeStyle={actions.handleCopyNodeStyle}
-          handleCopyConnectionStyle={actions.handleCopyConnectionStyle}
-          handlePasteStyle={actions.handlePasteStyle}
-          setCurrentTheme={actions.setCurrentTheme}
           showNotification={actions.showNotification}
           panelPosition={panelPosition}
         />

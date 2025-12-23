@@ -40,13 +40,6 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
       'connections': 0,
       'type': 'concept',
       'shape': 'circle',
-      'style': {
-        'fill': '#3b82f6',
-        'stroke': '#2563eb',
-        'strokeWidth': 2,
-        'fontSize': 14,
-        'textFill': '#fff'
-      },
       'state': {
         'isExpanded': false,
         'isFixed': false,

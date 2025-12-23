@@ -6,11 +6,6 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import type { EnhancedNode, EnhancedGraphConnection } from './types';
 
-// 导入子面板组件
-import { StyleManagement } from './StyleManagement';
-
-import type { GraphTheme } from './ThemeTypes';
-
 interface UnifiedControlPanelProps {
   selectedNode: EnhancedNode | null;
   selectedConnection: EnhancedGraphConnection | null;
@@ -21,22 +16,17 @@ interface UnifiedControlPanelProps {
   onUpdateConnection: (_connection: EnhancedGraphConnection) => void;
   onDeleteConnection: (_connectionId: string) => void;
   onClose: () => void;
-  // 样式管理相关属性
+  // 样式管理相关属性已移除
   nodes: EnhancedNode[];
   connections: EnhancedGraphConnection[];
   setNodes: (_nodes: EnhancedNode[]) => void;
   setConnections: (_connections: EnhancedGraphConnection[]) => void;
-  currentTheme: GraphTheme;
-  handleCopyNodeStyle: () => void;
-  handleCopyConnectionStyle: () => void;
-  handlePasteStyle: () => void;
-  setCurrentTheme: (_theme: GraphTheme) => void;
   showNotification: (_message: string, _type: 'error' | 'success' | 'info' | 'warning') => void;
   panelPosition: 'left' | 'right';
 }
 
 // 面板类型枚举
-type PanelType = 'node' | 'connection' | 'style' | 'properties';
+type PanelType = 'node' | 'connection';
 
 /**
  * 统一控制面板组件
@@ -51,17 +41,7 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
   onUpdateConnection,
   onDeleteConnection,
   onClose,
-  // 样式管理相关属性
-  nodes,
-  connections,
-  setNodes,
-  setConnections,
-  currentTheme,
-  handleCopyNodeStyle,
-  handleCopyConnectionStyle,
-  handlePasteStyle,
-  setCurrentTheme,
-  showNotification,
+  // 
   panelPosition
 }) => {
   // 当前激活的面板类型
@@ -74,13 +54,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     'connections': 0,
     'type': 'concept',
     'shape': 'rect',
-    'style': {
-      'fill': '#3b82f6',
-      'stroke': '#2563eb',
-      'strokeWidth': 2,
-      'fontSize': 14,
-      'textFill': '#fff'
-    },
     'state': {
       'isExpanded': false,
       'isFixed': false,
@@ -130,11 +103,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     'type': '',
     'label': '',
     'weight': 1,
-    'style': {
-      'stroke': '#94a3b8',
-      'strokeWidth': 2,
-      'arrowCount': 1
-    },
     'metadata': {
       'createdAt': Date.now(),
       'updatedAt': Date.now(),
@@ -269,14 +237,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           ...prev.animation,
           'dynamicEffect': value,
           'isAnimating': value !== 'none'
-        }
-      }));
-    } else if (name === 'arrowCount') {
-      setConnectionFormData(prev => ({
-        ...prev,
-        'style': {
-          ...prev.style,
-          'arrowCount': parseInt(value, 10) || 1
         }
       }));
     } else {
@@ -508,7 +468,7 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
             </label>
             <select
               name="arrowCount"
-              value={connectionFormData.style.arrowCount?.toString() || '1'}
+              value="1"
               onChange={handleConnectionChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
@@ -633,26 +593,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     );
   };
 
-  // 渲染样式管理面板
-  const renderStyleManagementPanel = () => {
-    return (
-      <StyleManagement
-        nodes={nodes}
-        connections={connections}
-        selectedNodes={selectedNodes}
-        selectedConnections={selectedConnections}
-        setNodes={setNodes}
-        setConnections={setConnections}
-        currentTheme={currentTheme}
-        handleCopyNodeStyle={handleCopyNodeStyle}
-        handleCopyConnectionStyle={handleCopyConnectionStyle}
-        handlePasteStyle={handlePasteStyle}
-        setCurrentTheme={setCurrentTheme}
-        showNotification={showNotification}
-      />
-    );
-  };
-
   // 渲染当前激活的面板内容
   const renderActivePanelContent = () => {
     switch (activePanel) {
@@ -660,10 +600,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
         return renderNodeEditPanel();
       case 'connection':
         return renderConnectionEditPanel();
-      case 'style':
-        return renderStyleManagementPanel();
-      case 'properties':
-        return <div className="p-4">属性面板内容</div>;
       default:
         return null;
     }
@@ -684,10 +620,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
   if (selectedConnection || selectedConnections.length > 0) {
     availablePanels.push({ 'type': 'connection', 'label': '连接编辑' });
   }
-
-  // 样式管理面板始终可用
-  availablePanels.push({ 'type': 'style', 'label': '样式管理' });
-  availablePanels.push({ 'type': 'properties', 'label': '属性' });
 
   return (
     <div className={`w-72 bg-white shadow-lg flex flex-col overflow-hidden h-full ${panelPosition === 'left' ? 'border-r border-gray-200 absolute left-0 top-0 z-10' : 'border-l border-gray-200 absolute right-0 top-0 z-10'}`}>
@@ -775,11 +707,7 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           </div>
         )}
 
-        {(activePanel === 'style' || activePanel === 'properties') && (
-          <div className="text-center text-sm text-gray-500 py-2">
-            {activePanel === 'style' ? '样式管理' : '属性面板'}
-          </div>
-        )}
+        
       </div>
     </div>
   );

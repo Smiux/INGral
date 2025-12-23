@@ -1,7 +1,6 @@
 import { createContext } from 'react';
 import type { ReactFlowInstance } from 'reactflow';
 import type { EnhancedNode, EnhancedGraphConnection, LayoutType, LayoutDirection, RecentAction, SavedLayout, ForceParameters } from './types';
-import type { GraphTheme, NodeStyle, LinkStyle } from './ThemeTypes';
 
 // ===========================
 // 类型定义
@@ -35,8 +34,6 @@ export interface GraphState {
   isToolbarVisible: boolean;
   isLeftToolbarVisible: boolean;
   activePanel: string | null;
-  currentTheme: GraphTheme;
-  copiedStyle: { type: 'node' | 'connection'; style: NodeStyle | LinkStyle } | null;
   isBoxSelecting: boolean;
   boxSelection: { x1: number; y1: number; x2: number; y2: number };
   isSettingsPanelOpen: boolean;
@@ -104,8 +101,6 @@ export type GraphAction =
   | { type: 'SET_IS_TOOLBAR_VISIBLE'; payload: boolean }
   | { type: 'SET_IS_LEFT_TOOLBAR_VISIBLE'; payload: boolean }
   | { type: 'SET_ACTIVE_PANEL'; payload: string | null }
-  | { type: 'SET_CURRENT_THEME'; payload: GraphTheme }
-  | { type: 'SET_COPIED_STYLE'; payload: { type: 'node' | 'connection'; style: NodeStyle | LinkStyle } | null }
   | { type: 'SET_IS_BOX_SELECTING'; payload: boolean }
   | { type: 'SET_BOX_SELECTION'; payload: { x1: number; y1: number; x2: number; y2: number } }
   | { type: 'SET_IS_SETTINGS_PANEL_OPEN'; payload: boolean }
@@ -188,8 +183,6 @@ export interface GraphActions {
   setIsToolbarVisible: (_isVisible: boolean) => void;
   setIsLeftToolbarVisible: (_isVisible: boolean) => void;
   setActivePanel: (_panelId: string | null) => void;
-  setCurrentTheme: (_theme: GraphTheme) => void;
-  setCopiedStyle: (_style: { type: 'node' | 'connection'; style: NodeStyle | LinkStyle } | null) => void;
   setIsBoxSelecting: (_isSelecting: boolean) => void;
   setBoxSelection: (_selection: { x1: number; y1: number; x2: number; y2: number }) => void;
   setIsSettingsPanelOpen: (_isOpen: boolean) => void;
@@ -238,9 +231,6 @@ export interface GraphActions {
   handleBoxSelectEnd: () => void;
   handleUpdateNode: (_updatedNode: EnhancedNode) => void;
   handleUpdateConnection: (_updatedConnection: EnhancedGraphConnection) => void;
-  handleCopyNodeStyle: () => void;
-  handleCopyConnectionStyle: () => void;
-  handlePasteStyle: () => void;
   handleImportGraph: (_graph: { nodes: EnhancedNode[]; connections: EnhancedGraphConnection[] }) => void;
   handleSaveLayout: (_layout: SavedLayout) => void;
   handleLoadLayout: (_layout: SavedLayout) => void;

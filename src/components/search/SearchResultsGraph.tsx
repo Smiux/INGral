@@ -37,13 +37,6 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
         'type': result.type,
         'shape': 'rect',
         'connections': 0,
-        'style': {
-          'fill': '#3b82f6',
-          'stroke': '#2563eb',
-          'strokeWidth': 2,
-          'fontSize': 14,
-          'textFill': '#fff'
-        },
         'state': {
           'isExpanded': false,
           'isFixed': false,
@@ -117,10 +110,6 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
               'source': result.id,
               'target': conceptNode.id,
               'weight': 1.0,
-              'style': {
-                'stroke': '#94a3b8',
-                'strokeWidth': 2
-              },
               'metadata': {
                 'createdAt': Date.now(),
                 'updatedAt': Date.now(),
@@ -167,37 +156,33 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
 
           if (commonConcepts.length > 0) {
             const linkId = `${article1.id}-${article2.id}`;
-            graphLinks.push({
-              'id': linkId,
-              'type': 'similar',
-              'source': article1.id,
-              'target': article2.id,
-              'weight': 1.0,
-              'style': {
-                'stroke': '#94a3b8',
-                'strokeWidth': 2
-              },
-              'metadata': {
-                'createdAt': Date.now(),
-                'updatedAt': Date.now(),
-                'version': 1
-              },
-              'state': {
-                'isSelected': false,
-                'isHovered': false,
-                'isEditing': false
-              },
-              'curveControl': {
-                'controlPointsCount': 0,
-                'controlPoints': [],
-                'curveType': 'default',
-                'locked': false
-              },
-              'animation': {
-                'dynamicEffect': 'none',
-                'isAnimating': false
-              }
-            });
+          graphLinks.push({
+            'id': linkId,
+            'type': 'similar',
+            'source': article1.id,
+            'target': article2.id,
+            'weight': 1.0,
+            'metadata': {
+              'createdAt': Date.now(),
+              'updatedAt': Date.now(),
+              'version': 1
+            },
+            'state': {
+              'isSelected': false,
+              'isHovered': false,
+              'isEditing': false
+            },
+            'curveControl': {
+              'controlPointsCount': 0,
+              'controlPoints': [],
+              'curveType': 'default',
+              'locked': false
+            },
+            'animation': {
+              'dynamicEffect': 'none',
+              'isAnimating': false
+            }
+          });
 
             // 更新连接数
             article1.connections += 1;

@@ -22,10 +22,6 @@ export const useGraphEffects = ({ state, dispatch }: GraphEffectsProps) => {
     localStorage.setItem('graphToolbarAutoHide', JSON.stringify(state.toolbarAutoHide));
   }, [state.toolbarAutoHide]);
 
-  useEffect(() => {
-    localStorage.setItem('graphCurrentTheme', JSON.stringify(state.currentTheme));
-  }, [state.currentTheme]);
-
   // 通知自动关闭
   useEffect(() => {
     let timer: NodeJS.Timeout;

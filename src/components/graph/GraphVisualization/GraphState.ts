@@ -1,5 +1,4 @@
 import type { GraphState } from './GraphContextType';
-import { PRESET_THEMES } from './ThemeTypes';
 
 // ===========================
 // 初始状态
@@ -9,7 +8,6 @@ export const getInitialState = (): GraphState => {
   // 从localStorage加载保存的状态
   const savedRightPanelVisible = localStorage.getItem('graphRightPanelVisible');
   const savedToolbarAutoHide = localStorage.getItem('graphToolbarAutoHide');
-  const savedTheme = localStorage.getItem('graphCurrentTheme');
 
   return {
     // 节点和连接数据
@@ -38,25 +36,6 @@ export const getInitialState = (): GraphState => {
     'isToolbarVisible': true,
     'isLeftToolbarVisible': true,
     'activePanel': null,
-    'currentTheme': savedTheme ? JSON.parse(savedTheme) : PRESET_THEMES[0] || {
-      'id': 'default',
-      'name': '默认主题',
-      'node': {
-        'fill': '#8b5cf6',
-        'stroke': '#fff',
-        'strokeWidth': 2,
-        'radius': 20,
-        'fontSize': 12,
-        'textFill': '#fff'
-      },
-      'link': {
-        'stroke': '#999',
-        'strokeWidth': 2,
-        'strokeOpacity': 0.6
-      },
-      'backgroundColor': '#f9fafb'
-    },
-    'copiedStyle': null,
     'isBoxSelecting': false,
     'boxSelection': { 'x1': 0, 'y1': 0, 'x2': 0, 'y2': 0 },
     'isSettingsPanelOpen': false,

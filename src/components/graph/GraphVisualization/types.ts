@@ -12,51 +12,11 @@ export interface BaseNodeData {
   connections: number;
 }
 
-// 节点样式配置
-export interface NodeStyle {
-  fill: string;
-  stroke: string;
-  strokeWidth: number;
-  radius?: number;
-  fontSize: number;
-  textFill: string;
-  hoverStrokeWidth?: number;
-  borderRadius?: number;
-  selectedStrokeWidth?: number;
-  hoverTextFill?: string;
-  selectedFill?: string;
-  selectedStroke?: string;
-  [key: string]: unknown;
-}
-
-// 连接样式配置
-export interface ConnectionStyle {
-  stroke?: string;
-  strokeWidth?: number;
-  strokeDasharray?: string;
-  animation?: string;
-  arrowCount?: number;
-  strokeOpacity?: number;
-  [key: string]: unknown;
-}
-
 // 节点形状类型
 export type NodeShape = 'circle' | 'rect' | 'triangle' | 'diamond' | 'hexagon' | string;
 
 // 节点类型
 export type NodeType = 'concept' | 'article' | 'resource' | 'aggregate' | string;
-
-// 节点样式接口（增强版）
-export interface NodeStyleEnhanced extends NodeStyle {
-  // 扩展样式属性
-  boxShadow?: string;
-  textShadow?: string;
-  opacity?: number;
-  fontFamily?: string;
-  fontWeight?: string | number;
-  lineHeight?: string | number;
-  letterSpacing?: string;
-}
 
 // 节点状态接口
 export interface NodeState {
@@ -162,9 +122,6 @@ export interface EnhancedNode extends BaseNodeData {
   type: NodeType;
   shape: NodeShape;
 
-  // 样式
-  style?: NodeStyleEnhanced;
-
   // 状态
   state: NodeState;
 
@@ -202,27 +159,6 @@ export interface BaseConnectionData {
   source: EnhancedNode | string | number;
   target: EnhancedNode | string | number;
   type: string;
-}
-
-// 连接样式接口（增强版）
-export interface ConnectionStyleEnhanced extends ConnectionStyle {
-  // 扩展样式属性
-  strokeLinecap?: string;
-  strokeLinejoin?: string;
-  strokeDashoffset?: string;
-  opacity?: number;
-  arrowSize?: number;
-  arrowColor?: string;
-  arrowType?: 'default' | 'triangle' | 'circle' | 'diamond' | 'none';
-  labelStyle?: {
-    fill?: string;
-    fontSize?: number;
-    fontFamily?: string;
-    fontWeight?: string | number;
-    backgroundColor?: string;
-    padding?: number;
-    borderRadius?: number;
-  };
 }
 
 // 连接元数据接口
@@ -281,9 +217,6 @@ export interface EnhancedGraphConnection extends BaseConnectionData {
   weight: number;
   label?: string;
 
-  // 样式
-  style: ConnectionStyleEnhanced;
-
   // 元数据
   metadata: ConnectionMetadata;
 
@@ -335,9 +268,6 @@ export interface GraphConfig {
     levelSpacing: number;
     forceParameters?: ForceParameters;
   };
-
-  // 主题配置
-  defaultTheme: string;
 
   // 交互配置
   interaction: {
@@ -406,31 +336,7 @@ export interface GraphData {
   customData?: Record<string, unknown>;
 }
 
-// 节点主题配置
-export interface NodeTheme {
-  [type: string]: NodeStyle;
-}
 
-// 连接主题配置
-export interface ConnectionTheme {
-  [type: string]: ConnectionStyle;
-}
-
-// 链接样式接口
-export interface LinkStyle {
-  stroke: string;
-  strokeWidth: number;
-  strokeOpacity: number;
-}
-
-// 图表主题接口
-export interface GraphTheme {
-  id: string;
-  name: string;
-  node: NodeStyle;
-  link: LinkStyle;
-  backgroundColor: string;
-}
 
 // 连接点配置
 export interface HandleConfig {
@@ -456,7 +362,7 @@ export interface ConnectionPoint {
 
 // 节点形状渲染配置
 export interface ShapeConfig {
-  render: (_props: { style: NodeStyle; radius: number; contentWidth?: number; contentHeight?: number; [key: string]: unknown }) => React.ReactNode;
+  render: (_props: { style: React.CSSProperties; radius: number; contentWidth?: number; contentHeight?: number; [key: string]: unknown }) => React.ReactNode;
   handlePositions?: Position[];
   generateHandlePositions?: (_props: { radius: number; count: number; shape: string }) => Position[];
   [key: string]: unknown;
@@ -472,7 +378,6 @@ export interface NodeConfig {
   type: string;
   shape?: string;
   handles?: HandleConfig[];
-  style?: NodeStyle;
   [key: string]: unknown;
 }
 
@@ -593,8 +498,6 @@ export interface GraphCanvasProps {
   onBoxSelectEnd: () => void;
   isBoxSelecting: boolean;
   boxSelection: { x1: number; y1: number; x2: number; y2: number };
-  // 主题样式
-  theme: import('./ThemeTypes').GraphTheme;
   // 是否正在添加连接
   isAddingConnection?: boolean;
   // 连接源节点

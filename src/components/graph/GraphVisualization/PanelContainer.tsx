@@ -4,17 +4,13 @@ import { X } from 'lucide-react';
 // 导入子面板组件
 import { LayoutManager } from './LayoutManager';
 import { GraphImportExport } from './GraphImportExport';
-import { ThemeManager } from './ThemeManager';
 import { GraphAnalysis } from './GraphAnalysis';
 import { StatisticsPanel } from './StatisticsPanel';
-import { StyleAdjustmentPanel } from './StyleAdjustmentPanel';
 import { ManagePanel } from './ManagePanel';
-import { TemplateSelectionPanel } from './components/TemplateSelectionPanel';
 
 // 导入自定义Hook
 import { useGraph } from './useGraph';
-// 导入类型定义
-import type { LayoutType, LayoutDirection, ForceParameters } from './types';
+
 
 
 
@@ -45,8 +41,7 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
     nodeSpacing,
     levelSpacing,
     forceParameters,
-    savedLayouts,
-    currentTheme
+    savedLayouts
   } = state;
 
   // 从actions中解构需要的操作
@@ -58,11 +53,7 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
     setNodeSpacing,
     setLevelSpacing,
     setForceParameters,
-    setCurrentTheme,
     showNotification,
-    handleCopyNodeStyle,
-    handleCopyConnectionStyle,
-    handlePasteStyle,
     handleImportGraph,
     handleSaveLayout,
     handleLoadLayout,
@@ -198,10 +189,6 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
                   'target': link.target,
                   'type': link.type || 'default',
                   'weight': link.weight || 1,
-                  'style': {
-                    'stroke': '#94a3b8',
-                    'strokeWidth': 2
-                  },
                   'metadata': {
                     'createdAt': Date.now(),
                     'updatedAt': Date.now(),
@@ -228,13 +215,6 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             showNotification={showNotification}
           />
         );
-      case 'theme':
-        return (
-          <ThemeManager
-            currentTheme={currentTheme}
-            onThemeChange={setCurrentTheme}
-          />
-        );
       case 'analysis':
         return (
           <GraphAnalysis
@@ -249,52 +229,8 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             links={connections}
           />
         );
-      case 'style':
-        return (
-          <StyleAdjustmentPanel
-            selectedNode={selectedNode}
-            selectedNodes={selectedNodes}
-            selectedLinks={selectedConnections}
-            currentTheme={currentTheme}
-            handleCopyNodeStyle={handleCopyNodeStyle}
-            handleCopyLinkStyle={handleCopyConnectionStyle}
-            handlePasteStyle={handlePasteStyle}
-            setCurrentTheme={setCurrentTheme}
-          />
-        );
       case 'templates':
-        return (
-          <TemplateSelectionPanel
-            onSelectTemplate={(template) => {
-              // 处理模板选择逻辑
-              actions.handleImportGraph({
-                'nodes': template.nodes,
-                'connections': template.connections
-              });
-              // 应用模板的默认布局
-              if (template.defaultLayout) {
-                actions.setLayoutType(template.defaultLayout.type as LayoutType);
-                if (template.defaultLayout.direction) {
-                  actions.setLayoutDirection(template.defaultLayout.direction as LayoutDirection);
-                }
-                if (template.defaultLayout.parameters) {
-                  const params = template.defaultLayout.parameters;
-                  if (params.nodeSpacing) {
-                    actions.setNodeSpacing(params.nodeSpacing);
-                  }
-                  if (params.levelSpacing) {
-                    actions.setLevelSpacing(params.levelSpacing);
-                  }
-                  if (params.force) {
-                    actions.setForceParameters(params.force as ForceParameters);
-                  }
-                }
-              }
-              actions.showNotification('模板已应用', 'success');
-            }}
-            onClose={closePanel}
-          />
-        );
+        return null;
       default:
         return null;
     }
@@ -321,10 +257,8 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             {activePanel === 'manage' && '管理'}
             {activePanel === 'layout' && '布局管理'}
             {activePanel === 'importExport' && '导入导出'}
-            {activePanel === 'theme' && '主题样式'}
             {activePanel === 'analysis' && '图谱分析'}
             {activePanel === 'statistics' && '统计信息'}
-            {activePanel === 'style' && '样式调整'}
             {activePanel === 'templates' && '选择模板'}
           </h2>
           <button

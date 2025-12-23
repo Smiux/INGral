@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import type { GraphTheme, NodeStyle, LinkStyle } from '../ThemeTypes';
 import type { GraphAction } from '../GraphContextType';
 
 interface UIActionsProps {
@@ -22,14 +21,6 @@ export const useUIActions = ({ dispatch }: UIActionsProps) => {
 
   const setActivePanel = useCallback((panelId: string | null) => {
     dispatch({ 'type': 'SET_ACTIVE_PANEL', 'payload': panelId });
-  }, [dispatch]);
-
-  const setCurrentTheme = useCallback((theme: GraphTheme) => {
-    dispatch({ 'type': 'SET_CURRENT_THEME', 'payload': theme });
-  }, [dispatch]);
-
-  const setCopiedStyle = useCallback((style: { type: 'node' | 'connection'; style: NodeStyle | LinkStyle } | null) => {
-    dispatch({ 'type': 'SET_COPIED_STYLE', 'payload': style });
   }, [dispatch]);
 
   const setIsBoxSelecting = useCallback((isSelecting: boolean) => {
@@ -66,8 +57,6 @@ export const useUIActions = ({ dispatch }: UIActionsProps) => {
     setIsToolbarVisible,
     setIsLeftToolbarVisible,
     setActivePanel,
-    setCurrentTheme,
-    setCopiedStyle,
     setIsBoxSelecting,
     setBoxSelection,
     setIsSettingsPanelOpen,

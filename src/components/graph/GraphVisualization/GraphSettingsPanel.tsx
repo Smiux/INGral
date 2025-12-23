@@ -9,14 +9,14 @@ export const GraphSettingsPanel: React.FC = () => {
   const { state, actions } = useGraph();
 
   // 从state中解构需要的状态
-  const { isSettingsPanelOpen, toolbarAutoHide, currentTheme } = state;
+  const { isSettingsPanelOpen, toolbarAutoHide } = state;
 
   if (!isSettingsPanelOpen) {
     return null;
   }
 
   return (
-    <div className={`fixed top-16 right-4 shadow-xl rounded-md p-4 w-80 z-50 ${currentTheme.backgroundColor} border border-gray-200`}>
+    <div className="fixed top-16 right-4 shadow-xl rounded-md p-4 w-80 z-50 bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
       <h3 className="font-medium mb-3 text-gray-800">设置</h3>
 
       {/* 顶部工具栏显示模式 */}

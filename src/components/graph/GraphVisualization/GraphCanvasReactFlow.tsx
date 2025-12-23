@@ -73,14 +73,12 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
   // 从state中解构需要的状态
   const {
     'nodes': contextNodes,
-    'connections': contextConnections,
-    'currentTheme': contextTheme
+    'connections': contextConnections
   } = state;
 
   // 合并props和context状态
   const nodes = isUsingProps ? props.nodes! : contextNodes;
   const connections = isUsingProps ? props.connections! : contextConnections;
-  const theme = isUsingProps ? props.theme! : contextTheme;
 
   // 合并props和context操作
   const handleNodeClick = isUsingProps ? props.onNodeClick! : actions.handleNodeClick;
@@ -240,11 +238,6 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
         // 使用'related'而不是'relation'，与ConnectionStyleRegistry中的注册名称匹配
         'type': 'related',
         'weight': 1.0,
-        'style': {
-          'stroke': '#3b82f6',
-          'strokeWidth': 2,
-          'strokeOpacity': 0.8
-        },
         'metadata': {
           'createdAt': Date.now(),
           'updatedAt': Date.now(),
@@ -362,7 +355,7 @@ export const GraphCanvasReactFlow: React.FC<Partial<GraphCanvasProps>> = (props)
   }, [reactFlowNodes.length, reactFlowEdges.length]);
 
   return (
-    <div className="w-full h-full flex flex-col" style={{ 'backgroundColor': theme.backgroundColor }} ref={reactFlowWrapper}>
+    <div className="w-full h-full flex flex-col" ref={reactFlowWrapper}>
       {/* 添加CSS来隐藏React Flow水印 */}
       <style dangerouslySetInnerHTML={{ '__html': hideAttributionStyle }} />
       <div className="flex-1">

@@ -1,5 +1,4 @@
 import type { EnhancedNode, EnhancedGraphConnection, SavedLayout } from './types';
-import type { GraphTheme } from './ThemeTypes';
 
 /**
  * 图谱可视化工具类，提供通用的工具方法
@@ -120,34 +119,6 @@ export class GraphUtils {
   }
 
   /**
-   * 从localStorage加载当前主题
-   * @returns 当前主题
-   */
-  static loadCurrentThemeFromLocalStorage (): GraphTheme | null {
-    try {
-      const savedTheme = localStorage.getItem('graphCurrentTheme');
-      if (savedTheme) {
-        return JSON.parse(savedTheme);
-      }
-    } catch (error) {
-      console.error('从localStorage加载主题失败:', error);
-    }
-    return null;
-  }
-
-  /**
-   * 将当前主题保存到localStorage
-   * @param theme 主题对象
-   */
-  static saveCurrentThemeToLocalStorage (theme: GraphTheme): void {
-    try {
-      localStorage.setItem('graphCurrentTheme', JSON.stringify(theme));
-    } catch (error) {
-      console.error('保存主题到localStorage失败:', error);
-    }
-  }
-
-  /**
    * 转换导入的节点为EnhancedNode类型
    * @param nodes 导入的节点数组
    * @returns 转换后的EnhancedNode数组
@@ -164,13 +135,6 @@ export class GraphUtils {
         'connections': (typedNode.connections as number) || 0,
         'type': (typedNode.type as string) || 'concept',
         'shape': 'rect',
-        'style': {
-          'fill': '#3b82f6',
-          'stroke': '#fff',
-          'strokeWidth': 2,
-          'fontSize': 14,
-          'textFill': '#fff'
-        },
         'state': { 'isExpanded': false, 'isFixed': false, 'isSelected': false, 'isHovered': false, 'isDragging': false, 'isCollapsed': false },
         'metadata': {
           'is_custom': true,
@@ -208,7 +172,6 @@ export class GraphUtils {
         target,
         'label': (typedLink.label as string) || '',
         'weight': (typedLink.weight as number) || 1.0,
-        'style': {},
         'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
         'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
         'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },

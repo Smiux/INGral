@@ -132,41 +132,6 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
     dispatch({ 'type': 'SHOW_NOTIFICATION', 'payload': { 'message': '连接属性已更新', 'type': 'success' } });
   }, [dispatch]);
 
-  const handleCopyNodeStyle = useCallback(() => {
-    if (!state.selectedNode) {
-      showNotification('请先选择一个节点', 'error');
-      return;
-    }
-
-    dispatch({ 'type': 'SET_COPIED_STYLE', 'payload': { 'type': 'node', 'style': state.currentTheme.node } });
-    showNotification('已复制节点样式', 'success');
-  }, [state.selectedNode, state.currentTheme, showNotification, dispatch]);
-
-  const handleCopyConnectionStyle = useCallback(() => {
-    if (!state.selectedConnection) {
-      showNotification('请先选择一个连接', 'error');
-      return;
-    }
-
-    dispatch({ 'type': 'SET_COPIED_STYLE', 'payload': { 'type': 'connection', 'style': state.currentTheme.link } });
-    showNotification('已复制连接样式', 'success');
-  }, [state.selectedConnection, state.currentTheme, showNotification, dispatch]);
-
-  const handlePasteStyle = useCallback(() => {
-    if (!state.copiedStyle) {
-      showNotification('没有复制的样式', 'error');
-      return;
-    }
-
-    const updatedTheme = {
-      ...state.currentTheme,
-      [state.copiedStyle.type]: state.copiedStyle.style
-    };
-
-    dispatch({ 'type': 'SET_CURRENT_THEME', 'payload': updatedTheme });
-    showNotification(`已粘贴${state.copiedStyle.type === 'node' ? '节点' : '连接'}样式`, 'success');
-  }, [state.copiedStyle, state.currentTheme, showNotification, dispatch]);
-
   const handleImportGraph = useCallback((graph: { nodes: EnhancedNode[]; connections: EnhancedGraphConnection[] }) => {
     const newNodes: EnhancedNode[] = graph.nodes.map((node: EnhancedNode) => ({
       'id': String(node.id || `node-${Date.now()}-${Math.random().toString(36)
@@ -175,13 +140,6 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
       'connections': node.connections || 0,
       'type': node.type || 'concept',
       'shape': node.shape || 'rect',
-      'style': node.style || {
-        'fill': '#3b82f6',
-        'stroke': '#2563eb',
-        'strokeWidth': 2,
-        'fontSize': 14,
-        'textFill': '#fff'
-      },
       'state': {
         'isExpanded': node.state?.isExpanded || false,
         'isFixed': node.state?.isFixed || false,
@@ -235,10 +193,6 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
         target,
         'label': connection.label || '',
         'weight': connection.weight || 1.0,
-        'style': connection.style || {
-          'stroke': '#94a3b8',
-          'strokeWidth': 2
-        },
         'metadata': {
           'createdAt': connection.metadata?.createdAt || Date.now(),
           'updatedAt': connection.metadata?.updatedAt || Date.now(),
@@ -347,13 +301,6 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
       'connections': 0,
       'type': 'concept',
       'shape': 'rect',
-      'style': {
-        'fill': '#3b82f6',
-        'stroke': '#2563eb',
-        'strokeWidth': 2,
-        'fontSize': 14,
-        'textFill': '#fff'
-      },
       'state': {
         'isExpanded': false,
         'isFixed': false,
@@ -418,15 +365,6 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
       'connections': 0,
       'type': 'group',
       'shape': 'rect',
-      'style': {
-        'fill': '#6366f1',
-        'stroke': '#4f46e5',
-        'strokeWidth': 2,
-        'fontSize': 14,
-        'textFill': '#fff',
-        'borderRadius': 8,
-        'opacity': 0.8
-      },
       'state': {
         'isExpanded': true,
         'isFixed': false,
@@ -535,9 +473,6 @@ export const useBusinessLogicActions = ({ dispatch, state, showNotification }: B
     handleBoxSelectEnd,
     handleUpdateNode,
     handleUpdateConnection,
-    handleCopyNodeStyle,
-    handleCopyConnectionStyle,
-    handlePasteStyle,
     handleImportGraph,
     handleSaveLayout,
     handleLoadLayout,
