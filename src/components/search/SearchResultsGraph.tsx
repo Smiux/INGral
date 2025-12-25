@@ -156,33 +156,33 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
 
           if (commonConcepts.length > 0) {
             const linkId = `${article1.id}-${article2.id}`;
-          graphLinks.push({
-            'id': linkId,
-            'type': 'similar',
-            'source': article1.id,
-            'target': article2.id,
-            'weight': 1.0,
-            'metadata': {
-              'createdAt': Date.now(),
-              'updatedAt': Date.now(),
-              'version': 1
-            },
-            'state': {
-              'isSelected': false,
-              'isHovered': false,
-              'isEditing': false
-            },
-            'curveControl': {
-              'controlPointsCount': 0,
-              'controlPoints': [],
-              'curveType': 'default',
-              'locked': false
-            },
-            'animation': {
-              'dynamicEffect': 'none',
-              'isAnimating': false
-            }
-          });
+            graphLinks.push({
+              'id': linkId,
+              'type': 'similar',
+              'source': article1.id,
+              'target': article2.id,
+              'weight': 1.0,
+              'metadata': {
+                'createdAt': Date.now(),
+                'updatedAt': Date.now(),
+                'version': 1
+              },
+              'state': {
+                'isSelected': false,
+                'isHovered': false,
+                'isEditing': false
+              },
+              'curveControl': {
+                'controlPointsCount': 0,
+                'controlPoints': [],
+                'curveType': 'default',
+                'locked': false
+              },
+              'animation': {
+                'dynamicEffect': 'none',
+                'isAnimating': false
+              }
+            });
 
             // 更新连接数
             article1.connections += 1;
@@ -335,7 +335,7 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
             <option value="grid">网格布局</option>
           </select>
         </div>
-        {layoutType === 'tree' || layoutType === 'hierarchical' && (
+        {(layoutType === 'tree' || layoutType === 'hierarchical') && (
           <div className={styles.controlGroup}>
             <label className={styles.controlLabel}>方向:</label>
             <select

@@ -1,4 +1,4 @@
-import { Save, HelpCircle, FileText, FileText as DraftIcon, Eye, EyeOff, Code, LayoutGrid, Brain, Users, ChevronUp, ChevronDown, BrainCircuit } from 'lucide-react';
+import { Save, HelpCircle, FileText, FileText as DraftIcon, Eye, EyeOff, Code, LayoutGrid, Brain, ChevronUp, ChevronDown, BrainCircuit } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '../../ui/ThemeToggle';
 
@@ -19,11 +19,6 @@ interface EditorToolbarProps {
   onToggleToolbar: () => void;
   livePreview: boolean;
   onToggleLivePreview: () => void;
-  collaborators?: {
-    id: string;
-    name: string;
-    cursorPosition?: { line: number; column: number };
-  }[];
   onOpenDraftManager?: () => void;
   onSaveDraft?: () => void;
 }
@@ -41,7 +36,6 @@ export function EditorToolbar ({
   onToggleToolbar,
   livePreview,
   onToggleLivePreview,
-  collaborators,
   onOpenDraftManager,
   onSaveDraft
 }: EditorToolbarProps) {
@@ -162,56 +156,7 @@ export function EditorToolbar ({
 
         {/* 右侧操作按钮 */}
         <div className="flex items-center gap-1">
-          {/* 协作者列表 */}
-          {collaborators && collaborators.length > 0 && (
-            <div className="relative group">
-              <button
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-250 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm transform hover:scale-105"
-                title="当前协作者"
-              >
-                <Users size={20} className="transition-transform duration-250 hover:scale-125" />
-                <span className="hidden sm:inline">
-                  协作者 ({collaborators.length})
-                </span>
-              </button>
-              {/* 协作者下拉列表 */}
-              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out transform group-hover:translate-y-0 translate-y-[-5px]">
-                <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">当前协作者</h3>
-                </div>
-                <div className="max-h-48 overflow-y-auto">
-                  {collaborators.map((collaborator) => {
-                    // 为每个协作者分配不同的颜色，与光标颜色保持一致（使用设计系统变量）
-                    const colors = ['var(--error-500)', 'var(--primary-400)', 'var(--success-400)', 'var(--warning-500)', 'var(--secondary-500)', 'var(--primary-600)'];
-                    const colorIndex = collaborators.findIndex(c => c.id === collaborator.id) % colors.length;
-                    const cursorColor = colors[colorIndex];
 
-                    return (
-                      <div key={collaborator.id} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          {/* 协作者颜色指示器 */}
-                          <div
-                            className="w-3 h-3 rounded-full transition-all duration-200"
-                            style={{ 'backgroundColor': cursorColor }}
-                          />
-                          {/* 协作者名称 */}
-                          <span className="text-sm text-gray-800 dark:text-gray-200">
-                            {collaborator.name}
-                          </span>
-                          {/* 协作者光标位置 */}
-                          {collaborator.cursorPosition && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400 font-mono ml-auto">
-                              Ln {collaborator.cursorPosition.line}, Col {collaborator.cursorPosition.column}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* 工具栏折叠/展开按钮 */}
           <button

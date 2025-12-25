@@ -581,7 +581,6 @@ function ArticleEditorImpl () {
             onToggleToolbar={() => updateState('showToolbar', !state.showToolbar)}
             livePreview={state.livePreview}
             onToggleLivePreview={() => updateState('livePreview', !state.livePreview)}
-            collaborators={state.collaborators}
             onOpenDraftManager={toggleDraftManager}
             onSaveDraft={handleManualSaveDraft}
           />
@@ -682,7 +681,6 @@ function ArticleEditorImpl () {
               isLoading={state.isLoading}
               error={state.error}
               onCursorPositionChange={handleCursorPositionChange}
-              collaborators={state.collaborators}
             />
 
             {/* 智能建议UI已移除 - 自动补全功能已禁用 */}

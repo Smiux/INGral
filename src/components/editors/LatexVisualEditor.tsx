@@ -72,6 +72,11 @@ export function LatexVisualEditor ({
 }: LatexVisualEditorProps) {
   // MathQuill实例引用
   const mathQuillInstanceRef = useRef<MathField | null>(null);
+  // 动态加载的脚本和样式引用
+  const mathQuillAssetsRef = useRef<{ script: HTMLScriptElement | null; link: HTMLLinkElement | null }>({
+    'script': null,
+    'link': null
+  });
 
   /**
    * 加载MathQuill库并初始化
@@ -81,6 +86,7 @@ export function LatexVisualEditor ({
       return undefined;
     }
 
+    const currentMathFieldRef = mathFieldRef.current;
     const loadMathQuill = async () => {
       try {
         // 动态加载MathQuill库
@@ -89,6 +95,7 @@ export function LatexVisualEditor ({
           const script = document.createElement('script');
           script.src = 'https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js';
           script.async = true;
+          mathQuillAssetsRef.current.script = script;
 
           await new Promise((resolve, reject) => {
             script.onload = resolve;
@@ -101,14 +108,15 @@ export function LatexVisualEditor ({
           link.rel = 'stylesheet';
           link.href = 'https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css';
           document.head.appendChild(link);
+          mathQuillAssetsRef.current.link = link;
         }
 
         // 初始化MathQuill
-        if (window.MathQuill && mathFieldRef.current) {
+        if (window.MathQuill && currentMathFieldRef) {
           const MathQuill = window.MathQuill.getInterface('0.10.1');
 
           // 创建MathField实例
-          const mathField = new MathQuill.MathField(mathFieldRef.current, {
+          const mathField = new MathQuill.MathField(currentMathFieldRef, {
             'handlers': {
               'edit': () => {
                 const currentFormula = mathQuillInstanceRef.current?.latex() || '';
@@ -149,10 +157,25 @@ export function LatexVisualEditor ({
     return () => {
       // 销毁MathQuill实例
       if (mathQuillInstanceRef.current) {
-        // MathQuill没有公开的销毁方法，我们可以清空内容
+        // 清空内容
         mathQuillInstanceRef.current.latex('');
+        // 移除所有事件监听器
         mathQuillInstanceRef.current = null;
       }
+
+      // 清理DOM元素
+      currentMathFieldRef.innerHTML = '';
+
+      // 移除动态加载的脚本和样式
+      const { script, link } = mathQuillAssetsRef.current;
+      if (script) {
+        document.head.removeChild(script);
+      }
+      if (link) {
+        document.head.removeChild(link);
+      }
+      // 重置ref值
+      mathQuillAssetsRef.current = { 'script': null, 'link': null };
     };
   }, [mathFieldRef, onFormulaChange, onMathQuillReady, formula]);
 

@@ -51,18 +51,6 @@ export interface DiscussionCategory {
 }
 
 /**
- * 讨论标签接口
- */
-export interface DiscussionTag {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  usage_count: number;
-  created_at: string;
-}
-
-/**
  * 讨论主题接口
  */
 export interface DiscussionTopic {
@@ -78,7 +66,6 @@ export interface DiscussionTopic {
   created_at: string;
   updated_at: string;
   category?: DiscussionCategory;
-  tags?: DiscussionTag[];
 }
 
 /**
@@ -127,36 +114,6 @@ export interface EditLimit {
 }
 
 /**
- * 标签接口
- */
-export interface Tag {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  color: string;
-  created_at: string;
-  created_by?: string;
-  is_system_tag: boolean;
-  usage_count: number;
-  parent_id?: string;
-  children?: Tag[];
-  // 前端使用的额外字段
-  is_selected?: boolean;
-}
-
-/**
- * 文章标签关联接口
- */
-export interface ArticleTag {
-  article_id: string;
-  tag_id: string;
-  added_at: string;
-  added_by?: string;
-  tag?: Tag;
-}
-
-/**
  * 文章接口
  */
 export interface Article {
@@ -178,9 +135,6 @@ export interface Article {
   // 社区数据
   upvotes: number;
   comment_count: number;
-  // 标签数据
-  tags?: Tag[];
-  article_tags?: ArticleTag[];
   // 数学公式数据
   formulas?: Formula[];
   // 编辑限制相关字段

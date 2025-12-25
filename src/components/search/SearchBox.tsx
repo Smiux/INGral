@@ -34,7 +34,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   showAdvancedOptions = false
 }) => {
   const [query, setQuery] = useState(defaultValue);
-  const [suggestions, setSuggestions] = useState<{ title: string; id: string; excerpt?: string; tags?: string[] }[]>([]);
+  const [suggestions, setSuggestions] = useState<{ title: string; id: string; excerpt?: string }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hasFocus, setHasFocus] = useState(false);
@@ -49,7 +49,6 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   const {
     filters,
     onFilterChange,
-    onTagChange,
     onDateRangeChange,
     onResetFilters
   } = useSearchFilters();
@@ -184,7 +183,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   };
 
   // 防抖处理函数
-  function debounce<T extends (..._params: string[]) => Promise<void>>(func: T, delay: number): (..._args: Parameters<T>) => void {
+  function debounce<T extends (..._args: Parameters<T>) => ReturnType<T>>(func: T, delay: number): (..._args: Parameters<T>) => void {
     let timeoutId: NodeJS.Timeout;
     return function (..._args: Parameters<T>) {
       clearTimeout(timeoutId);
@@ -232,7 +231,6 @@ const SearchBox: React.FC<SearchBoxProps> = ({
           'searchType': (filters.searchType || 'articles') as 'articles' | 'comments' | 'all',
           'sortBy': (filters.sortBy || 'relevance') as 'type' | 'date' | 'relevance' | 'views',
           'author': filters.author || '',
-          'tags': filters.tags || [],
           'dateRange': filters.dateRange || {}
         }
       };
@@ -412,7 +410,6 @@ const SearchBox: React.FC<SearchBoxProps> = ({
         <AdvancedSearchOptions
           filters={filters}
           onFilterChange={onFilterChange}
-          onTagChange={onTagChange}
           onDateRangeChange={onDateRangeChange}
           onResetFilters={onResetFilters}
           useCompositeFilter={filters.useCompositeFilter || false}

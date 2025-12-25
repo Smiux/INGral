@@ -6,7 +6,6 @@ export interface ExtendedSearchFilters {
   searchType: string;
   sortBy: string;
   author: string;
-  tags: string[];
   dateRange: { start?: string; end?: string };
   // 组合筛选条件
   compositeFilter?: CompositeFilter;
@@ -24,7 +23,6 @@ export function useSearchFilters () {
     'searchType': 'articles',
     'sortBy': 'relevance',
     'author': '',
-    'tags': [],
     'dateRange': {},
     'useCompositeFilter': false,
     'compositeFilter': createDefaultFilter()
@@ -55,14 +53,6 @@ export function useSearchFilters () {
     });
   }, []);
 
-  // 更新标签
-  const onTagChange = useCallback((tags: string[]) => {
-    setFilters(prev => ({
-      ...prev,
-      tags
-    }));
-  }, []);
-
   // 更新日期范围
   const onDateRangeChange = useCallback((dateRange: { start?: string; end?: string }) => {
     onFilterChange('dateRange', dateRange);
@@ -74,7 +64,6 @@ export function useSearchFilters () {
       'searchType': 'articles',
       'sortBy': 'relevance',
       'author': '',
-      'tags': [],
       'dateRange': {},
       'useCompositeFilter': false,
       'compositeFilter': createDefaultFilter()
@@ -84,7 +73,6 @@ export function useSearchFilters () {
   return {
     filters,
     onFilterChange,
-    onTagChange,
     onDateRangeChange,
     onResetFilters
   };

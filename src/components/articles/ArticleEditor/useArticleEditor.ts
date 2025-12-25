@@ -5,8 +5,6 @@ import type { Article, GraphNode, GraphLink } from '../../../types';
 import { articleService } from '../../../services/articleService';
 import { generateGraphFromArticle } from '../../../utils/GraphGenerationUtils';
 import { generateTableOfContents } from './EditorUtils';
-import { supabase } from '../../../lib/supabase';
-import type { RealtimeChannel } from '@supabase/supabase-js';
 
 /**
  * 目录项类型定义
@@ -101,16 +99,6 @@ export interface ArticleEditorState {
     minConceptOccurrences: number;
     extractionDepth: number;
   };
-
-  // 协作编辑状态
-  isCollaborative: boolean;
-  collaborators: {
-    id: string;
-    name: string;
-    cursorPosition?: { line: number; column: number };
-  }[];
-  remoteChange: { field: 'title' | 'content'; value: string; timestamp: Date } | null;
-  isResolvingConflict: boolean;
 }
 
 /**
@@ -196,20 +184,9 @@ export function useArticleEditor () {
       'maxLinks': 50,
       'minConceptOccurrences': 2,
       'extractionDepth': 2
-    },
-
-    // 协作编辑状态
-    // 已存在的文章默认开启协作
-    'isCollaborative': Boolean(slug),
-    'collaborators': [],
-    'remoteChange': null,
-    'isResolvingConflict': false
+    }
   });
 
-  // 实时订阅通道引用
-  const channelRef = useRef<RealtimeChannel | null>(null);
-  // 本地编辑的时间戳，用于冲突检测
-  const localEditTimestampRef = useRef<Date>(new Date());
   // 保存最新状态的ref，用于在回调函数中获取最新状态
   const stateRef = useRef<ArticleEditorState>(state);
 
@@ -489,9 +466,7 @@ export function useArticleEditor () {
         return;
       }
 
-      // 更新本地编辑时间戳
-      const now = new Date();
-      localEditTimestampRef.current = now;
+
 
       let result: Article | null | undefined;
       if (article) {
@@ -521,7 +496,7 @@ export function useArticleEditor () {
 
       batchUpdateState({
         'article': result,
-        'lastEdited': now,
+        'lastEdited': new Date(),
         'hasUnsavedChanges': false,
         'isSaving': false
       });
@@ -598,122 +573,12 @@ export function useArticleEditor () {
     updateState('viewMode', mode);
   }, [updateState]);
 
-  /**
-   * 处理远程文章更新
-   */
-  const handleRemoteUpdate = useCallback((payload: {
-    eventType: string;
-    new?: Article;
-  }) => {
-    // 检查更新是否来自当前用户的操作
-    if (payload.eventType === 'UPDATE' && payload.new) {
-      const { 'new': updatedArticle } = payload;
 
-      // 检查是否是自己的更新（通过比较最后编辑时间）
-      const serverUpdatedAt = new Date(updatedArticle.updated_at);
-      if (serverUpdatedAt > localEditTimestampRef.current) {
-        // 直接从state获取hasUnsavedChanges，避免在依赖项中使用
-        // 这样可以打破循环依赖
-        setState(prevState => {
-          if (prevState.hasUnsavedChanges) {
-            // 有未保存的本地更改，触发冲突解决流程
-            return {
-              ...prevState,
-              'isResolvingConflict': true,
-              'remoteChange': {
-                'field': 'content',
-                'value': updatedArticle.content,
-                'timestamp': serverUpdatedAt
-              }
-            };
-          }
-          // 无未保存更改，直接应用远程更新
-          return {
-            ...prevState,
-            'article': updatedArticle,
-            'content': updatedArticle.content,
-            'title': updatedArticle.title,
-            'lastEdited': serverUpdatedAt
-          };
-        });
-        // 显示通知
-        showNotification('检测到远程更改，需要解决冲突', 'info');
-      }
-    }
-  }, [showNotification]);
-
-  /**
-   * 设置实时订阅
-   */
-  useEffect(() => {
-    if (state.article && state.isCollaborative) {
-      // 创建实时订阅通道
-      const channel = supabase.channel(`article_${state.article.id}`)
-        .on(
-          'postgres_changes',
-          {
-            'event': 'UPDATE',
-            'schema': 'public',
-            'table': 'articles',
-            'filter': `id=eq.${state.article.id}`
-          },
-          handleRemoteUpdate
-        )
-        .subscribe();
-
-      channelRef.current = channel;
-
-      // 获取当前协作者列表（模拟实现，实际可以从数据库获取）
-      const mockCollaborators = [
-        {
-          'id': 'user1',
-          'name': '协作编辑者1',
-          'cursorPosition': { 'line': 5, 'column': 10 }
-        }
-      ];
-      updateState('collaborators', mockCollaborators);
-    }
-
-    return () => {
-      // 清理订阅
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
-  }, [state.article, state.isCollaborative, handleRemoteUpdate, updateState]);
-
-  /**
-   * 解决冲突
-   */
-  const resolveConflict = useCallback((keepLocal: boolean) => {
-    if (state.remoteChange) {
-      if (keepLocal) {
-        // 保留本地更改，忽略远程更改
-        showNotification('已保留本地更改', 'info');
-      } else {
-        // 应用远程更改，覆盖本地更改
-        if (state.remoteChange.field === 'content') {
-          updateState('content', state.remoteChange.value);
-        } else if (state.remoteChange.field === 'title') {
-          updateState('title', state.remoteChange.value);
-        }
-        showNotification('已应用远程更改', 'info');
-      }
-
-      // 重置冲突状态
-      updateState('isResolvingConflict', false);
-      updateState('remoteChange', null);
-    }
-  }, [state.remoteChange, updateState, showNotification]);
 
   /**
    * 处理内容变化
    */
   const handleContentChange = useCallback((newContent: string) => {
-    // 更新本地编辑时间戳
-    localEditTimestampRef.current = new Date();
-
     updateState('content', newContent);
   }, [updateState]);
 
@@ -755,11 +620,17 @@ export function useArticleEditor () {
   }, [state.content, state.title, state.visibility, state.authorName, state.authorEmail, state.authorUrl, state.graphGenerationConfig, showNotification, updateState]);
 
   /**
-   * 内容变化时自动更新目录
+   * 内容变化时自动更新目录 - 优化版，添加防抖机制
    */
   useEffect(() => {
-    const toc = generateTableOfContents(state.content);
-    updateState('tableOfContents', toc);
+    // 使用防抖机制，避免频繁生成目录导致的性能问题
+    // 500ms防抖，减少频繁换行时的目录生成次数
+    const timer = setTimeout(() => {
+      const toc = generateTableOfContents(state.content);
+      updateState('tableOfContents', toc);
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [state.content, updateState]);
 
   // 为HistoryManager创建稳定的setTitle和setContent函数
@@ -811,7 +682,6 @@ export function useArticleEditor () {
     handleContentChange,
     handleCursorPositionChange,
     handleGenerateGraph,
-    resolveConflict,
     setTitle,
     setContent,
     handleManualSaveDraft,

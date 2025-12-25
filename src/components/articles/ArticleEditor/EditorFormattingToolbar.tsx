@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   Bold, Italic, Strikethrough, Code, List, ListOrdered, Quote, Link2, Image,
   Heading1, Heading2, Heading3, Table, Calculator, GitBranch, BookMarked,
-  BookOpen, BarChart3, AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  BookOpen, BarChart3, LineChart, PieChart, AlignLeft, AlignCenter, AlignRight, AlignJustify,
   RotateCcw, RotateCw,
   Layers2, FileCode2, CheckSquare, Square, Type, Footprints, Highlighter,
   ArrowUpCircle, ArrowDownCircle, Music, ChevronDown, ChevronRight,
@@ -575,6 +575,39 @@ export function EditorFormattingToolbar ({ onFormat, onCopyFormat, onPasteFormat
                 <GitBranch size={14} />
                 <span>Graphviz</span>
               </button>
+              <div className="mt-1 border-t border-gray-200 dark:border-gray-700 pt-1">
+                <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">数据图表</div>
+                <button
+                  onClick={() => {
+                    onFormat('chart-bar');
+                    setShowExtensionDropdown(false);
+                  }}
+                  className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded-md"
+                >
+                  <BarChart3 size={14} />
+                  <span>柱状图</span>
+                </button>
+                <button
+                  onClick={() => {
+                    onFormat('chart-line');
+                    setShowExtensionDropdown(false);
+                  }}
+                  className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded-md"
+                >
+                  <LineChart size={14} />
+                  <span>折线图</span>
+                </button>
+                <button
+                  onClick={() => {
+                    onFormat('chart-pie');
+                    setShowExtensionDropdown(false);
+                  }}
+                  className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded-md"
+                >
+                  <PieChart size={14} />
+                  <span>饼图</span>
+                </button>
+              </div>
             </div>
 
             {/* 数学扩展 */}

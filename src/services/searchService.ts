@@ -1,4 +1,4 @@
-import type { Article, Comment, Tag } from '../types';
+import type { Article, Comment } from '../types';
 import { BaseService } from './baseService';
 import { semanticSearchService, SemanticSearchResult } from './semanticSearchService';
 
@@ -10,7 +10,6 @@ export interface SearchFilters {
   searchType?: 'articles' | 'comments' | 'all';
   sortBy?: 'relevance' | 'date' | 'views' | 'type';
   author?: string;
-  tags?: string[];
   dateRange?: {
     start?: string;
     end?: string;
@@ -76,46 +75,12 @@ export class SearchService extends BaseService {
   }
 
   /**
-   * 根据标签搜索文章，结合关键词和标签过滤
-   * @param query 搜索关键词
-   * @param tagId 标签ID，用于过滤特定标签的文章
-   * @param limit 结果数量限制，默认20
-   * @returns 匹配的文章数组，包含搜索排名
-   */
-  async searchArticlesByTag (
-    query: string,
-    tagId: string,
-    limit = 20
-  ): Promise<(Article & { search_rank: number })[]> {
-    try {
-      this.checkSupabaseClient();
-      // 调用数据库带标签的搜索函数
-      const { data, error } = await this.supabase.rpc('search_articles_by_tag', {
-        query,
-        'tag_id_filter': tagId,
-        'limit_count': limit
-      });
-
-      if (error) {
-        this.handleError(error, '根据标签搜索文章', 'SearchService');
-      }
-
-      // 过滤只返回公开文章
-      const filteredData = (data || []).filter((article: Article) => article.visibility === 'public');
-      return filteredData;
-    } catch (error) {
-      console.error('Failed to search articles by tag:', error);
-      return [];
-    }
-  }
-
-  /**
    * 获取搜索建议，基于部分关键词生成相关推荐
    * @param query 部分搜索关键词
    * @param limit 建议数量限制，默认5
-   * @returns 搜索建议数组，包含文章标题、ID、摘要和标签
+   * @returns 搜索建议数组，包含文章标题、ID和摘要
    */
-  async getSearchSuggestions (query: string, limit = 5): Promise<{ title: string; id: string; excerpt?: string; tags?: string[] }[]> {
+  async getSearchSuggestions (query: string, limit = 5): Promise<{ title: string; id: string; excerpt?: string }[]> {
     try {
       this.checkSupabaseClient();
       // 使用新的搜索建议函数
@@ -128,7 +93,7 @@ export class SearchService extends BaseService {
         this.handleError(error, '获取搜索建议', 'SearchService');
       }
 
-      // 增强建议数据，添加摘要和标签信息
+      // 增强建议数据，添加摘要信息
       if (data && Array.isArray(data)) {
         return data.map(item => {
           // 生成简短摘要（如果没有则截取内容）
@@ -140,14 +105,10 @@ export class SearchService extends BaseService {
             excerpt = item.content.slice(0, 100) + '...';
           }
 
-          // 提取标签名称
-          const tags = item.tags ? item.tags.map((tag: Tag) => tag.name) : [];
-
           return {
             'title': item.title,
             'id': item.id,
-            excerpt,
-            tags
+            excerpt
           };
         });
       }
@@ -295,7 +256,6 @@ export class SearchService extends BaseService {
       searchType = 'articles',
       sortBy = 'relevance',
       author,
-      tags,
       dateRange
     } = filters;
 
@@ -325,12 +285,6 @@ export class SearchService extends BaseService {
         if (author) {
           filteredArticles = filteredArticles.filter(article =>
             article.author_name?.toLowerCase().includes(author.toLowerCase())
-          );
-        }
-
-        if (tags && tags.length > 0) {
-          filteredArticles = filteredArticles.filter(article =>
-            tags.some(tag => article.tags?.some(articleTag => articleTag.name === tag))
           );
         }
 
@@ -523,39 +477,16 @@ export class SearchService extends BaseService {
     try {
       this.checkSupabaseClient();
 
-      // 获取当前文章的标签
-      const { 'data': currentArticle } = await this.supabase
-        .from('articles')
-        .select('tags')
-        .eq('id', articleId)
-        .single();
-
-      if (!currentArticle || !currentArticle.tags || currentArticle.tags.length === 0) {
-        // 如果当前文章没有标签，返回最新文章
-        const { 'data': latestArticles } = await this.supabase
-          .from('articles')
-          .select('*')
-          .neq('id', articleId)
-          .eq('visibility', 'public')
-          .order('created_at', { 'ascending': false })
-          .limit(limit);
-
-        return latestArticles || [];
-      }
-
-      // 基于标签获取相似文章
-      const articleTags = currentArticle.tags.map((tag: Tag) => tag.id);
-
-      const { 'data': similarArticles } = await this.supabase
+      // 返回最新公开文章作为推荐
+      const { 'data': latestArticles } = await this.supabase
         .from('articles')
         .select('*')
         .neq('id', articleId)
         .eq('visibility', 'public')
-        .contains('tags', articleTags)
         .order('created_at', { 'ascending': false })
         .limit(limit);
 
-      return similarArticles || [];
+      return latestArticles || [];
     } catch (error) {
       console.error('Failed to get intelligent recommendations:', error);
       return [];

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useScrollNavigation } from '../../hooks/useScrollNavigation';
 import { TableOfContentsItem, ArticleTableOfContentsProps } from '../../types';
+import { generateTableOfContents as generateToc } from './ArticleEditor/EditorUtils';
 
 function ArticleTableOfContentsImpl ({ contentRef, activeHeadingId, onActiveHeadingChange }: ArticleTableOfContentsProps) {
   const [tableOfContents, setTableOfContents] = useState<TableOfContentsItem[]>([]);
@@ -11,72 +12,39 @@ function ArticleTableOfContentsImpl ({ contentRef, activeHeadingId, onActiveHead
   const { saveHeadingRef } = useScrollNavigation(activeHeadingId, onActiveHeadingChange);
 
   /**
-   * 生成文章目录
+   * 从Markdown内容生成目录
    */
-  const generateTableOfContents = useCallback(() => {
+  const updateTableOfContents = useCallback(() => {
     const contentElement = contentRef.current;
     if (!contentElement) {
       return [];
     }
 
-    const headings = contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    const toc: TableOfContentsItem[] = [];
-    const headingStack: TableOfContentsItem[] = [];
+    // 获取编辑器内容
+    const content = contentElement.textContent || '';
 
-    headings.forEach((heading) => {
-      // 确保标题有id
-      if (!heading.id) {
-        heading.id = heading.textContent?.toLowerCase().replace(/\s+/g, '-')
-          .replace(/[^a-z0-9-]/g, '') || '';
+    // 使用增强的generateTableOfContents函数生成目录
+    const tocItems = generateToc(content);
+
+    // 保存标题引用
+    tocItems.forEach(item => {
+      const heading = document.getElementById(item.id);
+      if (heading) {
+        headingsRef.current.set(item.id, heading);
+        saveHeadingRef(item.id, heading);
       }
 
-      // 保存标题引用 - 确保heading是HTMLElement
-      if (heading instanceof HTMLElement) {
-        headingsRef.current.set(heading.id, heading);
-        saveHeadingRef(heading.id, heading);
-      }
-
-      const level = parseInt(heading.tagName.charAt(1), 10);
-      const text = heading.textContent || '';
-
-      const tocItem: TableOfContentsItem = {
-        'id': heading.id,
-        text,
-        level,
-        'children': []
-      };
-
-      // 构建嵌套目录结构
-      if (level === 1) {
-        toc.push(tocItem);
-        headingStack.length = 0;
-        headingStack.push(tocItem);
-      } else {
-        while (headingStack.length > 0) {
-          const lastItem = headingStack[headingStack.length - 1];
-          if (lastItem && lastItem.level >= level) {
-            headingStack.pop();
-          } else {
-            break;
-          }
+      // 递归处理子项
+      item.children.forEach(child => {
+        const childHeading = document.getElementById(child.id);
+        if (childHeading) {
+          headingsRef.current.set(child.id, childHeading);
+          saveHeadingRef(child.id, childHeading);
         }
-
-        if (headingStack.length > 0) {
-          const lastItem = headingStack[headingStack.length - 1];
-          if (lastItem) {
-            lastItem.children.push(tocItem);
-          } else {
-            toc.push(tocItem);
-          }
-        } else {
-          toc.push(tocItem);
-        }
-
-        headingStack.push(tocItem);
-      }
+      });
     });
 
-    return toc;
+    return tocItems;
   }, [contentRef, saveHeadingRef]);
 
   /**
@@ -84,10 +52,26 @@ function ArticleTableOfContentsImpl ({ contentRef, activeHeadingId, onActiveHead
    */
   useEffect(() => {
     if (contentRef.current) {
-      const toc = generateTableOfContents();
+      const toc = updateTableOfContents();
       setTableOfContents(toc);
     }
-  }, [contentRef, generateTableOfContents]);
+
+    // 监听内容变化（通过MutationObserver）
+    const observer = new MutationObserver(() => {
+      const toc = updateTableOfContents();
+      setTableOfContents(toc);
+    });
+
+    if (contentRef.current) {
+      observer.observe(contentRef.current, {
+        'childList': true,
+        'subtree': true,
+        'characterData': true
+      });
+    }
+
+    return () => observer.disconnect();
+  }, [contentRef, updateTableOfContents]);
 
   /**
    * 滚动到指定标题

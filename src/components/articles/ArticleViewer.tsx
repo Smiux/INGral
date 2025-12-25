@@ -14,7 +14,7 @@ import { CommentsSection } from '../comments/CommentsSection';
 import { ArticleTableOfContents } from './TableOfContents';
 import { RelatedContent } from './RelatedContent';
 import { useChartRendering } from '../../hooks/useChartRendering';
-import { SymPyCellRenderer } from '../editors/SymPyCellRenderer';
+import { NerdamerCellRenderer } from '../editors/NerdamerCellRenderer';
 
 
 export function ArticleViewer () {
@@ -300,8 +300,8 @@ export function ArticleViewer () {
       {/* Comments Section */}
       <CommentsSection articleId={article.id} />
 
-      {/* SymPy Cell Renderer */}
-      <SymPyCellRenderer contentRef={contentRef} />
+      {/* Nerdamer Cell Renderer */}
+      <NerdamerCellRenderer contentRef={contentRef} />
     </article>
   );
 }

@@ -8,7 +8,6 @@ interface CommentItemProps {
   articleId: string;
   depth?: number;
   onVote?: ((_commentId: string, _voteType: 'up' | 'down') => void) | undefined;
-  onEdit?: ((_commentId: string, _content: string) => void) | undefined;
   onDelete?: ((_commentId: string) => void) | undefined;
 }
 
@@ -17,12 +16,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
   articleId,
   depth = 0,
   onVote,
-  onEdit,
   onDelete
 }) => {
   const [isReplying, setIsReplying] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(comment.content);
   const [isLoading, setIsLoading] = useState(false);
 
   // 限制最大嵌套深度为3
@@ -45,19 +41,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleEdit = () => {
-    if (!editContent.trim()) {
-      return;
-    }
-
-    // 暂时不实现编辑功能，因为CommentService中没有updateComment方法
-    if (onEdit) {
-      onEdit(comment.id, editContent);
-    }
-    setIsEditing(false);
-    setIsLoading(false);
   };
 
   const handleDelete = async () => {
@@ -98,37 +81,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               {comment.is_deleted ? (
                 <p className="mt-1 text-sm text-gray-500 italic">[已删除]</p>
               ) : (
-                <>
-                  {isEditing ? (
-                    <div className="mt-1">
-                      <textarea
-                        className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                        value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
-                        rows={3}
-                        placeholder="编辑评论..."
-                      />
-                      <div className="flex justify-end mt-2 space-x-2">
-                        <button
-                          className="px-3 py-1 text-xs text-gray-500 bg-gray-100 rounded-md hover:bg-gray-200"
-                          onClick={() => setIsEditing(false)}
-                          disabled={isLoading}
-                        >
-                          取消
-                        </button>
-                        <button
-                          className="px-3 py-1 text-xs text-white bg-blue-500 rounded-md hover:bg-blue-600"
-                          onClick={handleEdit}
-                          disabled={isLoading}
-                        >
-                          保存
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="mt-1 text-sm text-gray-700">{comment.content}</p>
-                  )}
-                </>
+                <p className="mt-1 text-sm text-gray-700">{comment.content}</p>
               )}
             </div>
           </div>
@@ -150,22 +103,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
               {comment.downvotes}
             </button>
             {!comment.is_deleted && (
-              <>
-                <button
-                  className="text-xs text-gray-500 hover:text-gray-700"
-                  onClick={() => setIsEditing(true)}
-                  disabled={isLoading}
-                >
-                  编辑
-                </button>
-                <button
-                  className="text-xs text-gray-500 hover:text-red-500"
-                  onClick={handleDelete}
-                  disabled={isLoading}
-                >
-                  删除
-                </button>
-              </>
+              <button
+                className="text-xs text-gray-500 hover:text-red-500"
+                onClick={handleDelete}
+                disabled={isLoading}
+              >
+                删除
+              </button>
             )}
           </div>
         </div>
@@ -198,7 +142,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
               articleId={articleId}
               depth={depth + 1}
               onVote={onVote}
-              onEdit={onEdit}
               onDelete={onDelete}
             />
           ))}

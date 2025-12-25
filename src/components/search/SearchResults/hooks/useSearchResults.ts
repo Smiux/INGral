@@ -4,6 +4,12 @@ import { searchService, SearchFilters } from '../../../../services/searchService
 import { SemanticSearchResult } from '../../../../services/semanticSearchService';
 import { exportService } from '../../../../services/exportService';
 
+// 从Article中扩展的搜索结果项
+interface SearchResultItem extends Article {
+  search_rank: number;
+}
+
+// 评论搜索结果项
 interface CommentSearchResult {
   id: string;
   article_id: string;
@@ -14,11 +20,7 @@ interface CommentSearchResult {
   updated_at: string;
 }
 
-interface SearchResultItem extends Article {
-  search_rank: number;
-}
-
-export const useSearchResults = (query: string, tagId?: string, limit = 20) => {
+export const useSearchResults = (query: string, limit = 20) => {
   const [articleResults, setArticleResults] = useState<SearchResultItem[]>([]);
   const [commentResults, setCommentResults] = useState<CommentSearchResult[]>([]);
   const [semanticResults, setSemanticResults] = useState<SemanticSearchResult[]>([]);
@@ -36,7 +38,7 @@ export const useSearchResults = (query: string, tagId?: string, limit = 20) => {
   const [exportLoading, setExportLoading] = useState(false);
 
   // 搜索结果
-  const search = useCallback(async (newQuery: string, newTagId?: string, resetResults = true) => {
+  const search = useCallback(async (newQuery: string, resetResults = true) => {
     if (!newQuery.trim()) {
       setArticleResults([]);
       setCommentResults([]);
@@ -53,11 +55,6 @@ export const useSearchResults = (query: string, tagId?: string, limit = 20) => {
         searchType,
         sortBy
       };
-
-      // 如果有标签ID，添加到标签筛选中
-      if (newTagId && newTagId !== '') {
-        filters.tags = [newTagId];
-      }
 
       let results: SemanticSearchResult[] | ((Article | Comment) & { search_rank: number })[] = [];
 
@@ -99,9 +96,8 @@ export const useSearchResults = (query: string, tagId?: string, limit = 20) => {
         if (resetResults && semanticSearchResults.length > 0) {
           // 基于搜索结果获取相关推荐
           const topResultIds = semanticSearchResults.slice(0, 3).map(result => result.id);
-          // 这里可以调用相关推荐API，暂时使用模拟数据
 
-          // Extract the related results calculation into a separate function to reduce nesting
+          // 计算相关结果
           const calculateRelatedResults = () => {
             // 1. 按类型分组
             const conceptResults = semanticSearchResults.filter(result => result.type === 'concept' && !topResultIds.includes(result.id));
@@ -127,20 +123,12 @@ export const useSearchResults = (query: string, tagId?: string, limit = 20) => {
 
             // 4. 最终按相关度重新排序
             return diversifiedResults
-              .sort((a, b) => b.semantic_score - a.semantic_score)
-              .map(result => ({
-                ...result,
-                'type': result.type === 'concept' ? 'concept' : 'article' as const
-              }));
+              .sort((a, b) => b.semantic_score - a.semantic_score);
           };
 
-          setTimeout(() => {
-            const mockRelatedResults: SemanticSearchResult[] = calculateRelatedResults().map(result => ({
-              ...result,
-              'type': result.type as 'article' | 'concept' | 'comment'
-            }));
-            setRelatedResults(mockRelatedResults);
-          }, 500);
+          // 直接计算并设置相关结果，移除不必要的延迟
+          const calculatedRelatedResults = calculateRelatedResults();
+          setRelatedResults(calculatedRelatedResults);
         }
       } else {
         // 传统搜索结果
@@ -177,93 +165,76 @@ export const useSearchResults = (query: string, tagId?: string, limit = 20) => {
     }
   }, [limit, sortBy, searchType, searchMode]);
 
-  // 监听搜索关键词和标签变化
+  // 监听搜索关键词变化
   useEffect(() => {
     if (query !== searchKey) {
       setSearchKey(query);
-      search(query, tagId, true);
+      search(query, true);
     }
-  }, [query, tagId, search, searchKey]);
+  }, [query, search, searchKey]);
 
   // 加载更多文章结果
   const loadMoreArticles = useCallback(() => {
     if (!loading && hasMoreArticles && query.trim()) {
-      search(query, tagId, false);
+      search(query, false);
     }
-  }, [loading, hasMoreArticles, query, tagId, search]);
+  }, [loading, hasMoreArticles, query, search]);
 
   // 加载更多评论结果
   const loadMoreComments = useCallback(() => {
     if (!loading && hasMoreComments && query.trim()) {
-      search(query, tagId, false);
+      search(query, false);
     }
-  }, [loading, hasMoreComments, query, tagId, search]);
+  }, [loading, hasMoreComments, query, search]);
 
   // 处理搜索类型切换
   const handleSearchTypeChange = useCallback((type: 'articles' | 'comments' | 'all') => {
     setSearchType(type);
-    search(query, tagId, true);
-  }, [search, query, tagId]);
+    search(query, true);
+  }, [search, query]);
 
   // 处理排序方式切换
   const handleSortByChange = useCallback((sort: 'relevance' | 'date' | 'views' | 'type') => {
     setSortBy(sort);
     // 重新搜索以应用新的排序方式
-    search(query, tagId, true);
-  }, [search, query, tagId]);
+    search(query, true);
+  }, [search, query]);
+
+  // 通用导出处理函数
+  const handleExport = useCallback(async (
+    exportFunction: (_results: SemanticSearchResult[], _query: string) => Promise<void>,
+    exportType: string
+  ) => {
+    setExportLoading(true);
+    try {
+      const resultsToExport = searchMode === 'semantic' || searchMode === 'enhanced'
+        ? semanticResults
+        : articleResults as unknown as SemanticSearchResult[];
+      await exportFunction(resultsToExport, query);
+    } catch (err) {
+      console.error(`导出${exportType}失败:`, err);
+      setError(`导出${exportType}失败`);
+    } finally {
+      setExportLoading(false);
+    }
+  }, [searchMode, semanticResults, articleResults, query]);
 
   // 结果导出功能
   const exportResultsToJson = useCallback(async () => {
-    setExportLoading(true);
-    try {
-      const resultsToExport = searchMode === 'semantic' || searchMode === 'enhanced' ? semanticResults : articleResults as unknown as SemanticSearchResult[];
-      await exportService.exportSearchResultsAsJsonFile(resultsToExport, query);
-    } catch (err) {
-      console.error('导出JSON失败:', err);
-      setError('导出JSON失败');
-    } finally {
-      setExportLoading(false);
-    }
-  }, [searchMode, semanticResults, articleResults, query]);
+    await handleExport(exportService.exportSearchResultsAsJsonFile, 'JSON');
+  }, [handleExport]);
 
   const exportResultsToCsv = useCallback(async () => {
-    setExportLoading(true);
-    try {
-      const resultsToExport = searchMode === 'semantic' || searchMode === 'enhanced' ? semanticResults : articleResults as unknown as SemanticSearchResult[];
-      await exportService.exportSearchResultsAsCsvFile(resultsToExport, query);
-    } catch (err) {
-      console.error('导出CSV失败:', err);
-      setError('导出CSV失败');
-    } finally {
-      setExportLoading(false);
-    }
-  }, [searchMode, semanticResults, articleResults, query]);
+    await handleExport(exportService.exportSearchResultsAsCsvFile, 'CSV');
+  }, [handleExport]);
 
   const exportResultsToGraphml = useCallback(async () => {
-    setExportLoading(true);
-    try {
-      const resultsToExport = searchMode === 'semantic' || searchMode === 'enhanced' ? semanticResults : articleResults as unknown as SemanticSearchResult[];
-      await exportService.exportSearchResultsAsGraphmlFile(resultsToExport, query);
-    } catch (err) {
-      console.error('导出GraphML失败:', err);
-      setError('导出GraphML失败');
-    } finally {
-      setExportLoading(false);
-    }
-  }, [searchMode, semanticResults, articleResults, query]);
+    await handleExport(exportService.exportSearchResultsAsGraphmlFile, 'GraphML');
+  }, [handleExport]);
 
   const exportResultsToPdf = useCallback(async () => {
-    setExportLoading(true);
-    try {
-      const resultsToExport = searchMode === 'semantic' || searchMode === 'enhanced' ? semanticResults : articleResults as unknown as SemanticSearchResult[];
-      await exportService.exportSearchResultsToPdf(resultsToExport, query);
-    } catch (err) {
-      console.error('导出PDF失败:', err);
-      setError('导出PDF失败');
-    } finally {
-      setExportLoading(false);
-    }
-  }, [searchMode, semanticResults, articleResults, query]);
+    await handleExport(exportService.exportSearchResultsToPdf, 'PDF');
+  }, [handleExport]);
 
   return {
     // 状态

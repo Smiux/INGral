@@ -4,7 +4,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Tag, MessageSquare, Eye, Clock, Users } from 'lucide-react';
+import { ChevronRight, MessageSquare, Eye, Clock, Users } from 'lucide-react';
 import type { DiscussionCategory, DiscussionTopic } from '../types';
 import { discussionService } from '../services/discussionService';
 
@@ -17,8 +17,6 @@ export function DiscussionPage () {
   const [topics, setTopics] = useState<DiscussionTopic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'time' | 'random'>('time');
-  const [selectedTags, setSelectedTags] = useState<number[]>([]);
-  const [availableTags, setAvailableTags] = useState<{ id: number; name: string }[]>([]);
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
@@ -39,18 +37,6 @@ export function DiscussionPage () {
   };
 
   /**
-   * 加载标签
-   */
-  const loadTags = async () => {
-    try {
-      const data = await discussionService.getTags();
-      setAvailableTags(data.map(tag => ({ 'id': tag.id, 'name': tag.name })));
-    } catch (error) {
-      console.error('Failed to load tags:', error);
-    }
-  };
-
-  /**
    * 加载主题列表
    */
   const loadTopics = useCallback(async () => {
@@ -66,7 +52,6 @@ export function DiscussionPage () {
           'limit': pageSize,
           offset,
           sortBy,
-          'tags': selectedTags,
           searchQuery
         });
 
@@ -80,7 +65,7 @@ export function DiscussionPage () {
     } finally {
       setIsLoading(false);
     }
-  }, [categories, selectedCategory, currentPage, pageSize, sortBy, selectedTags, searchQuery, setTopics, setTotalTopics, setIsLoading]);
+  }, [categories, selectedCategory, currentPage, pageSize, sortBy, searchQuery, setTopics, setTotalTopics, setIsLoading]);
 
   /**
    * 处理分类切换
@@ -90,33 +75,20 @@ export function DiscussionPage () {
   };
 
   /**
-   * 处理标签切换
-   */
-  const handleTagToggle = (tagId: number) => {
-    setSelectedTags(prev => {
-      if (prev.includes(tagId)) {
-        return prev.filter(id => id !== tagId);
-      }
-      return [...prev, tagId];
-    });
-  };
-
-  /**
    * 初始化数据加载
    */
   useEffect(() => {
     loadCategories();
-    loadTags();
   }, []);
 
   /**
-   * 当分类、排序方式、标签或搜索查询变化时重新加载主题
+   * 当分类、排序方式或搜索查询变化时重新加载主题
    */
   useEffect(() => {
     // 重置到第一页
     setCurrentPage(1);
     loadTopics();
-  }, [selectedCategory, sortBy, selectedTags, categories, searchQuery, loadTopics, setCurrentPage]);
+  }, [selectedCategory, sortBy, categories, searchQuery, loadTopics, setCurrentPage]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -145,26 +117,6 @@ export function DiscussionPage () {
                   </Link>
                 ))}
               </nav>
-
-              {/* 标签过滤 */}
-              <div className="p-4 border-t border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Filter by Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {availableTags.slice(0, 10).map(tag => (
-                    <button
-                      key={tag.id}
-                      onClick={() => handleTagToggle(tag.id)}
-                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${selectedTags.includes(tag.id)
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      } transition-colors`}
-                    >
-                      <Tag className="w-3 h-3" />
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
 

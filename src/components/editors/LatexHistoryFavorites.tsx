@@ -18,6 +18,77 @@ interface LatexHistoryFavoritesProps {
  * @param onRemoveRecent - 移除最近公式的回调
  * @param onToggleFavorite - 切换收藏状态的回调
  */
+// 条件渲染历史和收藏列表组件
+const FormulaList: React.FC<{
+  formulas: string[];
+  title: string;
+  isFavorite?: boolean;
+  onFormulaClick: (_formula: string) => void;
+  onToggleFavorite?: (_formula: string) => void;
+  onRemoveRecent?: (_index: number) => void;
+}> = ({
+  formulas,
+  title,
+  isFavorite = false,
+  onFormulaClick,
+  onToggleFavorite,
+  onRemoveRecent
+}) => {
+  if (formulas.length === 0) {
+    return (
+      <p className="text-xs text-gray-500 dark:text-gray-400">暂无{title}</p>
+    );
+  }
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
+        {title}
+      </h3>
+      <div className="space-y-2">
+        {formulas.map((formula, index) => (
+          <div
+            key={formula}
+            className={`flex items-center justify-between p-3 border border-gray-300 dark:border-gray-600 rounded ${isFavorite ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}
+          >
+            <button
+              className="flex-1 text-left text-xs font-mono text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
+              onClick={() => onFormulaClick(formula)}
+              title={formula}
+            >
+              {formula}
+            </button>
+            <div className="flex items-center gap-2">
+              {onToggleFavorite && (
+                <button
+                  className={`${isFavorite ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'} transition-colors`}
+                  onClick={() => onToggleFavorite(formula)}
+                  title={isFavorite ? '取消收藏' : '添加到收藏'}
+                >
+                  {isFavorite ? (
+                    <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
+                  ) : (
+                    <StarOff className="w-4 h-4" />
+                  )}
+                </button>
+              )}
+              {onRemoveRecent && (
+                <button
+                  className="text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors"
+                  onClick={() => onRemoveRecent(index)}
+                  title="移除"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export function LatexHistoryFavorites ({
   recentFormulas,
   favoriteFormulas,
@@ -28,79 +99,22 @@ export function LatexHistoryFavorites ({
   return (
     <div className="history-favorites p-4 space-y-6">
       {/* 最近使用的公式 */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
-          最近使用
-        </h3>
-        {recentFormulas.length === 0 ? (
-          <p className="text-xs text-gray-500 dark:text-gray-400">暂无最近使用的公式</p>
-        ) : (
-          <div className="space-y-2">
-            {recentFormulas.map((formula, index) => (
-              <div key={index} className="recent-formula flex items-center justify-between p-3 border border-gray-300 dark:border-gray-600 rounded">
-                <button
-                  className="flex-1 text-left text-xs font-mono text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
-                  onClick={() => onFormulaClick(formula)}
-                  title={formula}
-                >
-                  {formula}
-                </button>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="text-gray-500 dark:text-gray-400 hover:text-yellow-500 transition-colors"
-                    onClick={() => onToggleFavorite(formula)}
-                    title={favoriteFormulas.includes(formula) ? '取消收藏' : '添加到收藏'}
-                  >
-                    {favoriteFormulas.includes(formula) ? (
-                      <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
-                    ) : (
-                      <StarOff className="w-4 h-4" />
-                    )}
-                  </button>
-                  <button
-                    className="text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors"
-                    onClick={() => onRemoveRecent(index)}
-                    title="移除"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <FormulaList
+        formulas={recentFormulas}
+        title="最近使用"
+        onFormulaClick={onFormulaClick}
+        onToggleFavorite={onToggleFavorite}
+        onRemoveRecent={onRemoveRecent}
+      />
 
       {/* 收藏的公式 */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
-          我的收藏
-        </h3>
-        {favoriteFormulas.length === 0 ? (
-          <p className="text-xs text-gray-500 dark:text-gray-400">暂无收藏的公式</p>
-        ) : (
-          <div className="space-y-2">
-            {favoriteFormulas.map((formula, index) => (
-              <div key={index} className="favorite-formula flex items-center justify-between p-3 border border-gray-300 dark:border-gray-600 rounded bg-yellow-50 dark:bg-yellow-900/20">
-                <button
-                  className="flex-1 text-left text-xs font-mono text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
-                  onClick={() => onFormulaClick(formula)}
-                  title={formula}
-                >
-                  {formula}
-                </button>
-                <button
-                  className="text-yellow-500 hover:text-red-500 transition-colors"
-                  onClick={() => onToggleFavorite(formula)}
-                  title="取消收藏"
-                >
-                  <Star className="w-4 h-4" fill="currentColor" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <FormulaList
+        formulas={favoriteFormulas}
+        title="我的收藏"
+        isFavorite={true}
+        onFormulaClick={onFormulaClick}
+        onToggleFavorite={onToggleFavorite}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { BaseService } from './baseService';
 import type { Article, ArticleLink } from '../types/index';
 import { extractWikiLinks, titleToSlug, extractFormulas } from '../utils/markdown';
 import { calculateEditLimitStatus, buildUpdateWithEditLimit } from '../utils/editLimitUtils';
-import { validateTitle, validateContent, validateAuthorInfo, validateVisibility, validateTags } from '../utils/inputValidation';
+import { validateTitle, validateContent, validateAuthorInfo, validateVisibility } from '../utils/inputValidation';
 
 /**
  * 文章服务类，处理文章相关操作
@@ -54,13 +54,8 @@ export class ArticleService extends BaseService {
   /**
    * 获取所有文章
    * @param filterPublic 是否只获取公开文章
-   * @param tagId 标签ID（可选）
    */
-  async getAllArticles (filterPublic: boolean = false, tagId?: string): Promise<Article[]> {
-    if (tagId) {
-      return this.getArticlesByTag(tagId, filterPublic);
-    }
-
+  async getAllArticles (filterPublic: boolean = false): Promise<Article[]> {
     try {
       let query = this.supabase.from(this.TABLE_NAME).select('*');
 
@@ -77,37 +72,6 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * 按标签获取文章
-   * @param tagId 标签ID
-   * @param filterPublic 是否只获取公开文章
-   */
-  async getArticlesByTag (tagId: string, filterPublic: boolean = false): Promise<Article[]> {
-    try {
-      const result = await this.supabase.from('article_tags')
-        .select('article:article_id(*)')
-        .eq('tag_id', tagId);
-
-      const articlesWithTags = result.data || [];
-      let articles = articlesWithTags
-        .filter((item) => item?.article !== undefined && typeof item.article === 'object' && !Array.isArray(item.article))
-        .map((item) => {
-          const article = item.article as unknown;
-          return article as Article;
-        });
-
-      // 如果需要过滤公共文章
-      if (filterPublic) {
-        articles = articles.filter(article => article.visibility === 'public');
-      }
-
-      return articles;
-    } catch (error) {
-      this.handleError(error, 'ArticleService', '按标签获取文章');
-      return [];
-    }
-  }
-
-  /**
    * 创建文章
    * @param title 文章标题
    * @param content 文章内容
@@ -115,7 +79,6 @@ export class ArticleService extends BaseService {
    * @param authorName 作者名称
    * @param authorEmail 作者邮箱
    * @param authorUrl 作者URL
-   * @param tags 标签ID数组
    */
   async createArticle ({
     title,
@@ -123,8 +86,7 @@ export class ArticleService extends BaseService {
     visibility = 'public',
     authorName,
     authorEmail,
-    authorUrl,
-    tags
+    authorUrl
   }: {
     title: string;
     content: string;
@@ -132,7 +94,6 @@ export class ArticleService extends BaseService {
     authorName?: string;
     authorEmail?: string;
     authorUrl?: string;
-    tags?: string[];
   }): Promise<Article | null> {
     // 验证输入
     const titleValidation = validateTitle(title);
@@ -153,11 +114,6 @@ export class ArticleService extends BaseService {
     const authorValidation = validateAuthorInfo({ 'name': authorName, 'email': authorEmail, 'url': authorUrl });
     if (!authorValidation.isValid) {
       throw new Error(authorValidation.message);
-    }
-
-    const tagsValidation = validateTags(tags);
-    if (!tagsValidation.isValid) {
-      throw new Error(tagsValidation.message);
     }
 
     // 使用清理后的内容
@@ -208,16 +164,6 @@ export class ArticleService extends BaseService {
         'is_published': true
       });
 
-      // 如果提供了标签，处理标签关联
-      if (tags && tags.length > 0) {
-        for (const tagId of tags) {
-          await this.supabase.from('article_tags').insert({
-            'article_id': article.id,
-            'tag_id': tagId
-          });
-        }
-      }
-
       // 处理文章链接
       const links = extractWikiLinks(content);
       for (const linkedTitle of links) {
@@ -230,7 +176,6 @@ export class ArticleService extends BaseService {
       // 提取并处理数学公式
       const formulas = extractFormulas(content);
       if (formulas.length > 0) {
-        // 这里可以添加公式存储逻辑，目前我们将公式添加到article对象中
         article.formulas = formulas;
       }
 
@@ -250,7 +195,6 @@ export class ArticleService extends BaseService {
    * @param authorName 作者名称
    * @param authorEmail 作者邮箱
    * @param authorUrl 作者URL
-   * @param tags 标签ID数组
    */
   async updateArticle ({
     id,
@@ -259,8 +203,7 @@ export class ArticleService extends BaseService {
     visibility,
     authorName,
     authorEmail,
-    authorUrl,
-    tags
+    authorUrl
   }: {
     id: string;
     title: string;
@@ -269,7 +212,6 @@ export class ArticleService extends BaseService {
     authorName?: string;
     authorEmail?: string;
     authorUrl?: string;
-    tags?: string[];
   }): Promise<Article | null> {
     // 验证输入
     const titleValidation = validateTitle(title);
@@ -292,11 +234,6 @@ export class ArticleService extends BaseService {
     const authorValidation = validateAuthorInfo({ 'name': authorName, 'email': authorEmail, 'url': authorUrl });
     if (!authorValidation.isValid) {
       throw new Error(authorValidation.message);
-    }
-
-    const tagsValidation = validateTags(tags);
-    if (!tagsValidation.isValid) {
-      throw new Error(tagsValidation.message);
     }
 
     // 使用清理后的内容
@@ -350,7 +287,7 @@ export class ArticleService extends BaseService {
     updateData.status = 'published';
 
     try {
-      // 如果不是离线文章，尝试更新到数据库
+      // 如果不是离线文章，获取当前文章信息以计算编辑限制
       if (!isOfflineArticle) {
         // 1. 获取当前文章内容，创建版本快照
         const latestArticle = await this.getArticleById(id);
@@ -389,21 +326,14 @@ export class ArticleService extends BaseService {
           throw new Error('Article not found');
         }
 
-        // 3. 如果提供了标签，更新文章标签
-        if (tags !== undefined) {
-          await this.updateArticleTags(id, tags);
-        }
-
-        // 4. 处理文章链接更新
+        // 3. 处理文章链接更新
         await this.updateArticleLinks(id, content);
 
-        // 5. 提取并处理数学公式
+        // 4. 提取并处理数学公式
         const formulas = extractFormulas(content);
         if (formulas.length > 0) {
           article.formulas = formulas;
         }
-
-
 
         return article;
       }
@@ -418,39 +348,6 @@ export class ArticleService extends BaseService {
    * 删除文章
    * @param id 文章ID
    */
-  /**
-   * 更新文章标签
-   * @param id 文章ID
-   * @param tags 标签ID数组
-   */
-  async updateArticleTags (id: string, tags?: string[]): Promise<void> {
-    if (!tags || tags.length === 0) {
-      // 如果没有提供标签，删除所有现有标签关联
-      await this.supabase.from('article_tags').delete()
-        .eq('article_id', id);
-      return;
-    }
-
-    // 开始事务
-    const { error } = await this.supabase.rpc('update_article_tags', {
-      'p_article_id': id,
-      'p_tags': tags
-    });
-
-    if (error) {
-      // 如果存储过程不存在，使用传统方式更新
-      await this.supabase.from('article_tags').delete()
-        .eq('article_id', id);
-
-      for (const tagId of tags) {
-        await this.supabase.from('article_tags').insert({
-          'article_id': id,
-          'tag_id': tagId
-        });
-      }
-    }
-  }
-
   async deleteArticle (id: string): Promise<boolean> {
     return this.delete(this.TABLE_NAME, id);
   }

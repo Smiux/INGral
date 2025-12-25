@@ -730,8 +730,8 @@ export const handleFormat = (params: HandleFormatParams) => {
         setLatexEditorOpen(true);
       }
       return;
-    case 'sympy-cell':
-      newText = '\n\n[sympy-cell]\n# SymPy计算单元格\n# 示例: integrate(x**2, x)\n\n[/sympy-cell]\n\n';
+    case 'nerdamer-cell':
+      newText = '\n\n[nerdamer-cell]\n# Nerdamer计算单元格\n# 示例: integrate(x^2, x) 或 diff(x^2, x)\n\n[/nerdamer-cell]\n\n';
       break;
     case 'mermaid':
       newText = '```mermaid\ngraph TD\n    A[开始] --> B{条件A}\n    B -->|是| C[结果A]\n    B -->|否| D[结果B]\n    C --> E[结束]\n    D --> E\n```';
@@ -818,17 +818,24 @@ export const handleFormat = (params: HandleFormatParams) => {
       break;
     case 'math-numbered':
       // 公式编号输入已移至专门的数学公式编辑器组件
-      newText = `$$\n${selectedText || 'E = mc^2'}\n$$\\tag{1}`;
+      newText = `$$
+${selectedText || 'E = mc^2'}
+$$\tag{1}`;
+      break;
+    case 'chart-bar':
+      newText = '\n```chart-bar\n{\n  "labels": ["一月", "二月", "三月", "四月", "五月", "六月"],\n  "datasets": [\n    {\n      "label": "数据集1",\n      "data": [65, 59, 80, 81, 56, 55],\n      "backgroundColor": "rgba(75, 192, 192, 0.5)",\n      "borderColor": "rgba(75, 192, 192, 1)",\n      "borderWidth": 1\n    }\n  ]\n}\n```\n';
+      break;
+    case 'chart-line':
+      newText = '\n```chart-line\n{\n  "labels": ["一月", "二月", "三月", "四月", "五月", "六月"],\n  "datasets": [\n    {\n      "label": "数据集1",\n      "data": [65, 59, 80, 81, 56, 55],\n      "borderColor": "rgba(75, 192, 192, 1)",\n      "backgroundColor": "rgba(75, 192, 192, 0.1)",\n      "tension": 0.3\n    }\n  ]\n}\n```\n';
+      break;
+    case 'chart-pie':
+      newText = '\n```chart-pie\n[\n  { "name": "直接访问", "value": 45 },\n  { "name": "搜索引擎", "value": 30 },\n  { "name": "社交媒体", "value": 15 },\n  { "name": "外部链接", "value": 10 }\n]\n```\n';
       break;
     case 'undo':
-      // 触发浏览器的撤销操作
-      textarea.focus();
-      document.execCommand('undo');
+      // 撤销操作已由 HistoryManager 处理
       return;
     case 'redo':
-      // 触发浏览器的重做操作
-      textarea.focus();
-      document.execCommand('redo');
+      // 重做操作已由 HistoryManager 处理
       return;
     default:
       newText = selectedText;
@@ -967,55 +974,87 @@ export const pasteFormat = (formatType: string, content: string, setContent: (_c
 };
 
 export const generateTableOfContents = (content: string) => {
-  // 从内容中提取标题
-  const headings = content.split('\n').filter(line => (/^#{1,6}\s+/).test(line));
+  // 从内容中提取标题，支持更复杂的标题格式
+  const headingRegex = /^(#{1,6})\s+([^\n]+)$/gm;
+  const headings: Array<{ level: number; text: string }> = [];
+  let match;
+
+  // 使用正则表达式匹配所有标题
+  while ((match = headingRegex.exec(content)) !== null) {
+    if (match[1] && match[2]) {
+      const level = match[1].length;
+      let text = match[2].trim();
+
+      // 清理标题文本，移除Markdown格式（粗体、斜体、链接等）
+      text = text
+        // 移除粗体 **text** 或 __text__
+        .replace(/\*{2}([^*]+)\*{2}|_{2}([^_]+)_{2}/g, '$1$2')
+        // 移除斜体 *text* 或 _text_
+        .replace(/\*([^*]+)\*|_([^_]+)_/g, '$1$2')
+        // 移除链接 [text](url)
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        // 移除行内代码 `text`
+        .replace(/`([^`]+)`/g, '$1')
+        // 移除脚注 [^text]
+        .replace(/\[\^[^\]]+\]/g, '')
+        // 移除HTML标签
+        .replace(/<[^>]+>/g, '')
+        // 移除特殊字符
+        .replace(/[`*_{}[]()#+.!,-]/g, '')
+        .trim();
+
+      headings.push({ level, text });
+    }
+  }
 
   interface TableOfContentsItem {
     id: string;
     text: string;
     level: number;
     children: TableOfContentsItem[];
+    // 添加额外的元数据
+    'line': number;
+    'wordCount': number;
   }
 
   const tocItems: TableOfContentsItem[] = [];
   const headingStack: TableOfContentsItem[] = [];
 
-  headings.forEach(line => {
-    const match = line.match(/^(#{1,6})\s+(.*)$/);
-    if (match && match[1] && match[2]) {
-      const level = match[1].length;
-      const text = match[2].trim();
-      const id = text.toLowerCase().replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '');
+  headings.forEach((heading, index) => {
+    const { level, text } = heading;
+    // 生成更可靠的ID，避免重复
+    const id = `heading-${index + 1}-${text.toLowerCase().replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')}`;
 
-      const tocItem: TableOfContentsItem = {
-        id,
-        text,
-        level,
-        'children': []
-      };
+    const tocItem: TableOfContentsItem = {
+      id,
+      text,
+      level,
+      'children': [],
+      'line': index + 1,
+      'wordCount': text.split(/\s+/).length
+    };
 
-      // 构建嵌套目录结构
-      if (level === 1) {
-        tocItems.push(tocItem);
-        headingStack.length = 0;
-        headingStack.push(tocItem);
-      } else {
-        while (headingStack.length > 0) {
-          const lastItem = headingStack[headingStack.length - 1];
-          if (lastItem && lastItem.level < level) {
-            lastItem.children.push(tocItem);
-            headingStack.push(tocItem);
-            break;
-          } else {
-            headingStack.pop();
-          }
-        }
-
-        if (headingStack.length === 0) {
-          tocItems.push(tocItem);
+    // 构建嵌套目录结构
+    if (level === 1) {
+      tocItems.push(tocItem);
+      headingStack.length = 0;
+      headingStack.push(tocItem);
+    } else {
+      while (headingStack.length > 0) {
+        const lastItem = headingStack[headingStack.length - 1];
+        if (lastItem && lastItem.level < level) {
+          lastItem.children.push(tocItem);
           headingStack.push(tocItem);
+          break;
+        } else {
+          headingStack.pop();
         }
+      }
+
+      if (headingStack.length === 0) {
+        tocItems.push(tocItem);
+        headingStack.push(tocItem);
       }
     }
   });

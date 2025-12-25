@@ -6,7 +6,7 @@ import type { ChartData, ChartOptions, ChartEvent, ActiveElement } from 'chart.j
 interface BarChartProps {
   data: ChartData<'bar'>;
   height?: number;
-  options?: Record<string, unknown>;
+  options?: ChartOptions;
   className?: string;
   horizontal?: boolean;
   onBarClick?: (_index: number, _value: number, _label: string) => void;

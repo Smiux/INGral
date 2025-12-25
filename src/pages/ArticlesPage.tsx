@@ -1,22 +1,17 @@
 /**
  * 文章列表页面
- * 展示所有文章，支持搜索功能和标签过滤
+ * 展示所有文章，支持搜索功能
  */
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, X } from 'lucide-react';
-import type { Article, Tag } from '../types';
+import { ArrowLeft, Plus } from 'lucide-react';
+import type { Article } from '../types';
 import { fetchAllArticles } from '../utils/article';
-import { TagCloud } from '../components/tags';
-import { tagService } from '../services/tagService';
 
 export function ArticlesPage () {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
-  const [isLoadingTags, setIsLoadingTags] = useState(true);
 
   /**
    * 加载文章列表
@@ -39,50 +34,12 @@ export function ArticlesPage () {
   }, []);
 
   /**
-   * 加载标签列表
-   */
-  useEffect(() => {
-    const loadTags = async () => {
-      try {
-        const data = await tagService.getPopularTags(20);
-        setTags(data);
-      } catch (error) {
-        console.error('Failed to load tags:', error);
-        setTags([]);
-      } finally {
-        setIsLoadingTags(false);
-      }
-    };
-
-    loadTags();
-  }, []);
-
-  /**
-   * 根据搜索查询和标签过滤文章
+   * 根据搜索查询过滤文章
    */
   const filteredArticles = articles.filter((article) => {
     // 标题搜索过滤
-    const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase());
-
-    // 标签过滤
-    const matchesTag = !selectedTag || article.tags?.some(tag => tag.id === selectedTag.id);
-
-    return matchesSearch && matchesTag;
+    return article.title.toLowerCase().includes(searchQuery.toLowerCase());
   });
-
-  /**
-   * 处理标签点击
-   */
-  const handleTagClick = (tag: Tag) => {
-    setSelectedTag(tag);
-  };
-
-  /**
-   * 清除选中的标签
-   */
-  const clearSelectedTag = () => {
-    setSelectedTag(null);
-  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -117,39 +74,6 @@ export function ArticlesPage () {
         />
       </div>
 
-      {/* 标签云 */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">热门标签</h2>
-        {isLoadingTags ? (
-          <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        ) : (
-          <TagCloud
-            tags={tags}
-            selectedTagId={selectedTag?.id}
-            onTagClick={handleTagClick}
-            maxTags={20}
-          />
-        )}
-      </div>
-
-      {/* 选中的标签 */}
-      {selectedTag && (
-        <div className="flex items-center gap-2 mb-8 p-3 bg-blue-50 rounded-lg">
-          <span className="text-sm font-medium text-blue-800">
-            已选择标签: <span className="font-semibold">{selectedTag.name}</span>
-          </span>
-          <button
-            onClick={clearSelectedTag}
-            className="flex items-center justify-center w-5 h-5 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full transition"
-            aria-label="清除选中的标签"
-          >
-            <X className="w-3 h-3" />
-          </button>
-        </div>
-      )}
-
       {/* 加载状态 */}
       {isLoading && (
         <div className="flex justify-center py-12">
@@ -174,7 +98,7 @@ export function ArticlesPage () {
                   <p className="text-gray-600 mb-4 line-clamp-2">
                     {article.content.substring(0, 150)}...
                   </p>
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-3">
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                     <span>{article.view_count} views</span>
                     <span>
                       Updated{
@@ -188,35 +112,6 @@ export function ArticlesPage () {
                       }
                     </span>
                   </div>
-
-                  {/* 文章标签 */}
-                  {article.tags && article.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {article.tags.slice(0, 3).map(tag => (
-                        <button
-                          key={tag.id}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleTagClick(tag);
-                          }}
-                          className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-                          style={{
-                            'backgroundColor': `${tag.color}10`,
-                            'color': tag.color,
-                            'border': `1px solid ${tag.color}30`
-                          }}
-                        >
-                          {tag.name}
-                        </button>
-                      ))}
-                      {article.tags.length > 3 && (
-                        <span className="text-xs text-gray-500">
-                          +{article.tags.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             </Link>

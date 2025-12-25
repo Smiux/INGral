@@ -780,6 +780,26 @@ function processMermaidDiagrams (text: string): string {
  * 处理 Markdown 文本中的 Chart.js 图表
  * @param text Markdown 文本
  */
+function processChartJsCharts (text: string): string {
+  // 支持 chart-bar, chart-line, chart-pie 三种类型
+  return text.replace(/```(chart-bar|chart-line|chart-pie)([\s\S]*?)```/g, (_match: string, chartType: string, code: string) => {
+    // 清理代码内容，移除首尾空白
+    const cleanedCode = code.trim();
+
+    // 生成唯一ID
+    const id = `chartjs-chart-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    // 返回包含Chart.js图表的HTML，使用自定义属性标记
+    return `
+      <canvas class="chartjs-placeholder" id="${id}" data-chart-type="${chartType}" data-chart-config="${encodeURIComponent(cleanedCode)}"></canvas>
+    `;
+  });
+}
+
+/**
+ * 处理 Markdown 文本中的 Chart.js 图表
+ * @param text Markdown 文本
+ */
 function processChartJsDiagrams (text: string): string {
   return text.replace(/\[chartjs\]([\s\S]*?)\[\/chartjs\]/g, (_match: string, config: string) => {
     // 清理配置内容，移除首尾空白
@@ -796,20 +816,20 @@ function processChartJsDiagrams (text: string): string {
 }
 
 /**
- * 处理 Markdown 文本中的 SymPy 计算单元格
+ * 处理 Markdown 文本中的 Nerdamer 计算单元格
  * @param text Markdown 文本
  */
-function processSymPyCells (text: string): string {
-  return text.replace(/\[sympy-cell\]([\s\S]*?)\[\/sympy-cell\]/g, (_match: string, code: string) => {
+function processNerdamerCells (text: string): string {
+  return text.replace(/\[nerdamer-cell\]([\s\S]*?)\[\/nerdamer-cell\]/g, (_match: string, code: string) => {
     // 清理代码内容，移除首尾空白
     const cleanedCode = code.trim();
 
     // 生成唯一ID
-    const id = `sympy-cell-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const id = `nerdamer-cell-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     // 返回包含计算单元格的HTML，使用自定义属性标记，以便后续React组件处理
     return `
-      <div class="sympy-cell-placeholder" data-sympy-code="${encodeURIComponent(cleanedCode)}" data-sympy-id="${id}"></div>
+      <div class="nerdamer-cell-placeholder" data-nerdamer-code="${encodeURIComponent(cleanedCode)}" data-nerdamer-id="${id}"></div>
     `;
   });
 }
@@ -1016,14 +1036,19 @@ export function renderMarkdown (content: string, options?: {
   // 按顺序处理各种扩展语法，只处理需要的部分
   let processedContent = content;
 
-  // 处理SymPy计算单元格
-  if (processedContent.includes('[sympy-cell]')) {
-    processedContent = processSymPyCells(processedContent);
+  // 处理Nerdamer计算单元格
+  if (processedContent.includes('[nerdamer-cell]')) {
+    processedContent = processNerdamerCells(processedContent);
   }
 
   // 处理Mermaid图表
   if (processedContent.includes('```mermaid')) {
     processedContent = processMermaidDiagrams(processedContent);
+  }
+
+  // 处理Chart.js图表（支持chart-bar, chart-line, chart-pie三种类型）
+  if (processedContent.includes('```chart-')) {
+    processedContent = processChartJsCharts(processedContent);
   }
 
   // 处理Chart.js图表

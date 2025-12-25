@@ -1,5 +1,5 @@
 import { BaseService } from './baseService';
-import type { DiscussionCategory, DiscussionTopic, DiscussionReply, DiscussionTag } from '../types';
+import type { DiscussionCategory, DiscussionTopic, DiscussionReply } from '../types';
 
 
 /**
@@ -13,10 +13,6 @@ export class DiscussionService extends BaseService {
   private readonly TOPICS_TABLE = 'discussion_topics';
 
   private readonly REPLIES_TABLE = 'discussion_replies';
-
-  private readonly TAGS_TABLE = 'discussion_tags';
-
-  private readonly TOPIC_TAGS_TABLE = 'topic_tags';
 
   /**
    * 获取所有讨论分类
@@ -74,7 +70,6 @@ export class DiscussionService extends BaseService {
    * @param limit 限制数量
    * @param offset 偏移量
    * @param sortBy 排序字段
-   * @param tags 标签ID数组
    * @param searchQuery 搜索关键词
    * @returns 主题数组和总数
    */
@@ -83,23 +78,21 @@ export class DiscussionService extends BaseService {
     limit = 20,
     offset = 0,
     sortBy = 'time',
-    tags,
     searchQuery
   }: {
     categoryId: number;
     limit?: number;
     offset?: number;
     sortBy?: 'time' | 'random';
-    tags?: number[];
     searchQuery?: string;
   }): Promise<{ data: DiscussionTopic[]; count: number | undefined }> {
     try {
       this.checkSupabaseClient();
 
-      // 构建查询，包含关联的topic_tags表用于过滤
+      // 构建查询
       let query = this.supabase
         .from(this.TOPICS_TABLE)
-        .select('*, topic_tags(*)', { 'count': 'exact' })
+        .select('*', { 'count': 'exact' })
         .eq('category_id', categoryId);
 
       // 应用搜索查询
@@ -108,17 +101,6 @@ export class DiscussionService extends BaseService {
         query = query.or(
           `title.ilike.%${trimmedQuery}%,content.ilike.%${trimmedQuery}%`
         );
-      }
-
-      // 应用标签过滤
-      if (tags && tags.length > 0) {
-        // 使用exists操作符过滤具有指定标签的主题
-        const tagResults = await this.supabase
-          .from(this.TOPIC_TAGS_TABLE)
-          .select('topic_id')
-          .in('tag_id', tags);
-
-        query = query.in('id', tagResults.data?.map(tag => tag.topic_id) || []);
       }
 
       // 应用排序
@@ -165,7 +147,7 @@ export class DiscussionService extends BaseService {
 
       const { data, error } = await this.supabase
         .from(this.TOPICS_TABLE)
-        .select('*, category:category_id(*), tags:topic_tags(*, tag:tag_id(*))')
+        .select('*, category:category_id(*)')
         .eq('id', topicId)
         .single();
 
@@ -183,12 +165,10 @@ export class DiscussionService extends BaseService {
   /**
    * 创建主题
    * @param topic 主题数据
-   * @param tags 标签ID数组
    * @returns 创建的主题
    */
   async createTopic (
-    topic: Omit<DiscussionTopic, 'id' | 'reply_count' | 'view_count' | 'is_pinned' | 'created_at' | 'updated_at'>,
-    tags?: number[]
+    topic: Omit<DiscussionTopic, 'id' | 'reply_count' | 'view_count' | 'is_pinned' | 'created_at' | 'updated_at'>
   ): Promise<DiscussionTopic | null> {
     try {
       this.checkSupabaseClient();
@@ -205,12 +185,6 @@ export class DiscussionService extends BaseService {
 
       if (!newTopic) {
         return null;
-      }
-
-      // 添加标签关联
-      if (tags && tags.length > 0) {
-        const topicTags = tags.map(tagId => ({ 'topic_id': newTopic.id, 'tag_id': tagId }));
-        await this.supabase.from(this.TOPIC_TAGS_TABLE).insert(topicTags);
       }
 
       return newTopic;
@@ -312,59 +286,6 @@ export class DiscussionService extends BaseService {
       return data || null;
     } catch (error) {
       console.error('创建回复错误:', error);
-      return null;
-    }
-  }
-
-  /**
-   * 获取所有标签
-   * @returns 标签数组
-   */
-  async getTags (): Promise<DiscussionTag[]> {
-    try {
-      this.checkSupabaseClient();
-
-      const { data, error } = await this.supabase
-        .from(this.TAGS_TABLE)
-        .select('*')
-        .order('usage_count', { 'ascending': false });
-
-      if (error) {
-        this.handleError(error, '获取所有标签', 'DiscussionService');
-      }
-
-      return this.handleSuccessResponse(data, []);
-    } catch (error) {
-      console.error('获取所有标签错误:', error);
-      return [];
-    }
-  }
-
-  /**
-   * 创建标签
-   * @param name 标签名称
-   * @param description 标签描述
-   * @returns 创建的标签
-   */
-  async createTag (name: string, description?: string): Promise<DiscussionTag | null> {
-    try {
-      this.checkSupabaseClient();
-
-      const slug = this.generateSlug(name);
-
-      const { data, error } = await this.supabase
-        .from(this.TAGS_TABLE)
-        .insert({ name, slug, description })
-        .select('*')
-        .single();
-
-      if (error) {
-        this.handleError(error, '创建标签', 'DiscussionService');
-      }
-
-      return data || null;
-    } catch (error) {
-      console.error('创建标签错误:', error);
       return null;
     }
   }

@@ -33,18 +33,6 @@ export const SearchResultItem: React.FC<SearchResultItemProps> = ({ article, que
           <span className={styles.resultDate}>
             {article.created_at ? new Date(article.created_at).toLocaleDateString() : 'N/A'}
           </span>
-          {article.tags && article.tags.length > 0 && (
-            <div className={styles.resultTags}>
-              {article.tags.slice(0, 3).map((tag, index) => (
-                <span key={index} className={styles.resultTag}>
-                  {typeof tag === 'string' ? tag : tag.name || '未知标签'}
-                </span>
-              ))}
-              {article.tags.length > 3 && (
-                <span className={styles.resultTagMore}>+{article.tags.length - 3}</span>
-              )}
-            </div>
-          )}
         </div>
       </div>
 

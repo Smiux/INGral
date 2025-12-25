@@ -11,7 +11,7 @@ import { ArticleService } from './articleService';
 import { CommentService } from './commentService';
 import { GraphService } from './graphService';
 import { SearchService } from './searchService';
-import { TagService } from './tagService';
+
 import { VersionHistoryService } from './versionHistoryService';
 import { AnalyticsService } from './analyticsService';
 import CalculationService from './calculationService';
@@ -28,7 +28,6 @@ interface ServiceMap {
   comment: CommentService;
   graph: GraphService;
   search: SearchService;
-  tag: TagService;
   versionHistory: VersionHistoryService;
   analytics: AnalyticsService;
   calculation: typeof CalculationService;
@@ -91,9 +90,6 @@ export class ServiceFactory {
         break;
       case 'search':
         instance = SearchService.getInstance() as ServiceMap[T];
-        break;
-      case 'tag':
-        instance = new TagService() as ServiceMap[T];
         break;
       case 'versionHistory':
         instance = new VersionHistoryService() as ServiceMap[T];

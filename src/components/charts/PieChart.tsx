@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { ChartBase } from './ChartBase';
 import styles from './PieChart.module.css';
 import type { ChartEvent, ActiveElement, ChartOptions } from 'chart.js';
+import { CHART_COLORS } from './chartUtils';
 
 interface PieChartData {
   name: string;
@@ -13,7 +14,7 @@ interface PieChartData {
 interface PieChartProps {
   data: PieChartData[];
   height?: number;
-  options?: Record<string, unknown>;
+  options?: ChartOptions;
   className?: string;
   showLabels?: boolean;
   showPercentages?: boolean;
@@ -21,10 +22,8 @@ interface PieChartProps {
   onHover?: (_index: number | null, _value: number | null, _label: string | null, _percentage: number | null) => void;
 }
 
-const defaultColors = [
-  '#4f46e5', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444',
-  '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f97316'
-];
+// 使用统一的颜色常量
+const defaultColors = Object.values(CHART_COLORS);
 
 const PieChartComponent: React.FC<PieChartProps> = ({
   data,

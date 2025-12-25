@@ -1,4 +1,4 @@
-import { ArticleVisibility, type Article, type ArticleLink, type Tag, type Graph, type GraphNode, type GraphLink } from '../types/index';
+import { ArticleVisibility, type Article, type ArticleLink, type Graph } from '../types/index';
 import { extractWikiLinks, titleToSlug, extractFormulas } from './markdown';
 import { supabase } from '../lib/supabase';
 
@@ -156,11 +156,8 @@ async function fetchArticle<T extends string> (
 
     if (tagsResult?.data && Array.isArray(tagsResult.data)) {
       // 使用unknown作为中间类型进行安全转换
-      const dataItems = tagsResult.data as unknown as { tag: unknown }[];
-      article.tags = dataItems
-        .map(item => item.tag)
-        .filter((tag): tag is Tag => tag !== null && typeof tag === 'object');
-      article.article_tags = tagsResult.data as unknown as { tag_id: string; article_id: string; added_at: string; tag?: Tag }[];
+      article.tags = [];
+      article.article_tags = [];
     } else {
       article.tags = [];
       article.article_tags = [];
@@ -335,8 +332,8 @@ export async function createArticle ({
     'author_email': authorEmail || null,
     'author_url': authorUrl || null,
     visibility,
-    'tags': [] as Tag[],
-    'article_tags': [] as { tag_id: string; article_id: string; added_at: string; tag?: Tag }[],
+    'tags': [],
+    'article_tags': [],
     'created_at': new Date().toISOString(),
     'updated_at': new Date().toISOString(),
     'is_offline': true,
@@ -836,58 +833,4 @@ export async function searchArticles (
   }
 }
 
-// 从知识图表创建文章
-export const createArticleFromGraph = async (
-  articleTitle: string,
-  articleContent: string
-): Promise<Article | null> => {
-  try {
-    // 使用模拟数据 - 由于将通过其他方式连接到真实数据库，这里只保留模拟数据功能
-    console.log('Using mock data for creating article from graph');
 
-    // 模拟异步延迟
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // 直接使用现有createArticle函数创建文章，使用正确的参数顺序
-    return await createArticle({
-      'title': articleTitle,
-      'content': articleContent,
-      'visibility': ArticleVisibility.PUBLIC
-    });
-  } catch (error) {
-    console.error('Error creating article from graph:', error);
-    return null;
-  }
-};
-
-// 从文章生成知识图表
-// 注意：GraphNode和GraphLink接口已在types/index.ts中定义，此处不再重复定义
-
-export const generateGraphFromArticle = async (
-  articleId: string
-): Promise<{ nodes: GraphNode[]; links: GraphLink[] } | null> => {
-  // 使用模拟数据 - 由于将通过其他方式连接到真实数据库，这里只保留模拟数据功能
-  console.log('Using mock data for generating graph from article');
-
-  // 模拟异步延迟
-  await new Promise(resolve => setTimeout(resolve, 100));
-
-  // 查找文章
-  const article = await fetchArticleById(articleId);
-  if (!article) {
-    return null;
-  }
-
-  // 创建简单的模拟图表数据
-  return {
-    'nodes': [
-      { 'id': articleId,
-        'title': article.title,
-        'type': 'article',
-        'slug': article.slug,
-        'connections': 0
-      } as GraphNode
-    ],
-    'links': [] as GraphLink[]
-  };
-};

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import styles from './SearchBox.module.css';
 import FilterBuilder from './FilterBuilder';
 import { CompositeFilter, createDefaultFilter } from '../../types/filter';
@@ -8,7 +8,6 @@ export interface ExtendedSearchFilters {
   searchType: string;
   sortBy: string;
   author: string;
-  tags: string[];
   dateRange: { start?: string; end?: string };
   // 组合筛选条件
   compositeFilter?: CompositeFilter;
@@ -19,7 +18,6 @@ export interface ExtendedSearchFilters {
 interface AdvancedSearchOptionsProps {
   filters: ExtendedSearchFilters;
   onFilterChange: <K extends keyof ExtendedSearchFilters>(_key: K, _value: ExtendedSearchFilters[K]) => void;
-  onTagChange: (_tags: string[]) => void;
   onDateRangeChange: (_dateRange: { start?: string; end?: string }) => void;
   onResetFilters: () => void;
   useCompositeFilter: boolean;
@@ -31,7 +29,6 @@ interface AdvancedSearchOptionsProps {
 export function AdvancedSearchOptions ({
   filters,
   onFilterChange,
-  onTagChange,
   onDateRangeChange,
   onResetFilters,
   useCompositeFilter,
@@ -39,24 +36,6 @@ export function AdvancedSearchOptions ({
   onUseCompositeFilterChange,
   onCompositeFilterChange
 }: AdvancedSearchOptionsProps) {
-  // 处理标签输入变化
-  const handleTagsChange = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const target = e.target as HTMLInputElement;
-    const value = target.value;
-    if (e.key === 'Enter' && value.trim()) {
-      e.preventDefault();
-      if (!filters.tags?.includes(value.trim())) {
-        onTagChange([...(filters.tags || []), value.trim()]);
-      }
-      target.value = '';
-    }
-  };
-
-  // 移除标签
-  const removeTag = (tagToRemove: string) => {
-    onTagChange(filters.tags?.filter(tag => tag !== tagToRemove) || []);
-  };
-
   return (
     <div className={styles.advancedContainer}>
       <div
@@ -99,30 +78,7 @@ export function AdvancedSearchOptions ({
           />
         </div>
 
-        <div className={styles.advancedSection}>
-          <label className={styles.advancedLabel}>标签</label>
-          <div className={styles.tagsContainer}>
-            {filters.tags && filters.tags.map(tag => (
-              <span key={tag} className={styles.tagItem}>
-                {tag}
-                <button
-                  type="button"
-                  className={styles.tagRemove}
-                  onClick={() => removeTag(tag)}
-                  aria-label={`移除标签 ${tag}`}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            <input
-              type="text"
-              className={styles.tagsInput}
-              placeholder="输入标签，按回车添加"
-              onKeyDown={handleTagsChange}
-            />
-          </div>
-        </div>
+
 
         <div className={styles.advancedSection}>
           <label className={styles.advancedLabel}>日期范围</label>

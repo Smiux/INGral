@@ -1,2 +1,2 @@
-export { default as SymPyCell } from './SymPyCell';
+export { default as NerdamerCell } from './NerdamerCell';
 export { default as CalculationHistory } from './CalculationHistory';

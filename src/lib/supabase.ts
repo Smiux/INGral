@@ -32,6 +32,55 @@ const getSupabaseConfig = (): { url: string; anonKey: string } => {
 const createMockSupabaseClient = (): SupabaseClient => {
   console.warn('使用模拟Supabase客户端以允许UI正常加载');
 
+  // 模拟数据
+  const mockData = {
+    'articles': [
+      {
+        'id': '1',
+        'title': '测试文章1',
+        'content': '# 测试文章1\n这是一篇测试文章的内容。',
+        'slug': 'test-article-1',
+        'author_id': 'user1',
+        'author_name': '测试用户',
+        'visibility': 'public',
+        'created_at': new Date().toISOString(),
+        'updated_at': new Date().toISOString(),
+        'views': 100,
+        'likes': 5
+      },
+      {
+        'id': '2',
+        'title': '测试文章2',
+        'content': '# 测试文章2\n这是另一篇测试文章的内容。',
+        'slug': 'test-article-2',
+        'author_id': 'user1',
+        'author_name': '测试用户',
+        'visibility': 'public',
+        'created_at': new Date().toISOString(),
+        'updated_at': new Date().toISOString(),
+        'views': 50,
+        'likes': 2
+      }
+    ],
+    'comments': [
+      {
+        'id': '1',
+        'article_id': '1',
+        'content': '这是一条测试评论。',
+        'user_id': 'user2',
+        'created_at': new Date().toISOString(),
+        'updated_at': new Date().toISOString()
+      }
+    ],
+    'tags': [
+      {
+        'id': '1',
+        'name': '测试标签',
+        'created_at': new Date().toISOString()
+      }
+    ]
+  };
+
   return {
     'auth': {
       'getSession': async () => ({ 'data': { 'session': null } }),
@@ -42,21 +91,71 @@ const createMockSupabaseClient = (): SupabaseClient => {
       'update': async () => ({ 'data': null, 'error': null }),
       'refreshSession': async () => ({ 'data': { 'session': null }, 'error': null })
     },
-    'from': () => ({
-      'select': () => ({
-        'eq': () => ({
-          'limit': () => ({ 'data': [], 'error': null }),
-          'order': () => ({ 'data': [], 'error': null }),
-          'single': () => Promise.resolve({ 'data': null, 'error': null })
-        }),
-        'in': () => ({ 'data': [], 'error': null }),
-        'range': () => ({ 'data': [], 'error': null })
-      }),
-      'insert': () => ({ 'data': [], 'error': null }),
-      'update': () => ({ 'data': [], 'error': null }),
-      'delete': () => ({ 'data': [], 'error': null }),
-      'upsert': () => ({ 'data': [], 'error': null })
-    }),
+    'from': (tableName: string) => {
+      let queryData = [...(mockData[tableName as keyof typeof mockData] || [])];
+      let limitValue = Infinity;
+      let orderBy = 'created_at';
+      let orderDirection: 'asc' | 'desc' = 'desc';
+
+      return {
+        'select': () => {
+          return {
+            'eq': (column: string, value: unknown) => {
+              queryData = queryData.filter((item: Record<string, unknown>) => item[column] === value);
+              return this;
+            },
+            'in': (column: string, values: unknown[]) => {
+              queryData = queryData.filter((item: Record<string, unknown>) => values.includes(item[column]));
+              return this;
+            },
+            'range': (start: number, end: number) => {
+              queryData = queryData.slice(start, end + 1);
+              return this;
+            },
+            'limit': (value: number) => {
+              limitValue = value;
+              return this;
+            },
+            'order': (column: string, { ascending }: { ascending: boolean }) => {
+              orderBy = column;
+              orderDirection = ascending ? 'asc' : 'desc';
+              return this;
+            },
+            'single': async () => {
+              const result = queryData.slice(0, 1)[0] || null;
+              return { 'data': result, 'error': result ? null : { 'message': 'No data found' } };
+            },
+            'then': async () => {
+              // 应用排序
+              const sortedData = [...queryData].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+                if (orderDirection === 'asc') {
+                  return String(a[orderBy]) > String(b[orderBy]) ? 1 : -1;
+                }
+                return String(a[orderBy]) < String(b[orderBy]) ? 1 : -1;
+              });
+              // 应用限制
+              const limitedData = sortedData.slice(0, limitValue);
+              return { 'data': limitedData, 'error': null };
+            }
+          };
+        },
+        'insert': (data: Record<string, unknown>) => {
+          return { 'data': [data], 'error': null };
+        },
+        'update': (data: Record<string, unknown>) => {
+          return { 'data': [data], 'error': null };
+        },
+        'delete': () => {
+          return { 'data': queryData, 'error': null };
+        },
+        'upsert': (data: Record<string, unknown>) => {
+          return { 'data': [data], 'error': null };
+        },
+        'then': async () => {
+          return { 'data': [], 'error': null };
+        }
+      };
+    },
     'functions': {
       'invoke': async () => null,
       'createClient': () => ({ 'invoke': async () => null })

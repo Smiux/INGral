@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect, ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { Header } from './components/layout/Header';
 import { Loader } from './components/ui/Loader';
 import { useGlobalKeyboardShortcuts } from './components/keyboard/keyboardUtils';
@@ -123,7 +123,7 @@ function AppContent () {
               {/* 讨论区路由 */}
               <Route path="/discussions" element={<DiscussionPage />} />
               <Route path="/discussions/:categorySlug" element={<DiscussionPage />} />
-              <Route path="/discussions/:topicId" element={<TopicDetailPage />} />
+              <Route path="/discussions/:categorySlug/:topicId" element={<TopicDetailPage topicId={parseInt(useParams().topicId as string, 10)} />} />
               <Route path="/discussions/create" element={<CreateTopicPage />} />
               {/* 404页面重定向到首页 */}
               <Route path="*" element={<Navigate to="/" replace />} />

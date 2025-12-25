@@ -606,7 +606,7 @@ export class GraphService extends BaseService {
       // 获取文章内容
       const { 'data': article } = await this.supabase
         .from('articles')
-        .select('title, content, tags, summary')
+        .select('title, content, summary')
         .eq('id', articleId)
         .single();
 
@@ -615,7 +615,7 @@ export class GraphService extends BaseService {
       }
 
       // 提取关键词和概念（增强版，使用TF-IDF算法）
-      const concepts = this.extractConcepts(article.content, article.tags || []);
+      const concepts = this.extractConcepts(article.content);
 
       // 创建节点映射
       const nodeIdMap: Record<string, string> = {};
@@ -772,39 +772,21 @@ export class GraphService extends BaseService {
   /**
    * 从文章内容中提取概念（增强版，使用TF-IDF算法）
    * @param content 文章内容
-   * @param tags 文章标签
    */
-  private extractConcepts (content: string, tags: Array<{ name: string }>): Array<{ text: string; weight: number; description: string; relation?: string; color?: string }> {
+  private extractConcepts (content: string): Array<{ text: string; weight: number; description: string; relation?: string; color?: string }> {
     // 增强版概念提取，使用TF-IDF算法
     const concepts: Array<{ text: string; weight: number; description: string; relation?: string; color?: string }> = [];
-
-    // 从标签中提取概念
-    const tagColors: readonly string[] = ['var(--success-500)', 'var(--warning-500)', 'var(--error-500)', 'var(--secondary-500)', 'var(--primary-500)'];
-
-    for (let i = 0; i < tags.length; i += 1) {
-      const tag = tags[i];
-      if (tag && tag.name) {
-        concepts.push({
-          'text': tag.name as string,
-          'weight': 2.0,
-          'description': `文章标签: ${tag.name}`,
-          'color': tagColors[i % tagColors.length] as string
-        });
-      }
-    }
 
     // 从内容中提取关键词（使用TF-IDF算法）
     const keywords = this.extractKeywords(content);
 
     for (const keyword of keywords) {
-      if (!concepts.some(c => c.text === keyword.text)) {
-        concepts.push({
-          'text': keyword.text,
-          'weight': keyword.weight,
-          'description': `文章中提到的概念: ${keyword.text}`,
-          'color': 'var(--neutral-500)'
-        });
-      }
+      concepts.push({
+        'text': keyword.text,
+        'weight': keyword.weight,
+        'description': `文章中提到的概念: ${keyword.text}`,
+        'color': 'var(--neutral-500)'
+      });
     }
 
     return concepts;

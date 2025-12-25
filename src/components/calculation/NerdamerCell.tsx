@@ -1,14 +1,14 @@
 import React, { useState, useRef } from 'react';
-import styles from './SymPyCell.module.css';
+import styles from './NerdamerCell.module.css';
 import calculationService from '../../services/calculationService';
 
-interface SymPyCellProps {
+interface NerdamerCellProps {
   id: string;
   initialCode?: string;
   onResultChange?: (_id: string, _result: string) => void;
 }
 
-const SymPyCell: React.FC<SymPyCellProps> = ({
+const NerdamerCell: React.FC<NerdamerCellProps> = ({
   id,
   initialCode = '',
   onResultChange
@@ -20,7 +20,7 @@ const SymPyCell: React.FC<SymPyCellProps> = ({
 
   const cellRef = useRef<HTMLDivElement>(null);
 
-  // 计算函数 - 使用calculationService处理SymPy计算
+  // 计算函数 - 使用calculationService处理Nerdamer计算
   const calculate = async () => {
     if (!code.trim()) {
       return;
@@ -30,8 +30,8 @@ const SymPyCell: React.FC<SymPyCellProps> = ({
     setError('');
 
     try {
-      // 使用计算服务执行SymPy计算
-      const calculationResult = await calculationService.executeSymPyCalculation(code);
+      // 使用计算服务执行Nerdamer计算
+      const calculationResult = await calculationService.executeNerdamerCalculation(code);
 
       if (calculationResult.success) {
         const formattedResult = `${calculationResult.result}\n(计算时间: ${calculationResult.calculationTime}ms)`;
@@ -70,7 +70,7 @@ const SymPyCell: React.FC<SymPyCellProps> = ({
   return (
     <div className={styles.container} ref={cellRef}>
       <div className={styles.header}>
-        <h3 className={styles.title}>SymPy 计算单元格</h3>
+        <h3 className={styles.title}>Nerdamer 计算单元格</h3>
         <div className={styles.actions}>
           <button
             className={styles.runButton}
@@ -95,7 +95,7 @@ const SymPyCell: React.FC<SymPyCellProps> = ({
             className={styles.codeInput}
             value={code}
             onChange={handleCodeChange}
-            placeholder="输入SymPy代码，例如: integrate(x**2, x)"
+            placeholder="输入Nerdamer代码，例如: integrate(x^2, x) 或 diff(x^2, x)"
             rows={5}
           />
         </div>
@@ -118,4 +118,4 @@ const SymPyCell: React.FC<SymPyCellProps> = ({
   );
 };
 
-export default SymPyCell;
+export default NerdamerCell;

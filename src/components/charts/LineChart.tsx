@@ -6,7 +6,7 @@ import type { ChartData, ChartOptions, ChartEvent, ActiveElement } from 'chart.j
 interface LineChartProps {
   data: ChartData<'line'>;
   height?: number;
-  options?: Record<string, unknown>;
+  options?: ChartOptions;
   className?: string;
   onPointClick?: (_index: number, _value: number, _label: string) => void;
   onHover?: (_index: number | null, _value: number | null, _label: string | null) => void;

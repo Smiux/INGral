@@ -7,68 +7,6 @@ import { EdgeProps } from 'reactflow';
 import type { EnhancedGraphConnection } from '../types';
 
 /**
- * 生成贝塞尔曲线路径
- * @param params 路径生成参数
- * @returns SVG路径字符串
- */
-interface BezierPathParams {
-  sourceX: number;
-  sourceY: number;
-  targetX: number;
-  targetY: number;
-  controlPointsCount?: number;
-  connectionIndex?: number;
-}
-
-const generateBezierPath = ({
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  controlPointsCount = 1,
-  connectionIndex = 0
-}: BezierPathParams) => {
-  // 计算控制点的基础偏移量
-  const dx = Math.abs(targetX - sourceX);
-  const dy = Math.abs(targetY - sourceY);
-  const baseOffset = Math.max(dx, dy) * 0.3;
-
-  // 根据连接索引计算偏移量，避免同节点间多连接重叠
-  const connectionOffset = connectionIndex * 15 * (1 + connectionIndex * 0.2);
-  const offset = baseOffset + connectionOffset;
-
-  let path = `M ${sourceX} ${sourceY}`;
-
-  if (controlPointsCount === 1) {
-    // 二次贝塞尔曲线
-    const angle = Math.atan2(targetY - sourceY, targetX - sourceX);
-    const perpendicularAngle = angle + Math.PI / 2;
-
-    // 根据连接索引调整控制点位置，避免重叠
-    const cpX = (sourceX + targetX) / 2 + Math.cos(perpendicularAngle) * offset;
-    const cpY = (sourceY + targetY) / 2 + Math.sin(perpendicularAngle) * offset;
-    path += ` Q ${cpX} ${cpY} ${targetX} ${targetY}`;
-  } else {
-    // 三次贝塞尔曲线，使用连接索引调整控制点位置
-    const angle = Math.atan2(targetY - sourceY, targetX - sourceX);
-    const perpendicularAngle = angle + Math.PI / 2;
-
-    // 根据连接索引奇偶性确定偏移方向，避免重叠
-    const offsetDirection = connectionIndex % 2 === 0 ? 1 : -1;
-    const cpOffset = offset * offsetDirection;
-
-    const cp1X = sourceX + (targetX - sourceX) * 0.33 + Math.cos(perpendicularAngle) * cpOffset;
-    const cp1Y = sourceY + (targetY - sourceY) * 0.33 + Math.sin(perpendicularAngle) * cpOffset;
-    const cp2X = sourceX + (targetX - sourceX) * 0.66 + Math.cos(perpendicularAngle) * cpOffset;
-    const cp2Y = sourceY + (targetY - sourceY) * 0.66 + Math.sin(perpendicularAngle) * cpOffset;
-
-    path += ` C ${cp1X} ${cp1Y} ${cp2X} ${cp2Y} ${targetX} ${targetY}`;
-  }
-
-  return path;
-};
-
-/**
  * 生成动态效果样式
  * @param dynamicEffect 动态效果类型
  * @param strokeWidth 线条宽度
@@ -100,7 +38,7 @@ const generateDynamicEffectStyle = (
 
 /**
  * 默认边组件
- * 使用贝塞尔曲线实现高质量连接线
+ * 使用直线实现高质量连接线
  * 简化版本：移除内部状态和事件处理，仅保留纯渲染逻辑
  */
 export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
@@ -119,24 +57,11 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
   // 获取连接类型
   const connectionType = data?.type || 'default';
 
-  // 控制点数量
-  const controlPointsCount = data?.curveControl?.controlPointsCount || 1;
-
   // 动态效果
   const dynamicEffect = data?.animation?.dynamicEffect;
 
-  // 获取连接索引（来自GraphCanvasReactFlow.tsx的data对象）
-  const connectionIndex = Number((data as EnhancedGraphConnection & { connectionIndex?: number }).connectionIndex || 0);
-
-  // 生成贝塞尔曲线路径
-  const path = generateBezierPath({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    controlPointsCount,
-    connectionIndex
-  });
+  // 默认使用直线路径
+  const path = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
 
   // 默认连接样式
   const defaultStroke = '#3b82f6';
@@ -206,30 +131,6 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
     ));
   };
 
-  // 渲染控制点
-  const renderControlPoints = () => {
-    if (!selected || !data?.curveControl?.controlPoints) {
-      return null;
-    }
-
-    return data.curveControl.controlPoints.map((point, index) => (
-      <circle
-        key={index}
-        cx={point.x}
-        cy={point.y}
-        r={6}
-        fill={data.curveControl.locked ? '#94a3b8' : '#3b82f6'}
-        stroke="white"
-        strokeWidth={2}
-        style={{
-          'cursor': data.curveControl.locked ? 'not-allowed' : 'move',
-          'pointerEvents': data.curveControl.locked ? 'none' : 'auto',
-          'zIndex': 10
-        }}
-      />
-    ));
-  };
-
   return (
     <svg width="100%" height="100%" style={{ 'pointerEvents': 'auto' }}>
       {/* 渐变定义（用于渐变过渡效果） */}
@@ -261,7 +162,20 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
         </marker>
       </defs>
 
-      {/* 使用SVG path元素绘制贝塞尔曲线 */}
+      {/* 绘制不可见但可点击的路径，扩大选择判定区域 */}
+      <path
+        d={path}
+        fill="none"
+        stroke="transparent"
+        strokeWidth="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        pointerEvents="visibleStroke"
+        style={{
+          'cursor': 'pointer'
+        }}
+      />
+      {/* 使用SVG path元素绘制实际可见的直线 */}
       <path
         d={path}
         style={edgeStyle}
@@ -299,9 +213,6 @@ export const DefaultEdge: React.FC<EdgeProps<EnhancedGraphConnection>> = ({
           pointerEvents="auto"
         />
       )}
-
-      {/* 渲染控制点 */}
-      {renderControlPoints()}
 
       {/* 动态效果CSS */}
       <style>{`

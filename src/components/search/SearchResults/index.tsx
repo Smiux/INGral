@@ -8,12 +8,11 @@ import styles from '../SearchResults.module.css';
 
 interface SearchResultsProps {
   query: string;
-  tagId?: string;
   limit?: number;
   onArticleClick?: () => void;
 }
 
-export const SearchResults: React.FC<SearchResultsProps> = ({ query, tagId, limit = 20, onArticleClick }) => {
+export const SearchResults: React.FC<SearchResultsProps> = ({ query, limit = 20, onArticleClick }) => {
   const {
     // 状态
     articleResults,
@@ -43,7 +42,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ query, tagId, limi
     exportResultsToCsv,
     exportResultsToGraphml,
     exportResultsToPdf
-  } = useSearchResults(query, tagId, limit);
+  } = useSearchResults(query, limit);
 
   return (
     <div className={styles.container}>
@@ -120,72 +119,74 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ query, tagId, limi
       {!loading && !error && query.trim() && (
         <>
           {/* 根据视图模式渲染不同组件 */}
-          {(
-            function renderView () {
-              if (viewMode === 'list') {
-                /* 列表视图 */
+          {(() => {
+            // 渲染层级视图
+            const renderHierarchicalView = () => {
+              if (searchMode === 'semantic' || searchMode === 'enhanced') {
+                return <SearchResultsHierarchical semanticResults={semanticResults} query={query} />;
+              }
+              return (
+                <div className={styles.graphInfo}>
+                  <p>层级视图仅支持语义搜索结果</p>
+                  <p>请切换到语义搜索或语义增强搜索模式以查看层级视图</p>
+                </div>
+              );
+            };
+
+            // 渲染图谱视图
+            const renderGraphView = () => {
+              if (searchMode === 'semantic' || searchMode === 'enhanced') {
                 return (
-                  <SearchResultsList
-                    articleResults={articleResults}
-                    commentResults={commentResults}
-                    semanticResults={semanticResults}
-                    searchMode={searchMode}
-                    searchType={searchType}
-                    sortBy={sortBy}
-                    groupBy={groupBy}
-                    loading={loading}
-                    hasMoreArticles={hasMoreArticles}
-                    hasMoreComments={hasMoreComments}
-                    query={query}
-                    onArticleClick={onArticleClick}
-                    onLoadMoreArticles={loadMoreArticles}
-                    onLoadMoreComments={loadMoreComments}
-                  />
+                  <div className={styles.graphContainer}>
+                    <SearchResultsGraph results={semanticResults} query={query} />
+                  </div>
                 );
               }
-              if (viewMode === 'hierarchical') {
-                /* 层级视图 */
-                return (
-                  <>
-                    <h3 className={styles.sectionTitle}>层级搜索结果</h3>
-                    {(
-                      function renderHierarchicalView () {
-                        if (searchMode === 'semantic' || searchMode === 'enhanced') {
-                          return <SearchResultsHierarchical semanticResults={semanticResults} query={query} />;
-                        }
-                        return (
-                          <div className={styles.graphInfo}>
-                            <p>层级视图仅支持语义搜索结果</p>
-                            <p>请切换到语义搜索或语义增强搜索模式以查看层级视图</p>
-                          </div>
-                        );
-                      }())}
-                  </>
-                );
-              }
-              /* 图谱视图 */
+              return (
+                <div className={styles.graphInfo}>
+                  <p>图谱视图仅支持语义搜索结果</p>
+                  <p>请切换到语义搜索或语义增强搜索模式以查看图谱</p>
+                </div>
+              );
+            };
+
+            if (viewMode === 'list') {
+              /* 列表视图 */
+              return (
+                <SearchResultsList
+                  articleResults={articleResults}
+                  commentResults={commentResults}
+                  semanticResults={semanticResults}
+                  searchMode={searchMode}
+                  searchType={searchType}
+                  sortBy={sortBy}
+                  groupBy={groupBy}
+                  loading={loading}
+                  hasMoreArticles={hasMoreArticles}
+                  hasMoreComments={hasMoreComments}
+                  query={query}
+                  onArticleClick={onArticleClick}
+                  onLoadMoreArticles={loadMoreArticles}
+                  onLoadMoreComments={loadMoreComments}
+                />
+              );
+            } else if (viewMode === 'hierarchical') {
+              /* 层级视图 */
               return (
                 <>
-                  <h3 className={styles.sectionTitle}>搜索结果图谱</h3>
-                  {(
-                    function renderGraphView () {
-                      if (searchMode === 'semantic' || searchMode === 'enhanced') {
-                        return (
-                          <div className={styles.graphContainer}>
-                            <SearchResultsGraph results={semanticResults} query={query} />
-                          </div>
-                        );
-                      }
-                      return (
-                        <div className={styles.graphInfo}>
-                          <p>图谱视图仅支持语义搜索结果</p>
-                          <p>请切换到语义搜索或语义增强搜索模式以查看图谱</p>
-                        </div>
-                      );
-                    }())}
+                  <h3 className={styles.sectionTitle}>层级搜索结果</h3>
+                  {renderHierarchicalView()}
                 </>
               );
-            }())}
+            }
+            /* 图谱视图 */
+            return (
+              <>
+                <h3 className={styles.sectionTitle}>搜索结果图谱</h3>
+                {renderGraphView()}
+              </>
+            );
+          })()}
 
           {/* 相关推荐结果 */}
           {(searchMode === 'semantic' || searchMode === 'enhanced') && relatedResults.length > 0 && (

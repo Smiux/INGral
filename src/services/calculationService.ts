@@ -1,4 +1,4 @@
-// 计算数学服务 - 用于处理SymPy计算和结果管理
+// 计算数学服务 - 使用Nerdamer进行符号计算
 
 // 计算结果类型
 export interface CalculationResult {
@@ -17,32 +17,21 @@ export interface CalculationHistoryItem {
   calculationTime: number;
 }
 
+// 导入Nerdamer
+import nerdamer from 'nerdamer';
+
 class CalculationService {
   private history: CalculationHistoryItem[] = [];
 
   private maxHistoryItems = 50;
 
-  // 执行SymPy计算
-  async executeSymPyCalculation (code: string): Promise<CalculationResult> {
+  // 执行Nerdamer计算
+  async executeNerdamerCalculation (code: string): Promise<CalculationResult> {
     const startTime = Date.now();
 
     try {
-      // 这里将替换为实际的SymPy计算逻辑
-      // 暂时使用模拟计算
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // 模拟不同类型的计算结果
-      let result = '';
-
-      if (code.includes('integrate')) {
-        result = '\\int ' + code.replace('integrate', '').trim() + ' dx = (1/3)x^3 + C';
-      } else if (code.includes('diff')) {
-        result = `d/dx ${code.replace('diff', '').trim()} = 2x`;
-      } else if (code.includes('solve')) {
-        result = '解: [x = 0, x = 1]';
-      } else {
-        result = `计算结果: ${code} = 42`;
-      }
+      // 使用Nerdamer进行符号计算
+      const result = this.evaluateWithNerdamer(code);
 
       const calculationTime = Date.now() - startTime;
 
@@ -63,6 +52,54 @@ class CalculationService {
     }
   }
 
+  // 使用Nerdamer进行符号计算
+  private evaluateWithNerdamer (expression: string): string {
+    try {
+      // 直接使用nerdamer进行计算
+      const result = nerdamer(expression);
+      return result.text();
+    } catch {
+      // 尝试不同的计算类型
+      const trimmedExpr = expression.trim();
+
+      // 检查是否是求导
+      if (trimmedExpr.startsWith('diff(') && trimmedExpr.endsWith(')')) {
+        const match = trimmedExpr.match(/diff\((.*?),(.*?)\)/);
+        if (match && match[1] && match[2]) {
+          return nerdamer.diff(match[1], match[2]).text();
+        }
+      }
+
+      // 检查是否是积分
+      if (trimmedExpr.startsWith('integrate(') && trimmedExpr.endsWith(')')) {
+        const match = trimmedExpr.match(/integrate\((.*?),(.*?)\)/);
+        if (match && match[1] && match[2]) {
+          return nerdamer.integrate(match[1], match[2]).text();
+        }
+      }
+
+      // 检查是否是求解
+      if (trimmedExpr.startsWith('solve(') && trimmedExpr.endsWith(')')) {
+        const match = trimmedExpr.match(/solve\((.*?),(.*?)\)/);
+        if (match && match[1] && match[2]) {
+          const equation = match[1] + '=0';
+          const result = nerdamer(equation);
+          // 使用类型断言为 unknown 并通过类型守卫处理
+          const resultUnknown = result as unknown;
+          if (typeof resultUnknown === 'object' && resultUnknown !== null && 'solveFor' in resultUnknown) {
+            const solveForResult = (resultUnknown as {
+              solveFor: (_variable: string) => { text: () => string }
+            }).solveFor(match[2]);
+            return solveForResult.text();
+          }
+          throw new Error('无法解析的数学表达式');
+        }
+      }
+
+      throw new Error('无法解析的数学表达式');
+    }
+  }
+
   // 获取计算历史记录
   getHistory (): CalculationHistoryItem[] {
     return [...this.history];
@@ -72,7 +109,7 @@ class CalculationService {
   addToHistory (code: string, result: string, calculationTime: number): void {
     const historyItem: CalculationHistoryItem = {
       'id': `calc-${Date.now()}-${Math.random().toString(36)
-        .substr(2, 9)}`,
+        .substring(2, 9)}`,
       code,
       result,
       'timestamp': new Date(),

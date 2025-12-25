@@ -116,11 +116,26 @@ export interface NodeHandles {
   handleLabels: Record<string, string>;
 }
 
+// 节点样式接口
+export interface NodeStyle {
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  fontSize?: number;
+  textFill?: string;
+  radius?: number;
+  opacity?: number;
+  arrowCount?: number;
+}
+
 // 增强节点接口（优化版）
 export interface EnhancedNode extends BaseNodeData {
   // 基础属性
   type: NodeType;
   shape: NodeShape;
+
+  // 样式信息
+  style?: NodeStyle;
 
   // 状态
   state: NodeState;
@@ -211,11 +226,22 @@ export interface ConnectionAnimation {
   isAnimating: boolean;
 }
 
+// 连接样式接口
+export interface ConnectionStyle {
+  stroke?: string;
+  strokeWidth?: number;
+  strokeOpacity?: number;
+  arrowCount?: number;
+}
+
 // 增强连接接口（优化版）
 export interface EnhancedGraphConnection extends BaseConnectionData {
   // 基础属性
   weight: number;
   label?: string;
+
+  // 样式信息
+  style?: ConnectionStyle;
 
   // 元数据
   metadata: ConnectionMetadata;
@@ -252,7 +278,7 @@ export interface GraphMetadata {
   is_template: boolean;
   tags?: string[];
   category?: string;
-  visibility?: 'public' | 'private' | 'shared';
+  visibility?: 'public' | 'private';
   thumbnail?: string;
   is_published: boolean;
   publish_date?: number;

@@ -31,6 +31,68 @@ interface SearchResultsListProps {
   onLoadMoreComments: () => void;
 }
 
+// 渲染语义搜索结果列表组件
+const SemanticSearchResultsContent: React.FC<{
+  semanticResults: SemanticSearchResult[];
+  sortBy: 'relevance' | 'date' | 'views' | 'type';
+  groupBy: 'type' | 'relevance_range' | 'date' | 'none';
+  loading: boolean;
+  hasMoreArticles: boolean;
+  query: string;
+  onLoadMoreArticles: () => void;
+}> = ({
+  semanticResults,
+  sortBy,
+  groupBy,
+  loading,
+  hasMoreArticles,
+  query,
+  onLoadMoreArticles
+}) => {
+  // 排序和分组结果
+  const sortedResults = sortSearchResults(semanticResults, sortBy);
+  const resultGroups = groupBy === 'none'
+    ? new Map([['全部结果', sortedResults]])
+    : groupSearchResults(sortedResults, groupBy);
+
+  return (
+    <>
+      {Array.from(resultGroups.entries()).map(([groupKey, groupResults]) => (
+        <div key={groupKey} className={styles.resultGroup}>
+          <h4 className={styles.resultGroupTitle}>
+            {groupKey} <span className={styles.resultGroupCount}>({groupResults.length})</span>
+          </h4>
+          <div className={styles.resultsList}>
+            {groupResults.map((result) => (
+              <SemanticSearchResultItem key={result.id} result={result} query={query} />
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* 加载更多语义搜索结果按钮 */}
+      {hasMoreArticles && (
+        <div className={styles.loadMoreContainer}>
+          <button
+            className={styles.loadMoreButton}
+            onClick={onLoadMoreArticles}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <div className={styles.smallLoadingIndicator}></div>
+                加载中...
+              </>
+            ) : (
+              '加载更多结果'
+            )}
+          </button>
+        </div>
+      )}
+    </>
+  );
+};
+
 export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   articleResults,
   commentResults,
@@ -74,50 +136,15 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
         <>
           <h3 className={styles.sectionTitle}>语义搜索结果</h3>
 
-          {/* 处理分组和排序 */}
-          {(() => {
-            const sortedResults = sortSearchResults(semanticResults, sortBy);
-            const resultGroups = groupBy === 'none'
-              ? new Map([['全部结果', sortedResults]])
-              : groupSearchResults(sortedResults, groupBy);
-
-            return (
-              <>
-                {Array.from(resultGroups.entries()).map(([groupKey, groupResults]) => (
-                  <div key={groupKey} className={styles.resultGroup}>
-                    <h4 className={styles.resultGroupTitle}>
-                      {groupKey} <span className={styles.resultGroupCount}>({groupResults.length})</span>
-                    </h4>
-                    <div className={styles.resultsList}>
-                      {groupResults.map((result) => (
-                        <SemanticSearchResultItem key={result.id} result={result} query={query} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-
-                {/* 加载更多语义搜索结果按钮 */}
-                {hasMoreArticles && (
-                  <div className={styles.loadMoreContainer}>
-                    <button
-                      className={styles.loadMoreButton}
-                      onClick={onLoadMoreArticles}
-                      disabled={loading}
-                    >
-                      {loading ? (
-                        <>
-                          <div className={styles.smallLoadingIndicator}></div>
-                          加载中...
-                        </>
-                      ) : (
-                        '加载更多结果'
-                      )}
-                    </button>
-                  </div>
-                )}
-              </>
-            );
-          })()}
+          <SemanticSearchResultsContent
+            semanticResults={semanticResults}
+            sortBy={sortBy}
+            groupBy={groupBy}
+            loading={loading}
+            hasMoreArticles={hasMoreArticles}
+            query={query}
+            onLoadMoreArticles={onLoadMoreArticles}
+          />
         </>
       )}
 

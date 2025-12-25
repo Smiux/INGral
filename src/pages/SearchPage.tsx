@@ -51,11 +51,7 @@ export function SearchPage () {
         params.delete('author');
       }
 
-      if (filters.tags && filters.tags.length > 0) {
-        params.set('tags', filters.tags.join(','));
-      } else {
-        params.delete('tags');
-      }
+
 
       if (filters.dateRange?.start) {
         params.set('startDate', filters.dateRange.start);

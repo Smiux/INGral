@@ -41,7 +41,7 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
   onUpdateConnection,
   onDeleteConnection,
   onClose,
-  // 
+  //
   panelPosition
 }) => {
   // 当前激活的面板类型
@@ -245,17 +245,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
         [name]: type === 'number' ? parseFloat(value) || 1 : value
       }));
     }
-  };
-
-  // 处理控制点锁定/解锁
-  const handleToggleLock = () => {
-    setConnectionFormData(prev => ({
-      ...prev,
-      'curveControl': {
-        ...prev.curveControl,
-        'locked': !prev.curveControl.locked
-      }
-    }));
   };
 
   // 处理保存节点
@@ -468,7 +457,7 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
             </label>
             <select
               name="arrowCount"
-              value="1"
+              value={connectionFormData.style?.arrowCount?.toString() || '1'}
               onChange={handleConnectionChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
@@ -479,45 +468,7 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           </div>
         </div>
 
-        {/* 曲线控制 */}
-        <div className="space-y-4 mt-4">
-          <h3 className="text-sm font-semibold text-gray-700">曲线控制</h3>
 
-          {/* 控制点数量 */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              控制点数量
-            </label>
-            <select
-              name="controlPointsCount"
-              value={connectionFormData.curveControl.controlPointsCount?.toString() || '1'}
-              onChange={handleConnectionChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {[1, 2, 3, 4, 5].map(count => (
-                <option key={count} value={count.toString()}>{count} 个</option>
-              ))}
-            </select>
-          </div>
-
-          {/* 控制点锁定 */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              控制点状态
-            </label>
-            <button
-              type="button"
-              onClick={handleToggleLock}
-              className={`w-full px-3 py-2 rounded-md shadow-sm transition-colors ${
-                connectionFormData.curveControl.locked
-                  ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                  : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-              }`}
-            >
-              {connectionFormData.curveControl.locked ? '已锁定' : '已解锁'}
-            </button>
-          </div>
-        </div>
 
         {/* 动态效果系统 */}
         <div className="space-y-4 mt-4">
@@ -707,7 +658,7 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           </div>
         )}
 
-        
+
       </div>
     </div>
   );

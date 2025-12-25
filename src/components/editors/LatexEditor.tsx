@@ -15,6 +15,10 @@ import { LatexVisualEditor } from './LatexVisualEditor';
 // 导入自定义Hook
 import { useLatexStorage } from '../../hooks/useLatexStorage';
 
+// 导入符号和模板数据
+import { latexSymbols } from '../../data/latex/symbols';
+import { latexTemplates } from '../../data/latex/templates';
+
 // 类型声明
 interface LatexEditorProps {
   isOpen: boolean;
@@ -23,86 +27,7 @@ interface LatexEditorProps {
   initialFormula?: string;
 }
 
-// 常用符号和模板数据
-const symbols = [
-  { 'name': 'Greek Letters', 'items': ['\\alpha', '\\beta', '\\gamma', '\\delta', '\\epsilon', '\\zeta', '\\eta', '\\theta', '\\iota', '\\kappa', '\\lambda', '\\mu', '\\nu', '\\xi', '\\pi', '\\rho', '\\sigma', '\\tau', '\\upsilon', '\\phi', '\\chi', '\\psi', '\\omega'] },
-  { 'name': 'Operators', 'items': ['+', '-', '\\times', '\\div', '=', '\\neq', '\\approx', '\\leq', '\\geq', '\\pm', '\\mp', '\\cdot', '\\circ', '\\star', '\\ast', '\\odot', '\\oplus'] },
-  { 'name': 'Functions', 'items': ['\\sin', '\\cos', '\\tan', '\\log', '\\ln', '\\exp', '\\sqrt', '\\frac{}{}', '\\sum_{}^{}', '\\prod_{}^{}', '\\int_{}^{}', '\\iint_{}^{}', '\\iiint_{}^{}', '\\oint_{}^{}', '\\lim_{}'] },
-  { 'name': 'Logic', 'items': ['\\forall', '\\exists', '\\neg', '\\wedge', '\\vee', '\\implies', '\\iff', '\\oplus', '\\otimes', '\\equiv'] },
-  { 'name': 'Formatting', 'items': ['\\mathbf{}', '\\textbf{}', '\\emph{}', '\\overline{}', '\\underline{}', '\\overrightarrow{}', '\\overleftrightarrow{}', '\\hat{}', '\\tilde{}'] },
-  { 'name': 'Matrices', 'items': ['\\begin{bmatrix} \\end{bmatrix}', '\\begin{pmatrix} \\end{pmatrix}', '\\begin{vmatrix} \\end{vmatrix}', '\\begin{Vmatrix} \\end{Vmatrix}', '\\begin{bmatrix} a & b \\ c & d \\end{bmatrix}'] },
-  { 'name': 'Arrows', 'items': ['\\rightarrow', '\\leftarrow', '\\Rightarrow', '\\Leftarrow', '\\leftrightarrow', '\\Leftrightarrow', '\\uparrow', '\\downarrow', '\\updownarrow'] },
-  { 'name': 'Sets', 'items': ['\\cup', '\\cap', '\\subset', '\\supset', '\\subseteq', '\\supseteq', '\\in', '\\notin', '\\emptyset', '\\mathbb{R}', '\\mathbb{N}', '\\mathbb{Z}', '\\mathbb{Q}', '\\mathbb{C}'] }
-];
 
-const templates = [
-  {
-    'name': 'Basic Mathematics',
-    'items': [
-      { 'name': 'Quadratic Formula', 'formula': 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}' },
-      { 'name': 'Pythagorean Theorem', 'formula': 'a^2 + b^2 = c^2' },
-      { 'name': 'Sum of Series', 'formula': '\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}' },
-      { 'name': 'Binomial Theorem', 'formula': '(a + b)^n = \\sum_{k=0}^{n} \\binom{n}{k} a^{n-k} b^k' },
-      { 'name': 'Geometric Series', 'formula': '\\sum_{n=0}^{\\infty} ar^n = \\frac{a}{1-r} \\quad |r| < 1' },
-      { 'name': 'Logarithm Identity', 'formula': '\\log(ab) = \\log(a) + \\log(b)' },
-      { 'name': 'Exponential Identity', 'formula': 'e^{\\ln(x)} = x' },
-      { 'name': 'Trigonometric Identity', 'formula': '\\sin^2(x) + \\cos^2(x) = 1' }
-    ]
-  },
-  {
-    'name': 'Calculus',
-    'items': [
-      { 'name': 'Derivative', 'formula': '\\frac{d}{dx} f(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}' },
-      { 'name': 'Integral', 'formula': '\\int_{a}^{b} f(x) \\, dx' },
-      { 'name': 'Chain Rule', 'formula': '\\frac{d}{dx} f(g(x)) = f\'(g(x)) \\cdot g\'(x)' },
-      { 'name': 'Product Rule', 'formula': '\\frac{d}{dx} [f(x)g(x)] = f\'(x)g(x) + f(x)g\'(x)' },
-      { 'name': 'Quotient Rule', 'formula': '\\frac{d}{dx} \\left(\\frac{f(x)}{g(x)}\\right) = \\frac{f\'(x)g(x) - f(x)g\'(x)}{[g(x)]^2}' },
-      { 'name': 'Fundamental Theorem of Calculus', 'formula': '\\frac{d}{dx} \\int_{a}^{x} f(t) \\, dt = f(x)' },
-      { 'name': 'Partial Derivative', 'formula': '\\frac{\\partial f(x,y)}{\\partial x}' },
-      { 'name': 'Gradient', 'formula': '\\nabla f = \\left(\\frac{\\partial f}{\\partial x}, \\frac{\\partial f}{\\partial y}, \\frac{\\partial f}{\\partial z}\\right)' },
-      { 'name': 'Laplacian', 'formula': '\\nabla^2 f = \\frac{\\partial^2 f}{\\partial x^2} + \\frac{\\partial^2 f}{\\partial y^2} + \\frac{\\partial^2 f}{\\partial z^2}' },
-      { 'name': 'Taylor Series', 'formula': 'f(x) = \\sum_{n=0}^{\\infty} \\frac{f^{(n)}(a)}{n!} (x-a)^n' }
-    ]
-  },
-  {
-    'name': 'Linear Algebra',
-    'items': [
-      { 'name': 'Matrix Multiplication', 'formula': 'C_{ij} = \\sum_{k=1}^{n} A_{ik} B_{kj}' },
-      { 'name': 'Determinant', 'formula': '\\det(A) = \\begin{bmatrix} a & b \\ c & d \\end{bmatrix} = ad - bc' },
-      { 'name': 'Eigenvalue Equation', 'formula': 'A v = \\lambda v' },
-      { 'name': 'Trace', 'formula': '\\text{tr}(A) = \\sum_{i=1}^{n} A_{ii}' },
-      { 'name': 'Inverse Matrix', 'formula': 'A^{-1} = \\frac{1}{\\det(A)} \\text{adj}(A)' },
-      { 'name': 'Vector Dot Product', 'formula': '\\mathbf{a} \\cdot \\mathbf{b} = \\sum_{i=1}^{n} a_i b_i' },
-      { 'name': 'Vector Cross Product', 'formula': '\\mathbf{a} \\times \\mathbf{b} = \\begin{vmatrix} \\mathbf{i} & \\mathbf{j} & \\mathbf{k} \\ a_1 & a_2 & a_3 \\ b_1 & b_2 & b_3 \\end{vmatrix}' },
-      { 'name': 'Singular Value Decomposition', 'formula': 'A = U \\Sigma V^T' }
-    ]
-  },
-  {
-    'name': 'Physics',
-    'items': [
-      { 'name': 'Newton\'s Second Law', 'formula': 'F = ma' },
-      { 'name': 'Einstein\'s Mass-Energy Equivalence', 'formula': 'E = mc^2' },
-      { 'name': 'Maxwell\'s Equations', 'formula': '\\nabla \\cdot E = \\frac{\\rho}{\\epsilon_0}' },
-      { 'name': 'Schrödinger Equation', 'formula': 'i\\hbar \\frac{\\partial}{\\partial t} \\Psi(\\mathbf{r},t) = \\hat{H} \\Psi(\\mathbf{r},t)' },
-      { 'name': 'Heisenberg Uncertainty Principle', 'formula': '\\Delta x \\Delta p \\geq \\frac{\\hbar}{2}' },
-      { 'name': 'Planck\'s Law', 'formula': 'E = hf' },
-      { 'name': 'Boltzmann Distribution', 'formula': 'P(E) = \\frac{1}{Z} e^{-\\beta E}' },
-      { 'name': 'Lorentz Force', 'formula': '\\mathbf{F} = q(\\mathbf{E} + \\mathbf{v} \\times \\mathbf{B})' }
-    ]
-  },
-  {
-    'name': 'Statistics & Probability',
-    'items': [
-      { 'name': 'Mean', 'formula': '\\mu = \\frac{1}{n} \\sum_{i=1}^{n} x_i' },
-      { 'name': 'Variance', 'formula': '\\sigma^2 = \\frac{1}{n-1} \\sum_{i=1}^{n} (x_i - \\mu)^2' },
-      { 'name': 'Standard Deviation', 'formula': '\\sigma = \\sqrt{\\sigma^2}' },
-      { 'name': 'Probability Density Function', 'formula': 'P(a \\leq X \\leq b) = \\int_{a}^{b} f(x) \\, dx' },
-      { 'name': 'Gaussian Distribution', 'formula': 'f(x) = \\frac{1}{\\sigma \\sqrt{2\\pi}} e^{-\\frac{(x-\\mu)^2}{2\\sigma^2}}' },
-      { 'name': 'Bayes Theorem', 'formula': 'P(A|B) = \\frac{P(B|A) P(A)}{P(B)}' },
-      { 'name': 'Correlation Coefficient', 'formula': 'r = \\frac{\\sum (x_i - \\mu_x)(y_i - \\mu_y)}{\\sqrt{\\sum (x_i - \\mu_x)^2 \\sum (y_i - \\mu_y)^2}}' }
-    ]
-  }
-];
 
 /**
  * LaTeX公式编辑器主组件
@@ -298,6 +223,10 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
               <select
                 id="fontSize"
                 className="text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1"
+                onChange={(e) => {
+                  // 处理字体大小变化，实际应用中可以更新预览样式
+                  console.log('Font size changed:', e.target.value);
+                }}
               >
                 <option value="12">12px</option>
                 <option value="14" selected>14px</option>
@@ -321,15 +250,17 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
       case 'symbols':
         return (
           <LatexSymbolLibrary
-            symbols={symbols}
+            symbols={latexSymbols}
             onSymbolClick={handleInsertSymbol}
+            searchQuery={searchQuery}
           />
         );
       case 'templates':
         return (
           <LatexTemplateLibrary
-            templates={templates}
+            templates={latexTemplates}
             onTemplateClick={handleInsertTemplate}
+            searchQuery={searchQuery}
           />
         );
       default:

@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 import Chart from 'chart.js/auto';
 import styles from './ChartBase.module.css';
 import type { ChartData, ChartOptions, ChartEvent, ActiveElement } from 'chart.js';
+import { DEFAULT_CHART_OPTIONS } from './chartUtils';
 
 interface ChartBaseProps {
   chartType: string;
@@ -43,8 +44,7 @@ export const ChartBase = ({
 
     // 合并默认选项和用户选项
     const mergedOptions = {
-      'responsive': true,
-      'maintainAspectRatio': false,
+      ...DEFAULT_CHART_OPTIONS,
       ...options
     };
 

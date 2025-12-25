@@ -23,47 +23,123 @@ export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, select
   const content = data.content || '';
   const nodeType = data.type || 'default';
 
-  // 节点样式
-  const nodeStyle: React.CSSProperties = {
-    'width': 150,
-    'height': 100,
-    'border': `2px solid ${selected ? '#FF5252' : '#4ECDC4'}`,
-    'borderRadius': '6px',
-    'backgroundColor': '#fff',
-    'display': 'flex',
-    'justifyContent': 'center',
-    'alignItems': 'center',
-    'position': 'relative',
-    'transition': 'all 0.2s ease'
+  // 根据节点形状动态调整样式
+  const getNodeStyle = () => {
+    // 从data.style获取样式值，如果不存在则使用默认值
+    const styleFill = data.style?.fill || '#fff';
+    const styleStroke = data.style?.stroke || (selected ? '#FF5252' : '#4ECDC4');
+    const styleStrokeWidth = data.style?.strokeWidth || 2;
+    const styleRadius = data.style?.radius || 6;
+    const baseStyle: React.CSSProperties = {
+      'backgroundColor': styleFill,
+      'display': 'flex',
+      'justifyContent': 'center',
+      'alignItems': 'center',
+      'position': 'relative',
+      'transition': 'all 0.2s ease',
+      'transformOrigin': 'center center',
+      'boxSizing': 'border-box'
+    };
+
+    switch (data.shape) {
+      case 'circle':
+        return {
+          ...baseStyle,
+          'width': 100,
+          'height': 100,
+          'borderRadius': '50%',
+          'border': `${styleStrokeWidth}px solid ${styleStroke}`
+        };
+      case 'ellipse':
+        return {
+          ...baseStyle,
+          'width': 150,
+          'height': 100,
+          'borderRadius': '50%',
+          'border': `${styleStrokeWidth}px solid ${styleStroke}`
+        };
+      case 'triangle':
+        return {
+          ...baseStyle,
+          'width': 100,
+          'height': 100,
+          'backgroundColor': styleFill,
+          'clipPath': 'polygon(50% 0%, 100% 100%, 0% 100%)',
+          'border': `${styleStrokeWidth}px solid ${styleStroke}`,
+          'WebkitClipPath': 'polygon(50% 0%, 100% 100%, 0% 100%)'
+        };
+      case 'diamond':
+        return {
+          ...baseStyle,
+          'width': 100,
+          'height': 100,
+          'transform': 'rotate(45deg)',
+          'borderRadius': `${styleRadius}px`,
+          'border': `${styleStrokeWidth}px solid ${styleStroke}`
+        };
+      case 'hexagon':
+        return {
+          ...baseStyle,
+          'width': 100,
+          'height': 100,
+          'backgroundColor': styleFill,
+          'clipPath': 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+          'border': `${styleStrokeWidth}px solid ${styleStroke}`,
+          'WebkitClipPath': 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
+        };
+      case 'rect':
+      case 'rectangle':
+      default:
+        return {
+          ...baseStyle,
+          'width': 150,
+          'height': 100,
+          'borderRadius': `${styleRadius}px`,
+          'border': `${styleStrokeWidth}px solid ${styleStroke}`
+        };
+    }
   };
+
+  // 节点样式
+  const nodeStyle = getNodeStyle();
 
   return (
     <div style={nodeStyle}>
-      {/* 静态连接点 - 仅使用React Flow内置的Position枚举值，避免类型错误 */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="node-handle"
-        style={{ 'background': '#4ECDC4', 'borderColor': '#26A69A' }}
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="node-handle"
-        style={{ 'background': '#4ECDC4', 'borderColor': '#26A69A' }}
-      />
-      <Handle
-        type="target"
-        position={Position.Bottom}
-        className="node-handle"
-        style={{ 'background': '#4ECDC4', 'borderColor': '#26A69A' }}
-      />
-      <Handle
-        type="source"
-        position={Position.Left}
-        className="node-handle"
-        style={{ 'background': '#4ECDC4', 'borderColor': '#26A69A' }}
-      />
+      {/* 动态生成连接点 */}
+      {[...Array(data.handles?.handleCount || 4)].map((_, index) => {
+        // 根据索引确定连接点位置
+        const positions: Position[] = [Position.Top, Position.Right, Position.Bottom, Position.Left];
+        const position = positions[index % positions.length] as Position;
+
+        // 优化连接点类型分配：确保每个方向都有source和target类型
+        // 奇数索引使用source类型，偶数索引使用target类型
+        const type = index % 2 === 0 ? 'target' : 'source';
+
+        // 为每个连接点生成唯一的id，确保连接点识别正确
+        const handleId = `handle-${index}-${position}-${type}`;
+
+        return (
+          <Handle
+            key={handleId}
+            id={handleId}
+            type={type as 'target' | 'source'}
+            position={position}
+            className="node-handle"
+            style={{
+              'background': '#4ECDC4',
+              'borderColor': '#26A69A',
+              'width': 8,
+              'height': 8,
+              'borderRadius': '50%',
+              'borderWidth': 2,
+              'zIndex': 10,
+              'transform': 'translateZ(0)',
+              // 扩大选择判定区域
+              'cursor': 'pointer'
+            }}
+          />
+        );
+      })}
 
       {/* 节点内容 */}
       <div

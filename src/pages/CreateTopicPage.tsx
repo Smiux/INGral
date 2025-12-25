@@ -4,7 +4,7 @@
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Send, Tag, Image } from 'lucide-react';
+import { ArrowLeft, Send, Image } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import type { DiscussionCategory, DiscussionTopic } from '../types';
 import { discussionService } from '../services/discussionService';
@@ -25,8 +25,6 @@ export function CreateTopicPage () {
   const [content, setContent] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [authorEmail, setAuthorEmail] = useState('');
-  const [availableTags, setAvailableTags] = useState<{ id: number; name: string }[]>([]);
-  const [selectedTags, setSelectedTags] = useState<number[]>([]);
   // 图片上传相关
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -52,30 +50,6 @@ export function CreateTopicPage () {
       setIsLoading(false);
     }
   }, [categorySlug, navigate, setCategory, setIsLoading]);
-
-  /**
-   * 加载标签
-   */
-  const loadTags = useCallback(async () => {
-    try {
-      const data = await discussionService.getTags();
-      setAvailableTags(data.map(tag => ({ 'id': tag.id, 'name': tag.name })));
-    } catch (error) {
-      console.error('Failed to load tags:', error);
-    }
-  }, [setAvailableTags]);
-
-  /**
-   * 处理标签切换
-   */
-  const handleTagToggle = (tagId: number) => {
-    setSelectedTags(prev => {
-      if (prev.includes(tagId)) {
-        return prev.filter(id => id !== tagId);
-      }
-      return [...prev, tagId];
-    });
-  };
 
   /**
    * 处理图片上传按钮点击
@@ -147,7 +121,7 @@ export function CreateTopicPage () {
         topicData.author_email = authorEmail;
       }
 
-      const newTopic = await discussionService.createTopic(topicData, selectedTags);
+      const newTopic = await discussionService.createTopic(topicData);
 
       if (newTopic) {
         navigate(`/discussions/${category.slug}/${newTopic.id}`);
@@ -164,8 +138,7 @@ export function CreateTopicPage () {
    */
   useEffect(() => {
     loadCategory();
-    loadTags();
-  }, [categorySlug, navigate, loadCategory, loadTags]);
+  }, [categorySlug, navigate, loadCategory]);
 
   if (isLoading) {
     return (
@@ -279,26 +252,6 @@ export function CreateTopicPage () {
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2"
                   placeholder="Enter your email"
                 />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Select Tags (Optional)</label>
-              <div className="flex flex-wrap gap-2">
-                {availableTags.map(tag => (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => handleTagToggle(tag.id)}
-                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedTags.includes(tag.id)
-                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    <Tag className="w-4 h-4" />
-                    {tag.name}
-                  </button>
-                ))}
               </div>
             </div>
 

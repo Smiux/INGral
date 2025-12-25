@@ -18,10 +18,22 @@ interface TableRow {
   cells: TableCell[];
 }
 
+interface SelectionRange {
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+}
+
+interface CellPosition {
+  row: number;
+  col: number;
+}
+
 export function TableEditor ({ isOpen, onClose, onInsert, initialTable = '' }: TableEditorProps) {
   const [table, setTable] = useState<TableRow[]>([]);
-  const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
-  const [selectionRange, setSelectionRange] = useState<{ startRow: number; startCol: number; endRow: number; endCol: number } | null>(null);
+  const [selectedCell, setSelectedCell] = useState<CellPosition | null>(null);
+  const [selectionRange, setSelectionRange] = useState<SelectionRange | null>(null);
   const [tableMarkdown, setTableMarkdown] = useState('');
   const [isSelecting, setIsSelecting] = useState(false);
   const [startSelectRow, setStartSelectRow] = useState(0);
@@ -68,12 +80,65 @@ export function TableEditor ({ isOpen, onClose, onInsert, initialTable = '' }: T
     }
   }, [initialTable]);
 
+  // 生成HTML表格
+  const generateHtmlTable = useCallback(() => {
+    let htmlTable = '<table class="border-collapse w-full">\n';
+
+    // 处理表头
+    if (table[0] && table[0].cells) {
+      htmlTable += '  <thead>\n';
+      htmlTable += '    <tr>\n';
+      table[0].cells.forEach(cell => {
+        if (cell.content) {
+          const colspan = cell.colspan > 1 ? ` colspan="${cell.colspan}"` : '';
+          const rowspan = cell.rowspan > 1 ? ` rowspan="${cell.rowspan}"` : '';
+          const thClass = 'border border-gray-300 p-2 bg-gray-100 font-semibold';
+          htmlTable += `      <th class="${thClass}"${colspan}${rowspan}>${cell.content}</th>\n`;
+        }
+      });
+      htmlTable += '    </tr>\n';
+      htmlTable += '  </thead>\n';
+    }
+
+    // 处理数据行
+    htmlTable += '  <tbody>\n';
+    for (let i = 1; i < table.length; i += 1) {
+      const currentRow = table[i];
+      if (currentRow && currentRow.cells && Array.isArray(currentRow.cells)) {
+        htmlTable += '    <tr>\n';
+        for (const cell of currentRow.cells) {
+          if (cell.content) {
+            const colspan = cell.colspan > 1 ? ` colspan="${cell.colspan}"` : '';
+            const rowspan = cell.rowspan > 1 ? ` rowspan="${cell.rowspan}"` : '';
+            htmlTable += `      <td class="border border-gray-300 p-2"${colspan}${rowspan}>${cell.content}</td>\n`;
+          }
+        }
+        htmlTable += '    </tr>\n';
+      }
+    }
+    htmlTable += '  </tbody>\n';
+    htmlTable += '</table>';
+
+    return htmlTable;
+  }, [table]);
+
   // 生成Markdown表格
   const generateMarkdownTable = useCallback(() => {
     if (table.length === 0) {
       return '';
     }
 
+    // 检查是否有合并单元格
+    const hasMergedCells = table.some(row =>
+      row.cells.some(cell => cell.colspan > 1 || cell.rowspan > 1)
+    );
+
+    // 如果有合并单元格，使用HTML表格格式
+    if (hasMergedCells) {
+      return generateHtmlTable();
+    }
+
+    // 标准Markdown表格格式
     // 计算每列的最大宽度
     const colCount = Math.max(...table.map(row => row.cells.length));
     const columnWidths = Array(colCount).fill(0);
@@ -122,7 +187,7 @@ export function TableEditor ({ isOpen, onClose, onInsert, initialTable = '' }: T
     }
 
     return markdown;
-  }, [table]);
+  }, [table, generateHtmlTable]);
 
   // 当表格变化时更新Markdown
   useEffect(() => {
@@ -170,6 +235,25 @@ export function TableEditor ({ isOpen, onClose, onInsert, initialTable = '' }: T
     setSelectedCell(null);
   };
 
+  // 清除被合并的单元格
+  const clearMergedCells = (newTable: TableRow[], range: SelectionRange) => {
+    const { startRow, startCol, endRow, endCol } = range;
+    for (let i = startRow; i <= endRow; i += 1) {
+      const row = newTable[i];
+      if (row && row.cells) {
+        for (let j = startCol; j <= endCol; j += 1) {
+          if (!(i === startRow && j === startCol) && row.cells[j]) {
+            row.cells[j] = {
+              'content': '',
+              'colspan': 0,
+              'rowspan': 0
+            };
+          }
+        }
+      }
+    }
+  };
+
   // 合并单元格
   const handleMergeCells = () => {
     if (!selectionRange) {
@@ -181,41 +265,30 @@ export function TableEditor ({ isOpen, onClose, onInsert, initialTable = '' }: T
       return;
     }
 
-    // 计算合并后的单元格内容
-    if (table[startRow] && table[startRow].cells && table[startRow].cells[startCol]) {
-      const mergedContent = table[startRow].cells[startCol].content;
-      const newTable = [...table];
+    // 创建新的表格副本
+    const newTable = table.map(row => ({
+      'cells': row.cells.map(cell => ({ ...cell }))
+    }));
 
-      // 更新起始单元格
-      if (newTable[startRow] && newTable[startRow].cells) {
-        newTable[startRow].cells[startCol] = {
-          'content': mergedContent,
-          'colspan': endCol - startCol + 1,
-          'rowspan': endRow - startRow + 1
-        };
+    // 计算合并参数
+    const colspan = endCol - startCol + 1;
+    const rowspan = endRow - startRow + 1;
 
-        // 辅助函数：清除被合并的单元格
-        const clearMergedCells = (tableData: typeof newTable) => {
-          for (let i = startRow; i <= endRow; i += 1) {
-            for (let j = startCol; j <= endCol; j += 1) {
-              if (!(i === startRow && j === startCol)) {
-                const row = tableData[i];
-                if (row && row.cells && Array.isArray(row.cells)) {
-                  row.cells[j] = { 'content': '', 'colspan': 0, 'rowspan': 0 };
-                }
-              }
-            }
-          }
-        };
-
-        // 清除被合并的单元格
-        clearMergedCells(newTable);
-
-        setTable(newTable);
-        setSelectionRange(null);
-        setSelectedCell({ 'row': startRow, 'col': startCol });
-      }
+    // 更新起始单元格
+    if (newTable[startRow]?.cells[startCol]) {
+      newTable[startRow].cells[startCol] = {
+        'content': newTable[startRow].cells[startCol].content,
+        colspan,
+        rowspan
+      };
     }
+
+    // 清除被合并的单元格
+    clearMergedCells(newTable, { startRow, startCol, endRow, endCol });
+
+    setTable(newTable);
+    setSelectionRange(null);
+    setSelectedCell({ 'row': startRow, 'col': startCol });
   };
 
   // 拆分单元格
@@ -244,7 +317,11 @@ export function TableEditor ({ isOpen, onClose, onInsert, initialTable = '' }: T
   // 更新单元格内容
   const handleCellChange = (rowIndex: number, colIndex: number, content: string) => {
     const newTable = [...table];
-    if (newTable[rowIndex] && newTable[rowIndex].cells && newTable[rowIndex].cells[colIndex]) {
+    if (newTable[rowIndex] && newTable[rowIndex].cells) {
+      // 确保单元格数组有足够的元素
+      if (!newTable[rowIndex].cells[colIndex]) {
+        newTable[rowIndex].cells[colIndex] = { 'content': '', 'colspan': 1, 'rowspan': 1 };
+      }
       newTable[rowIndex].cells[colIndex].content = content;
       setTable(newTable);
     }
@@ -400,11 +477,11 @@ export function TableEditor ({ isOpen, onClose, onInsert, initialTable = '' }: T
                             className={`border border-gray-300 p-1 ${isCellSelected(rowIndex, colIndex) ? 'bg-blue-100 dark:bg-blue-900/30' : ''} ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? 'ring-2 ring-blue-500' : ''}`}
                             onClick={() => handleCellClick(rowIndex, colIndex)}
                             onMouseEnter={() => handleCellMouseEnter(rowIndex, colIndex)}
+                            colSpan={cell.colspan > 0 ? cell.colspan : 1}
+                            rowSpan={cell.rowspan > 0 ? cell.rowspan : 1}
                             style={{
                               'minWidth': '100px',
-                              'minHeight': '40px',
-                              'width': cell.colspan > 1 ? `${cell.colspan * 100}px` : '100px',
-                              'height': cell.rowspan > 1 ? `${cell.rowspan * 40}px` : '40px'
+                              'minHeight': '40px'
                             }}
                           >
                             {cell.colspan > 0 && cell.rowspan > 0 && (

@@ -101,8 +101,7 @@ export class ArticleExportService {
 
 ${this.markdownToLatex(article.content)}
 
-\\section*{标签}
-${article.tags ? article.tags.map(tag => `\\#${tag}`).join(' ') : ''}
+\
 
 \\end{document}`;
 
@@ -221,8 +220,6 @@ ${code}
 ## 内容
 ${article.content}
 
-## 标签
-${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
 
 ---
 *本文导出自知识库系统*`;
@@ -326,22 +323,7 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
       margin-bottom: 0;
     }
     
-    .tags {
-      margin-top: 2rem;
-      padding-top: 1rem;
-      border-top: 1px solid #e0e0e0;
-    }
-    
-    .tag {
-      display: inline-block;
-      background-color: #e9ecef;
-      color: #495057;
-      padding: 0.25rem 0.75rem;
-      border-radius: 16px;
-      font-size: 0.875rem;
-      margin-right: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
+
     
     .footer {
       margin-top: 3rem;
@@ -452,12 +434,6 @@ ${article.tags ? article.tags.map(tag => `#${tag}`).join(' ') : ''}
     <!-- 文章内容 -->
     <div class="content">
       ${contentHtml}
-    </div>
-    
-    <!-- 标签 -->
-    <div class="tags">
-      <strong>标签：</strong>
-      ${article.tags ? article.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : '无'}
     </div>
     
     <!-- 页脚 -->

@@ -259,9 +259,9 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
                       }}
                       multiple={config.type === 'multiselect'}
                     >
-                      {config.options?.map(option => (
+                      {config.options?.map((option, index) => (
                         <option
-                          key={option.value?.toString() || Math.random().toString()}
+                          key={option.value?.toString() || `${option.label}-${index}`}
                           value={option.value as string | number | readonly string[] | undefined}
                         >
                           {option.label}

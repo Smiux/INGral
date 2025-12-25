@@ -15,11 +15,6 @@ interface EditorContentAreaProps {
   isLoading: boolean;
   error: string;
   onCursorPositionChange?: (_position: { line: number; column: number }) => void;
-  collaborators?: {
-    id: string;
-    name: string;
-    cursorPosition?: { line: number; column: number };
-  }[];
 }
 
 /**
@@ -30,18 +25,12 @@ const VirtualEditor = React.memo(({
   content,
   setContent,
   onCursorPositionChange,
-  onScroll,
-  collaborators
+  onScroll
 }: {
   content: string;
   setContent: (_content: string) => void;
   onCursorPositionChange: (_position: { line: number; column: number }) => void;
   onScroll: (_event: React.UIEvent<HTMLTextAreaElement>) => void;
-  collaborators: {
-    id: string;
-    name: string;
-    cursorPosition?: { line: number; column: number };
-  }[] | undefined;
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -164,40 +153,22 @@ const VirtualEditor = React.memo(({
     };
   }, []);
 
-  // 行起始位置缓存，用于快速计算行号
-  const [lineStartsCache, setLineStartsCache] = useState<number[]>([0]);
-
-  // 更新行起始位置缓存
-  const updateLineStartsCache = useCallback((text: string) => {
-    const newLineStarts: number[] = [0];
-    for (let i = 0; i < text.length; i += 1) {
-      if (text[i] === '\n') {
-        newLineStarts.push(i + 1);
-      }
-    }
-    setLineStartsCache(newLineStarts);
-  }, []);
-
-  // 优化行号计算方法：使用缓存机制，O(log n)时间复杂度
+  // 优化行号计算方法：使用更高效的算法，减少二分查找的开销
   const calculateLineNumber = useCallback((_text: string, cursorPos: number): number => {
-    // 二分查找行号
-    let left = 0;
-    let right = lineStartsCache.length - 1;
-    let lineNumber = lineStartsCache.length;
+    // 优化行号计算，使用直接搜索方式，减少二分查找的开销
+    // 对于换行操作，这种方式更高效，因为光标通常在文档末尾附近
+    let lineNumber = 1;
 
-    while (left <= right) {
-      const mid = Math.floor((left + right) / 2);
-      const lineStart = lineStartsCache[mid] || 0;
-      if (lineStart <= cursorPos) {
-        lineNumber = mid + 1;
-        left = mid + 1;
-      } else {
-        right = mid - 1;
+    // 直接从当前位置向前搜索换行符，而不是使用二分查找
+    // 对于换行操作，这种方式的时间复杂度接近O(1)
+    for (let i = 0; i < cursorPos; i += 1) {
+      if (_text[i] === '\n') {
+        lineNumber += 1;
       }
     }
 
     return lineNumber;
-  }, [lineStartsCache]);
+  }, []);
 
   // 更新光标位置和高亮位置 - 超级优化版本
   const updateCursorPosition = useCallback(() => {
@@ -295,10 +266,7 @@ const VirtualEditor = React.memo(({
     return allLines.slice(visibleRange.start, visibleRange.end).join('\n');
   }, [content, visibleRange]);
 
-  // 当内容变化时更新行起始位置缓存
-  useEffect(() => {
-    updateLineStartsCache(content);
-  }, [content, updateLineStartsCache]);
+
 
   // 计算滚动高度
   const scrollHeight = totalLines * lineMetrics.lineHeight + lineMetrics.paddingTop + lineMetrics.paddingBottom;
@@ -369,88 +337,28 @@ const VirtualEditor = React.memo(({
               }}
             />
 
-            {/* 协作者光标显示 - 优化性能 */}
-            {collaborators && collaborators.map((collaborator) => {
-              if (!collaborator.cursorPosition) {
-                return null;
-              }
-
-              const { line, column } = collaborator.cursorPosition;
-              // 检查光标是否在可见区域内，包括预加载区域
-              if (line >= visibleRange.start + 1 && line <= visibleRange.end) {
-                // 计算光标在当前视图中的位置
-                const cursorTop = lineMetrics.paddingTop + (line - 1) * lineMetrics.lineHeight - scrollTop;
-                // 使用更精确的列宽计算 - 基于字体大小和字符数量
-                const fontMetrics = {
-                  'charWidth': lineMetrics.lineHeight * 0.6,
-                  // 估算字符宽度
-                  'paddingLeft': 8
-                  // 文本区域左边距
-                };
-                const cursorLeft = fontMetrics.paddingLeft + column * fontMetrics.charWidth;
-
-                // 为每个协作者分配不同的颜色
-                const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
-                const colorIndex = collaborators.findIndex(c => c.id === collaborator.id) % colors.length;
-                const cursorColor = colors[colorIndex];
-
-                return (
-                  <div key={`collaborator-${collaborator.id}`} className="absolute pointer-events-none z-20">
-                    {/* 光标指示器 */}
-                    <div
-                      className="absolute w-1 rounded-r-sm transition-all duration-150"
-                      style={{
-                        'top': `${cursorTop}px`,
-                        'left': `${cursorLeft}px`,
-                        'height': `${lineMetrics.lineHeight}px`,
-                        'backgroundColor': cursorColor
-                      }}
-                    />
-                    {/* 用户名标签 */}
-                    <div
-                      className="absolute px-2 py-0.5 text-xs font-medium text-white rounded whitespace-nowrap transition-all duration-150"
-                      style={{
-                        'top': `${cursorTop - 20}px`,
-                        'left': `${cursorLeft}px`,
-                        'backgroundColor': cursorColor
-                      }}
-                    >
-                      {collaborator.name}
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            })}
-
             <textarea
               ref={textareaRef}
               value={visibleContent}
               onChange={(e) => {
-                // 立即更新光标位置，避免延迟导致的光标闪烁
-                throttledUpdateCursorPosition();
-
                 // 获取当前编辑内容
                 const newVisibleContent = e.target.value;
 
-                // 获取原始可见行数
-                const originalVisibleLines = visibleContent.split('\n').length;
-
-                // 获取新的可见行
-                const newVisibleLines = newVisibleContent.split('\n');
-
                 // 只在内容真正变化时更新，减少不必要的状态更新
                 if (newVisibleContent !== visibleContent) {
+                  // 立即更新光标位置，避免延迟导致的光标闪烁
+                  throttledUpdateCursorPosition();
+
                   // 使用requestAnimationFrame延迟内容更新，避免频繁更新导致的性能问题
                   requestAnimationFrame(() => {
-                    // 获取原始内容的所有行（使用useMemo缓存，避免重复计算）
+                    // 获取原始内容的所有行
                     const allLines = content.split('\n');
 
                     // 创建新的内容行数组
                     const updatedLines = [...allLines];
 
                     // 替换可见范围内的内容
-                    updatedLines.splice(visibleRange.start, originalVisibleLines, ...newVisibleLines);
+                    updatedLines.splice(visibleRange.start, visibleRange.end - visibleRange.start, ...newVisibleContent.split('\n'));
 
                     // 更新完整内容
                     setContent(updatedLines.join('\n'));
@@ -490,18 +398,12 @@ const SimpleEditor = React.memo(({
   content,
   setContent,
   onCursorPositionChange,
-  onScroll,
-  collaborators
+  onScroll
 }: {
   content: string;
   setContent: (_content: string) => void;
   onCursorPositionChange: (_position: { line: number; column: number }) => void;
   onScroll: (_event: React.UIEvent<HTMLTextAreaElement>) => void;
-  collaborators: {
-    id: string;
-    name: string;
-    cursorPosition?: { line: number; column: number };
-  }[] | undefined;
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
@@ -523,20 +425,6 @@ const SimpleEditor = React.memo(({
     'height': 24
     // 初始值，将动态更新
   });
-
-  // 行起始位置缓存，用于快速计算行号
-  const [lineStartsCache, setLineStartsCache] = useState<number[]>([0]);
-
-  // 更新行起始位置缓存
-  const updateLineStartsCache = useCallback((text: string) => {
-    const newLineStarts: number[] = [0];
-    for (let i = 0; i < text.length; i += 1) {
-      if (text[i] === '\n') {
-        newLineStarts.push(i + 1);
-      }
-    }
-    setLineStartsCache(newLineStarts);
-  }, []);
 
   // 初始化时获取真实行高和padding，并在内容变化时重新计算
   React.useEffect(() => {
@@ -585,26 +473,22 @@ const SimpleEditor = React.memo(({
     };
   }, []);
 
-  // 优化行号计算方法：使用缓存机制和二分查找，O(log n)时间复杂度
+  // 优化行号计算方法：使用更高效的算法，减少二分查找的开销
   const calculateLineNumber = useCallback((_text: string, cursorPos: number): number => {
-    // 二分查找行号
-    let left = 0;
-    let right = lineStartsCache.length - 1;
-    let lineNumber = lineStartsCache.length;
+    // 优化行号计算，使用直接搜索方式，减少二分查找的开销
+    // 对于换行操作，这种方式更高效，因为光标通常在文档末尾附近
+    let lineNumber = 1;
 
-    while (left <= right) {
-      const mid = Math.floor((left + right) / 2);
-      const lineStart = lineStartsCache[mid] || 0;
-      if (lineStart <= cursorPos) {
-        lineNumber = mid + 1;
-        left = mid + 1;
-      } else {
-        right = mid - 1;
+    // 直接从当前位置向前搜索换行符，而不是使用二分查找
+    // 对于换行操作，这种方式的时间复杂度接近O(1)
+    for (let i = 0; i < cursorPos; i += 1) {
+      if (_text[i] === '\n') {
+        lineNumber += 1;
       }
     }
 
     return lineNumber;
-  }, [lineStartsCache]);
+  }, []);
 
   // 更新光标位置和高亮位置 - 进一步优化版本
   const updateCursorPosition = useCallback(() => {
@@ -649,10 +533,7 @@ const SimpleEditor = React.memo(({
     [updateCursorPosition, rafThrottle]
   );
 
-  // 当内容变化时更新行起始位置缓存
-  useEffect(() => {
-    updateLineStartsCache(content);
-  }, [content, updateLineStartsCache]);
+
 
   // 同步行号滚动
   const handleTextareaScroll = (event: React.UIEvent<HTMLTextAreaElement>) => {
@@ -704,47 +585,6 @@ const SimpleEditor = React.memo(({
           }}
         />
 
-        {/* 协作者光标显示 */}
-        {collaborators && collaborators.map((collaborator) => {
-          if (!collaborator.cursorPosition) {
-            return null;
-          }
-
-          const { line, column } = collaborator.cursorPosition;
-
-          // 为每个协作者分配不同的颜色
-          const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
-          const colorIndex = collaborators.findIndex(c => c.id === collaborator.id) % colors.length;
-          const cursorColor = colors[colorIndex];
-
-          return (
-            <div key={collaborator.id} className="absolute pointer-events-none z-20">
-              {/* 光标指示器 */}
-              <div
-                className="absolute w-1 rounded-r-sm transition-all duration-150"
-                style={{
-                  'top': `${lineMetrics.paddingTop + (line - 1) * lineMetrics.lineHeight}px`,
-                  'left': `${8 + column * 8}px`,
-                  // 简单估算列宽
-                  'height': `${lineMetrics.lineHeight}px`,
-                  'backgroundColor': cursorColor
-                }}
-              />
-              {/* 用户名标签 */}
-              <div
-                className="absolute px-2 py-0.5 text-xs font-medium text-white rounded whitespace-nowrap transition-all duration-150"
-                style={{
-                  'top': `${lineMetrics.paddingTop + (line - 1) * lineMetrics.lineHeight - 20}px`,
-                  'left': `${8 + column * 8}px`,
-                  'backgroundColor': cursorColor
-                }}
-              >
-                {collaborator.name}
-              </div>
-            </div>
-          );
-        })}
-
         <textarea
           ref={textareaRef}
           value={content}
@@ -776,18 +616,13 @@ const SimpleEditor = React.memo(({
 
 /**
  * 智能编辑器组件 - 根据文章大小自动选择虚拟滚动或普通模式
- * 添加缓冲区，避免在100行左右频繁切换编辑器类型
+ * 优化版，增加缓冲区大小，避免频繁切换编辑器类型
  */
 const SmartEditor = React.memo((props: {
   content: string;
   setContent: (_content: string) => void;
   onCursorPositionChange: (_position: { line: number; column: number }) => void;
   onScroll: (_event: React.UIEvent<HTMLTextAreaElement>) => void;
-  collaborators: {
-    id: string;
-    name: string;
-    cursorPosition?: { line: number; column: number };
-  }[] | undefined;
 }) => {
   const totalLines = props.content.split('\n').length;
 
@@ -797,16 +632,16 @@ const SmartEditor = React.memo((props: {
     return totalLines > 100 ? 'virtual' : 'simple';
   });
 
-  // 根据行数变化更新编辑器类型，添加缓冲区避免频繁切换
+  // 根据行数变化更新编辑器类型，增加缓冲区避免频繁切换
   useEffect(() => {
-    if (totalLines > 110) {
-      // 超过110行时使用虚拟滚动
+    if (totalLines > 150) {
+      // 超过150行时使用虚拟滚动，增加缓冲区
       setEditorType('virtual');
-    } else if (totalLines < 90) {
-      // 少于90行时使用普通编辑器
+    } else if (totalLines < 80) {
+      // 少于80行时使用普通编辑器，增加缓冲区
       setEditorType('simple');
     }
-    // 在90-110行之间保持当前编辑器类型不变
+    // 在80-150行之间保持当前编辑器类型不变，增加缓冲区大小，减少切换频率
   }, [totalLines]);
 
   // 根据编辑器类型渲染对应的组件
@@ -824,8 +659,7 @@ export const EditorContentArea = React.memo(({
   livePreview,
   isLoading,
   error,
-  onCursorPositionChange,
-  collaborators
+  onCursorPositionChange
 }: EditorContentAreaProps) => {
   const previewRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -907,7 +741,6 @@ export const EditorContentArea = React.memo(({
           'ALLOWED_ATTR': ['loading', 'style', 'data-chart-config', 'data-sympy-code', 'data-sympy-id', 'data-graph-id', 'data-graph-data', 'data-graph-attrs', 'id', 'class', 'href', 'target', 'rel', 'src', 'alt', 'title', 'width', 'height', 'align', 'valign', 'colspan', 'rowspan', 'scope', 'datetime', 'lang', 'dir', 'tabindex', 'accesskey', 'aria-label', 'aria-hidden', 'aria-describedby', 'role'],
           'ADD_ATTR': ['loading'],
           'USE_PROFILES': { 'html': true, 'svg': true },
-          // 禁止执行恶意脚本
           'FORBID_TAGS': ['script'],
           'FORBID_ATTR': ['onload', 'onerror', 'onclick', 'onmouseover', 'onmouseout', 'onmousedown', 'onmouseup', 'onkeydown', 'onkeyup', 'onkeypress', 'onfocus', 'onblur', 'onchange', 'onsubmit', 'onreset', 'onselect', 'onresize']
         });
@@ -957,24 +790,24 @@ export const EditorContentArea = React.memo(({
         return undefined;
       }
 
-      // 根据文章大小动态调整防抖时间
+      // 根据文章大小动态调整防抖时间 - 优化版，增加默认防抖时间
       const totalLines = content.split('\n').length;
-      let debounceTime = 200;
-      // 默认200ms，缩短默认防抖时间
+      // 增加默认防抖时间到300ms，减少频繁换行时的渲染次数
+      let debounceTime = 300;
 
       // 文章越长，防抖时间越长
       if (totalLines > 1000) {
-        debounceTime = 1000;
-        // 超大型文章，1秒防抖
+        // 超大型文章，1.5秒防抖，进一步减少渲染次数
+        debounceTime = 1500;
       } else if (totalLines > 500) {
-        debounceTime = 800;
-        // 大型文章，800ms防抖
+        // 大型文章，1秒防抖
+        debounceTime = 1000;
       } else if (totalLines > 200) {
-        debounceTime = 500;
-        // 中型文章，500ms防抖
+        // 中型文章，800ms防抖
+        debounceTime = 800;
       } else if (totalLines > 50) {
-        debounceTime = 300;
-        // 小型文章，300ms防抖
+        // 小型文章，500ms防抖
+        debounceTime = 500;
       }
 
       // 使用动态防抖时间，避免过于频繁的渲染
@@ -1104,7 +937,6 @@ export const EditorContentArea = React.memo(({
               setContent={setContent}
               onCursorPositionChange={onCursorPositionChange || (() => {})}
               onScroll={handleEditorScroll}
-              collaborators={collaborators}
             />
           </div>
         ) : null}

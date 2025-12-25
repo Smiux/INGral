@@ -122,33 +122,7 @@ export const validateVisibility = (visibility: string): { isValid: boolean; mess
   return { 'isValid': true };
 };
 
-/**
- * 验证标签数组
- * @param tags 标签数组或undefined
- * @returns 验证结果，包含isValid和message
- */
-export const validateTags = (tags?: string[]): { isValid: boolean; message?: string } => {
-  if (!tags) {
-    return { 'isValid': true };
-  }
 
-  if (!Array.isArray(tags)) {
-    return { 'isValid': false, 'message': '标签必须是数组格式' };
-  }
-
-  if (tags.length > 20) {
-    return { 'isValid': false, 'message': '标签数量不能超过20个' };
-  }
-
-  // 验证每个标签
-  for (const tag of tags) {
-    if (typeof tag !== 'string' || tag.length > 50) {
-      return { 'isValid': false, 'message': '每个标签必须是字符串且长度不超过50个字符' };
-    }
-  }
-
-  return { 'isValid': true };
-};
 
 /**
  * 清理用户输入的文本，移除危险字符

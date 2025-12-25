@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { Comment as CommentType } from '../../types';
 import { commentService } from '../../services/commentService';
-import { Comment } from './Comment';
+import CommentItem from './CommentItem';
 import { ChevronDown, ChevronUp, Filter, ArrowUpDown, ArrowRight, Clock, Star } from 'lucide-react';
 
 interface CommentsSectionProps {
@@ -280,29 +280,13 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ articleId }) =
             <>
               <div className="space-y-6">
                 {currentComments.map((comment) => (
-                  <div key={comment.id}>
-                    <Comment
-                      comment={comment}
-                      articleId={articleId}
-                      onCommentAdded={loadComments}
-                      onCommentDeleted={loadComments}
-                    />
-
-                    {/* 显示回复 */}
-                    {comment.replies && comment.replies.length > 0 && (
-                      <div className="ml-8 space-y-4 mt-2">
-                        {comment.replies.map((reply) => (
-                          <Comment
-                            key={reply.id}
-                            comment={reply}
-                            articleId={articleId}
-                            onCommentAdded={loadComments}
-                            onCommentDeleted={loadComments}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <CommentItem
+                    key={comment.id}
+                    comment={comment}
+                    articleId={articleId}
+                    onVote={() => loadComments()}
+                    onDelete={() => loadComments()}
+                  />
                 ))}
               </div>
 
