@@ -154,7 +154,7 @@ export class NodeAggregationUtils {
       'id': `aggregated-${mainNode.id}-${Date.now()}`,
       'title': `${mainNode.title} (${nearbyNodes.length + 1}个节点)`,
       'connections': 0,
-      'shape': 'rect',
+      'shape': 'circle',
       'layout': {
         'x': avgX,
         'y': avgY,

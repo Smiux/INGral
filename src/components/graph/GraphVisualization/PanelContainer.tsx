@@ -90,7 +90,7 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
                 'timestamp': Date.now(),
                 'data': {
                   'type': 'addNode',
-                  'node': node,
+                  node,
                   'connections': []
                 }
               });
@@ -134,7 +134,7 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
                   'title': node.title,
                   'connections': node.connections || 0,
                   'type': node.type || 'concept',
-                  'shape': 'rect',
+                  'shape': 'circle',
                   'style': {
                     'fill': '#3b82f6',
                     'stroke': '#2563eb',

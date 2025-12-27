@@ -110,7 +110,7 @@ export const LayoutManager: React.FC<{
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 bg-gray-50 p-4 rounded-lg shadow-sm">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           布局类型
@@ -118,7 +118,7 @@ export const LayoutManager: React.FC<{
         <select
           value={localLayoutType}
           onChange={(e) => handleLayoutTypeChange(e.target.value as LayoutType)}
-          className="block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
+          className="block w-full bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out hover:border-gray-300"
         >
           <option value="force">力导向布局</option>
           <option value="tree">树形布局</option>
@@ -137,7 +137,7 @@ export const LayoutManager: React.FC<{
         <select
           value={localLayoutDirection}
           onChange={(e) => handleLayoutDirectionChange(e.target.value as LayoutDirection)}
-          className="block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
+          className="block w-full bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out hover:border-gray-300"
         >
           <option value="top-bottom">从上到下</option>
           <option value="left-right">从左到右</option>
@@ -156,7 +156,7 @@ export const LayoutManager: React.FC<{
           max="200"
           value={localNodeSpacing}
           onChange={(e) => handleNodeSpacingChange(parseInt(e.target.value, 10))}
-          className="w-full"
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:bg-gray-300 transition-colors duration-200"
         />
       </div>
 
@@ -170,102 +170,109 @@ export const LayoutManager: React.FC<{
           max="300"
           value={localLevelSpacing}
           onChange={(e) => handleLevelSpacingChange(parseInt(e.target.value, 10))}
-          className="w-full"
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:bg-gray-300 transition-colors duration-200"
         />
       </div>
 
       {localLayoutType === 'force' && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">力导向布局参数</h4>
-          <div>
-            <label className="block text-xs text-gray-600 mb-1">
-              电荷: {localForceParameters.charge}
-            </label>
-            <input
-              type="range"
-              min="-500"
-              max="-50"
-              value={localForceParameters.charge}
-              onChange={(e) => handleForceParametersChange({ ...localForceParameters, 'charge': parseInt(e.target.value, 10) })}
-              className="w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-600 mb-1">
-              连接强度: {localForceParameters.linkStrength}
-            </label>
-            <input
-              type="range"
-              min="0.01"
-              max="1"
-              step="0.01"
-              value={localForceParameters.linkStrength}
-              onChange={(e) => handleForceParametersChange({ ...localForceParameters, 'linkStrength': parseFloat(e.target.value) })}
-              className="w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-600 mb-1">
-              连接距离: {localForceParameters.linkDistance}
-            </label>
-            <input
-              type="range"
-              min="50"
-              max="200"
-              value={localForceParameters.linkDistance}
-              onChange={(e) => handleForceParametersChange({ ...localForceParameters, 'linkDistance': parseInt(e.target.value, 10) })}
-              className="w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-600 mb-1">
-              重力: {localForceParameters.gravity}
-            </label>
-            <input
-              type="range"
-              min="0.01"
-              max="1"
-              step="0.01"
-              value={localForceParameters.gravity}
-              onChange={(e) => handleForceParametersChange({ ...localForceParameters, 'gravity': parseFloat(e.target.value) })}
-              className="w-full"
-            />
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <h4 className="text-sm font-medium text-gray-700 mb-4">力导向布局参数</h4>
+          <div className="space-y-3">
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-sm font-medium text-gray-600">电荷</label>
+                <span className="text-sm font-semibold text-blue-600">{localForceParameters.charge}</span>
+              </div>
+              <input
+                type="range"
+                min="-500"
+                max="-50"
+                value={localForceParameters.charge}
+                onChange={(e) => handleForceParametersChange({ ...localForceParameters, 'charge': parseInt(e.target.value, 10) })}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:bg-gray-300 transition-colors duration-200"
+              />
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-sm font-medium text-gray-600">连接强度</label>
+                <span className="text-sm font-semibold text-blue-600">{localForceParameters.linkStrength?.toFixed(2) ?? '0.10'}</span>
+              </div>
+              <input
+                type="range"
+                min="0.01"
+                max="1"
+                step="0.01"
+                value={localForceParameters.linkStrength}
+                onChange={(e) => handleForceParametersChange({ ...localForceParameters, 'linkStrength': parseFloat(e.target.value) })}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:bg-gray-300 transition-colors duration-200"
+              />
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-sm font-medium text-gray-600">连接距离</label>
+                <span className="text-sm font-semibold text-blue-600">{localForceParameters.linkDistance}</span>
+              </div>
+              <input
+                type="range"
+                min="50"
+                max="200"
+                value={localForceParameters.linkDistance}
+                onChange={(e) => handleForceParametersChange({ ...localForceParameters, 'linkDistance': parseInt(e.target.value, 10) })}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:bg-gray-300 transition-colors duration-200"
+              />
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-sm font-medium text-gray-600">重力</label>
+                <span className="text-sm font-semibold text-blue-600">{localForceParameters.gravity?.toFixed(2) ?? '0.10'}</span>
+              </div>
+              <input
+                type="range"
+                min="0.01"
+                max="1"
+                step="0.01"
+                value={localForceParameters.gravity}
+                onChange={(e) => handleForceParametersChange({ ...localForceParameters, 'gravity': parseFloat(e.target.value) })}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:bg-gray-300 transition-colors duration-200"
+              />
+            </div>
           </div>
         </div>
       )}
 
-      <div className="border-t pt-4 space-y-2">
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+        <h4 className="text-sm font-medium text-gray-700 mb-4">已保存布局</h4>
         <button
           onClick={handleSaveLayout}
-          className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           保存当前布局
         </button>
 
         {savedLayouts.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              已保存的布局
-            </label>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
+          <div className="mt-4">
+            <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
               {savedLayouts.map(layout => (
-                <div key={layout.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">{layout.name}</div>
-                    <div className="text-xs text-gray-500">
+                <div key={layout.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 ease-in-out border border-gray-100 hover:border-gray-200">
+                  <div className="flex-1 mb-3 sm:mb-0">
+                    <div className="text-sm font-semibold text-gray-800">{layout.name}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">
                       {layout.layoutType} - {layout.layoutDirection}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      保存于: {new Date(layout.createdAt).toLocaleTimeString()}
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleLoadLayout(layout)}
-                      className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                      className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     >
                       加载
                     </button>
                     <button
                       onClick={() => handleDeleteLayout(layout.id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                      className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                     >
                       删除
                     </button>

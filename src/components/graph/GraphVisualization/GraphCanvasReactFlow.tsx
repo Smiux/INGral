@@ -32,12 +32,34 @@ const hideAttributionStyle = `
     display: none !important;
   }
   
+  /* 修复连接线被节点覆盖的问题：调整React Flow容器的z-index层级 */
+  .react-flow__nodes {
+    z-index: 1 !important;
+  }
+  
+  .react-flow__edges {
+    z-index: 10 !important;
+  }
+  
   .react-flow__node {
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    z-index: 1 !important;
+  }
+  
+  .react-flow__edge {
+    z-index: 10 !important;
+  }
+  
+  .react-flow__edge-path {
+    z-index: 10 !important;
+  }
+  
+  .react-flow__edge-text {
+    z-index: 11 !important;
   }
   
   .selectable {

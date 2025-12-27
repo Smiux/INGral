@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import {
-  Undo, Redo, Plus, Layout, PieChart, Box, Grid, Settings,
-  BarChart, Database, Brain,
+import { Undo, Redo, Plus, Layout, PieChart, Box, Grid, Settings,
+  BarChart, Database, Brain, FileText,
   ZoomIn, ZoomOut, Maximize2, RefreshCw,
   Download, Eye, EyeOff, ChevronDown, Edit3,
   Layers, View, Activity, Target
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // 导入自定义Hook
-import { useGraphContext } from './GraphContext';
+import { useGraph } from './useGraph';
 
 
 /**
@@ -16,8 +16,8 @@ import { useGraphContext } from './GraphContext';
  * 优化后的控制面板，提供更直观、易用的图谱操作功能
  */
 export const GraphToolbar: React.FC = React.memo(() => {
-  // 使用useGraphContext Hook获取状态和操作
-  const { state, actions } = useGraphContext();
+  // 使用useGraph Hook获取状态和操作
+  const { state, actions } = useGraph();
 
   // 从state中解构需要的状态
   const {
@@ -51,66 +51,30 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
   // 处理创建新节点
   const handleCreateNode = () => {
-    // 简化处理，直接调用addNode
-    const newNode = {
-      'id': `node-${Date.now()}`,
-      'title': `新节点 ${nodes.length + 1}`,
-      'connections': 0,
-      'type': 'concept',
-      'shape': 'circle',
-      'style': {},
-      'state': {
-        'isExpanded': false,
-        'isFixed': false,
-        'isSelected': false,
-        'isHovered': false,
-        'isDragging': false,
-        'isCollapsed': false
-      },
-      'metadata': {
-        'is_custom': true,
-        'createdAt': Date.now(),
-        'updatedAt': Date.now(),
-        'version': 1
-      },
-      'layout': {
-        'x': Math.random() * 400 - 200,
-        'y': Math.random() * 400 - 200,
-        'isFixed': false,
-        'isExpanded': false
-      },
-      'handles': {
-        'handleCount': 4,
-        'lockedHandles': {},
-        'handleLabels': {}
-      },
-      'group': {
-        'isGroup': false,
-        'memberIds': [],
-        'isGroupExpanded': false
-      }
-    };
-    actions.addNode(newNode);
+    // 创建一个新的DragEvent对象
+    const mockEvent = new DragEvent('drop', {
+      'bubbles': true,
+      'cancelable': true
+    }) as unknown as React.DragEvent<Element>;
+    // 调用handleCanvasDrop来创建新节点
+    actions.handleCanvasDrop(mockEvent, 0, 0);
   };
 
   // 处理缩放操作
   const handleZoomIn = () => {
     if (state.reactFlowInstance) {
-      // @ts-expect-error - reactFlowInstance类型不明确
       state.reactFlowInstance.zoomIn();
     }
   };
 
   const handleZoomOut = () => {
     if (state.reactFlowInstance) {
-      // @ts-expect-error - reactFlowInstance类型不明确
       state.reactFlowInstance.zoomOut();
     }
   };
 
   const handleZoomReset = () => {
     if (state.reactFlowInstance) {
-      // @ts-expect-error - reactFlowInstance类型不明确
       state.reactFlowInstance.zoomTo(1);
     }
   };
@@ -126,34 +90,25 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
   // 处理刷新布局
   const handleRefreshLayout = () => {
-    // 简化处理，直接更新状态
+    actions.applyLayout(state.layoutType, state.layoutDirection);
     actions.showNotification('布局已刷新', 'success');
-  };
-
-  // 处理面板切换
-  const handleTogglePanel = (panel: string) => {
-    if (activePanel === panel) {
-      actions.setActivePanel('');
-    } else {
-      actions.setActivePanel(panel);
-    }
   };
 
   return (
     <div className={`bg-white border-b border-gray-200 shadow-md p-1 flex flex-wrap items-center justify-between gap-1 transition-all duration-300 ease-in-out ${isToolbarVisible ? 'translate-y-0' : '-translate-y-full'} z-50 backdrop-blur-sm`}>
-      {/* Logo和主页链接 - 简化版本，移除路由 */}
-      <div className="flex items-center gap-2 hover:opacity-80 transition-opacity mr-3 px-2 flex-shrink-0">
-        <Brain className="w-5 h-5 text-blue-600" />
-        <span className="font-bold text-sm tracking-tight text-gray-800">MyMathWiki</span>
-      </div>
+      {/* Logo和主页链接 */}
+      <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity mr-3 px-2 flex-shrink-0">
+        <Brain className="w-5 h-5 text-primary-600 dark:text-primary-500" />
+        <span className="font-bold text-sm tracking-tight text-gray-800 dark:text-gray-200">MyMathWiki</span>
+      </Link>
 
       {/* 图谱统计信息 */}
-      <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-gray-700 backdrop-blur-sm flex-shrink-0">
+      <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-gray-700 dark:text-gray-300 backdrop-blur-sm flex-shrink-0">
         <span className="flex items-center gap-1">
           <Database size={12} />
           节点: {nodes.length}
         </span>
-        <span className="h-3 w-px bg-gray-400"></span>
+        <span className="h-3 w-px bg-gray-400 dark:bg-gray-600"></span>
         <span className="flex items-center gap-1">
           <Box size={12} />
           连接: {connections.length}
@@ -203,11 +158,18 @@ export const GraphToolbar: React.FC = React.memo(() => {
                 <Plus size={16} />
               </button>
 
-
+              {/* 模板选择按钮 */}
+              <button
+                onClick={() => actions.togglePanel(activePanel === 'templates' ? null : 'templates')}
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'templates' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                title="选择模板"
+              >
+                <FileText size={16} />
+              </button>
 
               {/* 导入导出按钮 - 只保留一个 */}
               <button
-                onClick={() => handleTogglePanel(activePanel === 'importExport' ? 'importExport' : 'importExport')}
+                onClick={() => actions.togglePanel(activePanel === 'importExport' ? null : 'importExport')}
                 className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'importExport' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
                 title="导入导出"
               >
@@ -231,7 +193,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
             <>
               {/* 布局管理按钮 */}
               <button
-                onClick={() => handleTogglePanel(activePanel === 'layout' ? 'layout' : 'layout')}
+                onClick={() => actions.togglePanel(activePanel === 'layout' ? null : 'layout')}
                 className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'layout' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
                 title="布局管理"
               >
@@ -277,7 +239,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
             <>
               {/* 图谱分析按钮 */}
               <button
-                onClick={() => handleTogglePanel(activePanel === 'analysis' ? 'analysis' : 'analysis')}
+                onClick={() => actions.togglePanel(activePanel === 'analysis' ? null : 'analysis')}
                 className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'analysis' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
                 title="图谱分析"
               >
@@ -286,7 +248,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
               {/* 统计信息按钮 */}
               <button
-                onClick={() => handleTogglePanel(activePanel === 'statistics' ? 'statistics' : 'statistics')}
+                onClick={() => actions.togglePanel(activePanel === 'statistics' ? null : 'statistics')}
                 className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'statistics' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
                 title="查看统计信息"
               >
@@ -295,7 +257,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
               {/* 管理按钮 - 合并节点和连接管理 */}
               <button
-                onClick={() => handleTogglePanel(activePanel === 'manage' ? 'manage' : 'manage')}
+                onClick={() => actions.togglePanel(activePanel === 'manage' ? null : 'manage')}
                 className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'manage' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
                 title="节点与连接管理"
               >
@@ -366,14 +328,12 @@ export const GraphToolbar: React.FC = React.memo(() => {
                   if (state.reactFlowInstance) {
                     if (nodes.length > 0) {
                       // 如果有节点，使用fitView将节点居中
-                      // @ts-expect-error - reactFlowInstance类型不明确
                       state.reactFlowInstance.fitView({
                         'padding': 100,
                         'duration': 500
                       });
                     } else {
                       // 如果没有节点，重置视图位置和缩放
-                      // @ts-expect-error - reactFlowInstance类型不明确
                       state.reactFlowInstance.setViewport({
                         'x': 0,
                         'y': 0,
@@ -423,5 +383,3 @@ export const GraphToolbar: React.FC = React.memo(() => {
     </div>
   );
 });
-
-export default GraphToolbar;

@@ -36,7 +36,7 @@ const SearchResultsGraphContent: React.FC<SearchResultsGraphProps> = ({ results,
         'id': result.id,
         'title': result.title,
         'type': result.type,
-        'shape': 'rect',
+        'shape': 'circle',
         'connections': 0,
         'state': {
           'isExpanded': false,

@@ -347,7 +347,7 @@ export interface HistoryEntry {
   connectionId?: string;
   groupId?: string;
   timestamp: number;
-  data: 
+  data:
     | { type: 'addNode'; node: GraphNode; connections: GraphConnection[] }
     | { type: 'deleteNode'; node: GraphNode; connections: GraphConnection[] }
     | { type: 'addConnection'; connection: GraphConnection }

@@ -18,7 +18,7 @@ export const getInitialState = (): GraphState => ({
   'isRightPanelVisible': false,
   'isToolbarVisible': true,
   'isLeftToolbarVisible': true,
-  'activePanel': 'manage',
+  'activePanel': '',
   'isBoxSelecting': false,
   'boxSelection': { 'x1': 0, 'y1': 0, 'x2': 0, 'y2': 0 },
   'isSettingsPanelOpen': false,

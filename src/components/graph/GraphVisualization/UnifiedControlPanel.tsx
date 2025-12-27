@@ -47,7 +47,7 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     'title': '',
     'connections': 0,
     'type': 'concept',
-    'shape': 'rect',
+    'shape': 'circle',
     'state': {
       'isExpanded': false,
       'isFixed': false,
@@ -149,17 +149,15 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
   };
 
   const handleHandleCountChange = (delta: number) => {
-    setNodeFormData(prev => {
-      const currentCount = prev.handles.handleCount;
-      const newCount = Math.max(1, Math.min(20, currentCount + delta));
-      return {
-        ...prev,
-        'handles': {
-          ...prev.handles,
-          'handleCount': newCount
-        }
-      };
-    });
+    const updatedNodeData = {
+      ...nodeFormData,
+      'handles': {
+        ...nodeFormData.handles,
+        'handleCount': Math.max(1, Math.min(20, nodeFormData.handles.handleCount + delta))
+      }
+    };
+    setNodeFormData(updatedNodeData);
+    onUpdateNode(updatedNodeData);
   };
 
   // 当选中节点变化时，更新表单数据
@@ -178,26 +176,32 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
 
     if (name === 'handleCount' && type === 'number') {
       const numValue = parseInt(value, 10) || 4;
-      setNodeFormData(prev => ({
-        ...prev,
+      const updatedNodeData = {
+        ...nodeFormData,
         'handles': {
-          ...prev.handles,
+          ...nodeFormData.handles,
           'handleCount': Math.max(1, Math.min(20, numValue))
         }
-      }));
+      };
+      setNodeFormData(updatedNodeData);
+      onUpdateNode(updatedNodeData);
     } else if (name === 'content') {
-      setNodeFormData(prev => ({
-        ...prev,
+      const updatedNodeData = {
+        ...nodeFormData,
         'metadata': {
-          ...prev.metadata,
+          ...nodeFormData.metadata,
           'content': value
         }
-      }));
+      };
+      setNodeFormData(updatedNodeData);
+      onUpdateNode(updatedNodeData);
     } else {
-      setNodeFormData(prev => ({
-        ...prev,
+      const updatedNodeData = {
+        ...nodeFormData,
         [name]: value
-      }));
+      };
+      setNodeFormData(updatedNodeData);
+      onUpdateNode(updatedNodeData);
     }
   };
 
@@ -315,12 +319,9 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="rect">矩形</option>
-            <option value="rectangle">矩形</option>
             <option value="circle">圆形</option>
             <option value="ellipse">椭圆形</option>
-            <option value="triangle">三角形</option>
             <option value="diamond">菱形</option>
-            <option value="hexagon">六边形</option>
           </select>
         </div>
 

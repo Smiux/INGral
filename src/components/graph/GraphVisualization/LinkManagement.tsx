@@ -210,9 +210,13 @@ export const LinkManagement: React.FC<{
                 className="w-4 h-4 text-blue-600 rounded"
               />
               <div className="flex-1">
-                <div className="font-medium text-gray-800">{connection.source}</div>
+                <div className="font-medium text-gray-800">
+                  {nodes.find((n: GraphNode) => n.id === connection.source)?.title || connection.source}
+                </div>
                 <div className="text-sm text-gray-600">→</div>
-                <div className="font-medium text-gray-800">{connection.target}</div>
+                <div className="font-medium text-gray-800">
+                  {nodes.find((n: GraphNode) => n.id === connection.target)?.title || connection.target}
+                </div>
               </div>
               <div className="text-sm text-gray-600">{connection.type}</div>
             </div>
