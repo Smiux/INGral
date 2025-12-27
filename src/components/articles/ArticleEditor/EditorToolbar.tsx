@@ -1,4 +1,4 @@
-import { Save, HelpCircle, FileText, FileText as DraftIcon, Eye, EyeOff, Code, LayoutGrid, Brain, ChevronUp, ChevronDown, BrainCircuit } from 'lucide-react';
+import { Save, HelpCircle, FileText, FileText as DraftIcon, Eye, EyeOff, Code, LayoutGrid, Brain, ChevronUp, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '../../ui/ThemeToggle';
 
@@ -12,7 +12,6 @@ interface EditorToolbarProps {
   onSave: (_e: React.FormEvent) => void;
   isSaving: boolean;
   onSelectTemplate: () => void;
-  onGenerateGraph?: () => void;
   showHelp: boolean;
   onToggleHelp: () => void;
   showToolbar: boolean;
@@ -29,7 +28,6 @@ export function EditorToolbar ({
   onSave,
   isSaving,
   onSelectTemplate,
-  onGenerateGraph,
   showHelp,
   onToggleHelp,
   showToolbar,
@@ -115,18 +113,6 @@ export function EditorToolbar ({
             <FileText size={16} className="transition-transform duration-250 hover:scale-125" />
             <span className="hidden sm:inline">模板</span>
           </button>
-
-          {/* 生成知识图表按钮 */}
-          {onGenerateGraph && (
-            <button
-              onClick={onGenerateGraph}
-              className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-250 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm transform hover:scale-105"
-              title="生成知识图表"
-            >
-              <BrainCircuit size={16} className="transition-transform duration-250 hover:scale-125" />
-              <span className="hidden sm:inline">知识图表</span>
-            </button>
-          )}
 
           {/* 保存草稿按钮 */}
           {onSaveDraft && (

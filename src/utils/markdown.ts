@@ -834,57 +834,7 @@ function processNerdamerCells (text: string): string {
   });
 }
 
-/**
- * 处理 Markdown 文本中的知识图谱嵌入
- * @param text Markdown 文本
- */
-function processGraphEmbeds (text: string): string {
-  return text.replace(/\[graph(?:\s+([^\]]+))?\]([\s\S]*?)\[\/graph\]/g, (_match: string, attrs: string, content: string) => {
-    // 清理内容和属性
-    const cleanedContent = content.trim();
-    const cleanedAttrs = attrs ? attrs.trim() : '';
 
-    // 解析属性
-    const attrsObj: Record<string, string> = {};
-    if (cleanedAttrs) {
-      // 简单的属性解析，支持 key=value 格式
-      const attrPairs = cleanedAttrs.split(/\s+/);
-      for (const pair of attrPairs) {
-        const [key, value] = pair.split('=');
-        if (key && value) {
-          // 移除引号
-          attrsObj[key] = value.replace(/^['"]|['"]$/g, '');
-        }
-      }
-    }
-
-    // 生成唯一ID
-    const id = `graph-embed-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-    // 尝试解析图谱数据
-    let graphData = { 'nodes': [], 'links': [] };
-    try {
-      graphData = JSON.parse(cleanedContent);
-    } catch (error) {
-      console.error('Error parsing graph data:', error);
-    }
-
-    // 返回包含图谱嵌入的HTML，使用自定义属性标记
-    return `
-      <div 
-        class="graph-embed-placeholder"
-        data-graph-id="${id}"
-        data-graph-data="${encodeURIComponent(JSON.stringify(graphData))}"
-        data-graph-attrs="${encodeURIComponent(JSON.stringify(attrsObj))}"
-        style="${attrsObj.style || ''}"
-      >
-        <div class="graph-embed-loading">
-          <div class="loader">加载知识图谱中...</div>
-        </div>
-      </div>
-    `;
-  });
-}
 
 /**
  * 从 Markdown 文本中提取所有数学公式
@@ -1054,11 +1004,6 @@ export function renderMarkdown (content: string, options?: {
   // 处理Chart.js图表
   if (processedContent.includes('[chartjs]')) {
     processedContent = processChartJsDiagrams(processedContent);
-  }
-
-  // 处理知识图谱嵌入
-  if (processedContent.includes('[graph')) {
-    processedContent = processGraphEmbeds(processedContent);
   }
 
   // 渲染Markdown

@@ -1,39 +1,12 @@
-import React, { useReducer, ReactNode } from 'react';
+import { createContext, useContext } from 'react';
+import type { GraphContextValue } from './GraphTypes';
 
-// 导入Context和类型
-import { GraphContext } from './GraphContextType';
+export const GraphContext = createContext<GraphContextValue | null>(null);
 
-export { GraphContext };
-
-// 导入外部模块
-import { getInitialState } from './GraphState';
-import { graphReducer } from './GraphReducer';
-import { useGraphEffects } from './GraphEffects';
-import { useAllActions } from './actions';
-
-// ===========================
-// Provider组件
-// ===========================
-
-export const GraphProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // 使用Reducer管理状态
-  const [state, dispatch] = useReducer(graphReducer, getInitialState());
-
-  // 应用所有副作用
-  useGraphEffects({ state, dispatch });
-
-  // 生成所有actions
-  const actions = useAllActions(dispatch, state);
-
-  // 组装上下文值
-  const contextValue = {
-    state,
-    actions
-  } as const;
-
-  return (
-    <GraphContext.Provider value={contextValue}>
-      {children}
-    </GraphContext.Provider>
-  );
+export const useGraphContext = (): GraphContextValue => {
+  const context = useContext(GraphContext);
+  if (!context) {
+    throw new Error('useGraphContext must be used within a GraphProvider');
+  }
+  return context;
 };

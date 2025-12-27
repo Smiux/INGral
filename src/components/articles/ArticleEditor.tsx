@@ -11,13 +11,12 @@ import { EditorContentArea } from './ArticleEditor/EditorContentArea';
 import { EditorSidebar } from './ArticleEditor/EditorSidebar';
 import { AutosaveManager } from './ArticleEditor/AutosaveManager';
 import { HistoryManager } from './ArticleEditor/HistoryManager';
-import { copyFormat, pasteFormat, handleFormat as formatText, insertLatexFormula, insertGraphMarkdown } from './ArticleEditor/EditorUtils';
+import { copyFormat, pasteFormat, handleFormat as formatText, insertLatexFormula } from './ArticleEditor/EditorUtils';
 import { useArticleEditor } from './ArticleEditor/useArticleEditor';
 
 // 懒加载非核心组件，优化初始加载时间
 const TemplateManager = lazy(() => import('./TemplateManager').then(m => ({ 'default': m.TemplateManager })));
 const LatexEditor = lazy(() => import('../editors/LatexEditor').then(m => ({ 'default': m.LatexEditor })));
-const GraphGenerator = lazy(() => import('./ArticleEditor/GraphGenerator').then(m => ({ 'default': m.GraphGenerator })));
 const ImageUploadDialog = lazy(() => import('./ArticleEditor/ImageUploadDialog').then(m => ({ 'default': m.ImageUploadDialog })));
 const FileUploadDialog = lazy(() => import('./ArticleEditor/FileUploadDialog').then(m => ({ 'default': m.FileUploadDialog })));
 const DraftManager = lazy(() => import('./DraftManager').then(m => ({ 'default': m.DraftManager })));
@@ -40,7 +39,6 @@ function ArticleEditorImpl () {
     toggleViewMode,
     handleContentChange,
     handleCursorPositionChange,
-    handleGenerateGraph,
     setTitle,
     setContent,
     handleManualSaveDraft
@@ -389,22 +387,6 @@ function ArticleEditorImpl () {
     updateState('latexEditorOpen', false);
   };
 
-  /**
-   * 插入知识图表到文章
-   */
-  const handleInsertGraph = () => {
-    if (state.generatedGraph) {
-      // 构建知识图表的JSON字符串
-      const graphJson = JSON.stringify(state.generatedGraph, null, 2);
-      // 使用 [graph] 语法插入到文章中
-      const graphMarkdown = `\n[graph]${graphJson}[/graph]\n`;
-      // 插入到当前光标位置
-      insertGraphMarkdown(graphMarkdown, state.content, (newContent: string) => updateState('content', newContent));
-      showNotification('知识图表已插入到文章中', 'success');
-      updateState('showGraphGenerator', false);
-    }
-  };
-
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       {/* 通知组件 */}
@@ -504,7 +486,6 @@ function ArticleEditorImpl () {
                     <p>• 表格支持</p>
                     <p>• 列表支持</p>
                     <p>• 链接和图片支持</p>
-                    <p>• 知识图谱生成</p>
                   </div>
                 </div>
 
@@ -574,7 +555,6 @@ function ArticleEditorImpl () {
             onSave={handleSave}
             isSaving={state.isSaving}
             onSelectTemplate={() => updateState('showTemplateManager', true)}
-            onGenerateGraph={() => updateState('showGraphGenerator', true)}
             showHelp={state.showHelp}
             onToggleHelp={() => updateState('showHelp', !state.showHelp)}
             showToolbar={state.showToolbar}
@@ -864,19 +844,6 @@ function ArticleEditorImpl () {
         setTitle={setTitle}
         setContent={setContent}
       />
-
-      {/* 知识图表生成器 */}
-      <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]">加载中...</div>}>
-        <GraphGenerator
-          isOpen={state.showGraphGenerator}
-          onClose={() => updateState('showGraphGenerator', false)}
-          onGenerate={handleGenerateGraph}
-          onInsert={handleInsertGraph}
-          generatedGraph={state.generatedGraph}
-          config={state.graphGenerationConfig}
-          onConfigChange={(config) => updateState('graphGenerationConfig', config)}
-        />
-      </Suspense>
 
       {/* 图片上传对话框 */}
       <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]">加载中...</div>}>

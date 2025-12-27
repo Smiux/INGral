@@ -1,13 +1,49 @@
-import type { GraphState, GraphAction } from './GraphContextType';
-import type { EnhancedGraphConnection } from './types';
+import type { GraphState, GraphAction, GraphConnection, GraphNode, HistoryEntry } from './GraphTypes';
 
-// ===========================
-// Reducer函数
-// ===========================
+export const getInitialState = (): GraphState => ({
+  'nodes': [],
+  'connections': [],
+  'reactFlowInstance': null,
+  'selectedNode': null,
+  'selectedNodes': [],
+  'selectedConnection': null,
+  'selectedConnections': [],
+  'isAddingConnection': false,
+  'connectionSourceNode': null,
+  'mousePosition': null,
+  'isSimulationRunning': false,
+  'layoutType': 'force',
+  'layoutDirection': 'top-bottom',
+  'viewMode': '2d',
+  'isRightPanelVisible': false,
+  'isToolbarVisible': true,
+  'isLeftToolbarVisible': true,
+  'activePanel': 'manage',
+  'isBoxSelecting': false,
+  'boxSelection': { 'x1': 0, 'y1': 0, 'x2': 0, 'y2': 0 },
+  'isSettingsPanelOpen': false,
+  'toolbarAutoHide': false,
+  'leftToolbarAutoHide': false,
+  'nodeSpacing': 100,
+  'levelSpacing': 100,
+  'forceParameters': {
+    'charge': -300,
+    'linkStrength': 0.1,
+    'linkDistance': 100,
+    'gravity': 0.1
+  },
+  'savedLayouts': [],
+  'notification': null,
+  'history': [],
+  'historyIndex': -1,
+  'clusters': {},
+  'clusterColors': [],
+  'clusterCount': 0,
+  'isClusteringEnabled': false
+});
 
 export const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
   switch (action.type) {
-    // 节点和连接相关
     case 'SET_NODES':
       return { ...state, 'nodes': action.payload };
     case 'SET_CONNECTIONS':
@@ -39,12 +75,8 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
         ...state,
         'connections': state.connections.filter(connection => connection.id !== action.payload)
       };
-
-    // ReactFlow相关
     case 'SET_REACT_FLOW_INSTANCE':
       return { ...state, 'reactFlowInstance': action.payload };
-
-    // 选择相关
     case 'SELECT_NODE':
       return {
         ...state,
@@ -57,7 +89,7 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
       return {
         ...state,
         'selectedNodes': action.payload,
-        'selectedNode': action.payload.length > 0 ? (action.payload[0] || null) : null,
+        'selectedNode': action.payload.length > 0 ? action.payload[0] || null : null,
         'selectedConnection': null,
         'selectedConnections': []
       };
@@ -73,7 +105,7 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
       return {
         ...state,
         'selectedConnections': action.payload,
-        'selectedConnection': action.payload.length > 0 ? (action.payload[0] || null) : null,
+        'selectedConnection': action.payload.length > 0 ? action.payload[0] || null : null,
         'selectedNode': null,
         'selectedNodes': []
       };
@@ -85,8 +117,6 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
         'selectedConnection': null,
         'selectedConnections': []
       };
-
-    // 交互相关
     case 'SET_IS_ADDING_CONNECTION':
       return { ...state, 'isAddingConnection': action.payload };
     case 'SET_CONNECTION_SOURCE_NODE':
@@ -95,16 +125,12 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
       return { ...state, 'mousePosition': action.payload };
     case 'SET_IS_SIMULATION_RUNNING':
       return { ...state, 'isSimulationRunning': action.payload };
-
-    // 布局相关
     case 'SET_LAYOUT_TYPE':
       return { ...state, 'layoutType': action.payload };
     case 'SET_LAYOUT_DIRECTION':
       return { ...state, 'layoutDirection': action.payload };
     case 'SET_VIEW_MODE':
       return { ...state, 'viewMode': action.payload };
-
-    // UI相关
     case 'SET_IS_RIGHT_PANEL_VISIBLE':
       return { ...state, 'isRightPanelVisible': action.payload };
     case 'SET_IS_TOOLBAR_VISIBLE':
@@ -119,21 +145,16 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
       return { ...state, 'boxSelection': action.payload };
     case 'SET_IS_SETTINGS_PANEL_OPEN':
       return { ...state, 'isSettingsPanelOpen': action.payload };
-
     case 'SET_TOOLBAR_AUTO_HIDE':
       return { ...state, 'toolbarAutoHide': action.payload };
     case 'SET_LEFT_TOOLBAR_AUTO_HIDE':
       return { ...state, 'leftToolbarAutoHide': action.payload };
-
-    // 布局参数
     case 'SET_NODE_SPACING':
       return { ...state, 'nodeSpacing': action.payload };
     case 'SET_LEVEL_SPACING':
       return { ...state, 'levelSpacing': action.payload };
     case 'SET_FORCE_PARAMETERS':
       return { ...state, 'forceParameters': action.payload };
-
-    // 保存的布局
     case 'SET_SAVED_LAYOUTS':
       return { ...state, 'savedLayouts': action.payload };
     case 'ADD_SAVED_LAYOUT':
@@ -143,25 +164,18 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
         ...state,
         'savedLayouts': state.savedLayouts.filter(layout => layout.id !== action.payload)
       };
-
-    // 通知相关
     case 'SHOW_NOTIFICATION':
       return { ...state, 'notification': action.payload };
     case 'CLOSE_NOTIFICATION':
       return { ...state, 'notification': null };
-
-    // 历史记录相关
     case 'ADD_HISTORY':
-      // 如果当前不在历史记录末尾，截断历史记录
       const newHistory = state.historyIndex < state.history.length - 1
         ? state.history.slice(0, state.historyIndex + 1)
         : [...state.history];
-      // 限制历史记录长度为50
       if (newHistory.length >= 50) {
-        // 移除最旧的记录
         newHistory.shift();
       }
-      newHistory.push(action.payload);
+      newHistory.push(action.payload as HistoryEntry);
       return {
         ...state,
         'history': newHistory,
@@ -177,58 +191,62 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
         let newNodes = [...state.nodes];
         let newConnections = [...state.connections];
 
-        // 根据操作类型执行撤销
         switch (actionToUndo.type) {
           case 'addNode':
-          // 撤销添加节点，删除该节点
             newNodes = newNodes.filter(node => node.id !== actionToUndo.nodeId);
             break;
           case 'deleteNode':
-          // 撤销删除节点，重新添加该节点和关联的连接
-            newNodes.push(actionToUndo.data.node);
-            newConnections.push(...actionToUndo.data.connections);
+            // 使用类型守卫检查 data 类型
+            if ('type' in actionToUndo.data && actionToUndo.data.type === 'deleteNode') {
+              newNodes.push(actionToUndo.data.node);
+              newConnections.push(...actionToUndo.data.connections);
+            }
             break;
           case 'addConnection':
-          // 撤销添加连接，删除该连接
             newConnections = newConnections.filter(connection => connection.id !== actionToUndo.connectionId);
             break;
           case 'deleteConnection':
-          // 撤销删除连接，重新添加该连接
-            newConnections.push(actionToUndo.data);
+            // 使用类型守卫检查 data 类型
+            if ('type' in actionToUndo.data && actionToUndo.data.type === 'deleteConnection') {
+              newConnections.push(actionToUndo.data.connection);
+            }
             break;
           case 'groupNodes':
-          // 撤销分组操作：删除分组节点，重置成员节点的group属性
-            const groupToRemove = actionToUndo.data.group;
-            newNodes = newNodes.filter(node => node.id !== groupToRemove.id);
-            // 更新成员节点，重置group属性
-            newNodes = newNodes.map(node => {
-              if (actionToUndo.data.nodes.some(n => n.id === node.id)) {
-                // 创建新对象，重置group属性
-                return {
-                  ...node,
-                  'group': { 'isGroup': false, 'memberIds': [], 'isGroupExpanded': false }
-                };
-              }
-              return node;
-            });
+            // 使用类型守卫检查 data 类型
+            if ('type' in actionToUndo.data && actionToUndo.data.type === 'groupNodes') {
+              const groupToRemove = actionToUndo.data.group;
+              const nodesToUpdate = actionToUndo.data.nodes;
+              newNodes = newNodes.filter(node => node.id !== groupToRemove.id);
+              newNodes = newNodes.map(node => {
+                if (nodesToUpdate.some((n: GraphNode) => n.id === node.id)) {
+                  return {
+                    ...node,
+                    'group': { 'isGroup': false, 'memberIds': [], 'isGroupExpanded': false }
+                  };
+                }
+                return node;
+              });
+            }
             break;
           case 'ungroupNodes':
-          // 撤销取消分组操作：重新添加分组节点，更新成员节点的group属性
-            newNodes.push(actionToUndo.data.group);
-            // 更新成员节点，更新group属性
-            newNodes = newNodes.map(node => {
-              if (actionToUndo.data.nodes.some(n => n.id === node.id)) {
-                return {
-                  ...node,
-                  'group': {
-                    'isGroup': false,
-                    'memberIds': [],
-                    'isGroupExpanded': false
-                  }
-                };
-              }
-              return node;
-            });
+            // 使用类型守卫检查 data 类型
+            if ('type' in actionToUndo.data && actionToUndo.data.type === 'ungroupNodes') {
+              newNodes.push(actionToUndo.data.group);
+              const nodesToUpdate = actionToUndo.data.nodes;
+              newNodes = newNodes.map(node => {
+                if (nodesToUpdate.some((n: GraphNode) => n.id === node.id)) {
+                  return {
+                    ...node,
+                    'group': {
+                      'isGroup': false,
+                      'memberIds': [],
+                      'isGroupExpanded': false
+                    }
+                  };
+                }
+                return node;
+              });
+            }
             break;
         }
 
@@ -251,61 +269,69 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
         let newNodes = [...state.nodes];
         let newConnections = [...state.connections];
 
-        // 根据操作类型执行重做
         switch (actionToRedo.type) {
           case 'addNode':
-          // 重做添加节点，重新添加该节点
-            newNodes.push(actionToRedo.data.node);
+            // 使用类型守卫检查 data 类型
+            if ('type' in actionToRedo.data && actionToRedo.data.type === 'addNode') {
+              newNodes.push(actionToRedo.data.node);
+            }
             break;
           case 'deleteNode':
-          // 重做删除节点，删除该节点和关联的连接
             newNodes = newNodes.filter(node => node.id !== actionToRedo.nodeId);
-            newConnections = newConnections.filter(connection => {
-              return !actionToRedo.data.connections.some((l: EnhancedGraphConnection) => l.id === connection.id);
-            });
+            // 使用类型守卫检查 data 类型
+            if ('type' in actionToRedo.data && actionToRedo.data.type === 'deleteNode') {
+              const { connections } = actionToRedo.data;
+              newConnections = newConnections.filter(connection => {
+                return !connections.some((l: GraphConnection) => l.id === connection.id);
+              });
+            }
             break;
           case 'addConnection':
-          // 重做添加连接，重新添加该连接
-            newConnections.push(actionToRedo.data);
+            // 使用类型守卫检查 data 类型
+            if ('type' in actionToRedo.data && actionToRedo.data.type === 'addConnection') {
+              newConnections.push(actionToRedo.data.connection);
+            }
             break;
           case 'deleteConnection':
-          // 重做删除连接，删除该连接
             newConnections = newConnections.filter(connection => connection.id !== actionToRedo.connectionId);
             break;
           case 'groupNodes':
-          // 重做分组操作：添加分组节点，更新成员节点的group属性
-            const groupToAdd = actionToRedo.data.group;
-            newNodes.push(groupToAdd);
-            // 更新成员节点，更新group属性
-            newNodes = newNodes.map(node => {
-              if (actionToRedo.data.nodes.some(n => n.id === node.id)) {
-                return {
-                  ...node,
-                  'group': {
-                    'isGroup': false,
-                    'memberIds': [],
-                    'isGroupExpanded': false
-                  }
-                };
-              }
-              return node;
-            });
+            // 使用类型守卫检查 data 类型
+            if ('type' in actionToRedo.data && actionToRedo.data.type === 'groupNodes') {
+              const groupToAdd = actionToRedo.data.group;
+              const nodesToUpdate = actionToRedo.data.nodes;
+              newNodes.push(groupToAdd);
+              newNodes = newNodes.map(node => {
+                if (nodesToUpdate.some((n: GraphNode) => n.id === node.id)) {
+                  return {
+                    ...node,
+                    'group': {
+                      'isGroup': false,
+                      'memberIds': [],
+                      'isGroupExpanded': false
+                    }
+                  };
+                }
+                return node;
+              });
+            }
             break;
           case 'ungroupNodes':
-          // 重做取消分组操作：删除分组节点，重置成员节点的group属性
-            const groupToRemove = actionToRedo.data.group;
-            newNodes = newNodes.filter(node => node.id !== groupToRemove.id);
-            // 更新成员节点，重置group属性
-            newNodes = newNodes.map(node => {
-              if (actionToRedo.data.nodes.some(n => n.id === node.id)) {
-                // 创建新对象，重置group属性
-                return {
-                  ...node,
-                  'group': { 'isGroup': false, 'memberIds': [], 'isGroupExpanded': false }
-                };
-              }
-              return node;
-            });
+            // 使用类型守卫检查 data 类型
+            if ('type' in actionToRedo.data && actionToRedo.data.type === 'ungroupNodes') {
+              const groupToRemove = actionToRedo.data.group;
+              const nodesToUpdate = actionToRedo.data.nodes;
+              newNodes = newNodes.filter(node => node.id !== groupToRemove.id);
+              newNodes = newNodes.map(node => {
+                if (nodesToUpdate.some((n: GraphNode) => n.id === node.id)) {
+                  return {
+                    ...node,
+                    'group': { 'isGroup': false, 'memberIds': [], 'isGroupExpanded': false }
+                  };
+                }
+                return node;
+              });
+            }
             break;
         }
 
@@ -317,8 +343,6 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
         };
       }
       return state;
-
-    // 聚类相关
     case 'SET_CLUSTERS':
       return { ...state, 'clusters': action.payload };
     case 'SET_CLUSTER_COLORS':
@@ -327,27 +351,22 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
       return { ...state, 'clusterCount': action.payload };
     case 'SET_IS_CLUSTERING_ENABLED':
       return { ...state, 'isClusteringEnabled': action.payload };
-
-    // 分组相关
     case 'GROUP_NODES': {
       const { 'nodes': nodesToGroup, group } = action.payload;
       const nodeIdsToGroup = new Set(nodesToGroup.map(node => node.id));
 
-      // 更新分组节点的memberIds
       const updatedGroup = {
         ...group,
         'isGroup': true,
         'memberIds': nodesToGroup.map(node => node.id)
       };
 
-      // 过滤掉要分组的节点，添加分组节点
-      const newNodes = [
+      const filteredNodes = [
         ...state.nodes.filter(node => !nodeIdsToGroup.has(node.id)),
         updatedGroup
       ];
 
-      // 更新被分组节点的属性
-      const updatedNodes = newNodes.map(node => {
+      const updatedNodes = filteredNodes.map(node => {
         if (nodeIdsToGroup.has(node.id)) {
           return {
             ...node,
@@ -369,19 +388,15 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
     case 'UNGROUP_NODES': {
       const groupId = action.payload;
 
-      // 找到分组节点
       const groupNode = state.nodes.find(node => node.id === groupId);
       if (!groupNode || !groupNode.group.memberIds) {
         return state;
       }
 
-      // 移除分组节点，更新成员节点的group属性
       const newNodes = state.nodes
-        // 移除分组节点
         .filter(node => node.id !== groupId)
         .map(node => {
           if (groupNode.group.memberIds?.includes(node.id)) {
-            // 重置成员节点的group属性
             return {
               ...node,
               'group': {
@@ -399,7 +414,6 @@ export const graphReducer = (state: GraphState, action: GraphAction): GraphState
         'nodes': newNodes
       };
     }
-
     default:
       return state;
   }

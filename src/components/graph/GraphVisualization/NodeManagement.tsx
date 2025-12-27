@@ -4,12 +4,21 @@
  */
 import React, { useState } from 'react';
 import { Plus, Trash2, Edit, X } from 'lucide-react';
-import type { NodeManagementProps, EnhancedNode } from './types';
+import type { GraphNode, GraphConnection } from './GraphTypes';
 
-/**
- * 节点管理组件
- * @param props - 组件属性
- */
+export interface NodeManagementProps {
+  nodes: GraphNode[];
+  connections: GraphConnection[];
+  setNodes: (_nodes: GraphNode[]) => void;
+  selectedNode: GraphNode | null;
+  setSelectedNode: (_node: GraphNode | null) => void;
+  selectedNodes: GraphNode[];
+  setSelectedNodes: (_nodes: GraphNode[]) => void;
+  showNotification: (_message: string, _type: 'success' | 'error' | 'info') => void;
+  onAddNode?: (_node: GraphNode) => void;
+  onDeleteNodes?: (_nodes: GraphNode[], _connections: GraphConnection[]) => void;
+}
+
 export const NodeManagement: React.FC<NodeManagementProps> = ({
   nodes,
   connections,
@@ -34,7 +43,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
    * 添加新节点
    */
   const handleAddNode = () => {
-    const newNode: EnhancedNode = {
+    const newNode: GraphNode = {
       'id': `node-${Date.now()}`,
       'title': '新节点',
       'connections': 0,
@@ -68,17 +77,8 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
       },
       'handles': {
         'handleCount': 4,
-        'handlePositions': ['top', 'right', 'bottom', 'left'],
         'lockedHandles': {},
         'handleLabels': {}
-      },
-      'aggregation': {
-        '_isAggregated': false,
-        '_aggregatedNodes': [],
-        '_averageImportance': 0,
-        '_clusterCenter': { 'x': 0, 'y': 0 },
-        '_clusterSize': 0,
-        '_aggregationLevel': 0
       }
     };
 
@@ -181,11 +181,10 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
 
     const selectedNodeIds = new Set(selectedNodes.map(node => node.id));
 
-    // 获取与选中节点关联的链接
     const associatedLinks = connections.filter(link => {
-      const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-      const targetId = typeof link.target === 'object' ? link.target.id : link.target;
-      return selectedNodeIds.has(String(sourceId)) || selectedNodeIds.has(String(targetId));
+      const sourceId = String(link.source);
+      const targetId = String(link.target);
+      return selectedNodeIds.has(sourceId) || selectedNodeIds.has(targetId);
     });
 
     // 调用onDeleteNodes回调函数，传递要删除的节点和关联的链接
@@ -201,24 +200,15 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
     showNotification(`已删除 ${selectedNodes.length} 个节点`, 'success');
   };
 
-  /**
-   * 选择单个节点
-   * @param node - 要选择的节点
-   */
-  const handleSelectNode = (node: EnhancedNode) => {
+  const handleSelectNode = (node: GraphNode) => {
     setSelectedNode(node);
     setSelectedNodes([node]);
   };
 
-  /**
-   * 切换节点选择状态
-   * @param node - 要切换选择状态的节点
-   * @param event - 改变事件
-   */
-  const handleToggleNodeSelection = (node: EnhancedNode, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleToggleNodeSelection = (node: GraphNode, event: React.ChangeEvent<HTMLInputElement>) => {
     event.stopPropagation();
 
-    let updatedSelectedNodes: EnhancedNode[];
+    let updatedSelectedNodes: GraphNode[];
     if (selectedNodes.some(n => n.id === node.id)) {
       updatedSelectedNodes = selectedNodes.filter(n => n.id !== node.id);
     } else {
@@ -226,7 +216,7 @@ export const NodeManagement: React.FC<NodeManagementProps> = ({
     }
 
     setSelectedNodes(updatedSelectedNodes);
-    setSelectedNode(updatedSelectedNodes.length === 1 ? updatedSelectedNodes[0] as EnhancedNode : null);
+    setSelectedNode(updatedSelectedNodes.length === 1 ? updatedSelectedNodes[0] as GraphNode : null);
   };
 
   return (

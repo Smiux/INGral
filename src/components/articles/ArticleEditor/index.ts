@@ -7,5 +7,5 @@ export { AutosaveManager } from './AutosaveManager';
 export { EditorFormattingToolbar } from './EditorFormattingToolbar';
 export { FileUploadDialog } from './FileUploadDialog';
 export { ImageUploadDialog } from './ImageUploadDialog';
-export { GraphGenerator } from './GraphGenerator';
+
 export { useArticleEditor } from './useArticleEditor';

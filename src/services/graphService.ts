@@ -222,7 +222,6 @@ export class GraphService extends BaseService {
    */
   async createGraph (graphData: {
     title: string;
-    is_template?: boolean;
     visibility?: 'public' | 'unlisted';
     author_name?: string;
     author_email?: string;
@@ -230,7 +229,6 @@ export class GraphService extends BaseService {
   }): Promise<Graph | null> {
     const graphRecord = {
       'title': graphData.title,
-      'is_template': graphData.is_template || false,
       'visibility': graphData.visibility || 'unlisted',
       'author_name': graphData.author_name || 'Anonymous',
       'author_email': graphData.author_email,
@@ -251,7 +249,6 @@ export class GraphService extends BaseService {
    */
   async updateGraph (graphId: string, updates: Partial<{
     title: string;
-    is_template: boolean;
     visibility: 'public' | 'unlisted';
     graph_data: {
       nodes: Array<Record<string, unknown>>;
@@ -528,8 +525,7 @@ export class GraphService extends BaseService {
       // 创建图谱
       const graph = await this.createGraph({
         'title': graphData.title,
-        'visibility': graphData.visibility || 'unlisted',
-        'is_template': false
+        'visibility': graphData.visibility || 'unlisted'
       });
 
       if (!graph) {
@@ -595,8 +591,7 @@ export class GraphService extends BaseService {
       // 创建图谱
       const graph = await this.createGraph({
         title,
-        visibility,
-        'is_template': false
+        visibility
       });
 
       if (!graph) {

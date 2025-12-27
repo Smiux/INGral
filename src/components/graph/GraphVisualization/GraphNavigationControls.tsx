@@ -1,17 +1,13 @@
 import React from 'react';
-import { EnhancedNode } from './types';
-import type { ReactFlowInstance } from 'reactflow';
+import type { GraphNode } from './GraphTypes';
+import type { ReactFlowInstance } from '@xyflow/react';
 
-// 导入类型定义
 export interface GraphNavigationControlsProps {
-  // 状态
-  nodes: EnhancedNode[];
+  nodes: GraphNode[];
   reactFlowInstance?: ReactFlowInstance | null;
 }
 
-// 自定义比较函数，用于React.memo
 const areEqual = (prevProps: GraphNavigationControlsProps, nextProps: GraphNavigationControlsProps) => {
-  // 只比较节点数量和reactFlowInstance，因为其他props变化较少
   return prevProps.nodes.length === nextProps.nodes.length && prevProps.reactFlowInstance === nextProps.reactFlowInstance;
 };
 
@@ -19,17 +15,14 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
   nodes,
   reactFlowInstance
 }) => {
-  // 中心对齐功能
   const handleCenterAlign = () => {
     if (reactFlowInstance) {
       if (nodes.length > 0) {
-        // 如果有节点，使用fitView将节点居中
         reactFlowInstance.fitView({
           'padding': 100,
           'duration': 500
         });
       } else {
-        // 如果没有节点，重置视图位置和缩放
         reactFlowInstance.setViewport({
           'x': 0,
           'y': 0,
@@ -41,10 +34,8 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
     }
   };
 
-  // 自适应缩放功能
   const handleFitToScreen = () => {
     if (reactFlowInstance && nodes.length > 0) {
-      // 使用ReactFlow的fitView方法自动适应视图
       reactFlowInstance.fitView({
         'padding': 100,
         'duration': 500
@@ -52,76 +43,58 @@ export const GraphNavigationControls: React.FC<GraphNavigationControlsProps> = R
     }
   };
 
-  // 放大功能
   const handleZoomIn = () => {
     if (reactFlowInstance) {
-      // 使用ReactFlow的API放大
       reactFlowInstance.zoomIn({ 'duration': 200 });
     }
   };
 
-  // 缩小功能
   const handleZoomOut = () => {
     if (reactFlowInstance) {
-      // 使用ReactFlow的API缩小
       reactFlowInstance.zoomOut({ 'duration': 200 });
     }
   };
 
   return (
-    <div className="absolute bottom-4 left-4 z-10 bg-white/90 rounded-xl shadow-md p-1.5 flex flex-col gap-1.5 backdrop-blur-sm border border-gray-100">
-      {/* 缩放控制 */}
-      <div className="flex gap-1.5">
-        <button
-          onClick={handleZoomIn}
-          className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-all duration-200 ease-in-out transform hover:scale-[1.05] shadow-sm hover:shadow-md"
-          title="放大"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            <line x1="11" y1="8" x2="11" y2="14"></line>
-            <line x1="8" y1="11" x2="14" y2="11"></line>
-          </svg>
-        </button>
-        <button
-          onClick={handleZoomOut}
-          className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-all duration-200 ease-in-out transform hover:scale-[1.05] shadow-sm hover:shadow-md"
-          title="缩小"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            <line x1="8" y1="11" x2="14" y2="11"></line>
-          </svg>
-        </button>
-      </div>
-
-      {/* 视图控制 */}
-      <div className="flex gap-1.5">
-        <button
-          onClick={handleCenterAlign}
-          className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-all duration-200 ease-in-out transform hover:scale-[1.05] shadow-sm hover:shadow-md"
-          title="中心对齐"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="16"></line>
-            <line x1="8" y1="12" x2="16" y2="12"></line>
-          </svg>
-        </button>
-        <button
-          onClick={handleFitToScreen}
-          className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-all duration-200 ease-in-out transform hover:scale-[1.05] shadow-sm hover:shadow-md"
-          title="自适应视图"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="9" y1="9" x2="15" y2="15"></line>
-            <line x1="15" y1="9" x2="9" y2="15"></line>
-          </svg>
-        </button>
-      </div>
+    <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+      <button
+        onClick={handleCenterAlign}
+        className="p-2 bg-white rounded-lg shadow-md hover:bg-gray-50 border border-gray-200"
+        title="居中对齐"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 16v4M4 16H4M12 4v16" />
+        </svg>
+      </button>
+      <button
+        onClick={handleFitToScreen}
+        className="p-2 bg-white rounded-lg shadow-md hover:bg-gray-50 border border-gray-200"
+        title="适应屏幕"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3h6v6h-6M9 21H3v-6h6M10 14l2-2m0 0l-2 2m0 0l-2 2" />
+        </svg>
+      </button>
+      <button
+        onClick={handleZoomIn}
+        className="p-2 bg-white rounded-lg shadow-md hover:bg-gray-50 border border-gray-200"
+        title="放大"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5l7-7M13 10V7a2 2 0 00-2-2H5a2 2 0 00-2 2v3a2 2 0 002 2h6a2 2 0 002-2v-3" />
+        </svg>
+      </button>
+      <button
+        onClick={handleZoomOut}
+        className="p-2 bg-white rounded-lg shadow-md hover:bg-gray-50 border border-gray-200"
+        title="缩小"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5l7-7M13 10V7a2 2 0 00-2-2H5a2 2 0 00-2 2v3a2 2 0 002 2h6a2 2 0 002-2v-3" />
+        </svg>
+      </button>
     </div>
   );
 }, areEqual);
+
+export default GraphNavigationControls;

@@ -4,7 +4,6 @@ import { ExternalLink, Network, FileQuestion } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { Article, Graph } from '../../types';
 import { graphService } from '../../services/graphService';
-import { GraphEmbedWrapper } from '../graph/GraphEmbed';
 
 interface RelatedContentProps {
   article: Article;
@@ -220,14 +219,15 @@ export function RelatedContent ({ article }: RelatedContentProps) {
                         {graph.nodes.length} nodes · {graph.links.length} connections
                       </p>
                     </div>
-                    <div className="h-64 border-t border-neutral-100 dark:border-gray-700">
-                      <GraphEmbedWrapper
-                        graphId={graph.id}
-                        width="100%"
-                        height={256}
-                        interactive={false}
-                        layoutType="force"
-                      />
+                    <div className="h-64 border-t border-neutral-100 dark:border-gray-700 flex items-center justify-center bg-neutral-50 dark:bg-gray-800/50">
+                      <div className="text-center">
+                        <Network className="mx-auto h-12 w-12 text-neutral-400 dark:text-gray-500 mb-2" />
+                        <p className="text-sm text-neutral-500 dark:text-gray-400">
+                          <Link to={`/graph/${graph.id}`} className="text-primary-600 dark:text-primary-400 hover:underline">
+                            查看知识图谱
+                          </Link>
+                        </p>
+                      </div>
                     </div>
                     <div className="p-5 border-t border-neutral-100 dark:border-gray-700 bg-neutral-50 dark:bg-gray-800/50">
                       <div className="flex items-center justify-between text-sm">

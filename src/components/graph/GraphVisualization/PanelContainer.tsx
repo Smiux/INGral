@@ -1,37 +1,27 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
-// 导入子面板组件
 import { LayoutManager } from './LayoutManager';
 import { GraphImportExport } from './GraphImportExport';
 import { GraphAnalysis } from './GraphAnalysis';
 import { StatisticsPanel } from './StatisticsPanel';
 import { ManagePanel } from './ManagePanel';
-
-// 导入自定义Hook
-import { useGraph } from './useGraph';
+import { useGraphContext } from './GraphContext';
 
 
 
 
 interface PanelContainerProps {
   activePanel: string | null;
-  togglePanel: (_panelId: string | null) => void;
+  togglePanel: (_panelId: string) => void;
 }
 
-/**
- * 面板容器组件
- * 管理所有独立子面板的显示和隐藏，以及布局样式
- */
 export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, togglePanel }) => {
-  // 使用useGraph Hook获取状态和操作
-  const { state, actions } = useGraph();
+  const { state, actions } = useGraphContext();
 
-  // 从state中解构需要的状态
   const {
     nodes,
     connections,
-    selectedNode,
     selectedNodes,
     selectedConnections,
     isAddingConnection,
@@ -44,7 +34,6 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
     savedLayouts
   } = state;
 
-  // 从actions中解构需要的操作
   const {
     setNodes,
     setConnections,
@@ -58,54 +47,67 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
     handleSaveLayout,
     handleLoadLayout,
     handleDeleteLayout,
-    addHistory
+    addHistory,
+    selectNodes,
+    selectConnections,
+    setIsAddingConnection,
+    setConnectionSourceNode
   } = actions;
   // 关闭面板
-  const closePanel = () => togglePanel(null);
+  const closePanel = () => togglePanel('');
 
   // 渲染当前激活的面板
   const renderActivePanel = () => {
     switch (activePanel) {
-      // 使用新的ManagePanel替代原来的nodes和links面板
       case 'manage':
         return (
           <ManagePanel
             nodes={nodes}
             connections={connections}
-            selectedNode={selectedNode}
+            selectedNode={selectedNodes.length === 1 ? selectedNodes[0]! : null}
+            setSelectedNode={(node) => {
+              if (node) {
+                selectNodes([node]);
+              } else {
+                selectNodes([]);
+              }
+            }}
             selectedNodes={selectedNodes}
+            setSelectedNodes={selectNodes}
             selectedConnections={selectedConnections}
             setNodes={setNodes}
-            setSelectedNode={actions.selectNode}
-            setSelectedNodes={actions.selectNodes}
             setConnections={setConnections}
-            setSelectedConnections={actions.selectConnections}
+            setSelectedConnections={selectConnections}
             isAddingConnection={isAddingConnection}
-            setIsAddingConnection={actions.setIsAddingConnection}
+            setIsAddingConnection={setIsAddingConnection}
             connectionSourceNode={connectionSourceNode}
-            setConnectionSourceNode={actions.setConnectionSourceNode}
-            setMousePosition={actions.setMousePosition}
+            setConnectionSourceNode={setConnectionSourceNode}
             showNotification={showNotification}
             onAddNode={(node) => {
               addHistory({
                 'type': 'addNode',
                 'nodeId': node.id,
                 'timestamp': Date.now(),
-                'data': { node }
+                'data': {
+                  'type': 'addNode',
+                  'node': node,
+                  'connections': []
+                }
               });
             }}
-            onDeleteNodes={() => {}}
+            onDeleteNodes={(nodesToDelete, connectionsToDelete) => {
+              nodesToDelete.forEach(n => actions.deleteNode(n.id));
+              connectionsToDelete.forEach(c => actions.deleteConnection(c.id));
+            }}
+            actions={actions}
           />
         );
       case 'layout':
         return (
           <LayoutManager
             nodes={nodes}
-            connections={connections}
             layoutType={layoutType}
             layoutDirection={layoutDirection}
-            width={window.innerWidth}
-            height={window.innerHeight}
             nodeSpacing={nodeSpacing}
             levelSpacing={levelSpacing}
             forceParameters={forceParameters}
@@ -116,7 +118,7 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             onLevelSpacingChange={setLevelSpacing}
             onForceParametersChange={setForceParameters}
             onSaveLayout={handleSaveLayout}
-            onLoadLayout={handleLoadLayout}
+            onLoadLayout={(layout) => handleLoadLayout(layout.id)}
             onDeleteLayout={handleDeleteLayout}
           />
         );
@@ -126,7 +128,6 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             nodes={nodes}
             links={connections}
             onImportGraph={(graph) => {
-              // 将Graph类型转换为handleImportGraph期望的EnhancedNode[]和EnhancedGraphConnection[]类型
               handleImportGraph({
                 'nodes': graph.nodes.map(node => ({
                   'id': node.id,
@@ -229,8 +230,7 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             links={connections}
           />
         );
-      case 'templates':
-        return null;
+
       default:
         return null;
     }
@@ -259,7 +259,6 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ activePanel, tog
             {activePanel === 'importExport' && '导入导出'}
             {activePanel === 'analysis' && '图谱分析'}
             {activePanel === 'statistics' && '统计信息'}
-            {activePanel === 'templates' && '选择模板'}
           </h2>
           <button
             onClick={closePanel}

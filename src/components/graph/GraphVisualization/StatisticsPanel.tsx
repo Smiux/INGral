@@ -1,12 +1,11 @@
 import React from 'react';
 import { BarChart2, Link as LinkIcon, Network, PieChart } from 'lucide-react';
 
-// 导入类型定义
-import { EnhancedNode, EnhancedGraphConnection } from './types';
+import type { GraphNode, GraphConnection } from './GraphTypes';
 
 interface StatisticsPanelProps {
-  nodes: EnhancedNode[];
-  links: EnhancedGraphConnection[];
+  nodes: GraphNode[];
+  links: GraphConnection[];
 }
 
 /**

@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader } from '../components/ui/Loader';
 import type { Graph } from '../types';
-import { Plus, Grid, Star } from 'lucide-react';
+import { Plus, Grid } from 'lucide-react';
 import { graphService } from '../services/graphService';
 
 /**
@@ -40,12 +40,6 @@ const GraphCard: React.FC<GraphCardProps> = ({ graph, onClick }) => {
           <span>{graph.links?.length || 0} 连接</span>
           <span>{new Date(graph.created_at || Date.now()).toLocaleDateString()}</span>
         </div>
-        {graph.is_template && (
-          <div className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-            <Star className="w-3 h-3" />
-            模板
-          </div>
-        )}
       </div>
     </div>
   );

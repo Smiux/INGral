@@ -1,205 +1,432 @@
-import type { EnhancedNode, EnhancedGraphConnection, SavedLayout } from './types';
+import type { GraphNode, GraphConnection } from './GraphTypes';
 
-/**
- * 图谱可视化工具类，提供通用的工具方法
- */
 export class GraphUtils {
-  /**
-   * 生成唯一ID
-   * @param prefix ID前缀
-   * @returns 唯一ID
-   */
   static generateId (prefix: string = 'id'): string {
     return `${prefix}-${Date.now()}-${Math.random().toString(36)
       .substr(2, 9)}`;
   }
 
-  /**
-   * 生成节点ID
-   * @returns 节点ID
-   */
   static generateNodeId (): string {
     return `node-${Date.now()}-${Math.random().toString(36)
       .substr(2, 9)}`;
   }
 
-  /**
-   * 生成链接ID
-   * @returns 链接ID
-   */
   static generateLinkId (): string {
     return `link-${Date.now()}-${Math.random().toString(36)
       .substr(2, 9)}`;
   }
 
-  /**
-   * 获取节点在数组中的索引
-   * @param nodes 节点数组
-   * @param id 节点ID
-   * @returns 节点索引，未找到返回-1
-   */
-  static getNodeIndex (nodes: EnhancedNode[], id: string): number {
-    return nodes.findIndex(node => node.id === id);
+  static generateConnectionId (): string {
+    return `connection-${Date.now()}-${Math.random().toString(36)
+      .substr(2, 9)}`;
   }
 
-  /**
-   * 获取链接在数组中的索引
-   * @param links 链接数组
-   * @param id 链接ID
-   * @returns 链接索引，未找到返回-1
-   */
-  static getLinkIndex (links: EnhancedGraphConnection[], id: string): number {
-    return links.findIndex(link => link.id === id);
+  static generateLayoutId (): string {
+    return `layout-${Date.now()}-${Math.random().toString(36)
+      .substr(2, 9)}`;
   }
 
-  /**
-   * 根据ID获取节点
-   * @param nodes 节点数组
-   * @param id 节点ID
-   * @returns 节点对象，未找到返回undefined
-   */
-  static getNodeById (nodes: EnhancedNode[], id: string): EnhancedNode | undefined {
-    return nodes.find(node => node.id === id);
+  static createDefaultNode (id?: string): GraphNode {
+    return {
+      'id': id || GraphUtils.generateNodeId(),
+      'title': '新节点',
+      'connections': 0,
+      'type': 'concept',
+      'shape': 'circle',
+      'description': '',
+      'content': '',
+      'color': '#3b82f6',
+      'size': 100,
+      'x': 0,
+      'y': 0,
+      'z': 0,
+      'style': {
+        'fill': '#ffffff',
+        'stroke': '#3b82f6',
+        'strokeWidth': 2,
+        'fontSize': 14,
+        'textFill': '#1f2937',
+        'radius': 50,
+        'opacity': 1,
+        'arrowCount': 1
+      },
+      'state': {
+        'isExpanded': false,
+        'isFixed': false,
+        'isSelected': false,
+        'isHovered': false,
+        'isDragging': false,
+        'isCollapsed': false
+      },
+      'metadata': {
+        'slug': '',
+        'content': '',
+        'is_custom': false,
+        'createdAt': Date.now(),
+        'updatedAt': Date.now(),
+        'version': 1
+      },
+      'layout': {
+        'x': 0,
+        'y': 0,
+        'fx': null,
+        'fy': null,
+        'z': 0,
+        'fz': null,
+        'isFixed': false,
+        'isExpanded': false
+      },
+      'handles': {
+        'handleCount': 4,
+        'lockedHandles': {},
+        'handleLabels': {}
+      },
+      'group': {
+        'isGroup': false,
+        'memberIds': [],
+        'isGroupExpanded': false
+      },
+      'customData': {}
+    };
   }
 
-  /**
-   * 根据ID获取链接
-   * @param links 链接数组
-   * @param id 链接ID
-   * @returns 链接对象，未找到返回undefined
-   */
-  static getLinkById (links: EnhancedGraphConnection[], id: string): EnhancedGraphConnection | undefined {
-    return links.find(link => link.id === id);
+  static createDefaultConnection (
+    source: string | GraphNode,
+    target: string | GraphNode,
+    id?: string
+  ): GraphConnection {
+    const sourceId = typeof source === 'string' ? source : source.id;
+    const targetId = typeof target === 'string' ? target : target.id;
+
+    return {
+      'id': id || GraphUtils.generateConnectionId(),
+      'source': sourceId,
+      'target': targetId,
+      'sourceHandle': null,
+      'targetHandle': null,
+      'type': 'related',
+      'weight': 1.0,
+      'label': '',
+      'style': {
+        'stroke': '#3b82f6',
+        'strokeWidth': 2,
+        'strokeOpacity': 0.8,
+        'arrowCount': 1
+      },
+      'metadata': {
+        'createdAt': Date.now(),
+        'updatedAt': Date.now(),
+        'version': 1,
+        'description': ''
+      },
+      'state': {
+        'isSelected': false,
+        'isHovered': false,
+        'isEditing': false
+      },
+      'curveControl': {
+        'controlPointsCount': 0,
+        'controlPoints': [],
+        'curveType': 'default',
+        'tension': 0.4,
+        'locked': false
+      },
+      'animation': {
+        'dynamicEffect': 'none',
+        'animationType': 'none',
+        'animationSpeed': 1,
+        'animationDirection': 'forward',
+        'isAnimating': false
+      },
+      'customData': {}
+    };
   }
 
-  /**
-   * 检查节点是否在框选区域内
-   * @param node 节点对象
-   * @param box 框选区域 {x1, y1, x2, y2}
-   * @returns 是否在框选区域内
-   */
-  static isNodeInBox (
-    node: EnhancedNode,
-    box: { x1: number; y1: number; x2: number; y2: number }
-  ): boolean {
-    const minX = Math.min(box.x1, box.x2);
-    const maxX = Math.max(box.x1, box.x2);
-    const minY = Math.min(box.y1, box.y2);
-    const maxY = Math.max(box.y1, box.y2);
+  static calculateGraphStats (nodes: GraphNode[], connections: GraphConnection[]) {
+    const nodeCount = nodes.length;
+    const connectionCount = connections.length;
+    const averageNodeConnections = nodeCount > 0 ? connectionCount / nodeCount : 0;
+    const graphDensity = nodeCount > 0 ? (2 * connectionCount) / (nodeCount * (nodeCount - 1)) : 0;
+    const nodeTypes: Record<string, number> = {};
+    const connectionTypes: Record<string, number> = {};
 
-    return node.layout.x >= minX && node.layout.x <= maxX && node.layout.y >= minY && node.layout.y <= maxY;
+    nodes.forEach(node => {
+      const type = node.type || 'unknown';
+      nodeTypes[type] = (nodeTypes[type] || 0) + 1;
+    });
+
+    connections.forEach(connection => {
+      const type = connection.type || 'unknown';
+      connectionTypes[type] = (connectionTypes[type] || 0) + 1;
+    });
+
+    return {
+      nodeCount,
+      connectionCount,
+      nodeTypes,
+      connectionTypes,
+      averageNodeConnections,
+      graphDensity,
+      'clusteringCoefficient': 0,
+      'diameter': 0,
+      'radius': 0
+    };
   }
 
-  /**
-   * 从localStorage加载保存的布局
-   * @returns 保存的布局数组
-   */
-  static loadSavedLayoutsFromLocalStorage (): SavedLayout[] {
-    try {
-      const savedLayoutsStr = localStorage.getItem('savedLayouts');
-      if (savedLayoutsStr) {
-        return JSON.parse(savedLayoutsStr);
+  static validateGraph (nodes: GraphNode[], connections: GraphConnection[]): {
+    isValid: boolean;
+    errors: string[];
+  } {
+    const errors: string[] = [];
+    const nodeIds = new Set(nodes.map(node => node.id));
+
+    connections.forEach(connection => {
+      const sourceId = String(connection.source);
+      const targetId = String(connection.target);
+
+      if (!nodeIds.has(sourceId)) {
+        errors.push(`连接的源节点 ${sourceId} 不存在`);
       }
-    } catch (error) {
-      console.error('从localStorage加载布局失败:', error);
-    }
-    return [];
+
+      if (!nodeIds.has(targetId)) {
+        errors.push(`连接的目标节点 ${targetId} 不存在`);
+      }
+
+      if (sourceId === targetId) {
+        errors.push(`连接不能连接到自身: ${sourceId}`);
+      }
+    });
+
+    return {
+      'isValid': errors.length === 0,
+      errors
+    };
   }
 
-  /**
-   * 将保存的布局保存到localStorage
-   * @param layouts 布局数组
-   */
-  static saveSavedLayoutsToLocalStorage (layouts: SavedLayout[]): void {
+  static exportToGraphML (nodes: GraphNode[], connections: GraphConnection[]): string {
+    const nodeElements = nodes.map(node => {
+      return `    <node id="${node.id}" label="${node.title}">
+      </node>`;
+    }).join('\n');
+
+    const edgeElements = connections.map(connection => {
+      const sourceId = String(connection.source);
+      const targetId = String(connection.target);
+      return `    <edge id="${connection.id}" source="${sourceId}" target="${targetId}" label="${connection.label || connection.type}" />
+`;
+    }).join('\n');
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d0" for="node" attr.name="id" attr.type="string" />
+  <key id="d1" for="node" attr.name="label" attr.type="string" />
+  <key id="d2" for="edge" id="source" attr.type="string" />
+  <key id="d3" for="edge" id="target" attr.type="string" />
+  <key id="d4" for="edge" id="label" attr.type="string" />
+  <graph id="G" edgedefault="directed">
+${nodeElements}
+${edgeElements}
+  </graph>
+</graphml>`;
+  }
+
+  static exportToJSON (nodes: GraphNode[], connections: GraphConnection[]): string {
+    return JSON.stringify({
+      'nodes': nodes.map(node => ({
+        'id': node.id,
+        'title': node.title,
+        'type': node.type,
+        'connections': node.connections,
+        'description': node.description,
+        'content': node.metadata.content,
+        'color': node.color,
+        'size': node.size,
+        'x': node.layout.x,
+        'y': node.layout.y
+      })),
+      'connections': connections.map(connection => ({
+        'id': connection.id,
+        'source': String(connection.source),
+        'target': String(connection.target),
+        'type': connection.type,
+        'weight': connection.weight,
+        'label': connection.label,
+        'sourceHandle': connection.sourceHandle,
+        'targetHandle': connection.targetHandle
+      }))
+    }, null, 2);
+  }
+
+  static exportToCSV (nodes: GraphNode[], connections: GraphConnection[]): string {
+    const headers = ['id', 'title', 'type', 'connections', 'description', 'x', 'y'];
+    const nodeRows = nodes.map(node => [
+      node.id,
+      node.title,
+      node.type,
+      node.connections,
+      node.description || '',
+      node.layout.x,
+      node.layout.y
+    ]);
+
+    const connectionHeaders = ['id', 'source', 'target', 'type', 'weight', 'label'];
+    const connectionRows = connections.map(connection => [
+      connection.id,
+      String(connection.source),
+      String(connection.target),
+      connection.type,
+      connection.weight,
+      connection.label || ''
+    ]);
+
+    const nodeCSV = [headers.join(','), ...nodeRows.map(row => row.join(','))].join('\n');
+    const connectionCSV = [connectionHeaders.join(','), ...connectionRows.map(row => row.join(','))].join('\n');
+
+    return `${nodeCSV}\n\n${connectionCSV}`;
+  }
+
+  static importFromJSON (jsonString: string): {
+    nodes: GraphNode[];
+    connections: GraphConnection[];
+  } {
     try {
-      localStorage.setItem('savedLayouts', JSON.stringify(layouts));
-    } catch (error) {
-      console.error('保存布局到localStorage失败:', error);
+      const data = JSON.parse(jsonString);
+      return {
+        'nodes': data.nodes || [],
+        'connections': data.connections || []
+      };
+    } catch {
+      return {
+        'nodes': [],
+        'connections': []
+      };
     }
   }
 
-  /**
-   * 转换导入的节点为EnhancedNode类型
-   * @param nodes 导入的节点数组
-   * @returns 转换后的EnhancedNode数组
-   */
-  static convertToEnhancedNodes (nodes: unknown[]): EnhancedNode[] {
-    return nodes.map((node) => {
-      const typedNode = node as Record<string, unknown>;
-      const x = typedNode.x as number || Math.random() * 400 + 100;
-      const y = typedNode.y as number || Math.random() * 400 + 100;
+  static importFromCSV (csvString: string): {
+    nodes: GraphNode[];
+    connections: GraphConnection[];
+  } {
+    const lines = csvString.trim().split('\n');
+    const nodes: GraphNode[] = [];
+    const connections: GraphConnection[] = [];
 
-      return {
-        'id': String(typedNode.id || GraphUtils.generateNodeId()),
-        'title': (typedNode.title as string) || '新节点',
-        'connections': (typedNode.connections as number) || 0,
-        'type': (typedNode.type as string) || 'concept',
-        'shape': 'rect',
-        'state': { 'isExpanded': false, 'isFixed': false, 'isSelected': false, 'isHovered': false, 'isDragging': false, 'isCollapsed': false },
-        'metadata': {
-          'is_custom': true,
-          'createdAt': Date.now(),
-          'updatedAt': Date.now(),
-          'version': 1,
-          'content': (typedNode.content as string) ?? ''
-        },
-        'layout': { x, y, 'isFixed': false, 'isExpanded': false },
-        'group': { 'isGroup': false, 'memberIds': [], 'isGroupExpanded': false },
-        'handles': { 'handleCount': 4, 'handlePositions': ['top', 'right', 'bottom', 'left'], 'lockedHandles': {}, 'handleLabels': {} }
-      };
-    });
-  }
+    let isNodesSection = true;
 
-  /**
-   * 转换导入的链接为EnhancedGraphLink类型
-   * @param links 导入的链接数组
-   * @returns 转换后的EnhancedGraphLink数组
-   */
-  static convertToEnhancedLinks (links: unknown[]): EnhancedGraphConnection[] {
-    return links.map((link) => {
-      const typedLink = link as Record<string, unknown>;
-      const source = typedLink.source && typeof typedLink.source === 'object'
-        ? String((typedLink.source as EnhancedNode).id)
-        : String(typedLink.source);
-      const target = typedLink.target && typeof typedLink.target === 'object'
-        ? String((typedLink.target as EnhancedNode).id)
-        : String(typedLink.target);
+    for (const line of lines) {
+      if (line.trim() === '') {
+        isNodesSection = false;
+      } else {
+        const values = line.split(',');
+        if (isNodesSection) {
+          nodes.push({
+            'id': values[0] || '',
+            'title': values[1] || '',
+            'type': values[2] || 'concept',
+            'connections': parseInt(values[3] || '0', 10) || 0,
+            'description': values[4] || '',
+            'content': '',
+            'color': '#3b82f6',
+            'size': 100,
+            'x': parseFloat(values[5] || '0') || 0,
+            'y': parseFloat(values[6] || '0') || 0,
+            'z': 0,
+            'shape': 'circle',
+            'style': {
+              'fill': '#ffffff',
+              'stroke': '#3b82f6',
+              'strokeWidth': 2,
+              'fontSize': 14,
+              'textFill': '#1f2937',
+              'radius': 50,
+              'opacity': 1,
+              'arrowCount': 1
+            },
+            'state': {
+              'isExpanded': false,
+              'isFixed': false,
+              'isSelected': false,
+              'isHovered': false,
+              'isDragging': false,
+              'isCollapsed': false
+            },
+            'metadata': {
+              'slug': '',
+              'content': '',
+              'is_custom': false,
+              'createdAt': Date.now(),
+              'updatedAt': Date.now(),
+              'version': 1
+            },
+            'layout': {
+              'x': parseFloat(values[5] || '0') || 0,
+              'y': parseFloat(values[6] || '0') || 0,
+              'fx': null,
+              'fy': null,
+              'z': 0,
+              'fz': null,
+              'isFixed': false,
+              'isExpanded': false
+            },
+            'handles': {
+              'handleCount': 4,
+              'lockedHandles': {},
+              'handleLabels': {}
+            },
+            'group': {
+              'isGroup': false,
+              'memberIds': [],
+              'isGroupExpanded': false
+            },
+            'customData': {}
+          });
+        } else {
+          connections.push({
+            'id': values[0] || '',
+            'source': values[1] || '',
+            'target': values[2] || '',
+            'sourceHandle': null,
+            'targetHandle': null,
+            'type': values[3] || 'related',
+            'weight': parseFloat(values[4] || '1.0') || 1.0,
+            'label': values[5] || '',
+            'style': {
+              'stroke': '#3b82f6',
+              'strokeWidth': 2,
+              'strokeOpacity': 0.8,
+              'arrowCount': 1
+            },
+            'metadata': {
+              'createdAt': Date.now(),
+              'updatedAt': Date.now(),
+              'version': 1,
+              'description': ''
+            },
+            'state': {
+              'isSelected': false,
+              'isHovered': false,
+              'isEditing': false
+            },
+            'curveControl': {
+              'controlPointsCount': 0,
+              'controlPoints': [],
+              'curveType': 'default',
+              'tension': 0.4,
+              'locked': false
+            },
+            'animation': {
+              'dynamicEffect': 'none',
+              'animationType': 'none',
+              'animationSpeed': 1,
+              'animationDirection': 'forward',
+              'isAnimating': false
+            },
+            'customData': {}
+          });
+        }
+      }
+    }
 
-      return {
-        'id': GraphUtils.generateLinkId(),
-        'type': (typedLink.type as string) || 'related',
-        source,
-        target,
-        'label': (typedLink.label as string) || '',
-        'weight': (typedLink.weight as number) || 1.0,
-        'metadata': { 'createdAt': Date.now(), 'updatedAt': Date.now(), 'version': 1 },
-        'state': { 'isSelected': false, 'isHovered': false, 'isEditing': false },
-        'curveControl': { 'controlPointsCount': 0, 'controlPoints': [], 'curveType': 'default', 'locked': false },
-        'animation': { 'dynamicEffect': 'none', 'isAnimating': false }
-      };
-    });
-  }
-
-  /**
-   * 检查链接是否与指定节点相关
-   * @param link 链接对象
-   * @param nodeId 节点ID
-   * @returns 是否相关
-   */
-  static isLinkRelatedToNode (link: EnhancedGraphConnection, nodeId: string): boolean {
-    const sourceId = typeof link.source === 'string' ? link.source : (link.source as EnhancedNode).id;
-    const targetId = typeof link.target === 'string' ? link.target : (link.target as EnhancedNode).id;
-    return sourceId === nodeId || targetId === nodeId;
-  }
-
-  /**
-   * 检查链接源和目标是否有效
-   * @param link 链接对象
-   * @returns 是否有效
-   */
-  static isValidLink (link: EnhancedGraphConnection): boolean {
-    const sourceValid = typeof link.source === 'string' || Boolean((link.source as EnhancedNode).id);
-    const targetValid = typeof link.target === 'string' || Boolean((link.target as EnhancedNode).id);
-    return sourceValid && targetValid;
+    return { nodes, connections };
   }
 }

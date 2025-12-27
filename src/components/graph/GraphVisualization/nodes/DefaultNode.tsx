@@ -1,212 +1,174 @@
-/**
- * 默认节点组件
- * 用于渲染React Flow图中的节点
- */
 import React from 'react';
-import { Handle, NodeProps, Position } from 'reactflow';
-import type { EnhancedNode } from '../types';
+import { Handle, Position, NodeProps } from '@xyflow/react';
+import type { GraphNode } from '../GraphTypes';
 
-// 节点数据接口，扩展React Flow的NodeProps.data
-interface DefaultNodeData extends EnhancedNode {
-  title: string;
-  connections: number;
-  content?: string;
-}
+export const DefaultNode: React.FC<NodeProps> = ({ data, selected }) => {
+  const nodeData = data.node as GraphNode;
+  const title = nodeData?.title || nodeData?.id || 'Node';
+  const content = nodeData?.metadata?.content || '';
+  const nodeType = nodeData?.type || 'default';
 
-/**
- * 默认节点组件
- * 简化版本，确保没有TypeScript错误
- */
-export const DefaultNode: React.FC<NodeProps<DefaultNodeData>> = ({ data, selected }) => {
-  // 节点基本信息
-  const title = data.title || data.id || 'Node';
-  const content = data.content || '';
-  const nodeType = data.type || 'default';
-
-  // 根据节点形状动态调整样式
   const getNodeStyle = () => {
-    // 从data.style获取样式值，如果不存在则使用默认值
-    const styleFill = data.style?.fill || '#fff';
-    const styleStroke = data.style?.stroke || (selected ? '#FF5252' : '#4ECDC4');
-    const styleStrokeWidth = data.style?.strokeWidth || 2;
-    const styleRadius = data.style?.radius || 6;
+    const style = nodeData?.style || {};
     const baseStyle: React.CSSProperties = {
-      'backgroundColor': styleFill,
+      'width': '160px',
+      'height': '120px',
+      'borderRadius': '8px',
+      'padding': '12px',
+      'backgroundColor': style.fill || '#ffffff',
+      'border': `2px solid ${style.stroke || '#3b82f6'}`,
+      'boxShadow': selected ? '0 0 0 3px rgba(59, 130, 246, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
       'display': 'flex',
-      'justifyContent': 'center',
+      'flexDirection': 'column',
       'alignItems': 'center',
-      'position': 'relative',
+      'justifyContent': 'center',
+      'textAlign': 'center',
+      'cursor': 'pointer',
       'transition': 'all 0.2s ease',
-      'transformOrigin': 'center center',
-      'boxSizing': 'border-box'
+      'opacity': style.opacity || 1
     };
 
-    switch (data.shape) {
-      case 'circle':
-        return {
-          ...baseStyle,
-          'width': 100,
-          'height': 100,
-          'borderRadius': '50%',
-          'border': `${styleStrokeWidth}px solid ${styleStroke}`
-        };
-      case 'ellipse':
-        return {
-          ...baseStyle,
-          'width': 150,
-          'height': 100,
-          'borderRadius': '50%',
-          'border': `${styleStrokeWidth}px solid ${styleStroke}`
-        };
-      case 'triangle':
-        return {
-          ...baseStyle,
-          'width': 100,
-          'height': 100,
-          'backgroundColor': styleFill,
-          'clipPath': 'polygon(50% 0%, 100% 100%, 0% 100%)',
-          'border': `${styleStrokeWidth}px solid ${styleStroke}`,
-          'WebkitClipPath': 'polygon(50% 0%, 100% 100%, 0% 100%)'
-        };
-      case 'diamond':
-        return {
-          ...baseStyle,
-          'width': 100,
-          'height': 100,
-          'transform': 'rotate(45deg)',
-          'borderRadius': `${styleRadius}px`,
-          'border': `${styleStrokeWidth}px solid ${styleStroke}`
-        };
-      case 'hexagon':
-        return {
-          ...baseStyle,
-          'width': 100,
-          'height': 100,
-          'backgroundColor': styleFill,
-          'clipPath': 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-          'border': `${styleStrokeWidth}px solid ${styleStroke}`,
-          'WebkitClipPath': 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
-        };
-      case 'rect':
-      case 'rectangle':
-      default:
-        return {
-          ...baseStyle,
-          'width': 150,
-          'height': 100,
-          'borderRadius': `${styleRadius}px`,
-          'border': `${styleStrokeWidth}px solid ${styleStroke}`
-        };
+    if (nodeType === 'concept') {
+      baseStyle.borderRadius = '50%';
+      baseStyle.width = '120px';
+      baseStyle.height = '120px';
+    } else if (nodeType === 'article') {
+      baseStyle.borderRadius = '4px';
+    } else if (nodeType === 'resource') {
+      baseStyle.borderRadius = '12px';
+    } else if (nodeType === 'aggregate') {
+      baseStyle.borderRadius = '16px';
     }
+
+    return baseStyle;
   };
 
-  // 节点样式
   const nodeStyle = getNodeStyle();
+
+  const handleSize = 8;
+  const handleStyle: React.CSSProperties = {
+    'width': handleSize,
+    'height': handleSize,
+    'backgroundColor': '#4ECDC4',
+    'border': '2px solid #26A69A',
+    'borderRadius': '4px',
+    'zIndex': 10
+  };
+
+  const handleCount = nodeData?.handles?.handleCount || 4;
+  const basicPositions = [Position.Top, Position.Right, Position.Bottom, Position.Left];
+  const handlePositions = handleCount <= 4
+    ? basicPositions.slice(0, handleCount)
+    : basicPositions;
+
+  const renderHandle = (position: Position) => {
+    const baseHandleId = `${nodeData.id}-${position}`;
+    const sourceHandleId = `${baseHandleId}-source`;
+    const targetHandleId = `${baseHandleId}-target`;
+
+    const isLocked = nodeData?.handles?.lockedHandles?.[baseHandleId] || false;
+    const label = nodeData?.handles?.handleLabels?.[baseHandleId] || '';
+
+    return (
+      <>
+        <Handle
+          key={sourceHandleId}
+          id={sourceHandleId}
+          type="source"
+          position={position}
+          style={handleStyle}
+          isConnectable={!isLocked}
+        />
+        <Handle
+          key={targetHandleId}
+          id={targetHandleId}
+          type="target"
+          position={position}
+          style={handleStyle}
+          isConnectable={!isLocked}
+        />
+
+        {label && (
+          <div
+            key={`${baseHandleId}-label`}
+            style={{
+              'position': 'absolute',
+              'top': '100%',
+              'left': '50%',
+              'transform': 'translateX(-50%)',
+              'marginTop': '4px',
+              'fontSize': '8px',
+              'color': '#666',
+              'pointerEvents': 'none',
+              'whiteSpace': 'nowrap'
+            }}
+          >
+            {label}
+          </div>
+        )}
+      </>
+    );
+  };
 
   return (
     <div style={nodeStyle}>
-      {/* 动态生成连接点 */}
-      {[...Array(data.handles?.handleCount || 4)].map((_, index) => {
-        // 根据索引确定连接点位置
-        const positions: Position[] = [Position.Top, Position.Right, Position.Bottom, Position.Left];
-        const position = positions[index % positions.length] as Position;
-
-        // 优化连接点类型分配：确保每个方向都有source和target类型
-        // 奇数索引使用source类型，偶数索引使用target类型
-        const type = index % 2 === 0 ? 'target' : 'source';
-
-        // 为每个连接点生成唯一的id，确保连接点识别正确
-        const handleId = `handle-${index}-${position}-${type}`;
-
-        return (
-          <Handle
-            key={handleId}
-            id={handleId}
-            type={type as 'target' | 'source'}
-            position={position}
-            className="node-handle"
-            style={{
-              'background': '#4ECDC4',
-              'borderColor': '#26A69A',
-              'width': 8,
-              'height': 8,
-              'borderRadius': '50%',
-              'borderWidth': 2,
-              'zIndex': 10,
-              'transform': 'translateZ(0)',
-              // 扩大选择判定区域
-              'cursor': 'pointer'
-            }}
-          />
-        );
+      {handlePositions.map((position) => {
+        return renderHandle(position);
       })}
 
-      {/* 节点内容 */}
       <div
         className="node-content"
         style={{
-          'position': 'absolute',
-          'inset': 0,
+          'flex': 1,
           'display': 'flex',
           'flexDirection': 'column',
-          'justifyContent': 'center',
           'alignItems': 'center',
-          'textAlign': 'center',
-          'pointerEvents': 'none',
-          'zIndex': 1
+          'justifyContent': 'center',
+          'overflow': 'hidden'
         }}
       >
         <div
           className="node-title"
           style={{
-            'color': '#FFFFFF',
-            'fontSize': 12,
+            'fontSize': '14px',
             'fontWeight': 'bold',
-            'lineHeight': 1.2,
-            'maxWidth': '90%',
-            'overflow': 'hidden',
-            'textOverflow': 'ellipsis',
-            'whiteSpace': 'nowrap',
-            'backgroundColor': '#4ECDC4',
-            'padding': '4px 8px',
-            'borderRadius': '4px'
+            'color': nodeData?.style?.textFill || '#1f2937',
+            'marginBottom': '4px',
+            'wordBreak': 'break-word',
+            'maxWidth': '100%'
           }}
         >
           {title}
         </div>
-
         {content && (
           <div
-            className="node-content-text"
+            className="node-description"
             style={{
-              'color': '#666',
-              'fontSize': 10,
-              'opacity': 0.9,
-              'lineHeight': 1.2,
-              'maxWidth': '80%',
+              'fontSize': '10px',
+              'color': '#6b7280',
               'overflow': 'hidden',
               'textOverflow': 'ellipsis',
-              'whiteSpace': 'nowrap',
-              'marginTop': 4
+              'display': '-webkit-box',
+              'WebkitLineClamp': 2,
+              'WebkitBoxOrient': 'vertical',
+              'maxWidth': '100%'
             }}
           >
             {content}
           </div>
         )}
-
-        <div
-          className="node-type"
-          style={{
-            'color': '#999',
-            'fontSize': 9,
-            'opacity': 0.7,
-            'textTransform': 'uppercase',
-            'letterSpacing': 0.5,
-            'marginTop': 4
-          }}
-        >
-          {nodeType}
-        </div>
+        {nodeData?.connections !== undefined && (
+          <div
+            className="node-connections"
+            style={{
+              'fontSize': '10px',
+              'color': '#9ca3af',
+              'marginTop': '4px'
+            }}
+          >
+            {nodeData.connections} connections
+          </div>
+        )}
       </div>
     </div>
   );

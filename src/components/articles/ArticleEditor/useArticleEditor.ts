@@ -1,9 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { ContentTemplate } from '../../../types/template';
-import type { Article, GraphNode, GraphLink } from '../../../types';
+import type { Article } from '../../../types';
 import { articleService } from '../../../services/articleService';
-import { generateGraphFromArticle } from '../../../utils/GraphGenerationUtils';
 import { generateTableOfContents } from './EditorUtils';
 
 /**
@@ -89,16 +88,6 @@ export interface ArticleEditorState {
 
   // 快捷键相关状态
   showShortcuts: boolean;
-
-  // 知识图表相关状态
-  showGraphGenerator: boolean;
-  generatedGraph: { nodes: GraphNode[]; links: GraphLink[] } | null;
-  graphGenerationConfig: {
-    maxNodes: number;
-    maxLinks: number;
-    minConceptOccurrences: number;
-    extractionDepth: number;
-  };
 }
 
 /**
@@ -174,17 +163,7 @@ export function useArticleEditor () {
     'fileUploadDialogOpen': false,
 
     // 快捷键相关状态
-    'showShortcuts': false,
-
-    // 知识图表相关状态
-    'showGraphGenerator': false,
-    'generatedGraph': null,
-    'graphGenerationConfig': {
-      'maxNodes': 30,
-      'maxLinks': 50,
-      'minConceptOccurrences': 2,
-      'extractionDepth': 2
-    }
+    'showShortcuts': false
   });
 
   // 保存最新状态的ref，用于在回调函数中获取最新状态
@@ -466,8 +445,6 @@ export function useArticleEditor () {
         return;
       }
 
-
-
       let result: Article | null | undefined;
       if (article) {
         result = await articleService.updateArticle({
@@ -573,8 +550,6 @@ export function useArticleEditor () {
     updateState('viewMode', mode);
   }, [updateState]);
 
-
-
   /**
    * 处理内容变化
    */
@@ -582,42 +557,12 @@ export function useArticleEditor () {
     updateState('content', newContent);
   }, [updateState]);
 
-
-
   /**
    * 处理光标位置变化
    */
   const handleCursorPositionChange = useCallback((position: { line: number; column: number }) => {
     updateState('cursorPosition', position);
   }, [updateState]);
-
-  /**
-   * 生成知识图表
-   */
-  const handleGenerateGraph = useCallback(() => {
-    try {
-      if (!state.content.trim()) {
-        showNotification('请先输入文章内容', 'info');
-        return;
-      }
-
-      const graph = generateGraphFromArticle({
-        'title': state.title || '未命名文章',
-        'content': state.content,
-        'visibility': state.visibility,
-        'author_name': state.authorName,
-        'author_email': state.authorEmail,
-        'author_url': state.authorUrl
-      } as Article, state.graphGenerationConfig);
-
-      updateState('generatedGraph', { 'nodes': graph.nodes, 'links': graph.links });
-      showNotification(`成功生成知识图表，包含 ${graph.nodes.length} 个节点和 ${graph.links.length} 条关系`, 'success');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '生成知识图表失败';
-      console.error('生成知识图表错误:', errorMessage);
-      showNotification(errorMessage, 'error');
-    }
-  }, [state.content, state.title, state.visibility, state.authorName, state.authorEmail, state.authorUrl, state.graphGenerationConfig, showNotification, updateState]);
 
   /**
    * 内容变化时自动更新目录 - 优化版，添加防抖机制
@@ -681,7 +626,6 @@ export function useArticleEditor () {
     toggleViewMode,
     handleContentChange,
     handleCursorPositionChange,
-    handleGenerateGraph,
     setTitle,
     setContent,
     handleManualSaveDraft,

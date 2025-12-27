@@ -7,16 +7,16 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { FontLoader, Font } from 'three/examples/jsm/loaders/FontLoader.js';
-import type { EnhancedNode, EnhancedGraphConnection } from './types';
+import type { GraphNode, GraphConnection } from './GraphTypes';
 import { GraphContext } from './GraphContext';
 
 interface GraphCanvas3DProps {
-  nodes: EnhancedNode[];
-  connections: EnhancedGraphConnection[];
-  onNodeClick: (_node: EnhancedNode) => void;
-  onConnectionClick: (_connection: EnhancedGraphConnection) => void;
-  selectedNode: EnhancedNode | null;
-  selectedNodes: EnhancedNode[];
+  nodes: GraphNode[];
+  connections: GraphConnection[];
+  onNodeClick: (_node: GraphNode) => void;
+  onConnectionClick: (_connection: GraphConnection) => void;
+  selectedNode: GraphNode | null;
+  selectedNodes: GraphNode[];
 }
 
 // 自定义比较函数，用于React.memo
@@ -168,7 +168,7 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
     const nodeWireframeGeometry = new THREE.SphereGeometry(3.5, 32, 32);
 
     // 创建节点
-    const nodeObjects: { node: EnhancedNode; mesh: THREE.Mesh; label: THREE.Mesh; wireframe: THREE.Line }[] = [];
+    const nodeObjects: { node: GraphNode; mesh: THREE.Mesh; label: THREE.Mesh; wireframe: THREE.Line }[] = [];
 
     nodes.forEach((node, index) => {
       // 检查节点是否被选中
@@ -250,12 +250,12 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
     // 创建链接
     connections.forEach(connection => {
       // 处理source
-      const sourceId = typeof connection.source === 'object' && connection.source.id ? connection.source.id : connection.source;
-      const sourceNode = nodes.find(n => n.id === String(sourceId));
+      const sourceId = String(connection.source);
+      const sourceNode = nodes.find(n => n.id === sourceId);
 
       // 处理target
-      const targetId = typeof connection.target === 'object' && connection.target.id ? connection.target.id : connection.target;
-      const targetNode = nodes.find(n => n.id === String(targetId));
+      const targetId = String(connection.target);
+      const targetNode = nodes.find(n => n.id === targetId);
 
       if (sourceNode && targetNode) {
         const sourceObject = nodeObjects.find(no => no.node.id === sourceNode.id);
@@ -349,10 +349,10 @@ export const GraphCanvas3D: React.FC<GraphCanvas3DProps> = React.memo(({
 
         // 更新链接
         connections.forEach(connection => {
-          const sourceId = typeof connection.source === 'object' && connection.source.id ? connection.source.id : connection.source;
-          const targetId = typeof connection.target === 'object' && connection.target.id ? connection.target.id : connection.target;
+          const sourceId = String(connection.source);
+          const targetId = String(connection.target);
 
-          if ((draggedObject as THREE.Mesh).userData.node.id === String(sourceId) || (draggedObject as THREE.Mesh).userData.node.id === String(targetId)) {
+          if ((draggedObject as THREE.Mesh).userData.node.id === sourceId || (draggedObject as THREE.Mesh).userData.node.id === targetId) {
             const connectionObjects = scene.children.filter(child =>
               child instanceof THREE.Line && child.userData && child.userData.connection
             ) as THREE.Line[];

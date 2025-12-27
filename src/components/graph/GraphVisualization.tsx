@@ -1,8 +1,8 @@
 import { Notification } from '../common/Notification';
 
 // 导入核心状态管理组件
-import { GraphProvider } from './GraphVisualization/GraphContext';
-import { useGraph } from './GraphVisualization/useGraph';
+import { GraphProvider } from './GraphVisualization/GraphProvider';
+import { useGraphContext } from './GraphVisualization/GraphContext';
 
 // 导入子组件
 import { GraphToolbar } from './GraphVisualization/GraphToolbar';
@@ -14,8 +14,8 @@ import { UnifiedControlPanel } from './GraphVisualization/UnifiedControlPanel';
 
 // 内部组件，用于访问GraphContext
 const GraphVisualizationContent: React.FC = () => {
-  // 使用useGraph获取状态和操作
-  const { state, actions } = useGraph();
+  // 使用useGraphContext获取状态和操作
+  const { state, actions } = useGraphContext();
   const {
     viewMode, notification, activePanel,
     selectedNode, selectedConnection, selectedNodes
@@ -117,7 +117,13 @@ const GraphVisualizationContent: React.FC = () => {
       {/* 独立子面板容器 */}
       <PanelContainer
         activePanel={activePanel}
-        togglePanel={actions.togglePanel}
+        togglePanel={(panelId) => {
+          if (activePanel === panelId) {
+            actions.setActivePanel('');
+          } else {
+            actions.setActivePanel(panelId);
+          }
+        }}
       />
 
 

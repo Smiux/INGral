@@ -645,7 +645,6 @@ export async function saveGraphData (graph: Record<string, unknown>): Promise<st
     const nodes = graph.nodes as Record<string, unknown>[] || [];
     const links = graph.links as Record<string, unknown>[] || [];
     const userId = graph.userId as string || 'anonymous';
-    const isTemplate = graph.isTemplate as boolean || false;
 
     // 直接使用supabase客户端
     const response = await supabase.from('user_graphs')
@@ -655,8 +654,7 @@ export async function saveGraphData (graph: Record<string, unknown>): Promise<st
           nodes,
           links
         },
-        'user_id': userId,
-        'is_template': isTemplate
+        'user_id': userId
       })
       .select('id')
       .single();
@@ -759,27 +757,7 @@ export async function deleteGraph (graphId: string): Promise<boolean> {
 }
 
 // 获取模板列表
-export async function getTemplates (): Promise<Record<string, unknown>[]> {
-  try {
-    // 直接使用supabase客户端
-    const result = await supabase.from('user_graphs')
-      .select('*')
-      .eq('is_template', true)
-      .eq('visibility', 'public')
-      .order('created_at', { 'ascending': false });
 
-    // 安全地解构数据
-    const { 'data': templates, error } = result;
-    if (error) {
-      throw error;
-    }
-
-    return templates || [];
-  } catch (err) {
-    console.error('Error in getTemplates:', err);
-    return [];
-  }
-}
 
 // 获取公共图表列表
 export async function getPublicGraphs (limit = 20, offset = 0): Promise<Record<string, unknown>[]> {
@@ -788,7 +766,6 @@ export async function getPublicGraphs (limit = 20, offset = 0): Promise<Record<s
     const result = await supabase.from('user_graphs')
       .select('*')
       .eq('visibility', 'public')
-      .eq('is_template', false)
       .order('created_at', { 'ascending': false })
       .range(offset, offset + limit - 1);
 

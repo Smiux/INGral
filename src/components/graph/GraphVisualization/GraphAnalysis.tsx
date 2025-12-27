@@ -1,19 +1,19 @@
 import React, { useState, useCallback } from 'react';
-import type { EnhancedNode, EnhancedGraphConnection } from './types';
+import type { GraphNode, GraphConnection } from './GraphTypes';
 
 interface GraphAnalysisProps {
-  nodes: EnhancedNode[];
-  links: EnhancedGraphConnection[];
+  nodes: GraphNode[];
+  links: GraphConnection[];
 }
 
 interface CentralityResult {
   nodeId: string;
   value: number;
-  node: EnhancedNode;
+  node: GraphNode;
 }
 
 interface PathResult {
-  path: EnhancedNode[];
+  path: GraphNode[];
   distance: number;
 }
 
@@ -31,14 +31,11 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
   const [selectedTarget, setSelectedTarget] = useState<string>('');
   const [isCalculating, setIsCalculating] = useState(false);
 
-  // 通用工具函数：获取节点的邻居
   const getNodeNeighbors = useCallback((nodeId: string, unique: boolean = true): string[] => {
     const neighbors: string[] = [];
-
     links.forEach(link => {
-      const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
-      const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
-
+      const sourceId = String(link.source);
+      const targetId = String(link.target);
       if (sourceId === nodeId) {
         neighbors.push(targetId);
       }
@@ -46,7 +43,6 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
         neighbors.push(sourceId);
       }
     });
-
     return unique ? Array.from(new Set(neighbors)) : neighbors;
   }, [links]);
 
@@ -55,13 +51,12 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
     const nodeCount = nodes.length;
     const linkCount = links.length;
 
-    // 计算平均度
     let totalDegree = 0;
     for (const node of nodes) {
       let degree = 0;
       for (const link of links) {
-        const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
-        const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
+        const sourceId = String(link.source);
+        const targetId = String(link.target);
         if (sourceId === node.id || targetId === node.id) {
           degree += 1;
         }
@@ -70,35 +65,29 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
     }
     const averageDegree = nodeCount > 0 ? totalDegree / nodeCount : 0;
 
-    // 计算网络密度
     const maxPossibleLinks = nodeCount * (nodeCount - 1) / 2;
     const density = maxPossibleLinks > 0 ? linkCount / maxPossibleLinks : 0;
 
-    // 计算聚类系数（简化版）
     let totalTriangles = 0;
     let totalPossibleTriangles = 0;
 
     nodes.forEach(node => {
-      // 获取邻居
       const uniqueNeighbors = getNodeNeighbors(node.id);
       const k = uniqueNeighbors.length;
 
-      // 计算可能的三角形数量
       if (k >= 2) {
         totalPossibleTriangles += k * (k - 1) / 2;
       }
 
-      // 计算实际的三角形数量
       for (let i = 0; i < uniqueNeighbors.length; i += 1) {
         for (let j = i + 1; j < uniqueNeighbors.length; j += 1) {
           const neighbor1 = uniqueNeighbors[i];
           const neighbor2 = uniqueNeighbors[j];
 
-          // 检查是否存在链接
           let hasLink = false;
           for (const link of links) {
-            const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
-            const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
+            const sourceId = String(link.source);
+            const targetId = String(link.target);
 
             if ((sourceId === neighbor1 && targetId === neighbor2) ||
                 (sourceId === neighbor2 && targetId === neighbor1)) {
@@ -114,7 +103,6 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
       }
     });
 
-    // 全局聚类系数
     const clusteringCoefficient = totalPossibleTriangles > 0 ? totalTriangles / totalPossibleTriangles : 0;
 
     return {
@@ -129,20 +117,20 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
   // 新增：连通分量分析
   const calculateConnectedComponents = useCallback(() => {
     const visited = new Set<string>();
-    const components: EnhancedNode[][] = [];
+    const components: GraphNode[][] = [];
 
     // 创建节点ID到节点的映射，避免每次查找时遍历所有节点
-    const nodeMap = new Map<string, EnhancedNode>();
+    const nodeMap = new Map<string, GraphNode>();
     nodes.forEach(node => nodeMap.set(node.id, node));
 
     // 辅助函数：处理单个节点的BFS
-    const processNodeBFS = (startNode: EnhancedNode) => {
+    const processNodeBFS = (startNode: GraphNode) => {
       if (visited.has(startNode.id)) {
         return;
       }
 
       const queue: string[] = [startNode.id];
-      const component: EnhancedNode[] = [];
+      const component: GraphNode[] = [];
 
       while (queue.length > 0) {
         const currentId = queue.shift()!;
@@ -240,8 +228,8 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
     for (const node of nodes) {
       let degree = 0;
       for (const link of links) {
-        const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
-        const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
+        const sourceId = String(link.source);
+        const targetId = String(link.target);
         if (sourceId === node.id || targetId === node.id) {
           degree += 1;
         }
@@ -398,8 +386,8 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
 
     // 构建邻接矩阵
     links.forEach(link => {
-      const sourceId = typeof link.source === 'object' ? (link.source as EnhancedNode).id : String(link.source);
-      const targetId = typeof link.target === 'object' ? (link.target as EnhancedNode).id : String(link.target);
+      const sourceId = String(link.source);
+      const targetId = String(link.target);
 
       const sourceIndex = idToIndex.get(sourceId);
       const targetIndex = idToIndex.get(targetId);
@@ -545,7 +533,7 @@ export const GraphAnalysis: React.FC<GraphAnalysisProps> = React.memo(({ nodes, 
       }
 
       // 构建路径
-      const path: EnhancedNode[] = [];
+      const path: GraphNode[] = [];
       let current = selectedTarget;
 
       while (current && current !== selectedSource) {

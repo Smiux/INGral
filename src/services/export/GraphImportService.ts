@@ -137,7 +137,6 @@ export class GraphImportService {
         'title': 'Imported Graph',
         nodes,
         links,
-        'is_template': false,
         'visibility': GraphVisibility.PUBLIC,
         'created_at': new Date().toISOString(),
         'updated_at': new Date().toISOString(),

@@ -1,18 +1,19 @@
-/**
- * 连接管理组件
- * 负责连接的添加、删除、选择等操作
- */
 import React, { useState } from 'react';
-import { Trash2, Edit } from 'lucide-react';
-import type { ConnectionManagementProps, EnhancedNode, EnhancedGraphConnection } from './types';
+import { Trash2 } from 'lucide-react';
+import type { GraphNode, GraphConnection } from './GraphTypes';
 
-/**
- * 连接管理组件
- * @param props - 组件属性
- */
-export const LinkManagement: React.FC<ConnectionManagementProps & {
-  selectedConnections?: EnhancedGraphConnection[];
-  setSelectedConnections?: (_connections: EnhancedGraphConnection[]) => void;
+export const LinkManagement: React.FC<{
+  connections: GraphConnection[];
+  setConnections: (_connections: GraphConnection[]) => void;
+  nodes: GraphNode[];
+  setNodes: (_nodes: GraphNode[]) => void;
+  isAddingConnection: boolean;
+  setIsAddingConnection: (_isAddingConnection: boolean) => void;
+  connectionSourceNode: GraphNode | null;
+  setConnectionSourceNode: (_node: GraphNode | null) => void;
+  showNotification: (_message: string, _type: 'success' | 'error' | 'info') => void;
+  selectedConnections?: GraphConnection[];
+  setSelectedConnections?: (_connections: GraphConnection[]) => void;
 }> = ({
   connections,
   setConnections,
@@ -22,350 +23,255 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
   setIsAddingConnection,
   connectionSourceNode,
   setConnectionSourceNode,
-
-  setMousePosition,
   showNotification,
   selectedConnections = [],
   setSelectedConnections = () => {}
 }) => {
-  // 批量编辑状态
   const [isBatchEditing, setIsBatchEditing] = useState(false);
-  // 批量编辑表单数据
   const [batchEditForm, setBatchEditForm] = useState({
     'type': '',
     'weight': ''
   });
 
-  /**
-   * 切换连接选择状态
-   * @param connection - 要切换选择状态的连接
-   */
-  const handleToggleConnectionSelection = (connection: EnhancedGraphConnection) => {
-    if (selectedConnections.some(c => c.id === connection.id)) {
-      // 已选中，移除
-      setSelectedConnections(selectedConnections.filter(c => c.id !== connection.id));
+  const handleStartAddingConnection = () => {
+    setIsAddingConnection(true);
+    setConnectionSourceNode(null);
+  };
+
+  const handleSelectConnectionSource = (node: GraphNode) => {
+    if (isAddingConnection) {
+      setConnectionSourceNode(node);
+    }
+  };
+
+  const handleToggleConnectionSelection = (connection: GraphConnection) => {
+    if (selectedConnections.some((c: GraphConnection) => c.id === connection.id)) {
+      setSelectedConnections(selectedConnections.filter((c: GraphConnection) => c.id !== connection.id));
     } else {
-      // 未选中，添加
       setSelectedConnections([...selectedConnections, connection]);
     }
   };
 
-  /**
-   * 选择所有连接
-   */
-  const handleSelectAllConnections = () => {
-    setSelectedConnections(connections);
+  const handleBatchSelectAll = () => {
+    if (selectedConnections.length < connections.length) {
+      setSelectedConnections([...connections]);
+    } else {
+      setSelectedConnections([]);
+    }
   };
 
-  /**
-   * 取消选择所有连接
-   */
-  const handleClearConnectionSelection = () => {
-    setSelectedConnections([]);
-  };
-
-  /**
-   * 批量删除连接
-   */
-  const handleBatchDeleteConnections = () => {
+  const handleBatchDelete = () => {
     if (selectedConnections.length === 0) {
       showNotification('请先选择要删除的连接', 'error');
       return;
     }
 
-    const selectedConnectionIds = new Set(selectedConnections.map(connection => connection.id));
-    const updatedConnections = connections.filter(connection => !selectedConnectionIds.has(connection.id));
+    const relatedConnections = selectedConnections.flatMap(connection => {
+      const sourceNode = nodes.find((n: GraphNode) => n.id === connection.source);
+      const targetNode = nodes.find((n: GraphNode) => n.id === connection.target);
+      return [sourceNode, targetNode].filter((n): n is GraphNode => n !== undefined);
+    });
 
-    // 更新节点连接数
-    const updatedNodes = nodes.map(node => {
-      let connectionCount = 0;
-      updatedConnections.forEach(connection => {
-        const sourceId = typeof connection.source === 'object' ? (connection.source as EnhancedNode).id : String(connection.source);
-        const targetId = typeof connection.target === 'object' ? (connection.target as EnhancedNode).id : String(connection.target);
-        if (sourceId === node.id || targetId === node.id) {
-          connectionCount += 1;
-        }
-      });
-      return { ...node, 'connections': connectionCount };
+    const uniqueNodes = new Set(relatedConnections.map((n: GraphNode) => n.id));
+
+    setNodes(nodes.filter((n: GraphNode) => !uniqueNodes.has(n.id)));
+    setConnections(connections.filter((c: GraphConnection) => !selectedConnections.some((sc: GraphConnection) => sc.id === c.id)));
+
+    showNotification(`已删除 ${selectedConnections.length} 个连接`, 'success');
+    setSelectedConnections([]);
+  };
+
+  const handleBatchEditStart = () => {
+    setIsBatchEditing(true);
+    if (selectedConnections.length > 0) {
+      const firstConnection = selectedConnections[0];
+      if (firstConnection) {
+        setBatchEditForm({
+          'type': firstConnection.type,
+          'weight': String(firstConnection.weight)
+        });
+      }
+    }
+  };
+
+  const handleBatchEditCancel = () => {
+    setIsBatchEditing(false);
+    setBatchEditForm({ 'type': '', 'weight': '' });
+  };
+
+  const handleBatchEditSave = () => {
+    const updatedConnections = connections.map((connection: GraphConnection) => {
+      if (selectedConnections.some((c: GraphConnection) => c.id === connection.id)) {
+        return {
+          ...connection,
+          'type': batchEditForm.type || connection.type,
+          'weight': parseFloat(batchEditForm.weight) || connection.weight
+        };
+      }
+      return connection;
     });
 
     setConnections(updatedConnections);
-    setNodes(updatedNodes);
-    setSelectedConnections([]);
-    showNotification(`已删除 ${selectedConnections.length} 个连接`, 'success');
-  };
-
-  /**
-   * 处理批量编辑表单变化
-   */
-  const handleBatchEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setBatchEditForm({
-      ...batchEditForm,
-      [name]: value
-    });
-  };
-
-  /**
-   * 应用批量编辑
-   */
-  const handleApplyBatchEdit = () => {
-    if (selectedConnections.length === 0) {
-      showNotification('请先选择要编辑的连接', 'error');
-      return;
-    }
-
-    let updatedCount = 0;
-    const updatedConnections = connections.map(connection => {
-      if (!selectedConnections.some(selected => selected.id === connection.id)) {
-        return connection;
-      }
-
-      const updatedConnection = { ...connection };
-      let hasChanges = false;
-
-      if (batchEditForm.type.trim()) {
-        updatedConnection.type = batchEditForm.type.trim();
-        hasChanges = true;
-      }
-
-      if (batchEditForm.weight.trim()) {
-        const weight = parseFloat(batchEditForm.weight.trim());
-        if (!isNaN(weight)) {
-          updatedConnection.weight = weight;
-          hasChanges = true;
-        }
-      }
-
-      if (hasChanges) {
-        updatedCount += 1;
-      }
-
-      return updatedConnection;
-    });
-
-    if (updatedCount > 0) {
-      setConnections(updatedConnections);
-      setBatchEditForm({ 'type': '', 'weight': '' });
-      setIsBatchEditing(false);
-      showNotification(`已更新 ${updatedCount} 个连接`, 'success');
-    } else {
-      showNotification('没有可应用的更改', 'info');
-    }
-  };
-
-  /**
-   * 取消批量编辑
-   */
-  const handleCancelBatchEdit = () => {
-    setBatchEditForm({ 'type': '', 'weight': '' });
     setIsBatchEditing(false);
+    setBatchEditForm({ 'type': '', 'weight': '' });
+    showNotification('批量编辑成功', 'success');
   };
 
-  /**
-   * 取消添加连接
-   */
-  const handleCancelAddConnection = () => {
-    setIsAddingConnection(false);
-    setConnectionSourceNode(null);
-    setMousePosition(null);
-    showNotification('已取消添加连接', 'info');
-  };
-
-  /**
-   * 删除连接
-   * @param connectionId - 连接ID
-   */
   const handleDeleteConnection = (connectionId: string) => {
-    const connectionToDelete = connections.find(connection => connection.id === connectionId);
+    const connectionToDelete = connections.find((c: GraphConnection) => c.id === connectionId);
     if (!connectionToDelete) {
       return;
     }
 
-    // 获取连接源和目标ID
-    const sourceId = typeof connectionToDelete.source === 'object' ? (connectionToDelete.source as EnhancedNode).id : String(connectionToDelete.source);
-    const targetId = typeof connectionToDelete.target === 'object' ? (connectionToDelete.target as EnhancedNode).id : String(connectionToDelete.target);
-
-    // 更新节点连接数
-    const updatedNodes = nodes.map(node => {
-      if (node.id === sourceId || node.id === targetId) {
-        return { ...node, 'connections': Math.max(0, node.connections - 1) };
-      }
-      return node;
-    });
-
-    // 删除连接
-    const updatedConnections = connections.filter(connection => connection.id !== connectionId);
-
-    setNodes(updatedNodes);
-    setConnections(updatedConnections);
+    setConnections(connections.filter((c: GraphConnection) => c.id !== connectionId));
     showNotification('连接已删除', 'success');
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md">
-      {!isBatchEditing ? (
-        <>
-          {/* 连接操作工具栏 */}
-          <div className="flex flex-wrap gap-2 items-center">
-            {/* 连接统计 */}
-            <div className="text-sm text-gray-600">
-              连接数: {connections.length} | 选中: {selectedConnections.length}
-            </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium text-gray-800">连接管理</h3>
+        <div className="flex gap-2">
+          <button
+            onClick={handleStartAddingConnection}
+            disabled={isAddingConnection}
+            className={`px-4 py-2 rounded-md transition-colors ${isAddingConnection ? 'bg-blue-600' : 'bg-green-500 text-white'} ${!isAddingConnection ? 'hover:bg-green-600' : 'hover:bg-blue-600'}`}
+          >
+            {isAddingConnection ? '取消添加' : '添加连接'}
+          </button>
+        </div>
+      </div>
 
-            {/* 添加连接状态 */}
-            {isAddingConnection && connectionSourceNode && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-blue-600">
-                  正在从 "{connectionSourceNode.title}" 创建连接...
-                </span>
-                <button
-                  className="px-3 py-1 bg-red-600 text-white rounded-md text-sm flex items-center gap-1"
-                  onClick={handleCancelAddConnection}
-                >
-                  <Trash2 size={14} />
-                  取消
-                </button>
-              </div>
-            )}
+      {isAddingConnection && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
+          <p className="text-sm text-blue-700 mb-2">选择源节点开始创建连接</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {nodes.map((node: GraphNode) => (
+              <button
+                key={node.id}
+                onClick={() => handleSelectConnectionSource(node)}
+                className={`p-3 border rounded-md transition-colors ${
+                  connectionSourceNode?.id === node.id
+                    ? 'bg-blue-500 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {node.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
-            {/* 批量操作按钮 */}
-            <div className="ml-auto flex gap-2">
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-sm font-medium text-gray-700">连接列表 ({connections.length})</h4>
+          <div className="flex gap-2">
+            <button
+              onClick={handleBatchSelectAll}
+              className="px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700"
+            >
+              {selectedConnections.length === connections.length ? '取消全选' : '全选'}
+            </button>
+            {selectedConnections.length > 0 && (
               <button
-                className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm flex items-center gap-1 hover:bg-blue-700"
-                onClick={handleSelectAllConnections}
+                onClick={handleBatchDelete}
+                className="px-3 py-1.5 text-sm text-red-600 hover:text-red-700"
               >
-                全选
-              </button>
-              <button
-                className="px-3 py-1 bg-gray-600 text-white rounded-md text-sm flex items-center gap-1 hover:bg-gray-700"
-                onClick={handleClearConnectionSelection}
-              >
-                清除选择
-              </button>
-              <button
-                className="px-3 py-1 bg-green-600 text-white rounded-md text-sm flex items-center gap-1 hover:bg-green-700"
-                onClick={() => setIsBatchEditing(true)}
-                disabled={selectedConnections.length === 0}
-              >
-                <Edit size={14} />
-                批量编辑
-              </button>
-              <button
-                className="px-3 py-1 bg-red-600 text-white rounded-md text-sm flex items-center gap-1 hover:bg-red-700"
-                onClick={handleBatchDeleteConnections}
-                disabled={selectedConnections.length === 0}
-              >
-                <Trash2 size={14} />
                 批量删除
               </button>
+            )}
+          </div>
+        </div>
+
+        {selectedConnections.length > 0 && (
+          <div className="mb-4">
+            <button
+              onClick={handleBatchEditStart}
+              className="px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700"
+            >
+              批量编辑
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {connections.map((connection: GraphConnection) => (
+          <div
+            key={connection.id}
+            className={`flex items-center justify-between p-3 border-b ${selectedConnections.some((c: GraphConnection) => c.id === connection.id) ? 'bg-blue-50' : ''} rounded-md`}
+          >
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={selectedConnections.some((c: GraphConnection) => c.id === connection.id)}
+                onChange={() => handleToggleConnectionSelection(connection)}
+                className="w-4 h-4 text-blue-600 rounded"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-gray-800">{connection.source}</div>
+                <div className="text-sm text-gray-600">→</div>
+                <div className="font-medium text-gray-800">{connection.target}</div>
+              </div>
+              <div className="text-sm text-gray-600">{connection.type}</div>
             </div>
-          </div>
-
-          {/* 连接列表 */}
-          <div className="mt-4 max-h-60 overflow-y-auto">
-            <ul className="space-y-1">
-              {connections.map(connection => {
-                // 获取源节点和目标节点的标题
-                const getNodeTitle = (nodeRef: string | number | EnhancedNode) => {
-                  let nodeId: string;
-                  if (typeof nodeRef === 'object') {
-                    nodeId = nodeRef.id;
-                  } else {
-                    nodeId = String(nodeRef);
-                  }
-                  const node = nodes.find(n => n.id === nodeId);
-                  return node ? node.title : '未知节点';
-                };
-
-                const sourceTitle = getNodeTitle(connection.source);
-                const targetTitle = getNodeTitle(connection.target);
-
-                // 检查连接是否被选中
-                const isSelected = selectedConnections.some(c => c.id === connection.id);
-
-                return (
-                  <li
-                    key={connection.id}
-                    className={`p-2 rounded-md flex items-center justify-between ${isSelected ? 'bg-blue-100' : 'bg-gray-100 hover:bg-gray-200'}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {/* 选择复选框 */}
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => handleToggleConnectionSelection(connection)}
-                        className="cursor-pointer"
-                      />
-                      <div className="text-sm">
-                        {sourceTitle} → {targetTitle}
-                        <span className="ml-2 text-xs text-gray-500">({connection.type})</span>
-                      </div>
-                    </div>
-                    <button
-                      className="text-red-600 hover:text-red-800"
-                      onClick={() => handleDeleteConnection(connection.id)}
-                      title="删除连接"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </>
-      ) : (
-
-        /* 批量编辑表单 */
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-700">批量编辑连接 ({selectedConnections.length} 个选中)</h3>
+            <div className="flex gap-2">
               <button
-                className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
-                onClick={handleCancelBatchEdit}
+                onClick={() => handleDeleteConnection(connection.id)}
+                className="p-1 hover:bg-red-50 text-red-600"
+                title="删除"
               >
-                <Trash2 size={14} />
-                取消
+                <Trash2 size={16} />
               </button>
             </div>
+          </div>
+        ))}
+      </div>
 
-            <div className="space-y-3">
-              {/* 连接类型 */}
+      {isBatchEditing && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-96">
+            <h3 className="text-lg font-medium mb-4">批量编辑连接</h3>
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">连接类型 (可选)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  连接类型
+                </label>
                 <input
                   type="text"
-                  name="type"
                   value={batchEditForm.type}
-                  onChange={handleBatchEditChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                  placeholder="输入连接类型"
+                  onChange={(e) => setBatchEditForm({ ...batchEditForm, 'type': e.target.value })}
+                  className="block w-full border border-gray-300 rounded-md p-2"
                 />
               </div>
-
-              {/* 连接权重 */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">连接权重 (可选)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  连接权重
+                </label>
                 <input
                   type="number"
-                  name="weight"
-                  value={batchEditForm.weight}
-                  onChange={handleBatchEditChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                  placeholder="输入连接权重"
-                  min="0"
                   step="0.1"
+                  min="0"
+                  max="10"
+                  value={batchEditForm.weight}
+                  onChange={(e) => setBatchEditForm({ ...batchEditForm, 'weight': e.target.value })}
+                  className="block w-full border border-gray-300 rounded-md p-2"
                 />
               </div>
-
-              {/* 应用按钮 */}
+            </div>
+            <div className="flex gap-2 justify-end">
               <button
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                onClick={handleApplyBatchEdit}
+                onClick={handleBatchEditCancel}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
               >
-                应用批量编辑
+                取消
+              </button>
+              <button
+                onClick={handleBatchEditSave}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              >
+                保存
               </button>
             </div>
           </div>
@@ -374,3 +280,5 @@ export const LinkManagement: React.FC<ConnectionManagementProps & {
     </div>
   );
 };
+
+export default LinkManagement;

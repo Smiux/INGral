@@ -4,50 +4,29 @@
  */
 import React, { useState } from 'react';
 import { Database, Link as LinkIcon } from 'lucide-react';
-import type { EnhancedNode, EnhancedGraphConnection } from './types';
+import type { GraphNode, GraphConnection, GraphActions } from './GraphTypes';
 import { NodeManagement } from './NodeManagement';
 import { LinkManagement } from './LinkManagement';
 
-/**
- * 管理面板组件属性
- */
 export interface ManagePanelProps {
-  // 节点数据
-  nodes: EnhancedNode[];
-  // 连接数据
-  connections: EnhancedGraphConnection[];
-  // 设置节点
-  setNodes: (_nodes: EnhancedNode[]) => void;
-  // 设置连接
-  setConnections: (_connections: EnhancedGraphConnection[]) => void;
-  // 选中的节点
-  selectedNode: EnhancedNode | null;
-  // 设置选中的节点
-  setSelectedNode: (_node: EnhancedNode | null) => void;
-  // 选中的节点列表
-  selectedNodes: EnhancedNode[];
-  // 设置选中的节点列表
-  setSelectedNodes: (_nodes: EnhancedNode[]) => void;
-  // 选中的连接
-  selectedConnections: EnhancedGraphConnection[];
-  // 设置选中的连接
-  setSelectedConnections: (_connections: EnhancedGraphConnection[]) => void;
-  // 是否正在添加连接
+  nodes: GraphNode[];
+  connections: GraphConnection[];
+  setNodes: (_nodes: GraphNode[]) => void;
+  setConnections: (_connections: GraphConnection[]) => void;
+  selectedNode: GraphNode | null;
+  setSelectedNode: (_node: GraphNode | null) => void;
+  selectedNodes: GraphNode[];
+  setSelectedNodes: (_nodes: GraphNode[]) => void;
+  selectedConnections: GraphConnection[];
+  setSelectedConnections: (_connections: GraphConnection[]) => void;
   isAddingConnection: boolean;
-  // 设置是否正在添加连接
   setIsAddingConnection: (_isAddingConnection: boolean) => void;
-  // 连接源节点
-  connectionSourceNode: EnhancedNode | null;
-  // 设置连接源节点
-  setConnectionSourceNode: (_node: EnhancedNode | null) => void;
-  // 设置鼠标位置
-  setMousePosition: (_position: { x: number; y: number } | null) => void;
-  // 显示通知
+  connectionSourceNode: GraphNode | null;
+  setConnectionSourceNode: (_node: GraphNode | null) => void;
   showNotification: (_message: string, _type: 'success' | 'error' | 'info') => void;
-  // 添加节点回调
-  onAddNode?: (_node: EnhancedNode) => void;
-  // 删除节点回调
-  onDeleteNodes?: (_nodes: EnhancedNode[], _connections: EnhancedGraphConnection[]) => void;
+  onAddNode?: (_node: GraphNode) => void;
+  onDeleteNodes?: (_nodes: GraphNode[], _connections: GraphConnection[]) => void;
+  actions: GraphActions;
 }
 
 /**
@@ -69,10 +48,9 @@ export const ManagePanel: React.FC<ManagePanelProps> = ({
   setIsAddingConnection,
   connectionSourceNode,
   setConnectionSourceNode,
-  setMousePosition,
   showNotification,
   onAddNode,
-  onDeleteNodes
+  actions
 }) => {
   // 初始选中的标签页
   const [activeTab, setActiveTab] = useState<'nodes' | 'connections'>('nodes');
@@ -118,7 +96,10 @@ export const ManagePanel: React.FC<ManagePanelProps> = ({
             setSelectedNodes={setSelectedNodes}
             showNotification={showNotification}
             onAddNode={onAddNode || (() => {})}
-            onDeleteNodes={onDeleteNodes || (() => {})}
+            onDeleteNodes={(nodesToDelete, connectionsToDelete) => {
+              nodesToDelete.forEach(n => actions.deleteNode(n.id));
+              connectionsToDelete.forEach(c => actions.deleteConnection(c.id));
+            }}
           />
         )}
 
@@ -132,8 +113,6 @@ export const ManagePanel: React.FC<ManagePanelProps> = ({
             setIsAddingConnection={setIsAddingConnection}
             connectionSourceNode={connectionSourceNode}
             setConnectionSourceNode={setConnectionSourceNode}
-            mousePosition={null}
-            setMousePosition={setMousePosition}
             showNotification={showNotification}
             selectedConnections={selectedConnections}
             setSelectedConnections={setSelectedConnections}

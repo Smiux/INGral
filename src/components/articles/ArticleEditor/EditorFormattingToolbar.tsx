@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import {
-  Bold, Italic, Strikethrough, Code, List, ListOrdered, Quote, Link2, Image,
+import { Bold, Italic, Strikethrough, Code, List, ListOrdered, Quote, Link2, Image,
   Heading1, Heading2, Heading3, Table, Calculator, GitBranch, BookMarked,
   BookOpen, BarChart3, LineChart, PieChart, AlignLeft, AlignCenter, AlignRight, AlignJustify,
   RotateCcw, RotateCw,
-  Layers2, FileCode2, CheckSquare, Square, Type, Footprints, Highlighter,
+  FileCode2, CheckSquare, Square, Type, Footprints, Highlighter,
   ArrowUpCircle, ArrowDownCircle, Music, ChevronDown, ChevronRight,
-  FileText, MessageSquare, Send, ClipboardCopy, ClipboardPaste, Brush
-} from 'lucide-react';
+  FileText, MessageSquare, Send, ClipboardCopy, ClipboardPaste, Brush } from 'lucide-react';
 
 interface EditorFormattingToolbarProps {
   onFormat: (_formatType: string, _data?: Record<string, unknown>) => void;
@@ -404,15 +402,6 @@ export function EditorFormattingToolbar ({ onFormat, onCopyFormat, onPasteFormat
         >
           <GitBranch size={14} />
           <span>导图</span>
-        </button>
-        <button
-          onClick={() => onFormat('graph')}
-          className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-150 hover:shadow-sm flex items-center gap-1.5 text-xs whitespace-nowrap"
-          title="知识图表"
-          aria-label="知识图表"
-        >
-          <Layers2 size={14} />
-          <span>图表</span>
         </button>
       </div>
 

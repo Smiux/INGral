@@ -1,10 +1,4 @@
-/**
- * 处理文本格式化
- * @param formatType 格式化类型
- * @param data 额外数据
- * @param content 当前编辑器内容
- * @param setContent 设置编辑器内容的函数
- */
+
 
 // 辅助函数：获取当前光标所在的表格
 export const getCurrentTable = (content: string): { tableStart: number; tableEnd: number; tableContent: string } | null => {
@@ -736,9 +730,6 @@ export const handleFormat = (params: HandleFormatParams) => {
     case 'mermaid':
       newText = '```mermaid\ngraph TD\n    A[开始] --> B{条件A}\n    B -->|是| C[结果A]\n    B -->|否| D[结果B]\n    C --> E[结束]\n    D --> E\n```';
       break;
-    case 'graph':
-      newText = '\n\n[graph]\n{\n  "nodes": [\n    { "id": "node1", "title": "节点1", "connections": 1, "type": "concept" },\n    { "id": "node2", "title": "节点2", "connections": 1, "type": "concept" }\n  ],\n  "links": [\n    { "source": "node1", "target": "node2", "type": "related", "label": "关系", "weight": 1.0 }\n  ]\n}\n[/graph]\n\n';
-      break;
     case 'insert-citation':
       // 引用ID输入已移至专门的引用编辑器组件
       newText = selectedText ? `[${selectedText}][ref1]` : '[^ref1]';
@@ -1060,34 +1051,4 @@ export const generateTableOfContents = (content: string) => {
   });
 
   return tocItems;
-};
-
-/**
- * 插入知识图表到编辑器
- * @param graphMarkdown 知识图表的Markdown字符串
- * @param content 当前编辑器内容
- * @param setContent 设置编辑器内容的函数
- */
-export const insertGraphMarkdown = (
-  graphMarkdown: string,
-  content: string,
-  setContent: (_content: string) => void
-) => {
-  const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
-  if (textarea) {
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-
-    const newValue = content.substring(0, start) + graphMarkdown + content.substring(end);
-    setContent(newValue);
-
-    // 重新聚焦并设置光标位置
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + graphMarkdown.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
-  } else {
-    setContent(content + graphMarkdown);
-  }
 };

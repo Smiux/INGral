@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { SemanticSearchResult } from '../../services/semanticSearchService';
 import { GraphNodeType, type Graph, GraphVisibility } from '../../types';
-import { EnhancedNode, EnhancedGraphConnection, LayoutType, LayoutDirection } from '../graph/GraphVisualization/types';
+import type { GraphNode, GraphConnection, LayoutType, LayoutDirection } from '../graph/GraphVisualization/GraphTypes';
 import { exportService } from '../../services/exportService';
 import { GraphCanvasReactFlow } from '../graph/GraphVisualization/GraphCanvasReactFlow';
+import { GraphProvider } from '../graph/GraphVisualization/GraphProvider';
+import { useGraphContext } from '../graph/GraphVisualization/GraphContext';
 import styles from './SearchResultsGraph.module.css';
 
 interface SearchResultsGraphProps {
@@ -11,7 +13,8 @@ interface SearchResultsGraphProps {
   query: string;
 }
 
-const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query }) => {
+const SearchResultsGraphContent: React.FC<SearchResultsGraphProps> = ({ results, query }) => {
+  const { state, actions } = useGraphContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(800);
   const [height, setHeight] = useState(600);
@@ -19,19 +22,17 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
   const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('top-bottom');
   // 用于追踪导出状态
   const [exportLoading, setExportLoading] = useState(false);
-  const [nodes, setNodes] = useState<EnhancedNode[]>([]);
-  const [links, setLinks] = useState<EnhancedGraphConnection[]>([]);
 
   // 转换搜索结果为图谱数据
   const transformResultsToGraphData = useCallback(() => {
     // 创建节点映射，确保每个结果都是唯一节点
-    const nodeMap = new Map<string, EnhancedNode>();
-    const graphLinks: EnhancedGraphConnection[] = [];
-    const conceptMap = new Map<string, EnhancedNode>();
+    const nodeMap = new Map<string, GraphNode>();
+    const graphLinks: GraphConnection[] = [];
+    const conceptMap = new Map<string, GraphNode>();
 
     // 首先创建所有节点
     results.forEach(result => {
-      const node: EnhancedNode = {
+      const node: GraphNode = {
         'id': result.id,
         'title': result.title,
         'type': result.type,
@@ -69,23 +70,25 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
           'lockedHandles': {},
           'handleLabels': {}
         },
-        'aggregation': {
-          '_isAggregated': false,
-          '_aggregatedNodes': [],
-          '_averageImportance': 0,
-          '_clusterCenter': { 'x': 0, 'y': 0 },
-          '_clusterSize': 0,
-          '_aggregationLevel': 0
-        },
-        'semantics': {
-          'semantic_score': result.semantic_score,
-          'search_rank': result.search_rank || 0,
-          'entity_matches': result.entity_matches ? result.entity_matches.map(entity => ({
-            'text': entity.text || '',
-            'type': entity.type || '',
-            'score': 0
-          })) : [],
-          'matched_concepts': result.matched_concepts ? result.matched_concepts.map(concept => ({ 'id': concept.toLowerCase(), 'name': concept, 'relevance': 1 })) : []
+        'customData': {
+          'aggregation': {
+            '_isAggregated': false,
+            '_aggregatedNodes': [],
+            '_averageImportance': 0,
+            '_clusterCenter': { 'x': 0, 'y': 0 },
+            '_clusterSize': 0,
+            '_aggregationLevel': 0
+          },
+          'semantics': {
+            'semantic_score': result.semantic_score,
+            'search_rank': result.search_rank || 0,
+            'entity_matches': result.entity_matches ? result.entity_matches.map(entity => ({
+              'text': entity.text || '',
+              'type': entity.type || '',
+              'score': 0
+            })) : [],
+            'matched_concepts': result.matched_concepts ? result.matched_concepts.map(concept => ({ 'id': concept.toLowerCase(), 'name': concept, 'relevance': 1 })) : []
+          }
         }
       };
 
@@ -148,10 +151,12 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
         const article1 = articleNodes[i];
         const article2 = articleNodes[j];
 
-        if (article1 && article2 && article1.semantics?.matched_concepts && article2.semantics?.matched_concepts) {
+        if (article1 && article2 && article1.customData?.semantics && article2.customData?.semantics) {
+          const semantics1 = article1.customData.semantics as { matched_concepts: { name: string }[] };
+          const semantics2 = article2.customData.semantics as { matched_concepts: { name: string }[] };
           // 查找共同概念
-          const commonConcepts = article1.semantics.matched_concepts.filter((concept1: { name: string }) =>
-            article2.semantics!.matched_concepts!.some((concept2: { name: string }) => concept1.name.toLowerCase() === concept2.name.toLowerCase())
+          const commonConcepts = semantics1.matched_concepts.filter((concept1: { name: string }) =>
+            semantics2.matched_concepts.some((concept2: { name: string }) => concept1.name.toLowerCase() === concept2.name.toLowerCase())
           );
 
           if (commonConcepts.length > 0) {
@@ -219,9 +224,9 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
   // 当数据或布局变化时更新图表
   useEffect(() => {
     const { 'nodes': newNodes, 'links': newLinks } = transformResultsToGraphData();
-    setNodes(newNodes);
-    setLinks(newLinks);
-  }, [transformResultsToGraphData]);
+    actions.setNodes(newNodes);
+    actions.setConnections(newLinks);
+  }, [transformResultsToGraphData, actions]);
 
   // 导出图谱为JSON
   const exportGraphToJson = useCallback(async () => {
@@ -231,9 +236,8 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
         'id': `search-results-graph-${Date.now()}`,
         'author_id': 'system',
         'title': `Search Results Graph: ${query}`,
-        nodes,
-        links,
-        'is_template': false,
+        'nodes': state.nodes,
+        'links': state.connections,
         'visibility': 'private',
         'created_at': new Date().toISOString(),
         'updated_at': new Date().toISOString()
@@ -248,24 +252,22 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
     } finally {
       setExportLoading(false);
     }
-  }, [nodes, links, query]);
+  }, [state.nodes, state.connections, query]);
 
   // 导出图谱为GraphML
   const exportGraphToGraphml = useCallback(async () => {
     setExportLoading(true);
     try {
-      // Convert EnhancedNode to GraphNode
-      const graphNodes = nodes.map(node => ({
+      const graphNodes = state.nodes.map(node => ({
         'id': node.id,
         'title': node.title,
         'connections': node.connections || 0,
         'type': GraphNodeType[(node.type as keyof typeof GraphNodeType) || 'ARTICLE'],
         'description': node.metadata.content || ''
       }));
-      // Convert EnhancedGraphLink to GraphLink
-      const graphLinks = links.map(link => ({
-        'source': link.source as string,
-        'target': link.target as string,
+      const graphLinks = state.connections.map(link => ({
+        'source': String(link.source),
+        'target': String(link.target),
         'type': link.type || 'related',
         'label': link.type || '',
         'weight': 1.0
@@ -277,12 +279,9 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
         'title': `Search Results Graph - ${query}`,
         'nodes': graphNodes,
         'links': graphLinks,
-        'is_template': false,
-        // Explicitly type as GraphVisibility
         'visibility': 'public' as GraphVisibility,
         'created_at': new Date().toISOString(),
         'updated_at': new Date().toISOString(),
-        // 编辑限制相关字段
         'edit_count_24h': 0,
         'edit_count_7d': 0,
         'last_edit_date': new Date().toISOString(),
@@ -300,7 +299,7 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
     } finally {
       setExportLoading(false);
     }
-  }, [nodes, links, query]);
+  }, [state.nodes, state.connections, query]);
 
   // 导出图谱为PNG
   const exportGraphToPng = useCallback(async () => {
@@ -381,11 +380,8 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
 
       {/* 图谱容器 */}
       <div className={styles.graphContainer} style={{ width, height }} id="search-results-graph">
-        {nodes.length > 0 ? (
-          <GraphCanvasReactFlow
-            nodes={nodes}
-            connections={links}
-          />
+        {state.nodes.length > 0 ? (
+          <GraphCanvasReactFlow />
         ) : (
           <div className="flex items-center justify-center w-full h-full text-gray-500">
             没有足够的数据生成图谱
@@ -393,6 +389,14 @@ const SearchResultsGraph: React.FC<SearchResultsGraphProps> = ({ results, query 
         )}
       </div>
     </div>
+  );
+};
+
+const SearchResultsGraph: React.FC<SearchResultsGraphProps> = (props) => {
+  return (
+    <GraphProvider>
+      <SearchResultsGraphContent {...props} />
+    </GraphProvider>
   );
 };
 

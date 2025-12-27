@@ -1,26 +1,21 @@
-/**
- * 统一控制面板组件
- * 整合节点编辑、连接编辑、样式管理等功能，提供菜单选择和分页功能
- */
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import type { EnhancedNode, EnhancedGraphConnection } from './types';
+import type { GraphNode, GraphConnection } from './GraphTypes';
 
 interface UnifiedControlPanelProps {
-  selectedNode: EnhancedNode | null;
-  selectedConnection: EnhancedGraphConnection | null;
-  selectedNodes: EnhancedNode[];
-  selectedConnections: EnhancedGraphConnection[];
-  onUpdateNode: (_node: EnhancedNode) => void;
+  selectedNode: GraphNode | null;
+  selectedConnection: GraphConnection | null;
+  selectedNodes: GraphNode[];
+  selectedConnections: GraphConnection[];
+  onUpdateNode: (_node: GraphNode) => void;
   onDeleteNode: (_nodeId: string) => void;
-  onUpdateConnection: (_connection: EnhancedGraphConnection) => void;
+  onUpdateConnection: (_connection: GraphConnection) => void;
   onDeleteConnection: (_connectionId: string) => void;
   onClose: () => void;
-  // 样式管理相关属性已移除
-  nodes: EnhancedNode[];
-  connections: EnhancedGraphConnection[];
-  setNodes: (_nodes: EnhancedNode[]) => void;
-  setConnections: (_connections: EnhancedGraphConnection[]) => void;
+  nodes: GraphNode[];
+  connections: GraphConnection[];
+  setNodes: (_nodes: GraphNode[]) => void;
+  setConnections: (_connections: GraphConnection[]) => void;
   showNotification: (_message: string, _type: 'error' | 'success' | 'info' | 'warning') => void;
   panelPosition: 'left' | 'right';
 }
@@ -47,8 +42,7 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
   // 当前激活的面板类型
   const [activePanel, setActivePanel] = useState<PanelType>('node');
 
-  // 表单状态
-  const [nodeFormData, setNodeFormData] = useState<EnhancedNode>({
+  const [nodeFormData, setNodeFormData] = useState<GraphNode>({
     'id': '',
     'title': '',
     'connections': 0,
@@ -82,24 +76,17 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     },
     'handles': {
       'handleCount': 4,
-      'handlePositions': ['top', 'right', 'bottom', 'left'],
       'lockedHandles': {},
       'handleLabels': {}
-    },
-    'aggregation': {
-      '_isAggregated': false,
-      '_aggregatedNodes': [],
-      '_averageImportance': 0,
-      '_clusterCenter': { 'x': 0, 'y': 0 },
-      '_clusterSize': 0,
-      '_aggregationLevel': 0
     }
   });
 
-  const [connectionFormData, setConnectionFormData] = useState<EnhancedGraphConnection>({
+  const [connectionFormData, setConnectionFormData] = useState<GraphConnection>({
     'id': '',
     'source': '',
     'target': '',
+    'sourceHandle': null,
+    'targetHandle': null,
     'type': '',
     'label': '',
     'weight': 1,
@@ -125,12 +112,10 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     }
   });
 
-  // 撤销/重做历史
-  const [history, setHistory] = useState<EnhancedGraphConnection[]>([]);
+  const [history, setHistory] = useState<GraphConnection[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
 
-  // 保存当前状态到历史记录
-  const saveToHistory = (connection: EnhancedGraphConnection) => {
+  const saveToHistory = (connection: GraphConnection) => {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push({ ...connection });
     setHistory(newHistory);
@@ -163,7 +148,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     }
   };
 
-  // 连接点数量增减处理
   const handleHandleCountChange = (delta: number) => {
     setNodeFormData(prev => {
       const currentCount = prev.handles.handleCount;
@@ -189,7 +173,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     }
   }, [selectedNode, selectedConnection]);
 
-  // 处理节点表单变化
   const handleNodeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
 
@@ -218,7 +201,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     }
   };
 
-  // 处理连接表单变化
   const handleConnectionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
 
@@ -262,12 +244,9 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     }
   };
 
-  // 处理保存连接
   const handleSaveConnection = () => {
     if (selectedConnection) {
-      // 保存当前状态到历史记录
       saveToHistory(connectionFormData);
-      // 更新连接
       onUpdateConnection(connectionFormData);
     }
   };
@@ -280,11 +259,9 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     }
   };
 
-  // 渲染节点编辑面板
   const renderNodeEditPanel = () => {
     return (
       <div className="space-y-4">
-        {/* 节点标题 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             节点标题
@@ -299,7 +276,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           />
         </div>
 
-        {/* 节点类型 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             节点类型
@@ -314,7 +290,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           />
         </div>
 
-        {/* 节点内容 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             节点内容
@@ -329,7 +304,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           />
         </div>
 
-        {/* 节点形状 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             节点形状
@@ -350,11 +324,9 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           </select>
         </div>
 
-        {/* 连接点配置 */}
         <div className="space-y-4 mt-4">
           <h3 className="text-sm font-semibold text-gray-700">连接点配置</h3>
 
-          {/* 连接点数量 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               连接点数量
@@ -395,11 +367,9 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
     );
   };
 
-  // 渲染连接编辑面板
   const renderConnectionEditPanel = () => {
     return (
       <div className="space-y-4">
-        {/* 连接类型 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             连接类型
@@ -414,7 +384,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           />
         </div>
 
-        {/* 连接标签 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             连接标签
@@ -429,7 +398,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           />
         </div>
 
-        {/* 连接权重 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
           连接权重
@@ -446,11 +414,9 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           />
         </div>
 
-        {/* 连接线样式 */}
         <div className="space-y-4 mt-4">
           <h3 className="text-sm font-semibold text-gray-700">连接线样式</h3>
 
-          {/* 箭头数量 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               箭头数量
@@ -468,13 +434,9 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           </div>
         </div>
 
-
-
-        {/* 动态效果系统 */}
         <div className="space-y-4 mt-4">
           <h3 className="text-sm font-semibold text-gray-700">动态效果</h3>
 
-          {/* 效果开关与预设选择 */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="block text-sm font-medium text-gray-700">
@@ -519,7 +481,6 @@ export const UnifiedControlPanel: React.FC<UnifiedControlPanelProps> = ({
           </div>
         </div>
 
-        {/* 操作栏 */}
         <div className="flex gap-2 mt-4">
           <button
             type="button"

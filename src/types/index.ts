@@ -313,7 +313,6 @@ export interface Graph {
   title: string;
   nodes: GraphNode[];
   links: GraphLink[];
-  is_template: boolean;
   visibility: GraphVisibility;
   created_at: string;
   updated_at: string;
