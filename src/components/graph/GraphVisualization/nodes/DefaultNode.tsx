@@ -3,7 +3,7 @@
  * 用于渲染React Flow图中的节点
  */
 import React from 'react';
-import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
+import { Handle, Position, NodeProps } from '@xyflow/react';
 import type { GraphNode } from '../GraphTypes';
 
 /**
@@ -296,6 +296,7 @@ export const DefaultNode: React.FC<NodeProps> = ({ data, selected }) => {
     };
 
     // 直接根据handleCount生成对应数量的连接点
+    // 只生成source类型的连接点，通过loose连接模式支持双向连接
     for (let i = 0; i < handleCount; i += 1) {
       // 为每个连接点生成唯一的id
       const handleId = `${nodeData.id}-handle-${i}`;
@@ -303,11 +304,11 @@ export const DefaultNode: React.FC<NodeProps> = ({ data, selected }) => {
       // 计算连接点的位置
       const handlePosition = getHandlePosition(i, handleCount);
 
-      // Source连接点
+      // 只生成一个source类型的连接点，通过loose连接模式支持双向连接
       handles.push(
         <Handle
-          key={`${handleId}-source`}
-          id={`${handleId}-source`}
+          key={handleId}
+          id={handleId}
           type="source"
           position={Position.Top}
           // 使用自定义样式来精确控制连接点位置
@@ -316,24 +317,7 @@ export const DefaultNode: React.FC<NodeProps> = ({ data, selected }) => {
             ...handlePosition,
             'zIndex': 10
           }}
-          isConnectable={!nodeData?.handles?.lockedHandles?.[`${handleId}-source`]}
-        />
-      );
-
-      // Target连接点
-      handles.push(
-        <Handle
-          key={`${handleId}-target`}
-          id={`${handleId}-target`}
-          type="target"
-          position={Position.Top}
-          // 使用自定义样式来精确控制连接点位置
-          style={{
-            ...handleStyle,
-            ...handlePosition,
-            'zIndex': 10
-          }}
-          isConnectable={!nodeData?.handles?.lockedHandles?.[`${handleId}-target`]}
+          isConnectable={!nodeData?.handles?.lockedHandles?.[handleId]}
         />
       );
     }

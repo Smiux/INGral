@@ -11,7 +11,8 @@ import {
   useEdgesState,
   type ReactFlowProps,
   type ReactFlowInstance,
-  type NodeChange
+  type NodeChange,
+  ConnectionMode
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import type { GraphNode, GraphConnection, CustomNode, CustomEdge } from './GraphTypes';
@@ -283,6 +284,7 @@ export const GraphCanvasReactFlow: React.FC = () => {
           zoomOnPinch={true}
           panOnDrag={true}
           panOnScroll={false}
+          connectionMode={ConnectionMode.Loose}
         >
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
           <MiniMap
