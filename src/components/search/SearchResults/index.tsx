@@ -138,7 +138,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ query, limit = 20,
               if (searchMode === 'semantic' || searchMode === 'enhanced') {
                 return (
                   <div className={styles.graphContainer}>
-                    <SearchResultsGraph results={semanticResults} query={query} />
+                    <SearchResultsGraph results={semanticResults} />
                   </div>
                 );
               }

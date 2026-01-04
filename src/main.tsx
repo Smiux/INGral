@@ -1,7 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
-import { registerServiceWorker } from './utils/registerSW';
 import { preloadKaTeXFONTS } from './utils/katexFontOptimizer';
 import './index.css';
 
@@ -12,8 +11,7 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>
 );
 
-// 注册Service Worker以支持离线功能
-registerServiceWorker();
+
 
 // 预加载KaTeX字体以提高渲染性能
 preloadKaTeXFONTS();

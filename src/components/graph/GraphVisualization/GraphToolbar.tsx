@@ -1,41 +1,53 @@
 import React, { useState } from 'react';
 import {
-  Undo, Redo, Plus, Layout, PieChart, Box, Grid, Settings,
-  BarChart, Database, Brain,
-  ZoomIn, ZoomOut, Maximize2, RefreshCw,
-  Download, Eye, EyeOff, ChevronDown, Edit3,
-  Layers, View, Activity, Target
+  Undo, Redo, Plus, Layout, Box, Grid, Settings,
+  Database, Brain, BarChart2,
+  ZoomIn, ZoomOut, Maximize2,
+  Download, ChevronDown, Edit3,
+  Layers, View, Target
 } from 'lucide-react';
+import { useReactFlow, type Node, type Edge } from '@xyflow/react';
 
-// 导入自定义Hook
-import { useGraphContext } from './GraphContext';
-
+interface GraphToolbarProps {
+  nodes: Node[];
+  edges: Edge[];
+  onAddNode: () => void;
+  isManagementPanelOpen: boolean;
+  onToggleManagementPanel: () => void;
+  isAnalysisPanelOpen: boolean;
+  onToggleAnalysisPanel: () => void;
+  isImportExportPanelOpen: boolean;
+  onToggleImportExportPanel: () => void;
+  isGenerationPanelOpen: boolean;
+  onToggleGenerationPanel: () => void;
+  onGenerateTestGraph?: () => void;
+}
 
 /**
  * 图谱工具栏组件
- * 优化后的控制面板，提供更直观、易用的图谱操作功能
+ * 基于旧版工具栏样式，适配新版React Flow系统
  */
-export const GraphToolbar: React.FC = React.memo(() => {
-  // 使用useGraphContext Hook获取状态和操作
-  const { state, actions } = useGraphContext();
-
-  // 从state中解构需要的状态
-  const {
-    isToolbarVisible,
-    viewMode,
-    isSettingsPanelOpen,
-    activePanel,
-    historyIndex,
-    history,
-    isSimulationRunning,
-    nodes,
-    connections
-  } = state;
+export const GraphToolbar: React.FC<GraphToolbarProps> = ({
+  nodes,
+  edges,
+  onAddNode,
+  isManagementPanelOpen,
+  onToggleManagementPanel,
+  isAnalysisPanelOpen,
+  onToggleAnalysisPanel,
+  isImportExportPanelOpen,
+  onToggleImportExportPanel,
+  isGenerationPanelOpen,
+  onToggleGenerationPanel,
+  onGenerateTestGraph
+}) => {
+  // 使用useReactFlow hook获取React Flow实例
+  const reactFlowInstance = useReactFlow();
 
   // 工具栏分组折叠状态
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     'edit': false,
-    'layout': false,
+    'tools': false,
     'analysis': false,
     'view': false,
     'settings': false
@@ -49,99 +61,47 @@ export const GraphToolbar: React.FC = React.memo(() => {
     }));
   };
 
-  // 处理创建新节点
-  const handleCreateNode = () => {
-    // 简化处理，直接调用addNode
-    const newNode = {
-      'id': `node-${Date.now()}`,
-      'title': `新节点 ${nodes.length + 1}`,
-      'connections': 0,
-      'type': 'concept',
-      'shape': 'circle',
-      'style': {},
-      'state': {
-        'isExpanded': false,
-        'isFixed': false,
-        'isSelected': false,
-        'isHovered': false,
-        'isDragging': false,
-        'isCollapsed': false
-      },
-      'metadata': {
-        'is_custom': true,
-        'createdAt': Date.now(),
-        'updatedAt': Date.now(),
-        'version': 1
-      },
-      'layout': {
-        'x': Math.random() * 400 - 200,
-        'y': Math.random() * 400 - 200,
-        'isFixed': false,
-        'isExpanded': false
-      },
-      'handles': {
-        'handleCount': 4,
-        'lockedHandles': {},
-        'handleLabels': {}
-      },
-      'group': {
-        'isGroup': false,
-        'memberIds': [],
-        'isGroupExpanded': false
-      }
-    };
-    actions.addNode(newNode);
-  };
-
   // 处理缩放操作
   const handleZoomIn = () => {
-    if (state.reactFlowInstance) {
-      // @ts-expect-error - reactFlowInstance类型不明确
-      state.reactFlowInstance.zoomIn();
-    }
+    reactFlowInstance.zoomIn();
   };
 
   const handleZoomOut = () => {
-    if (state.reactFlowInstance) {
-      // @ts-expect-error - reactFlowInstance类型不明确
-      state.reactFlowInstance.zoomOut();
-    }
+    reactFlowInstance.zoomOut();
   };
 
   const handleZoomReset = () => {
-    if (state.reactFlowInstance) {
-      // @ts-expect-error - reactFlowInstance类型不明确
-      state.reactFlowInstance.zoomTo(1);
+    reactFlowInstance.zoomTo(1);
+  };
+
+  const handleFitView = () => {
+    if (nodes.length > 0) {
+      reactFlowInstance.fitView({
+        'padding': 100,
+        'duration': 500
+      });
+    } else {
+      reactFlowInstance.setViewport({
+        'x': 0,
+        'y': 0,
+        'zoom': 1
+      }, {
+        'duration': 500
+      });
     }
   };
 
-  // 处理模拟运行/暂停
-  const handleToggleSimulation = () => {
-    actions.setIsSimulationRunning(!isSimulationRunning);
-    actions.showNotification(
-      isSimulationRunning ? '模拟已暂停' : '模拟已开始',
-      'success'
-    );
-  };
-
-  // 处理刷新布局
-  const handleRefreshLayout = () => {
-    // 简化处理，直接更新状态
-    actions.showNotification('布局已刷新', 'success');
-  };
-
-  // 处理面板切换
-  const handleTogglePanel = (panel: string) => {
-    if (activePanel === panel) {
-      actions.setActivePanel('');
+  const handleToggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
     } else {
-      actions.setActivePanel(panel);
+      document.documentElement.requestFullscreen();
     }
   };
 
   return (
-    <div className={`bg-white border-b border-gray-200 shadow-md p-1 flex flex-wrap items-center justify-between gap-1 transition-all duration-300 ease-in-out ${isToolbarVisible ? 'translate-y-0' : '-translate-y-full'} z-50 backdrop-blur-sm`}>
-      {/* Logo和主页链接 - 简化版本，移除路由 */}
+    <div className="bg-white border-b border-gray-200 shadow-md p-1 flex flex-wrap items-center justify-between gap-1 transition-all duration-300 ease-in-out z-50 backdrop-blur-sm">
+      {/* Logo和标题 */}
       <div className="flex items-center gap-2 hover:opacity-80 transition-opacity mr-3 px-2 flex-shrink-0">
         <Brain className="w-5 h-5 text-blue-600" />
         <span className="font-bold text-sm tracking-tight text-gray-800">MyMathWiki</span>
@@ -151,12 +111,12 @@ export const GraphToolbar: React.FC = React.memo(() => {
       <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-gray-700 backdrop-blur-sm flex-shrink-0">
         <span className="flex items-center gap-1">
           <Database size={12} />
-          节点: {nodes.length}
+        节点: {nodes.length}
         </span>
         <span className="h-3 w-px bg-gray-400"></span>
         <span className="flex items-center gap-1">
           <Box size={12} />
-          连接: {connections.length}
+        连接: {edges.length}
         </span>
       </div>
 
@@ -174,20 +134,23 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
           {!collapsedGroups.edit && (
             <>
-              {/* 撤销/重做按钮组 */}
+              {/* 撤销/重做按钮组 - 简化实现，React Flow不直接支持 */}
               <div className="flex items-center gap-0.5">
                 <button
-                  onClick={actions.undo}
-                  disabled={historyIndex < 0}
-                  className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out ${historyIndex >= 0 ? 'hover:bg-blue-50' : ''}`}
+                  onClick={() => {
+                    // React Flow v11+ 不直接支持撤销/重做，需要自定义实现
+                    console.log('Undo clicked - not implemented in React Flow v11+');
+                  }}
+                  className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out hover:bg-blue-50"
                   title="撤销 (Ctrl+Z)"
                 >
                   <Undo size={16} />
                 </button>
                 <button
-                  onClick={actions.redo}
-                  disabled={historyIndex >= history.length - 1}
-                  className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out ${historyIndex < history.length - 1 ? 'hover:bg-blue-50' : ''}`}
+                  onClick={() => {
+                    console.log('Redo clicked - not implemented in React Flow v11+');
+                  }}
+                  className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out hover:bg-blue-50"
                   title="重做 (Ctrl+Y)"
                 >
                   <Redo size={16} />
@@ -196,19 +159,17 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
               {/* 创建节点按钮 */}
               <button
-                onClick={handleCreateNode}
-                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'create-node' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                onClick={onAddNode}
+                className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out hover:bg-blue-50"
                 title="创建节点"
               >
                 <Plus size={16} />
               </button>
 
-
-
-              {/* 导入导出按钮 - 只保留一个 */}
+              {/* 导入导出按钮 */}
               <button
-                onClick={() => handleTogglePanel(activePanel === 'importExport' ? 'importExport' : 'importExport')}
-                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'importExport' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                onClick={onToggleImportExportPanel}
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isImportExportPanelOpen ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' : 'hover:bg-blue-50'}`}
                 title="导入导出"
               >
                 <Download size={16} />
@@ -217,87 +178,52 @@ export const GraphToolbar: React.FC = React.memo(() => {
           )}
         </div>
 
-        {/* 布局与样式组 */}
+        {/* 工具组 */}
         <div className="flex items-center gap-0.5 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm">
           <button
-            className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${collapsedGroups.layout ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-            onClick={() => toggleGroup('layout')}
-            title="布局与样式"
+            className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${collapsedGroups.tools ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+            onClick={() => toggleGroup('tools')}
+            title="工具"
           >
-            {collapsedGroups.layout ? <Layers size={16} /> : <ChevronDown size={16} />}
+            {collapsedGroups.tools ? <Layers size={16} /> : <ChevronDown size={16} />}
           </button>
 
-          {!collapsedGroups.layout && (
+          {!collapsedGroups.tools && (
             <>
               {/* 布局管理按钮 */}
               <button
-                onClick={() => handleTogglePanel(activePanel === 'layout' ? 'layout' : 'layout')}
-                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'layout' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                onClick={() => {
+                  console.log('Layout management clicked');
+                }}
+                className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out hover:bg-blue-50"
                 title="布局管理"
               >
                 <Layout size={16} />
               </button>
 
-              {/* 刷新布局按钮 */}
+              {/* 分析面板按钮 */}
               <button
-                onClick={handleRefreshLayout}
-                className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
-                title="刷新布局"
-              >
-                <RefreshCw size={16} />
-              </button>
-
-              {/* 模拟控制按钮 */}
-              <button
-                onClick={handleToggleSimulation}
-                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isSimulationRunning ? 'bg-green-600 text-white shadow-md' : 'bg-yellow-600 text-white shadow-md'}`}
-                title={isSimulationRunning ? '暂停模拟' : '开始模拟'}
-              >
-                {isSimulationRunning ? (
-                  <EyeOff size={16} />
-                ) : (
-                  <Eye size={16} />
-                )}
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* 分析与统计组 */}
-        <div className="flex items-center gap-0.5 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm">
-          <button
-            className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${collapsedGroups.analysis ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-            onClick={() => toggleGroup('analysis')}
-            title="分析与统计"
-          >
-            {collapsedGroups.analysis ? <Activity size={16} /> : <ChevronDown size={16} />}
-          </button>
-
-          {!collapsedGroups.analysis && (
-            <>
-              {/* 图谱分析按钮 */}
-              <button
-                onClick={() => handleTogglePanel(activePanel === 'analysis' ? 'analysis' : 'analysis')}
-                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'analysis' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isAnalysisPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                onClick={onToggleAnalysisPanel}
                 title="图谱分析"
               >
-                <PieChart size={16} />
+                <BarChart2 size={16} />
               </button>
 
-              {/* 统计信息按钮 */}
+              {/* 图生成面板按钮 */}
               <button
-                onClick={() => handleTogglePanel(activePanel === 'statistics' ? 'statistics' : 'statistics')}
-                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'statistics' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-                title="查看统计信息"
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isGenerationPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                onClick={onToggleGenerationPanel}
+                title="图生成"
               >
-                <BarChart className="w-5 h-5" />
+                <Target size={16} />
               </button>
 
-              {/* 管理按钮 - 合并节点和连接管理 */}
+              {/* 管理面板按钮 */}
               <button
-                onClick={() => handleTogglePanel(activePanel === 'manage' ? 'manage' : 'manage')}
-                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${activePanel === 'manage' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-                title="节点与连接管理"
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isManagementPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                onClick={onToggleManagementPanel}
+                title="图谱管理"
               >
                 <Database size={16} />
               </button>
@@ -317,19 +243,23 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
           {!collapsedGroups.view && (
             <>
-              {/* 视图切换按钮组 */}
+              {/* 视图切换按钮组 - React Flow只支持2D */}
               <div className="flex items-center gap-0.5">
                 <button
-                  onClick={() => actions.setViewMode('2d')}
-                  className={`flex items-center justify-center w-12 h-12 rounded-md transition-all duration-200 ease-in-out ${viewMode === '2d' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}
+                  onClick={() => {
+                    console.log('2D view - React Flow only supports 2D');
+                  }}
+                  className="flex items-center justify-center w-12 h-12 rounded-md bg-blue-600 text-white shadow-md transition-all duration-200 ease-in-out"
                   title="2D视图"
                 >
                   <Grid size={16} />
                 </button>
                 <button
-                  onClick={() => actions.setViewMode('3d')}
-                  className={`flex items-center justify-center w-12 h-12 rounded-md transition-all duration-200 ease-in-out ${viewMode === '3d' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}
-                  title="3D视图"
+                  onClick={() => {
+                    console.log('3D view not supported in React Flow');
+                  }}
+                  className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out text-gray-700"
+                  title="3D视图 (不支持)"
                 >
                   <Box size={16} />
                 </button>
@@ -362,28 +292,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
               {/* 中心对齐 */}
               <button
-                onClick={() => {
-                  if (state.reactFlowInstance) {
-                    if (nodes.length > 0) {
-                      // 如果有节点，使用fitView将节点居中
-                      // @ts-expect-error - reactFlowInstance类型不明确
-                      state.reactFlowInstance.fitView({
-                        'padding': 100,
-                        'duration': 500
-                      });
-                    } else {
-                      // 如果没有节点，重置视图位置和缩放
-                      // @ts-expect-error - reactFlowInstance类型不明确
-                      state.reactFlowInstance.setViewport({
-                        'x': 0,
-                        'y': 0,
-                        'zoom': 1
-                      }, {
-                        'duration': 500
-                      });
-                    }
-                  }
-                }}
+                onClick={handleFitView}
                 className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
                 title="中心对齐"
               >
@@ -392,13 +301,7 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
               {/* 全屏控制 */}
               <button
-                onClick={() => {
-                  if (document.fullscreenElement) {
-                    document.exitFullscreen();
-                  } else {
-                    document.documentElement.requestFullscreen();
-                  }
-                }}
+                onClick={handleToggleFullscreen}
                 className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
                 title="全屏"
               >
@@ -411,10 +314,23 @@ export const GraphToolbar: React.FC = React.memo(() => {
 
       {/* 右侧设置组 */}
       <div className="flex items-center gap-1 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm flex-shrink-0">
+        {/* 生成测试图按钮 */}
+        {onGenerateTestGraph && (
+          <button
+            onClick={onGenerateTestGraph}
+            className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out text-gray-700"
+            title="生成测试图"
+          >
+            <Target size={16} />
+          </button>
+        )}
+
         {/* 设置按钮 */}
         <button
-          onClick={() => actions.setIsSettingsPanelOpen(!isSettingsPanelOpen)}
-          className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isSettingsPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+          onClick={() => {
+            console.log('Settings clicked');
+          }}
+          className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out text-gray-700"
           title="设置"
         >
           <Settings size={16} />
@@ -422,6 +338,6 @@ export const GraphToolbar: React.FC = React.memo(() => {
       </div>
     </div>
   );
-});
+};
 
 export default GraphToolbar;

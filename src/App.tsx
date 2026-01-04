@@ -55,7 +55,7 @@ const ArticlesPage = lazy(() => import('./pages/ArticlesPage').then(m => ({ 'def
 const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ 'default': m.SearchPage })));
 const ArticleViewer = lazy(() => import('./components/articles/ArticleViewer').then(m => ({ 'default': m.ArticleViewer })));
 const ArticleEditor = lazy(() => import('./components/articles/ArticleEditor').then(m => ({ 'default': m.ArticleEditor })));
-const GraphVisualization = lazy(() => import('./components/graph/GraphVisualization').then(m => ({ 'default': m.GraphVisualization })));
+const GraphVisualization = lazy(() => import('./components/graph/GraphVisualization'));
 const GraphListPage = lazy(() => import('./pages/GraphListPage').then(m => ({ 'default': m.GraphListPage })));
 const DiscussionPage = lazy(() => import('./pages/DiscussionPage').then(m => ({ 'default': m.DiscussionPage })));
 const TopicDetailPage = lazy(() => import('./pages/TopicDetailPage').then(m => ({ 'default': m.TopicDetailPage })));

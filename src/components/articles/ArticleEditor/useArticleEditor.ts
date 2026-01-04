@@ -375,7 +375,7 @@ export function useArticleEditor () {
    * 监听路由变化，自动保存草稿
    */
   useEffect(() => {
-    const handleRouteChange = (_e: PopStateEvent) => {
+    const handleRouteChange = () => {
       if (state.hasUnsavedChanges && !state.article) {
         // 自动保存草稿，不弹出确认
         saveDraft();

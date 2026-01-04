@@ -1,1 +1,1 @@
-export { GraphVisualization } from './GraphVisualization';
+export { default as GraphVisualization } from './GraphVisualization';

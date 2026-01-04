@@ -12,32 +12,32 @@
 /**
  * 资源类型枚举
  */
-/* eslint-disable no-unused-vars */
+
 export enum ResourceType {
   ARTICLE = 'article',
   GRAPH = 'graph'
 }
-/* eslint-enable no-unused-vars */
+
 
 /**
  * 文章状态类型
  */
-/* eslint-disable no-unused-vars */
+
 export enum ArticleStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published'
 }
-/* eslint-enable no-unused-vars */
+
 
 /**
  * 文章可见性类型
  */
-/* eslint-disable no-unused-vars */
+
 export enum ArticleVisibility {
   PUBLIC = 'public',
   UNLISTED = 'unlisted'
 }
-/* eslint-enable no-unused-vars */
+
 
 /**
  * 讨论分类接口
@@ -170,11 +170,11 @@ export interface ArticleLink {
 /**
  * 评论状态类型
  */
-/* eslint-disable no-unused-vars */
+
 export enum CommentStatus {
   APPROVED = 'approved'
 }
-/* eslint-enable no-unused-vars */
+
 
 /**
  * 评论接口
@@ -225,12 +225,12 @@ export interface DeleteCommentData {
 /**
  * 知识图谱节点类型
  */
-/* eslint-disable no-unused-vars */
+
 export enum GraphNodeType {
   ARTICLE = 'article',
   CONCEPT = 'concept'
 }
-/* eslint-enable no-unused-vars */
+
 
 /**
  * 知识图谱节点接口
@@ -294,12 +294,12 @@ export interface DatabaseGraphLink {
 /**
  * 知识图谱可见性类型
  */
-/* eslint-disable no-unused-vars */
+
 export enum GraphVisibility {
   PUBLIC = 'public',
   UNLISTED = 'unlisted'
 }
-/* eslint-enable no-unused-vars */
+
 
 /**
  * 知识图谱接口
@@ -362,11 +362,11 @@ export interface SearchResult {
 /**
  * 知识图谱布局类型
  */
-/* eslint-disable no-unused-vars */
+
 export enum GraphLayoutType {
   FORCE = 'force'
 }
-/* eslint-enable no-unused-vars */
+
 
 /**
  * 知识图谱配置接口
@@ -383,12 +383,12 @@ export interface GraphConfig {
 /**
  * 导出格式类型
  */
-/* eslint-disable no-unused-vars */
+
 export enum ExportFormat {
   JSON = 'json',
   CSV = 'csv'
 }
-/* eslint-enable no-unused-vars */
+
 
 /**
  * 导出配置接口
@@ -500,13 +500,13 @@ export interface EditorSidebarProps {
 /**
  * 错误类型枚举
  */
-/* eslint-disable no-unused-vars */
+
 export enum ErrorType {
   NETWORK = 'network',
   VALIDATION = 'validation',
   UNKNOWN = 'unknown'
 }
-/* eslint-enable no-unused-vars */
+
 
 /**
  * 错误响应接口

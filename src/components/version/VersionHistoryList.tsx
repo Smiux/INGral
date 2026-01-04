@@ -6,8 +6,8 @@ import styles from './VersionHistoryList.module.css';
 
 interface VersionHistoryListProps {
   articleId: string;
-  onVersionSelect?: (versionId: string) => void; // eslint-disable-line no-unused-vars
-  onRestore?: (versionId: string) => void; // eslint-disable-line no-unused-vars
+  onVersionSelect?: (versionId: string) => void;
+  onRestore?: (versionId: string) => void;
 }
 
 /**

@@ -12,7 +12,7 @@
  * 资源类型枚举
  */
 
-/* eslint-disable no-unused-vars */
+
 export enum ResourceType {
   ARTICLE = 'article',
   GRAPH = 'graph',
@@ -20,7 +20,7 @@ export enum ResourceType {
   DISCUSSION = 'discussion',
   REVIEW = 'review'
 }
-/* eslint-enable no-unused-vars */
+
 
 /**
  * 编辑限制状态接口

@@ -5,40 +5,13 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MyMathWiki</title>
-    <meta property="og:image" content="https://bolt.new/static/og_default.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
-</head>
+    <!-- MathQuill CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css">
+    <!-- MathQuill JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // 全局SymPy计算函数
-      function runSymPyCalculation(id, code) {
-        const resultDiv = document.getElementById(`${id}-result`);
-        if (!resultDiv) return;
-        
-        // 显示加载状态
-        resultDiv.innerHTML = '<div class="flex items-center justify-center py-4"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>';
-        
-        // 模拟SymPy计算
-        setTimeout(() => {
-          let result = '';
-          
-          // 模拟不同类型的计算结果
-          if (code.includes('integrate')) {
-            result = `\int ${code.replace('integrate', '').trim()} dx = (1/3)x^3 + C`;
-          } else if (code.includes('diff')) {
-            result = `d/dx ${code.replace('diff', '').trim()} = 2x`;
-          } else if (code.includes('solve')) {
-            result = `解: [x = 0, x = 1]`;
-          } else {
-            result = `计算结果: ${code} = 42`;
-          }
-          
-          resultDiv.innerHTML = `<pre class="font-mono text-sm">${result}</pre>`;
-        }, 1000);
-      }
-    </script>
   </body>
 </html>

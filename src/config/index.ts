@@ -4,7 +4,7 @@
 export const APP_CONFIG = {
   'NAME': '知识图谱应用',
   'VERSION': '1.0.0',
-  'DESCRIPTION': '一个基于 React 和 Supabase 的知识图谱应用',
+  'DESCRIPTION': '一个基于 React 的知识图谱应用',
   'BASE_URL': '/',
   'API_URL': '',
   'SUPABASE_URL': import.meta.env.VITE_SUPABASE_URL || '',

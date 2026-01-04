@@ -37,5 +37,5 @@
     "noImplicitOverride": true
   },
   "include": ["src/**/*", "configs/**/*.ts"],
-  "exclude": ["node_modules", "dist", "build"]
+  "exclude": ["node_modules", "dist", "build", "src/components/graph/legacy"]
 }

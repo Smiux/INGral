@@ -4,9 +4,7 @@ import { Loader } from '../ui/Loader';
 // 创建一个懒加载的图表可视化组件
 const LazyGraphVisualizationComponent = lazy(() =>
   // 动态导入原始的GraphVisualization组件
-  import('../graph/GraphVisualization').then((module) => ({
-    'default': module.GraphVisualization
-  }))
+  import('../graph/GraphVisualization')
 );
 
 // 创建一个包装组件，包含加载状态和错误边界处理

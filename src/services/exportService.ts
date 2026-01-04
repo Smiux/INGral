@@ -1,10 +1,8 @@
-import type { Article, Graph } from '../types';
+import type { Article } from '../types';
 import type { SemanticSearchResult } from './semanticSearchService';
 import { BaseService } from './baseService';
 import { ArticleExportService } from './export/ArticleExportService';
-import { GraphExportService } from './export/GraphExportService';
 import { SearchResultsExportService } from './export/SearchResultsExportService';
-import { GraphImportService } from './export/GraphImportService';
 import { ExportUtils } from './export/ExportUtils';
 
 /**
@@ -16,19 +14,14 @@ export class ExportService extends BaseService {
   // 子服务实例
   private articleExportService: ArticleExportService;
 
-  private graphExportService: GraphExportService;
-
   private searchResultsExportService: SearchResultsExportService;
-
-  private graphImportService: GraphImportService;
 
   private constructor () {
     super();
     // 初始化子服务实例
     this.articleExportService = new ArticleExportService();
-    this.graphExportService = new GraphExportService();
+
     this.searchResultsExportService = new SearchResultsExportService();
-    this.graphImportService = new GraphImportService();
   }
 
   /**
@@ -110,79 +103,6 @@ export class ExportService extends BaseService {
    */
   async exportArticleToPdf (article: Article): Promise<void> {
     return this.articleExportService.exportArticleToPdf(article);
-  }
-
-  // ===========================
-  // 知识图谱导出方法（代理到 GraphExportService）
-  // ===========================
-
-  /**
-   * 导出知识图谱为JSON格式
-   * @param graph 图谱数据
-   * @returns JSON格式的图谱数据
-   */
-  async exportGraphToJson (graph: Graph): Promise<string> {
-    return this.graphExportService.exportGraphToJson(graph);
-  }
-
-  /**
-   * 导出知识图谱为GraphML格式
-   * @param graph 图谱数据
-   * @returns GraphML格式的图谱数据
-   */
-  async exportGraphToGraphml (graph: Graph): Promise<string> {
-    return this.graphExportService.exportGraphToGraphml(graph);
-  }
-
-  /**
-   * 导出知识图谱为CSV格式（节点和链接两个文件）
-   * @param graph 图谱数据
-   * @returns 包含节点和链接CSV数据的对象
-   */
-  async exportGraphToCsv (graph: Graph): Promise<{ nodesCsv: string; linksCsv: string }> {
-    return this.graphExportService.exportGraphToCsv(graph);
-  }
-
-  /**
-   * 导出图谱为JSON文件
-   * @param graph 图谱数据
-   */
-  async exportGraphAsJsonFile (graph: Graph): Promise<void> {
-    return this.graphExportService.exportGraphAsJsonFile(graph);
-  }
-
-  /**
-   * 导出图谱为GraphML文件
-   * @param graph 图谱数据
-   */
-  async exportGraphAsGraphmlFile (graph: Graph): Promise<void> {
-    return this.graphExportService.exportGraphAsGraphmlFile(graph);
-  }
-
-  /**
-   * 导出图谱为CSV文件（生成zip包）
-   * @param graph 图谱数据
-   */
-  async exportGraphAsCsvFiles (graph: Graph): Promise<void> {
-    return this.graphExportService.exportGraphAsCsvFiles(graph);
-  }
-
-  /**
-   * 导出图谱为PNG图片
-   * @param svgSelector 图谱SVG的选择器
-   * @param filename 文件名
-   */
-  async exportGraphAsPng (svgSelector: string, filename: string): Promise<void> {
-    return this.graphExportService.exportGraphAsPng(svgSelector, filename);
-  }
-
-  /**
-   * 导出图谱为PDF
-   * @param svgSelector 图谱SVG的选择器
-   * @param graph 图谱数据
-   */
-  async exportGraphAsPdf (svgSelector: string, graph: Graph): Promise<void> {
-    return this.graphExportService.exportGraphAsPdf(svgSelector, graph);
   }
 
   // ===========================
@@ -272,18 +192,6 @@ export class ExportService extends BaseService {
     return this.searchResultsExportService.exportSearchResultsAsGraphmlFile(results, query);
   }
 
-  // ===========================
-  // 知识图谱导入方法（代理到 GraphImportService）
-  // ===========================
-
-  /**
-   * 导入知识图谱数据
-   * @param file 文件对象
-   * @returns 解析后的图谱数据
-   */
-  async importGraphFromFile (file: File): Promise<Graph> {
-    return this.graphImportService.importGraphFromFile(file);
-  }
 
   // ===========================
   // 公共工具方法（直接暴露 ExportUtils 的方法）

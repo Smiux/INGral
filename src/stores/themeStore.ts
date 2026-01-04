@@ -8,7 +8,7 @@ export type Theme = 'light' | 'dark';
 interface ThemeState {
   theme: Theme;
   toggleTheme: () => void;
-  // eslint-disable-next-line no-unused-vars
+
   setTheme: (theme: Theme) => void;
 }
 

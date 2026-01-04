@@ -40,49 +40,17 @@ build
 .env.test.local
 .env.production.local
 .env*.local
-
-# Testing
-coverage
-.nyc_output
-.coverage
-*.lcov
-.istanbul
-.nyc_result
-
-# Test reports
-junit.xml
-TEST-*.xml
-
-# Test configurations
-.jest
-.vitest
-jest.config.js
-jest.config.ts
-jest.config.cjs
-jest.setup.js
-jest.setup.ts
-vitest.config.js
-vitest.config.ts
-
-# Test artifacts
-*.snap
-
-# Test files
-__tests__/
-*.test.ts
-*.test.tsx
-*.spec.ts
-*.spec.tsx
-
-# Mock files
-__mocks__/
-*.mock.ts
-*.mock.tsx
+.env.development
+.env.test
+.env.production
 
 # Temporary files
 *.tmp
 *.temp
 .cache
+.tmp/
+temp/
+out/
 
 # TypeScript
 *.tsbuildinfo
@@ -99,11 +67,6 @@ __mocks__/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
-.env.development
-.env.test
-.env.production
-
 # Supabase
 supabase/
 *.temp/
@@ -115,13 +78,16 @@ Thumbs.db:encryptable
 ehthumbs.db
 ehthumbs_vista.db
 
-# Additional temporary directories
-.tmp/
-temp/
-out/
-
 # Trae AI
 .trae/
 
 # Documentation
 docs/
+
+# Legacy files
+legacy/
+
+# Custom directories
+.clinerules/
+.kilocode/
+.roo/
