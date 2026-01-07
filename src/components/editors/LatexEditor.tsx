@@ -1,23 +1,13 @@
 /**
- * LaTeX公式编辑器组件，提供可视化和代码两种编辑模式
+ * LaTeX公式编辑器组件，提供简洁的代码编辑和预览功能
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Save, Copy, Search } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { X, Save, Copy } from 'lucide-react';
+import katex from 'katex';
 import 'katex/dist/katex.min.css';
-
-// 导入拆分后的组件
-import { LatexSymbolLibrary } from './LatexSymbolLibrary';
-import { LatexTemplateLibrary } from './LatexTemplateLibrary';
-import { LatexHistoryFavorites } from './LatexHistoryFavorites';
-import { LatexPreview } from './LatexPreview';
-import { LatexVisualEditor } from './LatexVisualEditor';
 
 // 导入自定义Hook
 import { useLatexStorage } from '../../hooks/useLatexStorage';
-
-// 导入符号和模板数据
-import { latexSymbols } from '../../data/latex/symbols';
-import { latexTemplates } from '../../data/latex/templates';
 
 // 类型声明
 interface LatexEditorProps {
@@ -27,7 +17,85 @@ interface LatexEditorProps {
   initialFormula?: string;
 }
 
+// LaTeX公式预览组件
+const LatexPreview: React.FC<{ formula: string }> = ({ formula }) => {
+  const renderFormula = () => {
+    try {
+      if (!formula.trim()) {
+        return (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            输入LaTeX公式预览效果
+          </div>
+        );
+      }
 
+      const rendered = katex.renderToString(formula, {
+        'displayMode': true,
+        'output': 'html',
+        'throwOnError': false,
+        'errorColor': '#cc0000',
+        'strict': 'warn'
+      });
+
+      return (
+        <div className="preview-container py-4 overflow-x-auto">
+          <div dangerouslySetInnerHTML={{ '__html': rendered }} />
+        </div>
+      );
+    } catch {
+      return (
+        <div className="error-message py-8 text-center text-red-500">
+          渲染公式时出错
+        </div>
+      );
+    }
+  };
+
+  return renderFormula();
+};
+
+// 条件渲染历史和收藏列表组件
+const FormulaList: React.FC<{
+  formulas: string[];
+  title: string;
+  isFavorite?: boolean;
+  onFormulaClick: (_formula: string) => void;
+}> = ({
+  formulas,
+  title,
+  isFavorite = false,
+  onFormulaClick
+}) => {
+  if (formulas.length === 0) {
+    return (
+      <p className="text-xs text-gray-500 dark:text-gray-400">暂无{title}</p>
+    );
+  }
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
+        {title}
+      </h3>
+      <div className="space-y-2">
+        {formulas.map((formula) => (
+          <div
+            key={formula}
+            className={`flex items-center justify-between p-3 border border-gray-300 dark:border-gray-600 rounded ${isFavorite ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}
+          >
+            <button
+              className="flex-1 text-left text-xs font-mono text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
+              onClick={() => onFormulaClick(formula)}
+              title={formula}
+            >
+              {formula}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 /**
  * LaTeX公式编辑器主组件
@@ -38,22 +106,14 @@ interface LatexEditorProps {
  */
 export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }: LatexEditorProps) {
   const [formula, setFormula] = useState(initialFormula);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isVisualMode, setIsVisualMode] = useState(false);
-  const [formulaNumber, setFormulaNumber] = useState(1);
-  const [useNumbering, setUseNumbering] = useState(false);
-  const [activeTab, setActiveTab] = useState<'editor' | 'symbols' | 'templates'>('editor');
 
   const modalRef = useRef<HTMLDivElement>(null);
-  const mathFieldRef = useRef<HTMLDivElement>(null);
 
   // 使用自定义Hook管理公式存储
   const {
     recentFormulas,
     favoriteFormulas,
-    addToRecent,
-    removeFromRecent,
-    toggleFavorite
+    addToRecent
   } = useLatexStorage();
 
   /**
@@ -62,23 +122,7 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
   const handleClose = useCallback(() => {
     onClose();
     setFormula('');
-    setIsVisualMode(false);
-    setActiveTab('editor');
   }, [onClose]);
-
-  /**
-   * 插入公式到编辑器
-   */
-  const handleInsertSymbol = (symbol: string) => {
-    setFormula(prev => prev + symbol);
-  };
-
-  /**
-   * 插入模板到编辑器
-   */
-  const handleInsertTemplate = (templateFormula: string) => {
-    setFormula(prev => prev + templateFormula);
-  };
 
   /**
    * 插入公式到文档
@@ -116,160 +160,8 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
     addToRecent(selectedFormula);
   };
 
-  // 渲染编辑器内容
-  const renderEditorContent = () => {
-    if (isVisualMode) {
-      return (
-        <LatexVisualEditor
-          formula={formula}
-          onFormulaChange={setFormula}
-          mathFieldRef={mathFieldRef}
-        />
-      );
-    }
-
-    // 双栏布局：左侧编辑，右侧实时预览，更接近LatexLive的设计
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 左侧：代码编辑器 */}
-        <div className="editor-panel">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">代码编辑</h3>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setIsVisualMode(true)}
-                className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-              >
-                可视化编辑
-              </button>
-              <button
-                onClick={handleClear}
-                className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
-                清除
-              </button>
-            </div>
-          </div>
-          <textarea
-            value={formula}
-            onChange={(e) => setFormula(e.target.value)}
-            placeholder="输入LaTeX公式，例如: E = mc^2"
-            className="w-full h-64 p-3 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
-            spellCheck={false}
-            autoFocus
-          />
-
-          {/* 编辑辅助工具 */}
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              onClick={() => setFormula(prev => prev + '\\frac{}{}')}
-              className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-            >
-              分数
-            </button>
-            <button
-              onClick={() => setFormula(prev => prev + '\\sum_{}^{}')}
-              className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-            >
-              求和
-            </button>
-            <button
-              onClick={() => setFormula(prev => prev + '\\int_{}^{}')}
-              className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-            >
-              积分
-            </button>
-            <button
-              onClick={() => setFormula(prev => prev + '\\sqrt{}')}
-              className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-            >
-              根号
-            </button>
-            <button
-              onClick={() => setFormula(prev => prev + '\\vec{}')}
-              className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-            >
-              向量
-            </button>
-            <button
-              onClick={() => setFormula(prev => prev + '\\bold{}')}
-              className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-            >
-              粗体
-            </button>
-          </div>
-        </div>
-
-        {/* 右侧：实时预览 */}
-        <div className="preview-panel">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">实时预览</h3>
-            <button
-              onClick={handleCopy}
-              className="px-3 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded hover:bg-green-200 dark:hover:bg-green-800 transition-colors flex items-center"
-            >
-              <Copy className="w-3 h-3 mr-1" />
-              复制公式
-            </button>
-          </div>
-          <div className="p-4 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 min-h-[120px] flex items-center justify-center">
-            <LatexPreview formula={formula} />
-          </div>
-
-          {/* 预览控制 */}
-          <div className="mt-2 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-            <div className="flex items-center space-x-2">
-              <label htmlFor="fontSize" className="mr-1">字体大小:</label>
-              <select
-                id="fontSize"
-                className="text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1"
-                onChange={(e) => {
-                  // 处理字体大小变化，实际应用中可以更新预览样式
-                  console.log('Font size changed:', e.target.value);
-                }}
-              >
-                <option value="12">12px</option>
-                <option value="14" selected>14px</option>
-                <option value="16">16px</option>
-                <option value="18">18px</option>
-                <option value="20">20px</option>
-              </select>
-            </div>
-            <div>
-              公式长度: {formula.length} 字符
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // 渲染标签页内容
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'symbols':
-        return (
-          <LatexSymbolLibrary
-            symbols={latexSymbols}
-            onSymbolClick={handleInsertSymbol}
-            searchQuery={searchQuery}
-          />
-        );
-      case 'templates':
-        return (
-          <LatexTemplateLibrary
-            templates={latexTemplates}
-            onTemplateClick={handleInsertTemplate}
-            searchQuery={searchQuery}
-          />
-        );
-      default:
-        return renderEditorContent();
-    }
-  };
-
   // 点击外部关闭模态框
-  useEffect(() => {
+  useCallback(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         handleClose();
@@ -308,98 +200,106 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
 
         {/* 编辑器主体 */}
         <div className="flex-1 overflow-y-auto p-4">
-          {/* 编辑器和符号/模板切换 */}
-          <div className="mb-4">
-            <div className="flex border-b border-gray-300 dark:border-gray-600 mb-4">
-              <button
-                className={`px-4 py-2 text-sm font-medium ${activeTab === 'editor'
-                  ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                onClick={() => setActiveTab('editor')}
-              >
-                编辑器
-              </button>
-              <button
-                className={`px-4 py-2 text-sm font-medium ${activeTab === 'symbols'
-                  ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                onClick={() => setActiveTab('symbols')}
-              >
-                符号库
-              </button>
-              <button
-                className={`px-4 py-2 text-sm font-medium ${activeTab === 'templates'
-                  ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                onClick={() => setActiveTab('templates')}
-              >
-                模板库
-              </button>
+          {/* 双栏布局：左侧编辑，右侧实时预览 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 左侧：代码编辑器 */}
+            <div className="editor-panel">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">代码编辑</h3>
+                <button
+                  onClick={handleClear}
+                  className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  清除
+                </button>
+              </div>
+              <textarea
+                value={formula}
+                onChange={(e) => setFormula(e.target.value)}
+                placeholder="输入LaTeX公式，例如: E = mc^2"
+                className="w-full h-64 p-3 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
+                spellCheck={false}
+                autoFocus
+              />
+
+              {/* 编辑辅助工具 */}
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  onClick={() => setFormula(prev => prev + '\\frac{}{}')}
+                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  分数
+                </button>
+                <button
+                  onClick={() => setFormula(prev => prev + '\\sum_{}^{}')}
+                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  求和
+                </button>
+                <button
+                  onClick={() => setFormula(prev => prev + '\\int_{}^{}')}
+                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  积分
+                </button>
+                <button
+                  onClick={() => setFormula(prev => prev + '\\sqrt{}')}
+                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  根号
+                </button>
+                <button
+                  onClick={() => setFormula(prev => prev + '\\vec{}')}
+                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  向量
+                </button>
+                <button
+                  onClick={() => setFormula(prev => prev + '\\mathbf{}')}
+                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  粗体
+                </button>
+              </div>
             </div>
 
-            {/* 搜索框 */}
-            {activeTab !== 'editor' && (
-              <div className="mb-4 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="搜索符号或模板..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            {/* 右侧：实时预览 */}
+            <div className="preview-panel">
+              <div className="mb-2">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">实时预览</h3>
               </div>
-            )}
+              <div className="p-4 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 min-h-[120px] flex items-center justify-center">
+                <LatexPreview formula={formula} />
+              </div>
 
-            {/* 标签页内容 */}
-            <div className="mt-4">
-              {renderTabContent()}
+              {/* 公式统计 */}
+              <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 text-right">
+                公式长度: {formula.length} 字符
+              </div>
             </div>
           </div>
 
           {/* 历史和收藏 */}
-          <LatexHistoryFavorites
-            recentFormulas={recentFormulas}
-            favoriteFormulas={favoriteFormulas}
-            onFormulaClick={handleSelectFormula}
-            onRemoveRecent={removeFromRecent}
-            onToggleFavorite={toggleFavorite}
-          />
+          <div className="mt-6 space-y-6">
+            {/* 最近使用的公式 */}
+            <FormulaList
+              formulas={recentFormulas}
+              title="最近使用"
+              onFormulaClick={handleSelectFormula}
+            />
+
+            {/* 收藏的公式 */}
+            <FormulaList
+              formulas={favoriteFormulas}
+              title="我的收藏"
+              isFavorite={true}
+              onFormulaClick={handleSelectFormula}
+            />
+          </div>
         </div>
 
         {/* 编辑器底部 */}
-        <div className="p-4 border-t border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="useNumbering"
-                checked={useNumbering}
-                onChange={(e) => setUseNumbering(e.target.checked)}
-                className="mr-2"
-              />
-              <label htmlFor="useNumbering" className="text-sm text-gray-600 dark:text-gray-300">使用公式编号</label>
-            </div>
-            {useNumbering && (
-              <div className="flex items-center">
-                <label htmlFor="formulaNumber" className="text-sm text-gray-600 dark:text-gray-300 mr-2">编号:</label>
-                <input
-                  type="number"
-                  id="formulaNumber"
-                  min="1"
-                  value={formulaNumber}
-                  onChange={(e) => setFormulaNumber(parseInt(e.target.value, 10) || 1)}
-                  className="w-16 p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white text-sm"
-                />
-              </div>
-            )}
-            <button
-              onClick={() => setIsVisualMode(!isVisualMode)}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              切换到{isVisualMode ? '代码' : '可视化'}模式
-            </button>
-          </div>
+        <div className="p-4 border-t border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 flex justify-end items-center">
           <div className="flex space-x-2">
             <button
               onClick={handleClear}

@@ -1,13 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { Download, Upload, FileText, Database, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-import type { Node, Edge, ReactFlowInstance } from '@xyflow/react';
+import { type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './CustomEdge';
 
 interface GraphImportExportPanelProps {
-  nodes?: Node<CustomNodeData>[];
-  edges?: Edge<CustomEdgeData>[];
-  reactFlowInstance?: ReactFlowInstance;
+  nodes: Node<CustomNodeData>[];
+  edges: Edge<CustomEdgeData>[];
   onImportComplete: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
 }
 
@@ -16,9 +15,9 @@ type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
 
 /**
  * 图谱导入导出面板组件
- * 支持多种格式的导入导出功能
+ * 支持多种格式的图谱数据导入导出
  */
-export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = ({ nodes, edges, onImportComplete }) => {
+export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = React.memo(({ nodes, edges, onImportComplete }) => {
   // 状态管理
   const [exportFormat, setExportFormat] = useState<ExportFormat>('json');
   const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
@@ -306,9 +305,9 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = ({ 
 
           <div className="space-y-4">
             {/* 导出格式选择 */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               <label className="text-sm text-gray-600 min-w-[80px]">导出格式</label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {(['json', 'csv'] as const).map((format) => (
                   <button
                     key={format}
@@ -407,6 +406,6 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = ({ 
       </div>
     </div>
   );
-};
+});
 
-export default GraphImportExportPanel;
+

@@ -261,9 +261,6 @@ async function saveArticleOffline (article: Partial<Article>): Promise<void> {
 
       const offlineArticle: Partial<Article> = {
         ...(article as Article),
-        'is_offline': true,
-        'synced': false,
-        'last_modified': new Date().toISOString(),
         // 添加默认值，确保所有必需属性都存在
         'view_count': article.view_count || 0,
         'upvotes': article.upvotes || 0,
@@ -335,10 +332,7 @@ export async function createArticle ({
     'tags': [],
     'article_tags': [],
     'created_at': new Date().toISOString(),
-    'updated_at': new Date().toISOString(),
-    'is_offline': true,
-    'synced': false,
-    'last_modified': new Date().toISOString()
+    'updated_at': new Date().toISOString()
   };
 
   try {
@@ -448,10 +442,7 @@ export async function updateArticle ({
     title,
     'slug': titleToSlug(title),
     content,
-    'updated_at': now,
-    'is_offline': isOfflineArticle,
-    'synced': false,
-    'last_modified': now
+    'updated_at': now
   };
 
   // 添加可选字段
@@ -511,9 +502,6 @@ export async function updateArticle ({
       } catch (dbError) {
         console.error('更新文章到数据库失败，保存为离线文章:', dbError);
 
-        // 标记为离线文章
-        updateData.is_offline = true;
-
         // 获取现有文章信息（如果有）
         let existingArticle = null;
         try {
@@ -544,7 +532,6 @@ export async function updateArticle ({
 
     // 尝试保存到本地存储作为最后的后备方案
     try {
-      updateData.is_offline = true;
       await saveArticleOffline({ id, ...updateData });
 
       // 即使在完全失败的情况下，也返回更新的数据

@@ -247,13 +247,6 @@ export function ArticleViewer () {
               </button>
             </div>
           </div>
-
-          {/* 不稳定内容警告 */}
-          {article.is_unstable && (
-            <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-md text-yellow-700 dark:text-yellow-300">
-              <p className="text-sm">⚠️ 此内容最近被反复修改，可能尚未稳定。请谨慎参考。</p>
-            </div>
-          )}
         </div>
         <div className="flex gap-4">
           {/* 主题切换按钮 */}

@@ -1,7 +1,6 @@
-import React, { Suspense, lazy, useEffect, ReactNode } from 'react';
+import React, { useEffect, ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { Header } from './components/layout/Header';
-import { Loader } from './components/ui/Loader';
 import { useGlobalKeyboardShortcuts } from './components/keyboard/keyboardUtils';
 import './styles/accessibility.css';
 import { screenReaderAnnouncer } from './utils/accessibility';
@@ -49,17 +48,17 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 }
 
-// 使用React.lazy实现路由级别的代码分割，并优化导入路径
-const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ 'default': m.HomePage })));
-const ArticlesPage = lazy(() => import('./pages/ArticlesPage').then(m => ({ 'default': m.ArticlesPage })));
-const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ 'default': m.SearchPage })));
-const ArticleViewer = lazy(() => import('./components/articles/ArticleViewer').then(m => ({ 'default': m.ArticleViewer })));
-const ArticleEditor = lazy(() => import('./components/articles/ArticleEditor').then(m => ({ 'default': m.ArticleEditor })));
-const GraphVisualization = lazy(() => import('./components/graph/GraphVisualization'));
-const GraphListPage = lazy(() => import('./pages/GraphListPage').then(m => ({ 'default': m.GraphListPage })));
-const DiscussionPage = lazy(() => import('./pages/DiscussionPage').then(m => ({ 'default': m.DiscussionPage })));
-const TopicDetailPage = lazy(() => import('./pages/TopicDetailPage').then(m => ({ 'default': m.TopicDetailPage })));
-const CreateTopicPage = lazy(() => import('./pages/CreateTopicPage').then(m => ({ 'default': m.CreateTopicPage })));
+// 直接导入所有组件
+import { HomePage } from './pages/HomePage';
+import { ArticlesPage } from './pages/ArticlesPage';
+import { SearchPage } from './pages/SearchPage';
+import { ArticleViewer } from './components/articles/ArticleViewer';
+import { NewArticleEditor } from './components/articles/NewArticleEditor';
+import GraphVisualization from './components/graph/GraphVisualization/GraphVisualization';
+import { GraphListPage } from './pages/GraphListPage';
+import { DiscussionPage } from './pages/DiscussionPage';
+import { TopicDetailPage } from './pages/TopicDetailPage';
+import { CreateTopicPage } from './pages/CreateTopicPage';
 
 // 应用主内容组件 - 使用 useLocation 需要在 BrowserRouter 内部
 function AppContent () {
@@ -103,32 +102,24 @@ function AppContent () {
         className={`flex-1 transition-all duration-300 ease-in-out ${isEditPage() ? '' : 'p-4 sm:p-6 lg:p-8'}`}
       >
         <ErrorBoundary>
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center min-h-[50vh]">
-                <Loader size="large" text="加载中..." />
-              </div>
-            }
-          >
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/articles" element={<ArticlesPage />} />
-              <Route path="/articles/:slug" element={<ArticleViewer />} />
-              <Route path="/articles/create" element={<ArticleEditor />} />
-              <Route path="/articles/:slug/edit" element={<ArticleEditor />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/graphs" element={<GraphListPage />} />
-              <Route path="/graphs/create" element={<GraphVisualization />} />
-              <Route path="/graphs/:graphId" element={<GraphVisualization />} />
-              {/* 讨论区路由 */}
-              <Route path="/discussions" element={<DiscussionPage />} />
-              <Route path="/discussions/:categorySlug" element={<DiscussionPage />} />
-              <Route path="/discussions/:categorySlug/:topicId" element={<TopicDetailPage topicId={parseInt(useParams().topicId as string, 10)} />} />
-              <Route path="/discussions/create" element={<CreateTopicPage />} />
-              {/* 404页面重定向到首页 */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/articles" element={<ArticlesPage />} />
+            <Route path="/articles/:slug" element={<ArticleViewer />} />
+            <Route path="/articles/create" element={<NewArticleEditor />} />
+            <Route path="/articles/:slug/edit" element={<NewArticleEditor />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/graphs" element={<GraphListPage />} />
+            <Route path="/graphs/create" element={<GraphVisualization />} />
+            <Route path="/graphs/:graphId" element={<GraphVisualization />} />
+            {/* 讨论区路由 */}
+            <Route path="/discussions" element={<DiscussionPage />} />
+            <Route path="/discussions/:categorySlug" element={<DiscussionPage />} />
+            <Route path="/discussions/:categorySlug/:topicId" element={<TopicDetailPage topicId={parseInt(useParams().topicId as string, 10)} />} />
+            <Route path="/discussions/create" element={<CreateTopicPage />} />
+            {/* 404页面重定向到首页 */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </ErrorBoundary>
       </main>
     </div>

@@ -1,6 +1,5 @@
 import { BaseService } from './baseService';
 import type { Graph, GraphNode, GraphLink, Article } from '../types/index';
-import { calculateEditLimitStatus, buildUpdateWithEditLimit } from '../utils/editLimitUtils';
 
 /**
  * 图谱服务类，处理图谱相关操作
@@ -258,24 +257,11 @@ export class GraphService extends BaseService {
     const now = new Date();
     const nowISO = now.toISOString();
 
-    // 获取当前图谱信息以计算编辑限制
-    const currentGraph = await this.getGraphById(graphId);
-
-    // 计算编辑限制状态
-    const editLimitStatus = calculateEditLimitStatus({
-      'currentEditCount24h': currentGraph?.edit_count_24h || 0,
-      'currentEditCount7d': currentGraph?.edit_count_7d || 0,
-      'lastEditDate': currentGraph?.last_edit_date ?? null
-    });
-
-    // 构建最终更新对象，包含编辑限制字段
-    const finalUpdates = buildUpdateWithEditLimit(
-      {
-        ...updates,
-        'updated_at': nowISO
-      },
-      editLimitStatus
-    );
+    // 构建最终更新对象
+    const finalUpdates = {
+      ...updates,
+      'updated_at': nowISO
+    };
 
     const result = await this.supabase.from(this.TABLE_NAME).update(finalUpdates)
       .eq('id', graphId)

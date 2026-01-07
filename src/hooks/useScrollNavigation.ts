@@ -42,13 +42,13 @@ export function useScrollNavigation (_activeHeadingId: string, onActiveHeadingCh
    * @param id 标题ID
    * @param element 标题元素
    */
-  const saveHeadingRef = (id: string, element: HTMLElement | null) => {
+  const saveHeadingRef = useCallback((id: string, element: HTMLElement | null) => {
     if (element) {
       headingsRef.current.set(id, element);
     } else {
       headingsRef.current.delete(id);
     }
-  };
+  }, []);
 
   return {
     saveHeadingRef

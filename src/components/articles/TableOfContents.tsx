@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useScrollNavigation } from '../../hooks/useScrollNavigation';
 import { TableOfContentsItem, ArticleTableOfContentsProps } from '../../types';
-import { generateTableOfContents as generateToc } from './ArticleEditor/EditorUtils';
 
 function ArticleTableOfContentsImpl ({ contentRef, activeHeadingId, onActiveHeadingChange }: ArticleTableOfContentsProps) {
   const [tableOfContents, setTableOfContents] = useState<TableOfContentsItem[]>([]);
@@ -12,7 +11,7 @@ function ArticleTableOfContentsImpl ({ contentRef, activeHeadingId, onActiveHead
   const { saveHeadingRef } = useScrollNavigation(activeHeadingId, onActiveHeadingChange);
 
   /**
-   * 从Markdown内容生成目录
+   * 从DOM生成目录
    */
   const updateTableOfContents = useCallback(() => {
     const contentElement = contentRef.current;
@@ -20,28 +19,65 @@ function ArticleTableOfContentsImpl ({ contentRef, activeHeadingId, onActiveHead
       return [];
     }
 
-    // 获取编辑器内容
-    const content = contentElement.textContent || '';
+    // 从DOM中获取所有标题元素
+    const headingElements = contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    const tocItems: TableOfContentsItem[] = [];
 
-    // 使用增强的generateTableOfContents函数生成目录
-    const tocItems = generateToc(content);
+    // 存储各级标题的父节点
+    const headingStack: TableOfContentsItem[] = [];
 
-    // 保存标题引用
-    tocItems.forEach(item => {
-      const heading = document.getElementById(item.id);
-      if (heading) {
-        headingsRef.current.set(item.id, heading);
-        saveHeadingRef(item.id, heading);
+    headingElements.forEach((heading, index) => {
+      // 创建标题项
+      const level = parseInt(heading.tagName.charAt(1), 10);
+      const text = heading.textContent || '';
+      const id = heading.id || `heading-${index}`;
+
+      // 确保标题有id
+      if (!heading.id) {
+        heading.id = id;
       }
 
-      // 递归处理子项
-      item.children.forEach(child => {
-        const childHeading = document.getElementById(child.id);
-        if (childHeading) {
-          headingsRef.current.set(child.id, childHeading);
-          saveHeadingRef(child.id, childHeading);
+      // 将Element转换为HTMLElement
+      const headingElement = heading as HTMLElement;
+
+      // 保存标题引用
+      headingsRef.current.set(id, headingElement);
+      saveHeadingRef(id, headingElement);
+
+      // 创建目录项
+      const tocItem: TableOfContentsItem = {
+        id,
+        text,
+        level,
+        'children': []
+      };
+
+      // 根据标题级别添加到正确的父节点
+      if (level === 1) {
+        // 一级标题直接添加到根节点
+        tocItems.push(tocItem);
+        headingStack.length = 0;
+        headingStack.push(tocItem);
+      } else {
+        // 移除堆栈中级别高于或等于当前级别的标题
+        while (headingStack.length > 0 && (headingStack[headingStack.length - 1]?.level || 0) >= level) {
+          headingStack.pop();
         }
-      });
+
+        // 如果堆栈为空，添加到根节点
+        if (headingStack.length === 0) {
+          tocItems.push(tocItem);
+        } else {
+          // 否则添加到堆栈顶部元素的children中
+          const parentItem = headingStack[headingStack.length - 1];
+          if (parentItem) {
+            parentItem.children.push(tocItem);
+          }
+        }
+
+        // 将当前标题添加到堆栈
+        headingStack.push(tocItem);
+      }
     });
 
     return tocItems;

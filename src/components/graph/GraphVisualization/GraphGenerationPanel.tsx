@@ -1,10 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import type { ReactFlowInstance, Node, Edge } from '@xyflow/react';
+import { useReactFlow, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './CustomEdge';
 
 interface GraphGenerationPanelProps {
-  reactFlowInstance: ReactFlowInstance;
   onGenerate: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
 }
 
@@ -69,11 +68,20 @@ type GridGraphConfig = BaseGraphConfig & {
  * 图谱生成面板组件
  */
 export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
-  reactFlowInstance,
   onGenerate
 }) => {
+  // 使用useReactFlow获取实例
+  const reactFlowInstance = useReactFlow();
+
   // 图类型选择
   const [graphType, setGraphType] = useState<GraphType>('random');
+
+  // 生成进度状态
+  const [generationProgress, setGenerationProgress] = useState<{ active: boolean; stage: string; progress: number }>({
+    'active': false,
+    'stage': '准备中',
+    'progress': 0
+  });
 
   // 基础配置
   const getBaseConfig = (): BaseGraphConfig => ({
@@ -479,6 +487,85 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
     const newEdges: Edge<CustomEdgeData>[] = [];
     const { categories, edgeCategories, weightRange, curveType, maxDepth, minDepth, minChildrenPerNode, maxChildrenPerNode, childrenCount, branchingMode, countMode } = treeConfig;
 
+    // 底部向上间距计算：预先计算每一层级的最大宽度
+    // 1. 计算每一层级的最大节点数
+    // 2. 从最深层开始，计算每一层级的总宽度
+    // 3. 基于下一层级的总宽度计算当前层级的节点间距
+
+    // 每层节点的固定宽度（像素）
+    const nodeWidth = 100;
+    // 节点间的最小间距（像素）
+    const minNodeSpacing = 50;
+    // 层级间的垂直间距（像素）
+    const verticalSpacing = 300;
+
+    // 计算每一层级的最大节点数（基于最大子节点数）
+    // maxNodesPerLevel[depth] = 最大子节点数 ^ (maxDepth - depth)
+    const maxNodesPerLevel: number[] = [];
+
+    // 确保最大子节点数至少为1，避免无限大数值
+    const safeMaxChildrenPerNode = Math.max(1, maxChildrenPerNode);
+
+    for (let depth = 0; depth <= maxDepth; depth += 1) {
+      // 从根节点(0)到最深层(maxDepth)
+      const exponent = maxDepth - depth;
+      // 限制指数增长，防止数值过大导致无穷远
+      let maxNodes = 0;
+      if (exponent > 5) {
+        // 当指数大于5时，使用线性增长代替指数增长，限制增长速度
+        maxNodes = safeMaxChildrenPerNode * (exponent + 1);
+      } else {
+        maxNodes = Math.pow(safeMaxChildrenPerNode, exponent);
+      }
+
+      // 限制最大节点数，防止数值过大
+      maxNodesPerLevel[depth] = Math.min(maxNodes, 500);
+    }
+
+    // 计算每一层级的总宽度
+    // 从最深层开始，向上计算
+    const levelWidths: number[] = [];
+
+    for (let depth = maxDepth; depth >= 0; depth -= 1) {
+      if (depth === maxDepth) {
+        // 最深层：根据分支数调整间距
+        const maxNodes = maxNodesPerLevel[depth]!;
+        // 底层节点间距：根据分支数动态调整，确保足够的空间
+        // 分支数越多，节点间间距越小，但总宽度更大
+        const dynamicSpacing = Math.max(minNodeSpacing, 100 - safeMaxChildrenPerNode * 10);
+        levelWidths[depth] = Math.min(maxNodes * (nodeWidth + dynamicSpacing) - dynamicSpacing, 8000);
+      } else {
+        // 非最深层：基于下一层的总宽度，但限制增长
+        const childLevelWidth = levelWidths[depth + 1]!;
+        const maxNodes = maxNodesPerLevel[depth]!;
+
+        // 计算基础宽度
+        let baseWidth = maxNodes * (childLevelWidth + minNodeSpacing) - minNodeSpacing;
+
+        // 限制上层节点间距增长
+        // 越往上的层级，增长系数越小
+        const levelDiff = maxDepth - depth;
+        let growthFactor = 1;
+
+        if (levelDiff > 3) {
+          // 向上三层级以上，限制增长
+          growthFactor = 0.5;
+        } else if (levelDiff > 2) {
+          // 向上三层层级，适度限制
+          growthFactor = 0.7;
+        } else if (levelDiff > 1) {
+          // 向上两层层级，轻微限制
+          growthFactor = 0.9;
+        }
+
+        // 应用增长限制
+        baseWidth *= growthFactor;
+
+        // 限制总宽度，防止数值过大
+        levelWidths[depth] = Math.min(baseWidth, 8000);
+      }
+    }
+
     // 递归生成树节点
     interface TreeNodeParams {
       parentId: string | null;
@@ -609,33 +696,27 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
           childCount = Math.max(1, childCount);
         }
 
-        // 智能间距计算：根据分叉数量、深度和节点数量动态调整
-        // 分叉数量越多，间距越大
-        // 深度越大，间距越小（上方节点需要更大空间容纳下方分支）
-        // 节点数量越多，整体空间需要越大
-        const baseSpacing = 400;
+        // 底部向上间距计算：基于下一层级的总宽度
+        const childLevelWidth = levelWidths[currentDepth + 1]!;
 
-        // 分叉数量补偿因子：子节点越多，需要的空间越大
-        const branchingFactor = 1 + (childCount - 1) * 0.3;
+        // 根节点特殊处理：减少直接子节点的间距
+        // 当currentDepth为0时，是根节点，对其子节点间距进行调整
+        let adjustedChildLevelWidth = childLevelWidth;
+        if (currentDepth === 0) {
+          // 根节点直接子节点间距调整系数，根据子节点数量动态调整
+          // 子节点数量越少，调整系数越大
+          const rootSpacingFactor = Math.max(0.3, 1 - (childCount - 1) * 0.1);
+          adjustedChildLevelWidth = childLevelWidth * rootSpacingFactor;
+        }
 
-        // 深度补偿因子：深度越大，间距越小
-        const depthFactor = 1 + (maxDepth - currentDepth) * 0.6;
-
-        // 整体节点数量补偿因子：预估总节点数，调整整体间距
-        const estimatedTotalNodes = Math.pow(maxChildrenPerNode, maxDepth);
-        const nodeCountFactor = 1 + Math.min(estimatedTotalNodes / 20, 1.5);
-
-        // 计算最终间距
-        const totalSpacing = baseSpacing * branchingFactor * depthFactor * nodeCountFactor;
-        const spacing = totalSpacing / (childCount + 1);
-        const totalWidth = spacing * childCount;
-        const startX = position.x - totalWidth / 2;
-
-        // 垂直间距也根据深度动态调整
-        const verticalSpacing = 200 + (maxDepth - currentDepth) * 20;
+        // 当前父节点的子节点总宽度 = 子节点数量 * (调整后的下一层级总宽度 + 节点间间距) - 节点间间距
+        const totalChildWidth = childCount * (adjustedChildLevelWidth + minNodeSpacing) - minNodeSpacing;
+        // 子节点起始位置：父节点位置 - 总宽度的一半
+        const startX = position.x - totalChildWidth / 2;
 
         for (let i = 0; i < childCount; i += 1) {
-          const childX = startX + (i + 0.5) * spacing;
+          // 每个子节点的X位置：起始位置 + i * (调整后的下一层级总宽度 + 节点间间距) + 调整后的下一层级总宽度的一半
+          const childX = startX + i * (adjustedChildLevelWidth + minNodeSpacing) + adjustedChildLevelWidth / 2;
           const childY = position.y + verticalSpacing;
           generateTreeNode({
             'parentId': nodeId,
@@ -648,11 +729,14 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
     };
 
     // 生成根节点
+    // 根节点位置：水平居中
+    const rootX = 400;
+    const rootY = 100;
     const indexWrapper = { 'value': 0 };
     generateTreeNode({
       'parentId': null,
       'currentDepth': 0,
-      'position': { 'x': 400, 'y': 100 },
+      'position': { 'x': rootX, 'y': rootY },
       indexWrapper
     });
 
@@ -1091,15 +1175,86 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         break;
     }
 
-    onGenerate(result.newNodes, result.newEdges);
+    const { newNodes, newEdges } = result;
+    const totalNodes = newNodes.length;
+    const totalEdges = newEdges.length;
 
-    // 缩放到适合视图
-    setTimeout(() => {
-      reactFlowInstance.fitView({
-        'padding': 100,
-        'duration': 300
-      });
-    }, 50);
+    // 优化1: 增大批次大小，动态调整
+    const batchSize = Math.max(50, Math.min(200, Math.floor(totalNodes / 20)));
+    // 优化2: 减小延迟时间
+    const delay = 16;
+    // 约60fps
+
+    // 开始生成，更新进度状态
+    setGenerationProgress({ 'active': true, 'stage': '生成中', 'progress': 0 });
+
+    // 清空现有图
+    onGenerate([], []);
+
+    // 优化3: 使用requestAnimationFrame代替setTimeout，提高性能和流畅度
+    const requestNextFrame = (callback: () => void) => {
+      if (typeof window !== 'undefined' && window.requestAnimationFrame) {
+        return window.requestAnimationFrame(callback);
+      }
+      return setTimeout(callback, delay);
+    };
+
+    // 优化4: 并行处理节点和边
+    let nodeIndex = 0;
+    let edgeIndex = 0;
+    let lastProgressUpdate = 0;
+
+    const generateNextBatch = () => {
+      // 添加节点批次
+      if (nodeIndex < totalNodes) {
+        const endNodeIndex = Math.min(nodeIndex + batchSize, totalNodes);
+        const batchNodes = newNodes.slice(nodeIndex, endNodeIndex);
+        onGenerate(batchNodes, []);
+        nodeIndex = endNodeIndex;
+      }
+
+      // 添加边批次（一旦有节点，就开始添加边）
+      if (nodeIndex > 0 && edgeIndex < totalEdges) {
+        const endEdgeIndex = Math.min(edgeIndex + batchSize, totalEdges);
+        const batchEdges = newEdges.slice(edgeIndex, endEdgeIndex);
+        onGenerate([], batchEdges);
+        edgeIndex = endEdgeIndex;
+      }
+
+      // 优化5: 减少进度更新频率，避免频繁重渲染
+      const now = Date.now();
+      if (now - lastProgressUpdate > 100) {
+        // 更新进度
+        const nodeProgress = (nodeIndex / totalNodes) * (totalNodes / (totalNodes + totalEdges)) * 100;
+        const edgeProgress = (edgeIndex / totalEdges) * (totalEdges / (totalNodes + totalEdges)) * 100;
+        const currentProgress = Math.min(99, Math.floor(nodeProgress + edgeProgress));
+        setGenerationProgress({ 'active': true, 'stage': '生成中', 'progress': currentProgress });
+        lastProgressUpdate = now;
+      }
+
+      // 检查是否生成完成
+      if (nodeIndex >= totalNodes && edgeIndex >= totalEdges) {
+        // 所有节点和边添加完成，更新进度并缩放到适合视图
+        setGenerationProgress({ 'active': true, 'stage': '完成', 'progress': 100 });
+
+        requestNextFrame(() => {
+          reactFlowInstance.fitView({
+            'duration': 300
+          });
+          // 隐藏进度条
+          setTimeout(() => {
+            setGenerationProgress({ 'active': false, 'stage': '准备中', 'progress': 0 });
+          }, 500);
+        });
+        return;
+      }
+
+      // 继续生成下一批
+      requestNextFrame(generateNextBatch);
+    };
+
+    // 开始生成
+    requestNextFrame(generateNextBatch);
   }, [graphType, generateChainGraph, generateCycleGraph, generateTreeGraph, generateStarGraph, generateGridGraph, generateRandomGraph, onGenerate, reactFlowInstance]);
 
   // 更新节点类别
@@ -1199,9 +1354,20 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                       className="w-full p-2 border border-gray-300 rounded-md"
                       min="1"
                       max="5"
-                      value={treeConfig.maxDepth}
+                      // 优化：使用状态值直接绑定，允许为空
+                      value={treeConfig.maxDepth === 0 ? '' : treeConfig.maxDepth}
                       onChange={(e) => {
-                        const maxDepth = parseInt(e.target.value, 10) || 1;
+                        // 优化：正确处理数字输入框的清空行为
+                        const value = e.target.value;
+
+                        // 当输入为空时，将状态设置为0表示空
+                        // 0是一个有效的数字，但我们在value属性中会将其转换为空字符串显示
+                        if (value === '') {
+                          setTreeConfig(prev => ({ ...prev, 'maxDepth': 0 }));
+                          return;
+                        }
+
+                        const maxDepth = parseInt(value, 10) || 0;
                         setTreeConfig(prev => ({ ...prev, maxDepth }));
                       }}
                     />
@@ -1213,9 +1379,19 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                       className="w-full p-2 border border-gray-300 rounded-md"
                       min="1"
                       max="4"
-                      value={treeConfig.minDepth}
+                      // 优化：使用状态值直接绑定，允许为空
+                      value={treeConfig.minDepth === 0 ? '' : treeConfig.minDepth}
                       onChange={(e) => {
-                        const minDepth = parseInt(e.target.value, 10) || 1;
+                        // 优化：正确处理数字输入框的清空行为
+                        const value = e.target.value;
+
+                        // 当输入为空时，将状态设置为0表示空
+                        if (value === '') {
+                          setTreeConfig(prev => ({ ...prev, 'minDepth': 0 }));
+                          return;
+                        }
+
+                        const minDepth = parseInt(value, 10) || 0;
                         setTreeConfig(prev => ({ ...prev, minDepth }));
                       }}
                     />
@@ -1256,9 +1432,19 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                         className="w-full p-2 border border-gray-300 rounded-md"
                         min="1"
                         max="5"
-                        value={treeConfig.childrenCount}
+                        // 优化：使用状态值直接绑定，允许为空
+                        value={treeConfig.childrenCount === 0 ? '' : treeConfig.childrenCount}
                         onChange={(e) => {
-                          const childrenCount = parseInt(e.target.value, 10) || 1;
+                          // 优化：正确处理数字输入框的清空行为
+                          const value = e.target.value;
+
+                          // 当输入为空时，将状态设置为0表示空
+                          if (value === '') {
+                            setTreeConfig(prev => ({ ...prev, 'childrenCount': 0 }));
+                            return;
+                          }
+
+                          const childrenCount = parseInt(value, 10) || 0;
                           setTreeConfig(prev => ({ ...prev, childrenCount }));
                         }}
                       />
@@ -1272,9 +1458,19 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                           className="w-full p-2 border border-gray-300 rounded-md"
                           min="1"
                           max="5"
-                          value={treeConfig.minChildrenPerNode}
+                          // 优化：使用状态值直接绑定，允许为空
+                          value={treeConfig.minChildrenPerNode === 0 ? '' : treeConfig.minChildrenPerNode}
                           onChange={(e) => {
-                            const minChildrenPerNode = parseInt(e.target.value, 10) || 1;
+                            // 优化：正确处理数字输入框的清空行为
+                            const value = e.target.value;
+
+                            // 当输入为空时，将状态设置为0表示空
+                            if (value === '') {
+                              setTreeConfig(prev => ({ ...prev, 'minChildrenPerNode': 0 }));
+                              return;
+                            }
+
+                            const minChildrenPerNode = parseInt(value, 10) || 0;
                             setTreeConfig(prev => ({ ...prev, minChildrenPerNode }));
                           }}
                         />
@@ -1286,9 +1482,19 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                           className="w-full p-2 border border-gray-300 rounded-md"
                           min="1"
                           max="5"
-                          value={treeConfig.maxChildrenPerNode}
+                          // 优化：使用状态值直接绑定，允许为空
+                          value={treeConfig.maxChildrenPerNode === 0 ? '' : treeConfig.maxChildrenPerNode}
                           onChange={(e) => {
-                            const maxChildrenPerNode = parseInt(e.target.value, 10) || 1;
+                            // 优化：正确处理数字输入框的清空行为
+                            const value = e.target.value;
+
+                            // 当输入为空时，将状态设置为0表示空
+                            if (value === '') {
+                              setTreeConfig(prev => ({ ...prev, 'maxChildrenPerNode': 0 }));
+                              return;
+                            }
+
+                            const maxChildrenPerNode = parseInt(value, 10) || 0;
                             setTreeConfig(prev => ({ ...prev, maxChildrenPerNode }));
                           }}
                         />
@@ -1305,9 +1511,19 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                       className="w-full p-2 border border-gray-300 rounded-md"
                       min="1"
                       max="20"
-                      value={gridConfig.rows}
+                      // 优化：使用状态值直接绑定，允许为空
+                      value={gridConfig.rows === 0 ? '' : gridConfig.rows}
                       onChange={(e) => {
-                        const rows = parseInt(e.target.value, 10) || 1;
+                        // 优化：正确处理数字输入框的清空行为
+                        const value = e.target.value;
+
+                        // 当输入为空时，将状态设置为0表示空
+                        if (value === '') {
+                          setGridConfig(prev => ({ ...prev, 'rows': 0 }));
+                          return;
+                        }
+
+                        const rows = parseInt(value, 10) || 0;
                         setGridConfig(prev => ({ ...prev, rows }));
                       }}
                     />
@@ -1319,9 +1535,19 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                       className="w-full p-2 border border-gray-300 rounded-md"
                       min="1"
                       max="20"
-                      value={gridConfig.cols}
+                      // 优化：使用状态值直接绑定，允许为空
+                      value={gridConfig.cols === 0 ? '' : gridConfig.cols}
                       onChange={(e) => {
-                        const cols = parseInt(e.target.value, 10) || 1;
+                        // 优化：正确处理数字输入框的清空行为
+                        const value = e.target.value;
+
+                        // 当输入为空时，将状态设置为0表示空
+                        if (value === '') {
+                          setGridConfig(prev => ({ ...prev, 'cols': 0 }));
+                          return;
+                        }
+
+                        const cols = parseInt(value, 10) || 0;
                         setGridConfig(prev => ({ ...prev, cols }));
                       }}
                     />
@@ -1345,22 +1571,49 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                 className="w-full p-2 border border-gray-300 rounded-md"
                 min="2"
                 max="500"
+                // 优化：使用状态值直接绑定，允许为空
                 value={(() => {
                   switch (graphType) {
                     case 'random':
-                      return randomConfig.nodeCount;
+                      return randomConfig.nodeCount === 0 ? '' : randomConfig.nodeCount;
                     case 'chain':
-                      return chainConfig.nodeCount;
+                      return chainConfig.nodeCount === 0 ? '' : chainConfig.nodeCount;
                     case 'cycle':
-                      return cycleConfig.nodeCount;
+                      return cycleConfig.nodeCount === 0 ? '' : cycleConfig.nodeCount;
                     case 'star':
-                      return starConfig.nodeCount;
+                      return starConfig.nodeCount === 0 ? '' : starConfig.nodeCount;
                     default:
                       return 2;
                   }
                 })()}
                 onChange={(e) => {
-                  const nodeCount = parseInt(e.target.value, 10) || 2;
+                  // 优化：正确处理数字输入框的清空行为
+                  const value = e.target.value;
+
+                  // 当输入为空时，将状态设置为0表示空
+                  if (value === '') {
+                    switch (graphType) {
+                      case 'random':
+                        setRandomConfig(prev => ({ ...prev, 'nodeCount': 0 }));
+                        break;
+                      case 'chain':
+                        setChainConfig(prev => ({ ...prev, 'nodeCount': 0 }));
+                        break;
+                      case 'cycle':
+                        setCycleConfig(prev => ({ ...prev, 'nodeCount': 0 }));
+                        break;
+                      case 'star':
+                        setStarConfig(prev => ({ ...prev, 'nodeCount': 0 }));
+                        break;
+                      default:
+                        break;
+                    }
+                    return;
+                  }
+
+                  // 输入非空时，使用用户输入的值
+                  const nodeCount = parseInt(value, 10) || 0;
+
                   switch (graphType) {
                     case 'random':
                       setRandomConfig(prev => ({ ...prev, nodeCount }));
@@ -1464,9 +1717,29 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                       className="w-full p-2 border border-gray-300 rounded-md"
                       min="1"
                       max="20"
-                      value={activeConfig.handleRange[0]}
+                      // 优化：使用状态值直接绑定，允许为空
+                      value={activeConfig.handleRange[0] === 0 ? '' : activeConfig.handleRange[0]}
                       onChange={(e) => {
-                        const min = parseInt(e.target.value, 10) || 1;
+                        // 优化：正确处理数字输入框的清空行为
+                        const value = e.target.value;
+
+                        // 当输入为空时，将状态设置为0表示空
+                        if (value === '') {
+                          const newRange: [number, number] = [0, activeConfig.handleRange[1]];
+                          switch (graphType) {
+                            case 'random':
+                              setRandomConfig(prev => ({ ...prev, 'handleRange': newRange }));
+                              break;
+                            case 'star':
+                              setStarConfig(prev => ({ ...prev, 'handleRange': newRange }));
+                              break;
+                            default:
+                              break;
+                          }
+                          return;
+                        }
+
+                        const min = parseInt(value, 10) || 0;
                         const newRange: [number, number] = [min, Math.max(min, activeConfig.handleRange[1])];
                         switch (graphType) {
                           case 'random':
@@ -1488,9 +1761,29 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                       className="w-full p-2 border border-gray-300 rounded-md"
                       min="1"
                       max="20"
-                      value={activeConfig.handleRange[1]}
+                      // 优化：使用状态值直接绑定，允许为空
+                      value={activeConfig.handleRange[1] === 0 ? '' : activeConfig.handleRange[1]}
                       onChange={(e) => {
-                        const max = parseInt(e.target.value, 10) || 1;
+                        // 优化：正确处理数字输入框的清空行为
+                        const value = e.target.value;
+
+                        // 当输入为空时，将状态设置为0表示空
+                        if (value === '') {
+                          const newRange: [number, number] = [activeConfig.handleRange[0], 0];
+                          switch (graphType) {
+                            case 'random':
+                              setRandomConfig(prev => ({ ...prev, 'handleRange': newRange }));
+                              break;
+                            case 'star':
+                              setStarConfig(prev => ({ ...prev, 'handleRange': newRange }));
+                              break;
+                            default:
+                              break;
+                          }
+                          return;
+                        }
+
+                        const max = parseInt(value, 10) || 0;
                         const newRange: [number, number] = [Math.min(max, activeConfig.handleRange[0]), max];
                         switch (graphType) {
                           case 'random':
@@ -1516,9 +1809,29 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                     className="w-full p-2 border border-gray-300 rounded-md"
                     min="1"
                     max="20"
-                    value={activeConfig.handleFixed}
+                    // 优化：使用状态值直接绑定，允许为空
+                    value={activeConfig.handleFixed === 0 ? '' : activeConfig.handleFixed}
                     onChange={(e) => {
-                      const handleFixed = parseInt(e.target.value, 10) || 4;
+                      // 优化：正确处理数字输入框的清空行为
+                      const value = e.target.value;
+
+                      // 当输入为空时，将状态设置为0表示空
+                      if (value === '') {
+                        const handleFixed = 0;
+                        switch (graphType) {
+                          case 'random':
+                            setRandomConfig(prev => ({ ...prev, handleFixed }));
+                            break;
+                          case 'star':
+                            setStarConfig(prev => ({ ...prev, handleFixed }));
+                            break;
+                          default:
+                            break;
+                        }
+                        return;
+                      }
+
+                      const handleFixed = parseInt(value, 10) || 0;
                       switch (graphType) {
                         case 'random':
                           setRandomConfig(prev => ({ ...prev, handleFixed }));
@@ -1575,9 +1888,19 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                 className="w-full p-2 border border-gray-300 rounded-md"
                 min="0"
                 max={randomConfig.nodeCount * (randomConfig.nodeCount - 1)}
-                value={randomConfig.edgeCount}
+                // 优化：使用状态值直接绑定，允许为空
+                value={randomConfig.edgeCount === 0 ? '' : randomConfig.edgeCount}
                 onChange={(e) => {
-                  const edgeCount = parseInt(e.target.value, 10) || 0;
+                  // 优化：正确处理数字输入框的清空行为
+                  const value = e.target.value;
+
+                  // 当输入为空时，将状态设置为0表示空
+                  if (value === '') {
+                    setRandomConfig(prev => ({ ...prev, 'edgeCount': 0 }));
+                    return;
+                  }
+
+                  const edgeCount = parseInt(value, 10) || 0;
                   setRandomConfig(prev => ({ ...prev, edgeCount }));
                 }}
               />
@@ -1765,9 +2088,26 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
           <button
             className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
             onClick={handleGenerateGraph}
+            disabled={generationProgress.active}
           >
-            生成图
+            {generationProgress.active ? '生成中...' : '生成图'}
           </button>
+
+          {/* 进度条 */}
+          {generationProgress.active && (
+            <div className="mt-3">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>{generationProgress.stage}</span>
+                <span>{generationProgress.progress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
+                  style={{ 'width': `${generationProgress.progress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

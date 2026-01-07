@@ -20,16 +20,6 @@ export enum ResourceType {
 
 
 /**
- * 文章状态类型
- */
-
-export enum ArticleStatus {
-  DRAFT = 'draft',
-  PUBLISHED = 'published'
-}
-
-
-/**
  * 文章可见性类型
  */
 
@@ -93,25 +83,7 @@ export interface Formula {
   position: number;
 }
 
-/**
- * 编辑限制接口，用于文章、图谱等资源的编辑限制
- */
-export interface EditLimit {
-  // 24小时内编辑次数
-  edit_count_24h: number;
-  // 7天内编辑次数
-  edit_count_7d: number;
-  // 上次编辑日期
-  last_edit_date: string;
-  // 是否允许公开变更
-  is_change_public: boolean;
-  // 是否进入慢速模式
-  is_slow_mode: boolean;
-  // 慢速模式结束时间
-  slow_mode_until?: string;
-  // 内容是否不稳定
-  is_unstable: boolean;
-}
+
 
 /**
  * 文章接口
@@ -131,24 +103,11 @@ export interface Article {
   view_count: number;
   // 社区和可见性相关字段
   visibility: ArticleVisibility;
-  status: ArticleStatus;
   // 社区数据
   upvotes: number;
   comment_count: number;
   // 数学公式数据
   formulas?: Formula[];
-  // 编辑限制相关字段
-  edit_count_24h: number;
-  edit_count_7d: number;
-  last_edit_date: string;
-  is_change_public: boolean;
-  is_slow_mode: boolean;
-  slow_mode_until?: string;
-  is_unstable: boolean;
-  // 离线相关字段
-  is_offline: boolean;
-  synced: boolean;
-  last_modified: string;
 }
 
 /**
@@ -316,14 +275,6 @@ export interface Graph {
   visibility: GraphVisibility;
   created_at: string;
   updated_at: string;
-  // 编辑限制相关字段
-  edit_count_24h: number;
-  edit_count_7d: number;
-  last_edit_date: string;
-  is_change_public: boolean;
-  is_slow_mode: boolean;
-  slow_mode_until?: string;
-  is_unstable: boolean;
 }
 
 /**

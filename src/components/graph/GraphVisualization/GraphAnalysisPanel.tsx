@@ -1,13 +1,7 @@
-import React, { useState, useCallback } from 'react';
-import type { Node, Edge, ReactFlowInstance } from '@xyflow/react';
+import React, { useState, useCallback, useMemo } from 'react';
+import { useStore, useReactFlow, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './CustomEdge';
-
-interface GraphAnalysisPanelProps {
-  nodes: Node<CustomNodeData>[];
-  edges: Edge<CustomEdgeData>[];
-  reactFlowInstance: ReactFlowInstance;
-}
 
 // 中心性结果类型
 interface CentralityResult {
@@ -39,11 +33,222 @@ type AnalysisMode = 'unweighted' | 'weighted';
  * 图谱分析面板组件
  */
 /* eslint-disable max-depth, no-continue, max-nested-callbacks, react-hooks/exhaustive-deps */
-export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
-  nodes,
-  edges,
-  reactFlowInstance
-}) => {
+// 自定义相等比较函数，用于优化useStore的重渲染
+const edgesEqual = (prev: Edge[], next: Edge[]): boolean => {
+  if (prev.length !== next.length) {
+    return false;
+  }
+
+  // 比较边的关键属性：source, target, weight
+  for (let i = 0; i < prev.length; i += 1) {
+    const prevEdge = prev[i];
+    const nextEdge = next[i];
+
+    if (!prevEdge || !nextEdge) {
+      return false;
+    }
+
+    if (String(prevEdge.source) !== String(nextEdge.source) ||
+        String(prevEdge.target) !== String(nextEdge.target) ||
+        (prevEdge.data?.weight || 1) !== (nextEdge.data?.weight || 1)) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const nodesEqual = (prev: Node[], next: Node[]): boolean => {
+  if (prev.length !== next.length) {
+    return false;
+  }
+
+  // 比较节点的关键属性：id
+  for (let i = 0; i < prev.length; i += 1) {
+    const prevNode = prev[i];
+    const nextNode = next[i];
+
+    if (!prevNode || !nextNode || prevNode.id !== nextNode.id) {
+      return false;
+    }
+  }
+  return true;
+};
+
+export const GraphAnalysisPanel: React.FC = () => {
+  // 核心节点和边数据，使用自定义相等比较函数优化重渲染
+  // 只获取节点的必要信息：id、position 和 data
+  const nodes = useStore<Node<CustomNodeData>[]>((state) =>
+    state.nodes.map((node) => ({
+      'id': node.id,
+      'position': node.position,
+      'data': node.data
+    })) as Node<CustomNodeData>[],
+  nodesEqual
+  );
+
+  // 只获取边的必要信息：id、source、target 和 data
+  const edges = useStore<Edge<CustomEdgeData>[]>((state) =>
+    state.edges.map((edge) => ({
+      'id': edge.id,
+      'source': edge.source,
+      'target': edge.target,
+      'data': edge.data
+    })) as Edge<CustomEdgeData>[],
+  edgesEqual
+  );
+
+  // 使用useReactFlow获取实例
+  const reactFlowInstance = useReactFlow();
+
+  // 使用useMemo创建节点ID到节点的映射，提高查找效率
+  const nodeMap = useMemo(() => new Map(nodes.map(node => [node.id, node])), [nodes]);
+
+  // 专门用于路径查找算法的选择器 - 包含加权边信息
+  const pathfindingData = useStore((state) => {
+    // 只使用边的必要信息构建加权边映射
+    const weightedEdges = new Map<string, Array<{ nodeId: string; weight: number }>>();
+
+    state.edges.forEach(edge => {
+      const sourceId = String(edge.source);
+      const targetId = String(edge.target);
+      // 确保weight始终是数字，默认为1
+      const weight = typeof edge.data?.weight === 'number' ? edge.data.weight : 1;
+
+      if (!weightedEdges.has(sourceId)) {
+        weightedEdges.set(sourceId, []);
+      }
+      weightedEdges.get(sourceId)!.push({ 'nodeId': targetId, weight });
+    });
+
+    return { weightedEdges };
+  });
+
+
+
+  // 超粒度选择器：仅用于A*算法的启发式函数
+  const astarHeuristicData = useStore((state) => {
+    // 仅包含A*算法启发式函数所需的节点位置数据
+    const nodePositions = new Map(state.nodes.map(node => [
+      node.id,
+      { 'x': node.position.x, 'y': node.position.y }
+    ]));
+
+    return { nodePositions };
+  });
+
+  // 为拓扑排序算法创建专门的选择器 - 只包含有向边信息
+  const topologicalSortData = useStore((state) => {
+    const directedIn = new Map<string, Set<string>>();
+    const directedOut = new Map<string, Set<string>>();
+
+    // 只使用边的必要信息构建有向边映射
+    state.edges.forEach(edge => {
+      const sourceId = String(edge.source);
+      const targetId = String(edge.target);
+
+      // 有向图入边
+      if (!directedIn.has(targetId)) {
+        directedIn.set(targetId, new Set());
+      }
+      directedIn.get(targetId)!.add(sourceId);
+
+      // 有向图出边
+      if (!directedOut.has(sourceId)) {
+        directedOut.set(sourceId, new Set());
+      }
+      directedOut.get(sourceId)!.add(targetId);
+    });
+
+    return { directedIn, directedOut };
+  });
+
+
+  // 为全局最长路径算法创建专门的选择器 - 包含节点度数和边权重信息
+  const globalPathData = useStore((state) => {
+    // 计算每个节点的出度和入度
+    const outDegreeMap = new Map<string, number>();
+    const inDegreeMap = new Map<string, number>();
+    const outEdgeWeightSumMap = new Map<string, number>();
+
+    // 只使用边的必要信息计算度数和权重总和
+    state.edges.forEach(edge => {
+      const sourceId = String(edge.source);
+      const targetId = String(edge.target);
+      // 确保weight始终是数字，默认为1
+      const weight = typeof edge.data?.weight === 'number' ? edge.data.weight : 1;
+
+      // 出度
+      outDegreeMap.set(sourceId, (outDegreeMap.get(sourceId) || 0) + 1);
+      // 入度
+      inDegreeMap.set(targetId, (inDegreeMap.get(targetId) || 0) + 1);
+      // 出边权重总和
+      outEdgeWeightSumMap.set(sourceId, (outEdgeWeightSumMap.get(sourceId) || 0) + weight);
+    });
+
+    // 确保所有节点都有度数记录
+    state.nodes.forEach(node => {
+      if (!outDegreeMap.has(node.id)) {
+        outDegreeMap.set(node.id, 0);
+      }
+      if (!inDegreeMap.has(node.id)) {
+        inDegreeMap.set(node.id, 0);
+      }
+      if (!outEdgeWeightSumMap.has(node.id)) {
+        outEdgeWeightSumMap.set(node.id, 0);
+      }
+    });
+
+    return { outDegreeMap, inDegreeMap, outEdgeWeightSumMap };
+  });
+
+  // 使用useStore创建边映射，直接从状态中构建，提高大型图的性能
+  // 优化：只创建必要的边映射，避免不必要的计算
+  const edgeMaps = useStore((state) => {
+    const stateEdges = state.edges as Edge<CustomEdgeData>[];
+    const directedOut = new Map<string, Set<string>>();
+    const directedIn = new Map<string, Set<string>>();
+    const weightedDirectedOut = new Map<string, Array<{ nodeId: string; weight: number }>>();
+    const weightedDirectedIn = new Map<string, Array<{ nodeId: string; weight: number }>>();
+
+    // 只构建必要的边映射，无向图映射通过其他映射动态计算
+    stateEdges.forEach(edge => {
+      const sourceId = String(edge.source);
+      const targetId = String(edge.target);
+      const weight = edge.data?.weight || 1;
+
+      // 有向图出边
+      if (!directedOut.has(sourceId)) {
+        directedOut.set(sourceId, new Set());
+      }
+      directedOut.get(sourceId)!.add(targetId);
+
+      // 有向图入边
+      if (!directedIn.has(targetId)) {
+        directedIn.set(targetId, new Set());
+      }
+      directedIn.get(targetId)!.add(sourceId);
+
+      // 加权有向图出边
+      if (!weightedDirectedOut.has(sourceId)) {
+        weightedDirectedOut.set(sourceId, []);
+      }
+      weightedDirectedOut.get(sourceId)!.push({ 'nodeId': targetId, weight });
+
+      // 加权有向图入边
+      if (!weightedDirectedIn.has(targetId)) {
+        weightedDirectedIn.set(targetId, []);
+      }
+      weightedDirectedIn.get(targetId)!.push({ 'nodeId': sourceId, weight });
+    });
+
+    return {
+      directedOut,
+      directedIn,
+      weightedDirectedOut,
+      weightedDirectedIn
+    };
+  });
+
   // === 分析相关状态 ===
   const [centralityMetrics, setCentralityMetrics] = useState<CentralityMetrics | null>(null);
   const [centralityMetricsWeighted, setCentralityMetricsWeighted] = useState<CentralityMetrics | null>(null);
@@ -106,129 +311,87 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     });
   }, []);
 
-  // 预计算邻接表，优化邻居查询
-  const adjacencyList = React.useMemo(() => {
-    // 无向图邻接表
-    const list: Record<string, string[]> = {};
-    const weightedList: Record<string, { nodeId: string; weight: number }[]> = {};
-    // 有向图邻接表
-    const directedList: Record<string, string[]> = {};
-    const directedWeightedList: Record<string, { nodeId: string; weight: number }[]> = {};
-    // 逆向有向图邻接表（用于入边查询）
-    const inverseDirectedList: Record<string, string[]> = {};
-    const inverseDirectedWeightedList: Record<string, { nodeId: string; weight: number }[]> = {};
-
-    // 初始化邻接表
-    nodes.forEach(node => {
-      list[node.id] = [];
-      weightedList[node.id] = [];
-      directedList[node.id] = [];
-      directedWeightedList[node.id] = [];
-      inverseDirectedList[node.id] = [];
-      inverseDirectedWeightedList[node.id] = [];
-    });
-
-    // 构建邻接表
-    edges.forEach(edge => {
-      const sourceId = edge.source?.toString() || '';
-      const targetId = edge.target?.toString() || '';
-      const weight = edge.data?.weight || 1;
-
-      // 添加出连接（用于有向图）
-      if (directedList[sourceId]) {
-        directedList[sourceId].push(targetId);
-      }
-      if (directedWeightedList[sourceId]) {
-        directedWeightedList[sourceId].push({ 'nodeId': targetId, weight });
-      }
-
-      // 添加逆向连接（用于有向图的入边查询）
-      if (inverseDirectedList[targetId]) {
-        inverseDirectedList[targetId].push(sourceId);
-      }
-      if (inverseDirectedWeightedList[targetId]) {
-        inverseDirectedWeightedList[targetId].push({ 'nodeId': sourceId, weight });
-      }
-
-      // 添加出连接（用于无向图）
-      if (list[sourceId]) {
-        list[sourceId].push(targetId);
-      }
-      if (weightedList[sourceId]) {
-        weightedList[sourceId].push({ 'nodeId': targetId, weight });
-      }
-
-      // 添加入连接（用于无向图）
-      if (list[targetId]) {
-        list[targetId].push(sourceId);
-      }
-      if (weightedList[targetId]) {
-        weightedList[targetId].push({ 'nodeId': sourceId, weight });
-      }
-    });
-
-    return {
-      list,
-      weightedList,
-      directedList,
-      directedWeightedList,
-      inverseDirectedList,
-      inverseDirectedWeightedList
-    };
-  }, [nodes, edges]);
-
   /**
-   * 获取节点邻居 - 优化版，使用预计算的邻接表
+   * 获取节点邻居 - 优化版，使用缓存的边映射
    * @param nodeId 节点ID
-   * @param unique 是否去重
    * @param directed 是否考虑方向（true: 只返回出连接邻居，false: 返回所有邻居）
    * @param inverse 是否返回入连接邻居（仅在directed为true时生效）
    */
-  const getNodeNeighbors = useCallback((nodeId: string, unique: boolean = true, directed: boolean = false, inverse: boolean = false): string[] => {
-    let neighbors: string[] = [];
-
-    if (directed) {
-      if (inverse) {
-        neighbors = adjacencyList.inverseDirectedList[nodeId] || [];
-      } else {
-        neighbors = adjacencyList.directedList[nodeId] || [];
-      }
-    } else {
-      neighbors = adjacencyList.list[nodeId] || [];
+  const getNodeNeighbors = useCallback((nodeId: string, directed: boolean = false, inverse: boolean = false): string[] => {
+    // 无向图情况：动态计算所有邻居（出边邻居 + 入边邻居）
+    if (!directed) {
+      const outNeighbors = edgeMaps.directedOut.get(nodeId) || new Set<string>();
+      const inNeighbors = edgeMaps.directedIn.get(nodeId) || new Set<string>();
+      // 合并并去重
+      const allNeighbors = new Set<string>([...outNeighbors, ...inNeighbors]);
+      return Array.from(allNeighbors);
     }
 
-    return unique ? Array.from(new Set(neighbors)) : neighbors;
-  }, [adjacencyList]);
+    // 有向图情况：使用edgeMaps
+    let neighbors: string[] = [];
+    if (inverse) {
+      // 入连接邻居：使用缓存的有向入边映射
+      neighbors = Array.from(edgeMaps.directedIn.get(nodeId) || []);
+    } else {
+      // 出连接邻居：使用缓存的有向出边映射
+      neighbors = Array.from(edgeMaps.directedOut.get(nodeId) || []);
+    }
+
+    return neighbors;
+  }, [edgeMaps]);
 
   /**
-   * 获取带权重的节点邻居 - 优化版，使用预计算的邻接表
+   * 获取带权重的节点邻居 - 优化版，使用缓存的边映射
    * @param nodeId 节点ID
    * @param directed 是否考虑方向
    * @param inverse 是否返回入连接邻居（仅在directed为true时生效）
    */
   const getWeightedNeighbors = useCallback((nodeId: string, directed: boolean = false, inverse: boolean = false): { nodeId: string; weight: number }[] => {
-    if (directed) {
-      if (inverse) {
-        return adjacencyList.inverseDirectedWeightedList[nodeId] || [];
-      }
-      return adjacencyList.directedWeightedList[nodeId] || [];
+    // 有向图出边情况：使用专门的路径查找数据，更高效
+    if (directed && !inverse) {
+      return pathfindingData.weightedEdges.get(nodeId) || [];
     }
 
-    return adjacencyList.weightedList[nodeId] || [];
-  }, [adjacencyList]);
+    // 有向图入边情况
+    if (directed) {
+      // 入连接邻居：使用缓存的加权有向入边映射
+      return edgeMaps.weightedDirectedIn.get(nodeId) || [];
+    }
+
+    // 无向图情况：动态计算所有加权邻居（出边邻居 + 入边邻居）
+    const outNeighbors = pathfindingData.weightedEdges.get(nodeId) || [];
+    const inNeighbors = edgeMaps.weightedDirectedIn.get(nodeId) || [];
+
+    // 合并邻居，注意：这里可能会有重复，需要去重
+    const neighborMap = new Map<string, { nodeId: string; weight: number }>();
+
+    // 添加出边邻居
+    outNeighbors.forEach(neighbor => {
+      neighborMap.set(neighbor.nodeId, neighbor);
+    });
+
+    // 添加入边邻居（如果不存在的话）
+    inNeighbors.forEach(neighbor => {
+      if (!neighborMap.has(neighbor.nodeId)) {
+        neighborMap.set(neighbor.nodeId, neighbor);
+      }
+    });
+
+    return Array.from(neighborMap.values());
+  }, [edgeMaps, pathfindingData]);
 
   // 计算中心性指标的辅助函数
   // 这些函数需要在动态分析useEffect之前声明
 
   /**
-   * 计算度中心性 - 优化版，使用预计算的邻接表
+   * 计算度中心性
    */
   const calculateDegreeCentrality = useCallback(() => {
     const result: CentralityResult[] = [];
 
     for (const node of nodes) {
-      // 直接从邻接表获取度，避免遍历所有边
-      const degree = adjacencyList.list[node.id]?.length || 0;
+      // 使用 getNodeNeighbors 函数获取节点的邻居数量
+      const degree = getNodeNeighbors(node.id, false).length;
 
       result.push({
         'nodeId': node.id,
@@ -238,7 +401,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     }
 
     return result.sort((a, b) => b.value - a.value);
-  }, [nodes, adjacencyList]);
+  }, [nodes, getNodeNeighbors]);
 
   /**
    * 计算介数中心性 - 优化版
@@ -300,8 +463,8 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
         }
         stack.push(v);
 
-        // 直接从邻接表获取邻居，避免函数调用开销
-        const neighbors = adjacencyList.list[v] || [];
+        // 使用getNodeNeighbors获取邻居，避免使用邻接表
+        const neighbors = getNodeNeighbors(v, false);
 
         for (const w of neighbors) {
           // 第一次访问
@@ -346,7 +509,6 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     }
 
     // 转换为结果格式
-    const nodeMap = new Map(nodes.map(node => [node.id, node]));
     for (const id of nodeIds) {
       const node = nodeMap.get(id)!;
       result.push({
@@ -357,7 +519,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     }
 
     return result.sort((a, b) => b.value - a.value);
-  }, [nodes, adjacencyList]);
+  }, [nodes, getNodeNeighbors]);
 
   /**
    * 计算接近中心性 - 优化版
@@ -388,8 +550,8 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
         const { nodeId, distance } = bfsQueue[queueStart] as { nodeId: string; distance: number };
         queueStart += 1;
 
-        // 直接从邻接表获取邻居，避免函数调用开销
-        const neighbors = adjacencyList.list[nodeId] || [];
+        // 使用getNodeNeighbors获取邻居，避免使用邻接表
+        const neighbors = getNodeNeighbors(nodeId, false);
 
         for (const neighborId of neighbors) {
           if (!(neighborId in distances)) {
@@ -434,7 +596,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     }
 
     return result.sort((a, b) => b.value - a.value);
-  }, [nodes, adjacencyList]);
+  }, [nodes, getNodeNeighbors]);
 
   /**
    * 计算特征向量中心性 - 优化版
@@ -453,19 +615,17 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     const idToIndex = new Map(nodeIds.map((id, index) => [id, index]));
 
     // 构建邻接矩阵（无权重版本，权重默认为1）
-    edges.forEach(edge => {
-      const sourceId = String(edge.source);
-      const targetId = String(edge.target);
-
-      const sourceIndex = idToIndex.get(sourceId);
-      const targetIndex = idToIndex.get(targetId);
-
-      if (sourceIndex !== undefined && targetIndex !== undefined) {
-        adjacencyMatrix[sourceIndex] = adjacencyMatrix[sourceIndex] || [];
-        adjacencyMatrix[targetIndex] = adjacencyMatrix[targetIndex] || [];
-        adjacencyMatrix[sourceIndex][targetIndex] = 1;
-        adjacencyMatrix[targetIndex][sourceIndex] = 1;
-      }
+    // 使用edgeMaps的无向图邻居映射
+    nodeIds.forEach((nodeId, sourceIndex) => {
+      const neighbors = getNodeNeighbors(nodeId, false);
+      neighbors.forEach(neighborId => {
+        const targetIndex = idToIndex.get(neighborId);
+        if (targetIndex !== undefined) {
+          adjacencyMatrix[sourceIndex] = adjacencyMatrix[sourceIndex] || [];
+          adjacencyMatrix[targetIndex] = adjacencyMatrix[targetIndex] || [];
+          adjacencyMatrix[sourceIndex][targetIndex] = 1;
+        }
+      });
     });
 
     // 幂迭代法计算特征向量中心性 - 优化版
@@ -525,7 +685,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     }
 
     return result.sort((a, b) => b.value - a.value);
-  }, [nodes, edges]);
+  }, [nodes, getNodeNeighbors]);
 
   /**
    * 计算所有中心性指标
@@ -1025,20 +1185,17 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     const idToIndex = new Map(nodeIds.map((id, index) => [id, index]));
 
     // 构建加权邻接矩阵
-    edges.forEach(edge => {
-      const sourceId = String(edge.source);
-      const targetId = String(edge.target);
-      const weight = edge.data?.weight || 1;
-
-      const sourceIndex = idToIndex.get(sourceId);
-      const targetIndex = idToIndex.get(targetId);
-
-      if (sourceIndex !== undefined && targetIndex !== undefined) {
-        adjacencyMatrix[sourceIndex] = adjacencyMatrix[sourceIndex] || [];
-        adjacencyMatrix[targetIndex] = adjacencyMatrix[targetIndex] || [];
-        adjacencyMatrix[sourceIndex][targetIndex] = weight;
-        adjacencyMatrix[targetIndex][sourceIndex] = weight;
-      }
+    // 使用edgeMaps的加权无向图邻居映射
+    nodeIds.forEach((nodeId, sourceIndex) => {
+      const weightedNeighbors = getWeightedNeighbors(nodeId, false);
+      weightedNeighbors.forEach(neighbor => {
+        const targetIndex = idToIndex.get(neighbor.nodeId);
+        if (targetIndex !== undefined) {
+          adjacencyMatrix[sourceIndex] = adjacencyMatrix[sourceIndex] || [];
+          adjacencyMatrix[targetIndex] = adjacencyMatrix[targetIndex] || [];
+          adjacencyMatrix[sourceIndex][targetIndex] = neighbor.weight;
+        }
+      });
     });
 
     // 幂迭代法计算特征向量中心性 - 优化版
@@ -1100,7 +1257,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     }
 
     return result.sort((a, b) => b.value - a.value);
-  }, [nodes, edges]);
+  }, [nodes, getWeightedNeighbors]);
 
   /**
    * 计算所有加权中心性指标
@@ -1111,16 +1268,8 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     setTimeout(() => {
       // 对于加权图，度中心性是连接权重总和
       const weightedDegree = nodes.map(node => {
-        const totalWeight = edges.reduce((sum, edge) => {
-          const sourceId = String(edge.source);
-          const targetId = String(edge.target);
-          const weight = edge.data?.weight || 1;
-
-          if (sourceId === node.id || targetId === node.id) {
-            return sum + weight;
-          }
-          return sum;
-        }, 0);
+        const neighbors = getWeightedNeighbors(node.id, false);
+        const totalWeight = neighbors.reduce((sum, neighbor) => sum + neighbor.weight, 0);
 
         return {
           'nodeId': node.id,
@@ -1142,7 +1291,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
       });
       setIsCalculating(false);
     }, 100);
-  }, [nodes, edges, calculateWeightedBetweennessCentrality, calculateWeightedClosenessCentrality, calculateWeightedEigenvectorCentrality]);
+  }, [nodes, getWeightedNeighbors, calculateWeightedBetweennessCentrality, calculateWeightedClosenessCentrality, calculateWeightedEigenvectorCentrality]);
 
   // 动态分析和实时同步功能
   React.useEffect(() => {
@@ -1193,36 +1342,27 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
    * 计算基础统计信息
    */
   // 辅助函数：计算节点度数
-  const calculateNodeDegrees = useCallback(() => {
-    const degrees: number[] = [];
-    let totalDegree = 0;
+  const calculateNodeDegrees = useMemo(() => {
+    return () => {
+      const degrees: number[] = [];
+      let totalDegree = 0;
 
-    for (const node of nodes) {
-      const degree = edges.reduce((count, edge) => {
-        const sourceId = String(edge.source);
-        const targetId = String(edge.target);
-        if (sourceId === node.id || targetId === node.id) {
-          return count + 1;
-        }
-        return count;
-      }, 0);
+      for (const node of nodes) {
+        const degree = getNodeNeighbors(node.id, false).length;
+        degrees.push(degree);
+        totalDegree += degree;
+      }
 
-      degrees.push(degree);
-      totalDegree += degree;
-    }
-
-    return { degrees, totalDegree };
-  }, [nodes, edges]);
+      return { degrees, totalDegree };
+    };
+  }, [nodes, getNodeNeighbors]);
 
   // 辅助函数：检查两个节点之间是否有连接
   const hasEdgeBetween = useCallback((node1Id: string, node2Id: string) => {
-    return edges.some(edge => {
-      const sourceId = String(edge.source);
-      const targetId = String(edge.target);
-      return (sourceId === node1Id && targetId === node2Id) ||
-             (sourceId === node2Id && targetId === node1Id);
-    });
-  }, [edges]);
+    // 使用getNodeNeighbors函数检查邻居关系
+    const neighbors = getNodeNeighbors(node1Id, false);
+    return neighbors.includes(node2Id);
+  }, [getNodeNeighbors]);
 
   // 辅助函数：计算聚类系数
   const calculateClusteringCoefficient = useCallback(() => {
@@ -1345,42 +1485,44 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     return degreeVariance > 0 ? (numerator - Math.pow(avgDegree, 2)) / degreeVariance : 0;
   }, [nodes, edges]);
 
-  // 主计算函数
-  const calculateGraphStats = useCallback(() => {
-    const nodeCount = nodes.length;
-    const edgeCount = edges.length;
+  // 主计算函数 - 使用 useMemo 缓存结果，避免频繁计算
+  const calculateGraphStats = useMemo(() => {
+    return () => {
+      const nodeCount = nodes.length;
+      const edgeCount = edges.length;
 
-    // 计算节点度
-    const { degrees, totalDegree } = calculateNodeDegrees();
-    const averageDegree = nodeCount > 0 ? totalDegree / nodeCount : 0;
+      // 计算节点度
+      const { degrees, totalDegree } = calculateNodeDegrees();
+      const averageDegree = nodeCount > 0 ? totalDegree / nodeCount : 0;
 
-    // 计算网络密度
-    const maxPossibleEdges = nodeCount * (nodeCount - 1) / 2;
-    const density = maxPossibleEdges > 0 ? edgeCount / maxPossibleEdges : 0;
+      // 计算网络密度
+      const maxPossibleEdges = nodeCount * (nodeCount - 1) / 2;
+      const density = maxPossibleEdges > 0 ? edgeCount / maxPossibleEdges : 0;
 
-    // 计算聚类系数
-    const clusteringCoefficient = calculateClusteringCoefficient();
+      // 计算聚类系数
+      const clusteringCoefficient = calculateClusteringCoefficient();
 
-    // 计算平均最短路径长度
-    const averageShortestPath = calculateAverageShortestPath(nodeCount);
+      // 计算平均最短路径长度
+      const averageShortestPath = calculateAverageShortestPath(nodeCount);
 
-    // 计算节点度分布
-    const degreeDistribution = calculateDegreeDistribution(degrees);
+      // 计算节点度分布
+      const degreeDistribution = calculateDegreeDistribution(degrees);
 
-    // 计算同配性
-    const assortativity = calculateAssortativity(edgeCount, degrees, averageDegree);
+      // 计算同配性
+      const assortativity = calculateAssortativity(edgeCount, degrees, averageDegree);
 
-    return {
-      nodeCount,
-      edgeCount,
-      averageDegree,
-      density,
-      clusteringCoefficient,
-      averageShortestPath,
-      degreeDistribution,
-      assortativity
+      return {
+        nodeCount,
+        edgeCount,
+        averageDegree,
+        density,
+        clusteringCoefficient,
+        averageShortestPath,
+        degreeDistribution,
+        assortativity
+      };
     };
-  }, [nodes, edges, getNodeNeighbors]);
+  }, [nodes, edges, getNodeNeighbors, calculateNodeDegrees, calculateClusteringCoefficient, calculateAverageShortestPath, calculateDegreeDistribution, calculateAssortativity]);
 
   /**
    * 计算连通分量
@@ -1390,9 +1532,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
     const visited = new Set<string>();
     const components: Node<CustomNodeData>[][] = [];
 
-    // 创建节点ID到节点的映射
-    const nodeMap = new Map<string, Node<CustomNodeData>>();
-    nodes.forEach(node => nodeMap.set(node.id, node));
+    // 使用组件级的nodeMap，无需重新创建
 
     // 辅助函数：BFS处理单个节点
     const processNodeBFS = (startNode: Node<CustomNodeData>) => {
@@ -1616,7 +1756,6 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
     // 如果源节点和目标节点相同，直接返回
     if (selectedSource === selectedTarget) {
-      const nodeMap = new Map(nodes.map(node => [node.id, node]));
       const node = nodeMap.get(selectedSource);
       const path = node ? [node] : [];
       setPathResult({
@@ -1635,17 +1774,16 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
       const hasPositionInfo = nodes.every(node => node.position && typeof node.position.x === 'number' && typeof node.position.y === 'number');
 
       if (hasPositionInfo) {
-        // A*算法实现
-        const nodeMap = new Map(nodes.map(node => [node.id, node]));
+        // A*算法实现 (使用组件级的nodeMap)
 
         // 获取目标节点的位置
-        const targetNode = nodes.find(node => node.id === selectedTarget)!;
+        const targetPos = astarHeuristicData.nodePositions.get(selectedTarget) || { 'x': 0, 'y': 0 };
 
         // 启发式函数：使用欧几里得距离作为启发式
         const heuristic = (nodeId: string) => {
-          const currentNode = nodes.find(node => node.id === nodeId)!;
-          const dx = currentNode.position.x - targetNode.position.x;
-          const dy = currentNode.position.y - targetNode.position.y;
+          const currentPos = astarHeuristicData.nodePositions.get(nodeId) || { 'x': 0, 'y': 0 };
+          const dx = currentPos.x - targetPos.x;
+          const dy = currentPos.y - targetPos.y;
           return Math.sqrt(dx * dx + dy * dy);
         };
 
@@ -1681,7 +1819,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
           }
 
           // 获取当前节点的邻居
-          const neighbors = getNodeNeighbors(currentId, true, true);
+          const neighbors = getNodeNeighbors(currentId, true);
 
           for (const neighborId of neighbors) {
             // 无权重图中，边的权重为1
@@ -1776,7 +1914,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
             const currentDistance = sourceDistances.get(currentId) || 0;
 
             // 获取当前节点的所有邻居（考虑方向）
-            const neighbors = getNodeNeighbors(currentId, true, true);
+            const neighbors = getNodeNeighbors(currentId, true);
 
             for (const neighborId of neighbors) {
               if (!sourceVisited.has(neighborId)) {
@@ -1821,7 +1959,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
             const currentDistance = targetDistances.get(currentId) || 0;
 
             // 获取当前节点的所有入边邻居（使用预计算的逆向邻接表）
-            const inNeighbors = getNodeNeighbors(currentId, true, true, true);
+            const inNeighbors = getNodeNeighbors(currentId, true, true);
 
             for (const neighborId of inNeighbors) {
               if (!targetVisited.has(neighborId)) {
@@ -1860,7 +1998,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
       const path: Node<CustomNodeData>[] = [];
 
       if (meetNode) {
-        const nodeMap = new Map(nodes.map(node => [node.id, node]));
+        // 使用组件级的nodeMap，无需重新声明
 
         // 从源节点到相遇节点
         let currentId = meetNode;
@@ -1951,7 +2089,6 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
     // 如果源节点和目标节点相同，直接返回
     if (selectedSource === selectedTarget) {
-      const nodeMap = new Map(nodes.map(node => [node.id, node]));
       const node = nodeMap.get(selectedSource);
       const path = node ? [node] : [];
       setPathResultWeighted({
@@ -1968,15 +2105,15 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
     setTimeout(() => {
       // 创建节点ID到节点的映射
-      const nodeMap = new Map(nodes.map(node => [node.id, node]));
+      // 使用组件级的nodeMap，无需重新创建
 
       // 检查是否有节点位置信息
       const hasPositionInfo = nodes.every(node => node.position && typeof node.position.x === 'number' && typeof node.position.y === 'number');
 
       if (hasPositionInfo) {
         // A*算法实现
-        // 获取目标节点
-        const targetNode = nodes.find(node => node.id === selectedTarget)!;
+        // 获取目标节点位置
+        const targetPos = astarHeuristicData.nodePositions.get(selectedTarget) || { 'x': 0, 'y': 0 };
 
         // 启发式函数：使用欧几里得距离作为启发式，考虑边权重的影响
         // 为了确保启发式函数是可采纳的，我们需要将距离除以最大边权重
@@ -1987,9 +2124,9 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
         );
 
         const heuristic = (nodeId: string) => {
-          const currentNode = nodes.find(node => node.id === nodeId)!;
-          const dx = currentNode.position.x - targetNode.position.x;
-          const dy = currentNode.position.y - targetNode.position.y;
+          const currentPos = astarHeuristicData.nodePositions.get(nodeId) || { 'x': 0, 'y': 0 };
+          const dx = currentPos.x - targetPos.x;
+          const dy = currentPos.y - targetPos.y;
           // 欧几里得距离除以最大边权重，确保启发式函数是可采纳的
           return Math.sqrt(dx * dx + dy * dy) / maxEdgeWeight;
         };
@@ -2215,7 +2352,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
       recStack.add(nodeId);
 
       // 获取邻居
-      const neighbors = getNodeNeighbors(nodeId, true, true);
+      const neighbors = getNodeNeighbors(nodeId, true);
 
       for (const neighborId of neighbors) {
         if (!visited.has(neighborId)) {
@@ -2245,20 +2382,22 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
   }, [nodes, getNodeNeighbors]);
 
   /**
-   * 拓扑排序算法，用于DAG的最长路径计算
+   * 拓扑排序算法，用于DAG的最长路径计算 - 优化版
+   * 使用专门的topologicalSortData选择器，直接从状态中获取有向边信息
    */
   const topologicalSort = useCallback(() => {
     const visited = new Set<string>();
     const stack: string[] = [];
+    const { directedIn } = topologicalSortData;
 
     // DFS函数，进行拓扑排序
     const dfs = (nodeId: string) => {
       visited.add(nodeId);
 
-      // 获取邻居
-      const neighbors = getNodeNeighbors(nodeId, true, true);
+      // 直接从拓扑排序数据中获取入边邻居，避免重复计算
+      const inNeighbors = directedIn.get(nodeId) || new Set<string>();
 
-      for (const neighborId of neighbors) {
+      for (const neighborId of inNeighbors) {
         if (!visited.has(neighborId)) {
           dfs(neighborId);
         }
@@ -2276,10 +2415,11 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
     // 反转栈得到拓扑排序
     return stack.reverse();
-  }, [nodes, getNodeNeighbors]);
+  }, [nodes, topologicalSortData]);
 
   /**
    * 使用拓扑排序寻找最长路径（无权重图）- 优化版
+   * 使用专门的topologicalSortData和branchAndBoundData选择器，提高性能
    */
 
   const findLongestPath = useCallback(() => {
@@ -2291,7 +2431,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
     setTimeout(() => {
       // 节点ID到节点的映射
-      const nodeMap = new Map(nodes.map(node => [node.id, node]));
+      // 使用组件级的nodeMap，无需重新创建
       let longestPath: string[] = [];
       let maxDistance = -1;
 
@@ -2310,6 +2450,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
       // 检测图是否有环
       const graphHasCycle = hasCycle();
+      const { directedOut } = topologicalSortData;
 
       if (!graphHasCycle) {
         // DAG情况：使用拓扑排序算法
@@ -2333,7 +2474,8 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
           const currentDistance = distances[nodeId] as number;
           if (currentDistance !== -Infinity) {
-            const neighbors = getNodeNeighbors(nodeId, true, true);
+            // 直接从拓扑排序数据中获取出边邻居，避免重复计算
+            const neighbors = directedOut.get(nodeId) || new Set<string>();
             neighbors.forEach(neighborId => {
               const neighborDistance = distances[neighborId] || -Infinity;
               if (neighborDistance < currentDistance + 1) {
@@ -2363,11 +2505,14 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
         }
       } else {
         // 有环图情况：使用分支限界法，比DFS更高效
+        // 优化版：使用branchAndBoundData选择器，包含节点位置和边权重信息
+        const { directedIn } = topologicalSortData;
+
         // 预计算每个节点到目标节点的最短路径长度，用于更精确的启发式函数
         // 这里使用BFS计算最短路径长度
         const shortestPathToTarget = new Map<string, number>();
         {
-          const bfsQueue = [];
+          const bfsQueue: string[] = [];
           const visited = new Set<string>();
 
           // 初始化目标节点的最短路径长度为0
@@ -2376,11 +2521,11 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
           visited.add(selectedTarget);
 
           while (bfsQueue.length > 0 && !checkTimeout()) {
-            const currentId = bfsQueue.shift()!;
+            const currentId: string = bfsQueue.shift()!;
             const currentDistance = shortestPathToTarget.get(currentId)!;
 
-            // 获取当前节点的入边邻居（反向BFS）
-            const inNeighbors = getNodeNeighbors(currentId, true, true, true);
+            // 直接从拓扑排序数据中获取入边邻居，避免重复计算
+            const inNeighbors: Set<string> = directedIn.get(currentId) || new Set<string>();
 
             for (const neighborId of inNeighbors) {
               if (!visited.has(neighborId)) {
@@ -2408,7 +2553,8 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
             while (bfsQueue.length > 0 && !checkTimeout()) {
               const currentId = bfsQueue.shift()!;
-              const neighbors = getNodeNeighbors(currentId, true, true);
+              // 直接从拓扑排序数据中获取出边邻居，避免重复计算
+              const neighbors = directedOut.get(currentId) || new Set<string>();
 
               for (const neighborId of neighbors) {
                 if (!reachable.has(neighborId)) {
@@ -2442,7 +2588,6 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
         };
 
         // 计算节点的启发式值：使用更精确的上界，结合剩余节点数和当前节点到目标节点的最短路径
-        // 优化：直接从邻接表获取节点的出度和入度，避免调用getNodeNeighbors函数
         const calculateHeuristic = (nodeId: string, visited: Set<string>): number => {
           const remainingNodes = nodes.length - visited.size;
           if (remainingNodes === 0) {
@@ -2455,9 +2600,9 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
           // 计算可达节点数量，用于更紧的上界
           const reachableCount = getReachableNodeCount(nodeId, visited);
 
-          // 直接从邻接表获取节点的出度和入度，避免调用getNodeNeighbors函数
-          const currentOutDegree = adjacencyList.directedList[nodeId]?.length || 0;
-          const currentInDegree = adjacencyList.inverseDirectedList[nodeId]?.length || 0;
+          // 直接从拓扑排序数据中获取节点的出度和入度，避免重复计算
+          const currentOutDegree = directedOut.get(nodeId)?.size || 0;
+          const currentInDegree = directedIn.get(nodeId)?.size || 0;
 
           // 改进的调整因子：结合出度和入度，更准确地反映节点的重要性
           const degreeFactor = (currentOutDegree + currentInDegree) / 2;
@@ -2472,10 +2617,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
         const pq = maxPriorityQueue();
 
         // 状态缓存：避免重复处理相同的状态
-        // 优化：使用Map存储状态键和插入时间，便于高效删除最早的缓存项
         const stateCache = new Map<string, number>();
-        // 最大缓存大小，防止内存占用过大
-        // 优化：调整缓存大小为500，减少内存占用
         const STATE_CACHE_SIZE = 500;
 
         // 初始化优先队列
@@ -2484,8 +2626,8 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
         const initialDistance = 0;
         const initialHeuristic = calculateHeuristic(selectedSource, initialVisited);
 
-        // 生成初始状态的唯一键：使用更高效的哈希策略，只包含当前节点和已访问节点的哈希值
-        const initialStateKey = `${selectedSource}-${Array.from(initialVisited).sort()
+        const initialStateKey = `${selectedSource}-${Array.from(initialVisited)
+          .sort()
           .join(',')}`;
         stateCache.set(initialStateKey, Date.now());
 
@@ -2519,26 +2661,22 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
               longestPath = [...currentPath];
             }
           } else {
-          // 更严格的剪枝条件：当前路径长度 + 启发式值 > 已知最大路径长度
-            // 并且当前路径长度 < 最大可能路径长度
+            // 更严格的剪枝条件：当前路径长度 + 启发式值 > 已知最大路径长度
             const potentialMax = currentDistance + heuristic;
             if (potentialMax > maxDistance && currentDistance < maxPossibleDistance) {
-            // 获取当前节点的所有邻居（考虑方向）
-              const neighbors = getNodeNeighbors(currentId, true, true);
+              // 直接从拓扑排序数据中获取出边邻居，避免重复计算
+              const neighbors = directedOut.get(currentId) || new Set<string>();
 
               // 预计算邻居的优先级，避免重复计算
               const neighborPriorities = new Map<string, { shortestToTarget: number; outDegree: number; inDegree: number }>();
               neighbors.forEach(neighborId => {
                 const shortestToTarget = shortestPathToTarget.get(neighborId) || nodes.length;
-                const outDegree = getNodeNeighbors(neighborId, true, true).length;
-                const inDegree = getNodeNeighbors(neighborId, true, true, true).length;
+                const outDegree = directedOut.get(neighborId)?.size || 0;
+                const inDegree = directedIn.get(neighborId)?.size || 0;
                 neighborPriorities.set(neighborId, { shortestToTarget, outDegree, inDegree });
               });
 
-              // 遍历所有邻居，按以下优先级排序：
-              // 1. 邻居到目标节点的最短路径长度（越短越好）
-              // 2. 邻居的出度（越高越好）
-              // 3. 邻居的入度（越高越好）
+              // 遍历所有邻居，按优先级排序
               const sortedNeighbors = [...neighbors].sort((a, b) => {
                 const aPriority = neighborPriorities.get(a)!;
                 const bPriority = neighborPriorities.get(b)!;
@@ -2559,26 +2697,24 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
                 // 不允许重复节点
                 if (!visited.has(neighborId)) {
-                // 创建新的访问集合和路径
                   const newVisited = new Set(visited);
                   newVisited.add(neighborId);
                   const newPath = [...currentPath, neighborId];
                   const newDistance = currentDistance + 1;
 
                   // 生成状态键，用于缓存
-                  const stateKey = `${neighborId}-${Array.from(newVisited).sort()
+                  const stateKey = `${neighborId}-${Array.from(newVisited)
+                    .sort()
                     .join(',')}`;
 
                   // 检查状态是否已处理，避免重复计算
                   if (stateCache.has(stateKey)) {
-                    // 更新缓存项的时间戳，将其移到最近使用
                     stateCache.set(stateKey, Date.now());
                     continue;
                   }
 
                   // 当缓存大小超过限制时，删除最早的缓存项
                   if (stateCache.size >= STATE_CACHE_SIZE) {
-                    // 找到最早的缓存项并删除
                     let earliestKey: string | undefined;
                     let earliestTime = Infinity;
                     for (const [key, time] of stateCache.entries()) {
@@ -2672,7 +2808,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
     setTimeout(() => {
       // 节点ID到节点的映射
-      const nodeMap = new Map(nodes.map(node => [node.id, node]));
+      // 使用组件级的nodeMap，无需重新创建
       let longestPath: string[] = [];
       let maxWeight = -1;
 
@@ -2845,7 +2981,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
         );
 
         // 计算节点的启发式值：使用更精确的上界，结合剩余节点数、当前节点到目标节点的最短路径权重和以及边权重
-        // 优化：在函数外部预计算maxEdgeWeight，直接从邻接表获取节点的出边
+        // 优化：在函数外部预计算maxEdgeWeight
         const calculateHeuristic = (nodeId: string, visited: Set<string>): number => {
           const remainingNodes = nodes.length - visited.size;
           if (remainingNodes === 0) {
@@ -2855,8 +2991,8 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
           // 当前节点到目标节点的最短路径权重和
           const shortestWeightToTarget = shortestPathWeightToTarget.get(nodeId) || (remainingNodes * maxEdgeWeight);
 
-          // 直接从邻接表获取节点的出边权重，避免调用getWeightedNeighbors函数
-          const outEdges = adjacencyList.directedWeightedList[nodeId] || [];
+          // 使用getWeightedNeighbors获取节点的出边权重
+          const outEdges = getWeightedNeighbors(nodeId, true);
           const currentMaxOutWeight = outEdges.length > 0
             ? Math.max(...outEdges.map(edge => edge.weight))
             : maxEdgeWeight;
@@ -3064,6 +3200,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
   /**
    * 寻找全局最长路径（所有节点对之间的最长路径）- 优化版
+   * 使用专门的globalPathData选择器，优化节点采样策略和启发式函数
    */
 
   const findGlobalLongestPath = useCallback(() => {
@@ -3071,7 +3208,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
     setTimeout(() => {
       // 节点ID到节点的映射
-      const nodeMap = new Map(nodes.map(node => [node.id, node]));
+      // 使用组件级的nodeMap，无需重新创建
       let globalLongestPath: string[] = [];
       let globalMaxDistance = -1;
 
@@ -3091,11 +3228,16 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
       // 检测图是否有环
       const graphHasCycle = hasCycle();
 
+      // 使用专门的选择器数据，避免重复计算
+      const { directedOut } = topologicalSortData;
+      const { outDegreeMap, inDegreeMap, outEdgeWeightSumMap } = globalPathData;
+
       // 邻居缓存，避免重复计算
       const neighborCache = new Map<string, string[]>();
       const getCachedNeighbors = (nodeId: string) => {
         if (!neighborCache.has(nodeId)) {
-          neighborCache.set(nodeId, getNodeNeighbors(nodeId, true, true));
+          // 直接从拓扑排序数据中获取出边邻居，避免重复计算
+          neighborCache.set(nodeId, Array.from(directedOut.get(nodeId) || new Set<string>()));
         }
         return neighborCache.get(nodeId)!;
       };
@@ -3307,31 +3449,18 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
           // 小型图，检查所有节点对
           sampleNodes = nodes;
         } else {
-          // 计算每个节点的入度
-          const inDegreeMap = new Map<string, number>();
-          edges.forEach(edge => {
-            const targetId = String(edge.target);
-            inDegreeMap.set(targetId, (inDegreeMap.get(targetId) || 0) + 1);
-          });
-
-          // 计算每个节点的边权重总和
-          const outEdgeCountMap = new Map<string, number>();
-          edges.forEach(edge => {
-            const sourceId = String(edge.source);
-            outEdgeCountMap.set(sourceId, (outEdgeCountMap.get(sourceId) || 0) + 1);
-          });
-
+          // 直接使用globalPathData中的出度、入度和边权重总和，避免重复计算
           // 计算每个节点的综合分数，优化采样策略
           // - 出度权重：0.4（优先选择出度高的节点作为起点）
           // - 入度权重：0.3（优先选择入度高的节点作为起点，增加找到长路径的概率）
-          // - 出边数量权重：0.3（优先选择连接数多的节点）
+          // - 出边权重总和权重：0.3（优先选择连接数多的节点）
           const nodeScores = nodes.map(node => {
-            const outDegree = getCachedNeighbors(node.id).length;
+            const outDegree = outDegreeMap.get(node.id) || 0;
             const inDegree = inDegreeMap.get(node.id) || 0;
-            const outEdgeCount = outEdgeCountMap.get(node.id) || 0;
+            const outEdgeWeightSum = outEdgeWeightSumMap.get(node.id) || 0;
 
-            // 优化：优先选择出度、入度和出边数量都高的节点，这些节点更可能在长路径上
-            const score = outDegree * 0.4 + inDegree * 0.3 + outEdgeCount * 0.3;
+            // 优化：优先选择出度、入度和出边权重总和都高的节点，这些节点更可能在长路径上
+            const score = outDegree * 0.4 + inDegree * 0.3 + outEdgeWeightSum * 0.3;
             return { node, score };
           });
 
@@ -3353,14 +3482,14 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
           // 2. 出度最高的5个节点（潜在起点）
           const outDegreeSortedNodes = [...nodes].sort((a, b) => {
-            const aOutDegree = getCachedNeighbors(a.id).length;
-            const bOutDegree = getCachedNeighbors(b.id).length;
+            const aOutDegree = outDegreeMap.get(a.id) || 0;
+            const bOutDegree = outDegreeMap.get(b.id) || 0;
             return bOutDegree - aOutDegree;
           });
           const topOutDegreeNodes = outDegreeSortedNodes.slice(0, 5);
 
           // 3. 出度为0的节点（潜在终点）
-          const outDegreeZeroNodes = nodes.filter(node => getCachedNeighbors(node.id).length === 0);
+          const outDegreeZeroNodes = nodes.filter(node => (outDegreeMap.get(node.id) || 0) === 0);
 
           // 4. 入度为0的节点（潜在起点）
           const inDegreeZeroNodes = nodes.filter(node => (inDegreeMap.get(node.id) || 0) === 0);
@@ -3452,7 +3581,7 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
     setTimeout(() => {
       // 节点ID到节点的映射
-      const nodeMap = new Map(nodes.map(node => [node.id, node]));
+      // 使用组件级的nodeMap，无需重新创建
       let globalLongestPath: string[] = [];
       let globalMaxWeight = -1;
 
@@ -4750,5 +4879,4 @@ export const GraphAnalysisPanel: React.FC<GraphAnalysisPanelProps> = ({
 
 // 使用React.memo优化组件渲染性能
 export default React.memo(GraphAnalysisPanel);
-
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useMemo, useEffect } from 'react';
+import React, { useCallback, useRef, useState, useMemo } from 'react';
 import {
   ReactFlow,
   Background,
@@ -11,12 +11,14 @@ import {
   useNodesState,
   useEdgesState,
   useReactFlow,
+  useStore,
   type Node,
   type Edge,
   type NodeTypes,
   type EdgeTypes,
   ConnectionMode
 } from '@xyflow/react';
+import { Brain, Database, Box } from 'lucide-react';
 import '@xyflow/react/dist/style.css';
 import GraphToolbar from './GraphToolbar';
 
@@ -64,8 +66,9 @@ import CustomEdge, { CustomEdgeData } from './CustomEdge';
 import GraphControlPanel from './GraphControlPanel';
 import GraphManagementPanel from './GraphManagementPanel';
 import { GraphAnalysisPanel } from './GraphAnalysisPanel';
-import GraphImportExportPanel from './GraphImportExportPanel';
+import { GraphImportExportPanel } from './GraphImportExportPanel';
 import GraphGenerationPanel from './GraphGenerationPanel';
+import GraphLayoutPanel from './GraphLayoutPanel';
 
 // 初始化节点数据
 const initialNodes: Node<CustomNodeData>[] = [
@@ -184,21 +187,16 @@ const GraphVisualizationContent: React.FC = () => {
   // React Flow容器引用
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
-  // 选中节点和连接状态
-  const [selectedNode, setSelectedNode] = useState<Node<CustomNodeData> | null>(null);
-  const [selectedEdge, setSelectedEdge] = useState<Edge<CustomEdgeData> | null>(null);
-  // 使用ref存储当前选中状态，优化onSelectionChange的性能
-  const selectedNodeRef = useRef(selectedNode);
-  const selectedEdgeRef = useRef(selectedEdge);
+  // 使用useStore选择器获取节点和边的数量，减少不必要的重渲染
+  const nodeCount = useStore(state => state.nodes.length);
+  const edgeCount = useStore(state => state.edges.length);
 
-  // 更新ref值的effect
-  useEffect(() => {
-    selectedNodeRef.current = selectedNode;
-  }, [selectedNode]);
+  // 检查是否有选中的节点或边
+  const hasSelection = useStore(state =>
+    state.nodes.some(node => node.selected) || state.edges.some(edge => edge.selected)
+  );
 
-  useEffect(() => {
-    selectedEdgeRef.current = selectedEdge;
-  }, [selectedEdge]);
+
   // 图谱管理面板显示状态，初始设置为关闭
   const [isManagementPanelOpen, setIsManagementPanelOpen] = useState(false);
   // 图谱分析面板显示状态，初始设置为关闭
@@ -207,6 +205,8 @@ const GraphVisualizationContent: React.FC = () => {
   const [isImportExportPanelOpen, setIsImportExportPanelOpen] = useState(false);
   // 图生成面板显示状态，初始设置为关闭
   const [isGenerationPanelOpen, setIsGenerationPanelOpen] = useState(false);
+  // 布局面板显示状态，初始设置为关闭
+  const [isLayoutPanelOpen, setIsLayoutPanelOpen] = useState(false);
 
   // 使用useCallback缓存面板切换函数，避免每次渲染重新创建
   const toggleManagementPanel = useCallback(() => {
@@ -224,6 +224,18 @@ const GraphVisualizationContent: React.FC = () => {
   const toggleGenerationPanel = useCallback(() => {
     setIsGenerationPanelOpen(prev => !prev);
   }, []);
+
+  const toggleLayoutPanel = useCallback(() => {
+    setIsLayoutPanelOpen(prev => !prev);
+  }, []);
+
+  // 处理布局应用
+  const handleLayout = useCallback((layoutedNodes: Node<CustomNodeData>[], layoutedEdges: Edge<CustomEdgeData>[]) => {
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
+    // 缩放到适合视图
+    reactFlowInstance.fitView({ 'duration': 500 });
+  }, [setNodes, setEdges, reactFlowInstance]);
 
   // 处理节点连接
   const onConnect = useCallback(
@@ -254,7 +266,7 @@ const GraphVisualizationContent: React.FC = () => {
     // 关闭导入导出面板
     setIsImportExportPanelOpen(false);
     // 缩放到适合视图
-    reactFlowInstance.fitView({ 'padding': 100, 'duration': 500 });
+    reactFlowInstance.fitView({ 'duration': 500 });
   }, [setNodes, setEdges, reactFlowInstance]);
 
   // 创建新节点 - 优化：使用更高效的算法计算新节点编号和位置
@@ -342,30 +354,21 @@ const GraphVisualizationContent: React.FC = () => {
     'custom': CustomEdge
   }), []) as unknown as EdgeTypes;
 
-  // 处理节点选择变化 - 优化：使用ref获取当前状态，减少依赖项
-  const onSelectionChange = useCallback(({ 'nodes': selectedNodes, 'edges': selectedEdges }: { nodes: Node<CustomNodeData>[]; edges: Edge<CustomEdgeData>[] }) => {
-    // 只更新必要的状态，避免不必要的重渲染
-    const newSelectedNode = selectedNodes[0] || null;
-    const newSelectedEdge = selectedEdges[0] || null;
 
-    // 批量更新状态，减少重渲染次数
-    if (newSelectedNode !== selectedNodeRef.current || newSelectedEdge !== selectedEdgeRef.current) {
-      setSelectedNode(newSelectedNode);
-      setSelectedEdge(newSelectedEdge);
-    }
-  }, [setSelectedNode, setSelectedEdge]);
 
-  // 关闭控制面板 - 优化：使用更简洁的实现
-  const closeControlPanel = useCallback(() => {
-    setSelectedNode(null);
-    setSelectedEdge(null);
-  }, []);
-
-  // 图生成回调函数
+  // 图生成回调函数 - 实现渐进式生成
   const handleGenerateGraph = useCallback((newNodes: Node<CustomNodeData>[], newEdges: Edge<CustomEdgeData>[]) => {
-    // 替换现有节点和连接 - 一次性更新，减少重渲染
-    setNodes(newNodes);
-    setEdges(newEdges);
+    if (newNodes.length === 0 && newEdges.length === 0) {
+      // 清空现有图
+      setNodes([]);
+      setEdges([]);
+    } else if (newNodes.length > 0) {
+      // 追加节点
+      setNodes((currentNodes) => [...currentNodes, ...newNodes]);
+    } else if (newEdges.length > 0) {
+      // 追加边
+      setEdges((currentEdges) => [...currentEdges, ...newEdges]);
+    }
   }, [setNodes, setEdges]);
 
 
@@ -376,20 +379,45 @@ const GraphVisualizationContent: React.FC = () => {
       {/* 应用自定义样式来移除选择过渡动画 */}
       <CustomReactFlowStyles />
 
-      {/* 顶部工具栏 - 使用新的GraphToolbar组件 */}
-      <GraphToolbar
-        nodes={nodes}
-        edges={edges}
-        onAddNode={createNewNode}
-        isManagementPanelOpen={isManagementPanelOpen}
-        onToggleManagementPanel={toggleManagementPanel}
-        isAnalysisPanelOpen={isAnalysisPanelOpen}
-        onToggleAnalysisPanel={toggleAnalysisPanel}
-        isImportExportPanelOpen={isImportExportPanelOpen}
-        onToggleImportExportPanel={toggleImportExportPanel}
-        isGenerationPanelOpen={isGenerationPanelOpen}
-        onToggleGenerationPanel={toggleGenerationPanel}
-      />
+      {/* 顶部工具栏区域 */}
+      <div className="bg-white border-b border-gray-200 shadow-md p-0 flex items-center justify-between gap-0 transition-all duration-300 ease-in-out z-50">
+        {/* Logo、标题和统计信息 */}
+        <div className="flex items-center gap-0 p-1">
+          {/* Logo和标题 */}
+          <div className="flex items-center gap-2 hover:opacity-80 transition-opacity mr-3 px-2 flex-shrink-0">
+            <Brain className="w-5 h-5 text-blue-600" />
+            <span className="font-bold text-sm tracking-tight text-gray-800">MyMathWiki</span>
+          </div>
+
+          {/* 图谱统计信息 - 使用useStore选择器获取数据，减少重渲染 */}
+          <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-gray-700 backdrop-blur-sm flex-shrink-0">
+            <span className="flex items-center gap-1">
+              <Database size={12} />
+            节点: {nodeCount}
+            </span>
+            <span className="h-3 w-px bg-gray-400"></span>
+            <span className="flex items-center gap-1">
+              <Box size={12} />
+            连接: {edgeCount}
+            </span>
+          </div>
+        </div>
+
+        {/* 工具栏按钮组 */}
+        <GraphToolbar
+          onAddNode={createNewNode}
+          isManagementPanelOpen={isManagementPanelOpen}
+          onToggleManagementPanel={toggleManagementPanel}
+          isAnalysisPanelOpen={isAnalysisPanelOpen}
+          onToggleAnalysisPanel={toggleAnalysisPanel}
+          isImportExportPanelOpen={isImportExportPanelOpen}
+          onToggleImportExportPanel={toggleImportExportPanel}
+          isGenerationPanelOpen={isGenerationPanelOpen}
+          onToggleGenerationPanel={toggleGenerationPanel}
+          isLayoutPanelOpen={isLayoutPanelOpen}
+          onToggleLayoutPanel={toggleLayoutPanel}
+        />
+      </div>
 
       {/* React Flow容器 - 添加背景色以便更好地看到背景点 */}
       <div ref={reactFlowWrapper} className="flex-1 w-full bg-gray-50 relative">
@@ -399,7 +427,6 @@ const GraphVisualizationContent: React.FC = () => {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onSelectionChange={onSelectionChange}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView
@@ -422,12 +449,6 @@ const GraphVisualizationContent: React.FC = () => {
           connectionMode={ConnectionMode.Loose}
           // 使用proOptions隐藏水印
           proOptions={{ 'hideAttribution': true }}
-          // 性能优化属性 - 启用可见元素渲染
-          onlyRenderVisibleElements={true}
-          // 节点拖动阈值 - 减少微小拖动引起的重渲染
-          nodeDragThreshold={5}
-          // 连接拖动阈值 - 减少微小拖动引起的重渲染
-          connectionDragThreshold={5}
           // 简化删除键配置
           deleteKeyCode={['Delete', 'Backspace']}
           // 启用节点和边的优化渲染
@@ -440,9 +461,6 @@ const GraphVisualizationContent: React.FC = () => {
           preventScrolling={true}
           // 禁用网格对齐，提高性能
           snapToGrid={false}
-          // 禁用边的重新连接，减少不必要的事件监听
-          edgesReconnectable={false}
-
           // 启用节点重排优化
           elevateNodesOnSelect={true}
           // 禁用连接动画
@@ -506,14 +524,12 @@ const GraphVisualizationContent: React.FC = () => {
           />
         </ReactFlow>
 
-        {/* 图谱控制面板 */}
-        <GraphControlPanel
-          selectedNode={selectedNode}
-          selectedEdge={selectedEdge}
-          reactFlowInstance={reactFlowInstance}
-          onClose={closeControlPanel}
-          panelPosition="right"
-        />
+        {/* 图谱控制面板 - 只在有选中节点或边时渲染 */}
+        {hasSelection && (
+          <GraphControlPanel
+            panelPosition="right"
+          />
+        )}
 
         {/* 图谱分析面板 - 条件渲染，使用较大尺寸 */}
         {isAnalysisPanelOpen && (
@@ -522,11 +538,7 @@ const GraphVisualizationContent: React.FC = () => {
               <h2 className="text-lg font-semibold">图谱分析</h2>
             </div>
             <div className="flex-1 overflow-y-auto p-2 bg-gray-50">
-              <GraphAnalysisPanel
-                nodes={nodes}
-                edges={edges}
-                reactFlowInstance={reactFlowInstance}
-              />
+              <GraphAnalysisPanel />
             </div>
           </div>
         )}
@@ -539,9 +551,6 @@ const GraphVisualizationContent: React.FC = () => {
             </div>
             <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
               <GraphManagementPanel
-                nodes={nodes}
-                edges={edges}
-                reactFlowInstance={reactFlowInstance}
                 onAddNode={createNewNode}
               />
             </div>
@@ -554,7 +563,6 @@ const GraphVisualizationContent: React.FC = () => {
             <GraphImportExportPanel
               nodes={nodes}
               edges={edges}
-              reactFlowInstance={reactFlowInstance}
               onImportComplete={handleImportComplete}
             />
           </div>
@@ -563,9 +571,19 @@ const GraphVisualizationContent: React.FC = () => {
         {/* 图生成面板 - 条件渲染，使用较大尺寸 */}
         {isGenerationPanelOpen && (
           <GraphGenerationPanel
-            reactFlowInstance={reactFlowInstance}
             onGenerate={handleGenerateGraph}
           />
+        )}
+
+        {/* 布局面板 - 条件渲染 */}
+        {isLayoutPanelOpen && (
+          <div className="w-128 bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-20">
+            <GraphLayoutPanel
+              nodes={nodes}
+              edges={edges}
+              onLayout={handleLayout}
+            />
+          </div>
         )}
       </div>
     </div>

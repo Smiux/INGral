@@ -1,7 +1,6 @@
 import { BaseService } from './baseService';
 import type { Article, ArticleLink } from '../types/index';
 import { extractWikiLinks, titleToSlug, extractFormulas } from '../utils/markdown';
-import { calculateEditLimitStatus, buildUpdateWithEditLimit } from '../utils/editLimitUtils';
 import { validateTitle, validateContent, validateAuthorInfo, validateVisibility } from '../utils/inputValidation';
 
 /**
@@ -136,9 +135,7 @@ export class ArticleService extends BaseService {
         'author_name': authorName || 'Anonymous',
         'author_email': authorEmail || null,
         'author_url': authorUrl || null,
-        visibility,
-        'status': 'published',
-        'version': 1
+        visibility
       };
 
       const article = await this.create<Article>(this.TABLE_NAME, articleData);
@@ -146,23 +143,6 @@ export class ArticleService extends BaseService {
       if (!article) {
         throw new Error('Failed to create article');
       }
-
-      // 创建初始版本记录
-      await this.supabase.from('article_versions').insert({
-        'article_id': article.id,
-        'version_number': 1,
-        title,
-        'content': sanitizedContent,
-        'metadata': {
-          visibility,
-          'author_name': authorName || 'Anonymous',
-          'author_email': authorEmail || null,
-          'author_url': authorUrl || null
-        },
-        'author_id': 'user',
-        'change_summary': '初始版本',
-        'is_published': true
-      });
 
       // 处理文章链接
       const links = extractWikiLinks(content);
@@ -241,34 +221,14 @@ export class ArticleService extends BaseService {
 
     const now = new Date();
     const nowISO = now.toISOString();
-    const isOfflineArticle = id.startsWith('temp_');
 
-    // 如果不是离线文章，获取当前文章信息以计算编辑限制
-    let currentArticle: Article | null = null;
-    if (!isOfflineArticle) {
-      currentArticle = await this.getArticleById(id);
-    }
-
-    // 计算编辑限制状态
-    const editLimitStatus = calculateEditLimitStatus({
-      'currentEditCount24h': currentArticle?.edit_count_24h || 0,
-      'currentEditCount7d': currentArticle?.edit_count_7d || 0,
-      'lastEditDate': currentArticle?.last_edit_date ?? null
-    });
-
-    // 构建基础更新对象
-    const baseUpdateData: Record<string, unknown> = {
+    // 构建更新对象
+    const updateData: Record<string, unknown> = {
       title,
       'slug': titleToSlug(title),
       'content': sanitizedContent,
-      'updated_at': nowISO,
-      'is_offline': isOfflineArticle,
-      'synced': false,
-      'last_modified': nowISO
+      'updated_at': nowISO
     };
-
-    // 构建包含编辑限制字段的更新对象
-    const updateData: Record<string, unknown> = buildUpdateWithEditLimit(baseUpdateData, editLimitStatus);
 
     // 添加可选字段
     if (visibility !== undefined) {
@@ -283,65 +243,29 @@ export class ArticleService extends BaseService {
     if (authorUrl !== undefined) {
       updateData.author_url = authorUrl;
     }
-    // 确保状态字段存在，默认保持published状态
-    updateData.status = 'published';
 
     try {
-      // 如果不是离线文章，获取当前文章信息以计算编辑限制
-      if (!isOfflineArticle) {
-        // 1. 获取当前文章内容，创建版本快照
-        const latestArticle = await this.getArticleById(id);
-        if (latestArticle) {
-          // 获取当前最大版本号
-          const versionResult = await this.supabase.from('article_versions')
-            .select('version_number')
-            .eq('article_id', id)
-            .order('version_number', { 'ascending': false })
-            .limit(1)
-            .maybeSingle();
-          const maxVersion = versionResult?.data?.version_number || 0;
+      // 更新文章
+      const article = await this.update<Article>(this.TABLE_NAME, id, updateData);
 
-          // 创建版本快照
-          await this.supabase.from('article_versions').insert({
-            'article_id': id,
-            'version_number': maxVersion + 1,
-            'title': latestArticle.title,
-            'content': latestArticle.content,
-            'metadata': {
-              'visibility': latestArticle.visibility,
-              'author_name': latestArticle.author_name,
-              'author_email': latestArticle.author_email,
-              'author_url': latestArticle.author_url
-            },
-            'author_id': 'user',
-            'change_summary': '自动保存版本',
-            'is_published': latestArticle.status === 'published'
-          });
-        }
-
-        // 2. 更新文章
-        const article = await this.update<Article>(this.TABLE_NAME, id, updateData);
-
-        if (!article) {
-          throw new Error('Article not found');
-        }
-
-        // 3. 处理文章链接更新
-        await this.updateArticleLinks(id, content);
-
-        // 4. 提取并处理数学公式
-        const formulas = extractFormulas(content);
-        if (formulas.length > 0) {
-          article.formulas = formulas;
-        }
-
-        return article;
+      if (!article) {
+        throw new Error('Article not found');
       }
+
+      // 处理文章链接更新
+      await this.updateArticleLinks(id, content);
+
+      // 提取并处理数学公式
+      const formulas = extractFormulas(content);
+      if (formulas.length > 0) {
+        article.formulas = formulas;
+      }
+
+      return article;
     } catch (err) {
       this.handleError(err, 'ArticleService', '更新文章');
+      return null;
     }
-
-    return null;
   }
 
   /**

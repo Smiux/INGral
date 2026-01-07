@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { X } from 'lucide-react';
-import type { Node, Edge, ReactFlowInstance } from '@xyflow/react';
+import { useStore, useReactFlow, type Edge } from '@xyflow/react';
 
 // 从CustomNode和CustomEdge导入类型
 import { CustomNodeData } from './CustomNode';
 import { CustomEdgeData } from './CustomEdge';
 
 interface GraphControlPanelProps {
-  selectedNode: Node<CustomNodeData> | null;
-  selectedEdge: Edge<CustomEdgeData> | null;
-  reactFlowInstance: ReactFlowInstance;
-  onClose: () => void;
   panelPosition?: 'left' | 'right';
 }
 
@@ -22,20 +18,67 @@ type PanelType = 'node' | 'edge';
  * 支持节点和连接的编辑
  */
 export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
-  selectedNode,
-  selectedEdge,
-  reactFlowInstance,
-  onClose,
   panelPosition = 'right'
 }) => {
+  // 使用useStore获取选中的节点和边，使用更精确的选择器
+  // 只选择需要的数据字段，并使用equalityFn减少重渲染
+  const selectedNode = useStore(
+    (state) => {
+      const foundNode = state.nodes.find((node) => node.selected);
+      // 只选择需要的字段
+      return foundNode ? {
+        'id': foundNode.id,
+        'data': foundNode.data
+      } : null;
+    },
+    // 自定义比较函数，只在id或data变化时重新渲染
+    (prev, next) => {
+      if (prev === null && next === null) {
+        return true;
+      }
+      if (prev === null || next === null) {
+        return false;
+      }
+      return prev.id === next.id && JSON.stringify(prev.data) === JSON.stringify(next.data);
+    }
+  ) as { id: string; data: CustomNodeData } | null;
+
+  // 只选择需要的数据字段，并使用equalityFn减少重渲染
+  const selectedEdge = useStore(
+    (state) => {
+      const foundEdge = state.edges.find((edge) => edge.selected);
+      // 只选择需要的字段
+      return foundEdge ? {
+        'id': foundEdge.id,
+        'source': foundEdge.source,
+        'target': foundEdge.target,
+        'data': foundEdge.data
+      } : null;
+    },
+    // 自定义比较函数，只在id、source、target或data变化时重新渲染
+    (prev, next) => {
+      if (prev === null && next === null) {
+        return true;
+      }
+      if (prev === null || next === null) {
+        return false;
+      }
+      return prev.id === next.id && prev.source === next.source && prev.target === next.target && JSON.stringify(prev.data) === JSON.stringify(next.data);
+    }
+  ) as { id: string; source: string; target: string; data: CustomEdgeData } | null;
+
+  // 使用useReactFlow获取实例
+  const reactFlowInstance = useReactFlow();
+
   // 当前激活的面板类型
   const [activePanel, setActivePanel] = useState<PanelType>('node');
 
-  // 节点表单数据
-  const [nodeFormData, setNodeFormData] = useState<Node<CustomNodeData>>({
+  // 节点表单数据 - 只包含需要编辑的数据字段，不包含position
+  const [nodeFormData, setNodeFormData] = useState<{
+    id: string;
+    data: CustomNodeData;
+  }>({
     'id': '',
-    'type': 'custom',
-    'position': { 'x': 0, 'y': 0 },
     'data': {
       'title': '',
       'category': '默认',
@@ -79,181 +122,176 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
   // 当选中节点或连接变化时，更新表单数据
   useEffect(() => {
     if (selectedNode) {
-      setNodeFormData(selectedNode);
+      // 只提取需要的数据字段，不包含position
+      setNodeFormData({
+        'id': selectedNode.id,
+        'data': selectedNode.data as CustomNodeData
+      });
       setActivePanel('node');
     } else if (selectedEdge) {
-      setEdgeFormData(selectedEdge);
+      setEdgeFormData(selectedEdge as unknown as Edge<CustomEdgeData>);
       setActivePanel('edge');
     }
   }, [selectedNode, selectedEdge]);
 
   // 处理节点连接点数量变化
-  const handleHandleCountChange = (delta: number) => {
+  const handleHandleCountChange = useCallback((delta: number) => {
     if (selectedNode) {
       const newHandleCount = Math.max(1, Math.min(20, (nodeFormData.data.handleCount || 4) + delta));
-      const updatedNode = {
-        ...nodeFormData,
-        'data': {
-          ...nodeFormData.data,
-          'handleCount': newHandleCount,
-          'handles': {
-            ...(nodeFormData.data.handles || {}),
-            'handleCount': newHandleCount
-          }
+      const updatedNodeData = {
+        ...nodeFormData.data,
+        'handleCount': newHandleCount,
+        'handles': {
+          ...(nodeFormData.data.handles || {}),
+          'handleCount': newHandleCount
         }
       };
-      setNodeFormData(updatedNode);
-      // 使用React Flow内置的updateNode方法更新节点
-      reactFlowInstance.updateNode(nodeFormData.id, {
-        'data': updatedNode.data
-      });
+      const updatedFormData = {
+        ...nodeFormData,
+        'data': updatedNodeData
+      };
+      setNodeFormData(updatedFormData);
+      // 使用React Flow内置的updateNodeData方法更新节点数据
+      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
     }
-  };
+  }, [selectedNode, nodeFormData, reactFlowInstance]);
 
   // 处理节点表单变化
-  const handleNodeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleNodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     // 处理连接点数量变化，确保值为数字类型
     if (name === 'handleCount') {
       const numValue = parseInt(value, 10) || 4;
       const newHandleCount = Math.max(1, Math.min(20, numValue));
-      const updatedNode = {
-        ...nodeFormData,
-        'data': {
-          ...nodeFormData.data,
-          'handleCount': newHandleCount,
-          'handles': {
-            ...(nodeFormData.data.handles || {}),
-            'handleCount': newHandleCount
-          }
+      const updatedNodeData = {
+        ...nodeFormData.data,
+        'handleCount': newHandleCount,
+        'handles': {
+          ...(nodeFormData.data.handles || {}),
+          'handleCount': newHandleCount
         }
       };
-      setNodeFormData(updatedNode);
-      // 使用React Flow内置的updateNode方法更新节点
-      reactFlowInstance.updateNode(nodeFormData.id, {
-        'data': updatedNode.data
-      });
+      const updatedFormData = {
+        ...nodeFormData,
+        'data': updatedNodeData
+      };
+      setNodeFormData(updatedFormData);
+      // 使用React Flow内置的updateNodeData方法更新节点数据
+      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
     } else if (name === 'content') {
-      const updatedNode = {
-        ...nodeFormData,
-        'data': {
-          ...nodeFormData.data,
-          'metadata': {
-            ...nodeFormData.data.metadata,
-            'content': value
-          }
+      const updatedNodeData = {
+        ...nodeFormData.data,
+        'metadata': {
+          ...nodeFormData.data.metadata,
+          'content': value
         }
       };
-      setNodeFormData(updatedNode);
-      // 使用React Flow内置的updateNode方法更新节点
-      reactFlowInstance.updateNode(nodeFormData.id, {
-        'data': updatedNode.data
-      });
+      const updatedFormData = {
+        ...nodeFormData,
+        'data': updatedNodeData
+      };
+      setNodeFormData(updatedFormData);
+      // 使用React Flow内置的updateNodeData方法更新节点数据
+      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
     } else if (name === 'innerAngle' || name === 'outerAngle') {
       // 处理旋转角度变化
       const angleValue = parseFloat(value) || 0;
-      const updatedNode = {
-        ...nodeFormData,
-        'data': {
-          ...nodeFormData.data,
-          'style': {
-            ...nodeFormData.data.style,
-            [name]: angleValue
-          }
+      const updatedNodeData = {
+        ...nodeFormData.data,
+        'style': {
+          ...nodeFormData.data.style,
+          [name]: angleValue
         }
       };
-      setNodeFormData(updatedNode);
-      // 使用React Flow内置的updateNode方法更新节点
-      reactFlowInstance.updateNode(nodeFormData.id, {
-        'data': updatedNode.data
-      });
+      const updatedFormData = {
+        ...nodeFormData,
+        'data': updatedNodeData
+      };
+      setNodeFormData(updatedFormData);
+      // 使用React Flow内置的updateNodeData方法更新节点数据
+      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
     } else if (name === 'isSyncRotation') {
       // 处理同步旋转选项 - 只在checkbox上触发
       const checked = (e.target as HTMLInputElement).checked;
-      const updatedNode = {
-        ...nodeFormData,
-        'data': {
-          ...nodeFormData.data,
-          'style': {
-            ...nodeFormData.data.style,
-            'isSyncRotation': checked
-          }
+      const updatedNodeData = {
+        ...nodeFormData.data,
+        'style': {
+          ...nodeFormData.data.style,
+          'isSyncRotation': checked
         }
       };
-      setNodeFormData(updatedNode);
-      // 使用React Flow内置的updateNode方法更新节点
-      reactFlowInstance.updateNode(nodeFormData.id, {
-        'data': updatedNode.data
-      });
+      const updatedFormData = {
+        ...nodeFormData,
+        'data': updatedNodeData
+      };
+      setNodeFormData(updatedFormData);
+      // 使用React Flow内置的updateNodeData方法更新节点数据
+      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
     } else {
-      const updatedNode = {
-        ...nodeFormData,
-        'data': {
-          ...nodeFormData.data,
-          [name]: value
-        }
+      const updatedNodeData = {
+        ...nodeFormData.data,
+        [name]: value
       };
-      setNodeFormData(updatedNode);
-      // 使用React Flow内置的updateNode方法更新节点
-      reactFlowInstance.updateNode(nodeFormData.id, {
-        'data': updatedNode.data
-      });
+      const updatedFormData = {
+        ...nodeFormData,
+        'data': updatedNodeData
+      };
+      setNodeFormData(updatedFormData);
+      // 使用React Flow内置的updateNodeData方法更新节点数据
+      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
     }
-  };
+  }, [nodeFormData, reactFlowInstance]);
 
   // 处理连接表单变化
-  const handleEdgeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleEdgeChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     // 确保edgeFormData.data存在
     const currentData = edgeFormData.data || {};
 
     if (name === 'dynamicEffect') {
-      const updatedEdge = {
-        ...edgeFormData,
-        'data': {
-          ...currentData,
-          'animation': {
-            ...(currentData.animation || {}),
-            'dynamicEffect': value as 'none' | 'flow' | 'pulse' | 'gradient',
-            'isAnimating': value !== 'none'
-          }
+      const updatedEdgeData = {
+        ...currentData,
+        'animation': {
+          ...(currentData.animation || {}),
+          'dynamicEffect': value as 'none' | 'flow' | 'pulse' | 'gradient',
+          'isAnimating': value !== 'none'
         }
       };
+      const updatedEdge = {
+        ...edgeFormData,
+        'data': updatedEdgeData
+      };
       setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      // 使用React Flow内置的updateEdge方法更新连接
-      reactFlowInstance.updateEdge(edgeFormData.id, {
-        'data': updatedEdge.data
-      });
+      // 使用React Flow内置的updateEdgeData方法更新连接数据
+      reactFlowInstance.updateEdgeData(edgeFormData.id, updatedEdgeData);
     } else if (name === 'weight') {
+      const updatedEdgeData = {
+        ...currentData,
+        'weight': parseFloat(value) || 1
+      };
       const updatedEdge = {
         ...edgeFormData,
-        'data': {
-          ...currentData,
-          'weight': parseFloat(value) || 1
-        }
+        'data': updatedEdgeData
       };
       setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      // 使用React Flow内置的updateEdge方法更新连接
-      reactFlowInstance.updateEdge(edgeFormData.id, {
-        'data': updatedEdge.data
-      });
+      // 使用React Flow内置的updateEdgeData方法更新连接数据
+      reactFlowInstance.updateEdgeData(edgeFormData.id, updatedEdgeData);
     } else {
+      const updatedEdgeData = {
+        ...currentData,
+        [name]: value
+      };
       const updatedEdge = {
         ...edgeFormData,
-        'data': {
-          ...currentData,
-          [name]: value
-        }
+        'data': updatedEdgeData
       };
       setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      // 使用React Flow内置的updateEdge方法更新连接
-      reactFlowInstance.updateEdge(edgeFormData.id, {
-        'data': updatedEdge.data
-      });
+      // 使用React Flow内置的updateEdgeData方法更新连接数据
+      reactFlowInstance.updateEdgeData(edgeFormData.id, updatedEdgeData);
     }
-  };
+  }, [edgeFormData, reactFlowInstance]);
 
   // 渲染节点编辑面板
   const renderNodeEditPanel = () => {
@@ -576,20 +614,24 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
     }
   };
 
+  // 可用面板列表
+  const availablePanels = useMemo(() => {
+    const panels: Array<{ type: PanelType; label: string }> = [];
+
+    if (selectedNode) {
+      panels.push({ 'type': 'node', 'label': '节点编辑' });
+    }
+
+    if (selectedEdge) {
+      panels.push({ 'type': 'edge', 'label': '连接编辑' });
+    }
+
+    return panels;
+  }, [selectedNode, selectedEdge]);
+
   // 如果没有选中节点或连接，不渲染面板
   if (!selectedNode && !selectedEdge) {
     return null;
-  }
-
-  // 可用面板列表
-  const availablePanels: Array<{ type: PanelType; label: string }> = [];
-
-  if (selectedNode) {
-    availablePanels.push({ 'type': 'node', 'label': '节点编辑' });
-  }
-
-  if (selectedEdge) {
-    availablePanels.push({ 'type': 'edge', 'label': '连接编辑' });
   }
 
   return (
@@ -600,7 +642,17 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
           {selectedNode ? '编辑节点' : '编辑连接'}
         </h2>
         <button
-          onClick={onClose}
+          onClick={() => {
+            // 直接使用reactFlowInstance取消所有选择
+            reactFlowInstance.setNodes((nds) => nds.map((node) => ({
+              ...node,
+              'selected': false
+            })));
+            reactFlowInstance.setEdges((eds) => eds.map((edge) => ({
+              ...edge,
+              'selected': false
+            })));
+          }}
           className="p-1 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
           title="关闭面板"
         >

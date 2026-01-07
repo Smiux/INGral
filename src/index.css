@@ -49,16 +49,16 @@ body {
 }
 
 /* Wiki link styling */
-.wiki-link-styling .wiki-link {
+.wiki-link {
   @apply text-blue-600 hover:text-blue-700 underline transition dark:text-blue-400 dark:hover:text-blue-300;
 }
 
 /* KaTeX styling */
-.wiki-link-styling .katex-display {
+.katex-display {
   @apply my-4 overflow-x-auto;
 }
 
-.wiki-link-styling .katex {
+.katex {
   @apply text-gray-900 dark:text-gray-100;
 }
 
@@ -75,68 +75,164 @@ body {
   color: #f3f4f6;
 }
 
-/* Headings */
-.wiki-link-styling h1,
-.wiki-link-styling h2,
-.wiki-link-styling h3 {
-  @apply mt-6 mb-4 font-bold;
+/* Prose styles for Tiptap editor */
+.prose {
+  /* Headings */
+  & h1,
+  & h2,
+  & h3 {
+    @apply mt-6 mb-4 font-bold;
+  }
+
+  & h1 {
+    @apply text-2xl dark:text-white;
+  }
+
+  & h2 {
+    @apply text-xl dark:text-gray-200;
+  }
+
+  & h3 {
+    @apply text-lg dark:text-gray-300;
+  }
+
+  /* Paragraphs */
+  & p {
+    @apply mb-4 leading-relaxed dark:text-gray-300;
+  }
+
+  /* Lists */
+  & ul,
+  & ol {
+    @apply mb-4 ml-6 dark:text-gray-300 list-outside;
+  }
+
+  & ul {
+    @apply list-disc;
+  }
+
+  & ol {
+    @apply list-decimal;
+  }
+
+  & li {
+    @apply mb-2;
+  }
+
+  /* Code */
+  & code {
+    @apply bg-gray-100 px-2 py-1 rounded font-mono text-sm dark:bg-gray-800 dark:text-gray-200 text-gray-800;
+  }
+
+  & pre {
+    @apply bg-gray-800 text-gray-100 dark:text-gray-200 p-4 rounded-lg overflow-x-auto mb-4;
+  }
+
+  & pre code {
+    @apply bg-transparent p-0 rounded-none text-gray-100 dark:text-gray-200;
+  }
+
+  /* Blockquotes */
+  & blockquote {
+    @apply border-l-4 border-gray-300 pl-4 py-2 text-gray-700 italic dark:border-gray-700 dark:text-gray-400;
+  }
+
+  /* Tables */
+  & table {
+    @apply w-full border-collapse mb-4;
+  }
+
+  & th,
+  & td {
+    @apply border border-gray-300 px-4 py-2 dark:border-gray-700 dark:text-gray-300;
+  }
+
+  & th {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  & tr:nth-child(even) {
+    @apply bg-gray-50 dark:bg-gray-800;
+  }
 }
 
-.wiki-link-styling h1 {
-  @apply text-2xl dark:text-white;
-}
+/* Fallback styles for wiki-link-styling class */
+.wiki-link-styling {
+  /* Headings */
+  & h1,
+  & h2,
+  & h3 {
+    @apply mt-6 mb-4 font-bold;
+  }
 
-.wiki-link-styling h2 {
-  @apply text-xl dark:text-gray-200;
-}
+  & h1 {
+    @apply text-2xl dark:text-white;
+  }
 
-.wiki-link-styling h3 {
-  @apply text-lg dark:text-gray-300;
-}
+  & h2 {
+    @apply text-xl dark:text-gray-200;
+  }
 
-/* Paragraphs */
-.wiki-link-styling p {
-  @apply mb-4 leading-relaxed dark:text-gray-300;
-}
+  & h3 {
+    @apply text-lg dark:text-gray-300;
+  }
 
-/* Lists */
-.wiki-link-styling ul,
-.wiki-link-styling ol {
-  @apply mb-4 ml-6 dark:text-gray-300;
-}
+  /* Paragraphs */
+  & p {
+    @apply mb-4 leading-relaxed dark:text-gray-300;
+  }
 
-.wiki-link-styling li {
-  @apply mb-2;
-}
+  /* Lists */
+  & ul,
+  & ol {
+    @apply mb-4 ml-6 dark:text-gray-300 list-outside;
+  }
 
-/* Code */
-.wiki-link-styling code {
-  @apply bg-gray-100 px-2 py-1 rounded font-mono text-sm dark:bg-gray-800 dark:text-gray-200;
-}
+  & ul {
+    @apply list-disc;
+  }
 
-.wiki-link-styling pre {
-  @apply bg-gray-800 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4;
-}
+  & ol {
+    @apply list-decimal;
+  }
 
-/* Blockquotes */
-.wiki-link-styling blockquote {
-  @apply border-l-4 border-gray-300 pl-4 py-2 text-gray-700 italic dark:border-gray-700 dark:text-gray-400;
-}
+  & li {
+    @apply mb-2;
+  }
 
-/* Tables */
-.wiki-link-styling table {
-  @apply w-full border-collapse mb-4;
-}
+  /* Code */
+  & code {
+    @apply bg-gray-100 px-2 py-1 rounded font-mono text-sm dark:bg-gray-800 dark:text-gray-200 text-gray-800;
+  }
 
-.wiki-link-styling th,
-.wiki-link-styling td {
-  @apply border border-gray-300 px-4 py-2 dark:border-gray-700 dark:text-gray-300;
-}
+  & pre {
+    @apply bg-gray-800 text-gray-100 dark:text-gray-200 p-4 rounded-lg overflow-x-auto mb-4;
+  }
 
-.wiki-link-styling th {
-  @apply bg-gray-100 dark:bg-gray-800;
-}
+  & pre code {
+    @apply bg-transparent p-0 rounded-none text-gray-100 dark:text-gray-200;
+  }
 
-.wiki-link-styling tr:nth-child(even) {
-  @apply bg-gray-50 dark:bg-gray-800;
+  /* Blockquotes */
+  & blockquote {
+    @apply border-l-4 border-gray-300 pl-4 py-2 text-gray-700 italic dark:border-gray-700 dark:text-gray-400;
+  }
+
+  /* Tables */
+  & table {
+    @apply w-full border-collapse mb-4;
+  }
+
+  & th,
+  & td {
+    @apply border border-gray-300 px-4 py-2 dark:border-gray-700 dark:text-gray-300;
+  }
+
+  & th {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  & tr:nth-child(even) {
+    @apply bg-gray-50 dark:bg-gray-800;
+  }
 }

@@ -2,7 +2,7 @@
  * 图谱管理综合面板
  * 合并节点管理、连接管理、统计信息和分析功能，通过标签页切换
  */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   Database,
   Link as LinkIcon,
@@ -11,7 +11,7 @@ import {
   Trash2,
   PieChart
 } from 'lucide-react';
-import type { Node, Edge, ReactFlowInstance } from '@xyflow/react';
+import { useStore, useReactFlow } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './CustomEdge';
 
@@ -19,9 +19,6 @@ import type { CustomEdgeData } from './CustomEdge';
 type TabType = 'nodes' | 'connections' | 'statistics';
 
 interface GraphManagementPanelProps {
-  nodes: Node<CustomNodeData>[];
-  edges: Edge<CustomEdgeData>[];
-  reactFlowInstance: ReactFlowInstance;
   onAddNode: () => void;
 }
 
@@ -29,61 +26,98 @@ interface GraphManagementPanelProps {
  * 图谱管理综合面板组件
  */
 export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
-  nodes,
-  edges,
-  reactFlowInstance,
   onAddNode
 }) => {
-  // 直接从nodes和edges中过滤出选中的节点和连接，使用React Flow内置的selected属性
-  const selectedNodes = nodes.filter(node => node.selected);
-  const selectedEdges = edges.filter(edge => edge.selected);
+  // 使用useStore获取节点和边数据，只选择需要的字段
+  const nodes = useStore(
+    (state) => state.nodes.map(node => ({
+      'id': node.id,
+      'data': node.data,
+      'selected': node.selected
+    }))
+  ) as { id: string; data: CustomNodeData; selected: boolean }[];
+
+  const edges = useStore(
+    (state) => state.edges.map(edge => ({
+      'id': edge.id,
+      'source': edge.source,
+      'target': edge.target,
+      'data': edge.data,
+      'selected': edge.selected
+    }))
+  ) as { id: string; source: string; target: string; data: CustomEdgeData; selected: boolean }[];
+
+  // 使用useStore获取选中的节点和边，使用更精确的选择器
+  const selectedNodes = useStore(
+    (state) => state.nodes
+      .filter((node) => node.selected)
+      .map(node => ({
+        'id': node.id,
+        'data': node.data,
+        'selected': node.selected
+      }))
+  ) as { id: string; data: CustomNodeData; selected: boolean }[];
+
+  const selectedEdges = useStore(
+    (state) => state.edges
+      .filter((edge) => edge.selected)
+      .map(edge => ({
+        'id': edge.id,
+        'source': edge.source,
+        'target': edge.target,
+        'data': edge.data,
+        'selected': edge.selected
+      }))
+  ) as { id: string; source: string; target: string; data: CustomEdgeData; selected: boolean }[];
+
+  // 使用useReactFlow获取实例
+  const reactFlowInstance = useReactFlow();
+
   // 当前激活的标签页
   const [activeTab, setActiveTab] = useState<TabType>('nodes');
-
-
 
   /**
    * 删除选中节点
    */
-  const handleDeleteSelectedNodes = () => {
+  const handleDeleteSelectedNodes = useCallback(() => {
     if (selectedNodes.length === 0) {
       return;
     }
 
     // 使用React Flow内置的deleteElements方法删除选中节点
     reactFlowInstance.deleteElements({
-      'nodes': selectedNodes
+      'nodes': selectedNodes.map(node => ({ 'id': node.id }))
     });
-  };
+  }, [selectedNodes, reactFlowInstance]);
 
   /**
    * 批量删除连接
    */
-  const handleBatchDeleteConnections = () => {
+  const handleBatchDeleteConnections = useCallback(() => {
     if (selectedEdges.length === 0) {
       return;
     }
 
     // 使用React Flow内置的deleteElements方法批量删除选中连接
     reactFlowInstance.deleteElements({
-      'edges': selectedEdges
+      'edges': selectedEdges.map(edge => ({ 'id': edge.id }))
     });
-  };
+  }, [selectedEdges, reactFlowInstance]);
 
   /**
    * 删除单个连接
    */
-  const handleDeleteConnection = (edgeId: string) => {
+  const handleDeleteConnection = useCallback((edgeId: string) => {
     // 使用React Flow内置的deleteElements方法删除单个连接
     reactFlowInstance.deleteElements({
       'edges': [{ 'id': edgeId }]
     });
-  };
+  }, [reactFlowInstance]);
 
   /**
    * 处理节点点击选择
    */
-  const handleNodeClick = (node: Node<CustomNodeData>) => {
+  const handleNodeClick = useCallback((node: { id: string; data: CustomNodeData; selected: boolean }) => {
     // 检查节点是否已选中
     const isSelected = node.selected || false;
 
@@ -103,12 +137,12 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
         'selected': newSelectedNodeIds.includes(n.id)
       }))
     );
-  };
+  }, [selectedNodes, reactFlowInstance]);
 
   /**
    * 处理连接点击选择
    */
-  const handleConnectionClick = (edge: Edge<CustomEdgeData>) => {
+  const handleConnectionClick = useCallback((edge: { id: string; source: string; target: string; data: CustomEdgeData; selected: boolean }) => {
     // 检查连接是否已选中
     const isSelected = edge.selected || false;
 
@@ -128,7 +162,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
         'selected': newSelectedEdgeIds.includes(e.id)
       }))
     );
-  };
+  }, [selectedEdges, reactFlowInstance]);
 
   // === 统计信息功能 ===
   /**
@@ -162,10 +196,8 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
     };
   }, [nodes, edges]);
 
-  /**
-   * 渲染节点管理标签页
-   */
-  const renderNodesTab = () => (
+  // 渲染节点管理标签页
+  const nodesTab = useMemo(() => (
     <div className="bg-white p-4 rounded-lg shadow-md">
       <div className="flex flex-wrap gap-2 items-center">
         {/* 节点统计 */}
@@ -211,12 +243,10 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
         </ul>
       </div>
     </div>
-  );
+  ), [nodes, selectedNodes, onAddNode, handleDeleteSelectedNodes, handleNodeClick]);
 
-  /**
-   * 渲染连接管理标签页
-   */
-  const renderConnectionsTab = () => (
+  // 渲染连接管理标签页
+  const connectionsTab = useMemo(() => (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-gray-800">连接管理</h3>
@@ -278,12 +308,10 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
         })}
       </div>
     </div>
-  );
+  ), [edges, selectedEdges, nodes, handleBatchDeleteConnections, handleConnectionClick, handleDeleteConnection]);
 
-  /**
-   * 渲染统计信息标签页
-   */
-  const renderStatisticsTab = () => {
+  // 渲染统计信息标签页
+  const statisticsTab = useMemo(() => {
     const stats = calculateBasicStats();
 
     return (
@@ -379,7 +407,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
         </div>
       </div>
     );
-  };
+  }, [calculateBasicStats]);
 
   return (
     <div className="bg-white rounded-lg shadow-md flex flex-col h-full">
@@ -420,9 +448,9 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
 
       {/* 标签页内容 - 固定区域，不随菜单滚动 */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-        {activeTab === 'nodes' && renderNodesTab()}
-        {activeTab === 'connections' && renderConnectionsTab()}
-        {activeTab === 'statistics' && renderStatisticsTab()}
+        {activeTab === 'nodes' && nodesTab}
+        {activeTab === 'connections' && connectionsTab}
+        {activeTab === 'statistics' && statisticsTab}
       </div>
     </div>
   );
