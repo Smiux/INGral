@@ -4,7 +4,7 @@ import { useStore, useReactFlow, type Edge } from '@xyflow/react';
 
 // 从CustomNode和CustomEdge导入类型
 import { CustomNodeData } from './CustomNode';
-import { CustomEdgeData } from './CustomEdge';
+import { CustomEdgeData } from './FloatingEdge';
 
 interface GraphControlPanelProps {
   panelPosition?: 'left' | 'right';
@@ -102,7 +102,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
     'id': '',
     'source': '',
     'target': '',
-    'type': 'custom',
+    'type': 'floating',
     'data': {
       'type': 'related',
       'weight': 1,
@@ -113,7 +113,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
         'strokeWidth': 2
       },
       'animation': {
-        'dynamicEffect': 'none',
+        'dynamicEffect': 'flow',
         'isAnimating': false
       }
     }
@@ -255,8 +255,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
         ...currentData,
         'animation': {
           ...(currentData.animation || {}),
-          'dynamicEffect': value as 'none' | 'flow' | 'pulse' | 'gradient',
-          'isAnimating': value !== 'none'
+          'dynamicEffect': value as 'flow' | 'pulse' | 'arrow' | 'blink' | 'wave' | 'rotate' | 'color-change' | 'fade',
+          // isAnimating保持不变，由专门的开关控制
+          'isAnimating': (currentData.animation?.isAnimating || false)
         }
       };
       const updatedEdge = {
@@ -507,6 +508,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
           />
         </div>
 
+
+
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             连接权重
@@ -538,7 +541,6 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
             >
               <option value="default">Bezier曲线</option>
               <option value="straight">直线</option>
-              <option value="step">阶梯线</option>
               <option value="smoothstep">平滑阶梯线</option>
               <option value="simplebezier">简单Bezier曲线</option>
             </select>
@@ -566,7 +568,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       'animation': {
                         ...(currentData.animation || {}),
                         'isAnimating': e.target.checked,
-                        'dynamicEffect': e.target.checked ? ((currentData?.animation?.dynamicEffect as 'none' | 'flow' | 'pulse' | 'gradient') || 'none') : 'none'
+                        'dynamicEffect': e.target.checked ? ((currentData?.animation?.dynamicEffect as 'flow' | 'pulse') || 'flow') : 'flow'
                       }
                     }
                   };
@@ -586,14 +588,19 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               </label>
               <select
                 name="dynamicEffect"
-                value={edgeFormData.data?.animation?.dynamicEffect || 'none'}
+                value={edgeFormData.data?.animation?.dynamicEffect || 'flow'}
                 onChange={handleEdgeChange}
                 disabled={!(edgeFormData.data?.animation?.isAnimating || false)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="none">无效果</option>
                 <option value="flow">流动动画</option>
                 <option value="pulse">脉冲效果</option>
+                <option value="blink">闪烁效果</option>
+                <option value="wave">波浪动画</option>
+                <option value="rotate">旋转动画</option>
+                <option value="color-change">颜色变化</option>
+                <option value="fade">渐隐渐现</option>
+                <option value="arrow">箭头动画</option>
               </select>
             </div>
           </div>
@@ -637,10 +644,18 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
   return (
     <div className={`w-72 bg-white shadow-lg flex flex-col overflow-hidden h-full ${panelPosition === 'left' ? 'border-r border-gray-200 absolute left-0 top-0 z-10' : 'border-l border-gray-200 absolute right-0 top-0 z-10'}`}>
       {/* 面板头部 */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white/90 backdrop-blur-sm z-10">
-        <h2 className="text-lg font-semibold">
-          {selectedNode ? '编辑节点' : '编辑连接'}
-        </h2>
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+            {selectedNode ? '编辑节点' : '编辑连接'}
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            {selectedNode ? '调整节点属性和连接点配置' : '修改连接样式和动态效果'}
+          </p>
+        </div>
         <button
           onClick={() => {
             // 直接使用reactFlowInstance取消所有选择

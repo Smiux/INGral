@@ -1,10 +1,8 @@
-import React, { useEffect, ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
+import React, { ReactNode } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { Header } from './components/layout/Header';
-import { useGlobalKeyboardShortcuts } from './components/keyboard/keyboardUtils';
 import './styles/accessibility.css';
-import { screenReaderAnnouncer } from './utils/accessibility';
-import { ThemeProvider } from './context';
+import { ThemeProvider } from './theme/ThemeContext.tsx';
 
 // 定义错误边界组件
 interface ErrorBoundaryProps {
@@ -51,38 +49,17 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 // 直接导入所有组件
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
-import { SearchPage } from './pages/SearchPage';
 import { ArticleViewer } from './components/articles/ArticleViewer';
-import { NewArticleEditor } from './components/articles/NewArticleEditor';
+import { NewArticleEditor } from './components/articles/ArticleEditor.tsx';
 import GraphVisualization from './components/graph/GraphVisualization/GraphVisualization';
 import { GraphListPage } from './pages/GraphListPage';
 import { DiscussionPage } from './pages/DiscussionPage';
 import { TopicDetailPage } from './pages/TopicDetailPage';
 import { CreateTopicPage } from './pages/CreateTopicPage';
+import Dashboard from './pages/Dashboard/Dashboard';
 
-// 应用主内容组件 - 使用 useLocation 需要在 BrowserRouter 内部
+// 应用主内容组件
 function AppContent () {
-  const location = useLocation();
-
-  // 初始化全局键盘快捷键
-  useGlobalKeyboardShortcuts();
-
-  // 初始化屏幕阅读器通知管理器
-  useEffect(() => {
-    try {
-      if (typeof screenReaderAnnouncer?.initialize === 'function') {
-        screenReaderAnnouncer.initialize();
-
-        // 应用启动时的屏幕阅读器通知
-        if (typeof screenReaderAnnouncer?.announce === 'function') {
-          screenReaderAnnouncer.announce('欢迎使用知识图谱应用。按Alt+K查看键盘快捷键。', true);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to initialize screen reader announcer:', error);
-    }
-  }, []);
-
   // 判断是否为编辑页面路由
   const isEditPage = () => {
     const { pathname } = location;
@@ -108,10 +85,11 @@ function AppContent () {
             <Route path="/articles/:slug" element={<ArticleViewer />} />
             <Route path="/articles/create" element={<NewArticleEditor />} />
             <Route path="/articles/:slug/edit" element={<NewArticleEditor />} />
-            <Route path="/search" element={<SearchPage />} />
             <Route path="/graphs" element={<GraphListPage />} />
             <Route path="/graphs/create" element={<GraphVisualization />} />
             <Route path="/graphs/:graphId" element={<GraphVisualization />} />
+            {/* 仪表盘路由 */}
+            <Route path="/dashboard" element={<Dashboard />} />
             {/* 讨论区路由 */}
             <Route path="/discussions" element={<DiscussionPage />} />
             <Route path="/discussions/:categorySlug" element={<DiscussionPage />} />

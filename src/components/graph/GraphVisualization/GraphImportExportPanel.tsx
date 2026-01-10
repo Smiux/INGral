@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Download, Upload, FileText, Database, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
-import type { CustomEdgeData } from './CustomEdge';
+import type { CustomEdgeData } from './FloatingEdge';
 
 interface GraphImportExportPanelProps {
   nodes: Node<CustomNodeData>[];
@@ -201,11 +201,11 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
               .substr(2, 9)}`,
             'source': values[1] || '',
             'target': values[2] || '',
-            'type': 'custom',
+            'type': 'floating',
             'data': {
               'type': values[3] || 'related',
               'weight': parseFloat(values[4] || '1') || 1,
-              'curveType': (values[5] as 'default' | 'smoothstep' | 'step' | 'straight' | 'simplebezier') || 'default'
+              'curveType': (values[5] as 'default' | 'smoothstep' | 'straight' | 'simplebezier') || 'default'
             },
             'selected': false
           } as Edge<CustomEdgeData>;

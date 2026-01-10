@@ -1,8 +1,6 @@
 import type { Article } from '../types';
-import type { SemanticSearchResult } from './semanticSearchService';
 import { BaseService } from './baseService';
 import { ArticleExportService } from './export/ArticleExportService';
-import { SearchResultsExportService } from './export/SearchResultsExportService';
 import { ExportUtils } from './export/ExportUtils';
 
 /**
@@ -14,14 +12,10 @@ export class ExportService extends BaseService {
   // 子服务实例
   private articleExportService: ArticleExportService;
 
-  private searchResultsExportService: SearchResultsExportService;
-
   private constructor () {
     super();
     // 初始化子服务实例
     this.articleExportService = new ArticleExportService();
-
-    this.searchResultsExportService = new SearchResultsExportService();
   }
 
   /**
@@ -104,94 +98,6 @@ export class ExportService extends BaseService {
   async exportArticleToPdf (article: Article): Promise<void> {
     return this.articleExportService.exportArticleToPdf(article);
   }
-
-  // ===========================
-  // 搜索结果导出方法（代理到 SearchResultsExportService）
-  // ===========================
-
-  /**
-   * 导出搜索结果为JSON格式
-   * @param results 搜索结果数组
-   * @param query 搜索查询
-   * @returns JSON格式的搜索结果
-   */
-  async exportSearchResultsToJson (
-    results: SemanticSearchResult[],
-    query: string
-  ): Promise<string> {
-    return this.searchResultsExportService.exportSearchResultsToJson(results, query);
-  }
-
-  /**
-   * 导出搜索结果为CSV格式
-   * @param results 搜索结果数组
-   * @returns CSV格式的搜索结果
-   */
-  async exportSearchResultsToCsv (
-    results: SemanticSearchResult[]
-  ): Promise<string> {
-    return this.searchResultsExportService.exportSearchResultsToCsv(results);
-  }
-
-  /**
-   * 导出搜索结果为GraphML格式
-   * @param results 搜索结果数组
-   * @returns GraphML格式的搜索结果
-   */
-  async exportSearchResultsToGraphml (
-    results: SemanticSearchResult[]
-  ): Promise<string> {
-    return this.searchResultsExportService.exportSearchResultsToGraphml(results);
-  }
-
-  /**
-   * 导出搜索结果为PDF
-   * @param results 搜索结果数组
-   * @param query 搜索查询
-   */
-  async exportSearchResultsToPdf (
-    results: SemanticSearchResult[],
-    query: string
-  ): Promise<void> {
-    return this.searchResultsExportService.exportSearchResultsToPdf(results, query);
-  }
-
-  /**
-   * 导出搜索结果为JSON文件
-   * @param results 搜索结果数组
-   * @param query 搜索查询
-   */
-  async exportSearchResultsAsJsonFile (
-    results: SemanticSearchResult[],
-    query: string
-  ): Promise<void> {
-    return this.searchResultsExportService.exportSearchResultsAsJsonFile(results, query);
-  }
-
-  /**
-   * 导出搜索结果为CSV文件
-   * @param results 搜索结果数组
-   * @param query 搜索查询
-   */
-  async exportSearchResultsAsCsvFile (
-    results: SemanticSearchResult[],
-    query: string
-  ): Promise<void> {
-    return this.searchResultsExportService.exportSearchResultsAsCsvFile(results, query);
-  }
-
-  /**
-   * 导出搜索结果为GraphML文件
-   * @param results 搜索结果数组
-   * @param query 搜索查询
-   */
-  async exportSearchResultsAsGraphmlFile (
-    results: SemanticSearchResult[],
-    query: string
-  ): Promise<void> {
-    return this.searchResultsExportService.exportSearchResultsAsGraphmlFile(results, query);
-  }
-
 
   // ===========================
   // 公共工具方法（直接暴露 ExportUtils 的方法）

@@ -183,21 +183,5 @@ try {
   supabase = createMockSupabaseClient();
 }
 
-/**
- * 测试Supabase连接的健康状态
- * @returns 连接是否成功
- */
-export async function testSupabaseConnection (): Promise<boolean> {
-  try {
-    // 尝试查询articles表的计数来测试连接
-    await supabase.from('articles').select('id', { 'count': 'exact', 'head': true });
-    console.log('数据库连接测试成功');
-    return true;
-  } catch (error) {
-    console.error('数据库连接测试失败:', error instanceof Error ? error.message : String(error));
-    return false;
-  }
-}
-
 // 导出Supabase客户端
 export { supabase };

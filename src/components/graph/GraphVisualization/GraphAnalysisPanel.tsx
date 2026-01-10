@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useStore, useReactFlow, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
-import type { CustomEdgeData } from './CustomEdge';
+import type { CustomEdgeData } from './FloatingEdge';
 
 // 中心性结果类型
 interface CentralityResult {
@@ -4213,7 +4213,20 @@ export const GraphAnalysisPanel: React.FC = () => {
 
     return (
       <div className="mt-4">
-        <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">基础统计</h4>
+        <div className="relative mb-4">
+          <h4 className="text-lg font-semibold text-gray-900 text-center">基础统计</h4>
+          <div className="absolute right-0 top-0">
+            <button
+              onClick={() => setIsHelpModalOpen(true)}
+              className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+              title="帮助"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-1 gap-4">
           {/* 基础指标 */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -4277,7 +4290,7 @@ export const GraphAnalysisPanel: React.FC = () => {
                       </div>
                       <div className="mt-1 flex flex-wrap gap-1 max-w-full">
                         {component.slice(0, 5).map(node => (
-                          <span key={node.id} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs text-center truncate overflow-hidden whitespace-nowrap text-ellipsis max-w-xs flex-shrink-0">
+                          <span key={node.id} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs text-center truncate overflow-hidden max-w-[6rem] flex-shrink-0">
                             {node.data?.title || ''}
                           </span>
                         ))}
@@ -4346,7 +4359,7 @@ export const GraphAnalysisPanel: React.FC = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentResults.degree.slice(0, 10).map((result, index) => (
                       <tr key={result.nodeId} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{result.node.data?.title || ''}</td>
+                        <td className="px-3 py-2 truncate max-w-[10rem] text-sm font-medium text-gray-900">{result.node.data?.title || ''}</td>
                         <td className="px-3 py-2 whitespace-nowrap text-sm text-right text-gray-500">{result.value.toFixed(3)}</td>
                       </tr>
                     ))}
@@ -4441,7 +4454,7 @@ export const GraphAnalysisPanel: React.FC = () => {
     }
 
     return (
-      <div className="mt-6">
+      <div className="mt-6 max-h-64 overflow-y-auto">
         <div>
           <h4 className="text-lg font-semibold text-gray-900 text-center">{getPathResultTitle()} ({analysisMode === 'weighted' ? '有权重' : '无权重'})</h4>
           <div className="bg-white p-4 rounded-lg shadow-sm mt-2">
@@ -4458,17 +4471,30 @@ export const GraphAnalysisPanel: React.FC = () => {
 
             {currentPathResult.path.length > 0 ? (
               <>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {currentPathResult.path.map((node, index) => (
-                    <React.Fragment key={node.id}>
-                      <span className={`px-3 py-1 ${analysisMode === 'weighted' ? 'bg-green-600' : 'bg-blue-600'} text-white rounded-full text-sm`}>
-                        {node.data?.title || ''}
-                      </span>
-                      {index < currentPathResult.path.length - 1 && (
-                        <span className="text-gray-500">→</span>
-                      )}
-                    </React.Fragment>
-                  ))}
+                <div className="flex flex-col items-center gap-2 max-h-24 overflow-y-auto p-2 bg-gray-50 rounded-lg">
+                  {Array.from({ 'length': Math.ceil(currentPathResult.path.length / 4) }, (_, batchIndex) => {
+                    const startIndex = batchIndex * 4;
+                    const endIndex = Math.min(startIndex + 4, currentPathResult.path.length);
+                    const batch = currentPathResult.path.slice(startIndex, endIndex);
+
+                    return (
+                      <div key={batchIndex} className="flex items-center gap-2 flex-wrap justify-center">
+                        {batch.map((node, nodeIndex) => {
+                          const globalIndex = startIndex + nodeIndex;
+                          return (
+                            <React.Fragment key={node.id}>
+                              <span className={`px-3 py-1 ${analysisMode === 'weighted' ? 'bg-green-600' : 'bg-blue-600'} text-white rounded-full text-sm truncate max-w-[8rem]`}>
+                                {node.data?.title || ''}
+                              </span>
+                              {globalIndex < currentPathResult.path.length - 1 && (
+                                <span className="text-gray-500">→</span>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* 高亮路径按钮 */}
@@ -4493,27 +4519,13 @@ export const GraphAnalysisPanel: React.FC = () => {
 
   /* eslint-enable max-depth, no-continue, max-nested-callbacks, react-hooks/exhaustive-deps */
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg w-full h-full overflow-y-auto relative">
-      {/* 标题栏 */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-900">图谱分析</h3>
-        {/* 帮助按钮 */}
-        <button
-          onClick={() => setIsHelpModalOpen(true)}
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
-          title="帮助"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </button>
-      </div>
+    <div className="w-full overflow-hidden min-w-0">
 
       {/* 基础统计信息 */}
       {renderBasicStats()}
 
       {/* 分析模式切换 */}
-      <div className="mt-6 flex justify-center">
+      <div className="mt-4 flex justify-center">
         <div className="inline-flex rounded-md shadow-sm" role="group">
           <button
             type="button"
@@ -4553,7 +4565,7 @@ export const GraphAnalysisPanel: React.FC = () => {
       </div>
 
       {/* 路径查找 */}
-      <div className="mt-6">
+      <div className="mt-4">
         <h4 className="text-lg font-semibold text-gray-900 mb-3 text-center">路径查找</h4>
         <div className="flex flex-wrap justify-center gap-2 mb-2">
           <select

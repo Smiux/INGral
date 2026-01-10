@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Node, Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
-import type { CustomEdgeData } from './CustomEdge';
+import type { CustomEdgeData } from './FloatingEdge';
 import ELK from 'elkjs';
 
 interface GraphLayoutPanelProps {

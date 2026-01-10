@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import {
   BezierEdge,
-  StepEdge,
   SmoothStepEdge,
   StraightEdge,
   SimpleBezierEdge,
@@ -10,26 +9,7 @@ import {
 
 
 
-// 自定义连接数据类型
-export interface CustomEdgeData {
-  type?: string | undefined;
-  curveType?: 'default' | 'smoothstep' | 'step' | 'straight' | 'simplebezier' | undefined;
-  weight?: number | undefined;
-  label?: string | undefined;
-  style?: {
-    stroke?: string | undefined;
-    strokeWidth?: number | undefined;
-    dasharray?: string | undefined;
-    arrowCount?: number | undefined;
-  } | undefined;
-  animation?: {
-    dynamicEffect?: 'none' | 'flow' | 'pulse' | 'gradient' | undefined;
-    isAnimating?: boolean | undefined;
-    pathAnimation?: boolean | undefined;
-    pathAnimationProgress?: number | undefined;
-  } | undefined;
-  [key: string]: unknown;
-}
+import type { CustomEdgeData } from './FloatingEdge';
 
 /**
  * 自定义连接组件
@@ -157,9 +137,6 @@ export const CustomEdge = (props: EdgeProps) => {
   switch (curveType) {
     case 'straight':
       EdgeComponent = StraightEdge;
-      break;
-    case 'step':
-      EdgeComponent = StepEdge;
       break;
     case 'smoothstep':
       EdgeComponent = SmoothStepEdge;

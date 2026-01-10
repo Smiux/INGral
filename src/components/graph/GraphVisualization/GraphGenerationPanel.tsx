@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useReactFlow, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
-import type { CustomEdgeData } from './CustomEdge';
+import type { CustomEdgeData } from './FloatingEdge';
 
 interface GraphGenerationPanelProps {
   onGenerate: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
@@ -22,7 +22,7 @@ type BaseGraphConfig = {
   handleList: string;
   edgeCategories: string[];
   weightRange: [number, number];
-  curveType: 'default' | 'smoothstep' | 'step' | 'straight' | 'simplebezier';
+  curveType: 'default' | 'smoothstep' | 'straight' | 'simplebezier';
 };
 
 // 随机图配置
@@ -344,30 +344,11 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
       const sourceId = generateNodeId(i);
       const targetId = generateNodeId(i + 1);
 
-      // 确保handle索引有效，根据方向使用正确的连接点
-      const sourceNode = newNodes[i]!;
-      const targetNode = newNodes[i + 1]!;
-
-      let sourceHandleIndex: number;
-      let targetHandleIndex: number;
-
-      if (direction === 'horizontal') {
-        // 水平链状图：右侧连接点（索引0）连接到左侧连接点（索引2）
-        sourceHandleIndex = Math.min(0, (sourceNode.data.handleCount || 2) - 1);
-        targetHandleIndex = Math.min(2, (targetNode.data.handleCount || 2) - 1);
-      } else {
-        // 垂直链状图：底部连接点（索引1）连接到顶部连接点（索引3）
-        sourceHandleIndex = Math.min(1, (sourceNode.data.handleCount || 2) - 1);
-        targetHandleIndex = Math.min(3, (targetNode.data.handleCount || 2) - 1);
-      }
-
       newEdges.push({
         'id': generateEdgeId(sourceId, targetId, i),
-        'type': 'custom',
+        'type': 'floating',
         'source': sourceId,
         'target': targetId,
-        'sourceHandle': `${sourceId}-handle-${sourceHandleIndex}`,
-        'targetHandle': `${targetId}-handle-${targetHandleIndex}`,
         'data': {
           'type': generateEdgeCategory(edgeCategories),
           curveType,
@@ -421,7 +402,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
       newNodes.push({
         'id': generateNodeId(i),
-        'type': 'custom',
+        'type': 'floating',
         position,
         'data': {
           'title': `${category} ${i + 1}`,
@@ -451,20 +432,11 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
       const targetIndex = (i + 1) % nodeCount;
       const targetId = generateNodeId(targetIndex);
 
-      // 确保handle索引有效，使用正确的连接点索引
-      // 每个节点使用右侧连接点（索引0）连接到下一个节点的左侧连接点（索引2）
-      const sourceNode = newNodes[i]!;
-      const targetNode = newNodes[targetIndex]!;
-      const sourceHandleIndex = Math.min(0, (sourceNode.data.handleCount || 2) - 1);
-      const targetHandleIndex = Math.min(2, (targetNode.data.handleCount || 2) - 1);
-
       newEdges.push({
         'id': generateEdgeId(sourceId, targetId, i),
-        'type': 'custom',
+        'type': 'floating',
         'source': sourceId,
         'target': targetId,
-        'sourceHandle': `${sourceId}-handle-${sourceHandleIndex}`,
-        'targetHandle': `${targetId}-handle-${targetHandleIndex}`,
         'data': {
           'type': generateEdgeCategory(edgeCategories),
           curveType,
@@ -615,7 +587,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
       newNodes.push({
         'id': nodeId,
-        'type': 'custom',
+        'type': 'floating',
         position,
         'data': {
           'title': `${category} ${nextIndex}`,
@@ -640,22 +612,11 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
       // 如果不是根节点，生成边
       if (parentId) {
-        // 确保handle索引有效
-        const parentNode = newNodes.find(node => node.id === parentId);
-        const childNode = newNodes.find(node => node.id === nodeId);
-
-        // 父节点连接点：使用底部连接点（索引1或最后一个连接点）
-        const sourceHandleIndex = parentNode ? Math.min(1, (parentNode.data.handleCount || 2) - 1) : 1;
-        // 子节点连接点：使用顶部连接点（索引0）
-        const targetHandleIndex = childNode ? 0 : 0;
-
         newEdges.push({
           'id': generateEdgeId(parentId, nodeId, newEdges.length),
-          'type': 'custom',
+          'type': 'floating',
           'source': parentId,
           'target': nodeId,
-          'sourceHandle': `${parentId}-handle-${sourceHandleIndex}`,
-          'targetHandle': `${nodeId}-handle-${targetHandleIndex}`,
           'data': {
             'type': generateEdgeCategory(edgeCategories),
             curveType,
@@ -816,7 +777,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
       newNodes.push({
         'id': generateNodeId(i),
-        'type': 'custom',
+        'type': 'floating',
         position,
         'data': {
           'title': `${category} ${i + 1}`,
@@ -859,19 +820,11 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
           const sourceNode = newNodes[sourceIndex];
           const targetNode = newNodes[targetIndex];
           if (sourceNode && targetNode) {
-            const sourceHandleCount = sourceNode.data.handleCount || 4;
-            const targetHandleCount = targetNode.data.handleCount || 4;
-
-            const sourceHandleIndex = Math.floor(Math.random() * sourceHandleCount);
-            const targetHandleIndex = Math.floor(Math.random() * targetHandleCount);
-
             newEdges.push({
               'id': generateEdgeId(sourceId, targetId, currentEdgeCount),
-              'type': 'custom',
+              'type': 'floating',
               'source': sourceId,
               'target': targetId,
-              'sourceHandle': `${sourceId}-handle-${sourceHandleIndex}`,
-              'targetHandle': `${targetId}-handle-${targetHandleIndex}`,
               'data': {
                 'type': generateEdgeCategory(edgeCategories),
                 curveType,
@@ -921,7 +874,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
         newNodes.push({
           'id': nodeId,
-          'type': 'custom',
+          'type': 'floating',
           'position': { 'x': col * 150, 'y': row * 150 },
           'data': {
             'title': `${category} ${index}`,
@@ -957,17 +910,13 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         // 使用正确的连接点：
         // 连接点索引顺序：0=右侧，1=底部，2=左侧，3=顶部
         // 左侧节点使用右侧连接点（索引0）
-        // 右侧节点使用左侧连接点（索引2）
-        const sourceHandleIndex = 0;
-        const targetHandleIndex = 2;
+
 
         newEdges.push({
           'id': generateEdgeId(sourceId, targetId, newEdges.length),
-          'type': 'custom',
+          'type': 'floating',
           'source': sourceId,
           'target': targetId,
-          'sourceHandle': `${sourceId}-handle-${sourceHandleIndex}`,
-          'targetHandle': `${targetId}-handle-${targetHandleIndex}`,
           'data': {
             'type': generateEdgeCategory(edgeCategories),
             curveType,
@@ -993,17 +942,13 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         // 使用正确的连接点：
         // 连接点索引顺序：0=右侧，1=底部，2=左侧，3=顶部
         // 上方节点使用底部连接点（索引1）
-        // 下方节点使用顶部连接点（索引3）
-        const sourceHandleIndex = 1;
-        const targetHandleIndex = 3;
+
 
         newEdges.push({
           'id': generateEdgeId(sourceId, targetId, newEdges.length),
-          'type': 'custom',
+          'type': 'floating',
           'source': sourceId,
           'target': targetId,
-          'sourceHandle': `${sourceId}-handle-${sourceHandleIndex}`,
-          'targetHandle': `${targetId}-handle-${targetHandleIndex}`,
           'data': {
             'type': generateEdgeCategory(edgeCategories),
             curveType,
@@ -1097,7 +1042,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
       newNodes.push({
         'id': nodeId,
-        'type': 'custom',
+        'type': 'floating',
         'position': { x, y },
         'data': {
           'title': `${category} ${i}`,
@@ -1128,7 +1073,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
       newEdges.push({
         'id': generateEdgeId(centerNodeId, nodeId, i - 1),
-        'type': 'custom',
+        'type': 'floating',
         'source': centerNodeId,
         'target': nodeId,
         'sourceHandle': `${centerNodeId}-handle-${centerHandleIndex}`,
@@ -1316,16 +1261,28 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
   }, [graphType]);
 
   return (
-    <div className="w-128 bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-20">
-      <div className="bg-white p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold">图生成</h2>
+    <div className="w-[40rem] min-w-[40rem] max-w-[40rem] h-full bg-white shadow-lg overflow-y-auto absolute left-0 top-0 z-20 border-r border-gray-200">
+      {/* 面板标题 */}
+      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          {/* 生成图标 */}
+          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+          图生成
+        </h2>
+        <p className="text-sm text-gray-600 mt-1">
+          配置并生成不同类型的图谱
+        </p>
       </div>
-      <div className="flex-1 overflow-y-auto p-2 bg-gray-50">
+
+      {/* 内容区域 */}
+      <div className="p-6 space-y-6">
         {/* 图类型选择 */}
-        <div className="mb-4 bg-white p-3 rounded-md shadow-sm border border-gray-200">
-          <h3 className="text-sm font-medium mb-2 text-gray-700">图类型</h3>
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-800 mb-4">图类型</h3>
           <select
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={graphType}
             onChange={(e) => setGraphType(e.target.value as GraphType)}
           >
@@ -1340,18 +1297,18 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
         {/* 特定图类型的配置 */}
         {(graphType === 'tree' || graphType === 'grid') && (
-          <div className="mb-4 bg-white p-3 rounded-md shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium mb-2 text-gray-700">
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-800 mb-4">
               {graphType === 'tree' ? '树图配置' : '网格图配置'}
             </h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-4">
               {graphType === 'tree' ? (
                 <>
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">最大深度</label>
                     <input
                       type="number"
-                      className="w-full p-2 border border-gray-300 rounded-md"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       min="1"
                       max="5"
                       // 优化：使用状态值直接绑定，允许为空
@@ -1376,7 +1333,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                     <label className="block text-xs text-gray-600 mb-1">最小深度</label>
                     <input
                       type="number"
-                      className="w-full p-2 border border-gray-300 rounded-md"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       min="1"
                       max="4"
                       // 优化：使用状态值直接绑定，允许为空
@@ -1399,7 +1356,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                   <div className="col-span-2">
                     <label className="block text-xs text-gray-600 mb-1">分叉模式</label>
                     <select
-                      className="w-full p-2 border border-gray-300 rounded-md"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       value={treeConfig.branchingMode}
                       onChange={(e) => {
                         const branchingMode = e.target.value as 'fixed' | 'random';
@@ -1413,7 +1370,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                   <div className="col-span-2">
                     <label className="block text-xs text-gray-600 mb-1">数量控制</label>
                     <select
-                      className="w-full p-2 border border-gray-300 rounded-md"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       value={treeConfig.countMode}
                       onChange={(e) => {
                         const countMode = e.target.value as 'fixed' | 'range';
@@ -1429,7 +1386,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                       <label className="block text-xs text-gray-600 mb-1">固定子节点数</label>
                       <input
                         type="number"
-                        className="w-full p-2 border border-gray-300 rounded-md"
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         min="1"
                         max="5"
                         // 优化：使用状态值直接绑定，允许为空
@@ -1455,7 +1412,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                         <label className="block text-xs text-gray-600 mb-1">最小子节点数</label>
                         <input
                           type="number"
-                          className="w-full p-2 border border-gray-300 rounded-md"
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           min="1"
                           max="5"
                           // 优化：使用状态值直接绑定，允许为空
@@ -1479,7 +1436,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                         <label className="block text-xs text-gray-600 mb-1">最大子节点数</label>
                         <input
                           type="number"
-                          className="w-full p-2 border border-gray-300 rounded-md"
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           min="1"
                           max="5"
                           // 优化：使用状态值直接绑定，允许为空
@@ -1559,8 +1516,8 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         )}
 
         {/* 节点配置 */}
-        <div className="mb-4 bg-white p-3 rounded-md shadow-sm border border-gray-200">
-          <h3 className="text-sm font-medium mb-2 text-gray-700">节点配置</h3>
+        <div className="mb-4 bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-800 mb-4">节点配置</h3>
 
           {/* 根据图类型显示或隐藏节点数量输入 */}
           {(graphType !== 'tree' && graphType !== 'grid') && (
@@ -1568,7 +1525,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
               <label className="block text-xs text-gray-600 mb-1">节点数量</label>
               <input
                 type="number"
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 min="2"
                 max="500"
                 // 优化：使用状态值直接绑定，允许为空
@@ -1672,7 +1629,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
             <label className="block text-xs text-gray-600 mb-1">节点类别（英文分号分隔）</label>
             <input
               type="text"
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="概念;理论;方法"
               value={activeConfig.categories.join(';')}
               onChange={(e) => updateNodeCategories(e.target.value)}
@@ -1685,7 +1642,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
               <div className="mb-3">
                 <label className="block text-xs text-gray-600 mb-1">连接点数量生成模式</label>
                 <select
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   value={activeConfig.handleMode}
                   onChange={(e) => {
                     const handleMode = e.target.value as HandleGenerationMode;
@@ -1709,12 +1666,12 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
               {/* 根据模式显示不同的配置项 */}
               {activeConfig.handleMode === 'range' && (
-                <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="grid grid-cols-2 gap-4 mb-3">
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">最小值</label>
                     <input
                       type="number"
-                      className="w-full p-2 border border-gray-300 rounded-md"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       min="1"
                       max="20"
                       // 优化：使用状态值直接绑定，允许为空
@@ -1758,7 +1715,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                     <label className="block text-xs text-gray-600 mb-1">最大值</label>
                     <input
                       type="number"
-                      className="w-full p-2 border border-gray-300 rounded-md"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       min="1"
                       max="20"
                       // 优化：使用状态值直接绑定，允许为空
@@ -1806,7 +1763,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                   <label className="block text-xs text-gray-600 mb-1">固定数量</label>
                   <input
                     type="number"
-                    className="w-full p-2 border border-gray-300 rounded-md"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     min="1"
                     max="20"
                     // 优化：使用状态值直接绑定，允许为空
@@ -1852,7 +1809,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
                   <label className="block text-xs text-gray-600 mb-1">特定值列表（英文分号分隔）</label>
                   <input
                     type="text"
-                    className="w-full p-2 border border-gray-300 rounded-md"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="2;4;6;8"
                     value={activeConfig.handleList}
                     onChange={(e) => {
@@ -1876,8 +1833,8 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         </div>
 
         {/* 连接配置 */}
-        <div className="mb-4 bg-white p-3 rounded-md shadow-sm border border-gray-200">
-          <h3 className="text-sm font-medium mb-2 text-gray-700">连接配置</h3>
+        <div className="mb-4 bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-800 mb-4">连接配置</h3>
 
           {/* 根据图类型显示或隐藏连接数量输入 */}
           {graphType === 'random' && (
@@ -1885,7 +1842,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
               <label className="block text-xs text-gray-600 mb-1">连接数量</label>
               <input
                 type="number"
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 min="0"
                 max={randomConfig.nodeCount * (randomConfig.nodeCount - 1)}
                 // 优化：使用状态值直接绑定，允许为空
@@ -1939,7 +1896,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
             <label className="block text-xs text-gray-600 mb-1">连接类别（英文分号分隔）</label>
             <input
               type="text"
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="包含;相关"
               value={activeConfig.edgeCategories.join(';')}
               onChange={(e) => updateEdgeCategories(e.target.value)}
@@ -1947,12 +1904,12 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
           </div>
 
           {/* 连接权重范围 */}
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="grid grid-cols-2 gap-4 mb-3">
             <div>
               <label className="block text-xs text-gray-600 mb-1">权重最小值</label>
               <input
                 type="number"
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 min="1"
                 max="100"
                 value={activeConfig.weightRange[0]}
@@ -1988,7 +1945,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
               <label className="block text-xs text-gray-600 mb-1">权重最大值</label>
               <input
                 type="number"
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 min="1"
                 max="100"
                 value={activeConfig.weightRange[1]}
@@ -2026,10 +1983,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
           <div className="mb-3">
             <label className="block text-xs text-gray-600 mb-1">连接线样式</label>
             <select
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={activeConfig.curveType}
               onChange={(e) => {
-                const curveType = e.target.value as 'default' | 'smoothstep' | 'step' | 'straight' | 'simplebezier';
+                const curveType = e.target.value as 'default' | 'smoothstep' | 'straight' | 'simplebezier';
                 switch (graphType) {
                   case 'random':
                     setRandomConfig(prev => ({ ...prev, curveType }));
@@ -2064,12 +2021,12 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         </div>
 
         {graphType === 'chain' && (
-          <div className="mb-4 bg-white p-3 rounded-md shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium mb-2 text-gray-700">链状图配置</h3>
+          <div className="mb-4 bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-800 mb-4">链状图配置</h3>
             <div>
               <label className="block text-xs text-gray-600 mb-1">方向</label>
               <select
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={chainConfig.direction}
                 onChange={(e) => {
                   const direction = e.target.value as 'horizontal' | 'vertical';
@@ -2084,28 +2041,35 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         )}
 
         {/* 生成按钮 */}
-        <div className="mt-6">
+        <div className="space-y-4">
           <button
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${generationProgress.active ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md'}`}
             onClick={handleGenerateGraph}
             disabled={generationProgress.active}
           >
-            {generationProgress.active ? '生成中...' : '生成图'}
+            {generationProgress.active ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                生成中...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"></path>
+                </svg>
+                生成图
+              </>
+            )}
           </button>
-
-          {/* 进度条 */}
           {generationProgress.active && (
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>{generationProgress.stage}</span>
-                <span>{generationProgress.progress}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
-                  style={{ 'width': `${generationProgress.progress}%` }}
-                ></div>
-              </div>
+            <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+              <div
+                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                style={{ 'width': `${generationProgress.progress}%` }}
+              ></div>
             </div>
           )}
         </div>

@@ -163,11 +163,4 @@ export default tseslint.config(
       'yoda': 'error'
     },
   },
-  // 测试文件的特殊规则
-  { 
-    files: ['src/**/__tests__/**/*.{js,ts,jsx,tsx}'],
-    rules: {
-      'max-nested-callbacks': ['error', 5] // 测试文件允许更多嵌套回调
-    }
-  }
 );

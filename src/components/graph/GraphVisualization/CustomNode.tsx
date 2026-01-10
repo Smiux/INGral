@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect } from 'react';
-import { Handle, Position, type NodeProps, useUpdateNodeInternals } from '@xyflow/react';
+import { Handle, Position, type NodeProps, useUpdateNodeInternals, useStore, type ReactFlowState } from '@xyflow/react';
 
 // 自定义节点数据类型
 export interface CustomNodeData {
@@ -44,6 +44,12 @@ export const CustomNode = (props: NodeProps) => {
   // 使用useUpdateNodeInternals通知React Flow节点内部状态变化
   const updateNodeInternals = useUpdateNodeInternals();
 
+  // 获取选中的边，检查当前节点是否是任何选中边的源节点或目标节点
+  const isConnectedToSelectedEdge = useStore((state: ReactFlowState) => {
+    const selectedEdges = state.edges.filter((edge) => edge.selected);
+    return selectedEdges.some((edge) => edge.source === id || edge.target === id);
+  });
+
   // 节点基本信息
   const nodeTitle = (nodeData.title || id || 'Node') as string;
   const nodeCategory = nodeData.category || '默认';
@@ -53,7 +59,6 @@ export const CustomNode = (props: NodeProps) => {
   const style = nodeData.style || {};
   const styleFill = style.fill || '#fff';
   const baseStrokeColor = style.stroke || '#4ECDC4';
-  const selectedStrokeColor = '#FF5252';
   const styleStrokeWidth = style.strokeWidth || 2;
 
   // 旋转配置
@@ -160,14 +165,11 @@ export const CustomNode = (props: NodeProps) => {
   }, [id, nodeData.handleCount, nodeData.handles?.lockedHandles, handleStyle, outerAngle]);
 
   // 节点样式 - 圆形，与legacy DefaultNode保持一致
-  // 使用CSS变量控制边框颜色，以便过渡效果生效
+  // 移除选中时的样式变化
   // 优化：减少useMemo的依赖项，只在必要时重新计算
-  const nodeStrokeColor = selected ? selectedStrokeColor : baseStrokeColor;
-
-  // 优化：NODE_SIZE是常量，不需要作为useMemo的依赖项
   const nodeStyle = useMemo(() => ({
     'backgroundColor': styleFill,
-    'border': `${styleStrokeWidth}px solid var(--node-stroke-color)`,
+    'border': `${styleStrokeWidth}px solid ${baseStrokeColor}`,
     'borderRadius': '50%',
     'width': 100,
     'height': 100,
@@ -177,10 +179,8 @@ export const CustomNode = (props: NodeProps) => {
     'position': 'relative',
     'boxSizing': 'border-box',
     'cursor': 'grab',
-    'overflow': 'visible',
-    // 使用CSS变量控制边框颜色，支持过渡效果
-    '--node-stroke-color': nodeStrokeColor
-  } as React.CSSProperties), [styleFill, nodeStrokeColor, styleStrokeWidth]);
+    'overflow': 'visible'
+  } as React.CSSProperties), [styleFill, baseStrokeColor, styleStrokeWidth]);
 
 
 
@@ -240,34 +240,50 @@ export const CustomNode = (props: NodeProps) => {
   } as React.CSSProperties), [innerAngle]);
 
   return (
-    <div style={nodeStyle}>
-      {/* 节点内容 - 旋转 */}
-      <div
-        className="node-content"
-        style={rotatedContentStyle}
-      >
-        <div style={titleStyle}>
-          {nodeTitle}
+    <>
+      {/* 选中光圈效果 - 节点选中或连接到选中边时显示 */}
+      {(selected || isConnectedToSelectedEdge) && (
+        <div
+          className="selected-glow"
+          style={{
+            'width': '120px',
+            'height': '120px',
+            'left': '-10px',
+            'top': '-10px',
+            'position': 'absolute'
+          }}
+        />
+      )}
+      {/* 节点内容 */}
+      <div style={nodeStyle}>
+        {/* 节点内容 - 旋转 */}
+        <div
+          className="node-content"
+          style={rotatedContentStyle}
+        >
+          <div style={titleStyle}>
+            {nodeTitle}
+          </div>
+
+          {/* 只在有内容时渲染 */}
+          {content && (
+            <div style={contentTextStyle}>
+              {content}
+            </div>
+          )}
+
+          {/* 只在有类别时渲染 */}
+          {nodeCategory && (
+            <div style={categoryStyle}>
+              {nodeCategory}
+            </div>
+          )}
         </div>
 
-        {/* 只在有内容时渲染 */}
-        {content && (
-          <div style={contentTextStyle}>
-            {content}
-          </div>
-        )}
-
-        {/* 只在有类别时渲染 */}
-        {nodeCategory && (
-          <div style={categoryStyle}>
-            {nodeCategory}
-          </div>
-        )}
+        {/* 连接点 - 根据旋转角度重新计算位置 */}
+        {handles}
       </div>
-
-      {/* 连接点 - 根据旋转角度重新计算位置 */}
-      {handles}
-    </div>
+    </>
   );
 };
 

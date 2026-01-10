@@ -9,13 +9,10 @@ import type { Article } from '../../types';
 import { articleService } from '../../services/articleService';
 import { renderMarkdown } from '../../utils/markdown';
 import ExportButton from '../ui/ExportButton';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '../../theme/useTheme';
 import { CommentsSection } from '../comments/CommentsSection';
 import { ArticleTableOfContents } from './TableOfContents';
 import { RelatedContent } from './RelatedContent';
-import { useChartRendering } from '../../hooks/useChartRendering';
-import { NerdamerCellRenderer } from '../editors/NerdamerCellRenderer';
-
 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
@@ -142,8 +139,6 @@ export function ArticleViewer () {
     };
   }, [navigate]);
 
-  // 使用自定义Hook渲染图表
-  useChartRendering(contentRef, article);
 
   if (isLoading) {
     return (
@@ -293,8 +288,6 @@ export function ArticleViewer () {
       {/* Comments Section */}
       <CommentsSection articleId={article.id} />
 
-      {/* Nerdamer Cell Renderer */}
-      <NerdamerCellRenderer contentRef={contentRef} />
     </article>
   );
 }

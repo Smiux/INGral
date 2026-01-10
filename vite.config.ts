@@ -20,8 +20,6 @@ export default defineConfig({
           'vendor': ['react', 'react-dom', 'react-router-dom'],
           // 将markdown和katex相关的库拆分为独立的chunk
           'markdown-katex': ['katex', 'markdown-it'],
-          // 将搜索功能相关代码拆分为独立的chunk
-          'search': ['@/components/search', '@/services/searchService'],
           // 将文章编辑功能相关代码拆分为独立的chunk
           'article-editor': ['@/components/articles/ArticleEditor', '@/services/articleService'],
           // 将图谱可视化功能相关代码拆分为独立的chunk

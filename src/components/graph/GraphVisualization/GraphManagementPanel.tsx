@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useStore, useReactFlow } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
-import type { CustomEdgeData } from './CustomEdge';
+import type { CustomEdgeData } from './FloatingEdge';
 
 // 定义标签页类型
 type TabType = 'nodes' | 'connections' | 'statistics';

@@ -1,5 +1,5 @@
 import { Moon, Sun } from 'lucide-react';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '../../theme/useTheme';
 
 /**
  * ThemeToggle component for switching between light and dark modes
