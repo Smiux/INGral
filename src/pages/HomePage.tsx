@@ -66,7 +66,7 @@ export function HomePage () {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-20 text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            MyMathWiki
+            MyWiki
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             A community-based knowledge platform for creating, sharing, and visualizing mathematical concepts.
@@ -110,9 +110,9 @@ export function HomePage () {
 
             <div className="p-6 bg-white rounded-lg border border-gray-200 hover:shadow-lg transition">
               <ExternalLink className="w-8 h-8 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Contextual References</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">上下文引用</h3>
               <p className="text-gray-600">
-                View referenced content in place with drawer or tile UI without leaving your current article.
+                在不离开当前文章的情况下，通过抽屉或卡片UI查看引用的内容。
               </p>
             </div>
           </div>
@@ -120,19 +120,19 @@ export function HomePage () {
           {/* 统计数据卡片 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
             <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 shadow-sm">
-              <h3 className="text-sm font-medium text-blue-700 mb-1">Total Articles</h3>
+              <h3 className="text-sm font-medium text-blue-700 mb-1">文章总数</h3>
               <p className="text-4xl font-bold text-blue-900">{stats.articleCount}</p>
-              <p className="text-xs text-blue-600 mt-2">Knowledge base articles</p>
+              <p className="text-xs text-blue-600 mt-2">知识库文章</p>
             </div>
             <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 shadow-sm">
-              <h3 className="text-sm font-medium text-green-700 mb-1">Total Graphs</h3>
+              <h3 className="text-sm font-medium text-green-700 mb-1">图谱总数</h3>
               <p className="text-4xl font-bold text-green-900">{stats.graphCount}</p>
-              <p className="text-xs text-green-600 mt-2">Visual knowledge graphs</p>
+              <p className="text-xs text-green-600 mt-2">可视化知识图谱</p>
             </div>
             <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 shadow-sm">
-              <h3 className="text-sm font-medium text-purple-700 mb-1">Total Submissions</h3>
+              <h3 className="text-sm font-medium text-purple-700 mb-1">提交总数</h3>
               <p className="text-4xl font-bold text-purple-900">{stats.submissionCount}</p>
-              <p className="text-xs text-purple-600 mt-2">Community contributions</p>
+              <p className="text-xs text-purple-600 mt-2">社区贡献</p>
             </div>
           </div>
         </div>
@@ -144,12 +144,12 @@ export function HomePage () {
         ) : (
           <div className="mb-20">
             <div className="flex items-center justify-between mb-12">
-              <h2 className="text-3xl font-bold text-gray-900">Recent Articles</h2>
+              <h2 className="text-3xl font-bold text-gray-900">最近文章</h2>
               <Link
                 to="/articles"
                 className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition"
               >
-                View All <ArrowRight className="w-4 h-4" />
+                查看全部 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 

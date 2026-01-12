@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ReactFlow,
   Background,
@@ -237,15 +238,8 @@ const initialNodes: Node<CustomNodeData>[] = [
       'title': '新节点1',
       'category': '默认',
       'handleCount': 4,
-      'handles': {
-        'lockedHandles': {},
-        'handleLabels': {}
-      },
       'style': {},
       'metadata': {
-        'createdAt': Date.now(),
-        'updatedAt': Date.now(),
-        'version': 1,
         'content': ''
       }
     }
@@ -258,15 +252,8 @@ const initialNodes: Node<CustomNodeData>[] = [
       'title': '新节点2',
       'category': '默认',
       'handleCount': 4,
-      'handles': {
-        'lockedHandles': {},
-        'handleLabels': {}
-      },
       'style': {},
       'metadata': {
-        'createdAt': Date.now(),
-        'updatedAt': Date.now(),
-        'version': 1,
         'content': ''
       }
     }
@@ -279,15 +266,8 @@ const initialNodes: Node<CustomNodeData>[] = [
       'title': '新节点3',
       'category': '默认',
       'handleCount': 4,
-      'handles': {
-        'lockedHandles': {},
-        'handleLabels': {}
-      },
       'style': {},
       'metadata': {
-        'createdAt': Date.now(),
-        'updatedAt': Date.now(),
-        'version': 1,
         'content': ''
       }
     }
@@ -484,15 +464,8 @@ const GraphVisualizationContent: React.FC = () => {
           'title': `新节点${newNodeNumber}`,
           'category': '默认',
           'handleCount': 4,
-          'handles': {
-            'lockedHandles': {},
-            'handleLabels': {}
-          },
           'style': {},
           'metadata': {
-            'createdAt': Date.now(),
-            'updatedAt': Date.now(),
-            'version': 1,
             'content': ''
           }
         }
@@ -531,10 +504,10 @@ const GraphVisualizationContent: React.FC = () => {
         {/* Logo、标题和统计信息 */}
         <div className="flex items-center gap-0 p-1">
           {/* Logo和标题 */}
-          <div className="flex items-center gap-2 hover:opacity-80 transition-opacity mr-3 px-2 flex-shrink-0">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity mr-3 px-2 flex-shrink-0 cursor-pointer">
             <Brain className="w-5 h-5 text-blue-600" />
-            <span className="font-bold text-sm tracking-tight text-gray-800">MyMathWiki</span>
-          </div>
+            <span className="font-bold text-sm tracking-tight text-gray-800">MyWiki</span>
+          </Link>
 
           {/* 图谱统计信息 - 使用useStore选择器获取数据，减少重渲染 */}
           <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-gray-700 backdrop-blur-sm flex-shrink-0">
@@ -583,9 +556,8 @@ const GraphVisualizationContent: React.FC = () => {
           zoomOnPinch={true}
           panOnScroll={false}
           zoomOnDoubleClick={true}
-          // 设置缩放范围
-          minZoom={0.1}
-          maxZoom={4}
+          minZoom={0.01}
+          maxZoom={10}
           // 设置默认视图
           defaultViewport={{ 'x': 0, 'y': 0, 'zoom': 1 }}
           // 高度和宽度由容器决定
@@ -606,8 +578,6 @@ const GraphVisualizationContent: React.FC = () => {
           selectionOnDrag={true}
           // 防止在交互时滚动页面
           preventScrolling={true}
-          // 禁用网格对齐，提高性能
-          snapToGrid={false}
           // 启用节点重排优化
           elevateNodesOnSelect={true}
           // 禁用连接动画
@@ -746,11 +716,12 @@ const GraphVisualizationContent: React.FC = () => {
 
         {/* 导入导出面板 - 条件渲染 */}
         {isImportExportPanelOpen && (
-          <div className="w-80 bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-30">
+          <div className="w-[40rem] min-w-[40rem] max-w-[40rem] bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-30">
             <GraphImportExportPanel
               nodes={nodes}
               edges={edges}
               onImportComplete={handleImportComplete}
+              onClose={() => setIsImportExportPanelOpen(false)}
             />
           </div>
         )}
@@ -759,6 +730,7 @@ const GraphVisualizationContent: React.FC = () => {
         {isGenerationPanelOpen && (
           <GraphGenerationPanel
             onGenerate={handleGenerateGraph}
+            onClose={() => setIsGenerationPanelOpen(false)}
           />
         )}
 
@@ -769,6 +741,7 @@ const GraphVisualizationContent: React.FC = () => {
               nodes={nodes}
               edges={edges}
               onLayout={handleLayout}
+              onClose={() => setIsLayoutPanelOpen(false)}
             />
           </div>
         )}

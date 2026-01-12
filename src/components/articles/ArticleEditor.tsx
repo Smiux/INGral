@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { BubbleMenu, FloatingMenu } from '@tiptap/react/menus';
+import { useNavigate } from 'react-router-dom';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table';
@@ -69,6 +70,9 @@ const VisibilityOptions = [
  * 基于Tiptap实现所见即所得的编辑体验
  */
 export const NewArticleEditor: React.FC = () => {
+  // 导航钩子
+  const navigate = useNavigate();
+
   // 编辑器状态
   const [state, setState] = useState<EditorState>({
     'title': '',
@@ -714,10 +718,14 @@ export const NewArticleEditor: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* 网站logo */}
-            <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="返回首页"
+            >
               <Brain className="w-6 h-6 text-yellow-300" />
-              <span className="font-bold text-xl tracking-tight">MyMathWiki</span>
-            </div>
+              <span className="font-bold text-xl tracking-tight">MyWiki</span>
+            </button>
 
             {/* 右侧操作按钮 */}
             <div className="flex items-center space-x-3">
@@ -1727,9 +1735,20 @@ export const NewArticleEditor: React.FC = () => {
             <BubbleMenu
               editor={editor}
               shouldShow={({ 'state': editorState }) => {
-                // 只在选中文本时显示
-                return !editorState.selection.empty;
+              // 只在选中文本时显示，且文本长度大于0
+                const { selection } = editorState;
+                if (selection.empty) {
+                  return false;
+                }
+
+                // 获取选中的文本内容
+                const { from, to } = selection;
+                const selectedText = editorState.doc.textBetween(from, to, '');
+
+                // 只在有实际文本内容时显示
+                return selectedText.trim().length > 0;
               }}
+              className="transition-all duration-200 ease-in-out"
             >
               <div className="flex flex-wrap items-center gap-1 p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-neutral-200 dark:border-gray-700">
                 <button
@@ -1790,7 +1809,7 @@ export const NewArticleEditor: React.FC = () => {
             <FloatingMenu
               editor={editor}
               shouldShow={({ 'state': editorState }) => {
-                // 只在光标位置（非选中文本）且在特定节点类型上显示
+              // 只在光标位置（非选中文本）且在特定节点类型上显示
                 const { selection } = editorState;
                 if (!selection.empty) {
                   return false;
@@ -1798,8 +1817,24 @@ export const NewArticleEditor: React.FC = () => {
 
                 const { $anchor } = selection;
                 const allowedNodeTypes = ['paragraph', 'heading', 'listItem', 'blockquote', 'codeBlock'];
-                return allowedNodeTypes.includes($anchor.parent.type.name);
+
+                // 检查当前节点类型是否允许
+                const nodeName = $anchor.parent.type.name;
+                if (!allowedNodeTypes.includes(nodeName)) {
+                  return false;
+                }
+
+                // 对于标题节点，确保是有效的标题级别（1-6）
+                if (nodeName === 'heading') {
+                  const level = $anchor.parent.attrs.level;
+                  if (typeof level !== 'number' || level < 1 || level > 6) {
+                    return false;
+                  }
+                }
+
+                return true;
               }}
+              className="transition-all duration-200 ease-in-out"
             >
               <div className="flex flex-wrap items-center gap-1 p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-neutral-200 dark:border-gray-700">
                 <button

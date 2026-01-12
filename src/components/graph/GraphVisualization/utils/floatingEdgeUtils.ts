@@ -6,18 +6,21 @@ import { Position, type InternalNode } from '@xyflow/react';
 function getNodeIntersection (intersectionNode: InternalNode, targetNode: InternalNode) {
   // 圆形节点的半径
   const radius = 50;
-  const intersectionNodePosition = intersectionNode.internals.positionAbsolute;
-  const targetPosition = targetNode.internals.positionAbsolute;
-  const targetWidth = targetNode.measured.width || 100;
-  const targetHeight = targetNode.measured.height || 100;
+
+  // 确保节点有正确的属性
+  const intersectionInternals = intersectionNode.internals || { 'positionAbsolute': { 'x': 0, 'y': 0 } };
+  const targetInternals = targetNode.internals || { 'positionAbsolute': { 'x': 0, 'y': 0 } };
+
+  const intersectionNodePosition = intersectionInternals.positionAbsolute || { 'x': 0, 'y': 0 };
+  const targetPosition = targetInternals.positionAbsolute || { 'x': 0, 'y': 0 };
 
   // 交点节点的中心坐标
   const sourceCenterX = intersectionNodePosition.x + radius;
   const sourceCenterY = intersectionNodePosition.y + radius;
 
-  // 目标节点的中心坐标
-  const targetCenterX = targetPosition.x + targetWidth / 2;
-  const targetCenterY = targetPosition.y + targetHeight / 2;
+  // 目标节点的中心坐标（目标节点也是圆形，半径同样为50）
+  const targetCenterX = targetPosition.x + radius;
+  const targetCenterY = targetPosition.y + radius;
 
   // 计算源节点到目标节点的向量
   const dx = targetCenterX - sourceCenterX;

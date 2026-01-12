@@ -48,11 +48,11 @@ export function ArticlesPage () {
         className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 mb-8 transition"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Home
+        返回首页
       </Link>
 
       <div className="flex flex-col md:flex-row items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">All Articles</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">所有文章</h1>
         <a
           href="/articles/create"
           target="_blank"
@@ -60,14 +60,14 @@ export function ArticlesPage () {
           className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
         >
           <Plus className="w-4 h-4" />
-          Create Article
+          创建文章
         </a>
       </div>
 
       <div className="mb-8">
         <input
           type="text"
-          placeholder="Search articles..."
+          placeholder="搜索文章..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
@@ -99,10 +99,10 @@ export function ArticlesPage () {
                     {article.content.substring(0, 150)}...
                   </p>
                   <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                    <span>{article.view_count} views</span>
+                    <span>{article.view_count} 浏览</span>
                     <span>
-                      Updated{
-                        article.updated_at ? new Date(article.updated_at).toLocaleDateString('en-US', {
+                      更新于{
+                        article.updated_at ? new Date(article.updated_at).toLocaleDateString('zh-CN', {
                           'month': 'short',
                           'day': 'numeric',
                           'year': article.updated_at && new Date(article.updated_at).getFullYear() !== new Date().getFullYear()
@@ -123,14 +123,14 @@ export function ArticlesPage () {
       {!isLoading && filteredArticles.length === 0 && (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <p className="text-gray-600 mb-4">
-            {searchQuery ? 'No articles match your search.' : 'No articles yet.'}
+            {searchQuery ? '没有匹配的文章。' : '暂无文章。'}
           </p>
           {!searchQuery && (
             <Link
               to="/create"
               className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
             >
-              Create Article
+              创建文章
             </Link>
           )}
         </div>

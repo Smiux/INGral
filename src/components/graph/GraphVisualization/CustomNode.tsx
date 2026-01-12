@@ -6,15 +6,10 @@ export interface CustomNodeData {
   title?: string | undefined;
   category?: string | undefined;
   handleCount?: number | undefined;
-  handles?: {
-    lockedHandles?: Record<string, boolean> | undefined;
-    handleLabels?: Record<string, string> | undefined;
-  } | undefined;
   style?: {
     fill?: string | undefined;
     stroke?: string | undefined;
     strokeWidth?: number | undefined;
-    radius?: number | undefined;
     // 内层旋转 - 影响内容
     innerAngle?: number | undefined;
     // 外层旋转 - 影响连接点和连接
@@ -23,11 +18,7 @@ export interface CustomNodeData {
     isSyncRotation?: boolean | undefined;
   } | undefined;
   metadata?: {
-    createdAt?: number | undefined;
-    updatedAt?: number | undefined;
-    version?: number | undefined;
     content?: string | undefined;
-    type?: string | undefined;
   } | undefined;
   [key: string]: unknown;
 }
@@ -71,12 +62,12 @@ export const CustomNode = (props: NodeProps) => {
   const outerAngle = isSyncRotation ? innerAngle : (style.outerAngle || 0);
 
   // 当外层角度变化时，通知React Flow更新节点内部状态，这样连接会重新计算
-  // 优化：只有当outerAngle真正变化时才调用，避免不必要的更新
+  // 只有当outerAngle真正变化时才调用，避免不必要的更新
   useEffect(() => {
     updateNodeInternals(id);
   }, [id, updateNodeInternals, outerAngle]);
 
-  // 连接点样式 - 与legacy DefaultNode保持一致
+  // 连接点样式
   // 静态样式，使用useMemo缓存
   const handleStyle = useMemo(() => ({
     'background': '#4ECDC4',
@@ -91,13 +82,34 @@ export const CustomNode = (props: NodeProps) => {
 
   // 生成连接点 - 均匀分布在圆形周围，全部使用source类型
   const handles = useMemo(() => {
-    // 避免频繁创建新数组，使用缓存的空数组
-    if (!nodeData.handleCount || nodeData.handleCount <= 0) {
-      return [];
-    }
+    // 获取连接点数量，允许为0
+    const handleCount = nodeData.handleCount || 0;
 
-    const calculatedHandleCount = nodeData.handleCount;
-    const lockedHandles = (nodeData.handles?.lockedHandles || {}) as Record<string, boolean>;
+    // 如果连接点数量为0，创建一个虚拟连接点
+    // 这个虚拟连接点不会渲染，也不会触发鼠标事件
+    // 但能满足React Flow的连接机制要求
+    if (handleCount <= 0) {
+      return [
+        <Handle
+          key={`${id}-virtual-handle`}
+          id={`${id}-virtual-handle`}
+          type="source"
+          position={Position.Right}
+          style={{
+            // 不显示
+            'display': 'none',
+            // 不触发鼠标事件
+            'pointerEvents': 'none',
+            // 尺寸为0
+            'width': 0,
+            // 尺寸为0
+            'height': 0
+          }}
+          // 不可连接
+          isConnectable={false}
+        />
+      ];
+    }
 
     // 将外层旋转角度转换为弧度（逆时针旋转）
     const outerAngleRad = (-outerAngle * Math.PI) / 180;
@@ -112,15 +124,14 @@ export const CustomNode = (props: NodeProps) => {
     const SEVEN_QUARTER_PI = 7 * Math.PI / 4;
 
     // 预计算角度增量
-    const angleIncrement = TWO_PI / calculatedHandleCount;
+    const angleIncrement = TWO_PI / handleCount;
 
     // 生成handle元素
     // 使用数组.from代替push，减少内存分配
-    return Array.from({ 'length': calculatedHandleCount }, (_, i) => {
+    return Array.from({ 'length': handleCount }, (_, i) => {
       const baseAngle = i * angleIncrement;
       const rotatedAngle = baseAngle + outerAngleRad;
       const handleId = `${id}-handle-${i}`;
-      const isLocked = lockedHandles[handleId] || false;
 
       // 计算连接点的精确位置（考虑外层旋转）
       const x = Math.cos(rotatedAngle) * RADIUS;
@@ -158,15 +169,13 @@ export const CustomNode = (props: NodeProps) => {
           type="source"
           position={position}
           style={customHandleStyle}
-          isConnectable={!isLocked}
+          isConnectable={true}
         />
       );
     });
-  }, [id, nodeData.handleCount, nodeData.handles?.lockedHandles, handleStyle, outerAngle]);
+  }, [id, nodeData.handleCount, handleStyle, outerAngle]);
 
-  // 节点样式 - 圆形，与legacy DefaultNode保持一致
-  // 移除选中时的样式变化
-  // 优化：减少useMemo的依赖项，只在必要时重新计算
+  // 节点样式 - 圆形
   const nodeStyle = useMemo(() => ({
     'backgroundColor': styleFill,
     'border': `${styleStrokeWidth}px solid ${baseStrokeColor}`,
@@ -184,7 +193,7 @@ export const CustomNode = (props: NodeProps) => {
 
 
 
-  // 标题样式 - 与legacy DefaultNode保持一致
+  // 标题样式
   const titleStyle = useMemo(() => ({
     'color': '#FFFFFF',
     'fontSize': 12,
@@ -199,7 +208,7 @@ export const CustomNode = (props: NodeProps) => {
     'borderRadius': '3px'
   } as React.CSSProperties), []);
 
-  // 类别样式 - 与原来的节点类型样式相同
+  // 类别样式
   const categoryStyle = useMemo(() => ({
     'color': '#999',
     'fontSize': 8,
@@ -209,7 +218,7 @@ export const CustomNode = (props: NodeProps) => {
     'marginTop': 2
   } as React.CSSProperties), []);
 
-  // 内容文本样式 - 与legacy DefaultNode保持一致
+  // 内容文本样式
   const contentTextStyle = useMemo(() => ({
     'color': '#666',
     'fontSize': 9,

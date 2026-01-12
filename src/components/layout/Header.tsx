@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, BookOpen, Users, Brain } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
-// KeyboardShortcuts组件不存在，已移除
-// import { KeyboardShortcuts } from './keyboard/KeyboardShortcuts';
 
 export function Header () {
   const navigate = useNavigate();
@@ -23,14 +21,14 @@ export function Header () {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Brain className="w-6 h-6 text-yellow-300" />
-            <span className="font-bold text-xl tracking-tight">MyMathWiki</span>
+            <span className="font-bold text-xl tracking-tight">MyWiki</span>
           </Link>
 
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 mx-8">
             <div className="w-full max-w-md relative">
               <input
                 type="text"
-                placeholder="Search knowledge..."
+                placeholder="搜索知识..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg placeholder-white/70 text-white focus:ring-2 focus:ring-white/30 focus:border-white outline-none transition backdrop-blur-sm"

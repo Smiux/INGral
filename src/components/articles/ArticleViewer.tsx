@@ -2,30 +2,20 @@
  * 文章查看器组件
  * 负责显示文章内容、相关文章、评论，并提供导出和编辑功能
  */
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, User, Moon, Sun } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft, Calendar, User } from 'lucide-react';
 import type { Article } from '../../types';
 import { articleService } from '../../services/articleService';
-import { renderMarkdown } from '../../utils/markdown';
 import ExportButton from '../ui/ExportButton';
-import { useTheme } from '../../theme/useTheme';
-import { CommentsSection } from '../comments/CommentsSection';
-import { ArticleTableOfContents } from './TableOfContents';
-import { RelatedContent } from './RelatedContent';
 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   // 点赞和收藏状态
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [upvotes, setUpvotes] = useState(0);
-  const [activeHeadingId, setActiveHeadingId] = useState<string>('');
-  const contentRef = useRef<HTMLDivElement>(null);
-
   /**
    * 加载文章内容
    * @async
@@ -111,34 +101,6 @@ export function ArticleViewer () {
       window.removeEventListener('popstate', handleLocationChange);
     };
   }, [loadArticle, slug]);
-
-  /**
-   * 处理Wiki链接点击事件，直接导航到文章
-   */
-  useEffect(() => {
-    const handleWikiLinkClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.classList.contains('wiki-link')) {
-        const href = target.getAttribute('href');
-        if (href) {
-          e.preventDefault();
-          navigate(href);
-        }
-      }
-    };
-
-    const contentElement = contentRef.current;
-    if (contentElement) {
-      contentElement.addEventListener('click', handleWikiLinkClick);
-    }
-
-    return () => {
-      if (contentElement) {
-        contentElement.removeEventListener('click', handleWikiLinkClick);
-      }
-    };
-  }, [navigate]);
-
 
   if (isLoading) {
     return (
@@ -238,56 +200,14 @@ export function ArticleViewer () {
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill={isBookmarked ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                 </svg>
-                <span className="sr-only">{isBookmarked ? 'Remove bookmark' : 'Add bookmark'}</span>
               </button>
             </div>
           </div>
         </div>
         <div className="flex gap-4">
-          {/* 主题切换按钮 */}
-          <button
-            onClick={toggleTheme}
-            className="p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
-            title={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
-            aria-label={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
-          >
-            {theme === 'dark' ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
-          </button>
           <ExportButton article={article} />
         </div>
       </div>
-
-      {/* 文章内容和目录布局 */}
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* 左侧目录 */}
-        <ArticleTableOfContents
-          contentRef={contentRef}
-          activeHeadingId={activeHeadingId}
-          onActiveHeadingChange={setActiveHeadingId}
-        />
-
-        {/* 右侧文章内容 */}
-        <main className="flex-1">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-neutral-200 dark:border-gray-700 transition-all hover:shadow-md">
-            <div
-              ref={contentRef}
-              className="prose prose-lg max-w-none mx-auto p-6 md:p-8 prose-headings:scroll-mt-20 prose-headings:text-neutral-800 dark:prose-headings:text-neutral-100 prose-headings:font-bold prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:hover:text-primary-700 dark:prose-a:hover:text-primary-300 prose-a:underline-offset-4 prose-code:bg-neutral-100 dark:prose-code:bg-gray-700 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-neutral-800 dark:prose-code:text-neutral-200 prose-pre:bg-neutral-800 dark:prose-pre:bg-gray-900 prose-pre:text-neutral-100 dark:prose-pre:text-neutral-200 prose-p:text-neutral-700 dark:prose-p:text-neutral-300 prose-ul:text-neutral-700 dark:prose-ul:text-neutral-300 prose-ol:text-neutral-700 dark:prose-ol:text-neutral-300 prose-strong:text-neutral-900 dark:prose-strong:text-neutral-100 prose-em:text-neutral-800 dark:prose-em:text-neutral-200 wiki-link-styling"
-              dangerouslySetInnerHTML={{ '__html': renderMarkdown(article.content).html }}
-            />
-          </div>
-        </main>
-      </div>
-
-      {/* Related Content Section */}
-      <RelatedContent article={article} />
-
-      {/* Comments Section */}
-      <CommentsSection articleId={article.id} />
-
     </article>
   );
 }

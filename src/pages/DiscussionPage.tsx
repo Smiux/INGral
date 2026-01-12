@@ -93,14 +93,14 @@ export function DiscussionPage () {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Discussions</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">讨论区</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* 左侧分类导航 */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Categories</h2>
+                <h2 className="text-lg font-semibold text-gray-900">分类</h2>
               </div>
               <nav className="p-2">
                 {categories.map(category => (
@@ -127,9 +127,9 @@ export function DiscussionPage () {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-semibold text-gray-900">
-                    {categories.find(cat => cat.slug === selectedCategory)?.name} Discussions
+                    {categories.find(cat => cat.slug === selectedCategory)?.name} 讨论
                   </h2>
-                  <span className="text-sm text-gray-500">({topics.length} topics)</span>
+                  <span className="text-sm text-gray-500">({topics.length} 主题)</span>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
                   {/* 搜索输入框 */}
@@ -137,7 +137,7 @@ export function DiscussionPage () {
                     <div className="relative">
                       <input
                         type="text"
-                        placeholder="Search topics..."
+                        placeholder="搜索主题..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -157,8 +157,8 @@ export function DiscussionPage () {
                       onChange={(e) => setSortBy(e.target.value as 'time' | 'random')}
                       className="text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
-                      <option value="time">Most Recent</option>
-                      <option value="random">Random</option>
+                      <option value="time">最新</option>
+                      <option value="random">随机</option>
                     </select>
                   </div>
                   <Link
@@ -166,7 +166,7 @@ export function DiscussionPage () {
                     className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
                   >
                     <MessageSquare className="w-4 h-4" />
-                    New Topic
+                    新主题
                   </Link>
                 </div>
               </div>
@@ -189,7 +189,7 @@ export function DiscussionPage () {
                     <div className="p-4">
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900 hover:text-indigo-600 transition-colors">
-                          {topic.is_pinned && <span className="inline-flex items-center gap-1 text-yellow-600 text-xs font-medium bg-yellow-100 px-2 py-0.5 rounded-full mr-2">Pinned</span>}
+                          {topic.is_pinned && <span className="inline-flex items-center gap-1 text-yellow-600 text-xs font-medium bg-yellow-100 px-2 py-0.5 rounded-full mr-2">置顶</span>}
                           {topic.title}
                         </h3>
                         <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -232,7 +232,7 @@ export function DiscussionPage () {
                       disabled={currentPage === 1}
                       className="px-3 py-1 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white border border-gray-300 hover:bg-gray-50"
                     >
-                      Previous
+                      上一页
                     </button>
 
                     {Array.from({ 'length': Math.ceil(totalTopics / pageSize) }, (_, i) => i + 1).map(pageNum => (
@@ -250,7 +250,7 @@ export function DiscussionPage () {
                       disabled={currentPage === Math.ceil(totalTopics / pageSize)}
                       className="px-3 py-1 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white border border-gray-300 hover:bg-gray-50"
                     >
-                      Next
+                      下一页
                     </button>
                   </nav>
                 </div>

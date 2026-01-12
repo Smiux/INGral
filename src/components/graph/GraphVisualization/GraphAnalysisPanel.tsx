@@ -4214,11 +4214,16 @@ export const GraphAnalysisPanel: React.FC = () => {
     return (
       <div className="mt-4">
         <div className="relative mb-4">
-          <h4 className="text-lg font-semibold text-gray-900 text-center">基础统计</h4>
+          <h4 className="text-md font-semibold text-gray-800 text-center flex items-center justify-center gap-2">
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            基础统计
+          </h4>
           <div className="absolute right-0 top-0">
             <button
               onClick={() => setIsHelpModalOpen(true)}
-              className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-200 text-gray-600 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               title="帮助"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -4227,44 +4232,44 @@ export const GraphAnalysisPanel: React.FC = () => {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-5">
           {/* 基础指标 */}
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h5 className="font-medium text-gray-800 mb-3 text-center">基本指标</h5>
+          <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+            <h5 className="font-medium text-gray-800 mb-4 text-center">基本指标</h5>
             <div className="space-y-3">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-sm text-gray-600">节点数量:</span>
                 <span className="font-medium text-gray-900">{graphStats.nodeCount}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-sm text-gray-600">连接数量:</span>
                 <span className="font-medium text-gray-900">{graphStats.edgeCount}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-sm text-gray-600">平均度:</span>
                 <span className="font-medium text-gray-900">{graphStats.averageDegree.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-sm text-gray-600">网络密度:</span>
                 <span className="font-medium text-gray-900">{graphStats.density.toFixed(4)}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-sm text-gray-600">聚类系数:</span>
                 <span className="font-medium text-gray-900">{graphStats.clusteringCoefficient.toFixed(4)}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-sm text-gray-600">网络直径:</span>
                 <span className="font-medium text-gray-900">{diameter}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-sm text-gray-600">连通分量数量:</span>
                 <span className="font-medium text-gray-900">{components.length}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-sm text-gray-600">平均最短路径长度:</span>
                 <span className="font-medium text-gray-900">{graphStats.averageShortestPath.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="text-sm text-gray-600">同配性:</span>
                 <span className="font-medium text-gray-900">{graphStats.assortativity.toFixed(3)}</span>
               </div>
@@ -4272,30 +4277,30 @@ export const GraphAnalysisPanel: React.FC = () => {
           </div>
 
           {/* 连通分量和度分布 */}
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* 连通分量 */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h5 className="font-medium text-gray-800 mb-3 text-center">连通分量</h5>
-              <div className="max-h-36 overflow-y-auto">
+            <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+              <h5 className="font-medium text-gray-800 mb-4 text-center">连通分量</h5>
+              <div className="max-h-40 overflow-y-auto">
                 <div className="space-y-3">
                   {components.map((component, index) => (
-                    <div key={index} className="border-l-2 border-blue-500 pl-3 py-2">
+                    <div key={index} className="border-l-2 border-blue-500 pl-3 py-2 hover:bg-gray-50 rounded-lg transition-colors">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium text-gray-800">
                           分量 {index + 1}
                         </span>
-                        <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        <span className="px-2.5 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-full text-xs font-medium">
                           {component.length} 个节点
                         </span>
                       </div>
-                      <div className="mt-1 flex flex-wrap gap-1 max-w-full">
+                      <div className="mt-1 flex flex-wrap gap-1.5 max-w-full">
                         {component.slice(0, 5).map(node => (
-                          <span key={node.id} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs text-center truncate overflow-hidden max-w-[6rem] flex-shrink-0">
+                          <span key={node.id} className="px-2.5 py-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-full text-xs text-center truncate overflow-hidden max-w-[6rem] flex-shrink-0 hover:bg-gradient-to-r from-gray-200 to-gray-300 transition-all duration-200">
                             {node.data?.title || ''}
                           </span>
                         ))}
                         {component.length > 5 && (
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs text-center flex-shrink-0">
+                          <span className="px-2.5 py-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-full text-xs text-center flex-shrink-0 hover:bg-gradient-to-r from-gray-200 to-gray-300 transition-all duration-200">
                             ... 等 {component.length - 5} 个节点
                           </span>
                         )}
@@ -4307,14 +4312,14 @@ export const GraphAnalysisPanel: React.FC = () => {
             </div>
 
             {/* 节点度分布 */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h5 className="font-medium text-gray-800 mb-3 text-center">节点度分布</h5>
-              <div className="max-h-36 overflow-y-auto">
+            <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+              <h5 className="font-medium text-gray-800 mb-4 text-center">节点度分布</h5>
+              <div className="max-h-40 overflow-y-auto">
                 <div className="space-y-2">
                   {Object.entries(graphStats.degreeDistribution)
                     .sort(([a], [b]) => parseInt(a, 10) - parseInt(b, 10))
                     .map(([degree, count]) => (
-                      <div key={degree} className="flex justify-between items-center">
+                      <div key={degree} className="flex justify-between items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <span className="text-sm text-gray-600">度数 {degree}:</span>
                         <span className="font-medium text-gray-900">{count} 个节点</span>
                       </div>
@@ -4519,25 +4524,25 @@ export const GraphAnalysisPanel: React.FC = () => {
 
   /* eslint-enable max-depth, no-continue, max-nested-callbacks, react-hooks/exhaustive-deps */
   return (
-    <div className="w-full overflow-hidden min-w-0">
+    <div className="w-full overflow-hidden min-w-0 bg-gradient-to-br from-gray-50 to-gray-100 p-4">
 
       {/* 基础统计信息 */}
       {renderBasicStats()}
 
       {/* 分析模式切换 */}
-      <div className="mt-4 flex justify-center">
-        <div className="inline-flex rounded-md shadow-sm" role="group">
+      <div className="mt-6 flex justify-center">
+        <div className="inline-flex rounded-xl shadow-sm overflow-hidden">
           <button
             type="button"
             onClick={() => setAnalysisMode('unweighted')}
-            className={`px-4 py-2 text-sm font-medium rounded-l-lg border border-gray-200 ${analysisMode === 'unweighted' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            className={`px-5 py-2.5 text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${analysisMode === 'unweighted' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'}`}
           >
             无权重分析
           </button>
           <button
             type="button"
             onClick={() => setAnalysisMode('weighted')}
-            className={`px-4 py-2 text-sm font-medium rounded-r-lg border-t border-b border-gray-200 ${analysisMode === 'weighted' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            className={`px-5 py-2.5 text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-[1.02] ${analysisMode === 'weighted' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'}`}
           >
             有权重分析
           </button>
@@ -4545,8 +4550,13 @@ export const GraphAnalysisPanel: React.FC = () => {
       </div>
 
       {/* 中心性指标计算 */}
-      <div className="mt-4">
-        <h4 className="text-lg font-semibold text-gray-900 mb-3 text-center">中心性指标</h4>
+      <div className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+        <h4 className="text-md font-semibold text-gray-800 mb-4 flex items-center justify-center gap-2">
+          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          中心性指标
+        </h4>
         <div className="flex justify-center">
           <button
             onClick={() => {
@@ -4557,7 +4567,7 @@ export const GraphAnalysisPanel: React.FC = () => {
               }
             }}
             disabled={isCalculating}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
+            className={`px-6 py-2.5 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white ${isCalculating ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'}`}
           >
             {isCalculating ? '计算中...' : `计算${analysisMode === 'weighted' ? '有权重' : '无权重'}中心性`}
           </button>
@@ -4565,13 +4575,18 @@ export const GraphAnalysisPanel: React.FC = () => {
       </div>
 
       {/* 路径查找 */}
-      <div className="mt-4">
-        <h4 className="text-lg font-semibold text-gray-900 mb-3 text-center">路径查找</h4>
-        <div className="flex flex-wrap justify-center gap-2 mb-2">
+      <div className="mt-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 shadow-sm border border-green-100 hover:shadow-md transition-all duration-300">
+        <h4 className="text-md font-semibold text-gray-800 mb-4 flex items-center justify-center gap-2">
+          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          路径查找
+        </h4>
+        <div className="flex flex-wrap justify-center gap-3 mb-2">
           <select
             value={pathType}
             onChange={(e) => setPathType(e.target.value as 'shortest' | 'longest' | 'global')}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white shadow-sm hover:shadow-md transition-all duration-300"
           >
             <option value="shortest">最短路径</option>
             <option value="longest">最长路径</option>
@@ -4583,7 +4598,7 @@ export const GraphAnalysisPanel: React.FC = () => {
               <select
                 value={selectedSource}
                 onChange={(e) => setSelectedSource(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white shadow-sm hover:shadow-md transition-all duration-300"
               >
                 <option value="">选择源节点</option>
                 {nodes.map(node => (
@@ -4595,7 +4610,7 @@ export const GraphAnalysisPanel: React.FC = () => {
               <select
                 value={selectedTarget}
                 onChange={(e) => setSelectedTarget(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white shadow-sm hover:shadow-md transition-all duration-300"
               >
                 <option value="">选择目标节点</option>
                 {nodes.map(node => (
@@ -4610,7 +4625,7 @@ export const GraphAnalysisPanel: React.FC = () => {
           <button
             onClick={findPath}
             disabled={isCalculating || (pathType !== 'global' && (!selectedSource || !selectedTarget))}
-            className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors disabled:bg-green-300 disabled:cursor-not-allowed"
+            className={`px-5 py-2.5 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-white ${isCalculating ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'}`}
           >
             {isCalculating ? '查找中...' : getPathButtonText()}
           </button>
@@ -4855,8 +4870,9 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">最短路径</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        最短路径是指两个节点之间连接数最少的路径，使用广度优先搜索（BFS）算法实现。
-                        在无权重图中，最短路径的长度等于连接数；在有权重图中，最短路径是指总权重最小的路径。
+                        最短路径是指两个节点之间连接数最少（无权重图）或总权重最小（有权重图）的路径。
+                        在无权重图中，使用广度优先搜索（BFS）算法实现，确保找到连接数最少的路径；
+                        在有权重图中，优先使用A*算法（当节点有位置信息时），通过启发式函数加速搜索，否则回退到Dijkstra算法。
                         最短路径反映了节点之间的最短传播路径，是衡量信息传播效率的重要指标，对于优化网络结构和信息传递具有重要意义。
                       </p>
                     </div>
@@ -4865,7 +4881,9 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">最长路径</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        最长路径是指两个节点之间连接数最多的路径，使用深度优先搜索（DFS）算法实现。
+                        最长路径是指两个节点之间连接数最多（无权重图）或总权重最大（有权重图）的路径。
+                        在无权重图中，使用深度优先搜索（DFS）算法实现，遍历所有可能路径找到最长路径；
+                        在有权重图中，使用分支限界法，结合启发式剪枝优化，高效找到最长路径。
                         最长路径反映了节点之间的最长传播路径，有助于理解节点之间的间接关系和复杂交互。
                         最长路径分析对于识别网络中的关键路径和潜在瓶颈具有重要意义，在项目管理、网络规划等领域有广泛应用。
                       </p>
@@ -4875,7 +4893,11 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">全局最长路径</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        整个图谱中所有节点对之间的最长路径，使用深度优先搜索（DFS）算法实现。全局最长路径反映了图谱的最大传播距离，是衡量图谱规模和复杂度的重要指标。
+                        全局最长路径是指整个图谱中所有节点对之间的最长路径，反映了图谱的最大传播距离和复杂度。
+                        在有向无环图（DAG）中，使用拓扑排序算法，线性时间内找到最长路径；
+                        在有环图中，使用分支限界法，结合节点采样策略和启发式剪枝，高效搜索全局最长路径。
+                        算法会根据图谱规模动态调整采样策略，确保在合理时间内找到近似最优解。
+                        全局最长路径是衡量图谱规模和复杂度的重要指标，对于理解图谱的整体结构和信息传播特性具有重要意义。
                       </p>
                     </div>
                   </div>

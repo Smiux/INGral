@@ -2,24 +2,47 @@ import React, { useState, useCallback } from 'react';
 import { useReactFlow, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './FloatingEdge';
+// 导入 ELK.js 用于图布局
+import ELK from 'elkjs';
+
+// 创建 ELK 实例
+const elk = new ELK();
+
+// ELK 图节点接口
+interface ELKNode {
+  id: string;
+  width: number;
+  height: number;
+  x?: number;
+  y?: number;
+}
+
+// ELK 图连接接口
+interface ELKEdge {
+  id: string;
+  sources: string[];
+  targets: string[];
+}
+
+// ELK 图结构接口
+interface ELKGraph {
+  id: string;
+  layoutOptions: Record<string, string>;
+  children?: ELKNode[];
+  edges?: ELKEdge[];
+}
 
 interface GraphGenerationPanelProps {
   onGenerate: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
+  onClose: () => void;
 }
 
 // 图生成类型
 type GraphType = 'random' | 'chain' | 'cycle' | 'tree' | 'star' | 'grid';
 
-// 连接点生成模式
-type HandleGenerationMode = 'range' | 'fixed' | 'list';
-
 // 基础配置类型
 type BaseGraphConfig = {
   categories: string[];
-  handleMode: HandleGenerationMode;
-  handleRange: [number, number];
-  handleFixed: number;
-  handleList: string;
   edgeCategories: string[];
   weightRange: [number, number];
   curveType: 'default' | 'smoothstep' | 'straight' | 'simplebezier';
@@ -29,6 +52,7 @@ type BaseGraphConfig = {
 type RandomGraphConfig = BaseGraphConfig & {
   nodeCount: number;
   edgeCount: number;
+  connectedComponentsCount: number;
 };
 
 // 链状图配置
@@ -67,9 +91,7 @@ type GridGraphConfig = BaseGraphConfig & {
 /**
  * 图谱生成面板组件
  */
-export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
-  onGenerate
-}) => {
+export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGenerate, onClose }) => {
   // 使用useReactFlow获取实例
   const reactFlowInstance = useReactFlow();
 
@@ -86,10 +108,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
   // 基础配置
   const getBaseConfig = (): BaseGraphConfig => ({
     'categories': ['概念', '理论', '方法'],
-    'handleMode': 'range',
-    'handleRange': [2, 8],
-    'handleFixed': 4,
-    'handleList': '2;4;6;8',
     'edgeCategories': ['包含', '相关'],
     'weightRange': [1, 10],
     'curveType': 'default'
@@ -99,7 +117,8 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
   const [randomConfig, setRandomConfig] = useState<RandomGraphConfig>({
     ...getBaseConfig(),
     'nodeCount': 50,
-    'edgeCount': 150
+    'edgeCount': 150,
+    'connectedComponentsCount': 0
   });
 
   // 链状图配置
@@ -183,30 +202,90 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
     return `generated-node-${index}`;
   }, []);
 
-  // 生成边ID
+  // 生成随机边ID
   const generateEdgeId = useCallback((sourceId: string, targetId: string, index: number) => {
     return `generated-edge-${sourceId}-${targetId}-${index}`;
   }, []);
 
-  // 生成随机连接点数量
-  const generateHandleCount = useCallback((mode: HandleGenerationMode, config: BaseGraphConfig): number => {
-    switch (mode) {
-      case 'range':
-        const [min, max] = config.handleRange;
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-      case 'fixed':
-        return config.handleFixed;
-      case 'list':
-        const list = config.handleList.split(';').map(Number)
-          .filter(Number.isInteger);
-        if (list.length === 0) {
-          return 4;
-        }
-        const randomIndex = Math.floor(Math.random() * list.length);
-        return list[randomIndex] || 4;
+  // 对生成的图进行布局
+  const layoutGraph = useCallback(async (
+    nodes: Node<CustomNodeData>[],
+    edges: Edge<CustomEdgeData>[],
+    graphTypeParam: GraphType
+  ): Promise<Node<CustomNodeData>[]> => {
+    // 算法ID映射，将短名称映射到完整的ELK算法ID
+    const algorithmIdMap: Record<string, string> = {
+      'random': 'org.eclipse.elk.random',
+      'chain': 'org.eclipse.elk.layered',
+      'tree': 'org.eclipse.elk.mrtree',
+      'star': 'org.eclipse.elk.radial'
+    };
+
+    // 生成ELK图结构
+    const elkGraph: ELKGraph = {
+      'id': 'root',
+      'layoutOptions': {
+        'elk.algorithm': algorithmIdMap[graphTypeParam] || 'org.eclipse.elk.force',
+        'elk.randomSeed': '0',
+        'elk.hierarchyHandling': 'INCLUDE_CHILDREN'
+      },
+      // 默认节点宽度和高度
+      'children': nodes.map(node => ({
+        'id': node.id,
+        'width': 150,
+        'height': 50
+      })),
+      'edges': edges.map(edge => ({
+        'id': edge.id,
+        'sources': [edge.source],
+        'targets': [edge.target]
+      }))
+    };
+
+    // 根据图类型设置特定布局参数
+    switch (graphTypeParam) {
+      case 'chain':
+        elkGraph.layoutOptions['elk.direction'] = 'RIGHT';
+        elkGraph.layoutOptions['elk.spacing.nodeNode'] = '100';
+        break;
+      case 'tree':
+        elkGraph.layoutOptions['elk.direction'] = 'DOWN';
+        elkGraph.layoutOptions['elk.spacing.nodeNode'] = '100';
+        break;
+      case 'star':
+        elkGraph.layoutOptions['elk.spacing.nodeNode'] = '50';
+        break;
+      case 'random':
       default:
-        return 4;
+        elkGraph.layoutOptions['elk.spacing.nodeNode'] = '30';
+        break;
     }
+
+    try {
+      // 执行ELK布局
+      const layoutedGraph = await elk.layout(elkGraph);
+
+      // 更新节点位置
+      if (layoutedGraph.children) {
+        return nodes.map(node => {
+          const layoutedNode = layoutedGraph.children?.find(n => n.id === node.id);
+          if (layoutedNode?.x !== undefined && layoutedNode?.y !== undefined) {
+            return {
+              ...node,
+              'position': {
+                'x': layoutedNode.x,
+                'y': layoutedNode.y
+              }
+            };
+          }
+          return node;
+        });
+      }
+    } catch (error) {
+      console.error('Layout failed:', error);
+    }
+
+    return nodes;
   }, []);
 
   // 生成随机节点类别
@@ -233,106 +312,26 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }, []);
 
-  // 生成节点位置（随机）
-  const generateRandomPosition = useCallback((_index: number, nodeCount: number) => {
-    // 使用正态分布生成更均匀的随机位置
-    const randomNormal = () => {
-      let u = 0, v = 0;
-      while (u === 0) {
-        u = Math.random();
-      }
-      while (v === 0) {
-        v = Math.random();
-      }
-      let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-      // 放宽范围到[-4, 4]，增加分布的均匀性
-      num = Math.max(-4, Math.min(4, num));
-      return num;
-    };
 
-    // 计算分布范围，增大系数，让节点有更大的分布空间
-    const spread = Math.sqrt(nodeCount) * 40;
-    const centerX = 400;
-    const centerY = 300;
-
-    // 使用正态分布生成位置，节点会有更均匀的分布
-    return {
-      'x': centerX + randomNormal() * spread,
-      'y': centerY + randomNormal() * spread
-    };
-  }, []);
 
   // 生成链状图
   const generateChainGraph = useCallback(() => {
     const newNodes: Node<CustomNodeData>[] = [];
     const newEdges: Edge<CustomEdgeData>[] = [];
-    const { nodeCount, categories, edgeCategories, weightRange, curveType, direction } = chainConfig;
+    const { nodeCount, categories, edgeCategories, weightRange, curveType } = chainConfig;
 
-    // 生成节点
+    // 生成节点 - 只生成节点数据，位置由布局算法计算
     for (let i = 0; i < nodeCount; i += 1) {
-      // 智能连接点数量：链状图中大部分节点有2个连接点，第一个和最后一个节点有1个
-      let handleCount;
-      if (nodeCount === 1) {
-        handleCount = 1;
-      } else if (i === 0 || i === nodeCount - 1) {
-        handleCount = 1;
-      } else {
-        handleCount = 2;
-      }
-
       const category = generateNodeCategory(categories);
-      const position = direction === 'horizontal'
-        ? { 'x': i * 150, 'y': 200 }
-        : { 'x': 200, 'y': i * 150 };
-
-      // 根据链的方向和位置设置初始旋转角度，确保连接点位置合理
-      // 水平链：中间节点不需要旋转，第一个节点旋转180度（连接点在右），最后一个节点不旋转（连接点在左）
-      // 垂直链：中间节点旋转90度，第一个节点旋转180度（连接点在下），最后一个节点不旋转（连接点在上）
-      let initialOuterAngle = 0;
-      if (direction === 'horizontal') {
-        if (i === 0) {
-          // 第一个节点：右侧连接点（索引0）
-          initialOuterAngle = 0;
-        } else if (i === nodeCount - 1) {
-          // 最后一个节点：左侧连接点（索引2）
-          initialOuterAngle = 180;
-        } else {
-          // 中间节点：两侧连接点
-          initialOuterAngle = 0;
-        }
-      } else {
-        if (i === 0) {
-          // 第一个节点：底部连接点（索引1）
-          initialOuterAngle = 90;
-        } else if (i === nodeCount - 1) {
-          // 最后一个节点：顶部连接点（索引3）
-          initialOuterAngle = 270;
-        } else {
-          // 中间节点：上下连接点
-          initialOuterAngle = 90;
-        }
-      }
 
       newNodes.push({
         'id': generateNodeId(i),
         'type': 'custom',
-        position,
+        'position': { 'x': 0, 'y': 0 },
         'data': {
           'title': `${category} ${i + 1}`,
           category,
-          handleCount,
-          'handles': {
-            'lockedHandles': {},
-            'handleLabels': {}
-          },
-          'style': {
-            'outerAngle': initialOuterAngle,
-            'isSyncRotation': false
-          },
           'metadata': {
-            'createdAt': Date.now(),
-            'updatedAt': Date.now(),
-            'version': 1,
             'content': `${category} ${i + 1}的内容`
           }
         }
@@ -373,8 +372,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
     // 生成节点
     for (let i = 0; i < nodeCount; i += 1) {
-      // 智能连接点数量：环状图中每个节点有2个连接点（连接前一个和后一个节点）
-      const handleCount = nodeCount === 1 ? 1 : 2;
       const category = generateNodeCategory(categories);
 
       // 环状图节点位置：分布在圆周上
@@ -394,32 +391,14 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         'y': Math.sin(angle) * radius + 300
       };
 
-      // 为环状图节点设置初始旋转角度，确保连接点位置合理
-      // 0度保证水平，第一个节点（顶部）旋转角度为0度
-      // 每个节点逆时针递增旋转角度，使连接点指向相邻节点
-      // 旋转角度 = (i / nodeCount) * 360度
-      const initialOuterAngle = (i / nodeCount) * 360;
-
       newNodes.push({
         'id': generateNodeId(i),
-        'type': 'floating',
+        'type': 'custom',
         position,
         'data': {
           'title': `${category} ${i + 1}`,
           category,
-          handleCount,
-          'handles': {
-            'lockedHandles': {},
-            'handleLabels': {}
-          },
-          'style': {
-            'outerAngle': initialOuterAngle,
-            'isSyncRotation': false
-          },
           'metadata': {
-            'createdAt': Date.now(),
-            'updatedAt': Date.now(),
-            'version': 1,
             'content': `${category} ${i + 1}的内容`
           }
         }
@@ -459,152 +438,29 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
     const newEdges: Edge<CustomEdgeData>[] = [];
     const { categories, edgeCategories, weightRange, curveType, maxDepth, minDepth, minChildrenPerNode, maxChildrenPerNode, childrenCount, branchingMode, countMode } = treeConfig;
 
-    // 底部向上间距计算：预先计算每一层级的最大宽度
-    // 1. 计算每一层级的最大节点数
-    // 2. 从最深层开始，计算每一层级的总宽度
-    // 3. 基于下一层级的总宽度计算当前层级的节点间距
-
-    // 每层节点的固定宽度（像素）
-    const nodeWidth = 100;
-    // 节点间的最小间距（像素）
-    const minNodeSpacing = 50;
-    // 层级间的垂直间距（像素）
-    const verticalSpacing = 300;
-
-    // 计算每一层级的最大节点数（基于最大子节点数）
-    // maxNodesPerLevel[depth] = 最大子节点数 ^ (maxDepth - depth)
-    const maxNodesPerLevel: number[] = [];
-
-    // 确保最大子节点数至少为1，避免无限大数值
-    const safeMaxChildrenPerNode = Math.max(1, maxChildrenPerNode);
-
-    for (let depth = 0; depth <= maxDepth; depth += 1) {
-      // 从根节点(0)到最深层(maxDepth)
-      const exponent = maxDepth - depth;
-      // 限制指数增长，防止数值过大导致无穷远
-      let maxNodes = 0;
-      if (exponent > 5) {
-        // 当指数大于5时，使用线性增长代替指数增长，限制增长速度
-        maxNodes = safeMaxChildrenPerNode * (exponent + 1);
-      } else {
-        maxNodes = Math.pow(safeMaxChildrenPerNode, exponent);
-      }
-
-      // 限制最大节点数，防止数值过大
-      maxNodesPerLevel[depth] = Math.min(maxNodes, 500);
-    }
-
-    // 计算每一层级的总宽度
-    // 从最深层开始，向上计算
-    const levelWidths: number[] = [];
-
-    for (let depth = maxDepth; depth >= 0; depth -= 1) {
-      if (depth === maxDepth) {
-        // 最深层：根据分支数调整间距
-        const maxNodes = maxNodesPerLevel[depth]!;
-        // 底层节点间距：根据分支数动态调整，确保足够的空间
-        // 分支数越多，节点间间距越小，但总宽度更大
-        const dynamicSpacing = Math.max(minNodeSpacing, 100 - safeMaxChildrenPerNode * 10);
-        levelWidths[depth] = Math.min(maxNodes * (nodeWidth + dynamicSpacing) - dynamicSpacing, 8000);
-      } else {
-        // 非最深层：基于下一层的总宽度，但限制增长
-        const childLevelWidth = levelWidths[depth + 1]!;
-        const maxNodes = maxNodesPerLevel[depth]!;
-
-        // 计算基础宽度
-        let baseWidth = maxNodes * (childLevelWidth + minNodeSpacing) - minNodeSpacing;
-
-        // 限制上层节点间距增长
-        // 越往上的层级，增长系数越小
-        const levelDiff = maxDepth - depth;
-        let growthFactor = 1;
-
-        if (levelDiff > 3) {
-          // 向上三层级以上，限制增长
-          growthFactor = 0.5;
-        } else if (levelDiff > 2) {
-          // 向上三层层级，适度限制
-          growthFactor = 0.7;
-        } else if (levelDiff > 1) {
-          // 向上两层层级，轻微限制
-          growthFactor = 0.9;
-        }
-
-        // 应用增长限制
-        baseWidth *= growthFactor;
-
-        // 限制总宽度，防止数值过大
-        levelWidths[depth] = Math.min(baseWidth, 8000);
-      }
-    }
-
     // 递归生成树节点
     interface TreeNodeParams {
       parentId: string | null;
       currentDepth: number;
-      position: { x: number; y: number };
       indexWrapper: { value: number };
     }
 
-    const generateTreeNode = ({ parentId, currentDepth, position, indexWrapper }: TreeNodeParams) => {
+    const generateTreeNode = ({ parentId, currentDepth, indexWrapper }: TreeNodeParams) => {
       const currentIndex = indexWrapper.value;
       const nodeId = generateNodeId(currentIndex);
       indexWrapper.value += 1;
 
-      // 智能连接点数量：根节点1个，内部节点2个，叶子节点1个
-      let handleCount: number;
-      if (currentDepth === 0) {
-        // 根节点：只有1个连接点
-        // 所有子节点都连接到这个连接点上
-        handleCount = 1;
-      } else if (currentDepth >= maxDepth) {
-        // 叶子节点：只有1个连接点（连接父节点）
-        handleCount = 1;
-      } else {
-        // 内部节点：2个连接点
-        // 1个用于连接父节点（顶部），1个用于连接所有子节点（底部）
-        // 所有子节点都连接到同一个连接点上，符合树结构特点
-        handleCount = 2;
-      }
       const category = generateNodeCategory(categories);
       const nextIndex = indexWrapper.value;
 
-      // 为树图节点设置初始旋转角度，确保连接点位置合理
-      // 根节点：使用底部连接点（索引1），旋转0度
-      // 内部节点：使用顶部连接点（索引3）连接父节点，底部连接点（索引1）连接子节点，旋转0度
-      // 叶子节点：使用顶部连接点（索引3），旋转180度
-      let initialOuterAngle = 0;
-      if (currentDepth === 0) {
-        // 根节点：底部连接点（索引1）
-        initialOuterAngle = 270;
-      } else if (currentDepth >= maxDepth) {
-        // 叶子节点：顶部连接点（索引3）
-        initialOuterAngle = 90;
-      } else {
-        // 内部节点：上下连接点
-        initialOuterAngle = 90;
-      }
-
       newNodes.push({
         'id': nodeId,
-        'type': 'floating',
-        position,
+        'type': 'custom',
+        'position': { 'x': 0, 'y': 0 },
         'data': {
           'title': `${category} ${nextIndex}`,
           category,
-          handleCount,
-          'handles': {
-            'lockedHandles': {},
-            'handleLabels': {}
-          },
-          'style': {
-            'outerAngle': initialOuterAngle,
-            'isSyncRotation': false
-          },
           'metadata': {
-            'createdAt': Date.now(),
-            'updatedAt': Date.now(),
-            'version': 1,
             'content': `${category} ${nextIndex}的内容`
           }
         }
@@ -657,32 +513,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
           childCount = Math.max(1, childCount);
         }
 
-        // 底部向上间距计算：基于下一层级的总宽度
-        const childLevelWidth = levelWidths[currentDepth + 1]!;
-
-        // 根节点特殊处理：减少直接子节点的间距
-        // 当currentDepth为0时，是根节点，对其子节点间距进行调整
-        let adjustedChildLevelWidth = childLevelWidth;
-        if (currentDepth === 0) {
-          // 根节点直接子节点间距调整系数，根据子节点数量动态调整
-          // 子节点数量越少，调整系数越大
-          const rootSpacingFactor = Math.max(0.3, 1 - (childCount - 1) * 0.1);
-          adjustedChildLevelWidth = childLevelWidth * rootSpacingFactor;
-        }
-
-        // 当前父节点的子节点总宽度 = 子节点数量 * (调整后的下一层级总宽度 + 节点间间距) - 节点间间距
-        const totalChildWidth = childCount * (adjustedChildLevelWidth + minNodeSpacing) - minNodeSpacing;
-        // 子节点起始位置：父节点位置 - 总宽度的一半
-        const startX = position.x - totalChildWidth / 2;
-
         for (let i = 0; i < childCount; i += 1) {
-          // 每个子节点的X位置：起始位置 + i * (调整后的下一层级总宽度 + 节点间间距) + 调整后的下一层级总宽度的一半
-          const childX = startX + i * (adjustedChildLevelWidth + minNodeSpacing) + adjustedChildLevelWidth / 2;
-          const childY = position.y + verticalSpacing;
           generateTreeNode({
             'parentId': nodeId,
             'currentDepth': currentDepth + 1,
-            'position': { 'x': childX, 'y': childY },
             indexWrapper
           });
         }
@@ -690,14 +524,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
     };
 
     // 生成根节点
-    // 根节点位置：水平居中
-    const rootX = 400;
-    const rootY = 100;
     const indexWrapper = { 'value': 0 };
     generateTreeNode({
       'parentId': null,
       'currentDepth': 0,
-      'position': { 'x': rootX, 'y': rootY },
       indexWrapper
     });
 
@@ -708,92 +538,20 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
   const generateRandomGraph = useCallback(() => {
     const newNodes: Node<CustomNodeData>[] = [];
     const newEdges: Edge<CustomEdgeData>[] = [];
-    const { nodeCount, categories, handleMode, edgeCategories, weightRange, curveType, edgeCount } = randomConfig;
+    const { nodeCount, categories, edgeCategories, weightRange, curveType, edgeCount, connectedComponentsCount } = randomConfig;
 
-    // 计算两个点之间的距离
-    const calculateDistance = (pos1: { x: number; y: number }, pos2: { x: number; y: number }) => {
-      const dx = pos1.x - pos2.x;
-      const dy = pos1.y - pos2.y;
-      return Math.sqrt(dx * dx + dy * dy);
-    };
-
-    // 节点间最小距离（基于节点数量动态调整）
-    // 进一步增大距离参数，确保节点间有足够视觉空间
-    const minNodeDistance = Math.max(200, Math.sqrt(nodeCount) * 30);
-    // 增加最大尝试次数，提高找到有效位置的概率
-    const maxAttempts = 200;
-
-    // 生成节点
+    // 生成节点 - 只生成节点数据，位置由布局算法计算
     for (let i = 0; i < nodeCount; i += 1) {
-      let position;
-      let attempts = 0;
-      let validPosition = false;
-
-      // 尝试生成有效的节点位置
-      while (!validPosition && attempts < maxAttempts) {
-        // 生成新位置
-        const newPosition = generateRandomPosition(i, nodeCount);
-        validPosition = true;
-
-        // 检查与所有已生成节点的距离
-        for (const existingNode of newNodes) {
-          const distance = calculateDistance(newPosition, existingNode.position);
-          if (distance < minNodeDistance) {
-            validPosition = false;
-            break;
-          }
-        }
-
-        if (validPosition) {
-          position = newPosition;
-          break;
-        }
-
-        attempts += 1;
-      }
-
-      // 如果尝试次数用尽，使用最后生成的位置，但确保与已有节点保持最小距离
-      if (!validPosition && position) {
-        for (const existingNode of newNodes) {
-          const distance = calculateDistance(position, existingNode.position);
-          if (distance < minNodeDistance) {
-            // 调整位置，确保与现有节点保持最小距离
-            const angle = Math.atan2(
-              position.y - existingNode.position.y,
-              position.x - existingNode.position.x
-            );
-            position.x = existingNode.position.x + Math.cos(angle) * minNodeDistance;
-            position.y = existingNode.position.y + Math.sin(angle) * minNodeDistance;
-          }
-        }
-      }
-
-      // 如果没有生成位置，使用默认位置
-      if (!position) {
-        position = generateRandomPosition(i, nodeCount);
-      }
-      const handleCount = generateHandleCount(handleMode, randomConfig);
       const category = generateNodeCategory(categories);
 
       newNodes.push({
         'id': generateNodeId(i),
-        'type': 'floating',
-        position,
+        'type': 'custom',
+        'position': { 'x': 0, 'y': 0 },
         'data': {
           'title': `${category} ${i + 1}`,
           category,
-          handleCount,
-          'handles': {
-            'lockedHandles': {},
-            'handleLabels': {}
-          },
-          'style': {
-            'isSyncRotation': false
-          },
           'metadata': {
-            'createdAt': Date.now(),
-            'updatedAt': Date.now(),
-            'version': 1,
             'content': `${category} ${i + 1}的内容`
           }
         }
@@ -804,47 +562,182 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
     const existingEdges = new Set<string>();
     let currentEdgeCount = 0;
 
-    while (currentEdgeCount < edgeCount && currentEdgeCount < nodeCount * (nodeCount - 1)) {
-      const sourceIndex = Math.floor(Math.random() * nodeCount);
-      const targetIndex = Math.floor(Math.random() * nodeCount);
+    // 辅助函数：生成边
+    const createEdge = (
+      sourceIndex: number,
+      targetIndex: number,
+      componentEdges?: Set<string>
+    ): boolean => {
+      const sourceId = generateNodeId(sourceIndex);
+      const targetId = generateNodeId(targetIndex);
+      const edgeKey = `${sourceId}-${targetId}`;
+      const reverseEdgeKey = `${targetId}-${sourceId}`;
 
-      if (sourceIndex !== targetIndex) {
-        const sourceId = generateNodeId(sourceIndex);
-        const targetId = generateNodeId(targetIndex);
-        const edgeKey = `${sourceId}-${targetId}`;
-        const reverseEdgeKey = `${targetId}-${sourceId}`;
+      // 确定要检查的边集合
+      const edgeSet = componentEdges || existingEdges;
 
-        if (!existingEdges.has(edgeKey) && !existingEdges.has(reverseEdgeKey)) {
-          existingEdges.add(edgeKey);
+      // 检查边是否已存在
+      if (!edgeSet.has(edgeKey) && !edgeSet.has(reverseEdgeKey)) {
+        edgeSet.add(edgeKey);
+        existingEdges.add(edgeKey);
 
-          const sourceNode = newNodes[sourceIndex];
-          const targetNode = newNodes[targetIndex];
-          if (sourceNode && targetNode) {
-            newEdges.push({
-              'id': generateEdgeId(sourceId, targetId, currentEdgeCount),
-              'type': 'floating',
-              'source': sourceId,
-              'target': targetId,
-              'data': {
-                'type': generateEdgeCategory(edgeCategories),
-                curveType,
-                'weight': generateEdgeWeight(weightRange),
-                'style': {},
-                'animation': {
-                  'dynamicEffect': 'none',
-                  'isAnimating': false
-                }
+        const sourceNode = newNodes[sourceIndex];
+        const targetNode = newNodes[targetIndex];
+
+        if (sourceNode && targetNode) {
+          newEdges.push({
+            'id': generateEdgeId(sourceId, targetId, currentEdgeCount),
+            'type': 'floating',
+            'source': sourceId,
+            'target': targetId,
+            'data': {
+              'type': generateEdgeCategory(edgeCategories),
+              curveType,
+              'weight': generateEdgeWeight(weightRange),
+              'style': {},
+              'animation': {
+                'dynamicEffect': 'none',
+                'isAnimating': false
               }
-            });
+            }
+          });
 
-            currentEdgeCount += 1;
+          currentEdgeCount += 1;
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // 辅助函数：处理单个连通分支
+    const processComponent = (
+      componentNodes: number[],
+      totalEdgeCount: number,
+      totalNodeCount: number
+    ) => {
+      const componentSize = componentNodes.length;
+
+      // 确保至少有componentSize - 1条边，使分支连通
+      const minEdges = componentSize - 1;
+      const maxPossibleEdges = componentSize * (componentSize - 1);
+      const componentEdgeCount = Math.min(
+        Math.max(minEdges, Math.floor(totalEdgeCount * componentSize / totalNodeCount)),
+        maxPossibleEdges
+      );
+
+      // 生成一棵生成树，确保连通
+      const componentExistingEdges = new Set<string>();
+
+      // 使用Prim算法生成生成树
+      const visited = new Set<number>();
+      // 初始节点索引（在componentNodes中的索引）
+      visited.add(0);
+
+      // 生成生成树的边
+      let treeGenerationComplete = false;
+      while (!treeGenerationComplete && visited.size < componentSize) {
+        let found = false;
+
+        // 从已访问节点列表中随机选择源节点
+        const visitedArray = Array.from(visited);
+        const randomSourceIndex = visitedArray[Math.floor(Math.random() * visitedArray.length)];
+
+        // 已访问节点在newNodes中的实际索引
+        const sourceIndex = componentNodes[randomSourceIndex as number]!;
+
+        // 随机选择一个目标节点索引（在componentNodes中的索引）
+        const randomTargetIndex = Math.floor(Math.random() * componentSize);
+
+        // 如果目标节点未访问
+        if (!visited.has(randomTargetIndex)) {
+          // 目标节点在newNodes中的实际索引
+          const targetIndex = componentNodes[randomTargetIndex]!;
+
+          // 生成边
+          const edgeCreated = createEdge(sourceIndex, targetIndex, componentExistingEdges);
+          if (edgeCreated) {
+            visited.add(randomTargetIndex);
+            found = true;
           }
+        }
+
+        if (!found) {
+          treeGenerationComplete = true;
+        }
+      }
+
+      // 添加额外的随机边，直到达到组件的最大边数或总边数限制
+      while (componentExistingEdges.size < componentEdgeCount && currentEdgeCount < totalEdgeCount) {
+        // 随机选择源节点索引（在componentNodes中的索引）
+        const randomSourceIndex = Math.floor(Math.random() * componentSize);
+        // 随机选择目标节点索引（在componentNodes中的索引）
+        const randomTargetIndex = Math.floor(Math.random() * componentSize);
+
+        // 确保源节点和目标节点不同
+        if (randomSourceIndex !== randomTargetIndex) {
+          // 源节点在newNodes中的实际索引
+          const sourceIndex = componentNodes[randomSourceIndex]!;
+          // 目标节点在newNodes中的实际索引
+          const targetIndex = componentNodes[randomTargetIndex]!;
+
+          // 生成边
+          createEdge(sourceIndex, targetIndex, componentExistingEdges);
+        }
+      }
+    };
+
+    // 如果未指定连通分支数量或为0，使用原始随机连接生成逻辑
+    if (connectedComponentsCount === 0) {
+      while (currentEdgeCount < edgeCount && currentEdgeCount < nodeCount * (nodeCount - 1)) {
+        const sourceIndex = Math.floor(Math.random() * nodeCount);
+        const targetIndex = Math.floor(Math.random() * nodeCount);
+
+        if (sourceIndex !== targetIndex) {
+          createEdge(sourceIndex, targetIndex);
+        }
+      }
+    } else {
+      // 指定了连通分支数量
+      const componentsCount = Math.min(connectedComponentsCount, nodeCount);
+
+      // 1. 计算每个连通分支的节点数量
+      const componentSizes: number[] = [];
+      let remainingNodes = nodeCount;
+
+      for (let i = 0; i < componentsCount - 1; i += 1) {
+        // 每个分支至少有1个节点
+        const size = Math.floor(Math.random() * (remainingNodes - (componentsCount - i - 1))) + 1;
+        componentSizes.push(size);
+        remainingNodes -= size;
+      }
+      componentSizes.push(remainingNodes);
+
+      // 2. 将节点分配到不同的连通分支
+      const nodeComponents: number[][] = Array.from({ 'length': componentsCount }, () => []);
+      let nodeIndex = 0;
+
+      for (let componentIndex = 0; componentIndex < componentsCount; componentIndex += 1) {
+        const componentSize = componentSizes[componentIndex]!;
+        const component = nodeComponents[componentIndex]!;
+        for (let i = 0; i < componentSize; i += 1) {
+          component.push(nodeIndex);
+          nodeIndex += 1;
+        }
+      }
+
+      // 3. 为每个连通分支生成内部连接，确保分支内部连通
+      for (const componentNodes of nodeComponents) {
+        const componentSize = componentNodes.length;
+
+        // 单个节点不需要连接，跳过处理
+        if (componentSize > 1) {
+          processComponent(componentNodes, edgeCount, nodeCount);
         }
       }
     }
 
     return { newNodes, newEdges };
-  }, [randomConfig, generateNodeId, generateEdgeId, generateHandleCount, generateNodeCategory, generateEdgeCategory, generateEdgeWeight, generateRandomPosition]);
+  }, [randomConfig, generateNodeId, generateEdgeId, generateNodeCategory, generateEdgeCategory, generateEdgeWeight]);
 
   // 生成网格图
   const generateGridGraph = useCallback(() => {
@@ -861,37 +754,16 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         const nodeId = generateNodeId(currentIndex);
         index += 1;
 
-        // 每个节点固定4个连接点
-        // 1个用于顶部连接，1个用于底部连接
-        // 1个用于左侧连接，1个用于右侧连接
-        // 这样可以确保网格的四个方向都可以扩展
-        const handleCount = 4;
-
         const category = generateNodeCategory(categories);
-
-        // 连接点索引顺序：0=右侧，1=底部，2=左侧，3=顶部
-        const initialOuterAngle = 0;
 
         newNodes.push({
           'id': nodeId,
-          'type': 'floating',
+          'type': 'custom',
           'position': { 'x': col * 150, 'y': row * 150 },
           'data': {
             'title': `${category} ${index}`,
             category,
-            handleCount,
-            'handles': {
-              'lockedHandles': {},
-              'handleLabels': {}
-            },
-            'style': {
-              'outerAngle': initialOuterAngle,
-              'isSyncRotation': false
-            },
             'metadata': {
-              'createdAt': Date.now(),
-              'updatedAt': Date.now(),
-              'version': 1,
               'content': `${category} ${index}的内容`
             }
           }
@@ -906,11 +778,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         const targetIndex = row * cols + col + 1;
         const sourceId = generateNodeId(sourceIndex);
         const targetId = generateNodeId(targetIndex);
-
-        // 使用正确的连接点：
-        // 连接点索引顺序：0=右侧，1=底部，2=左侧，3=顶部
-        // 左侧节点使用右侧连接点（索引0）
-
 
         newEdges.push({
           'id': generateEdgeId(sourceId, targetId, newEdges.length),
@@ -938,11 +805,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         const targetIndex = (row + 1) * cols + col;
         const sourceId = generateNodeId(sourceIndex);
         const targetId = generateNodeId(targetIndex);
-
-        // 使用正确的连接点：
-        // 连接点索引顺序：0=右侧，1=底部，2=左侧，3=顶部
-        // 上方节点使用底部连接点（索引1）
-
 
         newEdges.push({
           'id': generateEdgeId(sourceId, targetId, newEdges.length),
@@ -972,112 +834,47 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
     const newEdges: Edge<CustomEdgeData>[] = [];
     const { nodeCount, categories, edgeCategories, weightRange, curveType } = starConfig;
 
-    // 生成中心节点
-    // 智能连接点分配：中心节点需要足够的连接点连接所有外围节点
+    // 生成中心节点 - 只生成节点数据，位置由布局算法计算
     const centerNodeId = generateNodeId(0);
     const centerCategory = generateNodeCategory(categories);
 
-    // 中心节点连接点数量 = 外围节点数量（每个外围节点连接到中心的一个连接点）
-    const centerHandleCount = Math.max(1, nodeCount - 1);
-
-    // 为中心节点设置初始旋转角度，确保连接点均匀分布
     newNodes.push({
       'id': centerNodeId,
       'type': 'custom',
-      'position': { 'x': 400, 'y': 300 },
+      'position': { 'x': 0, 'y': 0 },
       'data': {
         'title': `${centerCategory} 中心`,
         'category': centerCategory,
-        'handleCount': centerHandleCount,
-        'handles': {
-          'lockedHandles': {},
-          'handleLabels': {}
-        },
-        'style': {
-          'outerAngle': 0,
-          'isSyncRotation': false
-        },
         'metadata': {
-          'createdAt': Date.now(),
-          'updatedAt': Date.now(),
-          'version': 1,
           'content': `${centerCategory} 中心节点的内容`
         }
       }
     });
 
-    // 生成外围节点
+    // 生成外围节点 - 只生成节点数据，位置由布局算法计算
     for (let i = 1; i < nodeCount; i += 1) {
-      // 动态计算半径，根据节点数量和节点大小确保节点间有足够距离
-      // 估计节点大小
-      const nodeSize = 100;
-      // 节点间最小间隙
-      const minGap = 50;
-      const peripheralCount = nodeCount - 1;
-      // 计算所需的最小半径：确保外围节点间有足够距离
-      // 使用等边三角形边长公式：side = 2 * radius * sin(π/n)
-      // 解出 radius = side / (2 * sin(π/n))
-      const requiredSide = nodeSize + minGap;
-      const minRadius = requiredSide / (2 * Math.sin(Math.PI / Math.max(1, peripheralCount)));
-      // 设置基础半径，确保有足够空间，取最大值
-      const radius = Math.max(250, minRadius * 1.5);
-
-      const angle = (i / (nodeCount - 1)) * Math.PI * 2;
-      const x = Math.cos(angle) * radius + 400;
-      const y = Math.sin(angle) * radius + 300;
-
       const nodeId = generateNodeId(i);
       const category = generateNodeCategory(categories);
 
-      // 智能连接点分配：外围节点只需要1个连接点（连接中心节点）
-      const handleCount = 1;
-
-      // 为星状图外围节点设置初始旋转角度，确保连接点指向中心节点
-      // 根据用户要求：第一个节点旋转(π - π/(n-1))，然后递减到π，即转一圈
-      // 转换为角度单位（用户要求的是弧度，这里转换为角度）
-      // 第一个节点旋转角度：(π - π/peripheralCount) 弧度 = (180° - 180°/peripheralCount) 角度
-      // 最后一个节点旋转角度：π 弧度 = 180°
-      // 角度递减，确保连接点正确朝向中心
-      const initialOuterAngle = (180 - 360 / peripheralCount) - (360 / peripheralCount) * (i - 1);
-
       newNodes.push({
         'id': nodeId,
-        'type': 'floating',
-        'position': { x, y },
+        'type': 'custom',
+        'position': { 'x': 0, 'y': 0 },
         'data': {
           'title': `${category} ${i}`,
           category,
-          handleCount,
-          'handles': {
-            'lockedHandles': {},
-            'handleLabels': {}
-          },
-          'style': {
-            'outerAngle': initialOuterAngle,
-            'isSyncRotation': false
-          },
           'metadata': {
-            'createdAt': Date.now(),
-            'updatedAt': Date.now(),
-            'version': 1,
             'content': `${category} ${i}的内容`
           }
         }
       });
 
       // 生成连接中心节点的边
-      // 外围节点使用唯一的连接点（索引0）连接到中心节点
-      const targetHandleIndex = 0;
-      // 中心节点使用对应角度的连接点
-      const centerHandleIndex = (i - 1) % centerHandleCount;
-
       newEdges.push({
         'id': generateEdgeId(centerNodeId, nodeId, i - 1),
         'type': 'floating',
         'source': centerNodeId,
         'target': nodeId,
-        'sourceHandle': `${centerNodeId}-handle-${centerHandleIndex}`,
-        'targetHandle': `${nodeId}-handle-${targetHandleIndex}`,
         'data': {
           'type': generateEdgeCategory(edgeCategories),
           curveType,
@@ -1095,7 +892,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
   }, [starConfig, generateNodeId, generateEdgeId, generateNodeCategory, generateEdgeCategory, generateEdgeWeight]);
 
   // 处理图生成
-  const handleGenerateGraph = useCallback(() => {
+  const handleGenerateGraph = useCallback(async () => {
     let result;
 
     switch (graphType) {
@@ -1120,7 +917,14 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         break;
     }
 
-    const { newNodes, newEdges } = result;
+    const { 'newNodes': nodes, 'newEdges': newEdges } = result;
+    let newNodes = nodes;
+
+    // 对于网格图和环状图，不使用布局算法，使用原来的节点位置计算
+    if (graphType !== 'grid' && graphType !== 'cycle') {
+      // 对其他图进行布局
+      newNodes = await layoutGraph(newNodes, newEdges, graphType);
+    }
     const totalNodes = newNodes.length;
     const totalEdges = newEdges.length;
 
@@ -1200,7 +1004,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
 
     // 开始生成
     requestNextFrame(generateNextBatch);
-  }, [graphType, generateChainGraph, generateCycleGraph, generateTreeGraph, generateStarGraph, generateGridGraph, generateRandomGraph, onGenerate, reactFlowInstance]);
+  }, [graphType, generateChainGraph, generateCycleGraph, generateTreeGraph, generateStarGraph, generateGridGraph, generateRandomGraph, onGenerate, reactFlowInstance, layoutGraph]);
 
   // 更新节点类别
   const updateNodeCategories = useCallback((value: string) => {
@@ -1261,44 +1065,63 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
   }, [graphType]);
 
   return (
-    <div className="w-[40rem] min-w-[40rem] max-w-[40rem] h-full bg-white shadow-lg overflow-y-auto absolute left-0 top-0 z-20 border-r border-gray-200">
+    <div className="w-[40rem] min-w-[40rem] max-w-[40rem] h-full bg-white shadow-lg overflow-y-auto absolute left-0 top-0 z-20 border-r border-gray-200 transition-all duration-300 ease-in-out">
       {/* 面板标题 */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          {/* 生成图标 */}
-          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white shadow-sm flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            {/* 生成图标 */}
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+              图生成
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+              配置并生成不同类型的图谱
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors flex-shrink-0"
+          title="关闭面板"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
-          图生成
-        </h2>
-        <p className="text-sm text-gray-600 mt-1">
-          配置并生成不同类型的图谱
-        </p>
+        </button>
       </div>
 
       {/* 内容区域 */}
       <div className="p-6 space-y-6">
         {/* 图类型选择 */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4">图类型</h3>
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+              图类型
+          </h3>
           <select
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
             value={graphType}
             onChange={(e) => setGraphType(e.target.value as GraphType)}
           >
-            <option value="random">随机图</option>
-            <option value="chain">链状图</option>
-            <option value="cycle">环状图</option>
-            <option value="tree">随机树</option>
-            <option value="star">星状图</option>
-            <option value="grid">网格图</option>
+            <option value="random">🎲 随机图</option>
+            <option value="chain">🔗 链状图</option>
+            <option value="cycle">🔄 环状图</option>
+            <option value="tree">🌳 随机树</option>
+            <option value="star">⭐ 星状图</option>
+            <option value="grid">📊 网格图</option>
           </select>
         </div>
 
         {/* 特定图类型的配置 */}
         {(graphType === 'tree' || graphType === 'grid') && (
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-800 mb-4">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+            <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
               {graphType === 'tree' ? '树图配置' : '网格图配置'}
             </h3>
             <div className="grid grid-cols-2 gap-4">
@@ -1516,8 +1339,13 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         )}
 
         {/* 节点配置 */}
-        <div className="mb-4 bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4">节点配置</h3>
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            节点配置
+          </h3>
 
           {/* 根据图类型显示或隐藏节点数量输入 */}
           {(graphType !== 'tree' && graphType !== 'grid') && (
@@ -1592,37 +1420,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
             </div>
           )}
 
-          {/* 对于树图和网格图，显示计算出的节点数 */}
-          {graphType === 'tree' && (
-            <div className="mb-3">
-              <label className="block text-xs text-gray-600 mb-1">节点数量（自动计算）</label>
-              <div className="w-full p-2 bg-gray-50 border border-gray-300 rounded-md text-gray-600">
-                {/* 计算最小和最大可能的节点数量 */}
-                {(() => {
-                  if (treeConfig.branchingMode === 'fixed' && treeConfig.countMode === 'fixed') {
-                    // 固定分叉且固定数量，节点数量确定
-                    const nodeCount = 1 + treeConfig.childrenCount * (Math.pow(treeConfig.childrenCount, treeConfig.maxDepth) - 1) / (treeConfig.childrenCount - 1);
-                    return `${Math.round(nodeCount)}（固定树，${treeConfig.maxDepth}层）`;
-                  }
-                  // 随机情况，显示范围
-                  const minPerLevel = Math.pow(treeConfig.minChildrenPerNode, treeConfig.maxDepth);
-                  const maxPerLevel = Math.pow(treeConfig.maxChildrenPerNode, treeConfig.maxDepth);
-                  const minNodes = 1 + minPerLevel;
-                  const maxNodes = 1 + maxPerLevel;
-                  return `${Math.round(minNodes)}-${Math.round(maxNodes)}（随机树，${treeConfig.minDepth}-${treeConfig.maxDepth}层）`;
-                })()}
-              </div>
-            </div>
-          )}
 
-          {graphType === 'grid' && (
-            <div className="mb-3">
-              <label className="block text-xs text-gray-600 mb-1">节点数量（自动计算）</label>
-              <div className="w-full p-2 bg-gray-50 border border-gray-300 rounded-md text-gray-600">
-                {gridConfig.rows * gridConfig.cols}（网格图，{gridConfig.rows}行 × {gridConfig.cols}列）
-              </div>
-            </div>
-          )}
 
           {/* 节点类别 */}
           <div className="mb-3">
@@ -1635,261 +1433,74 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
               onChange={(e) => updateNodeCategories(e.target.value)}
             />
           </div>
-
-          {/* 连接点数量生成模式（仅随机图和星状图显示） */}
-          {(graphType === 'random' || graphType === 'star') && (
-            <>
-              <div className="mb-3">
-                <label className="block text-xs text-gray-600 mb-1">连接点数量生成模式</label>
-                <select
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={activeConfig.handleMode}
-                  onChange={(e) => {
-                    const handleMode = e.target.value as HandleGenerationMode;
-                    switch (graphType) {
-                      case 'random':
-                        setRandomConfig(prev => ({ ...prev, handleMode }));
-                        break;
-                      case 'star':
-                        setStarConfig(prev => ({ ...prev, handleMode }));
-                        break;
-                      default:
-                        break;
-                    }
-                  }}
-                >
-                  <option value="range">范围随机</option>
-                  <option value="fixed">固定数量</option>
-                  <option value="list">特定值列表</option>
-                </select>
-              </div>
-
-              {/* 根据模式显示不同的配置项 */}
-              {activeConfig.handleMode === 'range' && (
-                <div className="grid grid-cols-2 gap-4 mb-3">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">最小值</label>
-                    <input
-                      type="number"
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      min="1"
-                      max="20"
-                      // 优化：使用状态值直接绑定，允许为空
-                      value={activeConfig.handleRange[0] === 0 ? '' : activeConfig.handleRange[0]}
-                      onChange={(e) => {
-                        // 优化：正确处理数字输入框的清空行为
-                        const value = e.target.value;
-
-                        // 当输入为空时，将状态设置为0表示空
-                        if (value === '') {
-                          const newRange: [number, number] = [0, activeConfig.handleRange[1]];
-                          switch (graphType) {
-                            case 'random':
-                              setRandomConfig(prev => ({ ...prev, 'handleRange': newRange }));
-                              break;
-                            case 'star':
-                              setStarConfig(prev => ({ ...prev, 'handleRange': newRange }));
-                              break;
-                            default:
-                              break;
-                          }
-                          return;
-                        }
-
-                        const min = parseInt(value, 10) || 0;
-                        const newRange: [number, number] = [min, Math.max(min, activeConfig.handleRange[1])];
-                        switch (graphType) {
-                          case 'random':
-                            setRandomConfig(prev => ({ ...prev, 'handleRange': newRange }));
-                            break;
-                          case 'star':
-                            setStarConfig(prev => ({ ...prev, 'handleRange': newRange }));
-                            break;
-                          default:
-                            break;
-                        }
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">最大值</label>
-                    <input
-                      type="number"
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      min="1"
-                      max="20"
-                      // 优化：使用状态值直接绑定，允许为空
-                      value={activeConfig.handleRange[1] === 0 ? '' : activeConfig.handleRange[1]}
-                      onChange={(e) => {
-                        // 优化：正确处理数字输入框的清空行为
-                        const value = e.target.value;
-
-                        // 当输入为空时，将状态设置为0表示空
-                        if (value === '') {
-                          const newRange: [number, number] = [activeConfig.handleRange[0], 0];
-                          switch (graphType) {
-                            case 'random':
-                              setRandomConfig(prev => ({ ...prev, 'handleRange': newRange }));
-                              break;
-                            case 'star':
-                              setStarConfig(prev => ({ ...prev, 'handleRange': newRange }));
-                              break;
-                            default:
-                              break;
-                          }
-                          return;
-                        }
-
-                        const max = parseInt(value, 10) || 0;
-                        const newRange: [number, number] = [Math.min(max, activeConfig.handleRange[0]), max];
-                        switch (graphType) {
-                          case 'random':
-                            setRandomConfig(prev => ({ ...prev, 'handleRange': newRange }));
-                            break;
-                          case 'star':
-                            setStarConfig(prev => ({ ...prev, 'handleRange': newRange }));
-                            break;
-                          default:
-                            break;
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {activeConfig.handleMode === 'fixed' && (
-                <div className="mb-3">
-                  <label className="block text-xs text-gray-600 mb-1">固定数量</label>
-                  <input
-                    type="number"
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min="1"
-                    max="20"
-                    // 优化：使用状态值直接绑定，允许为空
-                    value={activeConfig.handleFixed === 0 ? '' : activeConfig.handleFixed}
-                    onChange={(e) => {
-                      // 优化：正确处理数字输入框的清空行为
-                      const value = e.target.value;
-
-                      // 当输入为空时，将状态设置为0表示空
-                      if (value === '') {
-                        const handleFixed = 0;
-                        switch (graphType) {
-                          case 'random':
-                            setRandomConfig(prev => ({ ...prev, handleFixed }));
-                            break;
-                          case 'star':
-                            setStarConfig(prev => ({ ...prev, handleFixed }));
-                            break;
-                          default:
-                            break;
-                        }
-                        return;
-                      }
-
-                      const handleFixed = parseInt(value, 10) || 0;
-                      switch (graphType) {
-                        case 'random':
-                          setRandomConfig(prev => ({ ...prev, handleFixed }));
-                          break;
-                        case 'star':
-                          setStarConfig(prev => ({ ...prev, handleFixed }));
-                          break;
-                        default:
-                          break;
-                      }
-                    }}
-                  />
-                </div>
-              )}
-
-              {activeConfig.handleMode === 'list' && (
-                <div className="mb-3">
-                  <label className="block text-xs text-gray-600 mb-1">特定值列表（英文分号分隔）</label>
-                  <input
-                    type="text"
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="2;4;6;8"
-                    value={activeConfig.handleList}
-                    onChange={(e) => {
-                      const handleList = e.target.value;
-                      switch (graphType) {
-                        case 'random':
-                          setRandomConfig(prev => ({ ...prev, handleList }));
-                          break;
-                        case 'star':
-                          setStarConfig(prev => ({ ...prev, handleList }));
-                          break;
-                        default:
-                          break;
-                      }
-                    }}
-                  />
-                </div>
-              )}
-            </>
-          )}
         </div>
 
         {/* 连接配置 */}
-        <div className="mb-4 bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4">连接配置</h3>
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            连接配置
+          </h3>
 
           {/* 根据图类型显示或隐藏连接数量输入 */}
           {graphType === 'random' && (
-            <div className="mb-3">
-              <label className="block text-xs text-gray-600 mb-1">连接数量</label>
-              <input
-                type="number"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                min="0"
-                max={randomConfig.nodeCount * (randomConfig.nodeCount - 1)}
-                // 优化：使用状态值直接绑定，允许为空
-                value={randomConfig.edgeCount === 0 ? '' : randomConfig.edgeCount}
-                onChange={(e) => {
-                  // 优化：正确处理数字输入框的清空行为
-                  const value = e.target.value;
+            <>
+              <div className="mb-3">
+                <label className="block text-xs text-gray-600 mb-1">连接数量</label>
+                <input
+                  type="number"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min="0"
+                  max={randomConfig.nodeCount * (randomConfig.nodeCount - 1)}
+                  // 优化：使用状态值直接绑定，允许为空
+                  value={randomConfig.edgeCount === 0 ? '' : randomConfig.edgeCount}
+                  onChange={(e) => {
+                    // 优化：正确处理数字输入框的清空行为
+                    const value = e.target.value;
 
-                  // 当输入为空时，将状态设置为0表示空
-                  if (value === '') {
-                    setRandomConfig(prev => ({ ...prev, 'edgeCount': 0 }));
-                    return;
-                  }
+                    // 当输入为空时，将状态设置为0表示空
+                    if (value === '') {
+                      setRandomConfig(prev => ({ ...prev, 'edgeCount': 0 }));
+                      return;
+                    }
 
-                  const edgeCount = parseInt(value, 10) || 0;
-                  setRandomConfig(prev => ({ ...prev, edgeCount }));
-                }}
-              />
-            </div>
-          )}
-
-          {/* 对于非随机图，显示计算出的连接数 */}
-          {graphType !== 'random' && (
-            <div className="mb-3">
-              <label className="block text-xs text-gray-600 mb-1">连接数量（自动计算）</label>
-              <div className="w-full p-2 bg-gray-50 border border-gray-300 rounded-md text-gray-600">
-                {graphType === 'chain' && `${chainConfig.nodeCount - 1}（链状图）`}
-                {graphType === 'cycle' && `${cycleConfig.nodeCount}（环状图）`}
-                {graphType === 'tree' && (() => {
-                  // 计算树图的连接数量
-                  if (treeConfig.branchingMode === 'fixed' && treeConfig.countMode === 'fixed') {
-                    // 固定分叉且固定数量，连接数量确定
-                    const edgeCount = 1 + treeConfig.childrenCount * (Math.pow(treeConfig.childrenCount, treeConfig.maxDepth) - 1) / (treeConfig.childrenCount - 1) - 1;
-                    return `${Math.round(edgeCount)}（固定树，${treeConfig.maxDepth}层）`;
-                  }
-                  // 随机情况，显示范围
-                  const minPerLevel = Math.pow(treeConfig.minChildrenPerNode, treeConfig.maxDepth);
-                  const maxPerLevel = Math.pow(treeConfig.maxChildrenPerNode, treeConfig.maxDepth);
-                  const minEdges = 1 + minPerLevel - 1;
-                  const maxEdges = 1 + maxPerLevel - 1;
-                  return `${Math.round(minEdges)}-${Math.round(maxEdges)}（随机树，${treeConfig.minDepth}-${treeConfig.maxDepth}层）`;
-                })()}
-                {graphType === 'star' && `${starConfig.nodeCount - 1}（星状图）`}
-                {graphType === 'grid' && `${gridConfig.rows * (gridConfig.cols - 1) + gridConfig.cols * (gridConfig.rows - 1)}（网格图）`}
+                    const edgeCount = parseInt(value, 10) || 0;
+                    setRandomConfig(prev => ({ ...prev, edgeCount }));
+                  }}
+                />
               </div>
-            </div>
+
+              {/* 连通分支数量 */}
+              <div className="mb-3">
+                <label className="block text-xs text-gray-600 mb-1">连通分支数量（0表示不限制）</label>
+                <input
+                  type="number"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min="0"
+                  max={randomConfig.nodeCount}
+                  // 优化：使用状态值直接绑定，允许为空
+                  value={randomConfig.connectedComponentsCount === 0 ? '' : randomConfig.connectedComponentsCount}
+                  onChange={(e) => {
+                    // 优化：正确处理数字输入框的清空行为
+                    const value = e.target.value;
+
+                    // 当输入为空时，将状态设置为0表示空
+                    if (value === '') {
+                      setRandomConfig(prev => ({ ...prev, 'connectedComponentsCount': 0 }));
+                      return;
+                    }
+
+                    const connectedComponentsCount = parseInt(value, 10) || 0;
+                    setRandomConfig(prev => ({ ...prev, connectedComponentsCount }));
+                  }}
+                />
+              </div>
+            </>
           )}
+
+
 
           {/* 连接类别 */}
           <div className="mb-3">
@@ -2013,7 +1624,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
             >
               <option value="default">贝塞尔曲线</option>
               <option value="smoothstep">平滑阶梯</option>
-              <option value="step">阶梯</option>
               <option value="straight">直线</option>
               <option value="simplebezier">简单贝塞尔</option>
             </select>
@@ -2021,8 +1631,13 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         </div>
 
         {graphType === 'chain' && (
-          <div className="mb-4 bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-800 mb-4">链状图配置</h3>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+            <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              链状图配置
+            </h3>
             <div>
               <label className="block text-xs text-gray-600 mb-1">方向</label>
               <select
@@ -2043,7 +1658,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
         {/* 生成按钮 */}
         <div className="space-y-4">
           <button
-            className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${generationProgress.active ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md'}`}
+            className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white ${generationProgress.active ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'}`}
             onClick={handleGenerateGraph}
             disabled={generationProgress.active}
           >
@@ -2057,7 +1672,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
               </>
             ) : (
               <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"></path>
                 </svg>
                 生成图
@@ -2065,11 +1680,13 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({
             )}
           </button>
           {generationProgress.active && (
-            <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+            <div className="mt-2 w-full bg-gray-100 rounded-full h-3 overflow-hidden shadow-inner border border-gray-200">
               <div
-                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 h-full rounded-full transition-all duration-500 ease-out relative overflow-hidden"
                 style={{ 'width': `${generationProgress.progress}%` }}
-              ></div>
+              >
+                <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
+              </div>
             </div>
           )}
         </div>

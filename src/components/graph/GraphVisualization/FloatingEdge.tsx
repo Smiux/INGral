@@ -9,7 +9,6 @@ import {
 } from '@xyflow/react';
 import { getEdgeParams } from './utils/floatingEdgeUtils';
 
-// 从CustomEdge导入类型
 export interface CustomEdgeData {
   type?: string | undefined;
   curveType?: 'default' | 'smoothstep' | 'straight' | 'simplebezier' | undefined;
@@ -19,7 +18,6 @@ export interface CustomEdgeData {
     stroke?: string | undefined;
     strokeWidth?: number | undefined;
     dasharray?: string | undefined;
-    arrowCount?: number | undefined;
   } | undefined;
   animation?: {
     dynamicEffect?: 'none' | 'flow' | 'pulse' | 'blink' | 'wave' | 'rotate' | 'color-change' | 'fade' | 'arrow' | undefined;

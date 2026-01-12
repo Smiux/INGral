@@ -4,9 +4,8 @@ import {
   getSmoothStepPath,
   getStraightPath,
   getSimpleBezierPath,
-  type InternalNode
+  Position
 } from '@xyflow/react';
-import { getEdgeParams } from './utils/floatingEdgeUtils';
 
 /**
  * 浮动连接线组件
@@ -19,28 +18,46 @@ export const FloatingConnectionLine = (props: ConnectionLineComponentProps) => {
     return null;
   }
 
-  // 创建一个模拟的目标节点在光标位置
-  const targetNode = {
-    'id': 'connection-target',
-    'measured': {
-      'width': 1,
-      'height': 1
-    },
-    'internals': {
-      'positionAbsolute': { 'x': toX, 'y': toY }
-    }
-  } as unknown as InternalNode;
+  // 圆形节点的半径
+  const radius = 50;
 
-  // 获取边的参数
-  const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(fromNode, targetNode);
+  // 确保fromNode有正确的属性
+  const fromInternals = fromNode.internals || { 'positionAbsolute': { 'x': 0, 'y': 0 } };
+  const fromPositionAbsolute = fromInternals.positionAbsolute || { 'x': 0, 'y': 0 };
+
+  // 计算源节点的中心坐标
+  const sourceCenterX = fromPositionAbsolute.x + radius;
+  const sourceCenterY = fromPositionAbsolute.y + radius;
+
+  // 计算源节点到目标点的向量
+  const dx = toX - sourceCenterX;
+  const dy = toY - sourceCenterY;
+
+  // 计算向量的长度
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  // 避免除以零
+  const safeDistance = Math.max(distance, 0.1);
+
+  // 计算单位向量
+  const unitX = dx / safeDistance;
+  const unitY = dy / safeDistance;
+
+  // 计算源节点边缘的交点
+  const sx = sourceCenterX + unitX * radius;
+  const sy = sourceCenterY + unitY * radius;
+
+  // 目标点就是光标位置
+  const tx = toX;
+  const ty = toY;
 
   const pathParams = {
     'sourceX': sx,
     'sourceY': sy,
-    'sourcePosition': sourcePos || fromPosition,
-    'targetPosition': targetPos || toPosition,
-    'targetX': tx || toX,
-    'targetY': ty || toY
+    'sourcePosition': fromPosition || Position.Right,
+    'targetPosition': toPosition || Position.Left,
+    'targetX': tx,
+    'targetY': ty
   };
 
   // 定义支持的曲线类型
@@ -79,8 +96,8 @@ export const FloatingConnectionLine = (props: ConnectionLineComponentProps) => {
       />
       {/* 目标点预览 */}
       <circle
-        cx={tx || toX}
-        cy={ty || toY}
+        cx={tx}
+        cy={ty}
         fill="#fff"
         r={3}
         stroke={stroke}

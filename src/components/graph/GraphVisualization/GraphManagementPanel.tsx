@@ -198,16 +198,16 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
 
   // 渲染节点管理标签页
   const nodesTab = useMemo(() => (
-    <div className="bg-white p-4 rounded-lg shadow-md">
-      <div className="flex flex-wrap gap-2 items-center">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+      <div className="flex flex-wrap gap-3 items-center mb-4">
         {/* 节点统计 */}
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 font-medium bg-white/70 px-3 py-1.5 rounded-lg shadow-sm">
           节点数: {nodes.length} | 选中: {selectedNodes.length}
         </div>
 
         {/* 添加节点按钮 */}
         <button
-          className="px-4 py-2 bg-green-600 text-white rounded-md flex items-center gap-2 hover:bg-green-700"
+          className="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg flex items-center gap-2 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-green-500"
           onClick={onAddNode}
         >
           <Plus size={16} />
@@ -216,7 +216,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
 
         {/* 删除选中节点按钮 */}
         <button
-          className="px-4 py-2 bg-red-600 text-white rounded-md flex items-center gap-2 hover:bg-red-700"
+          className={`px-5 py-2.5 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-[1.02] focus:outline-none ${selectedNodes.length === 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-red-600 to-rose-600 text-white hover:shadow-lg focus:ring-2 focus:ring-red-500'}`}
           onClick={handleDeleteSelectedNodes}
           disabled={selectedNodes.length === 0}
         >
@@ -226,12 +226,12 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
       </div>
 
       {/* 节点列表 */}
-      <div className="mt-4 max-h-60 overflow-y-auto">
-        <ul className="space-y-1">
+      <div className="max-h-60 overflow-y-auto bg-white/80 rounded-lg shadow-sm">
+        <ul className="space-y-1.5 p-1">
           {nodes.map(node => (
             <li
               key={node.id}
-              className={`flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors ${selectedNodes.some(n => n.id === node.id) ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-50'}`}
+              className={`flex items-center gap-2 p-2.5 rounded-md cursor-pointer transition-all duration-200 ${selectedNodes.some(n => n.id === node.id) ? 'bg-blue-100 text-blue-800 shadow-sm' : 'hover:bg-gray-50 hover:shadow-sm'}`}
               onClick={() => handleNodeClick(node)}
             >
               <div className="flex-1">
@@ -247,19 +247,24 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
 
   // 渲染连接管理标签页
   const connectionsTab = useMemo(() => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-800">连接管理</h3>
+    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 shadow-sm border border-purple-100 hover:shadow-md transition-all duration-300">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium text-gray-800 flex items-center gap-2">
+          <LinkIcon size={18} className="text-purple-600" />
+          连接管理
+        </h3>
       </div>
 
-      <div className="border-t pt-4">
+      <div className="border-t border-purple-100 pt-4">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-sm font-medium text-gray-700">连接列表 ({edges.length})</h4>
+          <h4 className="text-sm font-medium text-gray-700 bg-white/70 px-3 py-1.5 rounded-lg shadow-sm">
+            连接列表 ({edges.length})
+          </h4>
           <div className="flex gap-2">
             {selectedEdges.length > 0 && (
               <button
                 onClick={handleBatchDeleteConnections}
-                className="px-3 py-1.5 text-sm text-red-600 hover:text-red-700"
+                className="px-4 py-1.5 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-lg text-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02]"
               >
                 批量删除
               </button>
@@ -268,7 +273,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 bg-white/80 rounded-lg shadow-sm p-1">
         {edges.map((edge) => {
           const sourceNode = nodes.find(n => n.id === edge.source);
           const targetNode = nodes.find(n => n.id === edge.target);
@@ -276,20 +281,26 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
           return (
             <div
               key={edge.id}
-              className={`flex items-center justify-between p-3 border-b ${selectedEdges.some(c => c.id === edge.id) ? 'bg-blue-50' : ''} rounded-md cursor-pointer transition-colors hover:bg-gray-50`}
+              className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-all duration-200 ${selectedEdges.some(c => c.id === edge.id) ? 'bg-purple-100 text-purple-800 shadow-sm' : 'hover:bg-gray-50 hover:shadow-sm'}`}
               onClick={() => handleConnectionClick(edge)}
             >
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <div className="font-medium text-gray-800">
+                  <div className="text-sm font-medium text-gray-800 truncate">
                     {sourceNode?.data?.title || edge.source}
                   </div>
-                  <div className="text-sm text-gray-600">→</div>
-                  <div className="font-medium text-gray-800">
+                  <div className="text-sm text-gray-400 flex items-center justify-center">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                  <div className="text-sm font-medium text-gray-800 truncate">
                     {targetNode?.data?.title || edge.target}
                   </div>
                 </div>
-                <div className="text-sm text-gray-600">{edge.data?.type || 'related'}</div>
+                <div className="px-2.5 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                  {edge.data?.type || 'related'}
+                </div>
               </div>
               <div className="flex gap-2">
                 <button
@@ -297,7 +308,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                     e.stopPropagation();
                     handleDeleteConnection(edge.id);
                   }}
-                  className="p-1 hover:bg-red-50 text-red-600"
+                  className="p-1.5 hover:bg-red-50 text-red-600 rounded-full transition-all duration-200 hover:shadow-sm transform hover:scale-110"
                   title="删除"
                 >
                   <Trash2 size={16} />

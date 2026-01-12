@@ -15,7 +15,6 @@
  * - 知识图谱嵌入支持
  */
 import MarkdownIt from 'markdown-it';
-import { katexCache } from './katexCache';
 import 'katex/dist/katex.min.css';
 
 /**
@@ -284,6 +283,7 @@ function processCitations (text: string): string {
 
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
+import katex from 'katex';
 
 /**
  * Markdown渲染缓存配置 - 优化版
@@ -606,20 +606,6 @@ export function titleToSlug (title: string): string {
 }
 
 /**
- * 处理 Markdown 文本中的 Wiki 链接
- * @param text Markdown 文本
- */
-function processWikiLinks (text: string): string {
-  // 优化正则表达式性能，使用更高效的匹配方式
-  return text.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match: string, title: string, displayText: string) => {
-    const trimmedTitle = title?.trim() || '';
-    const trimmedDisplayText = displayText?.trim() || trimmedTitle;
-    const slug = titleToSlug(trimmedTitle || trimmedDisplayText);
-    return `<a href="/articles/${slug}" class="wiki-link">${trimmedDisplayText}</a>`;
-  });
-}
-
-/**
  * 处理 Markdown 文本中的数学公式
  * @param text Markdown 文本
  */
@@ -631,7 +617,7 @@ function processMathFormulas (text: string): string {
     // 处理块级数学公式：\\[...\\] 格式
     result = result.replace(/(?<!\\)\\\[([\s\S]*?)(?<!\\)\\\]/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { 'displayMode': true });
+        return katex.renderToString(p1.trim(), { 'displayMode': true });
       } catch (error) {
         console.error('Error rendering block math [\\...\\]:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
@@ -641,7 +627,8 @@ function processMathFormulas (text: string): string {
     // 处理内联数学公式：\\(...\\) 格式
     result = result.replace(/(?<!\\)\\\(([\s\S]*?)(?<!\\)\\\)/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { 'displayMode': false });
+        // 直接返回原始公式，不再调用 katexCache.render
+        return `<span class="math-tex">\\(${p1.trim()}\\)</span>`;
       } catch (error) {
         console.error('Error rendering inline math \\(...\\):', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
@@ -651,7 +638,8 @@ function processMathFormulas (text: string): string {
     // 处理块级数学公式：$$...$$ 格式
     result = result.replace(/(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { 'displayMode': true });
+        // 直接返回原始公式，不再调用 katexCache.render
+        return `<span class="math-tex">$$${p1.trim()}$$</span>`;
       } catch (error) {
         console.error('Error rendering block math $$...$$:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
@@ -661,7 +649,8 @@ function processMathFormulas (text: string): string {
     // 处理内联数学公式：$...$ 格式
     result = result.replace(/(?<!\\)\$([^$\\]*(?:\\.[^$\\]*)*)(?<!\\)\$/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { 'displayMode': false });
+        // 直接返回原始公式，不再调用 katexCache.render
+        return `<span class="math-tex">$${p1.trim()}$</span>`;
       } catch (error) {
         console.error('Error rendering inline math $...$:', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
@@ -685,7 +674,7 @@ function processMathFormulasPostRender (html: string): string {
     // 处理块级数学公式：\\[...\\] 格式
     result = result.replace(/(?<!\\)\\\[([\s\S]*?)(?<!\\)\\\]/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { 'displayMode': true });
+        return katex.renderToString(p1.trim(), { 'displayMode': true });
       } catch (error) {
         console.error('Error rendering block math [\\...\\]:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
@@ -695,7 +684,7 @@ function processMathFormulasPostRender (html: string): string {
     // 处理内联数学公式：\\(...\\) 格式
     result = result.replace(/(?<!\\)\\\(([\s\S]*?)(?<!\\)\\\)/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { 'displayMode': false });
+        return katex.renderToString(p1.trim(), { 'displayMode': false });
       } catch (error) {
         console.error('Error rendering inline math \\(...\\):', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
@@ -705,7 +694,7 @@ function processMathFormulasPostRender (html: string): string {
     // 处理块级数学公式：$$...$$ 格式
     result = result.replace(/(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$/g, (_match: string, p1: string) => {
       try {
-        return katexCache.render(p1.trim(), { 'displayMode': true });
+        return katex.renderToString(p1.trim(), { 'displayMode': true });
       } catch (error) {
         console.error('Error rendering block math $$...$$:', error);
         return `<div class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
@@ -721,7 +710,7 @@ function processMathFormulasPostRender (html: string): string {
         return '$ $';
       }
       try {
-        return katexCache.render(cleanedFormula, { 'displayMode': false });
+        return katex.renderToString(cleanedFormula, { 'displayMode': false });
       } catch (error) {
         console.error('Error rendering inline math $...$:', error);
         return `<span class="math-error">Math rendering error: ${error instanceof Error ? error.message : 'Unknown error'}</span>`;
@@ -731,7 +720,6 @@ function processMathFormulasPostRender (html: string): string {
 
   return result;
 }
-
 /**
  * 自定义文本渲染规则
  * 处理 Wiki 链接和数学公式
@@ -742,9 +730,6 @@ md.renderer.rules.text = function (tokens: { content?: string }[], idx: number) 
   const text = token?.content || '';
 
   let result = text;
-
-  // 处理 Wiki 链接
-  result = processWikiLinks(result);
 
   // 处理数学公式
   result = processMathFormulas(result);

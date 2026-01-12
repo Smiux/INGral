@@ -20,7 +20,6 @@ interface GraphToolbarProps {
   onToggleGenerationPanel: () => void;
   isLayoutPanelOpen: boolean;
   onToggleLayoutPanel: () => void;
-  onGenerateTestGraph?: () => void;
 }
 
 /**
@@ -38,8 +37,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
   isGenerationPanelOpen,
   onToggleGenerationPanel,
   isLayoutPanelOpen,
-  onToggleLayoutPanel,
-  onGenerateTestGraph
+  onToggleLayoutPanel
 }) => {
   // 使用useReactFlow hook获取React Flow实例
   const reactFlowInstance = useReactFlow();
@@ -114,11 +112,10 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
 
         {!collapsedGroups.edit && (
           <>
-            {/* 撤销/重做按钮组 - 简化实现，React Flow不直接支持 */}
+            {/* 撤销/重做按钮组 */}
             <div className="flex items-center gap-0.5">
               <button
                 onClick={() => {
-                  // React Flow v11+ 不直接支持撤销/重做，需要自定义实现
                   console.log('Undo clicked - not implemented in React Flow v11+');
                 }}
                 className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out hover:bg-blue-50"
@@ -291,17 +288,6 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
 
       {/* 右侧设置组 */}
       <div className="flex items-center gap-1 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm flex-shrink-0">
-        {/* 生成测试图按钮 */}
-        {onGenerateTestGraph && (
-          <button
-            onClick={onGenerateTestGraph}
-            className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out text-gray-700"
-            title="生成测试图"
-          >
-            <Target size={16} />
-          </button>
-        )}
-
         {/* 设置按钮 */}
         <button
           onClick={() => {

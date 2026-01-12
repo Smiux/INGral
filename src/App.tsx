@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
 import { Header } from './components/layout/Header';
-import './styles/accessibility.css';
 import { ThemeProvider } from './theme/ThemeContext.tsx';
 
 // 定义错误边界组件
@@ -56,10 +55,11 @@ import { GraphListPage } from './pages/GraphListPage';
 import { DiscussionPage } from './pages/DiscussionPage';
 import { TopicDetailPage } from './pages/TopicDetailPage';
 import { CreateTopicPage } from './pages/CreateTopicPage';
-import Dashboard from './pages/Dashboard/Dashboard';
-
 // 应用主内容组件
 function AppContent () {
+  // 使用useLocation获取当前路径，确保路由变化时能及时更新
+  const location = useLocation();
+
   // 判断是否为编辑页面路由
   const isEditPage = () => {
     const { pathname } = location;
@@ -88,8 +88,6 @@ function AppContent () {
             <Route path="/graphs" element={<GraphListPage />} />
             <Route path="/graphs/create" element={<GraphVisualization />} />
             <Route path="/graphs/:graphId" element={<GraphVisualization />} />
-            {/* 仪表盘路由 */}
-            <Route path="/dashboard" element={<Dashboard />} />
             {/* 讨论区路由 */}
             <Route path="/discussions" element={<DiscussionPage />} />
             <Route path="/discussions/:categorySlug" element={<DiscussionPage />} />

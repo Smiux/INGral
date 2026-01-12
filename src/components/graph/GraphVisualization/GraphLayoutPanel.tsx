@@ -8,13 +8,20 @@ interface GraphLayoutPanelProps {
   nodes: Node<CustomNodeData>[];
   edges: Edge<CustomEdgeData>[];
   onLayout: (nodes: Node<CustomNodeData>[], edges: Edge<CustomEdgeData>[]) => void;
+  onClose: () => void;
 }
 
 // 布局算法类型
-type LayoutAlgorithm = 'layered' | 'force' | 'stress' | 'mrtree' | 'radial' | 'box' | 'fixed' | 'random';
+type LayoutAlgorithm = 'layered' | 'force' | 'stress' | 'mrtree' | 'radial' | 'box' | 'random' | 'sporeOverlap' | 'rectpacking' | 'vertiflex';
 
 // 布局方向类型
 type LayoutDirection = 'DOWN' | 'RIGHT' | 'UP' | 'LEFT';
+
+// 辐射状布局压缩方式
+  type RadialCompaction = 'NONE' | 'RADIAL_COMPACTION' | 'WEDGE_COMPACTION';
+
+  // 矩形打包宽度近似策略
+  type RectpackingWidthApproximationStrategy = 'GREEDY' | 'TARGET_WIDTH';
 
 // ELK图节点接口
 interface ELKNode {
@@ -25,7 +32,7 @@ interface ELKNode {
   y?: number;
 }
 
-// ELK图边接口
+// ELK图连接接口
 interface ELKEdge {
   id: string;
   sources: string[];
@@ -48,42 +55,89 @@ interface ELKLayoutOptions {
   nodeSpacing: number;
   edgeSpacing: number;
   randomSeed: number;
-  animate: boolean;
 
   // Layered布局参数
   layered: {
     rankSpacing: number;
     crossingMinimization: string;
     nodePlacement: string;
+    feedbackEdges: boolean;
+
+    edgeEdgeSpacing: number;
+    edgeNodeSpacing: number;
+    considerModelOrder: string;
+
+    // 新增参数
+
+    postCompactionStrategy: 'NONE' | 'LEFT' | 'RIGHT' | 'LEFT_RIGHT_CONSTRAINT_LOCKING' | 'LEFT_RIGHT_CONNECTION_LOCKING' | 'EDGE_LENGTH';
+    nodeLayeringStrategy: string;
+    thoroughness: number;
+    mergeEdges: boolean;
+    layerUnzippingStrategy: string;
+    longEdgeOrderingStrategy: string;
+    nodePromotionStrategy: string;
+    directionCongruency: string;
+
   };
 
   // Force布局参数
   force: {
-    coolingFactor: number;
     iterations: number;
-    springLength: number;
-    springConstant: number;
+    forceModel: 'EADES' | 'FRUCHTERMAN_REINGOLD';
     repulsion: number;
+    temperature: number;
+    interactive: boolean;
   };
 
   // Radial布局参数
   radial: {
-    treeSpacing: number;
-    nodeSpacing: number;
+    compaction: RadialCompaction;
+    compactionStepSize: number;
   };
 
   // MR Tree布局参数
   mrtree: {
-    treeConstruction: string;
-    spanningTreeCostFunction: string;
+    weighting: string;
+    searchOrder: string;
   };
 
   // Stress布局参数
   stress: {
-    iterations: number;
-    stopThreshold: number;
+    desiredEdgeLength: number;
+    epsilon: number;
+    dimension: string;
+    iterationLimit: number;
+    interactive: boolean;
   };
+
+  // Rectpacking布局参数
+  rectpacking: {
+    tryBox: boolean;
+    widthApproximation: {
+      strategy: RectpackingWidthApproximationStrategy;
+      targetWidth: number;
+    };
+  };
+
+  // Vertiflex布局参数
+  vertiflex: {
+    layerDistance: number;
+    considerNodeModelOrder: boolean;
+  };
+
+  // Box布局参数
+  box: {
+    // 新增参数
+    packingMode: string;
+  };
+
+  // SporeOverlap布局参数
+  sporeOverlap: {
+    iterationLimit: number;
+  };
+
 }
+
 
 // 创建ELK实例
 const elk = new ELK();
@@ -95,7 +149,8 @@ const elk = new ELK();
 export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
   nodes,
   edges,
-  onLayout
+  onLayout,
+  onClose
 }) => {
   // 布局配置状态
   const [layoutOptions, setLayoutOptions] = useState<ELKLayoutOptions>({
@@ -105,40 +160,81 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
     'nodeSpacing': 50,
     'edgeSpacing': 10,
     'randomSeed': 42,
-    'animate': false,
 
     // Layered布局参数
     'layered': {
       'rankSpacing': 100,
       'crossingMinimization': 'LAYER_SWEEP',
-      'nodePlacement': 'NETWORK_SIMPLEX'
+      'nodePlacement': 'NETWORK_SIMPLEX',
+      'feedbackEdges': false,
+      'edgeEdgeSpacing': 10,
+      'edgeNodeSpacing': 5,
+      'considerModelOrder': 'NODES_AND_EDGES',
+      'postCompactionStrategy': 'NONE',
+      'nodeLayeringStrategy': 'NETWORK_SIMPLEX',
+      'thoroughness': 7,
+      'mergeEdges': false,
+      'layerUnzippingStrategy': 'NONE',
+      'longEdgeOrderingStrategy': 'DUMMY_NODE_OVER',
+      'nodePromotionStrategy': 'NONE',
+      'directionCongruency': 'READING_DIRECTION'
+
     },
 
     // Force布局参数
     'force': {
-      'coolingFactor': 0.95,
-      'iterations': 100,
-      'springLength': 100,
-      'springConstant': 0.001,
-      'repulsion': 1000
+      'iterations': 300,
+      'forceModel': 'FRUCHTERMAN_REINGOLD',
+      'repulsion': 5.0,
+      'temperature': 0.001,
+      'interactive': false
     },
 
     // Radial布局参数
     'radial': {
-      'treeSpacing': 150,
-      'nodeSpacing': 100
+      'compaction': 'NONE',
+      'compactionStepSize': 1
     },
 
     // MR Tree布局参数
     'mrtree': {
-      'treeConstruction': 'MINIMUM_SPANNING_TREE',
-      'spanningTreeCostFunction': 'ORIGINAL'
+      'weighting': 'MODEL_ORDER',
+      'searchOrder': 'DFS'
     },
 
     // Stress布局参数
     'stress': {
-      'iterations': 100,
-      'stopThreshold': 0.01
+      'desiredEdgeLength': 100,
+      'epsilon': 0.0001,
+      'dimension': 'XY',
+      'iterationLimit': 1000000,
+      'interactive': false
+    },
+
+    // Rectpacking布局参数
+    'rectpacking': {
+      'tryBox': false,
+      'widthApproximation': {
+        'strategy': 'GREEDY',
+        'targetWidth': -1
+      }
+    },
+
+    // Vertiflex布局参数
+    'vertiflex': {
+      'layerDistance': 50,
+      'considerNodeModelOrder': false
+    },
+
+    // Box布局参数
+    'box': {
+      // 新增参数默认值
+      'packingMode': 'SIMPLE'
+    },
+
+    // SporeOverlap布局参数
+    'sporeOverlap': {
+      'iterationLimit': 64
     }
   });
 
@@ -188,13 +284,28 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
 
   // 构建ELK图结构
   const buildElkGraph = useCallback((): ELKGraph => {
+    // 算法ID映射，将短名称映射到完整的ELK算法ID
+    const algorithmIdMap: Record<string, string> = {
+      'layered': 'org.eclipse.elk.layered',
+      'force': 'org.eclipse.elk.force',
+      'stress': 'org.eclipse.elk.stress',
+      'mrtree': 'org.eclipse.elk.mrtree',
+      'radial': 'org.eclipse.elk.radial',
+      'box': 'org.eclipse.elk.box',
+      'random': 'org.eclipse.elk.random',
+      'sporeOverlap': 'org.eclipse.elk.sporeOverlap',
+      'rectpacking': 'org.eclipse.elk.rectpacking',
+      'vertiflex': 'org.eclipse.elk.vertiflex'
+    };
+
     // 基础布局参数
     const baseOptions: Record<string, string> = {
-      'elk.algorithm': layoutOptions.algorithm,
+      'elk.algorithm': algorithmIdMap[layoutOptions.algorithm] || layoutOptions.algorithm,
       'elk.randomSeed': layoutOptions.randomSeed.toString(),
       'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
-      // 使用baseValue作为所有间距的基础值
-      'elk.layered.spacing.baseValue': layoutOptions.nodeSpacing.toString()
+      'elk.spacing.nodeNode': layoutOptions.nodeSpacing.toString(),
+      'elk.spacing.edgeEdge': layoutOptions.edgeSpacing.toString(),
+      'elk.spacing.nodeEdge': (layoutOptions.edgeSpacing / 2).toString()
     };
 
     // 根据算法类型添加特定参数
@@ -203,45 +314,72 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
     switch (layoutOptions.algorithm) {
       case 'layered':
         algorithmOptions['elk.direction'] = layoutOptions.direction;
+        algorithmOptions['elk.layered.spacing.baseValue'] = layoutOptions.nodeSpacing.toString();
         algorithmOptions['elk.layered.spacing.nodeNodeBetweenLayers'] = layoutOptions.layered.rankSpacing.toString();
-        algorithmOptions['elk.layered.crossingMinimization'] = layoutOptions.layered.crossingMinimization;
+        algorithmOptions['elk.layered.spacing.edgeEdgeBetweenLayers'] = layoutOptions.layered.edgeEdgeSpacing.toString();
+        algorithmOptions['elk.layered.spacing.edgeNodeBetweenLayers'] = layoutOptions.layered.edgeNodeSpacing.toString();
+        algorithmOptions['elk.layered.crossingMinimization.strategy'] = layoutOptions.layered.crossingMinimization;
         algorithmOptions['elk.layered.nodePlacement.strategy'] = layoutOptions.layered.nodePlacement;
-        algorithmOptions['elk.layered.spacing.edgeEdgeBetweenLayers'] = layoutOptions.edgeSpacing.toString();
-        algorithmOptions['elk.layered.spacing.edgeEdge'] = layoutOptions.edgeSpacing.toString();
+        algorithmOptions['elk.layered.feedbackEdges'] = layoutOptions.layered.feedbackEdges.toString();
+        algorithmOptions['elk.layered.considerModelOrder.strategy'] = layoutOptions.layered.considerModelOrder;
+        algorithmOptions['elk.layered.layering.strategy'] = layoutOptions.layered.nodeLayeringStrategy;
+        algorithmOptions['elk.layered.thoroughness'] = layoutOptions.layered.thoroughness.toString();
+        algorithmOptions['elk.layered.mergeEdges'] = layoutOptions.layered.mergeEdges.toString();
+        algorithmOptions['elk.layered.layerUnzipping.strategy'] = layoutOptions.layered.layerUnzippingStrategy;
+        algorithmOptions['elk.layered.considerModelOrder.longEdgeStrategy'] = layoutOptions.layered.longEdgeOrderingStrategy;
+        algorithmOptions['elk.layered.layering.nodePromotion.strategy'] = layoutOptions.layered.nodePromotionStrategy;
+        algorithmOptions['elk.layered.directionCongruency'] = layoutOptions.layered.directionCongruency;
+
+        algorithmOptions['org.eclipse.elk.layered.compaction.postCompaction.strategy'] = layoutOptions.layered.postCompactionStrategy;
         break;
 
       case 'force':
-        algorithmOptions['elk.force.coolingFactor'] = layoutOptions.force.coolingFactor.toString();
-        algorithmOptions['elk.force.iterations'] = layoutOptions.force.iterations.toString();
-        algorithmOptions['elk.force.springLength'] = layoutOptions.force.springLength.toString();
-        algorithmOptions['elk.force.springConstant'] = layoutOptions.force.springConstant.toString();
-        algorithmOptions['elk.force.repulsion'] = layoutOptions.force.repulsion.toString();
+        algorithmOptions['org.eclipse.elk.force.iterations'] = layoutOptions.force.iterations.toString();
+        algorithmOptions['org.eclipse.elk.force.model'] = layoutOptions.force.forceModel;
+        algorithmOptions['org.eclipse.elk.force.spacing.nodeNode'] = layoutOptions.nodeSpacing.toString();
+        algorithmOptions['org.eclipse.elk.force.repulsion'] = layoutOptions.force.repulsion.toString();
+        algorithmOptions['org.eclipse.elk.force.temperature'] = layoutOptions.force.temperature.toString();
+        algorithmOptions['org.eclipse.elk.interactive'] = layoutOptions.force.interactive.toString();
+        algorithmOptions['org.eclipse.elk.randomSeed'] = layoutOptions.randomSeed.toString();
         break;
 
       case 'mrtree':
         algorithmOptions['elk.direction'] = layoutOptions.direction;
-        algorithmOptions['elk.processingOrder.treeConstruction'] = layoutOptions.mrtree.treeConstruction;
-        algorithmOptions['elk.processingOrder.spanningTreeCostFunction'] = layoutOptions.mrtree.spanningTreeCostFunction;
-        algorithmOptions['elk.spacing.nodeNode'] = layoutOptions.nodeSpacing.toString();
+        algorithmOptions['org.eclipse.elk.mrtree.weighting'] = layoutOptions.mrtree.weighting;
+        algorithmOptions['org.eclipse.elk.mrtree.searchOrder'] = layoutOptions.mrtree.searchOrder;
         break;
 
       case 'radial':
-        algorithmOptions['elk.radial.treeSpacing'] = layoutOptions.radial.treeSpacing.toString();
-        algorithmOptions['elk.radial.nodeSpacing'] = layoutOptions.radial.nodeSpacing.toString();
+        algorithmOptions['elk.direction'] = layoutOptions.direction;
+        algorithmOptions['org.eclipse.elk.radial.compactor'] = layoutOptions.radial.compaction;
+        algorithmOptions['org.eclipse.elk.radial.compactionStepSize'] = layoutOptions.radial.compactionStepSize.toString();
         break;
 
       case 'stress':
-        algorithmOptions['elk.stress.iterations'] = layoutOptions.stress.iterations.toString();
-        algorithmOptions['elk.stress.stopThreshold'] = layoutOptions.stress.stopThreshold.toString();
+        algorithmOptions['org.eclipse.elk.stress.desiredEdgeLength'] = layoutOptions.stress.desiredEdgeLength.toString();
+        algorithmOptions['org.eclipse.elk.stress.epsilon'] = layoutOptions.stress.epsilon.toString();
+        algorithmOptions['org.eclipse.elk.stress.dimension'] = layoutOptions.stress.dimension;
+        algorithmOptions['org.eclipse.elk.stress.iterationLimit'] = layoutOptions.stress.iterationLimit.toString();
+        algorithmOptions['org.eclipse.elk.interactive'] = layoutOptions.stress.interactive.toString();
+        break;
+
+      case 'rectpacking':
+        algorithmOptions['elk.rectpacking.trybox'] = layoutOptions.rectpacking.tryBox.toString();
+        algorithmOptions['elk.rectpacking.widthApproximation.strategy'] = layoutOptions.rectpacking.widthApproximation.strategy;
+        algorithmOptions['elk.rectpacking.widthApproximation.targetWidth'] = layoutOptions.rectpacking.widthApproximation.targetWidth.toString();
+        break;
+
+      case 'vertiflex':
+        algorithmOptions['elk.vertiflex.layerDistance'] = layoutOptions.vertiflex.layerDistance.toString();
+        algorithmOptions['elk.vertiflex.considerNodeModelOrder'] = layoutOptions.vertiflex.considerNodeModelOrder.toString();
         break;
 
       case 'box':
+        algorithmOptions['org.eclipse.elk.box.packingMode'] = layoutOptions.box.packingMode;
         break;
 
-      case 'fixed':
-        break;
-
-      case 'random':
+      case 'sporeOverlap':
+        algorithmOptions['org.eclipse.elk.overlapRemoval.maxIterations'] = layoutOptions.sporeOverlap.iterationLimit.toString();
         break;
     }
 
@@ -263,11 +401,26 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
         'width': 150,
         'height': 50
       })),
-      'edges': edges.map(edge => ({
-        'id': edge.id,
-        'sources': [edge.source],
-        'targets': [edge.target]
-      }))
+      'edges': edges.map(edge => {
+        const edgeData = edge.data;
+        const edgeObj: {
+          id: string;
+          sources: string[];
+          targets: string[];
+          weight?: number;
+        } = {
+          'id': edge.id,
+          'sources': [edge.source],
+          'targets': [edge.target]
+        };
+
+        // 直接将权重添加到边对象中，用于PRIORITIES策略
+        if (edgeData && typeof (edgeData as { weight?: number }).weight === 'number') {
+          edgeObj.weight = (edgeData as { weight: number }).weight;
+        }
+
+        return edgeObj;
+      })
     };
   }, [nodes, edges, layoutOptions]);
 
@@ -325,24 +478,38 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
   return (
     <div className="w-full h-full bg-white shadow-lg overflow-y-auto">
       {/* 面板标题 */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          {/* 布局图标 */}
-          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            {/* 布局图标 */}
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            布局管理
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            配置并应用不同的图谱布局算法
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors flex-shrink-0"
+          title="关闭面板"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
-          布局管理
-        </h2>
-        <p className="text-sm text-gray-600 mt-1">
-          配置并应用不同的图谱布局算法
-        </p>
+        </button>
       </div>
 
       {/* 内容区域 */}
       <div className="p-6 space-y-6">
         {/* 布局算法选择 */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
             布局算法
           </h3>
 
@@ -360,11 +527,14 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                 <option value="layered">层次布局 (Layered)</option>
                 <option value="force">力导向布局 (Force)</option>
                 <option value="stress">应力布局 (Stress)</option>
-                <option value="mrtree">最小生成树布局 (MR Tree)</option>
+                <option value="mrtree">树布局 (Mr.Tree)</option>
                 <option value="radial">辐射状布局 (Radial)</option>
+                <option value="rectpacking">矩形打包布局 (Rectpacking)</option>
+                <option value="vertiflex">垂直约束布局 (Vertiflex)</option>
                 <option value="box">盒布局 (Box)</option>
-                <option value="fixed">固定布局 (Fixed)</option>
                 <option value="random">随机布局 (Random)</option>
+
+                <option value="sporeOverlap">Spore重叠布局 (SporeOverlap)</option>
               </select>
             </div>
 
@@ -390,8 +560,11 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
         </div>
 
         {/* 布局参数 */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
             布局参数
           </h3>
 
@@ -407,25 +580,24 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={layoutOptions.nodeSpacing}
                 onChange={(e) => updateLayoutOption('nodeSpacing', parseInt(e.target.value, 10))}
-                min="0"
-                max="500"
               />
             </div>
 
-            {/* 边间距 */}
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">
-                边间距
-              </label>
-              <input
-                type="number"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={layoutOptions.edgeSpacing}
-                onChange={(e) => updateLayoutOption('edgeSpacing', parseInt(e.target.value, 10))}
-                min="0"
-                max="200"
-              />
-            </div>
+            {/* 连接间距 */}
+            {/* 连接间距 */}
+            {layoutOptions.algorithm === 'layered' && (
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">
+                  连接间距
+                </label>
+                <input
+                  type="number"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={layoutOptions.edgeSpacing}
+                  onChange={(e) => updateLayoutOption('edgeSpacing', parseInt(e.target.value, 10))}
+                />
+              </div>
+            )}
 
             {/* 随机种子 */}
             <div>
@@ -437,10 +609,10 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={layoutOptions.randomSeed}
                 onChange={(e) => updateLayoutOption('randomSeed', parseInt(e.target.value, 10))}
-                min="0"
-                max="10000"
               />
             </div>
+
+
           </div>
 
           {/* 算法特定参数 */}
@@ -462,8 +634,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       value={layoutOptions.layered.rankSpacing}
                       onChange={(e) => updateNestedLayoutOption('layered', 'rankSpacing', parseInt(e.target.value, 10))}
-                      min="0"
-                      max="1000"
+
                     />
                   </div>
 
@@ -478,6 +649,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                       onChange={(e) => updateNestedLayoutOption('layered', 'crossingMinimization', e.target.value)}
                     >
                       <option value="LAYER_SWEEP">层扫描</option>
+                      <option value="MEDIAN_LAYER_SWEEP">中位数层扫描</option>
                       <option value="INTERACTIVE">交互式</option>
                       <option value="NONE">无</option>
                     </select>
@@ -498,6 +670,208 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                       <option value="LINEAR_SEGMENTS">线性分段</option>
                     </select>
                   </div>
+
+
+
+                  {/* 反馈连接处理 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      反馈连接处理
+                    </label>
+                    <div className="flex items-center p-2 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                      <input
+                        type="checkbox"
+                        checked={layoutOptions.layered.feedbackEdges}
+                        onChange={(e) => updateNestedLayoutOption('layered', 'feedbackEdges', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-xs text-gray-600">允许反馈连接（形成环的连接）</span>
+                    </div>
+                  </div>
+
+
+
+
+
+                  {/* 连接间间距 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      连接间间距
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.layered.edgeEdgeSpacing}
+                      onChange={(e) => updateNestedLayoutOption('layered', 'edgeEdgeSpacing', parseInt(e.target.value, 10))}
+                    />
+                  </div>
+
+                  {/* 连接节点间距 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      连接节点间距
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.layered.edgeNodeSpacing}
+                      onChange={(e) => updateNestedLayoutOption('layered', 'edgeNodeSpacing', parseInt(e.target.value, 10))}
+                    />
+                  </div>
+
+
+
+
+
+                  {/* 考虑模型顺序 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      考虑模型顺序
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.layered.considerModelOrder}
+                      onChange={(e) => updateNestedLayoutOption('layered', 'considerModelOrder', e.target.value)}
+                    >
+                      <option value="NONE">无</option>
+                      <option value="NODES_AND_EDGES">节点和连接</option>
+                    </select>
+                  </div>
+
+
+
+                  {/* 后紧凑化策略 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      后紧凑化策略
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.layered.postCompactionStrategy}
+                      onChange={(e) => updateNestedLayoutOption('layered', 'postCompactionStrategy', e.target.value as 'NONE' | 'LEFT' | 'RIGHT' | 'LEFT_RIGHT_CONSTRAINT_LOCKING' | 'LEFT_RIGHT_CONNECTION_LOCKING' | 'EDGE_LENGTH')}
+                    >
+                      <option value="NONE">无</option>
+                      <option value="LEFT">向左紧凑</option>
+                      <option value="RIGHT">向右紧凑</option>
+                      <option value="LEFT_RIGHT_CONSTRAINT_LOCKING">左右约束锁定</option>
+                      <option value="LEFT_RIGHT_CONNECTION_LOCKING">左右连接锁定</option>
+                      <option value="EDGE_LENGTH">连接长度</option>
+                    </select>
+                  </div>
+
+                  {/* 节点分层策略 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      节点分层策略
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.layered.nodeLayeringStrategy}
+                      onChange={(e) => updateNestedLayoutOption('layered', 'nodeLayeringStrategy', e.target.value)}
+                    >
+                      <option value="NETWORK_SIMPLEX">网络单纯形法</option>
+                      <option value="LONGEST_PATH">最长路径</option>
+                      <option value="COFFMAN_GRAHAM">Coffman-Graham</option>
+                      <option value="SIMPLE">简单</option>
+                    </select>
+                  </div>
+
+                  {/* 彻底性 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      彻底性
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.layered.thoroughness}
+                      onChange={(e) => updateNestedLayoutOption('layered', 'thoroughness', parseInt(e.target.value, 10))}
+                    />
+                  </div>
+
+                  {/* 合并边 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      合并边
+                    </label>
+                    <div className="flex items-center p-2 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                      <input
+                        type="checkbox"
+                        checked={layoutOptions.layered.mergeEdges}
+                        onChange={(e) => updateNestedLayoutOption('layered', 'mergeEdges', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-xs text-gray-600">合并平行边</span>
+                    </div>
+                  </div>
+
+                  {/* 层解压缩策略 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      层解压缩策略
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.layered.layerUnzippingStrategy}
+                      onChange={(e) => updateNestedLayoutOption('layered', 'layerUnzippingStrategy', e.target.value)}
+                    >
+                      <option value="NONE">无</option>
+                      <option value="ALTERNATING">交替</option>
+                    </select>
+                  </div>
+
+                  {/* 长边排序策略 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      长边排序策略
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.layered.longEdgeOrderingStrategy}
+                      onChange={(e) => updateNestedLayoutOption('layered', 'longEdgeOrderingStrategy', e.target.value)}
+                    >
+                      <option value="DUMMY_NODE_OVER">虚拟节点上方</option>
+                      <option value="DUMMY_NODE_UNDER">虚拟节点下方</option>
+                      <option value="EQUAL">相等</option>
+                    </select>
+                  </div>
+
+                  {/* 节点提升策略 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      节点提升策略
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.layered.nodePromotionStrategy}
+                      onChange={(e) => updateNestedLayoutOption('layered', 'nodePromotionStrategy', e.target.value)}
+                    >
+                      <option value="NONE">无</option>
+                      <option value="NIKOLOV">Nikolov算法</option>
+                      <option value="NIKOLOV_PIXEL">Nikolov像素算法</option>
+                      <option value="MODEL_ORDER_LEFT_TO_RIGHT">模型顺序从左到右</option>
+                      <option value="MODEL_ORDER_RIGHT_TO_LEFT">模型顺序从右到左</option>
+                    </select>
+                  </div>
+
+                  {/* 方向一致性 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      方向一致性
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.layered.directionCongruency}
+                      onChange={(e) => updateNestedLayoutOption('layered', 'directionCongruency', e.target.value)}
+                    >
+                      <option value="READING_DIRECTION">阅读方向</option>
+                      <option value="ROTATION">旋转</option>
+                    </select>
+                  </div>
+
+
                 </div>
               </div>
             )}
@@ -509,22 +883,6 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                   力导向布局 (Force) 参数
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* 冷却因子 */}
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">
-                      冷却因子
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={layoutOptions.force.coolingFactor}
-                      onChange={(e) => updateNestedLayoutOption('force', 'coolingFactor', parseFloat(e.target.value))}
-                      min="0.01"
-                      max="1"
-                    />
-                  </div>
-
                   {/* 迭代次数 */}
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
@@ -535,56 +893,68 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       value={layoutOptions.force.iterations}
                       onChange={(e) => updateNestedLayoutOption('force', 'iterations', parseInt(e.target.value, 10))}
-                      min="10"
-                      max="1000"
                     />
                   </div>
 
-                  {/* 弹簧长度 */}
+                  {/* 力模型 */}
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      弹簧长度
+                      力模型
                     </label>
-                    <input
-                      type="number"
+                    <select
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={layoutOptions.force.springLength}
-                      onChange={(e) => updateNestedLayoutOption('force', 'springLength', parseInt(e.target.value, 10))}
-                      min="10"
-                      max="500"
-                    />
-                  </div>
-
-                  {/* 弹簧常量 */}
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">
-                      弹簧常量
-                    </label>
-                    <input
-                      type="number"
-                      step="0.0001"
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={layoutOptions.force.springConstant}
-                      onChange={(e) => updateNestedLayoutOption('force', 'springConstant', parseFloat(e.target.value))}
-                      min="0.0001"
-                      max="0.01"
-                    />
+                      value={layoutOptions.force.forceModel}
+                      onChange={(e) => updateNestedLayoutOption('force', 'forceModel', e.target.value as 'EADES' | 'FRUCHTERMAN_REINGOLD')}
+                    >
+                      <option value="EADES">Eades模型</option>
+                      <option value="FRUCHTERMAN_REINGOLD">Fruchterman-Reingold模型</option>
+                    </select>
                   </div>
 
                   {/* 排斥力 */}
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      排斥力
+                      Eades模型排斥力
                     </label>
                     <input
                       type="number"
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       value={layoutOptions.force.repulsion}
-                      onChange={(e) => updateNestedLayoutOption('force', 'repulsion', parseInt(e.target.value, 10))}
-                      min="100"
-                      max="5000"
+                      onChange={(e) => updateNestedLayoutOption('force', 'repulsion', parseFloat(e.target.value))}
                     />
                   </div>
+
+                  {/* 温度 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      FR模型温度
+                    </label>
+                    <input
+                      type="number"
+                      step="0.0001"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.force.temperature}
+                      onChange={(e) => updateNestedLayoutOption('force', 'temperature', parseFloat(e.target.value))}
+                    />
+                  </div>
+
+                  {/* 交互式布局 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      交互式布局
+                    </label>
+                    <div className="flex items-center p-2 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                      <input
+                        type="checkbox"
+                        checked={layoutOptions.force.interactive}
+                        onChange={(e) => updateNestedLayoutOption('force', 'interactive', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-xs text-gray-600">启用交互式布局</span>
+                    </div>
+                  </div>
+
+
                 </div>
               </div>
             )}
@@ -593,36 +963,37 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
             {layoutOptions.algorithm === 'mrtree' && (
               <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
                 <h4 className="text-xs font-semibold text-purple-800 mb-3">
-                  最小生成树布局 (MR Tree) 参数
+                  树布局 (Mr.Tree) 参数
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* 树构建 */}
+                  {/* 节点加权 */}
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      树构建
+                      节点加权
                     </label>
                     <select
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={layoutOptions.mrtree.treeConstruction}
-                      onChange={(e) => updateNestedLayoutOption('mrtree', 'treeConstruction', e.target.value)}
+                      value={layoutOptions.mrtree.weighting}
+                      onChange={(e) => updateNestedLayoutOption('mrtree', 'weighting', e.target.value)}
                     >
-                      <option value="MINIMUM_SPANNING_TREE">最小生成树</option>
-                      <option value="MAXIMUM_SPANNING_TREE">最大生成树</option>
+                      <option value="MODEL_ORDER">模型顺序</option>
+                      <option value="DESCENDANTS">后代数量</option>
+                      <option value="FAN">扇出数量</option>
                     </select>
                   </div>
 
-                  {/* 生成树成本函数 */}
+                  {/* 搜索顺序 */}
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      生成树成本函数
+                      搜索顺序
                     </label>
                     <select
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={layoutOptions.mrtree.spanningTreeCostFunction}
-                      onChange={(e) => updateNestedLayoutOption('mrtree', 'spanningTreeCostFunction', e.target.value)}
+                      value={layoutOptions.mrtree.searchOrder}
+                      onChange={(e) => updateNestedLayoutOption('mrtree', 'searchOrder', e.target.value)}
                     >
-                      <option value="ORIGINAL">原始</option>
-                      <option value="INVERSE">反向</option>
+                      <option value="DFS">深度优先搜索</option>
+                      <option value="BFS">广度优先搜索</option>
                     </select>
                   </div>
                 </div>
@@ -636,33 +1007,32 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                   辐射状布局 (Radial) 参数
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* 树间距 */}
+                  {/* 压缩策略 */}
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      树间距
+                      压缩策略
                     </label>
-                    <input
-                      type="number"
+                    <select
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={layoutOptions.radial.treeSpacing}
-                      onChange={(e) => updateNestedLayoutOption('radial', 'treeSpacing', parseInt(e.target.value, 10))}
-                      min="50"
-                      max="500"
-                    />
+                      value={layoutOptions.radial.compaction}
+                      onChange={(e) => updateNestedLayoutOption('radial', 'compaction', e.target.value as 'NONE' | 'RADIAL_COMPACTION' | 'WEDGE_COMPACTION')}
+                    >
+                      <option value="NONE">无</option>
+                      <option value="RADIAL_COMPACTION">径向压缩</option>
+                      <option value="WEDGE_COMPACTION">楔形压缩</option>
+                    </select>
                   </div>
 
-                  {/* 节点间距 */}
+                  {/* 压缩步长 */}
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      节点间距
+                      压缩步长
                     </label>
                     <input
                       type="number"
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={layoutOptions.radial.nodeSpacing}
-                      onChange={(e) => updateNestedLayoutOption('radial', 'nodeSpacing', parseInt(e.target.value, 10))}
-                      min="20"
-                      max="200"
+                      value={layoutOptions.radial.compactionStepSize}
+                      onChange={(e) => updateNestedLayoutOption('radial', 'compactionStepSize', parseInt(e.target.value, 10))}
                     />
                   </div>
                 </div>
@@ -676,39 +1046,229 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                   应力布局 (Stress) 参数
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* 迭代次数 */}
+                  {/* 期望连接长度 */}
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      迭代次数
+                      期望连接长度
                     </label>
                     <input
                       type="number"
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={layoutOptions.stress.iterations}
-                      onChange={(e) => updateNestedLayoutOption('stress', 'iterations', parseInt(e.target.value, 10))}
-                      min="10"
-                      max="1000"
+                      value={layoutOptions.stress.desiredEdgeLength}
+                      onChange={(e) => updateNestedLayoutOption('stress', 'desiredEdgeLength', parseInt(e.target.value, 10))}
                     />
                   </div>
 
-                  {/* 停止阈值 */}
+                  {/* 应力阈值 */}
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      停止阈值
+                      应力阈值
                     </label>
                     <input
                       type="number"
-                      step="0.001"
+                      step="0.0001"
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={layoutOptions.stress.stopThreshold}
-                      onChange={(e) => updateNestedLayoutOption('stress', 'stopThreshold', parseFloat(e.target.value))}
-                      min="0.001"
-                      max="0.1"
+                      value={layoutOptions.stress.epsilon}
+                      onChange={(e) => updateNestedLayoutOption('stress', 'epsilon', parseFloat(e.target.value))}
+                    />
+                  </div>
+
+                  {/* 布局维度 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      布局维度
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.stress.dimension}
+                      onChange={(e) => updateNestedLayoutOption('stress', 'dimension', e.target.value)}
+                    >
+                      <option value="XY">XY轴</option>
+                      <option value="X">X轴</option>
+                      <option value="Y">Y轴</option>
+                    </select>
+                  </div>
+
+
+
+                  {/* 迭代限制 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      迭代限制
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.stress.iterationLimit}
+                      onChange={(e) => updateNestedLayoutOption('stress', 'iterationLimit', parseInt(e.target.value, 10))}
+                    />
+                  </div>
+
+                  {/* 交互式布局 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      交互式布局
+                    </label>
+                    <div className="flex items-center p-2 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                      <input
+                        type="checkbox"
+                        checked={layoutOptions.stress.interactive}
+                        onChange={(e) => updateNestedLayoutOption('stress', 'interactive', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-xs text-gray-600">启用交互式布局</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Rectpacking布局参数 */}
+            {layoutOptions.algorithm === 'rectpacking' && (
+              <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
+                <h4 className="text-xs font-semibold text-yellow-800 mb-3">
+                  矩形打包布局 (Rectpacking) 参数
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* 尝试盒布局 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      尝试盒布局
+                    </label>
+                    <div className="flex items-center p-2 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                      <input
+                        type="checkbox"
+                        checked={layoutOptions.rectpacking.tryBox}
+                        onChange={(e) => updateNestedLayoutOption('rectpacking', 'tryBox', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-xs text-gray-600">先检查是否适合盒布局</span>
+                    </div>
+                  </div>
+
+                  {/* 宽度近似策略 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      宽度近似策略
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.rectpacking.widthApproximation.strategy}
+                      onChange={(e) => updateNestedLayoutOption('rectpacking', 'widthApproximation', { ...layoutOptions.rectpacking.widthApproximation, 'strategy': e.target.value as RectpackingWidthApproximationStrategy })}
+                    >
+                      <option value="GREEDY">贪心算法</option>
+                      <option value="TARGET_WIDTH">按目标宽度</option>
+                    </select>
+                  </div>
+
+                  {/* 目标宽度 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      目标宽度
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.rectpacking.widthApproximation.targetWidth}
+                      onChange={(e) => updateNestedLayoutOption('rectpacking', 'widthApproximation', { ...layoutOptions.rectpacking.widthApproximation, 'targetWidth': parseInt(e.target.value, 10) })}
+                    />
+                  </div>
+
+
+                </div>
+              </div>
+            )}
+
+            {/* Vertiflex布局参数 */}
+            {layoutOptions.algorithm === 'vertiflex' && (
+              <div className="bg-teal-50 rounded-lg p-4 border border-teal-100">
+                <h4 className="text-xs font-semibold text-teal-800 mb-3">
+                  Vertiflex布局 (特殊树布局) 参数
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* 层间距 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      层间距
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.vertiflex.layerDistance}
+                      onChange={(e) => updateNestedLayoutOption('vertiflex', 'layerDistance', parseInt(e.target.value, 10))}
+                    />
+                  </div>
+
+                  {/* 考虑节点模型顺序 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      考虑节点模型顺序
+                    </label>
+                    <div className="flex items-center p-2 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                      <input
+                        type="checkbox"
+                        checked={layoutOptions.vertiflex.considerNodeModelOrder}
+                        onChange={(e) => updateNestedLayoutOption('vertiflex', 'considerNodeModelOrder', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-xs text-gray-600">考虑节点模型顺序</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Box布局参数 */}
+            {layoutOptions.algorithm === 'box' && (
+              <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+                <h4 className="text-xs font-semibold text-indigo-800 mb-3">
+                  盒布局 (Box) 参数
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* 打包模式 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      打包模式
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.box.packingMode}
+                      onChange={(e) => updateNestedLayoutOption('box', 'packingMode', e.target.value)}
+                    >
+                      <option value="SIMPLE">简单</option>
+                      <option value="GROUP_MIXED">分组混合</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+
+
+            {/* SporeOverlap布局参数 */}
+            {layoutOptions.algorithm === 'sporeOverlap' && (
+              <div className="bg-rose-50 rounded-lg p-4 border border-rose-100">
+                <h4 className="text-xs font-semibold text-rose-800 mb-3">
+                  Spore重叠布局 (SporeOverlap) 参数
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* 迭代限制 */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      迭代限制
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={layoutOptions.sporeOverlap.iterationLimit}
+                      onChange={(e) => updateNestedLayoutOption('sporeOverlap', 'iterationLimit', parseInt(e.target.value, 10))}
                     />
                   </div>
                 </div>
               </div>
             )}
+
+
           </div>
         </div>
 
@@ -717,7 +1277,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
           <button
             onClick={executeLayout}
             disabled={isLayouting || nodes.length === 0}
-            className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${isLayouting || nodes.length === 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md'}`}
+            className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white ${isLayouting || nodes.length === 0 ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'}`}
           >
             {isLayouting ? (
               <>
@@ -729,7 +1289,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
               </>
             ) : (
               <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 应用布局
@@ -738,7 +1298,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
           </button>
 
           {nodes.length === 0 && (
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-500 text-center bg-gray-50 p-3 rounded-lg border border-gray-100">
               请先添加节点再执行布局
             </p>
           )}

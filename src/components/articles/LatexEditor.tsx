@@ -41,8 +41,7 @@ declare module 'react' {
   }
 }
 
-// 导入自定义Hook
-import { useLatexStorage } from '../../hooks/useLatexStorage';
+
 
 // 类型声明
 interface LatexEditorProps {
@@ -53,49 +52,6 @@ interface LatexEditorProps {
 }
 
 
-
-// 条件渲染历史和收藏列表组件
-const FormulaList: React.FC<{
-  formulas: string[];
-  title: string;
-  isFavorite?: boolean;
-  onFormulaClick: (_formula: string) => void;
-}> = ({
-  formulas,
-  title,
-  isFavorite = false,
-  onFormulaClick
-}) => {
-  if (formulas.length === 0) {
-    return (
-      <p className="text-xs text-gray-500 dark:text-gray-400">暂无{title}</p>
-    );
-  }
-
-  return (
-    <div>
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
-        {title}
-      </h3>
-      <div className="space-y-2">
-        {formulas.map((formula) => (
-          <div
-            key={formula}
-            className={`flex items-center justify-between p-3 border border-gray-300 dark:border-gray-600 rounded ${isFavorite ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}
-          >
-            <button
-              className="flex-1 text-left text-xs font-mono text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
-              onClick={() => onFormulaClick(formula)}
-              title={formula}
-            >
-              {formula}
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 /**
  * LaTeX公式编辑器主组件
@@ -110,13 +66,6 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
   const modalRef = useRef<HTMLDivElement>(null);
   const mathFieldRef = useRef<MathLiveFieldElement>(null);
 
-  // 使用自定义Hook管理公式存储
-  const {
-    recentFormulas,
-    favoriteFormulas,
-    addToRecent
-  } = useLatexStorage();
-
   /**
    * 关闭编辑器
    */
@@ -130,8 +79,6 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
    */
   const handleInsert = () => {
     if (formula.trim()) {
-      // 添加到最近使用
-      addToRecent(formula);
       // 调用插入回调
       onInsert(formula);
       // 关闭编辑器
@@ -151,14 +98,6 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
    */
   const handleClear = () => {
     setFormula('');
-  };
-
-  /**
-   * 从历史记录或收藏夹中选择公式
-   */
-  const handleSelectFormula = (selectedFormula: string) => {
-    setFormula(selectedFormula);
-    addToRecent(selectedFormula);
   };
 
   /**
@@ -336,23 +275,7 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
             </div>
           </div>
 
-          {/* 历史和收藏 */}
-          <div className="mt-6 space-y-6">
-            {/* 最近使用的公式 */}
-            <FormulaList
-              formulas={recentFormulas}
-              title="最近使用"
-              onFormulaClick={handleSelectFormula}
-            />
 
-            {/* 收藏的公式 */}
-            <FormulaList
-              formulas={favoriteFormulas}
-              title="我的收藏"
-              isFavorite={true}
-              onFormulaClick={handleSelectFormula}
-            />
-          </div>
         </div>
 
         {/* 编辑器底部 */}

@@ -34,7 +34,7 @@
     "noUncheckedSideEffectImports": true,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true
+    "noImplicitOverride": true,      
   },
   "include": ["src/**/*", "configs/**/*.ts"],
   "exclude": ["node_modules", "dist", "build", "src/components/graph/legacy"]

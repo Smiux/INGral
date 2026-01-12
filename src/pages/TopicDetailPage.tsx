@@ -323,13 +323,13 @@ export function TopicDetailPage ({ topicId }: TopicDetailPageProps) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">{error || 'Topic not found'}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{error || '主题未找到'}</h1>
           <Link
             to="/discussions"
             className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Discussions
+            返回讨论区
           </Link>
         </div>
       </div>
@@ -347,7 +347,7 @@ export function TopicDetailPage ({ topicId }: TopicDetailPageProps) {
         className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 mb-8 transition"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Discussions
+        返回讨论区
       </Link>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
@@ -360,7 +360,7 @@ export function TopicDetailPage ({ topicId }: TopicDetailPageProps) {
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <div className="flex items-center gap-1">
                 <MessageSquare className="w-4 h-4" />
-                <span>{replies.length} replies</span>
+                <span>{replies.length} 回复</span>
               </div>
               <div className="flex items-center gap-1">
                 <span>{topic.created_at ? new Date(topic.created_at).toLocaleDateString() : 'N/A'}</span>
@@ -396,11 +396,11 @@ export function TopicDetailPage ({ topicId }: TopicDetailPageProps) {
 
       {/* 回复表单 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Add Reply</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">添加回复</h2>
         <form onSubmit={handleReplySubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="author-name" className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+              <label htmlFor="author-name" className="block text-sm font-medium text-gray-700 mb-1">您的姓名</label>
               <input
                 type="text"
                 id="author-name"
@@ -408,12 +408,12 @@ export function TopicDetailPage ({ topicId }: TopicDetailPageProps) {
                 value={replyFormData.authorName}
                 onChange={handleReplyChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter your name"
+                placeholder="输入您的姓名"
                 required
               />
             </div>
             <div>
-              <label htmlFor="author-email" className="block text-sm font-medium text-gray-700 mb-1">Your Email</label>
+              <label htmlFor="author-email" className="block text-sm font-medium text-gray-700 mb-1">您的邮箱</label>
               <input
                 type="email"
                 id="author-email"
@@ -421,13 +421,13 @@ export function TopicDetailPage ({ topicId }: TopicDetailPageProps) {
                 value={replyFormData.authorEmail}
                 onChange={handleReplyChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter your email"
+                placeholder="输入您的邮箱"
                 required
               />
             </div>
           </div>
           <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">Your Reply</label>
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">您的回复</label>
             <textarea
               id="content"
               name="content"
@@ -435,7 +435,7 @@ export function TopicDetailPage ({ topicId }: TopicDetailPageProps) {
               onChange={handleReplyChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
               rows={4}
-              placeholder="Enter your reply"
+              placeholder="输入您的回复"
               required
             ></textarea>
           </div>
@@ -445,7 +445,7 @@ export function TopicDetailPage ({ topicId }: TopicDetailPageProps) {
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Reply'}
+              {isSubmitting ? '提交中...' : '提交回复'}
             </button>
           </div>
         </form>
@@ -454,13 +454,13 @@ export function TopicDetailPage ({ topicId }: TopicDetailPageProps) {
       {/* 回复列表 */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Replies ({replies.length})
+          回复 ({replies.length})
         </h2>
         {replies.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
             <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600 mb-4">
-              No replies yet. Be the first to reply!
+              暂无回复，快来抢沙发吧！
             </p>
           </div>
         ) : (

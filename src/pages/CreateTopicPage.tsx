@@ -2,15 +2,12 @@
  * 创建主题页面组件
  * 允许用户创建新的讨论主题
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Send, Image } from 'lucide-react';
+import { ArrowLeft, Send } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import type { DiscussionCategory, DiscussionTopic } from '../types';
 import { discussionService } from '../services/discussionService';
-import { fileService } from '../services/fileService';
-import { screenReaderAnnouncer } from '../utils/accessibility';
-
 /**
  * 创建主题页面组件
  */
@@ -25,10 +22,6 @@ export function CreateTopicPage () {
   const [content, setContent] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [authorEmail, setAuthorEmail] = useState('');
-  // 图片上传相关
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-
   /**
    * 加载分类信息
    */
@@ -50,51 +43,6 @@ export function CreateTopicPage () {
       setIsLoading(false);
     }
   }, [categorySlug, navigate, setCategory, setIsLoading]);
-
-  /**
-   * 处理图片上传按钮点击
-   */
-  const handleImageButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  /**
-   * 处理图片上传
-   */
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    // 检查文件类型
-    if (!file.type.startsWith('image/')) {
-      screenReaderAnnouncer.announceError('Please select an image file.');
-      return;
-    }
-
-    try {
-      setIsUploading(true);
-
-      // 上传图片到Supabase存储
-      const imageUrl = await fileService.uploadFile(file, 'images', 'discussions');
-
-      if (imageUrl) {
-        // 将图片Markdown语法插入到编辑器内容中
-        const imageMarkdown = `![Image](${imageUrl})\n\n`;
-        setContent(prev => prev + imageMarkdown);
-      }
-    } catch (error) {
-      console.error('Failed to upload image:', error);
-      screenReaderAnnouncer.announceError('Failed to upload image. Please try again.');
-    } finally {
-      setIsUploading(false);
-      // 重置文件输入
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
 
   /**
    * 处理主题提交
@@ -152,10 +100,10 @@ export function CreateTopicPage () {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Category Not Found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">分类未找到</h2>
           <Link to="/discussions" className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
             <ArrowLeft className="w-4 h-4" />
-            Back to Discussions
+            返回讨论区
           </Link>
         </div>
       </div>
@@ -172,18 +120,18 @@ export function CreateTopicPage () {
             className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to {category.name} Discussions
+            返回{category.name}讨论区
           </Link>
         </div>
 
         {/* 页面标题 */}
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Create New Topic</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">创建新主题</h1>
 
         {/* 创建表单 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Topic Title</label>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">主题标题</label>
               <input
                 type="text"
                 id="title"
@@ -191,35 +139,12 @@ export function CreateTopicPage () {
                 onChange={(e) => setTitle(e.target.value)}
                 required
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg px-4 py-2"
-                placeholder="Enter topic title"
+                placeholder="输入主题标题"
               />
             </div>
 
             <div>
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">Topic Content (Markdown supported)</label>
-              <div className="flex gap-2 mb-2">
-                <button
-                  type="button"
-                  onClick={handleImageButtonClick}
-                  disabled={isUploading}
-                  className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:bg-indigo-300 disabled:cursor-not-allowed text-sm"
-                >
-                  {isUploading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <Image className="w-4 h-4" />
-                  )}
-                  Upload Image
-                </button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleImageUpload}
-                  accept="image/*"
-                  className="hidden"
-                />
-              </div>
-              <div className="border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">主题内容 (支持Markdown)</label>              <div className="border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 <MDEditor
                   value={content}
                   onChange={(value) => setContent(value || '')}
@@ -231,7 +156,7 @@ export function CreateTopicPage () {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="author-name" className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                <label htmlFor="author-name" className="block text-sm font-medium text-gray-700 mb-1">您的姓名</label>
                 <input
                   type="text"
                   id="author-name"
@@ -239,18 +164,18 @@ export function CreateTopicPage () {
                   onChange={(e) => setAuthorName(e.target.value)}
                   required
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2"
-                  placeholder="Enter your name"
+                  placeholder="输入您的姓名"
                 />
               </div>
               <div>
-                <label htmlFor="author-email" className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
+                <label htmlFor="author-email" className="block text-sm font-medium text-gray-700 mb-1">邮箱 (可选)</label>
                 <input
                   type="email"
                   id="author-email"
                   value={authorEmail}
                   onChange={(e) => setAuthorEmail(e.target.value)}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2"
-                  placeholder="Enter your email"
+                  placeholder="输入您的邮箱"
                 />
               </div>
             </div>
@@ -260,7 +185,7 @@ export function CreateTopicPage () {
                 to={`/discussions/${categorySlug}`}
                 className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Cancel
+                取消
               </Link>
               <button
                 type="submit"
@@ -272,7 +197,7 @@ export function CreateTopicPage () {
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
-                Create Topic
+                创建主题
               </button>
             </div>
           </form>
