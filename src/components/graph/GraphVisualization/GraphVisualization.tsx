@@ -1,10 +1,9 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ReactFlow,
   Background,
   BackgroundVariant,
-  Controls,
   MiniMap,
   ReactFlowProvider,
   Connection,
@@ -20,12 +19,14 @@ import {
   ConnectionMode
 } from '@xyflow/react';
 import { Brain, Database, Box } from 'lucide-react';
+import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph3D from 'react-force-graph-3d';
 import '@xyflow/react/dist/style.css';
 import GraphToolbar from './GraphToolbar';
 
 import FloatingConnectionLine from './FloatingConnectionLine';
 
-// 添加全局样式，移除节点和连接的选择过渡效果
+// 添加全局样式
 const CustomReactFlowStyles = () => (
   <style>{`
     /* 移除选择框的过渡效果 */
@@ -84,7 +85,6 @@ const CustomReactFlowStyles = () => (
     
     /* 选中的连接线高亮 - 优化外发光效果，减少性能消耗 */
     .react-flow__edge.selected .react-flow__edge-path {
-      stroke-width: 4px !important;
       /* 减少阴影层数，使用更高效的发光效果 */
       filter: drop-shadow(0 0 6px #fbbf24) drop-shadow(0 0 12px #fbbf24);
       /* 保持原始颜色，只添加高效的外发光 */
@@ -104,22 +104,6 @@ const CustomReactFlowStyles = () => (
       }
       100% {
         stroke-dashoffset: -300;
-      }
-    }
-    
-    /* 脉冲动画关键帧 - 改为颜色变化而非透明度变化 */
-    @keyframes pulseAnimation {
-      0% {
-        stroke-width: 2;
-        stroke: #3b82f6;
-      }
-      50% {
-        stroke-width: 3;
-        stroke: #1d4ed8;
-      }
-      100% {
-        stroke-width: 2;
-        stroke: #3b82f6;
       }
     }
     
@@ -207,8 +191,6 @@ const CustomReactFlowStyles = () => (
   `}</style>
 );
 
-
-
 // 导入自定义节点和连接组件
 import CustomNode, { CustomNodeData } from './CustomNode';
 import FloatingEdge, { CustomEdgeData } from './FloatingEdge';
@@ -218,6 +200,21 @@ import { GraphAnalysisPanel } from './GraphAnalysisPanel';
 import { GraphImportExportPanel } from './GraphImportExportPanel';
 import GraphGenerationPanel from './GraphGenerationPanel';
 import GraphLayoutPanel from './GraphLayoutPanel';
+
+// 定义force-graph的数据类型接口
+interface ForceGraphNode {
+  id: string;
+  name: string;
+  val: number;
+  color: string;
+}
+
+interface ForceGraphLink {
+  source: string;
+  target: string;
+  color: string;
+  width: number;
+}
 
 // 自定义节点和连接类型映射 - 定义在组件外部，避免每次渲染创建新对象
 const nodeTypes = {
@@ -291,6 +288,10 @@ const initialEdges: Edge<CustomEdgeData>[] = [
         'dynamicEffect': 'flow',
         'isAnimating': false
       }
+    },
+    'markerEnd': {
+      'type': 'arrowclosed',
+      'color': '#3b82f6'
     }
   },
   {
@@ -308,9 +309,172 @@ const initialEdges: Edge<CustomEdgeData>[] = [
         'dynamicEffect': 'flow',
         'isAnimating': false
       }
+    },
+    'markerEnd': {
+      'type': 'arrowclosed',
+      'color': '#3b82f6'
     }
   }
 ];
+
+// 背景配置 - 定义在组件外部，避免每次渲染创建新对象
+const backgroundConfig = {
+  'color': '#ccc',
+  'size': 1
+};
+
+// 小地图样式 - 定义在组件外部，避免每次渲染创建新对象
+const miniMapStyle = {
+  'backgroundColor': '#fff',
+  'border': '1px solid #ccc'
+};
+
+// 小地图节点颜色函数 - 定义在组件外部，避免每次渲染创建新函数
+const nodeColorFn = () => '#3b82f6';
+
+// React Flow视图组件
+const ReactFlowView: React.FC<{
+  nodes: Node<CustomNodeData>[];
+  edges: Edge<CustomEdgeData>[];
+  onNodesChange: ReturnType<typeof useNodesState>[2];
+  onEdgesChange: ReturnType<typeof useEdgesState>[2];
+  onConnect: (params: Connection) => void;
+  snapToGrid: boolean;
+  snapGrid: [number, number];
+  reactFlowWrapper: React.RefObject<HTMLDivElement>;
+}> = React.memo(({
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  snapToGrid,
+  snapGrid,
+  reactFlowWrapper
+}) => {
+  // 缓存静态配置对象，避免每次渲染创建新对象
+  const defaultViewport = React.useMemo(() => ({
+    'x': 0,
+    'y': 0,
+    'zoom': 1
+  }), []);
+
+  // 缓存connectionLineStyle，避免每次渲染创建新对象
+  const connectionLineStyle = React.useMemo(() => ({
+    'stroke': '#3b82f6',
+    'strokeWidth': 2,
+    'animation': 'none'
+  }), []);
+
+  return (
+    <div ref={reactFlowWrapper} className="w-full h-full">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        fitView
+        panOnDrag={true}
+        zoomOnScroll={true}
+        zoomOnPinch={true}
+        panOnScroll={false}
+        zoomOnDoubleClick={true}
+        minZoom={0.01}
+        maxZoom={10}
+        defaultViewport={defaultViewport}
+        style={{ 'width': '100%', 'height': '100%' }}
+        nodesConnectable={true}
+        connectionMode={ConnectionMode.Loose}
+        proOptions={{ 'hideAttribution': true }}
+        deleteKeyCode={['Delete', 'Backspace']}
+        multiSelectionKeyCode={['Shift', 'Control']}
+        selectionOnDrag={true}
+        connectionLineStyle={connectionLineStyle}
+        connectionLineComponent={FloatingConnectionLine}
+        snapToGrid={snapToGrid}
+        snapGrid={snapGrid}
+      >
+        {/* 背景 - 根据网格对齐状态切换样式 */}
+        <Background
+          variant={snapToGrid ? BackgroundVariant.Lines : BackgroundVariant.Dots}
+          gap={snapToGrid ? snapGrid[0] : 16}
+          size={snapToGrid ? 1 : backgroundConfig.size}
+          color={backgroundConfig.color}
+        />
+        {/* 小地图 - 默认位置在右下角，调整样式使其更清晰 */}
+        <MiniMap
+          nodeColor={nodeColorFn}
+          zoomable
+          pannable
+          style={miniMapStyle}
+          maskColor="rgba(255, 255, 255, 0.6)"
+          position="bottom-right"
+        />
+      </ReactFlow>
+    </div>
+  );
+});
+
+// Force Graph 2D视图组件
+const ForceGraph2DView: React.FC<{
+  graphData: { nodes: ForceGraphNode[]; links: ForceGraphLink[] };
+  width: number;
+  height: number;
+}> = React.memo(({
+  graphData,
+  width,
+  height
+}) => {
+  return (
+    <div className="w-full h-full">
+      <ForceGraph2D
+        graphData={graphData}
+        nodeLabel={(node: ForceGraphNode) => node.name}
+        nodeColor={(node: ForceGraphNode) => node.color}
+        nodeRelSize={8}
+        linkColor={(link: ForceGraphLink) => link.color}
+        linkWidth={(link: ForceGraphLink) => link.width}
+        linkDirectionalArrowLength={6}
+        linkDirectionalArrowRelPos={1}
+        backgroundColor="#f5f5f5"
+        width={width}
+        height={height}
+      />
+    </div>
+  );
+});
+
+// Force Graph 3D视图组件
+const ForceGraph3DView: React.FC<{
+  graphData: { nodes: ForceGraphNode[]; links: ForceGraphLink[] };
+  width: number;
+  height: number;
+}> = React.memo(({
+  graphData,
+  width,
+  height
+}) => {
+  return (
+    <div className="w-full h-full">
+      <ForceGraph3D
+        graphData={graphData}
+        nodeLabel={(node: ForceGraphNode) => node.name}
+        nodeColor={(node: ForceGraphNode) => node.color}
+        nodeRelSize={4}
+        linkColor={(link: ForceGraphLink) => link.color}
+        linkWidth={(link: ForceGraphLink) => link.width}
+        linkDirectionalArrowLength={6}
+        linkDirectionalArrowRelPos={1}
+        backgroundColor="#f5f5f5"
+        width={width}
+        height={height}
+      />
+    </div>
+  );
+});
 
 // 图谱可视化主组件
 const GraphVisualizationContent: React.FC = () => {
@@ -323,15 +487,13 @@ const GraphVisualizationContent: React.FC = () => {
 
   // React Flow容器引用
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-
-  // 使用useStore选择器获取节点和边的数量，减少不必要的重渲染
-  const nodeCount = useStore(state => state.nodes.length);
-  const edgeCount = useStore(state => state.edges.length);
-
-  // 检查是否有选中的节点或边
-  const hasSelection = useStore(state =>
-    state.nodes.some(node => node.selected) || state.edges.some(edge => edge.selected)
-  );
+  // 2D和3D画布容器引用
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
+  // 画布尺寸状态
+  const [canvasDimensions, setCanvasDimensions] = useState({
+    'width': window.innerWidth,
+    'height': window.innerHeight - 64
+  });
 
   // 图谱管理面板显示状态，初始设置为关闭
   const [isManagementPanelOpen, setIsManagementPanelOpen] = useState(false);
@@ -343,7 +505,83 @@ const GraphVisualizationContent: React.FC = () => {
   const [isGenerationPanelOpen, setIsGenerationPanelOpen] = useState(false);
   // 布局面板显示状态，初始设置为关闭
   const [isLayoutPanelOpen, setIsLayoutPanelOpen] = useState(false);
+  // 网格对齐状态
+  const [snapToGrid, setSnapToGrid] = useState(false);
+  // 网格大小
+  const snapGrid: [number, number] = [16, 16];
+  // 视图模式状态：'reactflow' 或 'forcegraph2d' 或 'forcegraph3d'
+  const [viewMode, setViewMode] = useState<'reactflow' | 'forcegraph2d' | 'forcegraph3d'>('reactflow');
 
+  // 使用useStore选择器获取节点和边的数量，减少不必要的重渲染
+  const nodeCount = useStore(
+    (state) => state.nodes.length,
+    (prev, next) => prev === next
+  );
+
+  const edgeCount = useStore(
+    (state) => state.edges.length,
+    (prev, next) => prev === next
+  );
+
+  // 检查是否有选中的节点或边
+  const hasSelection = useStore(
+    (state) => state.nodes.some(node => node.selected) || state.edges.some(edge => edge.selected),
+    (prev, next) => prev === next
+  );
+
+  // 计算画布尺寸的函数 - 只有在非reactflow模式下才需要计算
+  const calculateCanvasDimensions = useCallback(() => {
+    if (canvasWrapperRef.current && viewMode !== 'reactflow') {
+      const rect = canvasWrapperRef.current.getBoundingClientRect();
+      setCanvasDimensions(prev => {
+        // 只有当尺寸真正改变时才更新，避免不必要的重渲染
+        if (prev.width !== rect.width || prev.height !== rect.height) {
+          return {
+            'width': rect.width,
+            'height': rect.height
+          };
+        }
+        return prev;
+      });
+    }
+  }, [viewMode]);
+
+  // 添加窗口大小变化监听器 - 只有在非reactflow模式下才需要监听
+  React.useEffect(() => {
+    if (viewMode !== 'reactflow') {
+      calculateCanvasDimensions();
+      const handleResize = () => {
+        calculateCanvasDimensions();
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+    return undefined;
+  }, [calculateCanvasDimensions, viewMode]);
+
+  // 优化forceGraphData计算：在reactflow模式下不计算，在forcegraph模式下根据nodes和edges变化计算
+  // 使用ref缓存reactflow模式下的空结果，避免每次渲染创建新对象
+  const emptyForceGraphData = React.useRef({ 'nodes': [], 'links': [] });
+  const forceGraphData = useMemo(() => {
+    if (viewMode === 'reactflow') {
+      return emptyForceGraphData.current;
+    }
+
+    return {
+      'nodes': nodes.map(node => ({
+        'id': node.id,
+        'name': node.data.title || '未命名节点',
+        'val': 5,
+        'color': node.data.style?.stroke || '#3b82f6'
+      })),
+      'links': edges.map(edge => ({
+        'source': edge.source,
+        'target': edge.target,
+        'color': edge.data?.style?.stroke || '#3b82f6',
+        'width': edge.data?.style?.strokeWidth || 2
+      }))
+    };
+  }, [viewMode, nodes, edges]);
 
   // 使用useCallback缓存面板切换函数，避免每次渲染重新创建
   const toggleManagementPanel = useCallback(() => {
@@ -364,6 +602,11 @@ const GraphVisualizationContent: React.FC = () => {
 
   const toggleLayoutPanel = useCallback(() => {
     setIsLayoutPanelOpen(prev => !prev);
+  }, []);
+
+  // 使用useCallback缓存网格对齐切换函数，避免每次渲染重新创建
+  const toggleSnapToGrid = useCallback(() => {
+    setSnapToGrid(prev => !prev);
   }, []);
 
   // 处理布局应用
@@ -390,6 +633,10 @@ const GraphVisualizationContent: React.FC = () => {
             'dynamicEffect': 'flow',
             'isAnimating': false
           }
+        },
+        'markerEnd': {
+          'type': 'arrowclosed',
+          'color': '#3b82f6'
         }
       };
       setEdges((eds) => addEdge(customEdge, eds));
@@ -407,16 +654,15 @@ const GraphVisualizationContent: React.FC = () => {
     reactFlowInstance.fitView({ 'duration': 500 });
   }, [setNodes, setEdges, reactFlowInstance]);
 
-  // 创建新节点 - 优化：使用更高效的算法计算新节点编号和位置
+  // 创建新节点
   const createNewNode = useCallback(() => {
     // 获取视图中心位置 - 只在创建节点时获取
     const viewport = reactFlowInstance.getViewport();
     const centerX = -viewport.x / viewport.zoom;
     const centerY = -viewport.y / viewport.zoom;
 
-    // 使用函数式更新，避免依赖nodes数组
     setNodes((currentNodes) => {
-      // 计算新节点的编号 - 优化：使用map和Math.max结合的方式，减少循环中的条件判断
+      // 计算新节点的编号
       const numberedNodeNumbers = currentNodes
         .map(node => {
           const nodeTitle = node.data?.title || '';
@@ -428,7 +674,7 @@ const GraphVisualizationContent: React.FC = () => {
       const maxNodeNumber = numberedNodeNumbers.length > 0 ? Math.max(...numberedNodeNumbers) : 0;
       const newNodeNumber = maxNodeNumber + 1;
 
-      // 计算新节点位置 - 优化：使用更高效的算法，避免嵌套循环
+      // 计算新节点位置
       let x: number;
       let y: number;
       const nodeSize = 100;
@@ -439,9 +685,6 @@ const GraphVisualizationContent: React.FC = () => {
         x = centerX;
         y = centerY;
       } else {
-        // 快速定位：使用极坐标布局，避免嵌套循环
-        // 基于当前节点数量计算角度，确保新节点与现有节点有一定距离
-        // 使用黄金角分布，避免节点重叠
         const angle = currentNodes.length * Math.PI * 0.618;
         // 基于节点数量动态调整距离
         const distance = minDistance * Math.sqrt(currentNodes.length + 1);
@@ -476,7 +719,7 @@ const GraphVisualizationContent: React.FC = () => {
     });
   }, [reactFlowInstance, setNodes]);
 
-  // 图生成回调函数 - 实现渐进式生成
+  // 处理生成完成
   const handleGenerateGraph = useCallback((newNodes: Node<CustomNodeData>[], newEdges: Edge<CustomEdgeData>[]) => {
     if (newNodes.length === 0 && newEdges.length === 0) {
       // 清空现有图
@@ -490,9 +733,6 @@ const GraphVisualizationContent: React.FC = () => {
       setEdges((currentEdges) => [...currentEdges, ...newEdges]);
     }
   }, [setNodes, setEdges]);
-
-
-
 
   return (
     <div className="w-full h-screen flex flex-col">
@@ -509,7 +749,7 @@ const GraphVisualizationContent: React.FC = () => {
             <span className="font-bold text-sm tracking-tight text-gray-800">MyWiki</span>
           </Link>
 
-          {/* 图谱统计信息 - 使用useStore选择器获取数据，减少重渲染 */}
+          {/* 图谱统计信息 */}
           <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-gray-700 backdrop-blur-sm flex-shrink-0">
             <span className="flex items-center gap-1">
               <Database size={12} />
@@ -536,115 +776,45 @@ const GraphVisualizationContent: React.FC = () => {
           onToggleGenerationPanel={toggleGenerationPanel}
           isLayoutPanelOpen={isLayoutPanelOpen}
           onToggleLayoutPanel={toggleLayoutPanel}
+          snapToGrid={snapToGrid}
+          onToggleSnapToGrid={toggleSnapToGrid}
+          viewMode={viewMode}
+          onSetViewMode={setViewMode}
         />
       </div>
 
-      {/* React Flow容器 - 添加背景色以便更好地看到背景点 */}
-      <div ref={reactFlowWrapper} className="flex-1 w-full bg-gray-50 relative">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          fitView
-          // 启用缩放和拖动功能
-          panOnDrag={true}
-          zoomOnScroll={true}
-          zoomOnPinch={true}
-          panOnScroll={false}
-          zoomOnDoubleClick={true}
-          minZoom={0.01}
-          maxZoom={10}
-          // 设置默认视图
-          defaultViewport={{ 'x': 0, 'y': 0, 'zoom': 1 }}
-          // 高度和宽度由容器决定
-          style={{ 'width': '100%', 'height': '100%' }}
-          // 开启自由连接模式
-          nodesConnectable={true}
-          // 设置连接模式为loose，允许自由创建连接
-          connectionMode={ConnectionMode.Loose}
-          // 使用proOptions隐藏水印
-          proOptions={{ 'hideAttribution': true }}
-          // 简化删除键配置
-          deleteKeyCode={['Delete', 'Backspace']}
-          // 启用节点和边的优化渲染
-          nodesDraggable={true}
-          nodesFocusable={true}
-          edgesFocusable={true}
-          multiSelectionKeyCode={['Shift', 'Control']}
-          selectionOnDrag={true}
-          // 防止在交互时滚动页面
-          preventScrolling={true}
-          // 启用节点重排优化
-          elevateNodesOnSelect={true}
-          // 禁用连接动画
-          connectionLineStyle={{ 'stroke': '#3b82f6', 'strokeWidth': 2, 'animation': 'none' }}
-          // 始终使用浮动连接线组件
-          connectionLineComponent={FloatingConnectionLine}
-        >
-          {/* 定义箭头标记 - 使用CSS变量控制颜色，支持过渡效果 */}
-          <svg>
-            <defs>
-              <marker
-                id="arrowhead"
-                markerWidth="7.2"
-                markerHeight="8"
-                refX="7"
-                refY="4"
-                orient="auto"
-                markerUnits="strokeWidth"
-              >
-                <path
-                  d="M 0,1.6 Q 0,0 1.6,0 L 6.4,3.2 Q 7.2,4 6.4,4.8 L 1.6,8 Q 0,8 0,6.4 Z"
-                  fill="var(--xy-edge-stroke, #3b82f6)"
-                  stroke="var(--xy-edge-stroke, #3b82f6)"
-                />
-              </marker>
-              <marker
-                id="arrowhead-selected"
-                markerWidth="7.2"
-                markerHeight="8"
-                refX="7"
-                refY="4"
-                orient="auto"
-                markerUnits="strokeWidth"
-              >
-                <path
-                  d="M 0,1.6 Q 0,0 1.6,0 L 6.4,3.2 Q 7.2,4 6.4,4.8 L 1.6,8 Q 0,8 0,6.4 Z"
-                  fill="var(--xy-edge-stroke, #ef4444)"
-                  stroke="var(--xy-edge-stroke, #ef4444)"
-                />
-              </marker>
-            </defs>
-          </svg>
+      {/* 根据视图模式渲染不同的图谱组件 */}
+      <div ref={canvasWrapperRef} className="flex-1 w-full bg-gray-50 relative">
+        {/* 根据视图模式渲染不同的图谱组件 */}
+        {viewMode === 'reactflow' && (
+          <ReactFlowView
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            snapToGrid={snapToGrid}
+            snapGrid={snapGrid}
+            reactFlowWrapper={reactFlowWrapper}
+          />
+        )}
+        {viewMode === 'forcegraph2d' && (
+          <ForceGraph2DView
+            graphData={forceGraphData}
+            width={canvasDimensions.width}
+            height={canvasDimensions.height}
+          />
+        )}
+        {viewMode === 'forcegraph3d' && (
+          <ForceGraph3DView
+            graphData={forceGraphData}
+            width={canvasDimensions.width}
+            height={canvasDimensions.height}
+          />
+        )}
 
-          {/* 背景 - 使用点状背景 */}
-          <Background
-            variant={BackgroundVariant.Dots}
-            gap={16}
-            size={1}
-            color="#ccc"
-          />
-          {/* 视图控制 - 默认位置在右下角 */}
-          <Controls
-            position="bottom-right"
-          />
-          {/* 小地图 - 默认位置在右下角，调整样式使其更清晰 */}
-          <MiniMap
-            nodeColor={() => '#3b82f6'}
-            zoomable
-            pannable
-            style={{ 'backgroundColor': '#fff', 'border': '1px solid #ccc' }}
-            maskColor="rgba(255, 255, 255, 0.6)"
-            position="bottom-right"
-          />
-        </ReactFlow>
-
-        {/* 图谱控制面板 - 只在有选中节点或边时渲染 */}
-        {hasSelection && (
+        {/* 图谱控制面板 - 只在有选中节点或边时渲染，且仅在React Flow模式下 */}
+        {hasSelection && viewMode === 'reactflow' && (
           <GraphControlPanel
             panelPosition="right"
           />
@@ -718,8 +888,6 @@ const GraphVisualizationContent: React.FC = () => {
         {isImportExportPanelOpen && (
           <div className="w-[40rem] min-w-[40rem] max-w-[40rem] bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-30">
             <GraphImportExportPanel
-              nodes={nodes}
-              edges={edges}
               onImportComplete={handleImportComplete}
               onClose={() => setIsImportExportPanelOpen(false)}
             />
@@ -734,12 +902,10 @@ const GraphVisualizationContent: React.FC = () => {
           />
         )}
 
-        {/* 布局面板 - 条件渲染 */}
-        {isLayoutPanelOpen && (
+        {/* 布局面板 - 条件渲染，且仅在React Flow模式下 */}
+        {isLayoutPanelOpen && viewMode === 'reactflow' && (
           <div className="w-[40rem] min-w-[40rem] max-w-[40rem] bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-20">
             <GraphLayoutPanel
-              nodes={nodes}
-              edges={edges}
               onLayout={handleLayout}
               onClose={() => setIsLayoutPanelOpen(false)}
             />

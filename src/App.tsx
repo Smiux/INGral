@@ -26,7 +26,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
   override render () {
     if (this.state.hasError) {
-      // 你可以自定义降级UI
       return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 bg-gray-50 dark:bg-gray-900">
           <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">加载失败</h2>
@@ -45,7 +44,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 }
 
-// 直接导入所有组件
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { ArticleViewer } from './components/articles/ArticleViewer';

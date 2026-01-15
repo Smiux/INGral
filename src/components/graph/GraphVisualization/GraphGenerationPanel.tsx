@@ -320,7 +320,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     const newEdges: Edge<CustomEdgeData>[] = [];
     const { nodeCount, categories, edgeCategories, weightRange, curveType } = chainConfig;
 
-    // 生成节点 - 只生成节点数据，位置由布局算法计算
+    // 生成节点
     for (let i = 0; i < nodeCount; i += 1) {
       const category = generateNodeCategory(categories);
 
@@ -834,7 +834,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     const newEdges: Edge<CustomEdgeData>[] = [];
     const { nodeCount, categories, edgeCategories, weightRange, curveType } = starConfig;
 
-    // 生成中心节点 - 只生成节点数据，位置由布局算法计算
+    // 生成中心节点
     const centerNodeId = generateNodeId(0);
     const centerCategory = generateNodeCategory(categories);
 
@@ -851,7 +851,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       }
     });
 
-    // 生成外围节点 - 只生成节点数据，位置由布局算法计算
+    // 生成外围节点
     for (let i = 1; i < nodeCount; i += 1) {
       const nodeId = generateNodeId(i);
       const category = generateNodeCategory(categories);
@@ -920,7 +920,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     const { 'newNodes': nodes, 'newEdges': newEdges } = result;
     let newNodes = nodes;
 
-    // 对于网格图和环状图，不使用布局算法，使用原来的节点位置计算
     if (graphType !== 'grid' && graphType !== 'cycle') {
       // 对其他图进行布局
       newNodes = await layoutGraph(newNodes, newEdges, graphType);
@@ -928,11 +927,8 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     const totalNodes = newNodes.length;
     const totalEdges = newEdges.length;
 
-    // 优化1: 增大批次大小，动态调整
     const batchSize = Math.max(50, Math.min(200, Math.floor(totalNodes / 20)));
-    // 优化2: 减小延迟时间
     const delay = 16;
-    // 约60fps
 
     // 开始生成，更新进度状态
     setGenerationProgress({ 'active': true, 'stage': '生成中', 'progress': 0 });
@@ -940,7 +936,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     // 清空现有图
     onGenerate([], []);
 
-    // 优化3: 使用requestAnimationFrame代替setTimeout，提高性能和流畅度
     const requestNextFrame = (callback: () => void) => {
       if (typeof window !== 'undefined' && window.requestAnimationFrame) {
         return window.requestAnimationFrame(callback);
@@ -948,7 +943,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       return setTimeout(callback, delay);
     };
 
-    // 优化4: 并行处理节点和边
     let nodeIndex = 0;
     let edgeIndex = 0;
     let lastProgressUpdate = 0;
@@ -970,7 +964,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
         edgeIndex = endEdgeIndex;
       }
 
-      // 优化5: 减少进度更新频率，避免频繁重渲染
       const now = Date.now();
       if (now - lastProgressUpdate > 100) {
         // 更新进度
@@ -1134,14 +1127,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       min="1"
                       max="5"
-                      // 优化：使用状态值直接绑定，允许为空
                       value={treeConfig.maxDepth === 0 ? '' : treeConfig.maxDepth}
                       onChange={(e) => {
-                        // 优化：正确处理数字输入框的清空行为
                         const value = e.target.value;
 
-                        // 当输入为空时，将状态设置为0表示空
-                        // 0是一个有效的数字，但我们在value属性中会将其转换为空字符串显示
                         if (value === '') {
                           setTreeConfig(prev => ({ ...prev, 'maxDepth': 0 }));
                           return;
@@ -1159,13 +1148,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       min="1"
                       max="4"
-                      // 优化：使用状态值直接绑定，允许为空
                       value={treeConfig.minDepth === 0 ? '' : treeConfig.minDepth}
                       onChange={(e) => {
-                        // 优化：正确处理数字输入框的清空行为
                         const value = e.target.value;
 
-                        // 当输入为空时，将状态设置为0表示空
                         if (value === '') {
                           setTreeConfig(prev => ({ ...prev, 'minDepth': 0 }));
                           return;
@@ -1212,13 +1198,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         min="1"
                         max="5"
-                        // 优化：使用状态值直接绑定，允许为空
                         value={treeConfig.childrenCount === 0 ? '' : treeConfig.childrenCount}
                         onChange={(e) => {
-                          // 优化：正确处理数字输入框的清空行为
                           const value = e.target.value;
 
-                          // 当输入为空时，将状态设置为0表示空
                           if (value === '') {
                             setTreeConfig(prev => ({ ...prev, 'childrenCount': 0 }));
                             return;
@@ -1238,13 +1221,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           min="1"
                           max="5"
-                          // 优化：使用状态值直接绑定，允许为空
                           value={treeConfig.minChildrenPerNode === 0 ? '' : treeConfig.minChildrenPerNode}
                           onChange={(e) => {
-                            // 优化：正确处理数字输入框的清空行为
                             const value = e.target.value;
 
-                            // 当输入为空时，将状态设置为0表示空
                             if (value === '') {
                               setTreeConfig(prev => ({ ...prev, 'minChildrenPerNode': 0 }));
                               return;
@@ -1262,13 +1242,11 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           min="1"
                           max="5"
-                          // 优化：使用状态值直接绑定，允许为空
+
                           value={treeConfig.maxChildrenPerNode === 0 ? '' : treeConfig.maxChildrenPerNode}
                           onChange={(e) => {
-                            // 优化：正确处理数字输入框的清空行为
                             const value = e.target.value;
 
-                            // 当输入为空时，将状态设置为0表示空
                             if (value === '') {
                               setTreeConfig(prev => ({ ...prev, 'maxChildrenPerNode': 0 }));
                               return;
@@ -1291,13 +1269,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                       className="w-full p-2 border border-gray-300 rounded-md"
                       min="1"
                       max="20"
-                      // 优化：使用状态值直接绑定，允许为空
                       value={gridConfig.rows === 0 ? '' : gridConfig.rows}
                       onChange={(e) => {
-                        // 优化：正确处理数字输入框的清空行为
                         const value = e.target.value;
 
-                        // 当输入为空时，将状态设置为0表示空
                         if (value === '') {
                           setGridConfig(prev => ({ ...prev, 'rows': 0 }));
                           return;
@@ -1315,13 +1290,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                       className="w-full p-2 border border-gray-300 rounded-md"
                       min="1"
                       max="20"
-                      // 优化：使用状态值直接绑定，允许为空
                       value={gridConfig.cols === 0 ? '' : gridConfig.cols}
                       onChange={(e) => {
-                        // 优化：正确处理数字输入框的清空行为
                         const value = e.target.value;
 
-                        // 当输入为空时，将状态设置为0表示空
                         if (value === '') {
                           setGridConfig(prev => ({ ...prev, 'cols': 0 }));
                           return;
@@ -1356,7 +1328,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 min="2"
                 max="500"
-                // 优化：使用状态值直接绑定，允许为空
                 value={(() => {
                   switch (graphType) {
                     case 'random':
@@ -1372,10 +1343,8 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                   }
                 })()}
                 onChange={(e) => {
-                  // 优化：正确处理数字输入框的清空行为
                   const value = e.target.value;
 
-                  // 当输入为空时，将状态设置为0表示空
                   if (value === '') {
                     switch (graphType) {
                       case 'random':
@@ -1454,13 +1423,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   min="0"
                   max={randomConfig.nodeCount * (randomConfig.nodeCount - 1)}
-                  // 优化：使用状态值直接绑定，允许为空
                   value={randomConfig.edgeCount === 0 ? '' : randomConfig.edgeCount}
                   onChange={(e) => {
-                    // 优化：正确处理数字输入框的清空行为
                     const value = e.target.value;
 
-                    // 当输入为空时，将状态设置为0表示空
                     if (value === '') {
                       setRandomConfig(prev => ({ ...prev, 'edgeCount': 0 }));
                       return;
@@ -1480,13 +1446,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   min="0"
                   max={randomConfig.nodeCount}
-                  // 优化：使用状态值直接绑定，允许为空
                   value={randomConfig.connectedComponentsCount === 0 ? '' : randomConfig.connectedComponentsCount}
                   onChange={(e) => {
-                    // 优化：正确处理数字输入框的清空行为
                     const value = e.target.value;
 
-                    // 当输入为空时，将状态设置为0表示空
                     if (value === '') {
                       setRandomConfig(prev => ({ ...prev, 'connectedComponentsCount': 0 }));
                       return;

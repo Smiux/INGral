@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Undo, Redo, Plus, Layout, Box, Grid, Settings,
-  Database, BarChart2,
-  ZoomIn, ZoomOut, Maximize2,
-  Download, ChevronDown, Edit3,
-  Layers, View, Target
-} from 'lucide-react';
+import { Undo, Redo, Plus, Layout, Box, Grid, Database, BarChart2, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, AlignCenter, Sparkles } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 
 interface GraphToolbarProps {
@@ -20,11 +14,14 @@ interface GraphToolbarProps {
   onToggleGenerationPanel: () => void;
   isLayoutPanelOpen: boolean;
   onToggleLayoutPanel: () => void;
+  snapToGrid: boolean;
+  onToggleSnapToGrid: () => void;
+  viewMode: 'reactflow' | 'forcegraph2d' | 'forcegraph3d';
+  onSetViewMode: (mode: 'reactflow' | 'forcegraph2d' | 'forcegraph3d') => void;
 }
 
 /**
  * 图谱工具栏组件
- * 基于旧版工具栏样式，适配新版React Flow系统
  */
 export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
   onAddNode,
@@ -37,18 +34,19 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
   isGenerationPanelOpen,
   onToggleGenerationPanel,
   isLayoutPanelOpen,
-  onToggleLayoutPanel
+  onToggleLayoutPanel,
+  snapToGrid,
+  onToggleSnapToGrid,
+  viewMode,
+  onSetViewMode
 }) => {
-  // 使用useReactFlow hook获取React Flow实例
   const reactFlowInstance = useReactFlow();
 
   // 工具栏分组折叠状态
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     'edit': false,
     'tools': false,
-    'analysis': false,
-    'view': false,
-    'settings': false
+    'view': false
   });
 
   // 处理工具栏分组折叠/展开
@@ -73,7 +71,6 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
   };
 
   const handleFitView = () => {
-    // 使用reactFlowInstance获取当前节点数量
     const currentNodes = reactFlowInstance.getNodes();
     if (currentNodes.length > 0) {
       reactFlowInstance.fitView({
@@ -142,161 +139,163 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
             >
               <Plus size={16} />
             </button>
-
-            {/* 导入导出按钮 */}
-            <button
-              onClick={onToggleImportExportPanel}
-              className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isImportExportPanelOpen ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' : 'hover:bg-blue-50'}`}
-              title="导入导出"
-            >
-              <Download size={16} />
-            </button>
           </>
         )}
       </div>
 
-      {/* 工具组 */}
-      <div className="flex items-center gap-0.5 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm">
-        <button
-          className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${collapsedGroups.tools ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-          onClick={() => toggleGroup('tools')}
-          title="工具"
-        >
-          {collapsedGroups.tools ? <Layers size={16} /> : <ChevronDown size={16} />}
-        </button>
+      {/* 工具组 - 仅在reactflow模式下显示 */}
+      {viewMode === 'reactflow' && (
+        <div className="flex items-center gap-0.5 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm">
+          <button
+            className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${collapsedGroups.tools ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+            onClick={() => toggleGroup('tools')}
+            title="工具"
+          >
+            {collapsedGroups.tools ? <Layers size={16} /> : <ChevronDown size={16} />}
+          </button>
 
-        {!collapsedGroups.tools && (
-          <>
-            {/* 布局管理按钮 */}
-            <button
-              onClick={onToggleLayoutPanel}
-              className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isLayoutPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-blue-50'}`}
-              title="布局管理"
-            >
-              <Layout size={16} />
-            </button>
-
-            {/* 分析面板按钮 */}
-            <button
-              className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isAnalysisPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-              onClick={onToggleAnalysisPanel}
-              title="图谱分析"
-            >
-              <BarChart2 size={16} />
-            </button>
-
-            {/* 图生成面板按钮 */}
-            <button
-              className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isGenerationPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-              onClick={onToggleGenerationPanel}
-              title="图生成"
-            >
-              <Target size={16} />
-            </button>
-
-            {/* 管理面板按钮 */}
-            <button
-              className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isManagementPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-              onClick={onToggleManagementPanel}
-              title="图谱管理"
-            >
-              <Database size={16} />
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* 视图控制组 */}
-      <div className="flex items-center gap-0.5 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm">
-        <button
-          className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${collapsedGroups.view ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
-          onClick={() => toggleGroup('view')}
-          title="视图控制"
-        >
-          {collapsedGroups.view ? <View size={16} /> : <ChevronDown size={16} />}
-        </button>
-
-        {!collapsedGroups.view && (
-          <>
-            {/* 视图切换按钮组 - React Flow只支持2D */}
-            <div className="flex items-center gap-0.5">
+          {!collapsedGroups.tools && (
+            <>
+              {/* 布局管理按钮 */}
               <button
-                onClick={() => {
-                  console.log('2D view - React Flow only supports 2D');
-                }}
-                className="flex items-center justify-center w-12 h-12 rounded-md bg-blue-600 text-white shadow-md transition-all duration-200 ease-in-out"
-                title="2D视图"
+                onClick={onToggleLayoutPanel}
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isLayoutPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-blue-50'}`}
+                title="布局管理"
+              >
+                <Layout size={16} />
+              </button>
+
+              {/* 分析面板按钮 */}
+              <button
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isAnalysisPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                onClick={onToggleAnalysisPanel}
+                title="图谱分析"
+              >
+                <BarChart2 size={16} />
+              </button>
+
+              {/* 图生成面板按钮 */}
+              <button
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isGenerationPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                onClick={onToggleGenerationPanel}
+                title="图生成"
+              >
+                <Sparkles size={16} />
+              </button>
+
+              {/* 管理面板按钮 */}
+              <button
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isManagementPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+                onClick={onToggleManagementPanel}
+                title="图谱管理"
+              >
+                <Database size={16} />
+              </button>
+
+              {/* 导入导出按钮 - 移到工具组 */}
+              <button
+                onClick={onToggleImportExportPanel}
+                className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isImportExportPanelOpen ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' : 'hover:bg-blue-50'}`}
+                title="导入导出"
+              >
+                <Download size={16} />
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* 视图控制组 - 仅在reactflow模式下显示 */}
+      {viewMode === 'reactflow' && (
+        <div className="flex items-center gap-0.5 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm">
+          <button
+            className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${collapsedGroups.view ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
+            onClick={() => toggleGroup('view')}
+            title="视图控制"
+          >
+            {collapsedGroups.view ? <View size={16} /> : <ChevronDown size={16} />}
+          </button>
+
+          {!collapsedGroups.view && (
+            <>
+              {/* 网格对齐开关 - 移到视图控制组 */}
+              <button
+                onClick={onToggleSnapToGrid}
+                className={`flex items-center justify-center w-12 h-12 rounded-md transition-all duration-200 ease-in-out ${snapToGrid ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}
+                title={snapToGrid ? '关闭网格对齐' : '开启网格对齐'}
               >
                 <Grid size={16} />
               </button>
-              <button
-                onClick={() => {
-                  console.log('3D view not supported in React Flow');
-                }}
-                className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out text-gray-700"
-                title="3D视图 (不支持)"
-              >
-                <Box size={16} />
-              </button>
-            </div>
 
-            {/* 缩放控制 */}
-            <div className="flex items-center gap-0.5">
+              {/* 缩放控制 */}
+              <div className="flex items-center gap-0.5">
+                <button
+                  onClick={handleZoomIn}
+                  className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
+                  title="放大"
+                >
+                  <ZoomIn size={16} />
+                </button>
+                <button
+                  onClick={handleZoomOut}
+                  className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
+                  title="缩小"
+                >
+                  <ZoomOut size={16} />
+                </button>
+                <button
+                  onClick={handleZoomReset}
+                  className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
+                  title="重置缩放"
+                >
+                  <ZoomIn size={16} className="rotate-45" />
+                </button>
+              </div>
+
+              {/* 中心对齐 */}
               <button
-                onClick={handleZoomIn}
+                onClick={handleFitView}
                 className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
-                title="放大"
+                title="中心对齐"
               >
-                <ZoomIn size={16} />
+                <AlignCenter size={16} />
               </button>
+
+              {/* 全屏控制 */}
               <button
-                onClick={handleZoomOut}
+                onClick={handleToggleFullscreen}
                 className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
-                title="缩小"
+                title="全屏"
               >
-                <ZoomOut size={16} />
+                <Maximize2 size={16} className="rotate-45" />
               </button>
-              <button
-                onClick={handleZoomReset}
-                className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
-                title="重置缩放"
-              >
-                <ZoomIn size={16} className="rotate-45" />
-              </button>
-            </div>
+            </>
+          )}
+        </div>
+      )}
 
-            {/* 中心对齐 */}
-            <button
-              onClick={handleFitView}
-              className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
-              title="中心对齐"
-            >
-              <Target size={16} />
-            </button>
-
-            {/* 全屏控制 */}
-            <button
-              onClick={handleToggleFullscreen}
-              className={'flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out'}
-              title="全屏"
-            >
-              <Maximize2 size={16} className="rotate-45" />
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* 右侧设置组 */}
-      <div className="flex items-center gap-1 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm flex-shrink-0">
-        {/* 设置按钮 */}
+      {/* 渲染模式分组 - 切换按钮，同一时刻只有一个激活 */}
+      <div className="flex items-center gap-0.5 bg-white/90 rounded-lg shadow-sm p-0.5 backdrop-blur-sm">
         <button
-          onClick={() => {
-            console.log('Settings clicked');
-          }}
-          className="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out text-gray-700"
-          title="设置"
+          onClick={() => onSetViewMode('reactflow')}
+          className={`flex items-center justify-center w-12 h-12 rounded-md transition-all duration-200 ease-in-out ${viewMode === 'reactflow' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}
+          title="React Flow渲染"
         >
-          <Settings size={16} />
+          <Home size={16} />
+        </button>
+        <button
+          onClick={() => onSetViewMode('forcegraph2d')}
+          className={`flex items-center justify-center w-12 h-12 rounded-md transition-all duration-200 ease-in-out ${viewMode === 'forcegraph2d' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}
+          title="Force Graph 2D渲染"
+        >
+          <Network size={16} />
+        </button>
+        <button
+          onClick={() => onSetViewMode('forcegraph3d')}
+          className={`flex items-center justify-center w-12 h-12 rounded-md transition-all duration-200 ease-in-out ${viewMode === 'forcegraph3d' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}
+          title="Force Graph 3D渲染"
+        >
+          <Box size={16} />
         </button>
       </div>
     </div>

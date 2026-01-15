@@ -75,6 +75,10 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
 
   // 当前激活的标签页
   const [activeTab, setActiveTab] = useState<TabType>('nodes');
+  // 搜索关键词
+  const [searchTerm, setSearchTerm] = useState('');
+  // 搜索类型
+  const [searchType, setSearchType] = useState<'all' | 'name' | 'content'>('all');
 
   /**
    * 删除选中节点
@@ -84,7 +88,6 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
       return;
     }
 
-    // 使用React Flow内置的deleteElements方法删除选中节点
     reactFlowInstance.deleteElements({
       'nodes': selectedNodes.map(node => ({ 'id': node.id }))
     });
@@ -98,7 +101,6 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
       return;
     }
 
-    // 使用React Flow内置的deleteElements方法批量删除选中连接
     reactFlowInstance.deleteElements({
       'edges': selectedEdges.map(edge => ({ 'id': edge.id }))
     });
@@ -108,7 +110,6 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
    * 删除单个连接
    */
   const handleDeleteConnection = useCallback((edgeId: string) => {
-    // 使用React Flow内置的deleteElements方法删除单个连接
     reactFlowInstance.deleteElements({
       'edges': [{ 'id': edgeId }]
     });
@@ -196,13 +197,37 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
     };
   }, [nodes, edges]);
 
+  // 搜索过滤节点
+  const filteredNodes = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return nodes;
+    }
+
+    const term = searchTerm.toLowerCase();
+
+    return nodes.filter(node => {
+      const nodeTitle = (node.data?.title || '').toLowerCase();
+      const nodeContent = (node.data?.metadata?.content || '').toLowerCase();
+
+      switch (searchType) {
+        case 'name':
+          return nodeTitle.includes(term);
+        case 'content':
+          return nodeContent.includes(term);
+        case 'all':
+        default:
+          return nodeTitle.includes(term) || nodeContent.includes(term);
+      }
+    });
+  }, [nodes, searchTerm, searchType]);
+
   // 渲染节点管理标签页
   const nodesTab = useMemo(() => (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
       <div className="flex flex-wrap gap-3 items-center mb-4">
         {/* 节点统计 */}
         <div className="text-sm text-gray-600 font-medium bg-white/70 px-3 py-1.5 rounded-lg shadow-sm">
-          节点数: {nodes.length} | 选中: {selectedNodes.length}
+          节点数: {nodes.length} | 搜索结果: {filteredNodes.length} | 选中: {selectedNodes.length}
         </div>
 
         {/* 添加节点按钮 */}
@@ -225,10 +250,47 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
         </button>
       </div>
 
+      {/* 搜索栏 */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="flex-1 min-w-[200px]">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="搜索节点名称或内容..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                title="清空搜索"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="min-w-[120px]">
+          <select
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value as 'all' | 'name' | 'content')}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          >
+            <option value="all">全部</option>
+            <option value="name">名称</option>
+            <option value="content">内容</option>
+          </select>
+        </div>
+      </div>
+
       {/* 节点列表 */}
       <div className="max-h-60 overflow-y-auto bg-white/80 rounded-lg shadow-sm">
         <ul className="space-y-1.5 p-1">
-          {nodes.map(node => (
+          {filteredNodes.map(node => (
             <li
               key={node.id}
               className={`flex items-center gap-2 p-2.5 rounded-md cursor-pointer transition-all duration-200 ${selectedNodes.some(n => n.id === node.id) ? 'bg-blue-100 text-blue-800 shadow-sm' : 'hover:bg-gray-50 hover:shadow-sm'}`}
@@ -237,13 +299,18 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
               <div className="flex-1">
                 <div className="text-sm font-medium truncate">{node.data?.title || '未命名节点'}</div>
                 <div className="text-xs text-gray-500">类别: {node.data?.category || '默认'}</div>
+                {node.data?.metadata?.content && (
+                  <div className="text-xs text-gray-500 truncate mt-1">
+                    {node.data.metadata.content}
+                  </div>
+                )}
               </div>
             </li>
           ))}
         </ul>
       </div>
     </div>
-  ), [nodes, selectedNodes, onAddNode, handleDeleteSelectedNodes, handleNodeClick]);
+  ), [nodes, filteredNodes, selectedNodes, onAddNode, handleDeleteSelectedNodes, handleNodeClick, searchTerm, searchType]);
 
   // 渲染连接管理标签页
   const connectionsTab = useMemo(() => (

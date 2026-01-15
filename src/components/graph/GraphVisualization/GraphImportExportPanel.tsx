@@ -1,15 +1,54 @@
 import React, { useState, useCallback } from 'react';
 import { Download, Upload, FileText, Database, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-import { type Node, type Edge } from '@xyflow/react';
+import { useStore, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './FloatingEdge';
 
 interface GraphImportExportPanelProps {
-  nodes: Node<CustomNodeData>[];
-  edges: Edge<CustomEdgeData>[];
   onImportComplete: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
   onClose: () => void;
 }
+
+// 比较函数，只比较必要的属性
+const edgesEqual = (prev: Edge[], next: Edge[]): boolean => {
+  if (prev.length !== next.length) {
+    return false;
+  }
+
+  // 比较边的关键属性：source, target, weight
+  for (let i = 0; i < prev.length; i += 1) {
+    const prevEdge = prev[i];
+    const nextEdge = next[i];
+
+    if (!prevEdge || !nextEdge) {
+      return false;
+    }
+
+    if (String(prevEdge.source) !== String(nextEdge.source) ||
+        String(prevEdge.target) !== String(nextEdge.target) ||
+        (prevEdge.data?.weight || 1) !== (nextEdge.data?.weight || 1)) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const nodesEqual = (prev: Node[], next: Node[]): boolean => {
+  if (prev.length !== next.length) {
+    return false;
+  }
+
+  // 比较节点的关键属性：id
+  for (let i = 0; i < prev.length; i += 1) {
+    const prevNode = prev[i];
+    const nextNode = next[i];
+
+    if (!prevNode || !nextNode || prevNode.id !== nextNode.id) {
+      return false;
+    }
+  }
+  return true;
+};
 
 type ExportFormat = 'json' | 'csv';
 type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -18,7 +57,30 @@ type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
  * 图谱导入导出面板组件
  * 支持多种格式的图谱数据导入导出
  */
-export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = React.memo(({ nodes, edges, onImportComplete, onClose }) => {
+export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = React.memo(({ onImportComplete, onClose }) => {
+  // 在组件内部使用useStore获取nodes和edges，避免不必要的props传递
+  const nodes = useStore<Node<CustomNodeData>[]>((state) =>
+    state.nodes.map((node) => ({
+      'id': node.id,
+      'position': node.position,
+      'data': node.data,
+      'type': node.type
+    })) as Node<CustomNodeData>[],
+  nodesEqual
+  );
+
+  const edges = useStore<Edge<CustomEdgeData>[]>((state) =>
+    state.edges.map((edge) => ({
+      'id': edge.id,
+      'source': edge.source,
+      'target': edge.target,
+      'data': edge.data,
+      'type': edge.type,
+      'markerEnd': edge.markerEnd
+    })) as Edge<CustomEdgeData>[],
+  edgesEqual
+  );
+
   // 状态管理
   const [exportFormat, setExportFormat] = useState<ExportFormat>('json');
   const [importStatus, setImportStatus] = useState<ImportStatus>('idle');

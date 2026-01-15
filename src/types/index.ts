@@ -76,14 +76,6 @@ export interface Article {
   // 社区数据
   upvotes: number;
   comment_count: number;
-  // 文章中的公式
-  formulas?: Array<{
-    id: string;
-    content: string;
-    type: 'inline' | 'block';
-    label?: string;
-    position: number;
-  }>;
 }
 
 /**
@@ -102,52 +94,3 @@ export interface ArticleLink {
   metadata?: Record<string, unknown>;
 }
 
-/**
- * 评论接口
- */
-export interface Comment {
-  id: string;
-  article_id: string;
-  user_id?: string;
-  // 支持匿名提交的作者信息
-  author_name: string;
-  author_email?: string | null;
-  author_url?: string | null;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  parent_id: string | null;
-  upvotes: number;
-  downvotes: number;
-  is_deleted: boolean;
-  replies?: Comment[];
-}
-
-/**
- * 创建评论数据接口
- */
-export interface CreateCommentData {
-  article_id: string;
-  content: string;
-  parent_id?: string | null;
-}
-
-/**
- * 目录项接口
- */
-export interface TableOfContentsItem {
-  id: string;
-  text: string;
-  level: number;
-  children: TableOfContentsItem[];
-}
-
-/**
- * 文章目录组件Props接口
- */
-
-export interface ArticleTableOfContentsProps {
-  contentRef: React.RefObject<HTMLDivElement>;
-  activeHeadingId: string;
-  onActiveHeadingChange: (_id: string) => void;
-}

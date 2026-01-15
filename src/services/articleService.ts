@@ -1,6 +1,6 @@
 import { BaseService } from './baseService';
 import type { Article, ArticleLink } from '../types/index';
-import { extractWikiLinks, titleToSlug, extractFormulas } from '../utils/markdown';
+import { extractWikiLinks, titleToSlug } from '../utils/markdown';
 import { validateTitle, validateContent, validateAuthorInfo, validateVisibility } from '../utils/inputValidation';
 
 /**
@@ -153,12 +153,6 @@ export class ArticleService extends BaseService {
         }
       }
 
-      // 提取并处理数学公式
-      const formulas = extractFormulas(content);
-      if (formulas.length > 0) {
-        article.formulas = formulas;
-      }
-
       return article;
     } catch (err) {
       this.handleError(err, 'ArticleService', '创建文章');
@@ -254,12 +248,6 @@ export class ArticleService extends BaseService {
 
       // 处理文章链接更新
       await this.updateArticleLinks(id, content);
-
-      // 提取并处理数学公式
-      const formulas = extractFormulas(content);
-      if (formulas.length > 0) {
-        article.formulas = formulas;
-      }
 
       return article;
     } catch (err) {

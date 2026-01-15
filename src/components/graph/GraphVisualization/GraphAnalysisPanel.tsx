@@ -22,7 +22,6 @@ interface CentralityMetrics {
 interface PathResult {
   path: Node<CustomNodeData>[];
   distance: number;
-  // 权重总和，明确允许undefined
   weight?: number | undefined;
 }
 
@@ -33,7 +32,6 @@ type AnalysisMode = 'unweighted' | 'weighted';
  * 图谱分析面板组件
  */
 /* eslint-disable max-depth, no-continue, max-nested-callbacks, react-hooks/exhaustive-deps */
-// 自定义相等比较函数，用于优化useStore的重渲染
 const edgesEqual = (prev: Edge[], next: Edge[]): boolean => {
   if (prev.length !== next.length) {
     return false;
@@ -75,7 +73,6 @@ const nodesEqual = (prev: Node[], next: Node[]): boolean => {
 };
 
 export const GraphAnalysisPanel: React.FC = () => {
-  // 核心节点和边数据，使用自定义相等比较函数优化重渲染
   // 只获取节点的必要信息：id、position 和 data
   const nodes = useStore<Node<CustomNodeData>[]>((state) =>
     state.nodes.map((node) => ({
@@ -381,7 +378,6 @@ export const GraphAnalysisPanel: React.FC = () => {
   }, [edgeMaps, pathfindingData]);
 
   // 计算中心性指标的辅助函数
-  // 这些函数需要在动态分析useEffect之前声明
 
   /**
    * 计算度中心性
@@ -453,7 +449,7 @@ export const GraphAnalysisPanel: React.FC = () => {
       sigma[s] = 1;
       const bfsQueue: string[] = [s];
 
-      // BFS - 优化：使用数组索引而不是shift()操作，提高性能
+      // BFS
       let queueStart = 0;
       while (queueStart < bfsQueue.length) {
         const v = bfsQueue[queueStart];
@@ -723,7 +719,6 @@ export const GraphAnalysisPanel: React.FC = () => {
 
 
   // 高效队列实现，使用双向队列
-  // 在TSX文件中使用泛型需要使用function关键字声明
   function queue<T> (): Queue<T> {
     const items: (T | undefined)[] = [];
     let head = 0;
@@ -742,7 +737,6 @@ export const GraphAnalysisPanel: React.FC = () => {
       // 释放内存
       items[head] = undefined;
       head += 1;
-      // 优化：当队列元素较少时，重置head和tail
       if (head > tail / 2) {
         items.splice(0, head);
         tail -= head;
@@ -1198,7 +1192,7 @@ export const GraphAnalysisPanel: React.FC = () => {
       });
     });
 
-    // 幂迭代法计算特征向量中心性 - 优化版
+    // 幂迭代法计算特征向量中心性
     let eigenvector = Array(n).fill(1 / Math.sqrt(n));
     // 迭代次数
     const iterations = 50;
@@ -3619,10 +3613,6 @@ export const GraphAnalysisPanel: React.FC = () => {
         const predecessors: Record<string, string> = {};
         let endNode = '';
 
-        // 改进：考虑所有节点作为潜在起点，而不仅仅是入度为0的节点
-        // 这确保了在所有可能的路径中找到最长路径
-
-        // 优化：使用单遍拓扑排序算法，O(V + E)复杂度
         // 初始化所有节点的距离为0（每个节点都可以作为路径起点）
         nodes.forEach(node => {
           distances[node.id] = 0;

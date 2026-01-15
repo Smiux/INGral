@@ -125,7 +125,7 @@ export default tseslint.config(
       'no-spaced-func': 'error',
       'no-sparse-arrays': 'error',
       'no-sync': 'error',
-      'no-ternary': 'off', // 允许三元运算符
+      'no-ternary': 'off',
       'no-trailing-spaces': 'error',
       'no-this-before-super': 'error',
       'no-throw-literal': 'error',
@@ -133,7 +133,6 @@ export default tseslint.config(
       'no-unsafe-finally': 'error',
       'no-unused-expressions': 'error',
       'no-unused-labels': 'error',
-      // 未使用的导入和变量规则
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
       'no-use-before-define': 'error',
@@ -143,7 +142,7 @@ export default tseslint.config(
       'no-void': 'error',
       'no-with': 'error',
       'object-shorthand': 'error',
-      'one-var': 'off', // 允许多变量声明
+      'one-var': 'off',
       'operator-assignment': 'error',
       'operator-linebreak': 'error',
       'padded-blocks': ['error', 'never'],

@@ -7,7 +7,6 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
 import type { Article } from '../../types';
 import { articleService } from '../../services/articleService';
-import ExportButton from '../ui/ExportButton';
 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
@@ -203,9 +202,6 @@ export function ArticleViewer () {
               </button>
             </div>
           </div>
-        </div>
-        <div className="flex gap-4">
-          <ExportButton article={article} />
         </div>
       </div>
     </article>

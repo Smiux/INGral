@@ -1,12 +1,9 @@
 import { Position, type InternalNode } from '@xyflow/react';
 
-// 这个辅助函数返回圆形节点的交点
+// 这个辅助函数返回节点的交点
 // 是连接交点节点中心和目标节点中心的线与交点节点边缘的交点
-// 正确实现了圆形版本的交点计算，确保连接点准确落在圆形边缘上
+// 通用算法，支持各种形状的节点
 function getNodeIntersection (intersectionNode: InternalNode, targetNode: InternalNode) {
-  // 圆形节点的半径
-  const radius = 50;
-
   // 确保节点有正确的属性
   const intersectionInternals = intersectionNode.internals || { 'positionAbsolute': { 'x': 0, 'y': 0 } };
   const targetInternals = targetNode.internals || { 'positionAbsolute': { 'x': 0, 'y': 0 } };
@@ -14,13 +11,21 @@ function getNodeIntersection (intersectionNode: InternalNode, targetNode: Intern
   const intersectionNodePosition = intersectionInternals.positionAbsolute || { 'x': 0, 'y': 0 };
   const targetPosition = targetInternals.positionAbsolute || { 'x': 0, 'y': 0 };
 
-  // 交点节点的中心坐标
-  const sourceCenterX = intersectionNodePosition.x + radius;
-  const sourceCenterY = intersectionNodePosition.y + radius;
+  // 获取节点数据，包括形状信息
+  const nodeData = intersectionNode.data || {};
+  const shape = nodeData.shape || 'circle';
 
-  // 目标节点的中心坐标（目标节点也是圆形，半径同样为50）
-  const targetCenterX = targetPosition.x + radius;
-  const targetCenterY = targetPosition.y + radius;
+  // 获取节点的实际尺寸或使用默认值
+  const nodeWidth = intersectionNode.measured?.width || 100;
+  const nodeHeight = intersectionNode.measured?.height || 100;
+
+  // 计算节点中心坐标
+  const sourceCenterX = intersectionNodePosition.x + nodeWidth / 2;
+  const sourceCenterY = intersectionNodePosition.y + nodeHeight / 2;
+
+  // 目标节点的中心坐标
+  const targetCenterX = targetPosition.x + (targetNode.measured?.width || 100) / 2;
+  const targetCenterY = targetPosition.y + (targetNode.measured?.height || 100) / 2;
 
   // 计算源节点到目标节点的向量
   const dx = targetCenterX - sourceCenterX;
@@ -38,15 +43,74 @@ function getNodeIntersection (intersectionNode: InternalNode, targetNode: Intern
   const unitX = dx / distance;
   const unitY = dy / distance;
 
-  // 计算交点坐标：从源节点中心沿单位向量方向移动半径长度
-  const intersectionX = sourceCenterX + unitX * radius;
-  const intersectionY = sourceCenterY + unitY * radius;
+  // 计算交点
+  let intersectionX: number;
+  let intersectionY: number;
+
+  // 计算节点的半宽和半高
+  const halfWidth = nodeWidth / 2;
+  const halfHeight = nodeHeight / 2;
+
+  // 通用算法：根据节点形状计算交点
+  if (shape === 'circle') {
+    // 圆形节点：交点在半径上
+    const radius = Math.min(halfWidth, halfHeight);
+    intersectionX = sourceCenterX + unitX * radius;
+    intersectionY = sourceCenterY + unitY * radius;
+  } else {
+    // 矩形、正方形或其他形状：使用边界框计算交点
+    // 计算线段与矩形边界的交点
+    let t = Infinity;
+
+    // 检查与左边界的交点
+    if (unitX < 0) {
+      const tLeft = (Number(-halfWidth) - 0) / unitX;
+      if (tLeft > 0) {
+        const yAtLeft = 0 + unitY * tLeft;
+        if (Math.abs(yAtLeft) <= halfHeight) {
+          t = Math.min(t, tLeft);
+        }
+      }
+    } else if (unitX > 0) {
+      // 检查与右边界的交点
+      const tRight = (Number(halfWidth) - 0) / unitX;
+      if (tRight > 0) {
+        const yAtRight = 0 + unitY * tRight;
+        if (Math.abs(yAtRight) <= halfHeight) {
+          t = Math.min(t, tRight);
+        }
+      }
+    }
+
+    // 检查与上边界的交点
+    if (unitY < 0) {
+      const tTop = (Number(-halfHeight) - 0) / unitY;
+      if (tTop > 0) {
+        const xAtTop = 0 + unitX * tTop;
+        if (Math.abs(xAtTop) <= halfWidth) {
+          t = Math.min(t, tTop);
+        }
+      }
+    } else if (unitY > 0) {
+      // 检查与下边界的交点
+      const tBottom = (Number(halfHeight) - 0) / unitY;
+      if (tBottom > 0) {
+        const xAtBottom = 0 + unitX * tBottom;
+        if (Math.abs(xAtBottom) <= halfWidth) {
+          t = Math.min(t, tBottom);
+        }
+      }
+    }
+
+    // 计算交点坐标
+    intersectionX = sourceCenterX + unitX * t;
+    intersectionY = sourceCenterY + unitY * t;
+  }
 
   return { 'x': intersectionX, 'y': intersectionY };
 }
 
 // 返回节点相对于交点的位置（top, right, bottom 或 left）
-// 修复了边界条件下的不稳定问题，确保在所有角度下都返回稳定的连接位置
 function getEdgePosition (node: InternalNode, intersectionPoint: { x: number; y: number }) {
   const n = { ...node.internals.positionAbsolute, ...node };
   const nx = n.x;

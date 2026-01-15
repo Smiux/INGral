@@ -1,12 +1,51 @@
 import React, { useState, useCallback } from 'react';
-import { Node, Edge } from '@xyflow/react';
+import { useStore, Node, Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './FloatingEdge';
 import ELK from 'elkjs';
 
+// 比较函数，只比较必要的属性
+const edgesEqual = (prev: Edge[], next: Edge[]): boolean => {
+  if (prev.length !== next.length) {
+    return false;
+  }
+
+  // 比较边的关键属性：source, target, weight
+  for (let i = 0; i < prev.length; i += 1) {
+    const prevEdge = prev[i];
+    const nextEdge = next[i];
+
+    if (!prevEdge || !nextEdge) {
+      return false;
+    }
+
+    if (String(prevEdge.source) !== String(nextEdge.source) ||
+        String(prevEdge.target) !== String(nextEdge.target) ||
+        (prevEdge.data?.weight || 1) !== (nextEdge.data?.weight || 1)) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const nodesEqual = (prev: Node[], next: Node[]): boolean => {
+  if (prev.length !== next.length) {
+    return false;
+  }
+
+  // 比较节点的关键属性：id
+  for (let i = 0; i < prev.length; i += 1) {
+    const prevNode = prev[i];
+    const nextNode = next[i];
+
+    if (!prevNode || !nextNode || prevNode.id !== nextNode.id) {
+      return false;
+    }
+  }
+  return true;
+};
+
 interface GraphLayoutPanelProps {
-  nodes: Node<CustomNodeData>[];
-  edges: Edge<CustomEdgeData>[];
   onLayout: (nodes: Node<CustomNodeData>[], edges: Edge<CustomEdgeData>[]) => void;
   onClose: () => void;
 }
@@ -147,11 +186,30 @@ const elk = new ELK();
  * 支持多种布局算法和参数配置
  */
 export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
-  nodes,
-  edges,
   onLayout,
   onClose
 }) => {
+  // 在组件内部使用useStore获取nodes和edges，避免不必要的props传递
+  const nodes = useStore<Node<CustomNodeData>[]>((state) =>
+    state.nodes.map((node) => ({
+      'id': node.id,
+      'position': node.position,
+      'data': node.data,
+      'type': node.type
+    })) as Node<CustomNodeData>[],
+  nodesEqual
+  );
+
+  const edges = useStore<Edge<CustomEdgeData>[]>((state) =>
+    state.edges.map((edge) => ({
+      'id': edge.id,
+      'source': edge.source,
+      'target': edge.target,
+      'data': edge.data,
+      'type': edge.type
+    })) as Edge<CustomEdgeData>[],
+  edgesEqual
+  );
   // 布局配置状态
   const [layoutOptions, setLayoutOptions] = useState<ELKLayoutOptions>({
     // 通用参数

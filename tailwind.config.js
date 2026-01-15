@@ -58,7 +58,6 @@ export default {
           800: '#991b1b',
           900: '#7f1d1d',
         },
-        // 中性色优化
         neutral: {
           50: '#fafafa',
           100: '#f5f5f5',
