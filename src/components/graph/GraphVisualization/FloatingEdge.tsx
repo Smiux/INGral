@@ -38,9 +38,8 @@ export interface CustomEdgeData {
 export const FloatingEdge = (props: EdgeProps) => {
   const { source, target, id, style, data, markerEnd } = props;
 
-  const edgeData = data as CustomEdgeData;
-
   // 连接数据配置
+  const edgeData = data as CustomEdgeData;
   const curveType = edgeData?.curveType || 'default';
   const isAnimating = edgeData?.animation?.isAnimating || false;
   // 当动画开启时，确保dynamicEffect有有效的值，默认使用'flow'
@@ -128,36 +127,23 @@ export const FloatingEdge = (props: EdgeProps) => {
       };
     }
 
-    // 移除选中时的样式变化
-    const computedStyle = animatedStyle;
-
     // 合并外部样式
     const finalStyle = {
-      ...computedStyle,
+      ...animatedStyle,
       ...(typeof style === 'object' && style !== null ? style : {})
     };
 
-    // 标签样式 - 移除选中时的样式变化
-    const labelBgColor = baseLabelBgColor;
-    const labelStrokeColor = baseStrokeColor;
-
     return {
       finalStyle,
-      labelBgColor,
-      labelStrokeColor,
+      'labelBgColor': baseLabelBgColor,
+      'labelStrokeColor': baseStrokeColor,
       baseLabelTextColor
     };
   }, [
     isAnimating,
     dynamicEffect,
-    edgeData?.animation?.pathAnimation,
-    edgeData?.animation?.pathAnimationProgress,
-    style,
-    edgeData?.style?.stroke,
-    edgeData?.style?.strokeWidth,
-    edgeData?.style?.dasharray,
-    edgeData?.style?.labelBackgroundColor,
-    edgeData?.style?.labelTextColor
+    edgeData,
+    style
   ]);
 
   // 获取内部节点引用
@@ -182,20 +168,14 @@ export const FloatingEdge = (props: EdgeProps) => {
       'targetY': ty
     };
 
-    switch (curveType) {
-      case 'straight':
-        [edgePath] = getStraightPath(pathParams);
-        break;
-      case 'smoothstep':
-        [edgePath] = getSmoothStepPath(pathParams);
-        break;
-      case 'simplebezier':
-        [edgePath] = getSimpleBezierPath(pathParams);
-        break;
-      case 'default':
-      default:
-        [edgePath] = getBezierPath(pathParams);
-        break;
+    if (curveType === 'straight') {
+      [edgePath] = getStraightPath(pathParams);
+    } else if (curveType === 'smoothstep') {
+      [edgePath] = getSmoothStepPath(pathParams);
+    } else if (curveType === 'simplebezier') {
+      [edgePath] = getSimpleBezierPath(pathParams);
+    } else {
+      [edgePath] = getBezierPath(pathParams);
     }
 
     // 计算标签位置

@@ -1,9 +1,6 @@
 import {
   type ConnectionLineComponentProps,
   getBezierPath,
-  getSmoothStepPath,
-  getStraightPath,
-  getSimpleBezierPath,
   Position
 } from '@xyflow/react';
 
@@ -111,36 +108,16 @@ export const FloatingConnectionLine = (props: ConnectionLineComponentProps) => {
     sy = sourceCenterY + unitY * t;
   }
 
-  // 目标点就是光标位置
-  const tx = toX;
-  const ty = toY;
-
   const pathParams = {
     'sourceX': sx,
     'sourceY': sy,
     'sourcePosition': fromPosition || Position.Right,
     'targetPosition': toPosition || Position.Left,
-    'targetX': tx,
-    'targetY': ty
+    'targetX': toX,
+    'targetY': toY
   };
 
-  // 定义支持的曲线类型
-  type CurveType = 'default' | 'smoothstep' | 'straight' | 'simplebezier';
-
-  const curveType = 'default' as CurveType;
-  let edgePath: string;
-
-  // 根据曲线类型计算路径
-  if (curveType === 'straight') {
-    [edgePath] = getStraightPath(pathParams);
-  } else if (curveType === 'smoothstep') {
-    [edgePath] = getSmoothStepPath(pathParams);
-  } else if (curveType === 'simplebezier') {
-    [edgePath] = getSimpleBezierPath(pathParams);
-  } else {
-    // default或其他情况
-    [edgePath] = getBezierPath(pathParams);
-  }
+  const [edgePath] = getBezierPath(pathParams);
 
   const stroke = '#3b82f6';
   const dasharray = '5,5';
@@ -156,8 +133,8 @@ export const FloatingConnectionLine = (props: ConnectionLineComponentProps) => {
       />
       {/* 目标点预览 */}
       <circle
-        cx={tx}
-        cy={ty}
+        cx={toX}
+        cy={toY}
         fill="#fff"
         r={3}
         stroke={stroke}

@@ -1,7 +1,43 @@
 import { BaseService } from './baseService';
-import type { Article, ArticleLink } from '../types/index';
-import { extractWikiLinks, titleToSlug } from '../utils/markdown';
-import { validateTitle, validateContent, validateAuthorInfo, validateVisibility } from '../utils/inputValidation';
+
+/**
+ * 文章可见性类型
+ */
+export enum ArticleVisibility {
+  PUBLIC = 'public',
+  UNLISTED = 'unlisted'
+}
+
+/**
+ * 文章接口
+ */
+export interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  author_name: string;
+  created_at: string;
+  updated_at: string;
+  visibility: ArticleVisibility;
+}
+
+/**
+ * 将标题转换为 Slug（用于 URL 和锚点）
+ * @param title 标题文本
+ * @returns Slug 字符串
+ */
+function titleToSlug (title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    // 移除特殊字符
+    .replace(/[^\w\s-]/g, '')
+    // 替换空格和下划线为连字符
+    .replace(/[\s_]+/g, '-')
+    // 移除首尾连字符
+    .replace(/^-+|-+$/g, '');
+}
 
 /**
  * 文章服务类，处理文章相关操作
@@ -27,25 +63,7 @@ export class ArticleService extends BaseService {
         .eq('slug', slug)
         .single<Article>();
       return result.data;
-    } catch (error) {
-      this.handleError(error, 'ArticleService', '按Slug获取文章');
-      return null;
-    }
-  }
-
-  /**
-   * 按标题获取文章
-   * @param title 文章标题
-   */
-  async getArticleByTitle (title: string): Promise<Article | null> {
-    try {
-      const result = await this.supabase.from(this.TABLE_NAME).select('*')
-        .ilike('title', `%${title}%`)
-        .limit(1)
-        .single<Article>();
-      return result.data;
-    } catch (error) {
-      this.handleError(error, 'ArticleService', '按标题获取文章');
+    } catch {
       return null;
     }
   }
@@ -64,8 +82,7 @@ export class ArticleService extends BaseService {
 
       const result = await query;
       return result.data || [];
-    } catch (error) {
-      this.handleError(error, 'ArticleService', '获取所有文章');
+    } catch {
       return [];
     }
   }
@@ -76,48 +93,18 @@ export class ArticleService extends BaseService {
    * @param content 文章内容
    * @param visibility 文章可见性
    * @param authorName 作者名称
-   * @param authorEmail 作者邮箱
-   * @param authorUrl 作者URL
    */
   async createArticle ({
     title,
     content,
     visibility = 'public',
-    authorName,
-    authorEmail,
-    authorUrl
+    authorName
   }: {
     title: string;
     content: string;
     visibility?: 'public' | 'unlisted';
     authorName?: string;
-    authorEmail?: string;
-    authorUrl?: string;
   }): Promise<Article | null> {
-    // 验证输入
-    const titleValidation = validateTitle(title);
-    if (!titleValidation.isValid) {
-      throw new Error(titleValidation.message);
-    }
-
-    const contentValidation = validateContent(content);
-    if (!contentValidation.isValid) {
-      throw new Error(contentValidation.message);
-    }
-
-    const visibilityValidation = validateVisibility(visibility);
-    if (!visibilityValidation.isValid) {
-      throw new Error(visibilityValidation.message);
-    }
-
-    const authorValidation = validateAuthorInfo({ 'name': authorName, 'email': authorEmail, 'url': authorUrl });
-    if (!authorValidation.isValid) {
-      throw new Error(authorValidation.message);
-    }
-
-    // 使用清理后的内容
-    const sanitizedContent = contentValidation.content;
-
     // 生成文章slug
     const slug = titleToSlug(title);
 
@@ -131,10 +118,8 @@ export class ArticleService extends BaseService {
       const articleData = {
         title,
         'slug': finalSlug,
-        'content': sanitizedContent,
+        content,
         'author_name': authorName || 'Anonymous',
-        'author_email': authorEmail || null,
-        'author_url': authorUrl || null,
         visibility
       };
 
@@ -144,18 +129,8 @@ export class ArticleService extends BaseService {
         throw new Error('Failed to create article');
       }
 
-      // 处理文章链接
-      const links = extractWikiLinks(content);
-      for (const linkedTitle of links) {
-        const linkedArticle = await this.getArticleByTitle(linkedTitle);
-        if (linkedArticle && linkedArticle.id !== article.id) {
-          await this.createArticleLink(article.id, linkedArticle.id, 'referenced');
-        }
-      }
-
       return article;
-    } catch (err) {
-      this.handleError(err, 'ArticleService', '创建文章');
+    } catch {
       return null;
     }
   }
@@ -167,52 +142,20 @@ export class ArticleService extends BaseService {
    * @param content 文章内容
    * @param visibility 文章可见性
    * @param authorName 作者名称
-   * @param authorEmail 作者邮箱
-   * @param authorUrl 作者URL
    */
   async updateArticle ({
     id,
     title,
     content,
     visibility,
-    authorName,
-    authorEmail,
-    authorUrl
+    authorName
   }: {
     id: string;
     title: string;
     content: string;
     visibility?: 'public' | 'unlisted';
     authorName?: string;
-    authorEmail?: string;
-    authorUrl?: string;
   }): Promise<Article | null> {
-    // 验证输入
-    const titleValidation = validateTitle(title);
-    if (!titleValidation.isValid) {
-      throw new Error(titleValidation.message);
-    }
-
-    const contentValidation = validateContent(content);
-    if (!contentValidation.isValid) {
-      throw new Error(contentValidation.message);
-    }
-
-    if (visibility !== undefined) {
-      const visibilityValidation = validateVisibility(visibility);
-      if (!visibilityValidation.isValid) {
-        throw new Error(visibilityValidation.message);
-      }
-    }
-
-    const authorValidation = validateAuthorInfo({ 'name': authorName, 'email': authorEmail, 'url': authorUrl });
-    if (!authorValidation.isValid) {
-      throw new Error(authorValidation.message);
-    }
-
-    // 使用清理后的内容
-    const sanitizedContent = contentValidation.content;
-
     const now = new Date();
     const nowISO = now.toISOString();
 
@@ -220,7 +163,7 @@ export class ArticleService extends BaseService {
     const updateData: Record<string, unknown> = {
       title,
       'slug': titleToSlug(title),
-      'content': sanitizedContent,
+      content,
       'updated_at': nowISO
     };
 
@@ -231,12 +174,6 @@ export class ArticleService extends BaseService {
     if (authorName !== undefined) {
       updateData.author_name = authorName;
     }
-    if (authorEmail !== undefined) {
-      updateData.author_email = authorEmail;
-    }
-    if (authorUrl !== undefined) {
-      updateData.author_url = authorUrl;
-    }
 
     try {
       // 更新文章
@@ -246,12 +183,8 @@ export class ArticleService extends BaseService {
         throw new Error('Article not found');
       }
 
-      // 处理文章链接更新
-      await this.updateArticleLinks(id, content);
-
       return article;
-    } catch (err) {
-      this.handleError(err, 'ArticleService', '更新文章');
+    } catch {
       return null;
     }
   }
@@ -262,236 +195,6 @@ export class ArticleService extends BaseService {
    */
   async deleteArticle (id: string): Promise<boolean> {
     return this.delete(this.TABLE_NAME, id);
-  }
-
-  /**
-   * 创建文章链接
-   * @param sourceId 源文章ID
-   * @param targetId 目标文章ID
-   * @param type 关系类型
-   */
-  async createArticleLink (
-    sourceId: string,
-    targetId: string,
-    type = 'related'
-  ): Promise<ArticleLink | null> {
-    const tableName = 'article_links';
-
-    // 检查是否已存在相同的链接
-    const existingLink = await this.supabase.from(tableName)
-      .select('*')
-      .eq('source_id', sourceId)
-      .eq('target_id', targetId)
-      .eq('relationship_type', type)
-      .maybeSingle<ArticleLink>();
-
-    if (existingLink.data) {
-      return existingLink.data;
-    }
-
-    // 创建新链接
-    const linkData = {
-      'source_id': sourceId,
-      'target_id': targetId,
-      'relationship_type': type
-    };
-
-    return this.create<ArticleLink>(tableName, linkData);
-  }
-
-  /**
-   * 更新文章链接
-   * @param articleId 文章ID
-   * @param content 文章内容
-   */
-  async updateArticleLinks (articleId: string, content: string): Promise<void> {
-    try {
-      // 删除所有源为该文章的旧链接
-      await this.supabase.from('article_links').delete()
-        .eq('source_id', articleId);
-
-      // 提取新链接并添加
-      const links = extractWikiLinks(content);
-      for (const linkedTitle of links) {
-        const linkedArticle = await this.getArticleByTitle(linkedTitle);
-        if (linkedArticle && linkedArticle.id !== articleId) {
-          await this.createArticleLink(articleId, linkedArticle.id, 'referenced');
-        }
-      }
-    } catch (err) {
-      this.handleError(err, 'ArticleService', '更新文章链接');
-    }
-  }
-
-  /**
-   * 获取文章链接
-   * @param articleId 文章ID
-   */
-  async getArticleLinks (articleId: string): Promise<ArticleLink[]> {
-    try {
-      const result = await this.supabase.from('article_links').select('*')
-        .eq('source_id', articleId);
-      return result.data || [];
-    } catch (error) {
-      this.handleError(error, 'ArticleService', '获取文章链接');
-      return [];
-    }
-  }
-
-  /**
-   * 移除文章所有链接
-   * @param articleId 文章ID
-   */
-  async removeAllArticleLinks (articleId: string): Promise<boolean> {
-    try {
-      await this.supabase.from('article_links')
-        .delete()
-        .or(`source_id.eq.${articleId},target_id.eq.${articleId}`);
-
-      return true;
-    } catch (err) {
-      this.handleError(err, 'ArticleService', '移除文章链接');
-      return false;
-    }
-  }
-
-  /**
-   * 搜索文章
-   * @param query 搜索关键词
-   * @param limit 限制数量
-   * @param offset 偏移量
-   */
-  async searchArticles (
-    query: string,
-    limit = 10,
-    offset = 0
-  ): Promise<Article[]> {
-    try {
-      const result = await this.supabase.from(this.TABLE_NAME)
-        .select('*')
-        .textSearch('title', query, { 'config': 'english' })
-        .limit(limit)
-        .range(offset, offset + limit - 1)
-        .order('updated_at', { 'ascending': false });
-
-      return result.data || [];
-    } catch (error) {
-      this.handleError(error, 'ArticleService', '搜索文章');
-      return [];
-    }
-  }
-
-  /**
-   * 更新文章阅读计数
-   * @param articleId 文章ID
-   */
-  async updateArticleViewCount (articleId: string): Promise<void> {
-    try {
-      await this.supabase.rpc('increment_article_views', { 'article_id': articleId });
-    } catch (err) {
-      console.warn('Failed to update article view count:', err);
-    }
-  }
-
-  /**
-   * 点赞文章
-   * @param articleId 文章ID
-   */
-  async upvoteArticle (articleId: string): Promise<boolean> {
-    try {
-      // 更新articles表的upvotes字段
-      await this.supabase.from(this.TABLE_NAME)
-        .update({ 'upvotes': 'upvotes + 1' })
-        .eq('id', articleId);
-
-      // 记录交互
-      await this.supabase.from('article_interactions')
-        .insert({
-          'article_id': articleId,
-          'interaction_type': 'upvote'
-        });
-
-      return true;
-    } catch (err) {
-      this.handleError(err, 'ArticleService', '点赞文章');
-      return false;
-    }
-  }
-
-  /**
-   * 取消点赞文章
-   * @param articleId 文章ID
-   */
-  async downvoteArticle (articleId: string): Promise<boolean> {
-    try {
-      // 更新articles表的upvotes字段
-      await this.supabase.from(this.TABLE_NAME)
-        .update({ 'upvotes': 'GREATEST(upvotes - 1, 0)' })
-        .eq('id', articleId);
-
-      return true;
-    } catch (err) {
-      this.handleError(err, 'ArticleService', '取消点赞文章');
-      return false;
-    }
-  }
-
-  /**
-   * 收藏文章
-   * @param articleId 文章ID
-   */
-  async bookmarkArticle (articleId: string): Promise<boolean> {
-    try {
-      // 记录收藏交互
-      await this.supabase.from('article_interactions')
-        .insert({
-          'article_id': articleId,
-          'interaction_type': 'bookmark'
-        });
-
-      return true;
-    } catch (err) {
-      this.handleError(err, 'ArticleService', '收藏文章');
-      return false;
-    }
-  }
-
-  /**
-   * 取消收藏文章
-   * @param articleId 文章ID
-   */
-  async unbookmarkArticle (articleId: string): Promise<boolean> {
-    try {
-      // 删除收藏交互
-      await this.supabase.from('article_interactions')
-        .delete()
-        .eq('article_id', articleId)
-        .eq('interaction_type', 'bookmark');
-
-      return true;
-    } catch (err) {
-      this.handleError(err, 'ArticleService', '取消收藏文章');
-      return false;
-    }
-  }
-
-  /**
-   * 检查文章是否被当前用户收藏
-   * @param articleId 文章ID
-   */
-  async isArticleBookmarked (articleId: string): Promise<boolean> {
-    try {
-      const result = await this.supabase.from('article_interactions')
-        .select('id')
-        .eq('article_id', articleId)
-        .eq('interaction_type', 'bookmark')
-        .maybeSingle();
-
-      return result.data !== null;
-    } catch (err) {
-      this.handleError(err, 'ArticleService', '检查文章收藏状态');
-      return false;
-    }
   }
 }
 

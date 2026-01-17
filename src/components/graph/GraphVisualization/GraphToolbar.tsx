@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Undo, Redo, Plus, Layout, Box, Grid, Database, BarChart2, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, AlignCenter, Sparkles } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 
@@ -21,7 +21,7 @@ interface GraphToolbarProps {
 }
 
 /**
- * 图谱工具栏组件
+ * 图工具栏组件
  */
 export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
   onAddNode,
@@ -50,27 +50,27 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
   });
 
   // 处理工具栏分组折叠/展开
-  const toggleGroup = (group: string) => {
+  const toggleGroup = useCallback((group: string) => {
     setCollapsedGroups(prev => ({
       ...prev,
       [group]: !prev[group]
     }));
-  };
+  }, []);
 
   // 处理缩放操作
-  const handleZoomIn = () => {
+  const handleZoomIn = useCallback(() => {
     reactFlowInstance.zoomIn();
-  };
+  }, [reactFlowInstance]);
 
-  const handleZoomOut = () => {
+  const handleZoomOut = useCallback(() => {
     reactFlowInstance.zoomOut();
-  };
+  }, [reactFlowInstance]);
 
-  const handleZoomReset = () => {
+  const handleZoomReset = useCallback(() => {
     reactFlowInstance.zoomTo(1);
-  };
+  }, [reactFlowInstance]);
 
-  const handleFitView = () => {
+  const handleFitView = useCallback(() => {
     const currentNodes = reactFlowInstance.getNodes();
     if (currentNodes.length > 0) {
       reactFlowInstance.fitView({
@@ -85,15 +85,15 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         'duration': 500
       });
     }
-  };
+  }, [reactFlowInstance]);
 
-  const handleToggleFullscreen = () => {
+  const handleToggleFullscreen = useCallback(() => {
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
       document.documentElement.requestFullscreen();
     }
-  };
+  }, []);
 
   return (
     <div className="flex items-center gap-1 flex-grow justify-center flex-wrap p-1">
@@ -169,7 +169,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
               <button
                 className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isAnalysisPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
                 onClick={onToggleAnalysisPanel}
-                title="图谱分析"
+                title="图分析"
               >
                 <BarChart2 size={16} />
               </button>
@@ -187,7 +187,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
               <button
                 className={`flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100 transition-all duration-200 ease-in-out ${isManagementPanelOpen ? 'bg-blue-600 text-white shadow-md' : 'text-gray-700'}`}
                 onClick={onToggleManagementPanel}
-                title="图谱管理"
+                title="图管理"
               >
                 <Database size={16} />
               </button>

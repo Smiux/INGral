@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { X, Palette, Square, SquareGantt, Type, Heading, Text as TextIcon } from 'lucide-react';
 import { useStore, useReactFlow, type Edge } from '@xyflow/react';
 
@@ -20,7 +20,7 @@ interface GraphControlPanelProps {
 type PanelType = 'node' | 'edge' | 'appearance' | 'edgeAppearance';
 
 /**
- * 图谱控制面板组件
+ * 图控制面板组件
  * 支持节点和连接的编辑
  */
 export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
@@ -125,6 +125,19 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
     }
   });
 
+  // 颜色选择器类型定义
+  interface ColorPickerEvent {
+    color: string;
+  }
+
+  interface ColorPickerInstance {
+    destroy: () => void;
+    on: (event: string, callback: (event: ColorPickerEvent) => void) => void;
+  }
+
+  // 颜色选择器引用，用于跟踪和清理
+  const colorPickerRef = useRef<{ picker: ColorPickerInstance | null; container: HTMLDivElement } | null>(null);
+
   // 当选中节点或连接变化时，更新表单数据
   useEffect(() => {
     if (selectedNode) {
@@ -169,62 +182,142 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
     }
   }, [selectedNode, selectedEdge]);
 
+  // 清理颜色选择器的效果
+  useEffect(() => {
+    return () => {
+      if (colorPickerRef.current) {
+        const { picker, container } = colorPickerRef.current;
+        if (picker && typeof picker.destroy === 'function') {
+          picker.destroy();
+        }
+        if (container && container.parentNode) {
+          container.parentNode.removeChild(container);
+        }
+        colorPickerRef.current = null;
+      }
+    };
+  }, []);
+
+  // 可复用的颜色选择器打开函数
+  const openColorPicker = useCallback((e: React.MouseEvent, color: string, onColorChange: (color: string) => void) => {
+    // 清理之前的颜色选择器
+    if (colorPickerRef.current) {
+      const { picker, container } = colorPickerRef.current;
+      if (picker && typeof picker.destroy === 'function') {
+        picker.destroy();
+      }
+      if (container && container.parentNode) {
+        container.parentNode.removeChild(container);
+      }
+    }
+
+    // 创建一个临时容器，显示在颜色块附近
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.top = '100%';
+    container.style.left = '0';
+    container.style.zIndex = '1000';
+    container.style.marginTop = '4px';
+    e.currentTarget.parentElement?.appendChild(container);
+
+    // 确保容器有正确的样式
+    container.style.backgroundColor = 'white';
+    container.style.border = '1px solid #e5e7eb';
+    container.style.borderRadius = '0.375rem';
+    container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+    container.style.padding = '4px';
+
+    // 创建颜色选择器，使用默认配置
+    const picker = colorPicker.create({
+      container,
+      color
+    });
+
+    // 保存引用
+    colorPickerRef.current = { picker, container };
+
+    // 监听颜色选择事件
+    picker.on('selectColor', (event: { color: string }) => {
+      onColorChange(event.color);
+    });
+
+    // 添加点击外部关闭的事件监听
+    const handleClickOutside = (event: MouseEvent) => {
+      if (container && !container.contains(event.target as Node) && e.currentTarget !== event.target) {
+        if (typeof picker.destroy === 'function') {
+          picker.destroy();
+        }
+        container.remove();
+        colorPickerRef.current = null;
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // 确保容器移除时也移除事件监听
+    picker.on('hide', () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      container.remove();
+      colorPickerRef.current = null;
+    });
+  }, []);
+
   // 处理节点连接点数量变化
   const handleHandleCountChange = useCallback((delta: number) => {
     if (selectedNode) {
       // 正确处理handleCount为0的情况，不使用默认值4
-      const currentHandleCount = nodeFormData.data.handleCount ?? 4;
+      const currentHandleCount = selectedNode.data.handleCount ?? 0;
       const newHandleCount = Math.max(0, Math.min(20, currentHandleCount + delta));
       const updatedNodeData = {
-        ...nodeFormData.data,
+        ...selectedNode.data,
         'handleCount': newHandleCount
       };
       const updatedFormData = {
-        ...nodeFormData,
+        'id': selectedNode.id,
         'data': updatedNodeData
       };
       setNodeFormData(updatedFormData);
       // 使用React Flow内置的updateNodeData方法更新节点数据
       reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
     }
-  }, [selectedNode, nodeFormData, reactFlowInstance]);
+  }, [selectedNode, reactFlowInstance]);
 
   // 处理节点形状变化
   const handleShapeChange = useCallback((shape: 'circle' | 'square' | 'rectangle') => {
     if (selectedNode) {
       const updatedNodeData = {
-        ...nodeFormData.data,
+        ...selectedNode.data,
         shape
       };
       const updatedFormData = {
-        ...nodeFormData,
+        'id': selectedNode.id,
         'data': updatedNodeData
       };
       setNodeFormData(updatedFormData);
       // 使用React Flow内置的updateNodeData方法更新节点数据
-      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
+      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
     }
-  }, [selectedNode, nodeFormData, reactFlowInstance]);
+  }, [selectedNode, reactFlowInstance]);
 
   // 处理节点样式颜色变化
   const handleColorChange = useCallback((property: 'fill' | 'stroke' | 'textColor' | 'titleBackgroundColor' | 'titleTextColor', color: string) => {
     if (selectedNode) {
       const updatedNodeData = {
-        ...nodeFormData.data,
+        ...selectedNode.data,
         'style': {
-          ...nodeFormData.data.style,
+          ...selectedNode.data.style,
           [property]: color
         }
       };
       const updatedFormData = {
-        ...nodeFormData,
+        'id': selectedNode.id,
         'data': updatedNodeData
       };
       setNodeFormData(updatedFormData);
       // 使用React Flow内置的updateNodeData方法更新节点数据
-      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
+      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
     }
-  }, [selectedNode, nodeFormData, reactFlowInstance]);
+  }, [selectedNode, reactFlowInstance]);
 
   // 处理颜色输入框变化
   const handleColorInputChange = useCallback((property: 'fill' | 'stroke' | 'textColor' | 'titleBackgroundColor' | 'titleTextColor') => {
@@ -236,6 +329,10 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
 
   // 处理节点表单变化
   const handleNodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    if (!selectedNode) {
+      return;
+    }
+
     const { name, value } = e.target;
 
     // 处理连接点数量变化，确保值为数字类型
@@ -244,119 +341,123 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
       const numValue = parseInt(value, 10);
       const newHandleCount = Math.max(0, Math.min(20, isNaN(numValue) ? 0 : numValue));
       const updatedNodeData = {
-        ...nodeFormData.data,
+        ...selectedNode.data,
         'handleCount': newHandleCount
       };
       const updatedFormData = {
-        ...nodeFormData,
+        'id': selectedNode.id,
         'data': updatedNodeData
       };
       setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
+      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
     } else if (name === 'content') {
       const updatedNodeData = {
-        ...nodeFormData.data,
+        ...selectedNode.data,
         'metadata': {
-          ...nodeFormData.data.metadata,
+          ...selectedNode.data.metadata,
           'content': value
         }
       };
       const updatedFormData = {
-        ...nodeFormData,
+        'id': selectedNode.id,
         'data': updatedNodeData
       };
       setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
+      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
     } else if (name === 'innerAngle' || name === 'outerAngle') {
       // 处理旋转角度变化
       const angleValue = parseFloat(value) || 0;
       const updatedNodeData = {
-        ...nodeFormData.data,
+        ...selectedNode.data,
         'style': {
-          ...nodeFormData.data.style,
+          ...selectedNode.data.style,
           [name]: angleValue
         }
       };
       const updatedFormData = {
-        ...nodeFormData,
+        'id': selectedNode.id,
         'data': updatedNodeData
       };
       setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
+      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
     } else if (name === 'isSyncRotation') {
       // 处理同步旋转选项
       const checked = (e.target as HTMLInputElement).checked;
       const updatedNodeData = {
-        ...nodeFormData.data,
+        ...selectedNode.data,
         'style': {
-          ...nodeFormData.data.style,
+          ...selectedNode.data.style,
           'isSyncRotation': checked
         }
       };
       const updatedFormData = {
-        ...nodeFormData,
+        'id': selectedNode.id,
         'data': updatedNodeData
       };
       setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
+      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
     } else if (name === 'shape') {
       // 处理形状变化
       const updatedNodeData = {
-        ...nodeFormData.data,
+        ...selectedNode.data,
         'shape': value as 'circle' | 'square' | 'rectangle'
       };
       const updatedFormData = {
-        ...nodeFormData,
+        'id': selectedNode.id,
         'data': updatedNodeData
       };
       setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
+      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
     } else {
       // 处理其他基本属性
       const updatedNodeData = {
-        ...nodeFormData.data,
+        ...selectedNode.data,
         [name]: value
       };
       const updatedFormData = {
-        ...nodeFormData,
+        'id': selectedNode.id,
         'data': updatedNodeData
       };
       setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(nodeFormData.id, updatedNodeData);
+      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
     }
-  }, [nodeFormData, reactFlowInstance]);
+  }, [selectedNode, reactFlowInstance]);
 
   // 处理连接样式颜色变化
   const handleEdgeColorChange = useCallback((property: 'stroke' | 'arrowColor' | 'labelBackgroundColor' | 'labelTextColor', color: string) => {
     if (selectedEdge) {
       const updatedEdgeData = {
-        ...edgeFormData.data,
+        ...selectedEdge.data,
         'style': {
-          ...(edgeFormData.data?.style || {}),
+          ...(selectedEdge.data?.style || {}),
           [property]: color
         }
       };
 
-      // 定义完整的边更新对象，包含markerEnd
+      // 定义完整的边更新对象
       const updatedEdge = {
-        ...edgeFormData,
+        ...selectedEdge,
         'data': updatedEdgeData
       };
 
       // 更新箭头颜色时同时更新markerEnd
       if (property === 'arrowColor') {
-        updatedEdge.markerEnd = {
-          'type': 'arrowclosed',
-          color
-        };
+        // 使用 React Flow 的 updateEdge 方法直接更新包含 markerEnd 的边
+        reactFlowInstance.updateEdge(selectedEdge.id, {
+          'data': updatedEdgeData,
+          'markerEnd': {
+            'type': 'arrowclosed',
+            color
+          }
+        });
+      } else {
+        // 直接更新整个边
+        reactFlowInstance.updateEdge(selectedEdge.id, updatedEdge);
       }
 
-      setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-
-      // 直接更新整个边
-      reactFlowInstance.updateEdge(updatedEdge.id, updatedEdge);
+      setEdgeFormData(updatedEdge as Edge<CustomEdgeData>);
     }
-  }, [selectedEdge, edgeFormData, reactFlowInstance]);
+  }, [selectedEdge, reactFlowInstance]);
 
   // 处理连接样式颜色输入框变化
   const handleEdgeColorInputChange = useCallback((property: 'stroke' | 'arrowColor' | 'labelBackgroundColor' | 'labelTextColor') => {
@@ -368,10 +469,14 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
 
   // 处理连接表单变化
   const handleEdgeChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    if (!selectedEdge) {
+      return;
+    }
+
     const { name, value } = e.target;
 
     // 确保edgeFormData.data存在
-    const currentData = edgeFormData.data || {};
+    const currentData = selectedEdge.data || {};
 
     if (name === 'dynamicEffect') {
       const updatedEdgeData = {
@@ -384,22 +489,22 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
         }
       };
       const updatedEdge = {
-        ...edgeFormData,
+        ...selectedEdge,
         'data': updatedEdgeData
       };
       setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      reactFlowInstance.updateEdgeData(edgeFormData.id, updatedEdgeData);
+      reactFlowInstance.updateEdgeData(selectedEdge.id, updatedEdgeData);
     } else if (name === 'weight') {
       const updatedEdgeData = {
         ...currentData,
         'weight': parseFloat(value) || 1
       };
       const updatedEdge = {
-        ...edgeFormData,
+        ...selectedEdge,
         'data': updatedEdgeData
       };
       setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      reactFlowInstance.updateEdgeData(edgeFormData.id, updatedEdgeData);
+      reactFlowInstance.updateEdgeData(selectedEdge.id, updatedEdgeData);
     } else if (name === 'strokeWidth') {
       const updatedEdgeData = {
         ...currentData,
@@ -409,24 +514,24 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
         }
       };
       const updatedEdge = {
-        ...edgeFormData,
+        ...selectedEdge,
         'data': updatedEdgeData
       };
       setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      reactFlowInstance.updateEdgeData(edgeFormData.id, updatedEdgeData);
+      reactFlowInstance.updateEdgeData(selectedEdge.id, updatedEdgeData);
     } else {
       const updatedEdgeData = {
         ...currentData,
         [name]: value
       };
       const updatedEdge = {
-        ...edgeFormData,
+        ...selectedEdge,
         'data': updatedEdgeData
       };
       setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      reactFlowInstance.updateEdgeData(edgeFormData.id, updatedEdgeData);
+      reactFlowInstance.updateEdgeData(selectedEdge.id, updatedEdgeData);
     }
-  }, [edgeFormData, reactFlowInstance]);
+  }, [selectedEdge, reactFlowInstance]);
 
   // 渲染节点编辑面板
   const renderNodeEditPanel = () => {
@@ -862,47 +967,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300"
                       style={{ 'backgroundColor': edgeFormData.data?.style?.stroke || '#3b82f6' }}
                       onClick={(e) => {
-                        // 创建一个临时容器，显示在颜色块附近
-                        const container = document.createElement('div');
-                        container.style.position = 'absolute';
-                        container.style.top = '100%';
-                        container.style.left = '0';
-                        container.style.zIndex = '1000';
-                        container.style.marginTop = '4px';
-                        e.currentTarget.parentElement?.appendChild(container);
-
-                        // 确保容器有正确的样式
-                        container.style.backgroundColor = 'white';
-                        container.style.border = '1px solid #e5e7eb';
-                        container.style.borderRadius = '0.375rem';
-                        container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                        container.style.padding = '4px';
-
-                        // 创建颜色选择器，使用默认配置
-                        const picker = colorPicker.create({
-                          container,
-                          'color': edgeFormData.data?.style?.stroke || '#3b82f6'
-                        });
-
-                        // 监听颜色选择事件
-                        picker.on('selectColor', (event: { color: string }) => {
-                          handleEdgeColorChange('stroke', event.color);
-                        });
-
-                        // 添加点击外部关闭的事件监听
-                        const handleClickOutside = (event: MouseEvent) => {
-                          if (container && !container.contains(event.target as Node)) {
-                            picker.destroy();
-                            container.remove();
-                          }
-                        };
-
-                        document.addEventListener('mousedown', handleClickOutside);
-
-                        // 确保容器移除时也移除事件监听
-                        picker.on('hide', () => {
-                          document.removeEventListener('mousedown', handleClickOutside);
-                          container.remove();
+                        openColorPicker(e, edgeFormData.data?.style?.stroke || '#3b82f6', (color) => {
+                          handleEdgeColorChange('stroke', color);
                         });
                       }}
                     ></div>
@@ -934,47 +1000,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300"
                       style={{ 'backgroundColor': edgeFormData.data?.style?.arrowColor || (edgeFormData.data?.style?.stroke || '#3b82f6') }}
                       onClick={(e) => {
-                        // 创建一个临时容器，显示在颜色块附近
-                        const container = document.createElement('div');
-                        container.style.position = 'absolute';
-                        container.style.top = '100%';
-                        container.style.left = '0';
-                        container.style.zIndex = '1000';
-                        container.style.marginTop = '4px';
-                        e.currentTarget.parentElement?.appendChild(container);
-
-                        // 确保容器有正确的样式
-                        container.style.backgroundColor = 'white';
-                        container.style.border = '1px solid #e5e7eb';
-                        container.style.borderRadius = '0.375rem';
-                        container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                        container.style.padding = '4px';
-
-                        // 创建颜色选择器，使用默认配置
-                        const picker = colorPicker.create({
-                          container,
-                          'color': edgeFormData.data?.style?.arrowColor || (edgeFormData.data?.style?.stroke || '#3b82f6')
-                        });
-
-                        // 监听颜色选择事件
-                        picker.on('selectColor', (event: { color: string }) => {
-                          handleEdgeColorChange('arrowColor', event.color);
-                        });
-
-                        // 添加点击外部关闭的事件监听
-                        const handleClickOutside = (event: MouseEvent) => {
-                          if (container && !container.contains(event.target as Node)) {
-                            picker.destroy();
-                            container.remove();
-                          }
-                        };
-
-                        document.addEventListener('mousedown', handleClickOutside);
-
-                        // 确保容器移除时也移除事件监听
-                        picker.on('hide', () => {
-                          document.removeEventListener('mousedown', handleClickOutside);
-                          container.remove();
+                        openColorPicker(e, edgeFormData.data?.style?.arrowColor || (edgeFormData.data?.style?.stroke || '#3b82f6'), (color) => {
+                          handleEdgeColorChange('arrowColor', color);
                         });
                       }}
                     ></div>
@@ -1004,47 +1031,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300 flex items-center justify-center text-white font-bold"
                       style={{ 'backgroundColor': edgeFormData.data?.style?.labelBackgroundColor || (edgeFormData.data?.style?.stroke || '#3b82f6') }}
                       onClick={(e) => {
-                        // 创建一个临时容器，显示在颜色块附近
-                        const container = document.createElement('div');
-                        container.style.position = 'absolute';
-                        container.style.top = '100%';
-                        container.style.left = '0';
-                        container.style.zIndex = '1000';
-                        container.style.marginTop = '4px';
-                        e.currentTarget.parentElement?.appendChild(container);
-
-                        // 确保容器有正确的样式
-                        container.style.backgroundColor = 'white';
-                        container.style.border = '1px solid #e5e7eb';
-                        container.style.borderRadius = '0.375rem';
-                        container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                        container.style.padding = '4px';
-
-                        // 创建颜色选择器，使用默认配置
-                        const picker = colorPicker.create({
-                          container,
-                          'color': edgeFormData.data?.style?.labelBackgroundColor || (edgeFormData.data?.style?.stroke || '#3b82f6')
-                        });
-
-                        // 监听颜色选择事件
-                        picker.on('selectColor', (event: { color: string }) => {
-                          handleEdgeColorChange('labelBackgroundColor', event.color);
-                        });
-
-                        // 添加点击外部关闭的事件监听
-                        const handleClickOutside = (event: MouseEvent) => {
-                          if (container && !container.contains(event.target as Node)) {
-                            picker.destroy();
-                            container.remove();
-                          }
-                        };
-
-                        document.addEventListener('mousedown', handleClickOutside);
-
-                        // 确保容器移除时也移除事件监听
-                        picker.on('hide', () => {
-                          document.removeEventListener('mousedown', handleClickOutside);
-                          container.remove();
+                        openColorPicker(e, edgeFormData.data?.style?.labelBackgroundColor || (edgeFormData.data?.style?.stroke || '#3b82f6'), (color) => {
+                          handleEdgeColorChange('labelBackgroundColor', color);
                         });
                       }}
                     >
@@ -1076,47 +1064,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300 flex items-center justify-center text-white font-bold"
                       style={{ 'backgroundColor': edgeFormData.data?.style?.labelTextColor || '#FFFFFF' }}
                       onClick={(e) => {
-                        // 创建一个临时容器，显示在颜色块附近
-                        const container = document.createElement('div');
-                        container.style.position = 'absolute';
-                        container.style.top = '100%';
-                        container.style.left = '0';
-                        container.style.zIndex = '1000';
-                        container.style.marginTop = '4px';
-                        e.currentTarget.parentElement?.appendChild(container);
-
-                        // 确保容器有正确的样式
-                        container.style.backgroundColor = 'white';
-                        container.style.border = '1px solid #e5e7eb';
-                        container.style.borderRadius = '0.375rem';
-                        container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                        container.style.padding = '4px';
-
-                        // 创建颜色选择器，使用默认配置
-                        const picker = colorPicker.create({
-                          container,
-                          'color': edgeFormData.data?.style?.labelTextColor || '#FFFFFF'
-                        });
-
-                        // 监听颜色选择事件
-                        picker.on('selectColor', (event: { color: string }) => {
-                          handleEdgeColorChange('labelTextColor', event.color);
-                        });
-
-                        // 添加点击外部关闭的事件监听
-                        const handleClickOutside = (event: MouseEvent) => {
-                          if (container && !container.contains(event.target as Node)) {
-                            picker.destroy();
-                            container.remove();
-                          }
-                        };
-
-                        document.addEventListener('mousedown', handleClickOutside);
-
-                        // 确保容器移除时也移除事件监听
-                        picker.on('hide', () => {
-                          document.removeEventListener('mousedown', handleClickOutside);
-                          container.remove();
+                        openColorPicker(e, edgeFormData.data?.style?.labelTextColor || '#FFFFFF', (color) => {
+                          handleEdgeColorChange('labelTextColor', color);
                         });
                       }}
                     >
@@ -1209,47 +1158,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300"
                       style={{ 'backgroundColor': nodeFormData.data.style?.fill || '#fff' }}
                       onClick={(e) => {
-                        // 创建一个临时容器，显示在颜色块附近
-                        const container = document.createElement('div');
-                        container.style.position = 'absolute';
-                        container.style.top = '100%';
-                        container.style.left = '0';
-                        container.style.zIndex = '1000';
-                        container.style.marginTop = '4px';
-                        e.currentTarget.parentElement?.appendChild(container);
-
-                        // 确保容器有正确的样式
-                        container.style.backgroundColor = 'white';
-                        container.style.border = '1px solid #e5e7eb';
-                        container.style.borderRadius = '0.375rem';
-                        container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                        container.style.padding = '4px';
-
-                        // 创建颜色选择器，使用默认配置
-                        const picker = colorPicker.create({
-                          container,
-                          'color': nodeFormData.data.style?.fill || '#fff'
-                        });
-
-                        // 监听颜色选择事件
-                        picker.on('selectColor', (event: { color: string }) => {
-                          handleColorChange('fill', event.color);
-                        });
-
-                        // 添加点击外部关闭的事件监听
-                        const handleClickOutside = (event: MouseEvent) => {
-                          if (container && !container.contains(event.target as Node)) {
-                            picker.destroy();
-                            container.remove();
-                          }
-                        };
-
-                        document.addEventListener('mousedown', handleClickOutside);
-
-                        // 确保容器移除时也移除事件监听
-                        picker.on('hide', () => {
-                          document.removeEventListener('mousedown', handleClickOutside);
-                          container.remove();
+                        openColorPicker(e, nodeFormData.data.style?.fill || '#fff', (color) => {
+                          handleColorChange('fill', color);
                         });
                       }}
                     ></div>
@@ -1279,47 +1189,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300"
                       style={{ 'backgroundColor': nodeFormData.data.style?.stroke || '#4ECDC4' }}
                       onClick={(e) => {
-                        // 创建一个临时容器，显示在颜色块附近
-                        const container = document.createElement('div');
-                        container.style.position = 'absolute';
-                        container.style.top = '100%';
-                        container.style.left = '0';
-                        container.style.zIndex = '1000';
-                        container.style.marginTop = '4px';
-                        e.currentTarget.parentElement?.appendChild(container);
-
-                        // 确保容器有正确的样式
-                        container.style.backgroundColor = 'white';
-                        container.style.border = '1px solid #e5e7eb';
-                        container.style.borderRadius = '0.375rem';
-                        container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                        container.style.padding = '4px';
-
-                        // 创建颜色选择器，使用默认配置
-                        const picker = colorPicker.create({
-                          container,
-                          'color': nodeFormData.data.style?.stroke || '#4ECDC4'
-                        });
-
-                        // 监听颜色选择事件
-                        picker.on('selectColor', (event: { color: string }) => {
-                          handleColorChange('stroke', event.color);
-                        });
-
-                        // 添加点击外部关闭的事件监听
-                        const handleClickOutside = (event: MouseEvent) => {
-                          if (container && !container.contains(event.target as Node)) {
-                            picker.destroy();
-                            container.remove();
-                          }
-                        };
-
-                        document.addEventListener('mousedown', handleClickOutside);
-
-                        // 确保容器移除时也移除事件监听
-                        picker.on('hide', () => {
-                          document.removeEventListener('mousedown', handleClickOutside);
-                          container.remove();
+                        openColorPicker(e, nodeFormData.data.style?.stroke || '#4ECDC4', (color) => {
+                          handleColorChange('stroke', color);
                         });
                       }}
                     ></div>
@@ -1349,47 +1220,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300 flex items-center justify-center text-white font-bold"
                       style={{ 'backgroundColor': nodeFormData.data.style?.textColor || '#666' }}
                       onClick={(e) => {
-                        // 创建一个临时容器，显示在颜色块附近
-                        const container = document.createElement('div');
-                        container.style.position = 'absolute';
-                        container.style.top = '100%';
-                        container.style.left = '0';
-                        container.style.zIndex = '1000';
-                        container.style.marginTop = '4px';
-                        e.currentTarget.parentElement?.appendChild(container);
-
-                        // 确保容器有正确的样式
-                        container.style.backgroundColor = 'white';
-                        container.style.border = '1px solid #e5e7eb';
-                        container.style.borderRadius = '0.375rem';
-                        container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                        container.style.padding = '4px';
-
-                        // 创建颜色选择器，使用默认配置
-                        const picker = colorPicker.create({
-                          container,
-                          'color': nodeFormData.data.style?.textColor || '#666'
-                        });
-
-                        // 监听颜色选择事件
-                        picker.on('selectColor', (event: { color: string }) => {
-                          handleColorChange('textColor', event.color);
-                        });
-
-                        // 添加点击外部关闭的事件监听
-                        const handleClickOutside = (event: MouseEvent) => {
-                          if (container && !container.contains(event.target as Node)) {
-                            picker.destroy();
-                            container.remove();
-                          }
-                        };
-
-                        document.addEventListener('mousedown', handleClickOutside);
-
-                        // 确保容器移除时也移除事件监听
-                        picker.on('hide', () => {
-                          document.removeEventListener('mousedown', handleClickOutside);
-                          container.remove();
+                        openColorPicker(e, nodeFormData.data.style?.textColor || '#666', (color) => {
+                          handleColorChange('textColor', color);
                         });
                       }}
                     >
@@ -1421,47 +1253,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300 flex items-center justify-center text-white font-bold"
                       style={{ 'backgroundColor': nodeFormData.data.style?.titleBackgroundColor || '#4ECDC4' }}
                       onClick={(e) => {
-                        // 创建一个临时容器，显示在颜色块附近
-                        const container = document.createElement('div');
-                        container.style.position = 'absolute';
-                        container.style.top = '100%';
-                        container.style.left = '0';
-                        container.style.zIndex = '1000';
-                        container.style.marginTop = '4px';
-                        e.currentTarget.parentElement?.appendChild(container);
-
-                        // 确保容器有正确的样式
-                        container.style.backgroundColor = 'white';
-                        container.style.border = '1px solid #e5e7eb';
-                        container.style.borderRadius = '0.375rem';
-                        container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                        container.style.padding = '4px';
-
-                        // 创建颜色选择器，使用默认配置
-                        const picker = colorPicker.create({
-                          container,
-                          'color': nodeFormData.data.style?.titleBackgroundColor || '#4ECDC4'
-                        });
-
-                        // 监听颜色选择事件
-                        picker.on('selectColor', (event: { color: string }) => {
-                          handleColorChange('titleBackgroundColor', event.color);
-                        });
-
-                        // 添加点击外部关闭的事件监听
-                        const handleClickOutside = (event: MouseEvent) => {
-                          if (container && !container.contains(event.target as Node)) {
-                            picker.destroy();
-                            container.remove();
-                          }
-                        };
-
-                        document.addEventListener('mousedown', handleClickOutside);
-
-                        // 确保容器移除时也移除事件监听
-                        picker.on('hide', () => {
-                          document.removeEventListener('mousedown', handleClickOutside);
-                          container.remove();
+                        openColorPicker(e, nodeFormData.data.style?.titleBackgroundColor || '#4ECDC4', (color) => {
+                          handleColorChange('titleBackgroundColor', color);
                         });
                       }}
                     >
@@ -1493,47 +1286,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300 flex items-center justify-center text-white font-bold"
                       style={{ 'backgroundColor': nodeFormData.data.style?.titleTextColor || '#FFFFFF' }}
                       onClick={(e) => {
-                        // 创建一个临时容器，显示在颜色块附近
-                        const container = document.createElement('div');
-                        container.style.position = 'absolute';
-                        container.style.top = '100%';
-                        container.style.left = '0';
-                        container.style.zIndex = '1000';
-                        container.style.marginTop = '4px';
-                        e.currentTarget.parentElement?.appendChild(container);
-
-                        // 确保容器有正确的样式
-                        container.style.backgroundColor = 'white';
-                        container.style.border = '1px solid #e5e7eb';
-                        container.style.borderRadius = '0.375rem';
-                        container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                        container.style.padding = '4px';
-
-                        // 创建颜色选择器，使用默认配置
-                        const picker = colorPicker.create({
-                          container,
-                          'color': nodeFormData.data.style?.titleTextColor || '#FFFFFF'
-                        });
-
-                        // 监听颜色选择事件
-                        picker.on('selectColor', (event: { color: string }) => {
-                          handleColorChange('titleTextColor', event.color);
-                        });
-
-                        // 添加点击外部关闭的事件监听
-                        const handleClickOutside = (event: MouseEvent) => {
-                          if (container && !container.contains(event.target as Node)) {
-                            picker.destroy();
-                            container.remove();
-                          }
-                        };
-
-                        document.addEventListener('mousedown', handleClickOutside);
-
-                        // 确保容器移除时也移除事件监听
-                        picker.on('hide', () => {
-                          document.removeEventListener('mousedown', handleClickOutside);
-                          container.remove();
+                        openColorPicker(e, nodeFormData.data.style?.titleTextColor || '#FFFFFF', (color) => {
+                          handleColorChange('titleTextColor', color);
                         });
                       }}
                     >

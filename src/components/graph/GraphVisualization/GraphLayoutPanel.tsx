@@ -182,7 +182,7 @@ interface ELKLayoutOptions {
 const elk = new ELK();
 
 /**
- * 图谱布局面板组件
+ * 图布局面板组件
  * 支持多种布局算法和参数配置
  */
 export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
@@ -190,26 +190,8 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
   onClose
 }) => {
   // 在组件内部使用useStore获取nodes和edges，避免不必要的props传递
-  const nodes = useStore<Node<CustomNodeData>[]>((state) =>
-    state.nodes.map((node) => ({
-      'id': node.id,
-      'position': node.position,
-      'data': node.data,
-      'type': node.type
-    })) as Node<CustomNodeData>[],
-  nodesEqual
-  );
-
-  const edges = useStore<Edge<CustomEdgeData>[]>((state) =>
-    state.edges.map((edge) => ({
-      'id': edge.id,
-      'source': edge.source,
-      'target': edge.target,
-      'data': edge.data,
-      'type': edge.type
-    })) as Edge<CustomEdgeData>[],
-  edgesEqual
-  );
+  const nodes = useStore<Node<CustomNodeData>[]>((state) => state.nodes, nodesEqual);
+  const edges = useStore<Edge<CustomEdgeData>[]>((state) => state.edges, edgesEqual);
   // 布局配置状态
   const [layoutOptions, setLayoutOptions] = useState<ELKLayoutOptions>({
     // 通用参数
@@ -236,7 +218,6 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
       'longEdgeOrderingStrategy': 'DUMMY_NODE_OVER',
       'nodePromotionStrategy': 'NONE',
       'directionCongruency': 'READING_DIRECTION'
-
     },
 
     // Force布局参数
@@ -447,9 +428,6 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
       ...algorithmOptions
     };
 
-    // 调试：打印所有布局选项
-    console.log('ELK.js布局选项:', allOptions);
-
     return {
       'id': 'root',
       'layoutOptions': allOptions,
@@ -484,30 +462,30 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
 
   // 更新节点位置 - 使用类型守卫和更安全的类型处理
   const updateNodePositions = useCallback((layoutedGraph: { children?: Array<{ id: string; x?: number; y?: number }> }) => {
-    const updatedNodes: Node<CustomNodeData>[] = [];
+    // 使用Map加速节点位置查找
+    const layoutedNodesMap = new Map<string, { x: number; y: number }>();
 
-    for (const node of nodes) {
-      let updatedNode = node;
-
-      if (layoutedGraph.children) {
-        for (const layoutedNode of layoutedGraph.children) {
-          if (layoutedNode.id === node.id && layoutedNode.x !== undefined && layoutedNode.y !== undefined) {
-            updatedNode = {
-              ...node,
-              'position': {
-                'x': layoutedNode.x,
-                'y': layoutedNode.y
-              }
-            };
-            break;
-          }
+    if (layoutedGraph.children) {
+      for (const layoutedNode of layoutedGraph.children) {
+        if (layoutedNode.x !== undefined && layoutedNode.y !== undefined) {
+          layoutedNodesMap.set(layoutedNode.id, { 'x': layoutedNode.x, 'y': layoutedNode.y });
         }
       }
-
-      updatedNodes.push(updatedNode);
     }
 
-    return updatedNodes;
+    return nodes.map(node => {
+      const layoutedPosition = layoutedNodesMap.get(node.id);
+      if (layoutedPosition) {
+        return {
+          ...node,
+          'position': {
+            'x': layoutedPosition.x,
+            'y': layoutedPosition.y
+          }
+        };
+      }
+      return node;
+    });
   }, [nodes]);
 
   // 执行布局
@@ -546,7 +524,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
             布局管理
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            配置并应用不同的图谱布局算法
+            配置并应用不同的图布局算法
           </p>
         </div>
         <button

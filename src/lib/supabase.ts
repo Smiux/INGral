@@ -3,10 +3,6 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 /**
  * Supabase客户端配置和初始化
  *
- * 安全注意事项：
- * - 客户端只能使用VITE_前缀的环境变量，确保敏感信息不会暴露
- * - 服务端密钥(SUPABASE_SERVICE_ROLE_KEY)绝对不应在客户端代码中访问
- * - 所有敏感操作应通过服务端API进行处理
  */
 
 // 从环境变量获取Supabase配置

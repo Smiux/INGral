@@ -89,7 +89,7 @@ type GridGraphConfig = BaseGraphConfig & {
 };
 
 /**
- * 图谱生成面板组件
+ * 图生成面板组件
  */
 export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGenerate, onClose }) => {
   // 使用useReactFlow获取实例
@@ -917,7 +917,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
         break;
     }
 
-    const { 'newNodes': nodes, 'newEdges': newEdges } = result;
+    const { 'newNodes': nodes, newEdges } = result;
     let newNodes = nodes;
 
     if (graphType !== 'grid' && graphType !== 'cycle') {
@@ -999,63 +999,46 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     requestNextFrame(generateNextBatch);
   }, [graphType, generateChainGraph, generateCycleGraph, generateTreeGraph, generateStarGraph, generateGridGraph, generateRandomGraph, onGenerate, reactFlowInstance, layoutGraph]);
 
-  // 更新节点类别
-  const updateNodeCategories = useCallback((value: string) => {
-    const categories = value.split(';').filter(cat => cat.trim() !== '');
-
-    // 根据当前图类型更新对应的配置
+  // 通用配置更新函数
+  const updateConfig = useCallback(<K extends keyof BaseGraphConfig>(
+    key: K,
+    value: BaseGraphConfig[K]
+  ) => {
     switch (graphType) {
       case 'random':
-        setRandomConfig(prev => ({ ...prev, categories }));
+        setRandomConfig(prev => ({ ...prev, [key]: value }));
         break;
       case 'chain':
-        setChainConfig(prev => ({ ...prev, categories }));
+        setChainConfig(prev => ({ ...prev, [key]: value }));
         break;
       case 'cycle':
-        setCycleConfig(prev => ({ ...prev, categories }));
+        setCycleConfig(prev => ({ ...prev, [key]: value }));
         break;
       case 'tree':
-        setTreeConfig(prev => ({ ...prev, categories }));
+        setTreeConfig(prev => ({ ...prev, [key]: value }));
         break;
       case 'star':
-        setStarConfig(prev => ({ ...prev, categories }));
+        setStarConfig(prev => ({ ...prev, [key]: value }));
         break;
       case 'grid':
-        setGridConfig(prev => ({ ...prev, categories }));
+        setGridConfig(prev => ({ ...prev, [key]: value }));
         break;
       default:
         break;
     }
   }, [graphType]);
+
+  // 更新节点类别
+  const updateNodeCategories = useCallback((value: string) => {
+    const categories = value.split(';').filter(cat => cat.trim() !== '');
+    updateConfig('categories', categories);
+  }, [updateConfig]);
 
   // 更新连接类别
   const updateEdgeCategories = useCallback((value: string) => {
     const edgeCategories = value.split(';').filter(cat => cat.trim() !== '');
-
-    // 根据当前图类型更新对应的配置
-    switch (graphType) {
-      case 'random':
-        setRandomConfig(prev => ({ ...prev, edgeCategories }));
-        break;
-      case 'chain':
-        setChainConfig(prev => ({ ...prev, edgeCategories }));
-        break;
-      case 'cycle':
-        setCycleConfig(prev => ({ ...prev, edgeCategories }));
-        break;
-      case 'tree':
-        setTreeConfig(prev => ({ ...prev, edgeCategories }));
-        break;
-      case 'star':
-        setStarConfig(prev => ({ ...prev, edgeCategories }));
-        break;
-      case 'grid':
-        setGridConfig(prev => ({ ...prev, edgeCategories }));
-        break;
-      default:
-        break;
-    }
-  }, [graphType]);
+    updateConfig('edgeCategories', edgeCategories);
+  }, [updateConfig]);
 
   return (
     <div className="w-[40rem] min-w-[40rem] max-w-[40rem] h-full bg-white shadow-lg overflow-y-auto absolute left-0 top-0 z-20 border-r border-gray-200 transition-all duration-300 ease-in-out">
@@ -1070,7 +1053,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
               图生成
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-              配置并生成不同类型的图谱
+              配置并生成不同类型的图
           </p>
         </div>
         <button

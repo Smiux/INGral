@@ -1,7 +1,5 @@
 import { supabase } from '../lib/supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { errorService } from './errorService';
-
 /**
  * 基础服务类，提供通用的数据库操作和错误处理
  */
@@ -18,34 +16,12 @@ export abstract class BaseService {
   }
 
   /**
-   * 处理 Supabase 错误
-   * @param error Supabase 错误对象
-   * @param context 错误上下文
-   * @param operation 操作描述
-   */
-  protected handleError (error: unknown, context: string = 'BaseService', operation: string): never {
-    throw errorService.handleError(error, context, operation);
-  }
-
-  /**
    * 处理成功响应
    * @param data 响应数据
    * @param defaultData 默认数据（如果 data 为 null 或 undefined）
    */
   protected handleSuccessResponse<T> (data: T | null | undefined, defaultData: T): T {
     return data ?? defaultData;
-  }
-
-  /**
-   * 生成 Slug
-   * @param text 原始文本
-   */
-  protected generateSlug (text: string): string {
-    return text.toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w-]/g, '')
-      .replace(/-+/g, '-')
-      .trim();
   }
 
   /**
@@ -82,8 +58,7 @@ export abstract class BaseService {
         .eq('id', id)
         .single<T>();
       return result.data;
-    } catch (error) {
-      this.handleError(error, 'BaseService', 'getById');
+    } catch {
       return null;
     }
   }
@@ -100,8 +75,7 @@ export abstract class BaseService {
         .eq(field, value)
         .single<T>();
       return result.data;
-    } catch (error) {
-      this.handleError(error, 'BaseService', 'getByField');
+    } catch {
       return null;
     }
   }
@@ -142,8 +116,7 @@ export abstract class BaseService {
 
       const result = await query;
       return result.data || [];
-    } catch (error) {
-      this.handleError(error, 'BaseService', 'getList');
+    } catch {
       return [];
     }
   }
@@ -159,8 +132,7 @@ export abstract class BaseService {
         .select()
         .single<T>();
       return result.data;
-    } catch (error) {
-      this.handleError(error, 'BaseService', 'create');
+    } catch {
       return null;
     }
   }
@@ -179,8 +151,7 @@ export abstract class BaseService {
       const result = await this.supabase.from(table).insert(data)
         .select();
       return result.data as T[] | null;
-    } catch (error) {
-      this.handleError(error, 'BaseService', 'bulkCreate');
+    } catch {
       return [];
     }
   }
@@ -198,8 +169,7 @@ export abstract class BaseService {
         .select()
         .single<T>();
       return result.data;
-    } catch (error) {
-      this.handleError(error, 'BaseService', 'update');
+    } catch {
       return null;
     }
   }
@@ -222,8 +192,7 @@ export abstract class BaseService {
 
       const result = await query;
       return result.data as T[] | null;
-    } catch (error) {
-      this.handleError(error, 'BaseService', 'updateByCondition');
+    } catch {
       return null;
     }
   }
@@ -238,8 +207,7 @@ export abstract class BaseService {
       const result = await this.supabase.from(table).delete()
         .eq('id', id);
       return !result.error;
-    } catch (error) {
-      this.handleError(error, 'BaseService', 'delete');
+    } catch {
       return false;
     }
   }
@@ -260,8 +228,7 @@ export abstract class BaseService {
 
       const result = await query;
       return !result.error;
-    } catch (error) {
-      this.handleError(error, 'BaseService', 'deleteByCondition');
+    } catch {
       return false;
     }
   }

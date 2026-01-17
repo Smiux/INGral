@@ -1,5 +1,5 @@
 /**
- * 图谱管理综合面板
+ * 图管理综合面板
  * 合并节点管理、连接管理、统计信息和分析功能，通过标签页切换
  */
 import React, { useState, useCallback, useMemo } from 'react';
@@ -23,52 +23,44 @@ interface GraphManagementPanelProps {
 }
 
 /**
- * 图谱管理综合面板组件
+ * 图管理综合面板组件
  */
 export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
   onAddNode
 }) => {
-  // 使用useStore获取节点和边数据，只选择需要的字段
-  const nodes = useStore(
-    (state) => state.nodes.map(node => ({
-      'id': node.id,
-      'data': node.data,
-      'selected': node.selected
-    }))
-  ) as { id: string; data: CustomNodeData; selected: boolean }[];
+  // 使用useStore获取节点和边数据
+  const nodes = useStore((state) => state.nodes) as Array<{
+    id: string;
+    data: CustomNodeData;
+    selected: boolean;
+  }>;
 
-  const edges = useStore(
-    (state) => state.edges.map(edge => ({
-      'id': edge.id,
-      'source': edge.source,
-      'target': edge.target,
-      'data': edge.data,
-      'selected': edge.selected
-    }))
-  ) as { id: string; source: string; target: string; data: CustomEdgeData; selected: boolean }[];
+  const edges = useStore((state) => state.edges) as Array<{
+    id: string;
+    source: string;
+    target: string;
+    data: CustomEdgeData;
+    selected: boolean;
+  }>;
 
-  // 使用useStore获取选中的节点和边，使用更精确的选择器
-  const selectedNodes = useStore(
-    (state) => state.nodes
-      .filter((node) => node.selected)
-      .map(node => ({
-        'id': node.id,
-        'data': node.data,
-        'selected': node.selected
-      }))
-  ) as { id: string; data: CustomNodeData; selected: boolean }[];
+  // 使用useStore获取选中的节点和边
+  const selectedNodes = useStore((state) =>
+    state.nodes.filter((node) => node.selected)
+  ) as Array<{
+    id: string;
+    data: CustomNodeData;
+    selected: boolean;
+  }>;
 
-  const selectedEdges = useStore(
-    (state) => state.edges
-      .filter((edge) => edge.selected)
-      .map(edge => ({
-        'id': edge.id,
-        'source': edge.source,
-        'target': edge.target,
-        'data': edge.data,
-        'selected': edge.selected
-      }))
-  ) as { id: string; source: string; target: string; data: CustomEdgeData; selected: boolean }[];
+  const selectedEdges = useStore((state) =>
+    state.edges.filter((edge) => edge.selected)
+  ) as Array<{
+    id: string;
+    source: string;
+    target: string;
+    data: CustomEdgeData;
+    selected: boolean;
+  }>;
 
   // 使用useReactFlow获取实例
   const reactFlowInstance = useReactFlow();
@@ -118,7 +110,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
   /**
    * 处理节点点击选择
    */
-  const handleNodeClick = useCallback((node: { id: string; data: CustomNodeData; selected: boolean }) => {
+  const handleNodeClick = useCallback((node: typeof nodes[0]) => {
     // 检查节点是否已选中
     const isSelected = node.selected || false;
 
@@ -143,7 +135,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
   /**
    * 处理连接点击选择
    */
-  const handleConnectionClick = useCallback((edge: { id: string; source: string; target: string; data: CustomEdgeData; selected: boolean }) => {
+  const handleConnectionClick = useCallback((edge: typeof edges[0]) => {
     // 检查连接是否已选中
     const isSelected = edge.selected || false;
 
@@ -177,14 +169,16 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
     // 计算不同类型节点的数量
     const nodeTypes = nodes.reduce<Record<string, number>>((acc, node) => {
       const category = node.data?.category || '默认';
-      acc[category] = (acc[category] || 0) + 1;
+      const categoryStr = String(category);
+      acc[categoryStr] = (acc[categoryStr] || 0) + 1;
       return acc;
     }, {});
 
     // 计算不同类型链接的数量
     const edgeTypes = edges.reduce<Record<string, number>>((acc, edge) => {
       const type = edge.data?.type || 'related';
-      acc[type] = (acc[type] || 0) + 1;
+      const typeStr = String(type);
+      acc[typeStr] = (acc[typeStr] || 0) + 1;
       return acc;
     }, {});
 
@@ -206,8 +200,8 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
     const term = searchTerm.toLowerCase();
 
     return nodes.filter(node => {
-      const nodeTitle = (node.data?.title || '').toLowerCase();
-      const nodeContent = (node.data?.metadata?.content || '').toLowerCase();
+      const nodeTitle = String(node.data?.title || '').toLowerCase();
+      const nodeContent = String(node.data?.metadata?.content || '').toLowerCase();
 
       switch (searchType) {
         case 'name':
@@ -297,11 +291,11 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
               onClick={() => handleNodeClick(node)}
             >
               <div className="flex-1">
-                <div className="text-sm font-medium truncate">{node.data?.title || '未命名节点'}</div>
-                <div className="text-xs text-gray-500">类别: {node.data?.category || '默认'}</div>
+                <div className="text-sm font-medium truncate">{String(node.data?.title || '未命名节点')}</div>
+                <div className="text-xs text-gray-500">类别: {String(node.data?.category || '默认')}</div>
                 {node.data?.metadata?.content && (
                   <div className="text-xs text-gray-500 truncate mt-1">
-                    {node.data.metadata.content}
+                    {String(node.data.metadata.content)}
                   </div>
                 )}
               </div>
@@ -366,7 +360,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                   </div>
                 </div>
                 <div className="px-2.5 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-                  {edge.data?.type || 'related'}
+                  {String(edge.data?.type || 'related')}
                 </div>
               </div>
               <div className="flex gap-2">

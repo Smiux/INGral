@@ -54,8 +54,8 @@ type ExportFormat = 'json' | 'csv';
 type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
 
 /**
- * 图谱导入导出面板组件
- * 支持多种格式的图谱数据导入导出
+ * 图导入导出面板组件
+ * 支持多种格式的图数据导入导出
  */
 export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = React.memo(({ onImportComplete, onClose }) => {
   // 在组件内部使用useStore获取nodes和edges，避免不必要的props传递
@@ -351,7 +351,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
             导入导出
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            支持多种格式的图谱数据导入导出
+            支持多种格式的图数据导入导出
           </p>
         </div>
         <button
@@ -374,7 +374,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
           <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <Download className="w-4 h-4 text-blue-600" />
-            导出图谱
+            导出图
           </h3>
 
           <div className="space-y-4">
@@ -402,7 +402,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
             {/* 导出信息 */}
             <div className="bg-white/70 p-3.5 rounded-lg shadow-sm border border-blue-100">
               <p className="text-sm text-gray-600">
-                当前图谱包含 <strong className="text-blue-700">{nodes?.length || 0} 个节点</strong> 和 <strong className="text-blue-700">{edges?.length || 0} 个连接</strong>
+                当前图包含 <strong className="text-blue-700">{nodes?.length || 0} 个节点</strong> 和 <strong className="text-blue-700">{edges?.length || 0} 个连接</strong>
               </p>
             </div>
 
@@ -417,7 +417,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
               ) : (
                 <Download className="w-4 h-4" />
               )}
-              {isExporting ? '导出中...' : '导出图谱'}
+              {isExporting ? '导出中...' : '导出图'}
             </button>
           </div>
         </div>
@@ -426,7 +426,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 shadow-sm border border-green-100 hover:shadow-md transition-all duration-300">
           <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <Upload className="w-4 h-4 text-green-600" />
-            导入图谱
+            导入图
           </h3>
 
           <div className="space-y-4">
@@ -434,7 +434,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
             <div className="bg-white/70 p-3.5 rounded-lg border border-amber-200 shadow-sm">
               <p className="text-sm text-amber-800 flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <span><strong>注意：</strong>导入将替换当前图谱的所有节点和连接。请确保在导入前保存当前工作。</span>
+                <span><strong>注意：</strong>导入将替换当前图的所有节点和连接。请确保在导入前保存当前工作。</span>
               </p>
             </div>
 
@@ -442,7 +442,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
             <div className="text-sm text-gray-600 bg-white/70 p-3.5 rounded-lg shadow-sm border border-green-100">
               <p className="mb-2 font-medium">支持的导入格式：</p>
               <ul className="list-disc list-inside space-y-1 text-xs">
-                <li>JSON - 完整的图谱数据，包括节点和连接的所有属性</li>
+                <li>JSON - 完整的图数据，包括节点和连接的所有属性</li>
                 <li>CSV - 包含节点数据和连接数据，用空行分隔</li>
               </ul>
             </div>

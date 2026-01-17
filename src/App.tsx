@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
-import { Header } from './components/layout/Header';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Header } from './components/ui/Header.tsx';
 import { ThemeProvider } from './theme/ThemeContext.tsx';
 
 // 定义错误边界组件
@@ -47,12 +47,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { ArticleViewer } from './components/articles/ArticleViewer';
-import { NewArticleEditor } from './components/articles/ArticleEditor.tsx';
+import { ArticleEditor } from './components/articles/ArticleEditor.tsx';
 import GraphVisualization from './components/graph/GraphVisualization/GraphVisualization';
 import { GraphListPage } from './pages/GraphListPage';
-import { DiscussionPage } from './pages/DiscussionPage';
-import { TopicDetailPage } from './pages/TopicDetailPage';
-import { CreateTopicPage } from './pages/CreateTopicPage';
 // 应用主内容组件
 function AppContent () {
   // 使用useLocation获取当前路径，确保路由变化时能及时更新
@@ -81,16 +78,11 @@ function AppContent () {
             <Route path="/" element={<HomePage />} />
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/articles/:slug" element={<ArticleViewer />} />
-            <Route path="/articles/create" element={<NewArticleEditor />} />
-            <Route path="/articles/:slug/edit" element={<NewArticleEditor />} />
+            <Route path="/articles/create" element={<ArticleEditor />} />
+            <Route path="/articles/:slug/edit" element={<ArticleEditor />} />
             <Route path="/graphs" element={<GraphListPage />} />
             <Route path="/graphs/create" element={<GraphVisualization />} />
             <Route path="/graphs/:graphId" element={<GraphVisualization />} />
-            {/* 讨论区路由 */}
-            <Route path="/discussions" element={<DiscussionPage />} />
-            <Route path="/discussions/:categorySlug" element={<DiscussionPage />} />
-            <Route path="/discussions/:categorySlug/:topicId" element={<TopicDetailPage topicId={parseInt(useParams().topicId as string, 10)} />} />
-            <Route path="/discussions/create" element={<CreateTopicPage />} />
             {/* 404页面重定向到首页 */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

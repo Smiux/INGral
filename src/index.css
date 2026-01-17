@@ -147,3 +147,297 @@ body {
     @apply bg-gray-50 dark:bg-gray-800;
   }
 }
+
+/* Code block styles */
+.ProseMirror pre {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  position: relative;
+}
+
+/* Code block language tag */
+.ProseMirror pre .code-block-language {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #333;
+  color: #ccc;
+  padding: 0.25rem 0.75rem;
+  border-bottom-left-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.ProseMirror pre .code-block-language:hover {
+  background-color: #444;
+}
+
+/* Code block line numbers */
+.ProseMirror pre code {
+  counter-reset: line;
+  display: block;
+}
+
+.ProseMirror pre code .line {
+  display: block;
+  position: relative;
+  padding-left: 2.5rem;
+}
+
+.ProseMirror pre code .line::before {
+  content: counter(line);
+  counter-increment: line;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2rem;
+  padding-right: 0.5rem;
+  text-align: right;
+  color: #666;
+  font-size: 0.75rem;
+  user-select: none;
+}
+
+/* Ensure inline code styles are correct */
+.ProseMirror code {
+  background-color: rgba(175, 184, 193, 0.2);
+  color: #d73a49;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.875em;
+}
+
+/* Ensure inline code inside code blocks has correct styles */
+.ProseMirror pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Code highlighting theme - enhanced GitHub Dark */
+.ProseMirror .hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  line-height: 1.5;
+}
+
+/* Keywords and control structures */
+.ProseMirror .hljs-keyword,
+.ProseMirror .hljs-selector-tag,
+.ProseMirror .hljs-literal,
+.ProseMirror .hljs-section,
+.ProseMirror .hljs-link,
+.ProseMirror .hljs-built_in,
+.ProseMirror .hljs-selector-keyword,
+.ProseMirror .hljs-selector-class,
+.ProseMirror .hljs-selector-attr,
+.ProseMirror .hljs-selector-pseudo {
+  color: #569cd6;
+  font-weight: 600;
+}
+
+/* Functions and methods */
+.ProseMirror .hljs-function .hljs-keyword,
+.ProseMirror .hljs-function .hljs-title,
+.ProseMirror .hljs-function .hljs-params {
+  color: #dcdcaa;
+}
+
+.ProseMirror .hljs-function .hljs-title {
+  color: #dcdcaa;
+  font-weight: 600;
+}
+
+/* Strings and literals */
+.ProseMirror .hljs-string,
+.ProseMirror .hljs-title,
+.ProseMirror .hljs-name,
+.ProseMirror .hljs-type,
+.ProseMirror .hljs-attribute,
+.ProseMirror .hljs-symbol,
+.ProseMirror .hljs-bullet,
+.ProseMirror .hljs-addition,
+.ProseMirror .hljs-variable,
+.ProseMirror .hljs-template-tag,
+.ProseMirror .hljs-template-variable,
+.ProseMirror .hljs-string .hljs-interpolation,
+.ProseMirror .hljs-string .hljs-escaped,
+.ProseMirror .hljs-regexp {
+  color: #ce9178;
+}
+
+/* Comments and meta */
+.ProseMirror .hljs-comment,
+.ProseMirror .hljs-quote,
+.ProseMirror .hljs-deletion,
+.ProseMirror .hljs-meta,
+.ProseMirror .hljs-doctype,
+.ProseMirror .hljs-pi,
+.ProseMirror .hljs-cdata {
+  color: #6a9955;
+  font-style: italic;
+}
+
+/* Numbers and constants */
+.ProseMirror .hljs-number,
+.ProseMirror .hljs-literal,
+.ProseMirror .hljs-variable.language_,
+.ProseMirror .hljs-template-variable,
+.ProseMirror .hljs-template-tag {
+  color: #b5cea8;
+}
+
+/* Operators and punctuation */
+.ProseMirror .hljs-operator,
+.ProseMirror .hljs-punctuation,
+.ProseMirror .hljs-property,
+.ProseMirror .hljs-tag,
+.ProseMirror .hljs-attr-name,
+.ProseMirror .hljs-selector-id,
+.ProseMirror .hljs-selector-class {
+  color: #d4d4d4;
+}
+
+/* Special tokens */
+.ProseMirror .hljs-keyword,
+.ProseMirror .hljs-selector-tag,
+.ProseMirror .hljs-literal,
+.ProseMirror .hljs-section,
+.ProseMirror .hljs-link,
+.ProseMirror .hljs-name,
+.ProseMirror .hljs-strong {
+  font-weight: 600;
+}
+
+.ProseMirror .hljs-emphasis {
+  font-style: italic;
+}
+
+/* Language-specific enhancements */
+/* JavaScript/TypeScript */
+.ProseMirror .language-javascript .hljs-keyword,
+.ProseMirror .language-typescript .hljs-keyword {
+  color: #569cd6;
+}
+
+.ProseMirror .language-javascript .hljs-string,
+.ProseMirror .language-typescript .hljs-string {
+  color: #ce9178;
+}
+
+.ProseMirror .language-javascript .hljs-function,
+.ProseMirror .language-typescript .hljs-function {
+  color: #dcdcaa;
+}
+
+/* Python */
+.ProseMirror .language-python .hljs-keyword {
+  color: #569cd6;
+}
+
+.ProseMirror .language-python .hljs-string {
+  color: #ce9178;
+}
+
+.ProseMirror .language-python .hljs-function {
+  color: #dcdcaa;
+}
+
+.ProseMirror .language-python .hljs-decorator {
+  color: #c586c0;
+}
+
+/* HTML/CSS */
+.ProseMirror .language-html .hljs-tag {
+  color: #569cd6;
+}
+
+.ProseMirror .language-html .hljs-attr-name {
+  color: #9cdcfe;
+}
+
+.ProseMirror .language-html .hljs-string {
+  color: #ce9178;
+}
+
+.ProseMirror .language-css .hljs-selector {
+  color: #d7ba7d;
+}
+
+.ProseMirror .language-css .hljs-property {
+  color: #9cdcfe;
+}
+
+.ProseMirror .language-css .hljs-value {
+  color: #ce9178;
+}
+
+/* Ensure code block text is visible */
+.ProseMirror pre {
+  color: #d4d4d4 !important;
+}
+
+/* Ensure inline code is visible */
+.ProseMirror code {
+  color: #d73a49 !important;
+}
+
+/* Code block language selector */
+.code-language-selector {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  min-width: 180px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.code-language-selector .language-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.875rem;
+}
+
+.code-language-selector .language-item:hover {
+  background-color: #f3f4f6;
+}
+
+.code-language-selector .language-item.active {
+  background-color: #dbeafe;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.code-language-selector .language-group {
+  padding: 0.25rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: #f9fafb;
+}

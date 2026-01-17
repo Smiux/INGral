@@ -34,7 +34,6 @@ export interface CustomNodeData {
  */
 export const CustomNode = (props: NodeProps) => {
   const { id, data, selected } = props;
-  const nodeData = data as CustomNodeData;
   // 使用useUpdateNodeInternals通知React Flow节点内部状态变化
   const updateNodeInternals = useUpdateNodeInternals();
 
@@ -53,52 +52,45 @@ export const CustomNode = (props: NodeProps) => {
   }, [selectedEdges, id]);
 
   // 节点基本信息
-  const nodeTitle = (nodeData.title || id || 'Node') as string;
-  const nodeCategory = nodeData.category || '默认';
-  const content = nodeData.metadata?.content || '';
+  const nodeTitle = ((data as CustomNodeData).title || id || 'Node') as string;
+  const nodeCategory = (data as CustomNodeData).category || '默认';
+  const content = (data as CustomNodeData).metadata?.content || '';
 
   // 样式配置
-  const style = nodeData.style || {};
+  const style = (data as CustomNodeData).style || {};
   const styleFill = style.fill || '#fff';
   const baseStrokeColor = style.stroke || '#4ECDC4';
   const styleStrokeWidth = style.strokeWidth || 2;
   const textColor = style.textColor || '#666';
   const titleBackgroundColor = style.titleBackgroundColor || '#4ECDC4';
   const titleTextColor = style.titleTextColor || '#FFFFFF';
-  const shape = nodeData.shape || 'circle';
+  const shape = (data as CustomNodeData).shape || 'circle';
 
   // 旋转配置
-  // 是否同步旋转
   const isSyncRotation = style.isSyncRotation || false;
-  // 内层旋转角度 - 影响内容
   const innerAngle = style.innerAngle || 0;
-  // 外层旋转角度 - 影响连接点和连接
-  // 如果同步旋转，外层角度等于内层角度
   const outerAngle = isSyncRotation ? innerAngle : (style.outerAngle || 0);
 
-  // 当外层角度变化时，通知React Flow更新节点内部状态，这样连接会重新计算
-  // 只有当outerAngle真正变化时才调用，避免不必要的更新
   useEffect(() => {
     updateNodeInternals(id);
   }, [id, updateNodeInternals, outerAngle]);
 
-  // 连接点样式
-  // 静态样式，使用useMemo缓存
-  const handleStyle = useMemo(() => ({
-    'background': '#4ECDC4',
-    'borderColor': '#26A69A',
-    'width': 6,
-    'height': 6,
-    'borderRadius': '50%',
-    'borderWidth': 1,
-    'zIndex': 10,
-    'cursor': 'pointer'
-  } as React.CSSProperties), []);
-
   // 生成连接点 - 根据节点形状均匀分布，全部使用source类型
   const handles = useMemo(() => {
+    // 连接点样式
+    const handleStyle = {
+      'background': '#4ECDC4',
+      'borderColor': '#26A69A',
+      'width': 6,
+      'height': 6,
+      'borderRadius': '50%',
+      'borderWidth': 1,
+      'zIndex': 10,
+      'cursor': 'pointer'
+    } as React.CSSProperties;
+
     // 获取连接点数量，允许为0
-    const handleCount = nodeData.handleCount || 0;
+    const handleCount = (data as CustomNodeData).handleCount || 0;
 
     // 如果连接点数量为0，创建一个虚拟连接点
     // 这个虚拟连接点不会渲染，也不会触发鼠标事件
@@ -338,52 +330,28 @@ export const CustomNode = (props: NodeProps) => {
     }
 
     return allHandles;
-  }, [id, nodeData.handleCount, handleStyle, outerAngle, shape]);
+  }, [id, data, outerAngle, shape]);
 
   // 节点样式 - 根据形状动态生成
-  const nodeStyle = useMemo(() => {
-    const baseStyle = {
-      'backgroundColor': styleFill,
-      'border': `${styleStrokeWidth}px solid ${baseStrokeColor}`,
-      'display': 'flex',
-      'justifyContent': 'center',
-      'alignItems': 'center',
-      'position': 'relative',
-      'boxSizing': 'border-box',
-      'cursor': 'grab',
-      'overflow': 'visible'
-    };
-
-    switch (shape) {
-      case 'square':
-        return {
-          ...baseStyle,
-          'borderRadius': '8px',
-          'width': 100,
-          'height': 100
-        } as React.CSSProperties;
-      case 'rectangle':
-        return {
-          ...baseStyle,
-          'borderRadius': '8px',
-          'width': 140,
-          'height': 100
-        } as React.CSSProperties;
-      case 'circle':
-      default:
-        return {
-          ...baseStyle,
-          'borderRadius': '50%',
-          'width': 100,
-          'height': 100
-        } as React.CSSProperties;
-    }
-  }, [styleFill, baseStrokeColor, styleStrokeWidth, shape]);
+  const nodeStyle = {
+    'backgroundColor': styleFill,
+    'border': `${styleStrokeWidth}px solid ${baseStrokeColor}`,
+    'display': 'flex',
+    'justifyContent': 'center',
+    'alignItems': 'center',
+    'position': 'relative',
+    'boxSizing': 'border-box',
+    'cursor': 'grab',
+    'overflow': 'visible',
+    'borderRadius': shape === 'circle' ? '50%' : '8px',
+    'width': shape === 'rectangle' ? 140 : 100,
+    'height': 100
+  } as React.CSSProperties;
 
 
 
   // 标题样式
-  const titleStyle = useMemo(() => ({
+  const titleStyle = {
     'color': titleTextColor,
     'fontSize': 12,
     'fontWeight': 'bold',
@@ -395,20 +363,20 @@ export const CustomNode = (props: NodeProps) => {
     'backgroundColor': titleBackgroundColor,
     'padding': '3px 6px',
     'borderRadius': '3px'
-  } as React.CSSProperties), [titleBackgroundColor, titleTextColor]);
+  } as React.CSSProperties;
 
   // 类别样式
-  const categoryStyle = useMemo(() => ({
+  const categoryStyle = {
     'color': textColor,
     'fontSize': 8,
     'opacity': 0.6,
     'textTransform': 'uppercase',
     'letterSpacing': 0.4,
     'marginTop': 2
-  } as React.CSSProperties), [textColor]);
+  } as React.CSSProperties;
 
   // 内容文本样式
-  const contentTextStyle = useMemo(() => ({
+  const contentTextStyle = {
     'color': textColor,
     'fontSize': 9,
     'opacity': 0.8,
@@ -418,13 +386,13 @@ export const CustomNode = (props: NodeProps) => {
     'textOverflow': 'ellipsis',
     'whiteSpace': 'nowrap',
     'marginTop': 2
-  } as React.CSSProperties), [textColor]);
+  } as React.CSSProperties;
 
   // 节点容器不旋转，保持原始边界框，确保React Flow能正确计算连接
   // 只旋转节点内容和连接点位置
 
   // 内容样式 - 使用内层旋转角度（逆时针）
-  const rotatedContentStyle = useMemo(() => ({
+  const rotatedContentStyle = {
     'position': 'absolute',
     'inset': 0,
     'display': 'flex',
@@ -435,52 +403,19 @@ export const CustomNode = (props: NodeProps) => {
     'pointerEvents': 'none',
     'transform': `rotate(${-innerAngle}deg)`,
     'transformOrigin': 'center center'
-  } as React.CSSProperties), [innerAngle]);
+  } as React.CSSProperties;
 
   // 选中高亮样式 - 根据节点形状动态生成
-  const selectedGlowStyle = useMemo(() => {
-    // 基础高亮样式
-    const baseGlowStyle = {
-      'position': 'absolute' as const,
-      'pointerEvents': 'none',
-      'boxSizing': 'border-box' as const
-    };
-
-    // 根据节点形状计算高亮样式
-    switch (shape) {
-      case 'square':
-        // 正方形高亮：120x120px，8px圆角，居中
-        return {
-          ...baseGlowStyle,
-          'width': '120px',
-          'height': '120px',
-          'left': '-10px',
-          'top': '-10px',
-          'borderRadius': '8px'
-        } as React.CSSProperties;
-      case 'rectangle':
-        // 矩形高亮：160x120px，8px圆角，居中
-        return {
-          ...baseGlowStyle,
-          'width': '160px',
-          'height': '120px',
-          'left': '-10px',
-          'top': '-10px',
-          'borderRadius': '8px'
-        } as React.CSSProperties;
-      case 'circle':
-      default:
-        // 圆形高亮：120x120px，50%圆角，居中
-        return {
-          ...baseGlowStyle,
-          'width': '120px',
-          'height': '120px',
-          'left': '-10px',
-          'top': '-10px',
-          'borderRadius': '50%'
-        } as React.CSSProperties;
-    }
-  }, [shape]);
+  const selectedGlowStyle = {
+    'position': 'absolute' as const,
+    'pointerEvents': 'none',
+    'boxSizing': 'border-box' as const,
+    'width': shape === 'rectangle' ? '160px' : '120px',
+    'height': '120px',
+    'left': '-10px',
+    'top': '-10px',
+    'borderRadius': shape === 'circle' ? '50%' : '8px'
+  } as React.CSSProperties;
 
   return (
     <>

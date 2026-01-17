@@ -476,7 +476,7 @@ const ForceGraph3DView: React.FC<{
   );
 });
 
-// 图谱可视化主组件
+// 图可视化主组件
 const GraphVisualizationContent: React.FC = () => {
   // 使用React Flow内置hooks管理节点和连接状态
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -495,9 +495,9 @@ const GraphVisualizationContent: React.FC = () => {
     'height': window.innerHeight - 64
   });
 
-  // 图谱管理面板显示状态，初始设置为关闭
+  // 图管理面板显示状态，初始设置为关闭
   const [isManagementPanelOpen, setIsManagementPanelOpen] = useState(false);
-  // 图谱分析面板显示状态，初始设置为关闭
+  // 图分析面板显示状态，初始设置为关闭
   const [isAnalysisPanelOpen, setIsAnalysisPanelOpen] = useState(false);
   // 导入导出面板显示状态，初始设置为关闭
   const [isImportExportPanelOpen, setIsImportExportPanelOpen] = useState(false);
@@ -749,7 +749,7 @@ const GraphVisualizationContent: React.FC = () => {
             <span className="font-bold text-sm tracking-tight text-gray-800">MyWiki</span>
           </Link>
 
-          {/* 图谱统计信息 */}
+          {/* 图统计信息 */}
           <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-gray-700 backdrop-blur-sm flex-shrink-0">
             <span className="flex items-center gap-1">
               <Database size={12} />
@@ -783,9 +783,9 @@ const GraphVisualizationContent: React.FC = () => {
         />
       </div>
 
-      {/* 根据视图模式渲染不同的图谱组件 */}
+      {/* 根据视图模式渲染不同的图组件 */}
       <div ref={canvasWrapperRef} className="flex-1 w-full bg-gray-50 relative">
-        {/* 根据视图模式渲染不同的图谱组件 */}
+        {/* 根据视图模式渲染不同的图组件 */}
         {viewMode === 'reactflow' && (
           <ReactFlowView
             nodes={nodes}
@@ -813,14 +813,14 @@ const GraphVisualizationContent: React.FC = () => {
           />
         )}
 
-        {/* 图谱控制面板 - 只在有选中节点或边时渲染，且仅在React Flow模式下 */}
+        {/* 图控制面板 - 只在有选中节点或边时渲染，且仅在React Flow模式下 */}
         {hasSelection && viewMode === 'reactflow' && (
           <GraphControlPanel
             panelPosition="right"
           />
         )}
 
-        {/* 图谱分析面板 - 条件渲染，使用较大尺寸 */}
+        {/* 图分析面板 - 条件渲染，使用较大尺寸 */}
         {isAnalysisPanelOpen && (
           <div className="w-[40rem] min-w-[40rem] max-w-[40rem] bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-20">
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white flex items-center justify-between min-w-0">
@@ -829,10 +829,10 @@ const GraphVisualizationContent: React.FC = () => {
                   <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  图谱分析
+                  图分析
                 </h2>
                 <p className="text-sm text-gray-600 mt-1 truncate">
-                  分析图谱的中心性指标和路径信息
+                  分析图的中心性指标和路径信息
                 </p>
               </div>
               <button
@@ -851,7 +851,7 @@ const GraphVisualizationContent: React.FC = () => {
           </div>
         )}
 
-        {/* 图谱管理综合面板 - 条件渲染 */}
+        {/* 图管理综合面板 - 条件渲染 */}
         {isManagementPanelOpen && (
           <div className="w-[40rem] min-w-[40rem] max-w-[40rem] bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-10">
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white flex items-center justify-between">
@@ -860,7 +860,7 @@ const GraphVisualizationContent: React.FC = () => {
                   <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
-                  图谱管理
+                  图管理
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
                   管理节点、连接和查看统计信息

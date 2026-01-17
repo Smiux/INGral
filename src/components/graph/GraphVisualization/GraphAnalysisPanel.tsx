@@ -29,7 +29,7 @@ interface PathResult {
 type AnalysisMode = 'unweighted' | 'weighted';
 
 /**
- * 图谱分析面板组件
+ * 图分析面板组件
  */
 /* eslint-disable max-depth, no-continue, max-nested-callbacks, react-hooks/exhaustive-deps */
 const edgesEqual = (prev: Edge[], next: Edge[]): boolean => {
@@ -99,26 +99,6 @@ export const GraphAnalysisPanel: React.FC = () => {
 
   // 使用useMemo创建节点ID到节点的映射，提高查找效率
   const nodeMap = useMemo(() => new Map(nodes.map(node => [node.id, node])), [nodes]);
-
-  // 专门用于路径查找算法的选择器 - 包含加权边信息
-  const pathfindingData = useStore((state) => {
-    // 只使用边的必要信息构建加权边映射
-    const weightedEdges = new Map<string, Array<{ nodeId: string; weight: number }>>();
-
-    state.edges.forEach(edge => {
-      const sourceId = String(edge.source);
-      const targetId = String(edge.target);
-      // 确保weight始终是数字，默认为1
-      const weight = typeof edge.data?.weight === 'number' ? edge.data.weight : 1;
-
-      if (!weightedEdges.has(sourceId)) {
-        weightedEdges.set(sourceId, []);
-      }
-      weightedEdges.get(sourceId)!.push({ 'nodeId': targetId, weight });
-    });
-
-    return { weightedEdges };
-  });
 
 
 
@@ -273,39 +253,11 @@ export const GraphAnalysisPanel: React.FC = () => {
   });
 
   // 路径结果缓存，用于避免重复计算相同路径查询
-  // 缓存大小限制为50个结果，避免内存占用过大
-  const PATH_CACHE_SIZE = 50;
-  const [pathResultCache, setPathResultCache] = useState<Map<string, PathResult>>(new Map());
+  const pathResultCache = useMemo(() => new Map<string, PathResult>(), []);
 
   // 生成缓存键
   const getCacheKey = useCallback((type: 'shortest' | 'longest' | 'global', mode: AnalysisMode, source: string, target: string) => {
     return `${type}-${mode}-${source}-${target}`;
-  }, []);
-
-  // 更新缓存的辅助函数，包含大小限制
-  const updateCache = useCallback((cacheKey: string, result: PathResult) => {
-    setPathResultCache(prev => {
-      const newCache = new Map(prev);
-
-      // 如果缓存中已存在该键，先删除旧记录（确保新记录在最新位置）
-      if (newCache.has(cacheKey)) {
-        newCache.delete(cacheKey);
-      }
-
-      // 添加新记录
-      newCache.set(cacheKey, result);
-
-      // 如果缓存大小超过限制，删除最旧的记录
-      if (newCache.size > PATH_CACHE_SIZE) {
-        // 获取最旧的键并删除
-        const oldestKey = newCache.keys().next().value;
-        if (oldestKey !== undefined) {
-          newCache.delete(oldestKey);
-        }
-      }
-
-      return newCache;
-    });
   }, []);
 
   /**
@@ -344,9 +296,9 @@ export const GraphAnalysisPanel: React.FC = () => {
    * @param inverse 是否返回入连接邻居（仅在directed为true时生效）
    */
   const getWeightedNeighbors = useCallback((nodeId: string, directed: boolean = false, inverse: boolean = false): { nodeId: string; weight: number }[] => {
-    // 有向图出边情况：使用专门的路径查找数据，更高效
+    // 有向图出边情况
     if (directed && !inverse) {
-      return pathfindingData.weightedEdges.get(nodeId) || [];
+      return edgeMaps.weightedDirectedOut.get(nodeId) || [];
     }
 
     // 有向图入边情况
@@ -356,7 +308,7 @@ export const GraphAnalysisPanel: React.FC = () => {
     }
 
     // 无向图情况：动态计算所有加权邻居（出边邻居 + 入边邻居）
-    const outNeighbors = pathfindingData.weightedEdges.get(nodeId) || [];
+    const outNeighbors = edgeMaps.weightedDirectedOut.get(nodeId) || [];
     const inNeighbors = edgeMaps.weightedDirectedIn.get(nodeId) || [];
 
     // 合并邻居，注意：这里可能会有重复，需要去重
@@ -375,7 +327,7 @@ export const GraphAnalysisPanel: React.FC = () => {
     });
 
     return Array.from(neighborMap.values());
-  }, [edgeMaps, pathfindingData]);
+  }, [edgeMaps]);
 
   // 计算中心性指标的辅助函数
 
@@ -1289,23 +1241,23 @@ export const GraphAnalysisPanel: React.FC = () => {
 
   // 动态分析和实时同步功能
   React.useEffect(() => {
-    // 计算当前图谱状态
+    // 计算当前图状态
     const currentGraphState = {
       'nodeCount': nodes.length,
       'edgeCount': edges.length,
       'edgeHashes': edges.map(edge => `${edge.source}-${edge.target}-${edge.data?.weight}-${edge.data?.type}`)
     };
 
-    // 检查图谱是否发生实质性变化
+    // 检查图是否发生实质性变化
     const hasSubstantialChange =
       currentGraphState.nodeCount !== prevGraphState.nodeCount ||
       currentGraphState.edgeCount !== prevGraphState.edgeCount ||
       JSON.stringify(currentGraphState.edgeHashes) !== JSON.stringify(prevGraphState.edgeHashes);
 
     if (hasSubstantialChange) {
-      // 只有在图谱发生实质性变化时才触发重新计算
+      // 只有在图发生实质性变化时才触发重新计算
 
-      // 更新上一次的图谱状态
+      // 更新上一次的图状态
       setPrevGraphState(currentGraphState);
 
       // 清除之前的计算结果
@@ -1314,7 +1266,8 @@ export const GraphAnalysisPanel: React.FC = () => {
       setPathResult(null);
       setPathResultWeighted(null);
       // 清除路径缓存
-      setPathResultCache(new Map());
+      // 重置缓存
+      pathResultCache.clear();
 
       // 自动重新计算中心性指标（如果当前有分析结果的话）
       // 这里我们可以选择性地重新计算，或者等待用户手动触发
@@ -1863,7 +1816,7 @@ export const GraphAnalysisPanel: React.FC = () => {
 
         // 缓存结果
         const cacheKey = `${'shortest'}-${'unweighted'}-${selectedSource}-${selectedTarget}`;
-        updateCache(cacheKey, result);
+        pathResultCache.set(cacheKey, result);
 
         return;
       }
@@ -2049,11 +2002,7 @@ export const GraphAnalysisPanel: React.FC = () => {
 
       // 缓存结果
       const cacheKey = `${'shortest'}-${'unweighted'}-${selectedSource}-${selectedTarget}`;
-      setPathResultCache(prev => {
-        const newCache = new Map(prev);
-        newCache.set(cacheKey, result);
-        return newCache;
-      });
+      pathResultCache.set(cacheKey, result);
     }, 100);
   }, [nodes, selectedSource, selectedTarget, getNodeNeighbors]);
 
@@ -2223,11 +2172,7 @@ export const GraphAnalysisPanel: React.FC = () => {
 
         // 缓存结果
         const cacheKey = `${'shortest'}-${'weighted'}-${selectedSource}-${selectedTarget}`;
-        setPathResultCache(prev => {
-          const newCache = new Map(prev);
-          newCache.set(cacheKey, result);
-          return newCache;
-        });
+        pathResultCache.set(cacheKey, result);
 
         return;
       }
@@ -2329,7 +2274,7 @@ export const GraphAnalysisPanel: React.FC = () => {
 
       // 缓存结果
       const cacheKey = `${'shortest'}-${'weighted'}-${selectedSource}-${selectedTarget}`;
-      updateCache(cacheKey, result);
+      pathResultCache.set(cacheKey, result);
     }, 100);
   }, [nodes, edges, selectedSource, selectedTarget, getWeightedNeighbors]);
 
@@ -2786,7 +2731,7 @@ export const GraphAnalysisPanel: React.FC = () => {
 
       // 缓存结果
       const cacheKey = `${'longest'}-${'unweighted'}-${selectedSource}-${selectedTarget}`;
-      updateCache(cacheKey, result);
+      pathResultCache.set(cacheKey, result);
     }, 100);
   }, [nodes, selectedSource, selectedTarget, getNodeNeighbors, hasCycle, topologicalSort]);
 
@@ -3563,7 +3508,7 @@ export const GraphAnalysisPanel: React.FC = () => {
 
       // 缓存全局最长路径结果
       const cacheKey = `${'longest'}-${'unweighted'}-global-global`;
-      updateCache(cacheKey, result);
+      pathResultCache.set(cacheKey, result);
     }, 100);
   }, [nodes, edges, getNodeNeighbors, hasCycle, topologicalSort]);
 
@@ -3917,7 +3862,7 @@ export const GraphAnalysisPanel: React.FC = () => {
 
       // 缓存全局最长路径结果
       const cacheKey = `${'longest'}-${'weighted'}-global-global`;
-      updateCache(cacheKey, result);
+      pathResultCache.set(cacheKey, result);
     }, 100);
   }, [nodes, edges, getWeightedNeighbors, hasCycle, topologicalSort]);
 
@@ -4642,7 +4587,7 @@ export const GraphAnalysisPanel: React.FC = () => {
             <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full h-[calc(100vh-5rem-1.25rem)] flex flex-col">
               {/* 模态标题栏 - 固定在顶部 */}
               <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-                <h3 className="text-lg font-semibold text-gray-900">图谱分析帮助</h3>
+                <h3 className="text-lg font-semibold text-gray-900">图分析帮助</h3>
                 <button
                   onClick={() => setIsHelpModalOpen(false)}
                   className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
@@ -4671,8 +4616,8 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">节点数量</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        节点是图谱中的基本组成单元，可以代表各类实体、概念或事件。节点数量是衡量图谱规模大小的基本指标，数量越多，图谱的规模越大，包含的信息可能越丰富。
-                        节点通常包含属性信息，如名称、类型、描述等，这些属性为图谱分析提供了丰富的上下文。
+                        节点是图中的基本组成单元，可以代表各类实体、概念或事件。节点数量是衡量图规模大小的基本指标，数量越多，图的规模越大，包含的信息可能越丰富。
+                        节点通常包含属性信息，如名称、类型、描述等，这些属性为图分析提供了丰富的上下文。
                       </p>
                     </div>
 
@@ -4691,7 +4636,7 @@ export const GraphAnalysisPanel: React.FC = () => {
                       <p className="text-sm text-gray-600 indent-4">
                         所有节点度数的平均值，反映了节点的平均连接程度。度数是指节点拥有的连接数量，包括入连接和出连接。
                         平均度高说明节点之间普遍连接紧密，信息传播效率可能较高；平均度低说明节点比较孤立，信息传播可能受限。
-                        平均度是衡量图谱整体连接紧密程度的重要指标。
+                        平均度是衡量图整体连接紧密程度的重要指标。
                       </p>
                       <p className="text-sm text-blue-600 font-medium text-center mt-2">
                         计算公式：总连接数 × 2 / 节点数量
@@ -4702,9 +4647,9 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">网络密度</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        网络密度是实际连接数与理论最大可能连接数的比值，反映了图谱中节点之间的连接紧密程度。密度值范围为0到1，值越大表示节点之间的连接越紧密。
-                        密度为0表示图谱中没有任何连接，密度为1表示所有节点之间都有连接。
-                        高密度图谱通常表示节点之间关系密切，信息传播迅速；低密度图谱则表示节点之间关系松散，信息传播可能受限。
+                        网络密度是实际连接数与理论最大可能连接数的比值，反映了图中节点之间的连接紧密程度。密度值范围为0到1，值越大表示节点之间的连接越紧密。
+                        密度为0表示图中没有任何连接，密度为1表示所有节点之间都有连接。
+                        高密度图通常表示节点之间关系密切，信息传播迅速；低密度图则表示节点之间关系松散，信息传播可能受限。
                       </p>
                       <p className="text-sm text-blue-600 font-medium text-center mt-2">
                         计算公式：实际连接数 / (节点数 × (节点数 - 1) / 2)
@@ -4715,9 +4660,9 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">聚类系数</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        聚类系数是节点邻居之间实际连接数与理论最大可能连接数的比值，反映了图谱中节点形成聚类的程度。
-                        对于单个节点，聚类系数衡量了其邻居之间相互连接的程度；对于整个图谱，可以计算平均聚类系数来反映整体的聚类特性。
-                        聚类系数越高，说明节点之间越容易形成紧密的群组，图谱呈现出明显的社区结构。
+                        聚类系数是节点邻居之间实际连接数与理论最大可能连接数的比值，反映了图中节点形成聚类的程度。
+                        对于单个节点，聚类系数衡量了其邻居之间相互连接的程度；对于整个图，可以计算平均聚类系数来反映整体的聚类特性。
+                        聚类系数越高，说明节点之间越容易形成紧密的群组，图呈现出明显的社区结构。
                       </p>
                       <p className="text-sm text-blue-600 font-medium text-center mt-2">
                         计算公式：节点邻居之间的实际连接数 / (邻居数量 × (邻居数量 - 1) / 2)
@@ -4728,8 +4673,8 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">网络直径</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        网络直径是指图谱中任意两个节点之间最短路径的最大值，即所有节点对之间的最短路径中最长的那条路径的长度。
-                        它反映了图谱的最大传播距离，直径越小，信息在图谱中的传播效率越高。
+                        网络直径是指图中任意两个节点之间最短路径的最大值，即所有节点对之间的最短路径中最长的那条路径的长度。
+                        它反映了图的最大传播距离，直径越小，信息在图中的传播效率越高。
                       </p>
                     </div>
 
@@ -4737,9 +4682,9 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">连通分量数量</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        连通分量是指图谱中一组相互连通的节点集合，其中任意两个节点之间都存在至少一条路径。
-                        连通分量数量是指图谱中这样的独立子图的总数，反映了图谱的整体连通性。
-                        数量为1表示整个图谱是完全连通的，所有节点之间都可以通过路径到达。
+                        连通分量是指图中一组相互连通的节点集合，其中任意两个节点之间都存在至少一条路径。
+                        连通分量数量是指图中这样的独立子图的总数，反映了图的整体连通性。
+                        数量为1表示整个图是完全连通的，所有节点之间都可以通过路径到达。
                       </p>
                     </div>
 
@@ -4747,7 +4692,7 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">平均最短路径长度</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        平均最短路径长度是图谱中所有可达节点对之间最短路径长度的平均值，反映了图谱中信息传播的平均效率。
+                        平均最短路径长度是图中所有可达节点对之间最短路径长度的平均值，反映了图中信息传播的平均效率。
                         该指标衡量了节点之间的平均距离，值越小表示节点之间的平均距离越近，信息传播效率越高。
                         平均最短路径长度是衡量网络小世界特性的重要指标之一。
                       </p>
@@ -4760,9 +4705,9 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">节点度分布</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        节点度分布描述了图谱中节点度数的出现频率，反映了节点连接的分布特征。
-                        度分布可以帮助我们了解图谱的结构特性，例如是否呈现幂律分布（无标度网络的特征）。
-                        通过分析度分布，我们可以识别图谱中的枢纽节点和边缘节点，以及整个网络的连接模式。
+                        节点度分布描述了图中节点度数的出现频率，反映了节点连接的分布特征。
+                        度分布可以帮助我们了解图的结构特性，例如是否呈现幂律分布（无标度网络的特征）。
+                        通过分析度分布，我们可以识别图中的枢纽节点和边缘节点，以及整个网络的连接模式。
                       </p>
                     </div>
 
@@ -4796,9 +4741,9 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">度中心性</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        度中心性是最基本的中心性指标，衡量节点的连接数量，反映了节点在图谱中的直接影响力。
+                        度中心性是最基本的中心性指标，衡量节点的连接数量，反映了节点在图中的直接影响力。
                         在无向图中，度中心性等于节点的连接总数；在有向图中，度中心性可分为入度（指向节点的连接数）和出度（节点发出的连接数）。
-                        度数越高，节点在图谱中的直接影响力越大，通常意味着该节点与其他节点的直接交互更多。
+                        度数越高，节点在图中的直接影响力越大，通常意味着该节点与其他节点的直接交互更多。
                         度中心性简单直观，但只考虑直接连接，忽略了间接连接的影响。
                       </p>
                       <p className="text-sm text-blue-600 font-medium text-center mt-2">
@@ -4811,8 +4756,8 @@ export const GraphAnalysisPanel: React.FC = () => {
                       <h5 className="font-medium text-gray-700 text-center mb-2">介数中心性</h5>
                       <p className="text-sm text-gray-600 indent-4">
                         介数中心性衡量的是一个节点出现在其他节点对之间最短路径上的频率。
-                        具体来说，它计算了图谱中所有节点对的最短路径中，经过当前节点的路径数量。
-                        介数中心性高的节点是图谱中重要的信息传递枢纽，在信息传播中扮演着关键的桥梁角色。
+                        具体来说，它计算了图中所有节点对的最短路径中，经过当前节点的路径数量。
+                        介数中心性高的节点是图中重要的信息传递枢纽，在信息传播中扮演着关键的桥梁角色。
                       </p>
                     </div>
 
@@ -4820,8 +4765,8 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">接近中心性</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        接近中心性衡量节点到所有其他节点的平均距离的倒数，反映了节点在图谱中的可达性和传播效率。
-                        接近中心性高的节点能够快速到达图谱中的其他节点，信息传播效率高，是图谱中的核心节点之一。
+                        接近中心性衡量节点到所有其他节点的平均距离的倒数，反映了节点在图中的可达性和传播效率。
+                        接近中心性高的节点能够快速到达图中的其他节点，信息传播效率高，是图中的核心节点之一。
                         接近中心性的计算基于最短路径，考虑了节点与其他所有节点的间接连接，因此比度中心性更能反映节点的全局影响力。
                         在社交网络中，接近中心性高的节点通常是信息传播的中心，能够快速将信息传递给其他节点。
                       </p>
@@ -4836,7 +4781,7 @@ export const GraphAnalysisPanel: React.FC = () => {
                       <p className="text-sm text-gray-600 indent-4">
                         特征向量中心性是一种基于网络结构的中心性指标，它认为一个节点的重要性取决于其邻居的重要性。
                         具体来说，如果一个节点连接了很多重要节点（即特征向量中心性高的节点），那么该节点本身也会被认为是重要的。
-                        特征向量中心性高的节点在图谱中具有全局性的影响力，是连接不同社区或子图的关键节点。
+                        特征向量中心性高的节点在图中具有全局性的影响力，是连接不同社区或子图的关键节点。
                       </p>
                       <p className="text-sm text-blue-600 font-medium text-center mt-2">
                         计算公式：通过幂迭代法计算，节点得分与其邻居得分之和成正比
@@ -4883,11 +4828,11 @@ export const GraphAnalysisPanel: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-700 text-center mb-2">全局最长路径</h5>
                       <p className="text-sm text-gray-600 indent-4">
-                        全局最长路径是指整个图谱中所有节点对之间的最长路径，反映了图谱的最大传播距离和复杂度。
+                        全局最长路径是指整个图中所有节点对之间的最长路径，反映了图的最大传播距离和复杂度。
                         在有向无环图（DAG）中，使用拓扑排序算法，线性时间内找到最长路径；
                         在有环图中，使用分支限界法，结合节点采样策略和启发式剪枝，高效搜索全局最长路径。
-                        算法会根据图谱规模动态调整采样策略，确保在合理时间内找到近似最优解。
-                        全局最长路径是衡量图谱规模和复杂度的重要指标，对于理解图谱的整体结构和信息传播特性具有重要意义。
+                        算法会根据图规模动态调整采样策略，确保在合理时间内找到近似最优解。
+                        全局最长路径是衡量图规模和复杂度的重要指标，对于理解图的整体结构和信息传播特性具有重要意义。
                       </p>
                     </div>
                   </div>

@@ -5,8 +5,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
-import type { Article } from '../types';
-import { fetchAllArticles } from '../utils/article';
+import { articleService, type Article } from '../services/articleService';
 
 export function ArticlesPage () {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -20,7 +19,7 @@ export function ArticlesPage () {
     const loadArticles = async () => {
       try {
         // 只获取公开文章
-        const data = await fetchAllArticles(true);
+        const data = await articleService.getAllArticles(true);
         setArticles(data);
       } catch (error) {
         console.error('Failed to load articles:', error);
@@ -99,7 +98,6 @@ export function ArticlesPage () {
                     {article.content.substring(0, 150)}...
                   </p>
                   <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                    <span>{article.view_count} 浏览</span>
                     <span>
                       更新于{
                         article.updated_at ? new Date(article.updated_at).toLocaleDateString('zh-CN', {

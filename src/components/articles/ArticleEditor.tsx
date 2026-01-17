@@ -17,6 +17,7 @@ import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import { BulletList, OrderedList, TaskList, TaskItem, ListItem } from '@tiptap/extension-list';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { mergeAttributes } from '@tiptap/core';
 import CharacterCount from '@tiptap/extension-character-count';
 import Typography from '@tiptap/extension-typography';
 import InvisibleCharacters from '@tiptap/extension-invisible-characters';
@@ -73,11 +74,71 @@ const VisibilityOptions = [
   { 'value': 'unlisted', 'label': '仅分享', 'icon': Lock }
 ] as const;
 
-/**
- * 新的文章编辑器组件
- * 基于Tiptap实现所见即所得的编辑体验
- */
-export const NewArticleEditor: React.FC = () => {
+// 支持的编程语言列表
+const SupportedLanguages = [
+  { 'group': '常用', 'languages': [
+    { 'value': 'plaintext', 'label': '纯文本' },
+    { 'value': 'javascript', 'label': 'JavaScript' },
+    { 'value': 'typescript', 'label': 'TypeScript' },
+    { 'value': 'python', 'label': 'Python' },
+    { 'value': 'html', 'label': 'HTML' },
+    { 'value': 'css', 'label': 'CSS' },
+    { 'value': 'json', 'label': 'JSON' },
+    { 'value': 'bash', 'label': 'Bash' }
+  ]},
+  { 'group': '其他', 'languages': [
+    { 'value': 'sql', 'label': 'SQL' },
+    { 'value': 'markdown', 'label': 'Markdown' },
+    { 'value': 'java', 'label': 'Java' },
+    { 'value': 'csharp', 'label': 'C#' },
+    { 'value': 'php', 'label': 'PHP' }
+  ]}
+];
+
+// 自定义代码块扩展，添加行号和语言标签
+const CustomCodeBlock = CodeBlockLowlight.extend({
+  'name': 'codeBlock',
+  renderHTML ({ node, HTMLAttributes }) {
+    const language = node.attrs.language || 'plaintext';
+
+    return [
+      'pre',
+      mergeAttributes(HTMLAttributes, {
+        'class': 'rounded-lg overflow-hidden relative'
+      }),
+      [
+        'span',
+        {
+          'class': 'code-block-language cursor-pointer',
+          'data-language': language,
+          'style': {
+            'position': 'absolute',
+            'top': '0',
+            'right': '0',
+            'backgroundColor': '#333',
+            'color': '#ccc',
+            'padding': '0.25rem 0.75rem',
+            'borderBottomLeftRadius': '0.5rem',
+            'fontSize': '0.75rem',
+            'fontWeight': '500',
+            'textTransform': 'uppercase',
+            'letterSpacing': '0.5px',
+            'zIndex': '10',
+            'userSelect': 'none'
+          }
+        },
+        language
+      ],
+      [
+        'code',
+        { 'class': `language-${language}` },
+        0
+      ]
+    ];
+  }
+});
+
+export const ArticleEditor: React.FC = () => {
   // 导航钩子
   const navigate = useNavigate();
 
@@ -173,6 +234,13 @@ export const NewArticleEditor: React.FC = () => {
   // 编辑器onUpdate防抖定时器
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 文字字数统计
+  const [characterCount, setCharacterCount] = useState(0);
+
+  // 代码块语言选择器状态
+  const [showCodeLanguageSelector, setShowCodeLanguageSelector] = useState(false);
+  const [selectedCodeBlockPos, setSelectedCodeBlockPos] = useState<number | null>(null);
+
   // 初始化Tiptap编辑器
   const editor = useEditor({
     'extensions': [
@@ -216,8 +284,9 @@ export const NewArticleEditor: React.FC = () => {
       TaskItem.configure({
         'nested': true
       }),
-      CodeBlockLowlight.configure({
-        lowlight
+      CustomCodeBlock.configure({
+        lowlight,
+        'defaultLanguage': 'plaintext'
       }),
       Image,
       Table,
@@ -251,6 +320,9 @@ export const NewArticleEditor: React.FC = () => {
       TableOfContents.configure({
         'getIndex': getHierarchicalIndexes,
         'onUpdate': updateTableOfContents
+      }),
+      CharacterCount.configure({
+        'limit': 0
       })
     ],
     'content': state.content,
@@ -272,6 +344,10 @@ export const NewArticleEditor: React.FC = () => {
           updateTimeoutRef.current = null;
         }, 100);
       }
+
+      // 更新字数统计
+      const count = editorInstance.storage.characterCount.characters();
+      setCharacterCount(count);
     },
     'editorProps': {
       'attributes': {
@@ -279,7 +355,29 @@ export const NewArticleEditor: React.FC = () => {
         'style': 'outline: none !important; box-shadow: none !important;'
       },
       'handleDOMEvents': {
-        'click': () => {
+        'click': (view, event) => {
+          // 处理代码块语言标签的点击事件
+          const target = event.target as HTMLElement;
+          // 检查目标是否是代码块语言标签或其子元素
+          const languageTag = target.closest('.code-block-language');
+          if (languageTag) {
+            // 找到最近的 pre 元素
+            const preElement = languageTag.closest('pre');
+            if (preElement) {
+              // 找到对应的代码块节点
+              const pos = view.posAtDOM(preElement, 0);
+              const node = view.state.doc.resolve(pos).node();
+
+              if (node.type.name === 'codeBlock') {
+                // 打开语言选择器
+                setSelectedCodeBlockPos(pos);
+                setShowCodeLanguageSelector(true);
+                event.stopPropagation();
+                return true;
+              }
+            }
+          }
+          return false;
         },
         // 处理拖拽悬停事件，只在文件拖拽时阻止默认行为
         'dragover': (_view, event) => {
@@ -509,6 +607,8 @@ export const NewArticleEditor: React.FC = () => {
       .run();
   }, [editor]);
 
+
+
   const setTextAlignLeft = useCallback(() => {
     editor?.chain().focus()
       .setTextAlign('left')
@@ -551,11 +651,7 @@ export const NewArticleEditor: React.FC = () => {
       .run();
   }, [editor]);
 
-  const toggleHeading4 = useCallback(() => {
-    editor?.chain().focus()
-      .toggleHeading({ 'level': 4 })
-      .run();
-  }, [editor]);
+
 
   const toggleLink = useCallback(() => {
     const previousUrl = editor?.getAttributes('link').href;
@@ -657,7 +753,35 @@ export const NewArticleEditor: React.FC = () => {
   // 图片URL输入状态
   const [showImageModal, setShowImageModal] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
+  // 切换代码块语言
+  const setCodeBlockLanguage = useCallback((language: string) => {
+    if (!editor || selectedCodeBlockPos === null) {
+      setShowCodeLanguageSelector(false);
+      setSelectedCodeBlockPos(null);
+      return;
+    }
 
+    try {
+      // 验证位置是否有效
+      const editorState = editor.state;
+      const doc = editorState.doc;
+
+      if (selectedCodeBlockPos >= 0 && selectedCodeBlockPos <= doc.content.size) {
+        const node = doc.resolve(selectedCodeBlockPos).node();
+
+        if (node.type.name === 'codeBlock') {
+          editor.chain().focus()
+            .updateAttributes('codeBlock', { language })
+            .run();
+        }
+      }
+    } catch (error) {
+      console.error('Error updating code block language:', error);
+    } finally {
+      setShowCodeLanguageSelector(false);
+      setSelectedCodeBlockPos(null);
+    }
+  }, [editor, selectedCodeBlockPos]);
   // 菜单显示状态
   const [showHeadingMenu, setShowHeadingMenu] = useState(false);
   const [showColorMenu, setShowColorMenu] = useState(false);
@@ -680,6 +804,7 @@ export const NewArticleEditor: React.FC = () => {
     setShowListMenu(false);
     setShowTableMenu(false);
     setShowAlignMenu(false);
+    setShowCodeLanguageSelector(false);
   }, []);
 
   // 点击外部区域关闭所有菜单
@@ -755,104 +880,36 @@ export const NewArticleEditor: React.FC = () => {
         onInsert={handleInsertMath}
       />
 
-      {/* 代码高亮样式 */}
-      <style>{`
-        /* 确保代码块内文本颜色正确 */
-        .ProseMirror pre {
-          background-color: #1e1e1e;
-          color: #d4d4d4;
-          padding: 1rem;
-          border-radius: 0.5rem;
-          overflow-x: auto;
-          font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-          font-size: 0.875rem;
-          line-height: 1.5;
-        }
-        
-        /* 确保行内代码样式正确 */
-        .ProseMirror code {
-          background-color: rgba(175, 184, 193, 0.2);
-          color: #d73a49;
-          padding: 0.2em 0.4em;
-          border-radius: 3px;
-          font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-          font-size: 0.875em;
-        }
-        
-        /* 确保代码块内的行内代码样式正确 */
-        .ProseMirror pre code {
-          background-color: transparent;
-          color: inherit;
-          padding: 0;
-          border-radius: 0;
-        }
-        
-        /* 代码高亮主题 - 基于GitHub Dark */
-        .ProseMirror .hljs {
-          display: block;
-          overflow-x: auto;
-          padding: 0.5em;
-          background: #1e1e1e;
-          color: #d4d4d4;
-        }
-        
-        .ProseMirror .hljs-keyword,
-        .ProseMirror .hljs-selector-tag,
-        .ProseMirror .hljs-literal,
-        .ProseMirror .hljs-section,
-        .ProseMirror .hljs-link {
-          color: #569cd6;
-        }
-        
-        .ProseMirror .hljs-function .hljs-keyword {
-          color: #c586c0;
-        }
-        
-        .ProseMirror .hljs-string,
-        .ProseMirror .hljs-title,
-        .ProseMirror .hljs-name,
-        .ProseMirror .hljs-type,
-        .ProseMirror .hljs-attribute,
-        .ProseMirror .hljs-symbol,
-        .ProseMirror .hljs-bullet,
-        .ProseMirror .hljs-addition,
-        .ProseMirror .hljs-variable,
-        .ProseMirror .hljs-template-tag,
-        .ProseMirror .hljs-template-variable {
-          color: #ce9178;
-        }
-        
-        .ProseMirror .hljs-comment,
-        .ProseMirror .hljs-quote,
-        .ProseMirror .hljs-deletion,
-        .ProseMirror .hljs-meta {
-          color: #6a9955;
-        }
-        
-        .ProseMirror .hljs-keyword,
-        .ProseMirror .hljs-selector-tag,
-        .ProseMirror .hljs-literal,
-        .ProseMirror .hljs-section,
-        .ProseMirror .hljs-link,
-        .ProseMirror .hljs-name,
-        .ProseMirror .hljs-strong {
-          font-weight: bold;
-        }
-        
-        .ProseMirror .hljs-emphasis {
-          font-style: italic;
-        }
-        
-        /* 确保代码块文本可见 */
-        .ProseMirror pre {
-          color: #d4d4d4 !important;
-        }
-        
-        /* 确保行内代码可见 */
-        .ProseMirror code {
-          color: #d73a49 !important;
-        }
-      `}</style>
+      {/* 代码块语言选择器 */}
+      {showCodeLanguageSelector && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => setShowCodeLanguageSelector(false)}
+          ></div>
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 relative z-10 min-w-[300px] max-w-md max-h-[80vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">选择编程语言</h3>
+            {SupportedLanguages.map((group) => (
+              <div key={group.group} className="mb-4">
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{group.group}</div>
+                <div className="space-y-1">
+                  {group.languages.map((lang) => (
+                    <button
+                      key={lang.value}
+                      className="w-full text-left px-3 py-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      onClick={() => setCodeBlockLanguage(lang.value)}
+                    >
+                      {lang.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+
       {/* 顶部栏 - 贴靠顶部并向两侧延展 */}
       <header className="sticky top-0 left-0 right-0 z-50 bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-md animate-in fade-in duration-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -905,7 +962,7 @@ export const NewArticleEditor: React.FC = () => {
       <div className="relative">
         {/* 左侧目录栏 - 编辑区域的附加菜单，使用绝对定位 */}
         {showTableOfContents && editor && (
-          <div ref={tocRef} className="absolute left-0 top-4 w-56 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-neutral-200 dark:border-gray-700 p-4 overflow-y-auto max-h-[calc(100vh-32px)] z-20 ml-4 transition-all duration-300 ease-in-out transform hover:shadow-xl">
+          <div ref={tocRef} className="absolute left-0 top-4 w-52 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-neutral-200 dark:border-gray-700 p-4 overflow-y-auto max-h-[calc(100vh-32px)] z-20 ml-4 transition-all duration-300 ease-in-out transform hover:shadow-xl">
             {/* 目录头部 - 包含标题和统计信息 */}
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
@@ -943,98 +1000,119 @@ export const NewArticleEditor: React.FC = () => {
                   </div>
                 </div>
 
-                {tableOfContentsItems.map((item) => {
-                  // 计算样式类
-                  let itemClass = 'cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out transform hover:translate-x-1';
-                  if (item.isActive && !item.isScrolledOver) {
-                    itemClass += ' bg-primary-50 border-l-4 border-primary-500 text-primary-700 dark:bg-primary-900/20 dark:border-primary-400 dark:text-primary-300 shadow-md';
-                  } else if (item.isScrolledOver) {
-                    itemClass += ' text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300';
-                  } else {
-                    itemClass += ' hover:bg-gray-50 dark:hover:bg-gray-800 text-neutral-700 dark:text-neutral-300 hover:shadow-sm';
-                  }
+                {(() => {
+                  // 生成层级编号的函数
+                  const generateTocNumber = (
+                    items: Array<{ id: string; textContent: string; level: number; itemIndex: number; isActive: boolean; isScrolledOver: boolean }>,
+                    currentItem: { id: string; textContent: string; level: number; itemIndex: number; isActive: boolean; isScrolledOver: boolean }
+                  ) => {
+                    const numberParts: number[] = [];
+                    let currentLevel = currentItem.level;
+                    let currentIndex = items.indexOf(currentItem);
 
-                  // 计算标题级别样式 - 实现左对齐+逐级缩进+数字编号
-                  let fontSize = 'text-base';
-                  let fontWeight = 'font-semibold';
-                  let levelNumberClass = 'flex-shrink-0 mr-2';
+                    // 从当前项向上遍历，收集各级别索引
+                    while (currentLevel > 0 && currentIndex >= 0) {
+                      const item = items[currentIndex];
+                      if (item && item.level === currentLevel) {
+                        numberParts.unshift(item.itemIndex);
+                        currentLevel -= 1;
+                      }
+                      currentIndex -= 1;
+                    }
 
-                  // 根据标题级别调整样式
-                  switch (item.level) {
-                    case 1:
-                      fontSize = 'text-base';
-                      fontWeight = 'font-semibold';
-                      break;
-                    case 2:
-                      fontSize = 'text-sm';
-                      fontWeight = 'font-medium';
-                      levelNumberClass = 'text-sm font-medium text-secondary-500 dark:text-secondary-400 flex-shrink-0 mr-2';
-                      break;
-                    case 3:
-                      fontSize = 'text-xs';
-                      fontWeight = 'font-medium';
-                      levelNumberClass = 'text-xs font-medium text-gray-500 dark:text-gray-400 flex-shrink-0 mr-2';
-                      break;
-                    case 4:
-                      fontSize = 'text-xs';
-                      fontWeight = 'font-normal';
-                      levelNumberClass = 'text-xs font-normal text-gray-400 dark:text-gray-500 flex-shrink-0 mr-2';
-                      break;
-                    case 5:
-                      fontSize = 'text-xs';
-                      fontWeight = 'font-light';
-                      levelNumberClass = 'text-xs font-light text-gray-400 dark:text-gray-500 flex-shrink-0 mr-2';
-                      break;
-                    default:
-                      fontSize = 'text-xs';
-                      fontWeight = 'font-light';
-                      levelNumberClass = 'text-xs font-light text-gray-300 dark:text-gray-600 flex-shrink-0 mr-2';
-                  }
+                    return numberParts.join('.');
+                  };
 
-                  return (
-                    <div
-                      key={item.id}
-                      className={`${itemClass} group`}
-                      style={{
-                        'paddingLeft': `${(item.level - 1) * 12}px`,
-                        'overflow': 'hidden'
-                      }}
-                      onClick={() => {
-                        const element = editor.view.dom.querySelector(`[data-toc-id="${item.id}"]`);
-                        if (element) {
-                          // 滚动到元素位置
-                          window.scrollTo({
-                            'top': element.getBoundingClientRect().top + window.scrollY - 100,
-                            'behavior': 'smooth'
-                          });
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-2 min-h-[26px]">
-                        {/* 章节编号 - 除一级标题外显示数字，使用正确的itemIndex */}
-                        {item.level > 1 && (
+                  return tableOfContentsItems.map((item) => {
+                    // 计算样式类
+                    let itemClass = 'cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out transform hover:translate-x-1';
+                    if (item.isActive && !item.isScrolledOver) {
+                      itemClass += ' bg-primary-50 border-l-4 border-primary-500 text-primary-700 dark:bg-primary-900/20 dark:border-primary-400 dark:text-primary-300 shadow-md';
+                    } else if (item.isScrolledOver) {
+                      itemClass += ' text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300';
+                    } else {
+                      itemClass += ' hover:bg-gray-50 dark:hover:bg-gray-800 text-neutral-700 dark:text-neutral-300 hover:shadow-sm';
+                    }
+
+                    // 计算标题级别样式 - 实现左对齐+逐级缩进+数字编号
+                    let fontSize = 'text-base';
+                    let fontWeight = 'font-semibold';
+                    let levelNumberClass = 'flex-shrink-0 mr-2';
+
+                    // 根据标题级别调整样式
+                    switch (item.level) {
+                      case 1:
+                        fontSize = 'text-base';
+                        fontWeight = 'font-semibold';
+                        levelNumberClass = 'font-semibold text-primary-600 dark:text-primary-400 flex-shrink-0 mr-2';
+                        break;
+                      case 2:
+                        fontSize = 'text-sm';
+                        fontWeight = 'font-medium';
+                        levelNumberClass = 'text-sm font-medium text-secondary-500 dark:text-secondary-400 flex-shrink-0 mr-2';
+                        break;
+                      case 3:
+                        fontSize = 'text-xs';
+                        fontWeight = 'font-medium';
+                        levelNumberClass = 'text-xs font-medium text-gray-500 dark:text-gray-400 flex-shrink-0 mr-2';
+                        break;
+                      case 5:
+                        fontSize = 'text-xs';
+                        fontWeight = 'font-light';
+                        levelNumberClass = 'text-xs font-light text-gray-400 dark:text-gray-500 flex-shrink-0 mr-2';
+                        break;
+                      default:
+                        fontSize = 'text-xs';
+                        fontWeight = 'font-light';
+                        levelNumberClass = 'text-xs font-light text-gray-300 dark:text-gray-600 flex-shrink-0 mr-2';
+                    }
+
+                    // 生成层级编号
+                    const tocNumber = generateTocNumber(tableOfContentsItems, item);
+
+                    return (
+                      <div
+                        key={item.id}
+                        className={`${itemClass} group`}
+                        style={{
+                          'paddingLeft': `${(item.level - 1) * 12}px`,
+                          'overflow': 'hidden'
+                        }}
+                        onClick={() => {
+                          const element = editor.view.dom.querySelector(`[data-toc-id="${item.id}"]`);
+                          if (element) {
+                            // 滚动到元素位置
+                            window.scrollTo({
+                              'top': element.getBoundingClientRect().top + window.scrollY - 100,
+                              'behavior': 'smooth'
+                            });
+                          }
+                        }}
+                      >
+                        <div className="flex items-center gap-2 min-h-[26px]">
+                          {/* 章节编号 - 所有级别都显示数字 */}
                           <span className={levelNumberClass}>
-                            {item.itemIndex}.
+                            {tocNumber}{item.level === 1 ? '.' : ''}
                           </span>
-                        )}
 
-                        {/* 标题文本 - 左对齐，根据级别调整样式 */}
-                        <span
-                          className={`truncate transition-all duration-300 max-w-[calc(100%-1rem)] ${fontSize} ${fontWeight} text-left flex-1`}
-                          title={item.textContent}
-                        >{item.textContent}</span>
+                          {/* 标题文本 - 左对齐，根据级别调整样式 */}
+                          <span
+                            className={`truncate transition-all duration-300 max-w-[calc(100%-1rem)] ${fontSize} ${fontWeight} text-left flex-1`}
+                            title={item.textContent}
+                          >{item.textContent}</span>
 
-                        {/* 当前活跃状态指示器 */}
-                        {item.isActive && !item.isScrolledOver && (
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-primary-500 dark:text-primary-400 ml-auto flex-shrink-0 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                            <polyline points="22 4 12 14.01 9 11.01" />
-                          </svg>
-                        )}
+                          {/* 当前活跃状态指示器 */}
+                          {item.isActive && !item.isScrolledOver && (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-primary-500 dark:text-primary-400 ml-auto flex-shrink-0 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                              <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  });
+                })()}
               </nav>
             ) : (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -1140,6 +1218,14 @@ export const NewArticleEditor: React.FC = () => {
                     <span>{state.authorName || '匿名作者'}</span>
                   </button>
                 )}
+              </div>
+
+              {/* 字数统计 */}
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-500 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                <span className="text-sm text-gray-600 dark:text-gray-400">{characterCount} 字</span>
               </div>
             </div>
           </div>
@@ -1263,14 +1349,6 @@ export const NewArticleEditor: React.FC = () => {
                     >
                       <Heading3 size={16} className="inline mr-2" />
                   三级标题
-                    </button>
-                    <button
-                      onClick={toggleHeading4}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      aria-label="四级标题"
-                    >
-                      <Heading3 size={14} className="inline mr-2" />
-                  四级标题
                     </button>
                   </div>
                   {/* 监听整个菜单容器的鼠标离开事件 */}
@@ -1539,14 +1617,16 @@ export const NewArticleEditor: React.FC = () => {
                                     .setColor(event.color)
                                     .run();
                                 });
-
                                 const handleClickOutside = (event: MouseEvent) => {
                                   if (container && !container.contains(event.target as Node)) {
-                                    picker.destroy();
+                                    try {
+                                      picker.destroy();
+                                    } catch {
+                                      // 忽略 destroy 错误，可能 picker 已经被销毁
+                                    }
                                     container.remove();
                                   }
                                 };
-
                                 document.addEventListener('mousedown', handleClickOutside);
 
                                 picker.on('hide', () => {
@@ -1599,7 +1679,11 @@ export const NewArticleEditor: React.FC = () => {
 
                                 const handleClickOutside = (event: MouseEvent) => {
                                   if (container && !container.contains(event.target as Node)) {
-                                    picker.destroy();
+                                    try {
+                                      picker.destroy();
+                                    } catch {
+                                      // 忽略 destroy 错误，可能 picker 已经被销毁
+                                    }
                                     container.remove();
                                   }
                                 };

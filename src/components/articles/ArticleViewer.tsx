@@ -5,16 +5,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
-import type { Article } from '../../types';
-import { articleService } from '../../services/articleService';
+import { articleService, type Article } from '../../services/articleService';
 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  // 点赞和收藏状态
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [upvotes, setUpvotes] = useState(0);
   /**
    * 加载文章内容
    * @async
@@ -27,51 +23,12 @@ export function ArticleViewer () {
     try {
       const data = await articleService.getArticleBySlug(slug);
       setArticle(data);
-
-      if (data) {
-        // 初始化点赞数
-        setUpvotes(data.upvotes || 0);
-
-        // 检查是否已收藏
-        const bookmarked = await articleService.isArticleBookmarked(data.id);
-        setIsBookmarked(bookmarked);
-      }
     } catch (error) {
       console.error('Failed to load article:', error);
     } finally {
       setIsLoading(false);
     }
   }, [slug]);
-
-  /**
-   * 处理点赞
-   */
-  const handleUpvote = async () => {
-    if (!article) {
-      return;
-    }
-
-    const success = await articleService.upvoteArticle(article.id);
-    if (success) {
-      setUpvotes(prev => prev + 1);
-    }
-  };
-
-  /**
-   * 处理收藏
-   */
-  const handleBookmark = async () => {
-    if (!article) {
-      return;
-    }
-
-    if (isBookmarked) {
-      await articleService.unbookmarkArticle(article.id);
-    } else {
-      await articleService.bookmarkArticle(article.id);
-    }
-    setIsBookmarked(prev => !prev);
-  };
 
   // 初始加载文章
   useEffect(() => {
@@ -173,33 +130,10 @@ export function ArticleViewer () {
             </div>
             <div className="flex items-center gap-1">
               <User className="w-4 h-4" />
-              Author
+              {article.author_name || 'Anonymous'}
             </div>
             <div>
-              {article.view_count} {article.view_count === 1 ? 'view' : 'views'}
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={handleUpvote}
-                className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                title="Upvote"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m18 15-6-6-6 6" />
-                </svg>
-                {upvotes}
-              </button>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={handleBookmark}
-                className={`flex items-center gap-1 transition-colors ${isBookmarked ? 'text-red-500 dark:text-red-400' : 'hover:text-red-500 dark:hover:text-red-400'}`}
-                title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill={isBookmarked ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                </svg>
-              </button>
+              阅读次数: 0
             </div>
           </div>
         </div>

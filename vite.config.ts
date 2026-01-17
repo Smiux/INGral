@@ -22,7 +22,7 @@ export default defineConfig({
           'markdown-katex': ['katex', 'markdown-it'],
           // 将文章编辑功能相关代码拆分为独立的chunk
           'article-editor': ['@/components/articles/ArticleEditor', '@/services/articleService'],
-          // 将图谱可视化功能相关代码拆分为独立的chunk
+          // 将图可视化功能相关代码拆分为独立的chunk
           'graph-visualization': ['@/components/graph/GraphVisualization']
         }
       }
