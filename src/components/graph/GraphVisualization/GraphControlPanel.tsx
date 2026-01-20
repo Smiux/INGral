@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { X, Palette, Square, SquareGantt, Type, Heading, Text as TextIcon } from 'lucide-react';
-import { useStore, useReactFlow, type Edge } from '@xyflow/react';
+import { useStore, useReactFlow } from '@xyflow/react';
 
 // 导入 colorPicker CSS
 import 'tui-color-picker/dist/tui-color-picker.css';
@@ -79,120 +79,16 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
   // 当前激活的面板类型
   const [activePanel, setActivePanel] = useState<PanelType>('node');
 
-  // 节点表单数据 - 只包含需要编辑的数据字段，不包含position
-  const [nodeFormData, setNodeFormData] = useState<{
-    id: string;
-    data: CustomNodeData;
-  }>({
-    'id': '',
-    'data': {
-      'title': '',
-      'category': '默认',
-      'handleCount': 4,
-      'shape': 'circle',
-      'style': {
-        'fill': '#fff',
-        'stroke': '#4ECDC4',
-        'strokeWidth': 2,
-        'textColor': '#666',
-        'titleBackgroundColor': '#4ECDC4'
-      },
-      'metadata': {
-        'content': ''
-      }
-    }
-  });
-
-  // 连接表单数据
-  const [edgeFormData, setEdgeFormData] = useState<Edge<CustomEdgeData>>({
-    'id': '',
-    'source': '',
-    'target': '',
-    'type': 'floating',
-    'data': {
-      'type': 'related',
-      'weight': 1,
-      'curveType': 'default',
-      'label': '',
-      'style': {
-        'stroke': '#3b82f6',
-        'strokeWidth': 2
-      },
-      'animation': {
-        'dynamicEffect': 'flow',
-        'isAnimating': false
-      }
-    }
-  });
-
-  // 颜色选择器类型定义
-  interface ColorPickerEvent {
-    color: string;
-  }
-
-  interface ColorPickerInstance {
-    destroy: () => void;
-    on: (event: string, callback: (event: ColorPickerEvent) => void) => void;
-  }
+  // 表单数据从selectedNode和selectedEdge直接派生，不再需要单独的状态
 
   // 颜色选择器引用，用于跟踪和清理
-  const colorPickerRef = useRef<{ picker: ColorPickerInstance | null; container: HTMLDivElement } | null>(null);
-
-  // 当选中节点或连接变化时，更新表单数据
-  useEffect(() => {
-    if (selectedNode) {
-      // 确保handleCount有默认值0，当节点没有handleCount属性时使用
-      setNodeFormData({
-        'id': selectedNode.id,
-        'data': {
-          ...selectedNode.data as CustomNodeData,
-          'handleCount': selectedNode.data.handleCount ?? 0,
-          'shape': selectedNode.data.shape ?? 'circle',
-          'style': {
-            'fill': selectedNode.data.style?.fill ?? '#fff',
-            'stroke': selectedNode.data.style?.stroke ?? '#4ECDC4',
-            'strokeWidth': selectedNode.data.style?.strokeWidth ?? 2,
-            'textColor': selectedNode.data.style?.textColor ?? '#666',
-            'titleBackgroundColor': selectedNode.data.style?.titleBackgroundColor ?? '#4ECDC4',
-            'titleTextColor': selectedNode.data.style?.titleTextColor ?? '#FFFFFF',
-            'innerAngle': selectedNode.data.style?.innerAngle ?? 0,
-            'outerAngle': selectedNode.data.style?.outerAngle ?? 0,
-            'isSyncRotation': selectedNode.data.style?.isSyncRotation ?? false
-          }
-        }
-      });
-    } else if (selectedEdge) {
-      // 确保style对象中的所有属性都有默认值，避免UI上的动态计算导致颜色联动
-      const currentStyle = selectedEdge.data?.style || {};
-      const updatedEdge = {
-        ...selectedEdge,
-        'data': {
-          ...selectedEdge.data,
-          'style': {
-            'stroke': currentStyle.stroke || '#3b82f6',
-            'strokeWidth': currentStyle.strokeWidth || 2,
-            'arrowColor': currentStyle.arrowColor || (currentStyle.stroke || '#3b82f6'),
-            'labelBackgroundColor': currentStyle.labelBackgroundColor || (currentStyle.stroke || '#3b82f6'),
-            'labelTextColor': currentStyle.labelTextColor || '#ffffff',
-            'dasharray': currentStyle.dasharray || ''
-          }
-        }
-      };
-      setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-    }
-  }, [selectedNode, selectedEdge]);
+  const colorPickerRef = useRef<{ destroy:() => void } | null>(null);
 
   // 清理颜色选择器的效果
   useEffect(() => {
     return () => {
       if (colorPickerRef.current) {
-        const { picker, container } = colorPickerRef.current;
-        if (picker && typeof picker.destroy === 'function') {
-          picker.destroy();
-        }
-        if (container && container.parentNode) {
-          container.parentNode.removeChild(container);
-        }
+        colorPickerRef.current.destroy();
         colorPickerRef.current = null;
       }
     };
@@ -202,13 +98,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
   const openColorPicker = useCallback((e: React.MouseEvent, color: string, onColorChange: (color: string) => void) => {
     // 清理之前的颜色选择器
     if (colorPickerRef.current) {
-      const { picker, container } = colorPickerRef.current;
-      if (picker && typeof picker.destroy === 'function') {
-        picker.destroy();
-      }
-      if (container && container.parentNode) {
-        container.parentNode.removeChild(container);
-      }
+      colorPickerRef.current.destroy();
+      colorPickerRef.current = null;
     }
 
     // 创建一个临时容器，显示在颜色块附近
@@ -218,14 +109,13 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
     container.style.left = '0';
     container.style.zIndex = '1000';
     container.style.marginTop = '4px';
-    e.currentTarget.parentElement?.appendChild(container);
-
-    // 确保容器有正确的样式
     container.style.backgroundColor = 'white';
     container.style.border = '1px solid #e5e7eb';
     container.style.borderRadius = '0.375rem';
     container.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
     container.style.padding = '4px';
+
+    e.currentTarget.parentElement?.appendChild(container);
 
     // 创建颜色选择器，使用默认配置
     const picker = colorPicker.create({
@@ -234,7 +124,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
     });
 
     // 保存引用
-    colorPickerRef.current = { picker, container };
+    colorPickerRef.current = picker;
 
     // 监听颜色选择事件
     picker.on('selectColor', (event: { color: string }) => {
@@ -244,11 +134,10 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
     // 添加点击外部关闭的事件监听
     const handleClickOutside = (event: MouseEvent) => {
       if (container && !container.contains(event.target as Node) && e.currentTarget !== event.target) {
-        if (typeof picker.destroy === 'function') {
-          picker.destroy();
-        }
+        picker.destroy();
         container.remove();
         colorPickerRef.current = null;
+        document.removeEventListener('mousedown', handleClickOutside);
       }
     };
 
@@ -265,65 +154,42 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
   // 处理节点连接点数量变化
   const handleHandleCountChange = useCallback((delta: number) => {
     if (selectedNode) {
-      // 正确处理handleCount为0的情况，不使用默认值4
       const currentHandleCount = selectedNode.data.handleCount ?? 0;
       const newHandleCount = Math.max(0, Math.min(20, currentHandleCount + delta));
-      const updatedNodeData = {
+      reactFlowInstance.updateNodeData(selectedNode.id, {
         ...selectedNode.data,
         'handleCount': newHandleCount
-      };
-      const updatedFormData = {
-        'id': selectedNode.id,
-        'data': updatedNodeData
-      };
-      setNodeFormData(updatedFormData);
-      // 使用React Flow内置的updateNodeData方法更新节点数据
-      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
+      });
     }
   }, [selectedNode, reactFlowInstance]);
 
   // 处理节点形状变化
   const handleShapeChange = useCallback((shape: 'circle' | 'square' | 'rectangle') => {
     if (selectedNode) {
-      const updatedNodeData = {
+      reactFlowInstance.updateNodeData(selectedNode.id, {
         ...selectedNode.data,
         shape
-      };
-      const updatedFormData = {
-        'id': selectedNode.id,
-        'data': updatedNodeData
-      };
-      setNodeFormData(updatedFormData);
-      // 使用React Flow内置的updateNodeData方法更新节点数据
-      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
+      });
     }
   }, [selectedNode, reactFlowInstance]);
 
   // 处理节点样式颜色变化
   const handleColorChange = useCallback((property: 'fill' | 'stroke' | 'textColor' | 'titleBackgroundColor' | 'titleTextColor', color: string) => {
     if (selectedNode) {
-      const updatedNodeData = {
+      reactFlowInstance.updateNodeData(selectedNode.id, {
         ...selectedNode.data,
         'style': {
           ...selectedNode.data.style,
           [property]: color
         }
-      };
-      const updatedFormData = {
-        'id': selectedNode.id,
-        'data': updatedNodeData
-      };
-      setNodeFormData(updatedFormData);
-      // 使用React Flow内置的updateNodeData方法更新节点数据
-      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
+      });
     }
   }, [selectedNode, reactFlowInstance]);
 
   // 处理颜色输入框变化
   const handleColorInputChange = useCallback((property: 'fill' | 'stroke' | 'textColor' | 'titleBackgroundColor' | 'titleTextColor') => {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      handleColorChange(property, value);
+      handleColorChange(property, e.target.value);
     };
   }, [handleColorChange]);
 
@@ -334,93 +200,41 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
     }
 
     const { name, value } = e.target;
+    const updatedNodeData = { ...selectedNode.data };
 
-    // 处理连接点数量变化，确保值为数字类型
-    if (name === 'handleCount') {
-      // 正确处理空值和0值
-      const numValue = parseInt(value, 10);
-      const newHandleCount = Math.max(0, Math.min(20, isNaN(numValue) ? 0 : numValue));
-      const updatedNodeData = {
-        ...selectedNode.data,
-        'handleCount': newHandleCount
-      };
-      const updatedFormData = {
-        'id': selectedNode.id,
-        'data': updatedNodeData
-      };
-      setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
-    } else if (name === 'content') {
-      const updatedNodeData = {
-        ...selectedNode.data,
-        'metadata': {
+    switch (name) {
+      case 'handleCount':
+        const numValue = parseInt(value, 10);
+        updatedNodeData.handleCount = Math.max(0, Math.min(20, isNaN(numValue) ? 0 : numValue));
+        break;
+      case 'content':
+        updatedNodeData.metadata = {
           ...selectedNode.data.metadata,
           'content': value
-        }
-      };
-      const updatedFormData = {
-        'id': selectedNode.id,
-        'data': updatedNodeData
-      };
-      setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
-    } else if (name === 'innerAngle' || name === 'outerAngle') {
-      // 处理旋转角度变化
-      const angleValue = parseFloat(value) || 0;
-      const updatedNodeData = {
-        ...selectedNode.data,
-        'style': {
+        };
+        break;
+      case 'innerAngle':
+      case 'outerAngle':
+        updatedNodeData.style = {
           ...selectedNode.data.style,
-          [name]: angleValue
-        }
-      };
-      const updatedFormData = {
-        'id': selectedNode.id,
-        'data': updatedNodeData
-      };
-      setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
-    } else if (name === 'isSyncRotation') {
-      // 处理同步旋转选项
-      const checked = (e.target as HTMLInputElement).checked;
-      const updatedNodeData = {
-        ...selectedNode.data,
-        'style': {
+          [name]: parseFloat(value) || 0
+        };
+        break;
+      case 'isSyncRotation':
+        updatedNodeData.style = {
           ...selectedNode.data.style,
-          'isSyncRotation': checked
-        }
-      };
-      const updatedFormData = {
-        'id': selectedNode.id,
-        'data': updatedNodeData
-      };
-      setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
-    } else if (name === 'shape') {
-      // 处理形状变化
-      const updatedNodeData = {
-        ...selectedNode.data,
-        'shape': value as 'circle' | 'square' | 'rectangle'
-      };
-      const updatedFormData = {
-        'id': selectedNode.id,
-        'data': updatedNodeData
-      };
-      setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
-    } else {
-      // 处理其他基本属性
-      const updatedNodeData = {
-        ...selectedNode.data,
-        [name]: value
-      };
-      const updatedFormData = {
-        'id': selectedNode.id,
-        'data': updatedNodeData
-      };
-      setNodeFormData(updatedFormData);
-      reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
+          'isSyncRotation': (e.target as HTMLInputElement).checked
+        };
+        break;
+      case 'shape':
+        updatedNodeData.shape = value as 'circle' | 'square' | 'rectangle';
+        break;
+      default:
+        updatedNodeData[name] = value;
+        break;
     }
+
+    reactFlowInstance.updateNodeData(selectedNode.id, updatedNodeData);
   }, [selectedNode, reactFlowInstance]);
 
   // 处理连接样式颜色变化
@@ -434,15 +248,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
         }
       };
 
-      // 定义完整的边更新对象
-      const updatedEdge = {
-        ...selectedEdge,
-        'data': updatedEdgeData
-      };
-
-      // 更新箭头颜色时同时更新markerEnd
       if (property === 'arrowColor') {
-        // 使用 React Flow 的 updateEdge 方法直接更新包含 markerEnd 的边
         reactFlowInstance.updateEdge(selectedEdge.id, {
           'data': updatedEdgeData,
           'markerEnd': {
@@ -451,19 +257,18 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
           }
         });
       } else {
-        // 直接更新整个边
-        reactFlowInstance.updateEdge(selectedEdge.id, updatedEdge);
+        reactFlowInstance.updateEdge(selectedEdge.id, {
+          ...selectedEdge,
+          'data': updatedEdgeData
+        });
       }
-
-      setEdgeFormData(updatedEdge as Edge<CustomEdgeData>);
     }
   }, [selectedEdge, reactFlowInstance]);
 
   // 处理连接样式颜色输入框变化
   const handleEdgeColorInputChange = useCallback((property: 'stroke' | 'arrowColor' | 'labelBackgroundColor' | 'labelTextColor') => {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      handleEdgeColorChange(property, value);
+      handleEdgeColorChange(property, e.target.value);
     };
   }, [handleEdgeColorChange]);
 
@@ -474,63 +279,32 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
     }
 
     const { name, value } = e.target;
-
-    // 确保edgeFormData.data存在
     const currentData = selectedEdge.data || {};
+    const updatedEdgeData = { ...currentData };
 
-    if (name === 'dynamicEffect') {
-      const updatedEdgeData = {
-        ...currentData,
-        'animation': {
+    switch (name) {
+      case 'dynamicEffect':
+        updatedEdgeData.animation = {
           ...(currentData.animation || {}),
           'dynamicEffect': value as 'flow' | 'arrow' | 'blink' | 'wave' | 'rotate' | 'color-change' | 'fade',
-          // isAnimating保持不变，由专门的开关控制
           'isAnimating': (currentData.animation?.isAnimating || false)
-        }
-      };
-      const updatedEdge = {
-        ...selectedEdge,
-        'data': updatedEdgeData
-      };
-      setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      reactFlowInstance.updateEdgeData(selectedEdge.id, updatedEdgeData);
-    } else if (name === 'weight') {
-      const updatedEdgeData = {
-        ...currentData,
-        'weight': parseFloat(value) || 1
-      };
-      const updatedEdge = {
-        ...selectedEdge,
-        'data': updatedEdgeData
-      };
-      setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      reactFlowInstance.updateEdgeData(selectedEdge.id, updatedEdgeData);
-    } else if (name === 'strokeWidth') {
-      const updatedEdgeData = {
-        ...currentData,
-        'style': {
+        };
+        break;
+      case 'weight':
+        updatedEdgeData.weight = parseFloat(value) || 1;
+        break;
+      case 'strokeWidth':
+        updatedEdgeData.style = {
           ...(currentData.style || {}),
           'strokeWidth': parseFloat(value) || 2
-        }
-      };
-      const updatedEdge = {
-        ...selectedEdge,
-        'data': updatedEdgeData
-      };
-      setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      reactFlowInstance.updateEdgeData(selectedEdge.id, updatedEdgeData);
-    } else {
-      const updatedEdgeData = {
-        ...currentData,
-        [name]: value
-      };
-      const updatedEdge = {
-        ...selectedEdge,
-        'data': updatedEdgeData
-      };
-      setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
-      reactFlowInstance.updateEdgeData(selectedEdge.id, updatedEdgeData);
+        };
+        break;
+      default:
+        updatedEdgeData[name] = value;
+        break;
     }
+
+    reactFlowInstance.updateEdgeData(selectedEdge.id, updatedEdgeData);
   }, [selectedEdge, reactFlowInstance]);
 
   // 渲染节点编辑面板
@@ -557,7 +331,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               <input
                 type="text"
                 name="title"
-                value={nodeFormData.data.title || ''}
+                value={selectedNode.data.title || ''}
                 onChange={handleNodeChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200"
                 placeholder="输入节点标题"
@@ -571,7 +345,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               <input
                 type="text"
                 name="category"
-                value={nodeFormData.data.category || ''}
+                value={selectedNode.data.category || ''}
                 onChange={handleNodeChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200"
                 placeholder="输入节点类别（如：概念、理论等）"
@@ -584,7 +358,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               </label>
               <textarea
                 name="content"
-                value={nodeFormData.data.metadata?.content || ''}
+                value={selectedNode.data.metadata?.content || ''}
                 onChange={handleNodeChange}
                 rows={4}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200 resize-y"
@@ -622,8 +396,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   name="handleCount"
                   min="0"
                   max="20"
-                  // 使用nullish coalescing，只在undefined时使用默认值4，0时显示0
-                  value={nodeFormData.data.handleCount ?? 4}
+                  value={selectedNode.data.handleCount ?? 0}
                   onChange={handleNodeChange}
                   className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-200 text-center"
                 />
@@ -658,14 +431,14 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               <input
                 type="checkbox"
                 name="isSyncRotation"
-                checked={nodeFormData.data.style?.isSyncRotation || false}
+                checked={selectedNode.data.style?.isSyncRotation || false}
                 onChange={handleNodeChange}
                 className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer transition-all duration-200"
               />
               <span>同步内外层旋转</span>
             </label>
             <span className="text-xs text-gray-500 bg-purple-50 px-2 py-1 rounded-full">
-              {nodeFormData.data.style?.isSyncRotation ? '同步' : '独立'}
+              {selectedNode.data.style?.isSyncRotation ? '同步' : '独立'}
             </span>
           </div>
 
@@ -676,7 +449,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                 内层旋转角度（内容）
               </label>
               <span className="text-sm font-semibold text-gray-900 bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200">
-                {nodeFormData.data.style?.innerAngle || 0}°
+                {selectedNode.data.style?.innerAngle || 0}°
               </span>
             </div>
             <input
@@ -685,7 +458,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               min="0"
               max="360"
               step="1"
-              value={nodeFormData.data.style?.innerAngle || 0}
+              value={selectedNode.data.style?.innerAngle || 0}
               onChange={handleNodeChange}
               className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-purple-500 transition-all duration-200 hover:h-3"
             />
@@ -696,7 +469,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                 min="0"
                 max="360"
                 step="1"
-                value={nodeFormData.data.style?.innerAngle || 0}
+                value={selectedNode.data.style?.innerAngle || 0}
                 onChange={handleNodeChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-200 text-center"
                 placeholder="输入角度值"
@@ -714,7 +487,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                 外层旋转角度（连接点）
               </label>
               <span className="text-sm font-semibold text-gray-900 bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200">
-                {nodeFormData.data.style?.outerAngle || 0}°
+                {selectedNode.data.style?.outerAngle || 0}°
               </span>
             </div>
             <input
@@ -723,10 +496,10 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               min="0"
               max="360"
               step="1"
-              value={nodeFormData.data.style?.outerAngle || 0}
+              value={selectedNode.data.style?.outerAngle || 0}
               onChange={handleNodeChange}
               className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-purple-500 transition-all duration-200 hover:h-3"
-              disabled={nodeFormData.data.style?.isSyncRotation || false}
+              disabled={selectedNode.data.style?.isSyncRotation || false}
             />
             <div className="mt-2">
               <input
@@ -735,11 +508,11 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                 min="0"
                 max="360"
                 step="1"
-                value={nodeFormData.data.style?.outerAngle || 0}
+                value={selectedNode.data.style?.outerAngle || 0}
                 onChange={handleNodeChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-200 text-center"
                 placeholder="输入角度值"
-                disabled={nodeFormData.data.style?.isSyncRotation || false}
+                disabled={selectedNode.data.style?.isSyncRotation || false}
               />
             </div>
             <p className="text-xs text-gray-500 mt-1 italic">
@@ -775,7 +548,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               <input
                 type="text"
                 name="type"
-                value={edgeFormData.data?.type || 'related'}
+                value={selectedEdge.data?.type || 'related'}
                 onChange={handleEdgeChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200"
                 placeholder="输入连接类别"
@@ -792,7 +565,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                 min="0.1"
                 max="10"
                 step="0.1"
-                value={edgeFormData.data?.weight || 1}
+                value={selectedEdge.data?.weight || 1}
                 onChange={handleEdgeChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200"
               />
@@ -816,7 +589,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               </label>
               <select
                 name="curveType"
-                value={edgeFormData.data?.curveType || 'default'}
+                value={selectedEdge.data?.curveType || 'default'}
                 onChange={handleEdgeChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 hover:border-teal-200"
               >
@@ -845,12 +618,12 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               </label>
               <input
                 type="checkbox"
-                checked={edgeFormData.data?.animation?.isAnimating || false}
+                checked={selectedEdge.data?.animation?.isAnimating || false}
                 onChange={(e) => {
-                  // 确保edgeFormData.data存在
-                  const currentData = edgeFormData.data || {};
+                  // 确保selectedEdge.data存在
+                  const currentData = selectedEdge.data || {};
                   const updatedEdge = {
-                    ...edgeFormData,
+                    ...selectedEdge,
                     'data': {
                       ...currentData,
                       'animation': {
@@ -860,16 +633,15 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                       }
                     }
                   };
-                  setEdgeFormData(updatedEdge as unknown as Edge<CustomEdgeData>);
                   // 使用React Flow内置的updateEdge方法更新连接
-                  reactFlowInstance.updateEdge(edgeFormData.id, {
+                  reactFlowInstance.updateEdge(selectedEdge.id, {
                     'data': updatedEdge.data
                   });
                 }}
                 className="w-10 h-5 bg-gray-200 rounded-full transition-all duration-300 ease-in-out cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-pink-500"
                 style={{
-                  'background': edgeFormData.data?.animation?.isAnimating ? 'linear-gradient(to right, #ec4899 0%, #f472b6 100%)' : 'linear-gradient(to right, #d1d5db 0%, #9ca3af 100%)',
-                  'boxShadow': edgeFormData.data?.animation?.isAnimating ? '0 0 0 2px rgba(236, 72, 153, 0.2)' : 'none'
+                  'background': selectedEdge.data?.animation?.isAnimating ? 'linear-gradient(to right, #ec4899 0%, #f472b6 100%)' : 'linear-gradient(to right, #d1d5db 0%, #9ca3af 100%)',
+                  'boxShadow': selectedEdge.data?.animation?.isAnimating ? '0 0 0 2px rgba(236, 72, 153, 0.2)' : 'none'
                 }}
               />
             </div>
@@ -880,10 +652,10 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               </label>
               <select
                 name="dynamicEffect"
-                value={edgeFormData.data?.animation?.dynamicEffect || 'flow'}
+                value={selectedEdge.data?.animation?.dynamicEffect || 'flow'}
                 onChange={handleEdgeChange}
-                disabled={!(edgeFormData.data?.animation?.isAnimating || false)}
-                className={`w-full px-4 py-2.5 border ${edgeFormData.data?.animation?.isAnimating ? 'border-gray-300' : 'border-gray-200 bg-gray-100 cursor-not-allowed'} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 hover:border-pink-200`}
+                disabled={!(selectedEdge.data?.animation?.isAnimating || false)}
+                className={`w-full px-4 py-2.5 border ${selectedEdge.data?.animation?.isAnimating ? 'border-gray-300' : 'border-gray-200 bg-gray-100 cursor-not-allowed'} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 hover:border-pink-200`}
               >
                 <option value="flow">流动动画</option>
                 <option value="blink">闪烁效果</option>
@@ -922,7 +694,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                 连接宽度
               </label>
               <span className="text-sm font-semibold text-gray-900 bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200">
-                {edgeFormData.data?.style?.strokeWidth || 2}px
+                {selectedEdge.data?.style?.strokeWidth || 2}px
               </span>
             </div>
             <input
@@ -931,7 +703,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               min="1"
               max="10"
               step="0.5"
-              value={edgeFormData.data?.style?.strokeWidth || 2}
+              value={selectedEdge.data?.style?.strokeWidth || 2}
               onChange={handleEdgeChange}
               className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-purple-500 transition-all duration-200 hover:h-3"
             />
@@ -942,7 +714,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                 min="1"
                 max="10"
                 step="0.5"
-                value={edgeFormData.data?.style?.strokeWidth || 2}
+                value={selectedEdge.data?.style?.strokeWidth || 2}
                 onChange={handleEdgeChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-200 text-center"
                 placeholder="输入宽度值"
@@ -965,9 +737,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   >
                     <div
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300"
-                      style={{ 'backgroundColor': edgeFormData.data?.style?.stroke || '#3b82f6' }}
+                      style={{ 'backgroundColor': selectedEdge.data?.style?.stroke || '#3b82f6' }}
                       onClick={(e) => {
-                        openColorPicker(e, edgeFormData.data?.style?.stroke || '#3b82f6', (color) => {
+                        openColorPicker(e, selectedEdge.data?.style?.stroke || '#3b82f6', (color) => {
                           handleEdgeColorChange('stroke', color);
                         });
                       }}
@@ -975,7 +747,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   </div>
                   <input
                     type="text"
-                    value={edgeFormData.data?.style?.stroke || '#3b82f6'}
+                    value={selectedEdge.data?.style?.stroke || '#3b82f6'}
                     onChange={handleEdgeColorInputChange('stroke')}
                     className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none"
                   />
@@ -998,9 +770,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   >
                     <div
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300"
-                      style={{ 'backgroundColor': edgeFormData.data?.style?.arrowColor || (edgeFormData.data?.style?.stroke || '#3b82f6') }}
+                      style={{ 'backgroundColor': selectedEdge.data?.style?.arrowColor || (selectedEdge.data?.style?.stroke || '#3b82f6') }}
                       onClick={(e) => {
-                        openColorPicker(e, edgeFormData.data?.style?.arrowColor || (edgeFormData.data?.style?.stroke || '#3b82f6'), (color) => {
+                        openColorPicker(e, selectedEdge.data?.style?.arrowColor || (selectedEdge.data?.style?.stroke || '#3b82f6'), (color) => {
                           handleEdgeColorChange('arrowColor', color);
                         });
                       }}
@@ -1008,7 +780,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   </div>
                   <input
                     type="text"
-                    value={edgeFormData.data?.style?.arrowColor || (edgeFormData.data?.style?.stroke || '#3b82f6')}
+                    value={selectedEdge.data?.style?.arrowColor || (selectedEdge.data?.style?.stroke || '#3b82f6')}
                     onChange={handleEdgeColorInputChange('arrowColor')}
                     className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none"
                   />
@@ -1029,9 +801,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   >
                     <div
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300 flex items-center justify-center text-white font-bold"
-                      style={{ 'backgroundColor': edgeFormData.data?.style?.labelBackgroundColor || (edgeFormData.data?.style?.stroke || '#3b82f6') }}
+                      style={{ 'backgroundColor': selectedEdge.data?.style?.labelBackgroundColor || (selectedEdge.data?.style?.stroke || '#3b82f6') }}
                       onClick={(e) => {
-                        openColorPicker(e, edgeFormData.data?.style?.labelBackgroundColor || (edgeFormData.data?.style?.stroke || '#3b82f6'), (color) => {
+                        openColorPicker(e, selectedEdge.data?.style?.labelBackgroundColor || (selectedEdge.data?.style?.stroke || '#3b82f6'), (color) => {
                           handleEdgeColorChange('labelBackgroundColor', color);
                         });
                       }}
@@ -1041,7 +813,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   </div>
                   <input
                     type="text"
-                    value={edgeFormData.data?.style?.labelBackgroundColor || (edgeFormData.data?.style?.stroke || '#3b82f6')}
+                    value={selectedEdge.data?.style?.labelBackgroundColor || (selectedEdge.data?.style?.stroke || '#3b82f6')}
                     onChange={handleEdgeColorInputChange('labelBackgroundColor')}
                     className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none"
                   />
@@ -1062,9 +834,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   >
                     <div
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300 flex items-center justify-center text-white font-bold"
-                      style={{ 'backgroundColor': edgeFormData.data?.style?.labelTextColor || '#FFFFFF' }}
+                      style={{ 'backgroundColor': selectedEdge.data?.style?.labelTextColor || '#FFFFFF' }}
                       onClick={(e) => {
-                        openColorPicker(e, edgeFormData.data?.style?.labelTextColor || '#FFFFFF', (color) => {
+                        openColorPicker(e, selectedEdge.data?.style?.labelTextColor || '#FFFFFF', (color) => {
                           handleEdgeColorChange('labelTextColor', color);
                         });
                       }}
@@ -1074,7 +846,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   </div>
                   <input
                     type="text"
-                    value={edgeFormData.data?.style?.labelTextColor || '#FFFFFF'}
+                    value={selectedEdge.data?.style?.labelTextColor || '#FFFFFF'}
                     onChange={handleEdgeColorInputChange('labelTextColor')}
                     className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none"
                   />
@@ -1111,7 +883,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               <button
                 type="button"
                 onClick={() => handleShapeChange('circle')}
-                className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${nodeFormData.data.shape === 'circle' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'}`}
+                className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${selectedNode.data.shape === 'circle' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'}`}
               >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10" />
@@ -1121,7 +893,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               <button
                 type="button"
                 onClick={() => handleShapeChange('square')}
-                className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${nodeFormData.data.shape === 'square' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'}`}
+                className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${selectedNode.data.shape === 'square' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'}`}
               >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                   <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -1131,7 +903,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               <button
                 type="button"
                 onClick={() => handleShapeChange('rectangle')}
-                className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${nodeFormData.data.shape === 'rectangle' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'}`}
+                className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${selectedNode.data.shape === 'rectangle' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'}`}
               >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                   <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -1156,9 +928,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   >
                     <div
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300"
-                      style={{ 'backgroundColor': nodeFormData.data.style?.fill || '#fff' }}
+                      style={{ 'backgroundColor': selectedNode.data.style?.fill || '#fff' }}
                       onClick={(e) => {
-                        openColorPicker(e, nodeFormData.data.style?.fill || '#fff', (color) => {
+                        openColorPicker(e, selectedNode.data.style?.fill || '#fff', (color) => {
                           handleColorChange('fill', color);
                         });
                       }}
@@ -1166,7 +938,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   </div>
                   <input
                     type="text"
-                    value={nodeFormData.data.style?.fill || '#fff'}
+                    value={selectedNode.data.style?.fill || '#fff'}
                     onChange={handleColorInputChange('fill')}
                     className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none"
                   />
@@ -1187,9 +959,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   >
                     <div
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300"
-                      style={{ 'backgroundColor': nodeFormData.data.style?.stroke || '#4ECDC4' }}
+                      style={{ 'backgroundColor': selectedNode.data.style?.stroke || '#4ECDC4' }}
                       onClick={(e) => {
-                        openColorPicker(e, nodeFormData.data.style?.stroke || '#4ECDC4', (color) => {
+                        openColorPicker(e, selectedNode.data.style?.stroke || '#4ECDC4', (color) => {
                           handleColorChange('stroke', color);
                         });
                       }}
@@ -1197,7 +969,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   </div>
                   <input
                     type="text"
-                    value={nodeFormData.data.style?.stroke || '#4ECDC4'}
+                    value={selectedNode.data.style?.stroke || '#4ECDC4'}
                     onChange={handleColorInputChange('stroke')}
                     className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none"
                   />
@@ -1218,9 +990,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   >
                     <div
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300 flex items-center justify-center text-white font-bold"
-                      style={{ 'backgroundColor': nodeFormData.data.style?.textColor || '#666' }}
+                      style={{ 'backgroundColor': selectedNode.data.style?.textColor || '#666' }}
                       onClick={(e) => {
-                        openColorPicker(e, nodeFormData.data.style?.textColor || '#666', (color) => {
+                        openColorPicker(e, selectedNode.data.style?.textColor || '#666', (color) => {
                           handleColorChange('textColor', color);
                         });
                       }}
@@ -1230,7 +1002,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   </div>
                   <input
                     type="text"
-                    value={nodeFormData.data.style?.textColor || '#666'}
+                    value={selectedNode.data.style?.textColor || '#666'}
                     onChange={handleColorInputChange('textColor')}
                     className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none"
                   />
@@ -1251,9 +1023,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   >
                     <div
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300 flex items-center justify-center text-white font-bold"
-                      style={{ 'backgroundColor': nodeFormData.data.style?.titleBackgroundColor || '#4ECDC4' }}
+                      style={{ 'backgroundColor': selectedNode.data.style?.titleBackgroundColor || '#4ECDC4' }}
                       onClick={(e) => {
-                        openColorPicker(e, nodeFormData.data.style?.titleBackgroundColor || '#4ECDC4', (color) => {
+                        openColorPicker(e, selectedNode.data.style?.titleBackgroundColor || '#4ECDC4', (color) => {
                           handleColorChange('titleBackgroundColor', color);
                         });
                       }}
@@ -1263,7 +1035,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   </div>
                   <input
                     type="text"
-                    value={nodeFormData.data.style?.titleBackgroundColor || '#4ECDC4'}
+                    value={selectedNode.data.style?.titleBackgroundColor || '#4ECDC4'}
                     onChange={handleColorInputChange('titleBackgroundColor')}
                     className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none"
                   />
@@ -1284,9 +1056,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   >
                     <div
                       className="w-8 h-8 rounded cursor-pointer border border-gray-300 flex items-center justify-center text-white font-bold"
-                      style={{ 'backgroundColor': nodeFormData.data.style?.titleTextColor || '#FFFFFF' }}
+                      style={{ 'backgroundColor': selectedNode.data.style?.titleTextColor || '#FFFFFF' }}
                       onClick={(e) => {
-                        openColorPicker(e, nodeFormData.data.style?.titleTextColor || '#FFFFFF', (color) => {
+                        openColorPicker(e, selectedNode.data.style?.titleTextColor || '#FFFFFF', (color) => {
                           handleColorChange('titleTextColor', color);
                         });
                       }}
@@ -1296,7 +1068,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
                   </div>
                   <input
                     type="text"
-                    value={nodeFormData.data.style?.titleTextColor || '#FFFFFF'}
+                    value={selectedNode.data.style?.titleTextColor || '#FFFFFF'}
                     onChange={handleColorInputChange('titleTextColor')}
                     className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none"
                   />
@@ -1389,17 +1161,17 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
   }
 
   return (
-    <div className={`w-72 bg-white shadow-lg flex flex-col overflow-hidden h-full transition-all duration-300 ease-in-out ${panelPosition === 'left' ? 'border-r border-gray-200 absolute left-0 top-0 z-10' : 'border-l border-gray-200 absolute right-0 top-0 z-10'}`}>
+    <div className={`w-72 bg-white flex flex-col overflow-hidden h-full transition-all duration-300 ease-in-out ${panelPosition === 'left' ? 'border-r border-gray-200 absolute left-0 top-0 z-10' : 'border-l border-gray-200 absolute right-0 top-0 z-10'}`} style={{ boxShadow: 'var(--shadow-md)' }}>
       {/* 面板头部 */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white shadow-sm">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200" style={{ background: 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary-color)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
             </svg>
             {selectedNode ? '编辑节点' : '编辑连接'}
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             {selectedNode ? '调整节点属性和连接点配置' : '修改连接样式和动态效果'}
           </p>
         </div>
@@ -1415,22 +1187,24 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
               'selected': false
             })));
           }}
-          className="p-1 rounded-full hover:bg-gray-100 text-gray-600 transition-colors hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="p-1 rounded-full hover:bg-gray-100 transition-colors hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           title="关闭面板"
           aria-label="关闭面板"
+          style={{ color: 'var(--text-secondary)' }}
         >
           <X size={20} />
         </button>
       </div>
 
       {/* 面板导航菜单 */}
-      <div className="border-b border-gray-200 bg-white overflow-x-auto shadow-sm">
+      <div className="border-b border-gray-200 bg-white overflow-x-auto">
         <div className="flex min-w-max">
           {availablePanels.map(panel => (
             <button
               key={panel.type}
               onClick={() => setActivePanel(panel.type)}
-              className={`px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all duration-200 ease-in-out whitespace-nowrap ${activePanel === panel.type ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500 shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-blue-500'}`}
+              className={`px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all duration-200 ease-in-out whitespace-nowrap ${activePanel === panel.type ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50 hover:text-blue-500'}`}
+              style={{ backgroundColor: activePanel === panel.type ? 'var(--primary-color-light)' : 'transparent' }}
               aria-pressed={activePanel === panel.type}
             >
               {panel.label}
@@ -1440,7 +1214,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({
       </div>
 
       {/* 面板内容区域 */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50 to-white">
+      <div className="flex-1 overflow-y-auto p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
         {renderActivePanelContent()}
       </div>
     </div>

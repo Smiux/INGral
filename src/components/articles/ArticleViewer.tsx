@@ -2,15 +2,19 @@
  * 文章查看器组件
  * 负责显示文章内容、相关文章、评论，并提供导出和编辑功能
  */
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Moon, Sun } from 'lucide-react';
 import { articleService, type Article } from '../../services/articleService';
+import { useTheme } from '../../theme/useTheme';
 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
+  const { theme, toggleTheme } = useTheme();
   const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const contentRef = useRef<HTMLDivElement>(null);
+
   /**
    * 加载文章内容
    * @async
@@ -33,30 +37,8 @@ export function ArticleViewer () {
   // 初始加载文章
   useEffect(() => {
     loadArticle();
-  }, [loadArticle, slug]);
+  }, [loadArticle]);
 
-  // 定时刷新文章内容（每30秒）
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      loadArticle();
-    }, 30000);
-
-    return () => clearInterval(intervalId);
-  }, [loadArticle, slug]);
-
-  // 监听URL变化，重新加载文章
-  useEffect(() => {
-    const handleLocationChange = () => {
-      loadArticle();
-    };
-
-    // 监听history变化
-    window.addEventListener('popstate', handleLocationChange);
-
-    return () => {
-      window.removeEventListener('popstate', handleLocationChange);
-    };
-  }, [loadArticle, slug]);
 
   if (isLoading) {
     return (
@@ -130,14 +112,41 @@ export function ArticleViewer () {
             </div>
             <div className="flex items-center gap-1">
               <User className="w-4 h-4" />
-              {article.author_name || 'Anonymous'}
-            </div>
-            <div>
-              阅读次数: 0
+              {article.author_name}
             </div>
           </div>
         </div>
+        <div className="flex gap-4">
+          {/* 主题切换按钮 */}
+          <button
+            onClick={toggleTheme}
+            className="p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+            title={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
+            aria-label={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* 文章内容 */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* 右侧文章内容 */}
+        <main className="flex-1">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-neutral-200 dark:border-gray-700 transition-all hover:shadow-md">
+            <div
+              ref={contentRef}
+              className="prose prose-lg max-w-none mx-auto p-6 md:p-8 prose-headings:scroll-mt-20 prose-headings:text-neutral-800 dark:prose-headings:text-neutral-100 prose-headings:font-bold prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:hover:text-primary-700 dark:prose-a:hover:text-primary-300 prose-a:underline-offset-4 prose-code:bg-neutral-100 dark:prose-code:bg-gray-700 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-neutral-800 dark:prose-code:text-neutral-200 prose-pre:bg-neutral-800 dark:prose-pre:bg-gray-900 prose-pre:text-neutral-100 dark:prose-pre:text-neutral-200 prose-p:text-neutral-700 dark:prose-p:text-neutral-300 prose-ul:text-neutral-700 dark:prose-ul:text-neutral-300 prose-ol:text-neutral-700 dark:prose-ol:text-neutral-300 prose-strong:text-neutral-900 dark:prose-strong:text-neutral-100 prose-em:text-neutral-800 dark:prose-em:text-neutral-200 wiki-link-styling"
+              dangerouslySetInnerHTML={{ '__html': article.content }}
+            />
+          </div>
+        </main>
+      </div>
+
     </article>
   );
 }

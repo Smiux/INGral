@@ -204,7 +204,9 @@ export const ArticleEditor: React.FC = () => {
     // 清理事件监听器和定时器
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimeout);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
     };
   }, []);
 
@@ -783,27 +785,11 @@ export const ArticleEditor: React.FC = () => {
     }
   }, [editor, selectedCodeBlockPos]);
   // 菜单显示状态
-  const [showHeadingMenu, setShowHeadingMenu] = useState(false);
-  const [showColorMenu, setShowColorMenu] = useState(false);
-  const [showFontMenu, setShowFontMenu] = useState(false);
-  const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
-  const [showLineHeightMenu, setShowLineHeightMenu] = useState(false);
-  const [showMathMenu, setShowMathMenu] = useState(false);
-  const [showListMenu, setShowListMenu] = useState(false);
-  const [showTableMenu, setShowTableMenu] = useState(false);
-  const [showAlignMenu, setShowAlignMenu] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   // 关闭所有菜单
   const closeAllMenus = useCallback(() => {
-    setShowHeadingMenu(false);
-    setShowColorMenu(false);
-    setShowFontMenu(false);
-    setShowFontSizeMenu(false);
-    setShowLineHeightMenu(false);
-    setShowMathMenu(false);
-    setShowListMenu(false);
-    setShowTableMenu(false);
-    setShowAlignMenu(false);
+    setActiveMenu(null);
     setShowCodeLanguageSelector(false);
   }, []);
 
@@ -830,20 +816,13 @@ export const ArticleEditor: React.FC = () => {
   }, [closeAllMenus]);
 
   // 菜单显示/隐藏控制函数
-  const handleMenuEnter = (
-    setter: React.Dispatch<React.SetStateAction<boolean>>,
-    otherSetters: Array<React.Dispatch<React.SetStateAction<boolean>>>
-  ) => {
-    // 关闭其他所有菜单
-    otherSetters.forEach(otherSetter => otherSetter(false));
-    setter(true);
-  };
+  const handleMenuEnter = useCallback((menuName: string) => {
+    setActiveMenu(menuName);
+  }, []);
 
-  const handleMenuLeave = (
-    setter: React.Dispatch<React.SetStateAction<boolean>>
-  ) => {
-    setter(false);
-  };
+  const handleMenuLeave = useCallback((menuName: string) => {
+    setActiveMenu(prev => prev === menuName ? null : prev);
+  }, []);
 
   const handleImageSubmit = useCallback(() => {
     if (imageUrl.trim()) {
@@ -1292,12 +1271,7 @@ export const ArticleEditor: React.FC = () => {
                 {/* 标题下拉菜单 */}
                 <div className="relative menu-container group">
                   <button
-                    onMouseEnter={() => {
-                      handleMenuEnter(
-                        setShowHeadingMenu,
-                        [setShowColorMenu, setShowFontMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                      );
-                    }}
+                    onMouseEnter={() => handleMenuEnter('heading')}
                     className="flex flex-col items-center justify-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors w-16"
                     aria-label="标题"
                   >
@@ -1307,24 +1281,14 @@ export const ArticleEditor: React.FC = () => {
                   {/* 连接区域 - 确保鼠标可以从按钮平滑移动到菜单 */}
                   <div
                     className="absolute left-0 right-0 h-2 top-full mt-0.5"
-                    onMouseEnter={() => {
-                      handleMenuEnter(
-                        setShowHeadingMenu,
-                        [setShowColorMenu, setShowFontMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                      );
-                    }}
+                    onMouseEnter={() => handleMenuEnter('heading')}
                   ></div>
                   {/* 菜单区域 */}
                   <div
                     className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                    style={{ 'display': showHeadingMenu ? 'block' : 'none' }}
-                    onMouseEnter={() => {
-                      handleMenuEnter(
-                        setShowHeadingMenu,
-                        [setShowColorMenu, setShowFontMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                      );
-                    }}
-                    onMouseLeave={() => handleMenuLeave(setShowHeadingMenu)}
+                    style={{ 'display': activeMenu === 'heading' ? 'block' : 'none' }}
+                    onMouseEnter={() => handleMenuEnter('heading')}
+                    onMouseLeave={() => handleMenuLeave('heading')}
                   >
                     <button
                       onClick={toggleHeading1}
@@ -1354,7 +1318,7 @@ export const ArticleEditor: React.FC = () => {
                   {/* 监听整个菜单容器的鼠标离开事件 */}
                   <div
                     className="absolute inset-0 top-full left-0 right-0 h-[calc(100%+1rem)]"
-                    onMouseLeave={() => handleMenuLeave(setShowHeadingMenu)}
+                    onMouseLeave={() => handleMenuLeave('heading')}
                   ></div>
                 </div>
 
@@ -1435,18 +1399,7 @@ export const ArticleEditor: React.FC = () => {
                 {/* 对齐方式 */}
                 <div className="relative menu-container group">
                   <button
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowAlignMenu,
-                      [
-                        setShowHeadingMenu,
-                        setShowColorMenu,
-                        setShowFontMenu,
-                        setShowFontSizeMenu,
-                        setShowLineHeightMenu,
-                        setShowListMenu,
-                        setShowTableMenu
-                      ]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('align')}
                     className="flex flex-col items-center justify-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors w-16"
                     aria-label="对齐方式"
                   >
@@ -1456,36 +1409,14 @@ export const ArticleEditor: React.FC = () => {
                   {/* 连接区域 - 确保鼠标可以从按钮平滑移动到菜单 */}
                   <div
                     className="absolute left-0 right-0 h-2 top-full mt-0.5"
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowAlignMenu,
-                      [
-                        setShowHeadingMenu,
-                        setShowColorMenu,
-                        setShowFontMenu,
-                        setShowFontSizeMenu,
-                        setShowLineHeightMenu,
-                        setShowListMenu,
-                        setShowTableMenu
-                      ]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('align')}
                   ></div>
                   {/* 菜单区域 */}
                   <div
                     className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                    style={{ 'display': showAlignMenu ? 'block' : 'none' }}
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowAlignMenu,
-                      [
-                        setShowHeadingMenu,
-                        setShowColorMenu,
-                        setShowFontMenu,
-                        setShowFontSizeMenu,
-                        setShowLineHeightMenu,
-                        setShowListMenu,
-                        setShowTableMenu
-                      ]
-                    )}
-                    onMouseLeave={() => handleMenuLeave(setShowAlignMenu)}
+                    style={{ 'display': activeMenu === 'align' ? 'block' : 'none' }}
+                    onMouseEnter={() => handleMenuEnter('align')}
+                    onMouseLeave={() => handleMenuLeave('align')}
                   >
                     <button
                       onClick={setTextAlignLeft}
@@ -1523,7 +1454,7 @@ export const ArticleEditor: React.FC = () => {
                   {/* 监听整个菜单容器的鼠标离开事件 */}
                   <div
                     className="absolute inset-0 top-full left-0 right-0 h-[calc(100%+1rem)]"
-                    onMouseLeave={() => handleMenuLeave(setShowAlignMenu)}
+                    onMouseLeave={() => handleMenuLeave('align')}
                   ></div>
                 </div>
 
@@ -1535,18 +1466,7 @@ export const ArticleEditor: React.FC = () => {
                     {/* 字体颜色选择器 */}
                     <div className="relative">
                       <button
-                        onMouseEnter={() => handleMenuEnter(
-                          setShowColorMenu,
-                          [
-                            setShowHeadingMenu,
-                            setShowFontMenu,
-                            setShowFontSizeMenu,
-                            setShowLineHeightMenu,
-                            setShowListMenu,
-                            setShowTableMenu,
-                            setShowAlignMenu
-                          ]
-                        )}
+                        onMouseEnter={() => handleMenuEnter('color')}
                         className="flex flex-col items-center justify-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-105 w-16"
                         aria-label="字体颜色"
                       >
@@ -1558,36 +1478,14 @@ export const ArticleEditor: React.FC = () => {
                       {/* 连接区域 - 确保鼠标可以从按钮平滑移动到菜单 */}
                       <div
                         className="absolute left-0 right-0 h-2 top-full mt-0.5"
-                        onMouseEnter={() => handleMenuEnter(
-                          setShowColorMenu,
-                          [
-                            setShowHeadingMenu,
-                            setShowFontMenu,
-                            setShowFontSizeMenu,
-                            setShowLineHeightMenu,
-                            setShowListMenu,
-                            setShowTableMenu,
-                            setShowAlignMenu
-                          ]
-                        )}
+                        onMouseEnter={() => handleMenuEnter('color')}
                       ></div>
                       {/* 菜单区域 - 使用tui-color-picker */}
                       <div
                         className="absolute left-0 mt-1 w-[280px] bg-white dark:bg-gray-800 rounded-md shadow-lg py-4 px-3 z-10 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                        style={{ 'display': showColorMenu ? 'block' : 'none' }}
-                        onMouseEnter={() => handleMenuEnter(
-                          setShowColorMenu,
-                          [
-                            setShowHeadingMenu,
-                            setShowFontMenu,
-                            setShowFontSizeMenu,
-                            setShowLineHeightMenu,
-                            setShowListMenu,
-                            setShowTableMenu,
-                            setShowAlignMenu
-                          ]
-                        )}
-                        onMouseLeave={() => handleMenuLeave(setShowColorMenu)}
+                        style={{ 'display': activeMenu === 'color' ? 'block' : 'none' }}
+                        onMouseEnter={() => handleMenuEnter('color')}
+                        onMouseLeave={() => handleMenuLeave('color')}
                       >
                         <div className="mb-3">
                           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">字体颜色</h3>
@@ -1740,7 +1638,7 @@ export const ArticleEditor: React.FC = () => {
                       {/* 监听整个菜单容器的鼠标离开事件 */}
                       <div
                         className="absolute inset-0 top-full left-0 right-0 h-[calc(100%+1rem)]"
-                        onMouseLeave={() => handleMenuLeave(setShowColorMenu)}
+                        onMouseLeave={() => handleMenuLeave('color')}
                       ></div>
                     </div>
                   </div>
@@ -1749,10 +1647,7 @@ export const ArticleEditor: React.FC = () => {
                 {/* 字体选择 */}
                 <div className="relative menu-container group">
                   <button
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowFontMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontSizeMenu, setShowLineHeightMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('font')}
                     className="flex flex-col items-center justify-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-105 w-16"
                     aria-label="字体选择"
                   >
@@ -1762,20 +1657,14 @@ export const ArticleEditor: React.FC = () => {
                   {/* 连接区域 - 确保鼠标可以从按钮平滑移动到菜单 */}
                   <div
                     className="absolute left-0 right-0 h-2 top-full mt-0.5"
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowFontMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontSizeMenu, setShowLineHeightMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('font')}
                   ></div>
                   {/* 菜单区域 */}
                   <div
                     className="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-2 z-10 transition-all duration-200 border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto"
-                    style={{ 'display': showFontMenu ? 'block' : 'none' }}
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowFontMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontSizeMenu, setShowLineHeightMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
-                    onMouseLeave={() => handleMenuLeave(setShowFontMenu)}
+                    style={{ 'display': activeMenu === 'font' ? 'block' : 'none' }}
+                    onMouseEnter={() => handleMenuEnter('font')}
+                    onMouseLeave={() => handleMenuLeave('font')}
                   >
                     {['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', 'Trebuchet MS', 'Comic Sans MS'].map((font) => (
                       <button
@@ -1802,17 +1691,14 @@ export const ArticleEditor: React.FC = () => {
                   {/* 监听整个菜单容器的鼠标离开事件 */}
                   <div
                     className="absolute inset-0 top-full left-0 right-0 h-[calc(100%+1rem)]"
-                    onMouseLeave={() => handleMenuLeave(setShowFontMenu)}
+                    onMouseLeave={() => handleMenuLeave('font')}
                   ></div>
                 </div>
 
                 {/* 字体大小 */}
                 <div className="relative menu-container group">
                   <button
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowFontSizeMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontMenu, setShowLineHeightMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('fontSize')}
                     className="flex flex-col items-center justify-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-105 w-16"
                     aria-label="字体大小"
                   >
@@ -1822,20 +1708,14 @@ export const ArticleEditor: React.FC = () => {
                   {/* 连接区域 - 确保鼠标可以从按钮平滑移动到菜单 */}
                   <div
                     className="absolute left-0 right-0 h-2 top-full mt-0.5"
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowFontSizeMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontMenu, setShowLineHeightMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('fontSize')}
                   ></div>
                   {/* 菜单区域 */}
                   <div
                     className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg py-2 z-10 transition-all duration-200 border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto"
-                    style={{ 'display': showFontSizeMenu ? 'block' : 'none' }}
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowFontSizeMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontMenu, setShowLineHeightMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
-                    onMouseLeave={() => handleMenuLeave(setShowFontSizeMenu)}
+                    style={{ 'display': activeMenu === 'fontSize' ? 'block' : 'none' }}
+                    onMouseEnter={() => handleMenuEnter('fontSize')}
+                    onMouseLeave={() => handleMenuLeave('fontSize')}
                   >
                     {['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'].map((size) => (
                       <button
@@ -1860,17 +1740,14 @@ export const ArticleEditor: React.FC = () => {
                   {/* 监听整个菜单容器的鼠标离开事件 */}
                   <div
                     className="absolute inset-0 top-full left-0 right-0 h-[calc(100%+1rem)]"
-                    onMouseLeave={() => handleMenuLeave(setShowFontSizeMenu)}
+                    onMouseLeave={() => handleMenuLeave('fontSize')}
                   ></div>
                 </div>
 
                 {/* 行高 */}
                 <div className="relative menu-container group">
                   <button
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowLineHeightMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontMenu, setShowFontSizeMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('lineHeight')}
                     className="flex flex-col items-center justify-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-105 w-16"
                     aria-label="行高"
                   >
@@ -1880,20 +1757,14 @@ export const ArticleEditor: React.FC = () => {
                   {/* 连接区域 - 确保鼠标可以从按钮平滑移动到菜单 */}
                   <div
                     className="absolute left-0 right-0 h-2 top-full mt-0.5"
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowLineHeightMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontMenu, setShowFontSizeMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('lineHeight')}
                   ></div>
                   {/* 菜单区域 */}
                   <div
                     className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg py-2 z-10 transition-all duration-200 border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto"
-                    style={{ 'display': showLineHeightMenu ? 'block' : 'none' }}
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowLineHeightMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontMenu, setShowFontSizeMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
-                    onMouseLeave={() => handleMenuLeave(setShowLineHeightMenu)}
+                    style={{ 'display': activeMenu === 'lineHeight' ? 'block' : 'none' }}
+                    onMouseEnter={() => handleMenuEnter('lineHeight')}
+                    onMouseLeave={() => handleMenuLeave('lineHeight')}
                   >
                     {['1.0', '1.2', '1.4', '1.6', '1.8', '2.0', '2.4'].map((height) => (
                       <button
@@ -1918,7 +1789,7 @@ export const ArticleEditor: React.FC = () => {
                   {/* 监听整个菜单容器的鼠标离开事件 */}
                   <div
                     className="absolute inset-0 top-full left-0 right-0 h-[calc(100%+1rem)]"
-                    onMouseLeave={() => handleMenuLeave(setShowLineHeightMenu)}
+                    onMouseLeave={() => handleMenuLeave('lineHeight')}
                   ></div>
                 </div>
 
@@ -1927,18 +1798,7 @@ export const ArticleEditor: React.FC = () => {
                 {/* 列表按钮 */}
                 <div className="relative menu-container group">
                   <button
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowListMenu,
-                      [
-                        setShowHeadingMenu,
-                        setShowColorMenu,
-                        setShowFontMenu,
-                        setShowFontSizeMenu,
-                        setShowLineHeightMenu,
-                        setShowTableMenu,
-                        setShowAlignMenu
-                      ]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('list')}
                     className="flex flex-col items-center justify-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-105 w-16"
                     aria-label="列表"
                   >
@@ -1948,36 +1808,14 @@ export const ArticleEditor: React.FC = () => {
                   {/* 连接区域 - 确保鼠标可以从按钮平滑移动到菜单 */}
                   <div
                     className="absolute left-0 right-0 h-2 top-full mt-0.5"
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowListMenu,
-                      [
-                        setShowHeadingMenu,
-                        setShowColorMenu,
-                        setShowFontMenu,
-                        setShowFontSizeMenu,
-                        setShowLineHeightMenu,
-                        setShowTableMenu,
-                        setShowAlignMenu
-                      ]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('list')}
                   ></div>
                   {/* 菜单区域 */}
                   <div
                     className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                    style={{ 'display': showListMenu ? 'block' : 'none' }}
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowListMenu,
-                      [
-                        setShowHeadingMenu,
-                        setShowColorMenu,
-                        setShowFontMenu,
-                        setShowFontSizeMenu,
-                        setShowLineHeightMenu,
-                        setShowTableMenu,
-                        setShowAlignMenu
-                      ]
-                    )}
-                    onMouseLeave={() => handleMenuLeave(setShowListMenu)}
+                    style={{ 'display': activeMenu === 'list' ? 'block' : 'none' }}
+                    onMouseEnter={() => handleMenuEnter('list')}
+                    onMouseLeave={() => handleMenuLeave('list')}
                   >
                     <button
                       onClick={toggleBulletList}
@@ -2007,7 +1845,7 @@ export const ArticleEditor: React.FC = () => {
                   {/* 监听整个菜单容器的鼠标离开事件 */}
                   <div
                     className="absolute inset-0 top-full left-0 right-0 h-[calc(100%+1rem)]"
-                    onMouseLeave={() => handleMenuLeave(setShowListMenu)}
+                    onMouseLeave={() => handleMenuLeave('list')}
                   ></div>
                 </div>
 
@@ -2016,10 +1854,7 @@ export const ArticleEditor: React.FC = () => {
                 {/* 数学公式菜单 */}
                 <div className="relative menu-container group">
                   <button
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowMathMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontMenu, setShowFontSizeMenu, setShowLineHeightMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('math')}
                     className="flex flex-col items-center justify-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-105 w-16"
                     aria-label="数学公式"
                   >
@@ -2029,20 +1864,14 @@ export const ArticleEditor: React.FC = () => {
                   {/* 连接区域 - 确保鼠标可以从按钮平滑移动到菜单 */}
                   <div
                     className="absolute left-0 right-0 h-2 top-full mt-0.5"
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowMathMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontMenu, setShowFontSizeMenu, setShowLineHeightMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('math')}
                   ></div>
                   {/* 菜单区域 */}
                   <div
                     className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                    style={{ 'display': showMathMenu ? 'block' : 'none' }}
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowMathMenu,
-                      [setShowHeadingMenu, setShowColorMenu, setShowFontMenu, setShowFontSizeMenu, setShowLineHeightMenu, setShowListMenu, setShowTableMenu, setShowAlignMenu]
-                    )}
-                    onMouseLeave={() => handleMenuLeave(setShowMathMenu)}
+                    style={{ 'display': activeMenu === 'math' ? 'block' : 'none' }}
+                    onMouseEnter={() => handleMenuEnter('math')}
+                    onMouseLeave={() => handleMenuLeave('math')}
                   >
                     <button
                       onClick={toggleInlineMath}
@@ -2062,7 +1891,7 @@ export const ArticleEditor: React.FC = () => {
                   {/* 监听整个菜单容器的鼠标离开事件 */}
                   <div
                     className="absolute inset-0 top-full left-0 right-0 h-[calc(100%+1rem)]"
-                    onMouseLeave={() => handleMenuLeave(setShowMathMenu)}
+                    onMouseLeave={() => handleMenuLeave('math')}
                   ></div>
                 </div>
 
@@ -2128,18 +1957,7 @@ export const ArticleEditor: React.FC = () => {
                 {/* 表格操作按钮 */}
                 <div className="relative menu-container group">
                   <button
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowTableMenu,
-                      [
-                        setShowHeadingMenu,
-                        setShowColorMenu,
-                        setShowFontMenu,
-                        setShowListMenu,
-                        setShowAlignMenu,
-                        setShowFontSizeMenu,
-                        setShowLineHeightMenu
-                      ]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('table')}
                     className="flex flex-col items-center justify-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-105 w-16"
                     aria-label="表格操作"
                   >
@@ -2149,36 +1967,14 @@ export const ArticleEditor: React.FC = () => {
                   {/* 连接区域 - 确保鼠标可以从按钮平滑移动到菜单 */}
                   <div
                     className="absolute left-0 right-0 h-2 top-full mt-0.5"
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowTableMenu,
-                      [
-                        setShowHeadingMenu,
-                        setShowColorMenu,
-                        setShowFontMenu,
-                        setShowListMenu,
-                        setShowAlignMenu,
-                        setShowFontSizeMenu,
-                        setShowLineHeightMenu
-                      ]
-                    )}
+                    onMouseEnter={() => handleMenuEnter('table')}
                   ></div>
                   {/* 菜单区域 */}
                   <div
                     className="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10 transition-all duration-200 border border-gray-200 dark:border-gray-700"
-                    style={{ 'display': showTableMenu ? 'block' : 'none' }}
-                    onMouseEnter={() => handleMenuEnter(
-                      setShowTableMenu,
-                      [
-                        setShowHeadingMenu,
-                        setShowColorMenu,
-                        setShowFontMenu,
-                        setShowListMenu,
-                        setShowAlignMenu,
-                        setShowFontSizeMenu,
-                        setShowLineHeightMenu
-                      ]
-                    )}
-                    onMouseLeave={() => handleMenuLeave(setShowTableMenu)}
+                    style={{ 'display': activeMenu === 'table' ? 'block' : 'none' }}
+                    onMouseEnter={() => handleMenuEnter('table')}
+                    onMouseLeave={() => handleMenuLeave('table')}
                   >
                     <button
                       onClick={addTableColumnBefore}
@@ -2235,7 +2031,7 @@ export const ArticleEditor: React.FC = () => {
                   {/* 监听整个菜单容器的鼠标离开事件 */}
                   <div
                     className="absolute inset-0 top-full left-0 right-0 h-[calc(100%+1rem)]"
-                    onMouseLeave={() => handleMenuLeave(setShowTableMenu)}
+                    onMouseLeave={() => handleMenuLeave('table')}
                   ></div>
                 </div>
 
@@ -2460,7 +2256,7 @@ export const ArticleEditor: React.FC = () => {
                         middleware: [
                           {
                             name: 'offset',
-                            fn: ({ x, y }) => {
+                            fn: ({ x, y }: { x: number; y: number }) => {
                               return {
                                 x: x - 20,
                                 y

@@ -164,36 +164,23 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     'curveType': 'straight'
   });
 
-  // 当前活动的配置
-  const [activeConfig, setActiveConfig] = useState<
-    RandomGraphConfig | ChainGraphConfig | CycleGraphConfig |
-    TreeGraphConfig | StarGraphConfig | GridGraphConfig
-  >(randomConfig);
-
-  // 当图类型变化时，切换活动配置
-  React.useEffect(() => {
-    // 根据不同图类型设置活动配置
+  // 获取当前活动的配置
+  const getActiveConfig = useCallback(() => {
     switch (graphType) {
       case 'random':
-        setActiveConfig(randomConfig);
-        break;
+        return randomConfig;
       case 'chain':
-        setActiveConfig(chainConfig);
-        break;
+        return chainConfig;
       case 'cycle':
-        setActiveConfig(cycleConfig);
-        break;
+        return cycleConfig;
       case 'tree':
-        setActiveConfig(treeConfig);
-        break;
+        return treeConfig;
       case 'star':
-        setActiveConfig(starConfig);
-        break;
+        return starConfig;
       case 'grid':
-        setActiveConfig(gridConfig);
-        break;
+        return gridConfig;
       default:
-        break;
+        return randomConfig;
     }
   }, [graphType, randomConfig, chainConfig, cycleConfig, treeConfig, starConfig, gridConfig]);
 
@@ -213,7 +200,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     edges: Edge<CustomEdgeData>[],
     graphTypeParam: GraphType
   ): Promise<Node<CustomNodeData>[]> => {
-    // 算法ID映射，将短名称映射到完整的ELK算法ID
+    // 算法ID映射
     const algorithmIdMap: Record<string, string> = {
       'random': 'org.eclipse.elk.random',
       'chain': 'org.eclipse.elk.layered',
@@ -229,7 +216,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
         'elk.randomSeed': '0',
         'elk.hierarchyHandling': 'INCLUDE_CHILDREN'
       },
-      // 默认节点宽度和高度
       'children': nodes.map(node => ({
         'id': node.id,
         'width': 150,
@@ -255,7 +241,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       case 'star':
         elkGraph.layoutOptions['elk.spacing.nodeNode'] = '50';
         break;
-      case 'random':
       default:
         elkGraph.layoutOptions['elk.spacing.nodeNode'] = '30';
         break;
@@ -312,6 +297,42 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }, []);
 
+  // 通用节点生成函数
+  const createNode = useCallback((index: number, category: string, position = { 'x': 0, 'y': 0 }) => {
+    return {
+      'id': generateNodeId(index),
+      'type': 'custom',
+      position,
+      'data': {
+        'title': `${category} ${index + 1}`,
+        category,
+        'metadata': {
+          'content': `${category} ${index + 1}的内容`
+        }
+      }
+    };
+  }, [generateNodeId]);
+
+  // 通用边生成函数
+  const createEdge = useCallback((sourceId: string, targetId: string, index: number, config: BaseGraphConfig): Edge<CustomEdgeData> => {
+    return {
+      'id': generateEdgeId(sourceId, targetId, index),
+      'type': 'floating',
+      'source': sourceId,
+      'target': targetId,
+      'data': {
+        'type': generateEdgeCategory(config.edgeCategories),
+        'curveType': config.curveType,
+        'weight': generateEdgeWeight(config.weightRange),
+        'style': {},
+        'animation': {
+          'dynamicEffect': 'none' as const,
+          'isAnimating': false
+        }
+      }
+    };
+  }, [generateEdgeId, generateEdgeCategory, generateEdgeWeight]);
+
 
 
   // 生成链状图
@@ -323,46 +344,23 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     // 生成节点
     for (let i = 0; i < nodeCount; i += 1) {
       const category = generateNodeCategory(categories);
-
-      newNodes.push({
-        'id': generateNodeId(i),
-        'type': 'custom',
-        'position': { 'x': 0, 'y': 0 },
-        'data': {
-          'title': `${category} ${i + 1}`,
-          category,
-          'metadata': {
-            'content': `${category} ${i + 1}的内容`
-          }
-        }
-      });
+      newNodes.push(createNode(i, category));
     }
 
     // 生成边
     for (let i = 0; i < nodeCount - 1; i += 1) {
       const sourceId = generateNodeId(i);
       const targetId = generateNodeId(i + 1);
-
-      newEdges.push({
-        'id': generateEdgeId(sourceId, targetId, i),
-        'type': 'floating',
-        'source': sourceId,
-        'target': targetId,
-        'data': {
-          'type': generateEdgeCategory(edgeCategories),
-          curveType,
-          'weight': generateEdgeWeight(weightRange),
-          'style': {},
-          'animation': {
-            'dynamicEffect': 'none',
-            'isAnimating': false
-          }
-        }
-      });
+      newEdges.push(createEdge(sourceId, targetId, i, {
+        categories,
+        edgeCategories,
+        weightRange,
+        curveType
+      }));
     }
 
     return { newNodes, newEdges };
-  }, [chainConfig, generateNodeId, generateEdgeId, generateNodeCategory, generateEdgeCategory, generateEdgeWeight]);
+  }, [chainConfig, generateNodeId, createNode, createEdge, generateNodeCategory]);
 
   // 生成环状图
   const generateCycleGraph = useCallback(() => {
@@ -375,34 +373,17 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       const category = generateNodeCategory(categories);
 
       // 环状图节点位置：分布在圆周上
-      // 动态计算半径，确保节点间有足够空隙
-      // 节点大小
       const nodeSize = 100;
-      // 节点间最小空隙，大于一个节点
       const minGap = nodeSize * 1.5;
-      // 圆周长度
       const circumference = nodeCount * (nodeSize + minGap);
-      // 动态计算半径
       const radius = circumference / (2 * Math.PI);
-      // 从底部开始（Math.PI/2），逆时针生成节点（-方向）
       const angle = (Math.PI / 2) - (i / nodeCount) * Math.PI * 2;
       const position = {
         'x': Math.cos(angle) * radius + 400,
         'y': Math.sin(angle) * radius + 300
       };
 
-      newNodes.push({
-        'id': generateNodeId(i),
-        'type': 'custom',
-        position,
-        'data': {
-          'title': `${category} ${i + 1}`,
-          category,
-          'metadata': {
-            'content': `${category} ${i + 1}的内容`
-          }
-        }
-      });
+      newNodes.push(createNode(i, category, position));
     }
 
     // 生成边（环状）
@@ -410,27 +391,16 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       const sourceId = generateNodeId(i);
       const targetIndex = (i + 1) % nodeCount;
       const targetId = generateNodeId(targetIndex);
-
-      newEdges.push({
-        'id': generateEdgeId(sourceId, targetId, i),
-        'type': 'floating',
-        'source': sourceId,
-        'target': targetId,
-        'data': {
-          'type': generateEdgeCategory(edgeCategories),
-          curveType,
-          'weight': generateEdgeWeight(weightRange),
-          'style': {},
-          'animation': {
-            'dynamicEffect': 'none',
-            'isAnimating': false
-          }
-        }
-      });
+      newEdges.push(createEdge(sourceId, targetId, i, {
+        categories,
+        edgeCategories,
+        weightRange,
+        curveType
+      }));
     }
 
     return { newNodes, newEdges };
-  }, [cycleConfig, generateNodeId, generateEdgeId, generateNodeCategory, generateEdgeCategory, generateEdgeWeight]);
+  }, [cycleConfig, generateNodeId, createNode, createEdge, generateNodeCategory]);
 
   // 生成随机树图
   const generateTreeGraph = useCallback(() => {
@@ -451,39 +421,17 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       indexWrapper.value += 1;
 
       const category = generateNodeCategory(categories);
-      const nextIndex = indexWrapper.value;
 
-      newNodes.push({
-        'id': nodeId,
-        'type': 'custom',
-        'position': { 'x': 0, 'y': 0 },
-        'data': {
-          'title': `${category} ${nextIndex}`,
-          category,
-          'metadata': {
-            'content': `${category} ${nextIndex}的内容`
-          }
-        }
-      });
+      newNodes.push(createNode(currentIndex, category));
 
       // 如果不是根节点，生成边
       if (parentId) {
-        newEdges.push({
-          'id': generateEdgeId(parentId, nodeId, newEdges.length),
-          'type': 'floating',
-          'source': parentId,
-          'target': nodeId,
-          'data': {
-            'type': generateEdgeCategory(edgeCategories),
-            curveType,
-            'weight': generateEdgeWeight(weightRange),
-            'style': {},
-            'animation': {
-              'dynamicEffect': 'none',
-              'isAnimating': false
-            }
-          }
-        });
+        newEdges.push(createEdge(parentId, nodeId, newEdges.length, {
+          categories,
+          edgeCategories,
+          weightRange,
+          curveType
+        }));
       }
 
       // 递归生成子节点
@@ -532,7 +480,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     });
 
     return { newNodes, newEdges };
-  }, [treeConfig, generateNodeId, generateEdgeId, generateNodeCategory, generateEdgeCategory, generateEdgeWeight]);
+  }, [treeConfig, generateNodeId, createNode, createEdge, generateNodeCategory]);
 
   // 生成随机图
   const generateRandomGraph = useCallback(() => {
@@ -543,19 +491,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     // 生成节点 - 只生成节点数据，位置由布局算法计算
     for (let i = 0; i < nodeCount; i += 1) {
       const category = generateNodeCategory(categories);
-
-      newNodes.push({
-        'id': generateNodeId(i),
-        'type': 'custom',
-        'position': { 'x': 0, 'y': 0 },
-        'data': {
-          'title': `${category} ${i + 1}`,
-          category,
-          'metadata': {
-            'content': `${category} ${i + 1}的内容`
-          }
-        }
-      });
+      newNodes.push(createNode(i, category));
     }
 
     // 生成连接
@@ -563,7 +499,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     let currentEdgeCount = 0;
 
     // 辅助函数：生成边
-    const createEdge = (
+    const addEdge = (
       sourceIndex: number,
       targetIndex: number,
       componentEdges?: Set<string>
@@ -585,22 +521,12 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
         const targetNode = newNodes[targetIndex];
 
         if (sourceNode && targetNode) {
-          newEdges.push({
-            'id': generateEdgeId(sourceId, targetId, currentEdgeCount),
-            'type': 'floating',
-            'source': sourceId,
-            'target': targetId,
-            'data': {
-              'type': generateEdgeCategory(edgeCategories),
-              curveType,
-              'weight': generateEdgeWeight(weightRange),
-              'style': {},
-              'animation': {
-                'dynamicEffect': 'none',
-                'isAnimating': false
-              }
-            }
-          });
+          newEdges.push(createEdge(sourceId, targetId, currentEdgeCount, {
+            categories,
+            edgeCategories,
+            weightRange,
+            curveType
+          }));
 
           currentEdgeCount += 1;
           return true;
@@ -654,7 +580,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
           const targetIndex = componentNodes[randomTargetIndex]!;
 
           // 生成边
-          const edgeCreated = createEdge(sourceIndex, targetIndex, componentExistingEdges);
+          const edgeCreated = addEdge(sourceIndex, targetIndex, componentExistingEdges);
           if (edgeCreated) {
             visited.add(randomTargetIndex);
             found = true;
@@ -681,7 +607,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
           const targetIndex = componentNodes[randomTargetIndex]!;
 
           // 生成边
-          createEdge(sourceIndex, targetIndex, componentExistingEdges);
+          addEdge(sourceIndex, targetIndex, componentExistingEdges);
         }
       }
     };
@@ -693,7 +619,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
         const targetIndex = Math.floor(Math.random() * nodeCount);
 
         if (sourceIndex !== targetIndex) {
-          createEdge(sourceIndex, targetIndex);
+          addEdge(sourceIndex, targetIndex);
         }
       }
     } else {
@@ -737,7 +663,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     }
 
     return { newNodes, newEdges };
-  }, [randomConfig, generateNodeId, generateEdgeId, generateNodeCategory, generateEdgeCategory, generateEdgeWeight]);
+  }, [randomConfig, generateNodeId, createNode, createEdge, generateNodeCategory]);
 
   // 生成网格图
   const generateGridGraph = useCallback(() => {
@@ -750,24 +676,9 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     // 生成网格节点
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
-        const currentIndex = index;
-        const nodeId = generateNodeId(currentIndex);
-        index += 1;
-
         const category = generateNodeCategory(categories);
-
-        newNodes.push({
-          'id': nodeId,
-          'type': 'custom',
-          'position': { 'x': col * 150, 'y': row * 150 },
-          'data': {
-            'title': `${category} ${index}`,
-            category,
-            'metadata': {
-              'content': `${category} ${index}的内容`
-            }
-          }
-        });
+        newNodes.push(createNode(index, category, { 'x': col * 150, 'y': row * 150 }));
+        index += 1;
       }
     }
 
@@ -778,23 +689,12 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
         const targetIndex = row * cols + col + 1;
         const sourceId = generateNodeId(sourceIndex);
         const targetId = generateNodeId(targetIndex);
-
-        newEdges.push({
-          'id': generateEdgeId(sourceId, targetId, newEdges.length),
-          'type': 'floating',
-          'source': sourceId,
-          'target': targetId,
-          'data': {
-            'type': generateEdgeCategory(edgeCategories),
-            curveType,
-            'weight': generateEdgeWeight(weightRange),
-            'style': {},
-            'animation': {
-              'dynamicEffect': 'none',
-              'isAnimating': false
-            }
-          }
-        });
+        newEdges.push(createEdge(sourceId, targetId, newEdges.length, {
+          categories,
+          edgeCategories,
+          weightRange,
+          curveType
+        }));
       }
     }
 
@@ -805,28 +705,17 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
         const targetIndex = (row + 1) * cols + col;
         const sourceId = generateNodeId(sourceIndex);
         const targetId = generateNodeId(targetIndex);
-
-        newEdges.push({
-          'id': generateEdgeId(sourceId, targetId, newEdges.length),
-          'type': 'floating',
-          'source': sourceId,
-          'target': targetId,
-          'data': {
-            'type': generateEdgeCategory(edgeCategories),
-            curveType,
-            'weight': generateEdgeWeight(weightRange),
-            'style': {},
-            'animation': {
-              'dynamicEffect': 'none',
-              'isAnimating': false
-            }
-          }
-        });
+        newEdges.push(createEdge(sourceId, targetId, newEdges.length, {
+          categories,
+          edgeCategories,
+          weightRange,
+          curveType
+        }));
       }
     }
 
     return { newNodes, newEdges };
-  }, [gridConfig, generateNodeId, generateEdgeId, generateNodeCategory, generateEdgeCategory, generateEdgeWeight]);
+  }, [gridConfig, generateNodeId, createNode, createEdge, generateNodeCategory]);
 
   // 生成星状图
   const generateStarGraph = useCallback(() => {
@@ -835,11 +724,9 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
     const { nodeCount, categories, edgeCategories, weightRange, curveType } = starConfig;
 
     // 生成中心节点
-    const centerNodeId = generateNodeId(0);
     const centerCategory = generateNodeCategory(categories);
-
     newNodes.push({
-      'id': centerNodeId,
+      'id': generateNodeId(0),
       'type': 'custom',
       'position': { 'x': 0, 'y': 0 },
       'data': {
@@ -853,43 +740,20 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
 
     // 生成外围节点
     for (let i = 1; i < nodeCount; i += 1) {
-      const nodeId = generateNodeId(i);
       const category = generateNodeCategory(categories);
-
-      newNodes.push({
-        'id': nodeId,
-        'type': 'custom',
-        'position': { 'x': 0, 'y': 0 },
-        'data': {
-          'title': `${category} ${i}`,
-          category,
-          'metadata': {
-            'content': `${category} ${i}的内容`
-          }
-        }
-      });
+      newNodes.push(createNode(i, category));
 
       // 生成连接中心节点的边
-      newEdges.push({
-        'id': generateEdgeId(centerNodeId, nodeId, i - 1),
-        'type': 'floating',
-        'source': centerNodeId,
-        'target': nodeId,
-        'data': {
-          'type': generateEdgeCategory(edgeCategories),
-          curveType,
-          'weight': generateEdgeWeight(weightRange),
-          'style': {},
-          'animation': {
-            'dynamicEffect': 'none',
-            'isAnimating': false
-          }
-        }
-      });
+      newEdges.push(createEdge(generateNodeId(0), generateNodeId(i), i - 1, {
+        categories,
+        edgeCategories,
+        weightRange,
+        curveType
+      }));
     }
 
     return { newNodes, newEdges };
-  }, [starConfig, generateNodeId, generateEdgeId, generateNodeCategory, generateEdgeCategory, generateEdgeWeight]);
+  }, [starConfig, generateNodeId, createNode, createEdge, generateNodeCategory]);
 
   // 处理图生成
   const handleGenerateGraph = useCallback(async () => {
@@ -911,7 +775,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       case 'grid':
         result = generateGridGraph();
         break;
-      case 'random':
       default:
         result = generateRandomGraph();
         break;
@@ -924,24 +787,16 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       // 对其他图进行布局
       newNodes = await layoutGraph(newNodes, newEdges, graphType);
     }
+
     const totalNodes = newNodes.length;
     const totalEdges = newEdges.length;
-
     const batchSize = Math.max(50, Math.min(200, Math.floor(totalNodes / 20)));
-    const delay = 16;
 
     // 开始生成，更新进度状态
     setGenerationProgress({ 'active': true, 'stage': '生成中', 'progress': 0 });
 
     // 清空现有图
     onGenerate([], []);
-
-    const requestNextFrame = (callback: () => void) => {
-      if (typeof window !== 'undefined' && window.requestAnimationFrame) {
-        return window.requestAnimationFrame(callback);
-      }
-      return setTimeout(callback, delay);
-    };
 
     let nodeIndex = 0;
     let edgeIndex = 0;
@@ -979,7 +834,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
         // 所有节点和边添加完成，更新进度并缩放到适合视图
         setGenerationProgress({ 'active': true, 'stage': '完成', 'progress': 100 });
 
-        requestNextFrame(() => {
+        requestAnimationFrame(() => {
           reactFlowInstance.fitView({
             'duration': 300
           });
@@ -992,11 +847,11 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       }
 
       // 继续生成下一批
-      requestNextFrame(generateNextBatch);
+      requestAnimationFrame(generateNextBatch);
     };
 
     // 开始生成
-    requestNextFrame(generateNextBatch);
+    requestAnimationFrame(generateNextBatch);
   }, [graphType, generateChainGraph, generateCycleGraph, generateTreeGraph, generateStarGraph, generateGridGraph, generateRandomGraph, onGenerate, reactFlowInstance, layoutGraph]);
 
   // 通用配置更新函数
@@ -1041,25 +896,26 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
   }, [updateConfig]);
 
   return (
-    <div className="w-[40rem] min-w-[40rem] max-w-[40rem] h-full bg-white shadow-lg overflow-y-auto absolute left-0 top-0 z-20 border-r border-gray-200 transition-all duration-300 ease-in-out">
+    <div className="w-[32rem] min-w-[32rem] max-w-[32rem] h-full bg-white overflow-y-auto absolute left-0 top-0 z-20 border-r border-gray-200 transition-all duration-300 ease-in-out" style={{ boxShadow: 'var(--shadow-md)' }}>
       {/* 面板标题 */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white shadow-sm flex items-center justify-between">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between" style={{ background: 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             {/* 生成图标 */}
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary-color)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
               图生成
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
               配置并生成不同类型的图
           </p>
         </div>
         <button
           onClick={onClose}
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors flex-shrink-0"
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           title="关闭面板"
+          style={{ color: 'var(--text-secondary)' }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1070,9 +926,9 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       {/* 内容区域 */}
       <div className="p-6 space-y-6">
         {/* 图类型选择 */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-xl p-5 border border-blue-100 hover:shadow-md transition-all duration-300" style={{ backgroundColor: 'var(--primary-color-light)' }}>
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary-color)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
               图类型
@@ -1081,6 +937,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
             value={graphType}
             onChange={(e) => setGraphType(e.target.value as GraphType)}
+            style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
           >
             <option value="random">🎲 随机图</option>
             <option value="chain">🔗 链状图</option>
@@ -1093,9 +950,9 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
 
         {/* 特定图类型的配置 */}
         {(graphType === 'tree' || graphType === 'grid') && (
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
-            <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="rounded-xl p-5 border border-blue-100 hover:shadow-md transition-all duration-300" style={{ backgroundColor: 'var(--primary-color-light)' }}>
+            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary-color)' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
               {graphType === 'tree' ? '树图配置' : '网格图配置'}
@@ -1104,10 +961,11 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
               {graphType === 'tree' ? (
                 <>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">最大深度</label>
+                    <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>最大深度</label>
                     <input
                       type="number"
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
                       min="1"
                       max="5"
                       value={treeConfig.maxDepth === 0 ? '' : treeConfig.maxDepth}
@@ -1125,10 +983,11 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">最小深度</label>
+                    <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>最小深度</label>
                     <input
                       type="number"
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
                       min="1"
                       max="4"
                       value={treeConfig.minDepth === 0 ? '' : treeConfig.minDepth}
@@ -1373,7 +1232,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
           )}
 
 
-
           {/* 节点类别 */}
           <div className="mb-3">
             <label className="block text-xs text-gray-600 mb-1">节点类别（英文分号分隔）</label>
@@ -1381,11 +1239,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="概念;理论;方法"
-              value={activeConfig.categories.join(';')}
+              value={getActiveConfig().categories.join(';')}
               onChange={(e) => updateNodeCategories(e.target.value)}
             />
-          </div>
-        </div>
+          </div>        </div>
 
         {/* 连接配置 */}
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
@@ -1455,7 +1312,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="包含;相关"
-              value={activeConfig.edgeCategories.join(';')}
+              value={getActiveConfig().edgeCategories.join(';')}
               onChange={(e) => updateEdgeCategories(e.target.value)}
             />
           </div>
@@ -1469,32 +1326,11 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 min="1"
                 max="100"
-                value={activeConfig.weightRange[0]}
+                value={getActiveConfig().weightRange[0]}
                 onChange={(e) => {
                   const min = parseInt(e.target.value, 10) || 1;
-                  const newRange: [number, number] = [min, Math.max(min, activeConfig.weightRange[1])];
-                  switch (graphType) {
-                    case 'random':
-                      setRandomConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    case 'chain':
-                      setChainConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    case 'cycle':
-                      setCycleConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    case 'tree':
-                      setTreeConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    case 'star':
-                      setStarConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    case 'grid':
-                      setGridConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    default:
-                      break;
-                  }
+                  const newRange: [number, number] = [min, Math.max(min, getActiveConfig().weightRange[1])];
+                  updateConfig('weightRange', newRange);
                 }}
               />
             </div>
@@ -1505,32 +1341,11 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 min="1"
                 max="100"
-                value={activeConfig.weightRange[1]}
+                value={getActiveConfig().weightRange[1]}
                 onChange={(e) => {
                   const max = parseInt(e.target.value, 10) || 1;
-                  const newRange: [number, number] = [Math.min(max, activeConfig.weightRange[0]), max];
-                  switch (graphType) {
-                    case 'random':
-                      setRandomConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    case 'chain':
-                      setChainConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    case 'cycle':
-                      setCycleConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    case 'tree':
-                      setTreeConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    case 'star':
-                      setStarConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    case 'grid':
-                      setGridConfig(prev => ({ ...prev, 'weightRange': newRange }));
-                      break;
-                    default:
-                      break;
-                  }
+                  const newRange: [number, number] = [Math.min(max, getActiveConfig().weightRange[0]), max];
+                  updateConfig('weightRange', newRange);
                 }}
               />
             </div>
@@ -1541,31 +1356,10 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
             <label className="block text-xs text-gray-600 mb-1">连接线样式</label>
             <select
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={activeConfig.curveType}
+              value={getActiveConfig().curveType}
               onChange={(e) => {
                 const curveType = e.target.value as 'default' | 'smoothstep' | 'straight' | 'simplebezier';
-                switch (graphType) {
-                  case 'random':
-                    setRandomConfig(prev => ({ ...prev, curveType }));
-                    break;
-                  case 'chain':
-                    setChainConfig(prev => ({ ...prev, curveType }));
-                    break;
-                  case 'cycle':
-                    setCycleConfig(prev => ({ ...prev, curveType }));
-                    break;
-                  case 'tree':
-                    setTreeConfig(prev => ({ ...prev, curveType }));
-                    break;
-                  case 'star':
-                    setStarConfig(prev => ({ ...prev, curveType }));
-                    break;
-                  case 'grid':
-                    setGridConfig(prev => ({ ...prev, curveType }));
-                    break;
-                  default:
-                    break;
-                }
+                updateConfig('curveType', curveType);
               }}
             >
               <option value="default">贝塞尔曲线</option>

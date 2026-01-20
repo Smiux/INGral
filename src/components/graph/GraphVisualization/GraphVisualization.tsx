@@ -196,7 +196,7 @@ import CustomNode, { CustomNodeData } from './CustomNode';
 import FloatingEdge, { CustomEdgeData } from './FloatingEdge';
 import GraphControlPanel from './GraphControlPanel';
 import GraphManagementPanel from './GraphManagementPanel';
-import { GraphAnalysisPanel } from './GraphAnalysisPanel';
+
 import { GraphImportExportPanel } from './GraphImportExportPanel';
 import GraphGenerationPanel from './GraphGenerationPanel';
 import GraphLayoutPanel from './GraphLayoutPanel';
@@ -497,8 +497,7 @@ const GraphVisualizationContent: React.FC = () => {
 
   // 图管理面板显示状态，初始设置为关闭
   const [isManagementPanelOpen, setIsManagementPanelOpen] = useState(false);
-  // 图分析面板显示状态，初始设置为关闭
-  const [isAnalysisPanelOpen, setIsAnalysisPanelOpen] = useState(false);
+
   // 导入导出面板显示状态，初始设置为关闭
   const [isImportExportPanelOpen, setIsImportExportPanelOpen] = useState(false);
   // 图生成面板显示状态，初始设置为关闭
@@ -588,9 +587,7 @@ const GraphVisualizationContent: React.FC = () => {
     setIsManagementPanelOpen(prev => !prev);
   }, []);
 
-  const toggleAnalysisPanel = useCallback(() => {
-    setIsAnalysisPanelOpen(prev => !prev);
-  }, []);
+
 
   const toggleImportExportPanel = useCallback(() => {
     setIsImportExportPanelOpen(prev => !prev);
@@ -768,8 +765,6 @@ const GraphVisualizationContent: React.FC = () => {
           onAddNode={createNewNode}
           isManagementPanelOpen={isManagementPanelOpen}
           onToggleManagementPanel={toggleManagementPanel}
-          isAnalysisPanelOpen={isAnalysisPanelOpen}
-          onToggleAnalysisPanel={toggleAnalysisPanel}
           isImportExportPanelOpen={isImportExportPanelOpen}
           onToggleImportExportPanel={toggleImportExportPanel}
           isGenerationPanelOpen={isGenerationPanelOpen}
@@ -813,85 +808,29 @@ const GraphVisualizationContent: React.FC = () => {
           />
         )}
 
-        {/* 图控制面板 - 只在有选中节点或边时渲染，且仅在React Flow模式下 */}
-        {hasSelection && viewMode === 'reactflow' && (
+        {/* 图控制面板 - 只在有选中节点或边时渲染 */}
+        {hasSelection && (
           <GraphControlPanel
             panelPosition="right"
           />
         )}
 
-        {/* 图分析面板 - 条件渲染，使用较大尺寸 */}
-        {isAnalysisPanelOpen && (
-          <div className="w-[40rem] min-w-[40rem] max-w-[40rem] bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-20">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white flex items-center justify-between min-w-0">
-              <div className="min-w-0">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 truncate">
-                  <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  图分析
-                </h2>
-                <p className="text-sm text-gray-600 mt-1 truncate">
-                  分析图的中心性指标和路径信息
-                </p>
-              </div>
-              <button
-                onClick={() => setIsAnalysisPanelOpen(false)}
-                className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors flex-shrink-0"
-                title="关闭"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-2 bg-gray-50 min-w-0">
-              <GraphAnalysisPanel />
-            </div>
-          </div>
-        )}
+
 
         {/* 图管理综合面板 - 条件渲染 */}
         {isManagementPanelOpen && (
-          <div className="w-[40rem] min-w-[40rem] max-w-[40rem] bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-10">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  图管理
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  管理节点、连接和查看统计信息
-                </p>
-              </div>
-              <button
-                onClick={() => setIsManagementPanelOpen(false)}
-                className="p-1 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
-                title="关闭面板"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-              <GraphManagementPanel
-                onAddNode={createNewNode}
-              />
-            </div>
-          </div>
+          <GraphManagementPanel
+            onAddNode={createNewNode}
+            onClose={() => setIsManagementPanelOpen(false)}
+          />
         )}
 
         {/* 导入导出面板 - 条件渲染 */}
         {isImportExportPanelOpen && (
-          <div className="w-[40rem] min-w-[40rem] max-w-[40rem] bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-30">
-            <GraphImportExportPanel
-              onImportComplete={handleImportComplete}
-              onClose={() => setIsImportExportPanelOpen(false)}
-            />
-          </div>
+          <GraphImportExportPanel
+            onImportComplete={handleImportComplete}
+            onClose={() => setIsImportExportPanelOpen(false)}
+          />
         )}
 
         {/* 图生成面板 - 条件渲染，使用较大尺寸 */}
@@ -902,14 +841,12 @@ const GraphVisualizationContent: React.FC = () => {
           />
         )}
 
-        {/* 布局面板 - 条件渲染，且仅在React Flow模式下 */}
-        {isLayoutPanelOpen && viewMode === 'reactflow' && (
-          <div className="w-[40rem] min-w-[40rem] max-w-[40rem] bg-white shadow-lg flex flex-col overflow-hidden h-full border-r border-gray-200 absolute left-0 top-0 z-20">
-            <GraphLayoutPanel
-              onLayout={handleLayout}
-              onClose={() => setIsLayoutPanelOpen(false)}
-            />
-          </div>
+        {/* 布局面板 - 条件渲染 */}
+        {isLayoutPanelOpen && (
+          <GraphLayoutPanel
+            onLayout={handleLayout}
+            onClose={() => setIsLayoutPanelOpen(false)}
+          />
         )}
       </div>
     </div>

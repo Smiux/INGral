@@ -512,25 +512,26 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
   }, [nodes, edges, buildElkGraph, updateNodePositions, onLayout]);
 
   return (
-    <div className="w-full h-full bg-white shadow-lg overflow-y-auto">
+    <div className="w-[32rem] min-w-[32rem] max-w-[32rem] h-full bg-white overflow-y-auto absolute left-0 top-0 z-20 border-r border-gray-200 transition-all duration-300 ease-in-out" style={{ boxShadow: 'var(--shadow-md)' }}>
       {/* 面板标题 */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white flex items-center justify-between">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between" style={{ background: 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             {/* 布局图标 */}
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary-color)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
             布局管理
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             配置并应用不同的图布局算法
           </p>
         </div>
         <button
           onClick={onClose}
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors flex-shrink-0"
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           title="关闭面板"
+          style={{ color: 'var(--text-secondary)' }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -541,9 +542,9 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
       {/* 内容区域 */}
       <div className="p-6 space-y-6">
         {/* 布局算法选择 */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-xl p-5 border border-blue-100 hover:shadow-md transition-all duration-300" style={{ backgroundColor: 'var(--primary-color-light)' }}>
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary-color)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             布局算法
@@ -552,13 +553,14 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
           <div className="space-y-3">
             {/* 算法选择 */}
             <div>
-              <label className="block text-xs text-gray-600 mb-1">
+              <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
                 选择算法
               </label>
               <select
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={layoutOptions.algorithm}
                 onChange={(e) => updateLayoutOption('algorithm', e.target.value as LayoutAlgorithm)}
+                style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
               >
                 <option value="layered">层次布局 (Layered)</option>
                 <option value="force">力导向布局 (Force)</option>
@@ -569,7 +571,6 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
                 <option value="vertiflex">垂直约束布局 (Vertiflex)</option>
                 <option value="box">盒布局 (Box)</option>
                 <option value="random">随机布局 (Random)</option>
-
                 <option value="sporeOverlap">Spore重叠布局 (SporeOverlap)</option>
               </select>
             </div>
@@ -577,13 +578,14 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
             {/* 布局方向 */}
             {['layered', 'mrtree', 'radial'].includes(layoutOptions.algorithm) && (
               <div>
-                <label className="block text-xs text-gray-600 mb-1">
+                <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
                   布局方向
                 </label>
                 <select
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   value={layoutOptions.direction}
                   onChange={(e) => updateLayoutOption('direction', e.target.value as LayoutDirection)}
+                  style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
                 >
                   <option value="DOWN">从上到下</option>
                   <option value="RIGHT">从左到右</option>
@@ -596,9 +598,9 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = React.memo(({
         </div>
 
         {/* 布局参数 */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-xl p-5 border border-blue-100 hover:shadow-md transition-all duration-300" style={{ backgroundColor: 'var(--primary-color-light)' }}>
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary-color)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
             布局参数

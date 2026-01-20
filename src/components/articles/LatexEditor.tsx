@@ -101,21 +101,6 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
   };
 
   /**
-   * 处理辅助工具按钮点击
-   */
-  const handleHelperClick = (latex: string) => {
-    // 获取math-field元素
-    const mathField = mathFieldRef.current;
-    if (mathField) {
-      // 使用MathLive的命令API插入内容
-      mathField.dispatchEvent(new CustomEvent('insert', { 'detail': latex }));
-    } else {
-      // 兼容处理：如果MathLive未初始化，直接更新公式
-      setFormula(prev => prev + latex);
-    }
-  };
-
-  /**
    * 处理MathLive编辑器输入事件
    */
   const handleMathFieldInput = (event: React.FormEvent<MathLiveFieldElement>) => {
@@ -194,83 +179,7 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
                 style={{ 'width': '100%', 'maxWidth': '100%', 'minWidth': '100%', 'display': 'block' }}
               ></math-field>
               <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                💡 提示：直接输入LaTeX公式，或使用下方辅助工具
-              </div>
-
-              {/* 编辑辅助工具 */}
-              <div className="mt-2 flex flex-wrap gap-2">
-                <button
-                  onClick={() => handleHelperClick('\\frac{}{}')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  分数
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\sum_{}^{}')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  求和
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\int_{}^{}')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  积分
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\sqrt{}')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  根号
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\vec{}')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  向量
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\mathbf{}')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  粗体
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\lim_{x \\to \\infty}')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  极限
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\prod_{}^{}')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  乘积
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\sin')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  正弦
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\cos')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  余弦
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\tan')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  正切
-                </button>
-                <button
-                  onClick={() => handleHelperClick('\\log')}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  对数
-                </button>
+                💡 提示：直接输入LaTeX公式，或使用辅助工具
               </div>
             </div>
           </div>

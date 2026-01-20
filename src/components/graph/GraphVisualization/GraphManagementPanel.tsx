@@ -20,13 +20,15 @@ type TabType = 'nodes' | 'connections' | 'statistics';
 
 interface GraphManagementPanelProps {
   onAddNode: () => void;
+  onClose: () => void;
 }
 
 /**
  * 图管理综合面板组件
  */
 export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
-  onAddNode
+  onAddNode,
+  onClose
 }) => {
   // 使用useStore获取节点和边数据
   const nodes = useStore((state) => state.nodes) as Array<{
@@ -482,35 +484,64 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
   }, [calculateBasicStats]);
 
   return (
-    <div className="bg-white rounded-lg shadow-md flex flex-col h-full">
+    <div className="w-[32rem] min-w-[32rem] max-w-[32rem] h-full bg-white flex flex-col overflow-hidden absolute left-0 top-0 z-10 border-r border-gray-200 transition-all duration-300 ease-in-out" style={{ boxShadow: 'var(--shadow-md)' }}>
+      {/* 面板标题 */}
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between" style={{ background: 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
+        <div>
+          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary-color)' }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            图管理
+          </h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+            管理节点、连接和查看统计信息
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="p-1 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          title="关闭面板"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
+        <div className="bg-white rounded-lg flex flex-col h-full" style={{ border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
       {/* 标签页导航 - 横向滚动 */}
       <div className="border-b border-gray-200 bg-white/90 backdrop-blur-sm z-10">
         <div className="overflow-x-auto whitespace-nowrap">
           <div className="flex space-x-1 p-1">
             <button
-              className={`py-3 px-6 text-sm font-medium transition-all ${activeTab === 'nodes' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`py-3 px-6 text-sm font-medium transition-all ${activeTab === 'nodes' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50'}`}
+              style={{ backgroundColor: activeTab === 'nodes' ? 'var(--primary-color-light)' : 'transparent' }}
               onClick={() => setActiveTab('nodes')}
             >
               <div className="flex items-center gap-2">
-                <Database size={16} />
+                <Database size={16} style={{ color: activeTab === 'nodes' ? 'var(--primary-color)' : 'var(--text-secondary)' }} />
                 节点管理
               </div>
             </button>
             <button
-              className={`py-3 px-6 text-sm font-medium transition-all ${activeTab === 'connections' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`py-3 px-6 text-sm font-medium transition-all ${activeTab === 'connections' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50'}`}
+              style={{ backgroundColor: activeTab === 'connections' ? 'var(--primary-color-light)' : 'transparent' }}
               onClick={() => setActiveTab('connections')}
             >
               <div className="flex items-center gap-2">
-                <LinkIcon size={16} />
+                <LinkIcon size={16} style={{ color: activeTab === 'connections' ? 'var(--primary-color)' : 'var(--text-secondary)' }} />
                 连接管理
               </div>
             </button>
             <button
-              className={`py-3 px-6 text-sm font-medium transition-all ${activeTab === 'statistics' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`py-3 px-6 text-sm font-medium transition-all ${activeTab === 'statistics' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50'}`}
+              style={{ backgroundColor: activeTab === 'statistics' ? 'var(--primary-color-light)' : 'transparent' }}
               onClick={() => setActiveTab('statistics')}
             >
               <div className="flex items-center gap-2">
-                <BarChart2 size={16} />
+                <BarChart2 size={16} style={{ color: activeTab === 'statistics' ? 'var(--primary-color)' : 'var(--text-secondary)' }} />
                 统计信息
               </div>
             </button>
@@ -519,10 +550,12 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
       </div>
 
       {/* 标签页内容 - 固定区域，不随菜单滚动 */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
         {activeTab === 'nodes' && nodesTab}
         {activeTab === 'connections' && connectionsTab}
         {activeTab === 'statistics' && statisticsTab}
+      </div>
+    </div>
       </div>
     </div>
   );

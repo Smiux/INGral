@@ -10,24 +10,24 @@ import {
 import { getEdgeParams } from './utils/floatingEdgeUtils';
 
 export interface CustomEdgeData {
-  type?: string | undefined;
-  curveType?: 'default' | 'smoothstep' | 'straight' | 'simplebezier' | undefined;
-  weight?: number | undefined;
-  label?: string | undefined;
+  type?: string;
+  curveType?: 'default' | 'smoothstep' | 'straight' | 'simplebezier';
+  weight?: number;
+  label?: string;
   style?: {
-    stroke?: string | undefined;
-    strokeWidth?: number | undefined;
-    dasharray?: string | undefined;
-    arrowColor?: string | undefined;
-    labelBackgroundColor?: string | undefined;
-    labelTextColor?: string | undefined;
-  } | undefined;
+    stroke?: string;
+    strokeWidth?: number;
+    dasharray?: string;
+    arrowColor?: string;
+    labelBackgroundColor?: string;
+    labelTextColor?: string;
+  };
   animation?: {
-    dynamicEffect?: 'none' | 'flow' | 'arrow' | 'blink' | 'wave' | 'rotate' | 'color-change' | 'fade' | undefined;
-    isAnimating?: boolean | undefined;
-    pathAnimation?: boolean | undefined;
-    pathAnimationProgress?: number | undefined;
-  } | undefined;
+    dynamicEffect?: 'none' | 'flow' | 'arrow' | 'blink' | 'wave' | 'rotate' | 'color-change' | 'fade';
+    isAnimating?: boolean;
+    pathAnimation?: boolean;
+    pathAnimationProgress?: number;
+  };
   [key: string]: unknown;
 }
 
@@ -42,7 +42,6 @@ export const FloatingEdge = (props: EdgeProps) => {
   const edgeData = data as CustomEdgeData;
   const curveType = edgeData?.curveType || 'default';
   const isAnimating = edgeData?.animation?.isAnimating || false;
-  // 当动画开启时，确保dynamicEffect有有效的值，默认使用'flow'
   const dynamicEffect = isAnimating ? (edgeData?.animation?.dynamicEffect || 'flow') : 'none';
   const edgeType = edgeData?.type || 'related';
 
@@ -66,50 +65,58 @@ export const FloatingEdge = (props: EdgeProps) => {
 
     if (isAnimating) {
       // 根据dynamicEffect的值正确应用动画效果
-      if (dynamicEffect === 'flow') {
-        animatedStyle = {
-          ...baseStyle,
-          'strokeDasharray': '5,5',
-          'animation': 'flowAnimation 6s linear infinite'
-        };
-      } else if (dynamicEffect === 'blink') {
-        animatedStyle = {
-          ...baseStyle,
-          'animation': 'blinkAnimation 1s ease-in-out infinite'
-        };
-      } else if (dynamicEffect === 'wave') {
-        animatedStyle = {
-          ...baseStyle,
-          'animation': 'waveAnimation 30s ease-in-out infinite'
-        };
-      } else if (dynamicEffect === 'rotate') {
-        animatedStyle = {
-          ...baseStyle,
-          'transformOrigin': 'center center',
-          'animation': 'rotateAnimation 10s linear infinite'
-        };
-      } else if (dynamicEffect === 'color-change') {
-        animatedStyle = {
-          ...baseStyle,
-          'animation': 'colorChangeAnimation 6s linear infinite'
-        };
-      } else if (dynamicEffect === 'fade') {
-        animatedStyle = {
-          ...baseStyle,
-          'animation': 'fadeAnimation 5s ease-in-out infinite'
-        };
-      } else if (dynamicEffect === 'arrow') {
-        animatedStyle = {
-          ...baseStyle,
-          'strokeDasharray': '15, 15',
-          'animation': 'flowAnimation 6s linear infinite'
-        };
+      switch (dynamicEffect) {
+        case 'flow':
+          animatedStyle = {
+            ...baseStyle,
+            'strokeDasharray': '5,5',
+            'animation': 'flowAnimation 6s linear infinite'
+          };
+          break;
+        case 'blink':
+          animatedStyle = {
+            ...baseStyle,
+            'animation': 'blinkAnimation 1s ease-in-out infinite'
+          };
+          break;
+        case 'wave':
+          animatedStyle = {
+            ...baseStyle,
+            'animation': 'waveAnimation 30s ease-in-out infinite'
+          };
+          break;
+        case 'rotate':
+          animatedStyle = {
+            ...baseStyle,
+            'transformOrigin': 'center center',
+            'animation': 'rotateAnimation 10s linear infinite'
+          };
+          break;
+        case 'color-change':
+          animatedStyle = {
+            ...baseStyle,
+            'animation': 'colorChangeAnimation 6s linear infinite'
+          };
+          break;
+        case 'fade':
+          animatedStyle = {
+            ...baseStyle,
+            'animation': 'fadeAnimation 5s ease-in-out infinite'
+          };
+          break;
+        case 'arrow':
+          animatedStyle = {
+            ...baseStyle,
+            'strokeDasharray': '15, 15',
+            'animation': 'flowAnimation 6s linear infinite'
+          };
+          break;
+        default:
+          animatedStyle = baseStyle;
       }
     } else if (edgeData?.animation?.pathAnimation) {
       const progress = edgeData.animation.pathAnimationProgress || 0;
-      if (progress === 0) {
-        animatedStyle = baseStyle;
-      } else {
+      if (progress > 0) {
         const dashLength = 100000;
         animatedStyle = {
           ...baseStyle,

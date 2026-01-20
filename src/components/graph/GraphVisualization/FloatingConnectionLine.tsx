@@ -65,18 +65,18 @@ export const FloatingConnectionLine = (props: ConnectionLineComponentProps) => {
 
     // 检查与左边界的交点
     if (unitX < 0) {
-      const tLeft = (Number(-halfWidth) - 0) / unitX;
+      const tLeft = (-halfWidth) / unitX;
       if (tLeft > 0) {
-        const yAtLeft = 0 + unitY * tLeft;
+        const yAtLeft = unitY * tLeft;
         if (Math.abs(yAtLeft) <= halfHeight) {
           t = Math.min(t, tLeft);
         }
       }
     } else if (unitX > 0) {
       // 检查与右边界的交点
-      const tRight = (Number(halfWidth) - 0) / unitX;
+      const tRight = halfWidth / unitX;
       if (tRight > 0) {
-        const yAtRight = 0 + unitY * tRight;
+        const yAtRight = unitY * tRight;
         if (Math.abs(yAtRight) <= halfHeight) {
           t = Math.min(t, tRight);
         }
@@ -85,18 +85,18 @@ export const FloatingConnectionLine = (props: ConnectionLineComponentProps) => {
 
     // 检查与上边界的交点
     if (unitY < 0) {
-      const tTop = (Number(-halfHeight) - 0) / unitY;
+      const tTop = (-halfHeight) / unitY;
       if (tTop > 0) {
-        const xAtTop = 0 + unitX * tTop;
+        const xAtTop = unitX * tTop;
         if (Math.abs(xAtTop) <= halfWidth) {
           t = Math.min(t, tTop);
         }
       }
     } else if (unitY > 0) {
       // 检查与下边界的交点
-      const tBottom = (Number(halfHeight) - 0) / unitY;
+      const tBottom = halfHeight / unitY;
       if (tBottom > 0) {
-        const xAtBottom = 0 + unitX * tBottom;
+        const xAtBottom = unitX * tBottom;
         if (Math.abs(xAtBottom) <= halfWidth) {
           t = Math.min(t, tBottom);
         }

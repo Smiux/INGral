@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Download, Upload, FileText, Database, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { useStore, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
@@ -53,6 +53,22 @@ const nodesEqual = (prev: Node[], next: Node[]): boolean => {
 type ExportFormat = 'json' | 'csv';
 type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
 
+// 辅助函数：创建下载链接
+const createDownloadLink = (content: string, filename: string, mimeType: string): void => {
+  const dataUri = `${mimeType};charset=utf-8,${encodeURIComponent(content)}`;
+  const linkElement = document.createElement('a');
+  linkElement.setAttribute('href', dataUri);
+  linkElement.setAttribute('download', filename);
+  linkElement.click();
+};
+
+// 辅助函数：生成文件名
+const generateFilename = (format: ExportFormat): string => {
+  const date = new Date().toISOString()
+    .slice(0, 10);
+  return `graph-export-${date}.${format}`;
+};
+
 /**
  * 图导入导出面板组件
  * 支持多种格式的图数据导入导出
@@ -86,7 +102,6 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
   const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
   const [importMessage, setImportMessage] = useState<string>('');
   const [isExporting, setIsExporting] = useState<boolean>(false);
-  const [isImporting, setIsImporting] = useState<boolean>(false);
 
   // 导出功能
   const handleExport = useCallback(() => {
@@ -107,15 +122,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
         };
 
         const dataStr = JSON.stringify(exportData, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-
-        const exportFileDefaultName = `graph-export-${new Date().toISOString()
-          .slice(0, 10)}.json`;
-
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
+        createDownloadLink(dataStr, generateFilename('json'), 'data:application/json');
       } else if (exportFormat === 'csv') {
         // 导出为CSV格式
         // 导出节点
@@ -146,15 +153,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
 
         // 合并节点和连接数据，用空行分隔
         const csvContent = `${nodeCsv}\n\n${edgeCsv}`;
-        const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
-
-        const exportFileDefaultName = `graph-export-${new Date().toISOString()
-          .slice(0, 10)}.csv`;
-
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
+        createDownloadLink(csvContent, generateFilename('csv'), 'data:text/csv');
       }
     } catch (error) {
       console.error('Export failed:', error);
@@ -171,7 +170,6 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
     }
 
     setImportStatus('loading');
-    setIsImporting(true);
     setImportMessage('正在解析文件...');
 
     try {
@@ -301,14 +299,13 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
         setImportMessage('');
       }, 5000);
     } finally {
-      setIsImporting(false);
       // 重置文件输入
       event.target.value = '';
     }
   }, [onImportComplete]);
 
   // 渲染导入状态反馈
-  const renderImportStatus = () => {
+  const renderImportStatus = useMemo(() => {
     if (importStatus === 'idle') {
       return null;
     }
@@ -339,25 +336,26 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
         <span className="text-sm font-medium">{importMessage}</span>
       </div>
     );
-  };
+  }, [importStatus, importMessage]);
 
   return (
-    <div className="w-full h-full bg-white shadow-lg overflow-y-auto">
+    <div className="w-[32rem] min-w-[32rem] max-w-[32rem] h-full bg-white overflow-y-auto absolute left-0 top-0 z-30 border-r border-gray-200 transition-all duration-300 ease-in-out" style={{ boxShadow: 'var(--shadow-md)' }}>
       {/* 面板标题 */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white flex items-center justify-between">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between" style={{ background: 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <Database className="w-5 h-5 text-blue-600" />
+          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <Database className="w-5 h-5" style={{ color: 'var(--primary-color)' }} />
             导入导出
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             支持多种格式的图数据导入导出
           </p>
         </div>
         <button
           onClick={onClose}
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors flex-shrink-0"
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           title="关闭面板"
+          style={{ color: 'var(--text-secondary)' }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -368,25 +366,26 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
       {/* 内容区域 */}
       <div className="p-6 space-y-8">
         {/* 导入状态反馈 */}
-        {renderImportStatus()}
+        {renderImportStatus}
 
         {/* 导出功能 */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Download className="w-4 h-4 text-blue-600" />
+        <div className="rounded-xl p-5 border border-blue-100 hover:shadow-md transition-all duration-300" style={{ backgroundColor: 'var(--primary-color-light)' }}>
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <Download className="w-4 h-4" style={{ color: 'var(--primary-color)' }} />
             导出图
           </h3>
 
           <div className="space-y-4">
             {/* 导出格式选择 */}
             <div className="flex items-center gap-4 flex-wrap">
-              <label className="text-sm text-gray-600 font-medium min-w-[80px]">导出格式</label>
+              <label className="text-sm font-medium min-w-[80px]" style={{ color: 'var(--text-secondary)' }}>导出格式</label>
               <div className="flex gap-3 flex-wrap">
                 {(['json', 'csv'] as const).map((format) => (
                   <button
                     key={format}
                     onClick={() => setExportFormat(format)}
-                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out flex items-center gap-2 transform hover:scale-[1.03] ${exportFormat === format ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'}`}
+                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out flex items-center gap-2 transform hover:scale-[1.03] ${exportFormat === format ? 'text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'}`}
+                    style={{ backgroundColor: exportFormat === format ? 'var(--primary-color)' : 'transparent', backgroundImage: exportFormat === format ? 'linear-gradient(to right, var(--primary-color), var(--primary-color-dark))' : 'none' }}
                   >
                     {format === 'json' ? (
                       <FileText className="w-4 h-4" />
@@ -455,20 +454,20 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 accept=".json,.csv"
                 onChange={handleFileChange}
-                disabled={isImporting}
+                disabled={importStatus === 'loading'}
               />
               <button
                 type="button"
                 onClick={() => document.getElementById('file-upload')?.click()}
-                disabled={isImporting}
-                className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-white ${isImporting ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'}`}
+                disabled={importStatus === 'loading'}
+                className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-white ${importStatus === 'loading' ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'}`}
               >
-                {isImporting ? (
+                {importStatus === 'loading' ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
-                {isImporting ? '导入中...' : '选择文件导入'}
+                {importStatus === 'loading' ? '导入中...' : '选择文件导入'}
               </button>
             </div>
 

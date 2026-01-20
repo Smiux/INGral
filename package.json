@@ -26,7 +26,6 @@
     "@tiptap/extension-character-count": "^3.14.0",
     "@tiptap/extension-code-block": "^3.14.0",
     "@tiptap/extension-code-block-lowlight": "^3.14.0",
-    "@tiptap/extension-details": "^3.15.3",
     "@tiptap/extension-drag-handle": "^3.15.3",
     "@tiptap/extension-drag-handle-react": "^3.15.3",
     "@tiptap/extension-floating-menu": "^3.15.3",
@@ -35,7 +34,6 @@
     "@tiptap/extension-list": "^3.14.0",
     "@tiptap/extension-mathematics": "^3.15.1",
     "@tiptap/extension-node-range": "^3.15.3",
-    "@tiptap/extension-placeholder": "^3.15.3",
     "@tiptap/extension-subscript": "^3.14.0",
     "@tiptap/extension-superscript": "^3.14.0",
     "@tiptap/extension-table": "^3.15.1",
@@ -50,9 +48,9 @@
     "@tiptap/react": "^3.14.0",
     "@tiptap/starter-kit": "^3.14.0",
     "@types/highlight.js": "^9.12.4",
-    "@uiw/react-md-editor": "^4.0.9",
     "@xyflow/react": "^12.10.0",
     "elkjs": "^0.11.0",
+    "evergreen-ui": "^7.1.9",
     "highlight.js": "^11.11.1",
     "katex": "^0.16.25",
     "lowlight": "^3.3.0",
@@ -83,6 +81,7 @@
     "tailwindcss": "^3.4.19",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
-    "vite": "^5.4.2"
+    "vite": "^5.4.2",
+    "vite-tsconfig-paths": "^6.0.4"
   }
 }

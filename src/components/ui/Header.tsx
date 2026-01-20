@@ -16,11 +16,11 @@ export function Header () {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-md">
+    <header className="sticky top-0 z-50 text-white" style={{ backgroundColor: 'var(--bg-primary)', boxShadow: 'var(--shadow-sm)', borderBottom: '1px solid var(--border-color)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Brain className="w-6 h-6 text-yellow-300" />
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" style={{ color: 'var(--text-primary)' }}>
+            <Brain className="w-6 h-6" style={{ color: 'var(--primary-color)' }} />
             <span className="font-bold text-xl tracking-tight">MyWiki</span>
           </Link>
 
@@ -31,11 +31,13 @@ export function Header () {
                 placeholder="搜索知识..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg placeholder-white/70 text-white focus:ring-2 focus:ring-white/30 focus:border-white outline-none transition backdrop-blur-sm"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               />
               <button
                 type="submit"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/80 hover:text-white"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                style={{ color: 'var(--text-secondary)' }}
               >
                 <Search className="w-5 h-5" />
               </button>
@@ -46,7 +48,8 @@ export function Header () {
             <nav className="hidden md:flex items-center gap-4" aria-label="主导航" role="menubar">
               <Link
                 to="/graphs"
-                className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
+                className="font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                style={{ color: 'var(--text-secondary)' }}
                 aria-label="知识图"
                 role="menuitem"
                 tabIndex={0}
@@ -56,7 +59,8 @@ export function Header () {
               </Link>
               <Link
                 to="/articles"
-                className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
+                className="font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                style={{ color: 'var(--text-secondary)' }}
                 aria-label="文章"
                 role="menuitem"
                 tabIndex={0}
@@ -66,7 +70,8 @@ export function Header () {
               </Link>
               <Link
                 to="/discussions"
-                className="text-white/90 hover:text-white font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30"
+                className="font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                style={{ color: 'var(--text-secondary)' }}
                 aria-label="讨论"
                 role="menuitem"
                 tabIndex={0}
@@ -77,7 +82,7 @@ export function Header () {
             </nav>
 
             {/* Theme Toggle */}
-            <div className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30 p-1 rounded-full">
+            <div className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 p-1 rounded-full">
               <ThemeToggle />
             </div>
           </div>
