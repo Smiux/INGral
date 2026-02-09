@@ -79,10 +79,15 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
    */
   const handleInsert = () => {
     if (formula.trim()) {
-      // 调用插入回调
-      onInsert(formula);
-      // 关闭编辑器
-      handleClose();
+      try {
+        // 调用插入回调
+        onInsert(formula);
+      } catch (error) {
+        console.error('Error inserting formula:', error);
+      } finally {
+        // 总是关闭编辑器
+        handleClose();
+      }
     }
   };
 

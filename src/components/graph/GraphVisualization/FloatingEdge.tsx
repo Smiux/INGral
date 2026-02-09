@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   type EdgeProps,
   getBezierPath,
@@ -22,12 +22,6 @@ export interface CustomEdgeData {
     labelBackgroundColor?: string;
     labelTextColor?: string;
   };
-  animation?: {
-    dynamicEffect?: 'none' | 'flow' | 'arrow' | 'blink' | 'wave' | 'rotate' | 'color-change' | 'fade';
-    isAnimating?: boolean;
-    pathAnimation?: boolean;
-    pathAnimationProgress?: number;
-  };
   [key: string]: unknown;
 }
 
@@ -38,198 +32,67 @@ export interface CustomEdgeData {
 export const FloatingEdge = (props: EdgeProps) => {
   const { source, target, id, style, data, markerEnd } = props;
 
-  // 连接数据配置
   const edgeData = data as CustomEdgeData;
   const curveType = edgeData?.curveType || 'default';
-  const isAnimating = edgeData?.animation?.isAnimating || false;
-  const dynamicEffect = isAnimating ? (edgeData?.animation?.dynamicEffect || 'flow') : 'none';
   const edgeType = edgeData?.type || 'related';
 
-  // 连接样式
-  const memoizedEdgeStyles = useMemo(() => {
-    const baseStrokeColor = edgeData?.style?.stroke || '#3b82f6';
-    const baseLabelBgColor = edgeData?.style?.labelBackgroundColor || baseStrokeColor;
-    const baseLabelTextColor = edgeData?.style?.labelTextColor || '#ffffff';
-    const baseStrokeWidth = edgeData?.style?.strokeWidth || 2;
+  const baseStrokeColor = edgeData?.style?.stroke || '#3b82f6';
+  const baseLabelBgColor = edgeData?.style?.labelBackgroundColor || baseStrokeColor;
+  const baseLabelTextColor = edgeData?.style?.labelTextColor || '#ffffff';
+  const baseStrokeWidth = edgeData?.style?.strokeWidth || 2;
 
-    // 基础样式
-    const baseStyle: React.CSSProperties = {
-      'stroke': baseStrokeColor,
-      'strokeWidth': baseStrokeWidth,
-      'fill': 'none',
-      'strokeDasharray': edgeData?.style?.dasharray || ''
-    };
+  const finalStyle = {
+    'stroke': baseStrokeColor,
+    'strokeWidth': baseStrokeWidth,
+    'fill': 'none',
+    'strokeDasharray': edgeData?.style?.dasharray || '',
+    ...(typeof style === 'object' && style !== null ? style : {})
+  };
 
-    // 动态效果样式
-    let animatedStyle = baseStyle;
-
-    if (isAnimating) {
-      // 根据dynamicEffect的值正确应用动画效果
-      switch (dynamicEffect) {
-        case 'flow':
-          animatedStyle = {
-            ...baseStyle,
-            'strokeDasharray': '5,5',
-            'animation': 'flowAnimation 6s linear infinite'
-          };
-          break;
-        case 'blink':
-          animatedStyle = {
-            ...baseStyle,
-            'animation': 'blinkAnimation 1s ease-in-out infinite'
-          };
-          break;
-        case 'wave':
-          animatedStyle = {
-            ...baseStyle,
-            'animation': 'waveAnimation 30s ease-in-out infinite'
-          };
-          break;
-        case 'rotate':
-          animatedStyle = {
-            ...baseStyle,
-            'transformOrigin': 'center center',
-            'animation': 'rotateAnimation 10s linear infinite'
-          };
-          break;
-        case 'color-change':
-          animatedStyle = {
-            ...baseStyle,
-            'animation': 'colorChangeAnimation 6s linear infinite'
-          };
-          break;
-        case 'fade':
-          animatedStyle = {
-            ...baseStyle,
-            'animation': 'fadeAnimation 5s ease-in-out infinite'
-          };
-          break;
-        case 'arrow':
-          animatedStyle = {
-            ...baseStyle,
-            'strokeDasharray': '15, 15',
-            'animation': 'flowAnimation 6s linear infinite'
-          };
-          break;
-        default:
-          animatedStyle = baseStyle;
-      }
-    } else if (edgeData?.animation?.pathAnimation) {
-      const progress = edgeData.animation.pathAnimationProgress || 0;
-      if (progress > 0) {
-        const dashLength = 100000;
-        animatedStyle = {
-          ...baseStyle,
-          'strokeDasharray': `${dashLength}`,
-          'strokeDashoffset': `${dashLength - (dashLength * progress)}`,
-          'transition': 'stroke-dashoffset 0.5s ease-out'
-        };
-      }
-    } else {
-      // 当动画开关关闭且没有路径动画时，确保移除所有动画相关样式
-      animatedStyle = {
-        ...baseStyle,
-        'strokeDasharray': edgeData?.style?.dasharray || '',
-        'animation': 'none'
-      };
-    }
-
-    // 合并外部样式
-    const finalStyle = {
-      ...animatedStyle,
-      ...(typeof style === 'object' && style !== null ? style : {})
-    };
-
-    return {
-      finalStyle,
-      'labelBgColor': baseLabelBgColor,
-      'labelStrokeColor': baseStrokeColor,
-      baseLabelTextColor
-    };
-  }, [
-    isAnimating,
-    dynamicEffect,
-    edgeData,
-    style
-  ]);
-
-  // 获取内部节点引用
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
-  // 根据曲线类型计算路径
-  let edgePath: string;
-  let midX = 0;
-  let midY = 0;
-
-  if (sourceNode && targetNode) {
-    // 获取边的参数
-    const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(sourceNode, targetNode);
-
-    const pathParams = {
-      'sourceX': sx,
-      'sourceY': sy,
-      'sourcePosition': sourcePos,
-      'targetPosition': targetPos,
-      'targetX': tx,
-      'targetY': ty
-    };
-
-    if (curveType === 'straight') {
-      [edgePath] = getStraightPath(pathParams);
-    } else if (curveType === 'smoothstep') {
-      [edgePath] = getSmoothStepPath(pathParams);
-    } else if (curveType === 'simplebezier') {
-      [edgePath] = getSimpleBezierPath(pathParams);
-    } else {
-      [edgePath] = getBezierPath(pathParams);
-    }
-
-    // 计算标签位置
-    midX = (sx + tx) / 2;
-    midY = (sy + ty) / 2;
-  } else {
+  if (!sourceNode || !targetNode) {
     return null;
   }
 
+  const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(sourceNode, targetNode);
+
+  const pathParams = {
+    'sourceX': sx,
+    'sourceY': sy,
+    'sourcePosition': sourcePos,
+    'targetPosition': targetPos,
+    'targetX': tx,
+    'targetY': ty
+  };
+
+  let edgePath: string;
+  if (curveType === 'straight') {
+    [edgePath] = getStraightPath(pathParams);
+  } else if (curveType === 'smoothstep') {
+    [edgePath] = getSmoothStepPath(pathParams);
+  } else if (curveType === 'simplebezier') {
+    [edgePath] = getSimpleBezierPath(pathParams);
+  } else {
+    [edgePath] = getBezierPath(pathParams);
+  }
+
+  const midX = (sx + tx) / 2;
+  const midY = (sy + ty) / 2;
+  const labelText = edgeData?.label || edgeType;
+
   return (
     <g>
-      {/* 连接线 */}
       <path
         id={id}
         d={edgePath}
         className="react-flow__edge-path"
-        style={memoizedEdgeStyles.finalStyle}
+        style={finalStyle}
         markerEnd={markerEnd}
       />
-      {/* 箭头动画 - 使用SVG animateMotion实现 */}
-      {isAnimating && dynamicEffect === 'arrow' && (
+      {labelText && (
         <g>
-          {/* 移动的箭头元素 */}
-          <g>
-            <animateMotion
-              dur="3s"
-              repeatCount="indefinite"
-              rotate="auto"
-            >
-              {/* 引用路径 */}
-              <mpath href={`#${id}`} />
-            </animateMotion>
-            {/* 箭头符号 - 大小根据连接线宽度变化，初始大小更小 */}
-            <path
-              d={`M 0,0 L ${8 * (typeof memoizedEdgeStyles.finalStyle.strokeWidth === 'number' ? memoizedEdgeStyles.finalStyle.strokeWidth / 2 : 1)},${4 * (typeof memoizedEdgeStyles.finalStyle.strokeWidth === 'number' ? memoizedEdgeStyles.finalStyle.strokeWidth / 2 : 1)} L 0,${8 * (typeof memoizedEdgeStyles.finalStyle.strokeWidth === 'number' ? memoizedEdgeStyles.finalStyle.strokeWidth / 2 : 1)} Z`}
-              fill={edgeData?.style?.arrowColor || memoizedEdgeStyles.finalStyle.stroke}
-              stroke={edgeData?.style?.arrowColor || memoizedEdgeStyles.finalStyle.stroke}
-              strokeWidth="1"
-              transform={`translate(-${4 * (typeof memoizedEdgeStyles.finalStyle.strokeWidth === 'number' ? memoizedEdgeStyles.finalStyle.strokeWidth / 2 : 1)}, -${4 * (typeof memoizedEdgeStyles.finalStyle.strokeWidth === 'number' ? memoizedEdgeStyles.finalStyle.strokeWidth / 2 : 1)})`}
-            />
-          </g>
-        </g>
-      )}
-      {/* 标签 */}
-      {(edgeData?.label || edgeType) && (
-        <g>
-          {/* 标签背景 */}
           <rect
             x={midX - 25}
             y={midY - 12}
@@ -237,20 +100,19 @@ export const FloatingEdge = (props: EdgeProps) => {
             height={24}
             rx={4}
             ry={4}
-            fill={memoizedEdgeStyles.labelBgColor}
-            stroke={memoizedEdgeStyles.labelStrokeColor}
+            fill={baseLabelBgColor}
+            stroke={baseStrokeColor}
             strokeWidth={1}
           />
-          {/* 标签文本 */}
           <text
             x={midX}
             y={midY + 4}
             textAnchor="middle"
-            fill={memoizedEdgeStyles.baseLabelTextColor}
+            fill={baseLabelTextColor}
             fontSize={10}
             fontWeight="bold"
           >
-            {edgeData?.label || edgeType}
+            {labelText}
           </text>
         </g>
       )}

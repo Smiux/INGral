@@ -16,11 +16,11 @@ export function Header () {
   };
 
   return (
-    <header className="sticky top-0 z-50 text-white" style={{ backgroundColor: 'var(--bg-primary)', boxShadow: 'var(--shadow-sm)', borderBottom: '1px solid var(--border-color)' }}>
+    <header className="sticky top-0 z-50 bg-neutral-50 border-b border-neutral-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" style={{ color: 'var(--text-primary)' }}>
-            <Brain className="w-6 h-6" style={{ color: 'var(--primary-color)' }} />
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity text-neutral-800">
+            <Brain className="w-6 h-6 text-primary-400" />
             <span className="font-bold text-xl tracking-tight">MyWiki</span>
           </Link>
 
@@ -31,58 +31,43 @@ export function Header () {
                 placeholder="搜索知识..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
+                className="w-full px-4 py-2 border border-neutral-200 rounded-lg outline-none transition-all duration-200 bg-neutral-100 text-neutral-800 focus:border-primary-300 focus:ring-2 focus:ring-primary-100"
               />
               <button
                 type="submit"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                style={{ color: 'var(--text-secondary)' }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-500 hover:text-primary-400 transition-colors duration-200"
               >
                 <Search className="w-5 h-5" />
               </button>
             </div>
           </form>
 
-          <div className="flex items-center gap-4" role="group" aria-label="导航和操作按钮组">
-            <nav className="hidden md:flex items-center gap-4" aria-label="主导航" role="menubar">
+          <div className="flex items-center gap-4">
+            <nav className="hidden md:flex items-center gap-2">
               <Link
                 to="/graphs"
-                className="font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                style={{ color: 'var(--text-secondary)' }}
-                aria-label="知识图"
-                role="menuitem"
-                tabIndex={0}
+                className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-primary-500 hover:bg-primary-50 transition-all duration-200"
               >
-                <Brain className="w-4 h-4" aria-hidden="true" />
+                <Brain className="w-4 h-4 text-primary-300" />
                 <span className="text-sm">Knowledge Graph</span>
               </Link>
               <Link
                 to="/articles"
-                className="font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                style={{ color: 'var(--text-secondary)' }}
-                aria-label="文章"
-                role="menuitem"
-                tabIndex={0}
+                className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-secondary-500 hover:bg-secondary-50 transition-all duration-200"
               >
-                <BookOpen className="w-4 h-4" aria-hidden="true" />
+                <BookOpen className="w-4 h-4 text-secondary-300" />
                 <span className="text-sm">Articles</span>
               </Link>
               <Link
                 to="/discussions"
-                className="font-medium transition flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                style={{ color: 'var(--text-secondary)' }}
-                aria-label="讨论"
-                role="menuitem"
-                tabIndex={0}
+                className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-primary-500 hover:bg-primary-50 transition-all duration-200"
               >
-                <Users className="w-4 h-4" aria-hidden="true" />
+                <Users className="w-4 h-4 text-primary-300" />
                 <span className="text-sm">Discussions</span>
               </Link>
             </nav>
 
-            {/* Theme Toggle */}
-            <div className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 p-1 rounded-full">
+            <div className="p-1 rounded-full bg-neutral-100">
               <ThemeToggle />
             </div>
           </div>

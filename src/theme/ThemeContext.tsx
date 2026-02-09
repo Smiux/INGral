@@ -1,23 +1,40 @@
 import { useEffect, ReactNode } from 'react';
-import { useThemeStore } from './themeStore';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-// Define theme types
 export type Theme = 'light' | 'dark';
 
-// Theme provider component
+interface ThemeState {
+  theme: Theme;
+  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
+}
+
+export const useTheme = create<ThemeState>()(
+  persist(
+    (set) => ({
+      'theme': 'light',
+      'toggleTheme': () => set((state) => ({
+        'theme': state.theme === 'light' ? 'dark' : 'light'
+      })),
+      'setTheme': (theme) => set({ theme })
+    }),
+    {
+      'name': 'theme-storage'
+    }
+  )
+);
+
 interface ThemeProviderProps {
   children: ReactNode;
 }
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  // Get theme from Zustand store
-  const { theme } = useThemeStore();
+  const { theme } = useTheme();
 
-  // Update document class when theme changes
   useEffect(() => {
     const root = document.documentElement;
 
-    // 添加过渡类，实现平滑主题切换
     root.classList.add('theme-transition');
 
     if (theme === 'dark') {
@@ -26,12 +43,10 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
       root.classList.remove('dark');
     }
 
-    // 移除过渡类，避免影响其他动画
     const removeTransition = () => {
       root.classList.remove('theme-transition');
     };
 
-    // 监听过渡结束事件
     root.addEventListener('transitionend', removeTransition, { 'once': true });
 
     return () => {

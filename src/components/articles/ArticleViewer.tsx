@@ -4,13 +4,11 @@
  */
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, User, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Calendar, User } from 'lucide-react';
 import { articleService, type Article } from '../../services/articleService';
-import { useTheme } from '../../theme/useTheme';
 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
-  const { theme, toggleTheme } = useTheme();
   const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -43,7 +41,7 @@ export function ArticleViewer () {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
       </div>
     );
   }
@@ -52,11 +50,11 @@ export function ArticleViewer () {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Article Not Found</h1>
-          <p className="text-gray-600 mb-8">The article you're looking for doesn't exist.</p>
+          <h1 className="text-3xl font-bold text-neutral-900 mb-4">Article Not Found</h1>
+          <p className="text-neutral-600 mb-8">The article you're looking for doesn't exist.</p>
           <Link
             to="/"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+            className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Home
@@ -76,21 +74,21 @@ export function ArticleViewer () {
     <article className="max-w-7xl mx-auto px-4 py-8">
       {/* 面包屑导航 */}
       <nav className="mb-6">
-        <ol className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+        <ol className="flex items-center gap-1 text-sm text-neutral-500">
           <li>
-            <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Home</Link>
+            <Link to="/" className="hover:text-primary-600 transition-colors">Home</Link>
           </li>
-          <li className="text-gray-400 dark:text-gray-600">
+          <li className="text-neutral-400">
             /
           </li>
           <li>
-            <Link to="/articles" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Articles</Link>
+            <Link to="/articles" className="hover:text-primary-600 transition-colors">Articles</Link>
           </li>
-          <li className="text-gray-400 dark:text-gray-600">
+          <li className="text-neutral-400">
             /
           </li>
           <li>
-            <span className="font-medium text-gray-900 dark:text-white truncate max-w-[300px]">{article.title}</span>
+            <span className="font-medium text-neutral-900 truncate max-w-[300px]">{article.title}</span>
           </li>
         </ol>
       </nav>
@@ -99,37 +97,25 @@ export function ArticleViewer () {
         <div className="flex-1">
           <Link
             to="/"
-            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 mb-4 transition"
+            className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 mb-4 transition"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          <h1 className="text-4xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">{article.title}</h1>
-          <div className="flex flex-wrap gap-6 text-sm text-gray-600 dark:text-gray-400">
+          <h1 className="text-4xl font-bold text-neutral-800 mb-4">{article.title}</h1>
+          <div className="flex flex-wrap gap-6 text-sm text-neutral-600">
             <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-4 h-4 text-neutral-500" />
               {formattedDate}
             </div>
             <div className="flex items-center gap-1">
-              <User className="w-4 h-4" />
+              <User className="w-4 h-4 text-neutral-500" />
               {article.author_name}
             </div>
           </div>
         </div>
         <div className="flex gap-4">
           {/* 主题切换按钮 */}
-          <button
-            onClick={toggleTheme}
-            className="p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
-            title={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
-            aria-label={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
-          >
-            {theme === 'dark' ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
-          </button>
         </div>
       </div>
 

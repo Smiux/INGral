@@ -18,8 +18,8 @@ export default defineConfig({
         manualChunks: {
           // 将第三方库拆分为独立的chunk
           'vendor': ['react', 'react-dom', 'react-router-dom'],
-          // 将markdown和katex相关的库拆分为独立的chunk
-          'markdown-katex': ['katex', 'markdown-it'],
+          // 将katex相关的库拆分为独立的chunk
+          'katex': ['katex'],
           // 将文章编辑功能相关代码拆分为独立的chunk
           'article-editor': ['@/components/articles/ArticleEditor', '@/services/articleService'],
           // 将图可视化功能相关代码拆分为独立的chunk

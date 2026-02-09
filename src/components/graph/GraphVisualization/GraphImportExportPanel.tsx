@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Download, Upload, FileText, Database, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-import { useStore, type Node, type Edge } from '@xyflow/react';
+import React, { useState, useCallback } from 'react';
+import { Download, Upload, FileText, Database, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
+import { useReactFlow, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './FloatingEdge';
 
@@ -9,114 +9,66 @@ interface GraphImportExportPanelProps {
   onClose: () => void;
 }
 
-// 比较函数，只比较必要的属性
-const edgesEqual = (prev: Edge[], next: Edge[]): boolean => {
-  if (prev.length !== next.length) {
-    return false;
-  }
-
-  // 比较边的关键属性：source, target, weight
-  for (let i = 0; i < prev.length; i += 1) {
-    const prevEdge = prev[i];
-    const nextEdge = next[i];
-
-    if (!prevEdge || !nextEdge) {
-      return false;
-    }
-
-    if (String(prevEdge.source) !== String(nextEdge.source) ||
-        String(prevEdge.target) !== String(nextEdge.target) ||
-        (prevEdge.data?.weight || 1) !== (nextEdge.data?.weight || 1)) {
-      return false;
-    }
-  }
-  return true;
-};
-
-const nodesEqual = (prev: Node[], next: Node[]): boolean => {
-  if (prev.length !== next.length) {
-    return false;
-  }
-
-  // 比较节点的关键属性：id
-  for (let i = 0; i < prev.length; i += 1) {
-    const prevNode = prev[i];
-    const nextNode = next[i];
-
-    if (!prevNode || !nextNode || prevNode.id !== nextNode.id) {
-      return false;
-    }
-  }
-  return true;
-};
-
 type ExportFormat = 'json' | 'csv';
 type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
-
-// 辅助函数：创建下载链接
-const createDownloadLink = (content: string, filename: string, mimeType: string): void => {
-  const dataUri = `${mimeType};charset=utf-8,${encodeURIComponent(content)}`;
-  const linkElement = document.createElement('a');
-  linkElement.setAttribute('href', dataUri);
-  linkElement.setAttribute('download', filename);
-  linkElement.click();
-};
-
-// 辅助函数：生成文件名
-const generateFilename = (format: ExportFormat): string => {
-  const date = new Date().toISOString()
-    .slice(0, 10);
-  return `graph-export-${date}.${format}`;
-};
 
 /**
  * 图导入导出面板组件
  * 支持多种格式的图数据导入导出
  */
 export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = React.memo(({ onImportComplete, onClose }) => {
-  // 在组件内部使用useStore获取nodes和edges，避免不必要的props传递
-  const nodes = useStore<Node<CustomNodeData>[]>((state) =>
-    state.nodes.map((node) => ({
+  const [exportFormat, setExportFormat] = useState<ExportFormat>('json');
+  const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
+  const [importMessage, setImportMessage] = useState<string>('');
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+
+  const reactFlowInstance = useReactFlow();
+  const nodeCount = reactFlowInstance.getNodes().length;
+  const edgeCount = reactFlowInstance.getEdges().length;
+
+  const handleExport = useCallback(() => {
+    setIsExporting(true);
+
+    const createDownloadLink = (content: string, filename: string, mimeType: string): void => {
+      const dataUri = `${mimeType};charset=utf-8,${encodeURIComponent(content)}`;
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', filename);
+      linkElement.click();
+    };
+
+    const generateFilename = (format: ExportFormat): string => {
+      const date = new Date()
+        .toISOString()
+        .slice(0, 10);
+      return `graph-export-${date}.${format}`;
+    };
+
+    const nodesData = reactFlowInstance.getNodes().map((node) => ({
       'id': node.id,
       'position': node.position,
       'data': node.data,
       'type': node.type
-    })) as Node<CustomNodeData>[],
-  nodesEqual
-  );
+    })) as Node<CustomNodeData>[];
 
-  const edges = useStore<Edge<CustomEdgeData>[]>((state) =>
-    state.edges.map((edge) => ({
+    const edgesData = reactFlowInstance.getEdges().map((edge) => ({
       'id': edge.id,
       'source': edge.source,
       'target': edge.target,
       'data': edge.data,
       'type': edge.type,
       'markerEnd': edge.markerEnd
-    })) as Edge<CustomEdgeData>[],
-  edgesEqual
-  );
-
-  // 状态管理
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('json');
-  const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
-  const [importMessage, setImportMessage] = useState<string>('');
-  const [isExporting, setIsExporting] = useState<boolean>(false);
-
-  // 导出功能
-  const handleExport = useCallback(() => {
-    setIsExporting(true);
+    })) as Edge<CustomEdgeData>[];
 
     try {
       if (exportFormat === 'json') {
-        // 导出为JSON格式
         const exportData = {
-          'nodes': nodes || [],
-          'edges': edges || [],
+          'nodes': nodesData,
+          'edges': edgesData,
           'metadata': {
             'exportDate': new Date().toISOString(),
-            'nodeCount': nodes?.length || 0,
-            'edgeCount': edges?.length || 0,
+            'nodeCount': nodesData.length,
+            'edgeCount': edgesData.length,
             'version': '1.0'
           }
         };
@@ -124,11 +76,9 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
         const dataStr = JSON.stringify(exportData, null, 2);
         createDownloadLink(dataStr, generateFilename('json'), 'data:application/json');
       } else if (exportFormat === 'csv') {
-        // 导出为CSV格式
-        // 导出节点
         const nodeCsv = [
           ['Node ID', 'Type', 'Title', 'Label', 'X', 'Y'],
-          ...(nodes || []).map((node: Node<CustomNodeData>) => [
+          ...nodesData.map((node: Node<CustomNodeData>) => [
             node.id,
             node.data?.type || 'default',
             node.data?.title || '',
@@ -138,10 +88,9 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
           ])
         ].map(row => row.join(',')).join('\n');
 
-        // 导出连接
         const edgeCsv = [
           ['Edge ID', 'Source', 'Target', 'Type', 'Weight', 'Curve Type'],
-          ...(edges || []).map((edge: Edge<CustomEdgeData>) => [
+          ...edgesData.map((edge: Edge<CustomEdgeData>) => [
             edge.id,
             edge.source.toString(),
             edge.target.toString(),
@@ -151,7 +100,6 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
           ])
         ].map(row => row.join(',')).join('\n');
 
-        // 合并节点和连接数据，用空行分隔
         const csvContent = `${nodeCsv}\n\n${edgeCsv}`;
         createDownloadLink(csvContent, generateFilename('csv'), 'data:text/csv');
       }
@@ -160,7 +108,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
     } finally {
       setIsExporting(false);
     }
-  }, [nodes, edges, exportFormat]);
+  }, [exportFormat, reactFlowInstance]);
 
   // 导入功能 - 处理文件选择
   const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -304,88 +252,55 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
     }
   }, [onImportComplete]);
 
-  // 渲染导入状态反馈
-  const renderImportStatus = useMemo(() => {
-    if (importStatus === 'idle') {
-      return null;
-    }
 
-    const statusConfig = {
-      'success': {
-        'icon': <CheckCircle2 className="w-5 h-5 text-green-500" />,
-        'bg': 'bg-green-50',
-        'text': 'text-green-800'
-      },
-      'error': {
-        'icon': <AlertCircle className="w-5 h-5 text-red-500" />,
-        'bg': 'bg-red-50',
-        'text': 'text-red-800'
-      },
-      'loading': {
-        'icon': <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />,
-        'bg': 'bg-blue-50',
-        'text': 'text-blue-800'
-      }
-    };
-
-    const config = statusConfig[importStatus];
-
-    return (
-      <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${config.bg} ${config.text} mb-4`}>
-        {config.icon}
-        <span className="text-sm font-medium">{importMessage}</span>
-      </div>
-    );
-  }, [importStatus, importMessage]);
 
   return (
-    <div className="w-[32rem] min-w-[32rem] max-w-[32rem] h-full bg-white overflow-y-auto absolute left-0 top-0 z-30 border-r border-gray-200 transition-all duration-300 ease-in-out" style={{ boxShadow: 'var(--shadow-md)' }}>
-      {/* 面板标题 */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between" style={{ background: 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
-        <div>
-          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            <Database className="w-5 h-5" style={{ color: 'var(--primary-color)' }} />
-            导入导出
-          </h2>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-            支持多种格式的图数据导入导出
-          </p>
+    <div className="panel-container">
+      <div className="panel-header">
+        <div className="panel-title">
+          <Database className="w-5 h-5 text-primary-400" />
+          导入导出
         </div>
         <button
           onClick={onClose}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors flex-shrink-0"
           title="关闭面板"
-          style={{ color: 'var(--text-secondary)' }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X className="h-5 w-5" />
         </button>
       </div>
 
-      {/* 内容区域 */}
-      <div className="p-6 space-y-8">
-        {/* 导入状态反馈 */}
-        {renderImportStatus}
+      <div className="panel-content space-y-8">
+        {importStatus !== 'idle' && (() => {
+          const statusConfig = {
+            'success': { 'bg': 'bg-green-50', 'text': 'text-green-800', 'icon': <CheckCircle2 className="w-5 h-5 text-green-500" /> },
+            'error': { 'bg': 'bg-red-50', 'text': 'text-red-800', 'icon': <AlertCircle className="w-5 h-5 text-red-500" /> },
+            'loading': { 'bg': 'bg-blue-50', 'text': 'text-blue-800', 'icon': <Loader2 className="w-5 h-5 text-blue-500 animate-spin" /> }
+          };
+          const config = statusConfig[importStatus];
+          return (
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg mb-4 ${config.bg} ${config.text}`}>
+              {config.icon}
+              <span className="text-sm font-medium">{importMessage}</span>
+            </div>
+          );
+        })()}
 
-        {/* 导出功能 */}
-        <div className="rounded-xl p-5 border border-blue-100 hover:shadow-md transition-all duration-300" style={{ backgroundColor: 'var(--primary-color-light)' }}>
-          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            <Download className="w-4 h-4" style={{ color: 'var(--primary-color)' }} />
+        <div className="rounded-xl p-5 border border-primary-100 hover:shadow-md transition-all duration-300 bg-primary-50">
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800">
+            <Download className="w-4 h-4 text-primary-400" />
             导出图
           </h3>
 
           <div className="space-y-4">
-            {/* 导出格式选择 */}
             <div className="flex items-center gap-4 flex-wrap">
-              <label className="text-sm font-medium min-w-[80px]" style={{ color: 'var(--text-secondary)' }}>导出格式</label>
+              <label className="text-sm font-medium min-w-[80px] text-neutral-600">导出格式</label>
               <div className="flex gap-3 flex-wrap">
                 {(['json', 'csv'] as const).map((format) => (
                   <button
                     key={format}
                     onClick={() => setExportFormat(format)}
-                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out flex items-center gap-2 transform hover:scale-[1.03] ${exportFormat === format ? 'text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'}`}
-                    style={{ backgroundColor: exportFormat === format ? 'var(--primary-color)' : 'transparent', backgroundImage: exportFormat === format ? 'linear-gradient(to right, var(--primary-color), var(--primary-color-dark))' : 'none' }}
+                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out flex items-center gap-2 transform hover:scale-[1.03] ${exportFormat === format ? 'text-white shadow-md bg-gradient-to-r from-primary-500 to-primary-600' : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'}`}
                   >
                     {format === 'json' ? (
                       <FileText className="w-4 h-4" />
@@ -398,18 +313,16 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
               </div>
             </div>
 
-            {/* 导出信息 */}
-            <div className="bg-white/70 p-3.5 rounded-lg shadow-sm border border-blue-100">
-              <p className="text-sm text-gray-600">
-                当前图包含 <strong className="text-blue-700">{nodes?.length || 0} 个节点</strong> 和 <strong className="text-blue-700">{edges?.length || 0} 个连接</strong>
+            <div className="bg-white/70 p-3.5 rounded-lg shadow-sm border border-primary-100">
+              <p className="text-sm text-neutral-600">
+                当前图包含 <strong className="text-primary-700">{nodeCount} 个节点</strong> 和 <strong className="text-primary-700">{edgeCount} 个连接</strong>
               </p>
             </div>
 
-            {/* 导出按钮 */}
             <button
               onClick={handleExport}
-              disabled={isExporting || (nodes?.length || 0) === 0}
-              className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white ${isExporting || (nodes?.length || 0) === 0 ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'}`}
+              disabled={isExporting || nodeCount === 0}
+              className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-white ${isExporting || nodeCount === 0 ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'}`}
             >
               {isExporting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -421,15 +334,13 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
           </div>
         </div>
 
-        {/* 导入功能 */}
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 shadow-sm border border-green-100 hover:shadow-md transition-all duration-300">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Upload className="w-4 h-4 text-green-600" />
+        <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-5 shadow-sm border border-secondary-100 hover:shadow-md transition-all duration-300">
+          <h3 className="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+            <Upload className="w-4 h-4 text-secondary-500" />
             导入图
           </h3>
 
           <div className="space-y-4">
-            {/* 导入说明 */}
             <div className="bg-white/70 p-3.5 rounded-lg border border-amber-200 shadow-sm">
               <p className="text-sm text-amber-800 flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -437,8 +348,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
               </p>
             </div>
 
-            {/* 导入格式说明 */}
-            <div className="text-sm text-gray-600 bg-white/70 p-3.5 rounded-lg shadow-sm border border-green-100">
+            <div className="text-sm text-neutral-600 bg-white/70 p-3.5 rounded-lg shadow-sm border border-secondary-100">
               <p className="mb-2 font-medium">支持的导入格式：</p>
               <ul className="list-disc list-inside space-y-1 text-xs">
                 <li>JSON - 完整的图数据，包括节点和连接的所有属性</li>
@@ -446,7 +356,6 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
               </ul>
             </div>
 
-            {/* 导入按钮 */}
             <div className="relative">
               <input
                 type="file"
@@ -460,7 +369,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
                 type="button"
                 onClick={() => document.getElementById('file-upload')?.click()}
                 disabled={importStatus === 'loading'}
-                className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-white ${importStatus === 'loading' ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'}`}
+                className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-secondary-400 focus:ring-offset-2 focus:ring-offset-white ${importStatus === 'loading' ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-secondary-500 to-secondary-600 text-white'}`}
               >
                 {importStatus === 'loading' ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -471,8 +380,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
               </button>
             </div>
 
-            {/* 导入提示 */}
-            <div className="text-xs text-gray-500 text-center font-medium">
+            <div className="text-xs text-neutral-500 text-center font-medium">
               支持 .json 和 .csv 格式文件
             </div>
           </div>

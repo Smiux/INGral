@@ -1,7 +1,3 @@
-/**
- * 文章列表页面
- * 展示所有文章，支持搜索功能
- */
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
@@ -12,18 +8,11 @@ export function ArticlesPage () {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  /**
-   * 加载文章列表
-   */
   useEffect(() => {
     const loadArticles = async () => {
       try {
-        // 只获取公开文章
         const data = await articleService.getAllArticles(true);
         setArticles(data);
-      } catch (error) {
-        console.error('Failed to load articles:', error);
-        setArticles([]);
       } finally {
         setIsLoading(false);
       }
@@ -32,35 +21,29 @@ export function ArticlesPage () {
     loadArticles();
   }, []);
 
-  /**
-   * 根据搜索查询过滤文章
-   */
-  const filteredArticles = articles.filter((article) => {
-    // 标题搜索过滤
-    return article.title.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  const filteredArticles = articles.filter((article) =>
+    article.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <Link
         to="/"
-        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 mb-8 transition"
+        className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 mb-8 transition-all duration-200"
       >
         <ArrowLeft className="w-4 h-4" />
         返回首页
       </Link>
 
       <div className="flex flex-col md:flex-row items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">所有文章</h1>
-        <a
-          href="/articles/create"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+        <h1 className="text-3xl font-bold text-neutral-800 mb-4 md:mb-0">所有文章</h1>
+        <Link
+          to="/articles/create"
+          className="flex items-center gap-2 bg-secondary-50 text-secondary-700 border border-secondary-200 px-6 py-2 rounded-lg hover:bg-secondary-100 hover:border-secondary-300 transition-all duration-200 transform hover:scale-105 font-medium"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-secondary-600" />
           创建文章
-        </a>
+        </Link>
       </div>
 
       <div className="mb-8">
@@ -69,35 +52,33 @@ export function ArticlesPage () {
           placeholder="搜索文章..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+          className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-300 focus:border-primary-200 outline-none transition-all duration-200"
         />
       </div>
 
-      {/* 加载状态 */}
       {isLoading && (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
         </div>
       )}
 
-      {/* 有文章时显示列表 */}
       {!isLoading && filteredArticles.length > 0 && (
         <div className="space-y-4">
           {filteredArticles.map((article) => (
             <Link
               key={article.id}
               to={`/articles/${article.slug}`}
-              className="block p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg hover:border-blue-300 transition group"
+              className="block p-6 bg-white border border-neutral-200 rounded-lg hover:shadow-md hover:border-primary-200 transition-all duration-300 group"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h2 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition mb-2">
+                  <h2 className="text-xl font-semibold text-neutral-800 group-hover:text-primary-600 transition-colors mb-2">
                     {article.title}
                   </h2>
-                  <p className="text-gray-600 mb-4 line-clamp-2">
+                  <p className="text-neutral-600 mb-4 line-clamp-2">
                     {article.content.substring(0, 150)}...
                   </p>
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                  <div className="flex flex-wrap gap-4 text-sm text-neutral-500">
                     <span>
                       更新于{
                         article.updated_at ? new Date(article.updated_at).toLocaleDateString('zh-CN', {
@@ -117,16 +98,15 @@ export function ArticlesPage () {
         </div>
       )}
 
-      {/* 无文章时显示空状态 */}
       {!isLoading && filteredArticles.length === 0 && (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
+        <div className="text-center py-12 bg-neutral-50 rounded-lg border border-neutral-200">
           <p className="text-gray-600 mb-4">
             {searchQuery ? '没有匹配的文章。' : '暂无文章。'}
           </p>
           {!searchQuery && (
             <Link
               to="/create"
-              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+              className="inline-block bg-blue-50 text-blue-700 border border-blue-200 px-6 py-2 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 transform hover:scale-105"
             >
               创建文章
             </Link>

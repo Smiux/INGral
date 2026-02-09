@@ -26,13 +26,6 @@ declare module '*.less' {
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY: string;
-  readonly VITE_GITHUB_TOKEN?: string;
-  readonly VITE_GITHUB_OWNER?: string;
-  readonly VITE_GITHUB_REPO?: string;
-  readonly VITE_GITHUB_BRANCH?: string;
-  readonly VITE_GITHUB_PATH?: string;
-  readonly VITE_GITHUB_RAW_BASE_URL?: string;
-  readonly VITE_GITHUB_API_URL?: string;
 }
 
 interface ImportMeta {

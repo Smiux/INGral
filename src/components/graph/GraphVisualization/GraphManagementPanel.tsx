@@ -1,21 +1,18 @@
-/**
- * 图管理综合面板
- * 合并节点管理、连接管理、统计信息和分析功能，通过标签页切换
- */
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Database,
   Link as LinkIcon,
   BarChart2,
   Plus,
   Trash2,
-  PieChart
+  PieChart,
+  X,
+  LayoutGrid
 } from 'lucide-react';
 import { useStore, useReactFlow } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './FloatingEdge';
 
-// 定义标签页类型
 type TabType = 'nodes' | 'connections' | 'statistics';
 
 interface GraphManagementPanelProps {
@@ -23,542 +20,455 @@ interface GraphManagementPanelProps {
   onClose: () => void;
 }
 
-/**
- * 图管理综合面板组件
- */
+// 节点比较函数
+const nodesEqual = (
+  prev: Array<{ id: string; data: CustomNodeData; selected: boolean }>,
+  next: Array<{ id: string; data: CustomNodeData; selected: boolean }>
+) => {
+  if (prev.length !== next.length) {
+    return false;
+  }
+
+  for (let i = 0; i < prev.length; i += 1) {
+    const prevNode = prev[i];
+    const nextNode = next[i];
+
+    if (!prevNode || !nextNode) {
+      return false;
+    }
+
+    if (prevNode.id !== nextNode.id ||
+        prevNode.selected !== nextNode.selected ||
+        prevNode.data?.title !== nextNode.data?.title ||
+        prevNode.data?.category !== nextNode.data?.category ||
+        prevNode.data?.metadata?.content !== nextNode.data?.metadata?.content) {
+      return false;
+    }
+  }
+  return true;
+};
+
+// 边比较函数
+const edgesEqual = (
+  prev: Array<{ id: string; source: string; target: string; data: CustomEdgeData; selected: boolean }>,
+  next: Array<{ id: string; source: string; target: string; data: CustomEdgeData; selected: boolean }>
+) => {
+  if (prev.length !== next.length) {
+    return false;
+  }
+
+  for (let i = 0; i < prev.length; i += 1) {
+    const prevEdge = prev[i];
+    const nextEdge = next[i];
+
+    if (!prevEdge || !nextEdge) {
+      return false;
+    }
+
+    if (prevEdge.id !== nextEdge.id ||
+        prevEdge.source !== nextEdge.source ||
+        prevEdge.target !== nextEdge.target ||
+        prevEdge.selected !== nextEdge.selected ||
+        prevEdge.data?.type !== nextEdge.data?.type) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
   onAddNode,
   onClose
 }) => {
-  // 使用useStore获取节点和边数据
-  const nodes = useStore((state) => state.nodes) as Array<{
-    id: string;
-    data: CustomNodeData;
-    selected: boolean;
-  }>;
+  const nodes = useStore(
+    (state) => state.nodes as Array<{
+      id: string;
+      data: CustomNodeData;
+      selected: boolean;
+    }>,
+    nodesEqual
+  );
 
-  const edges = useStore((state) => state.edges) as Array<{
-    id: string;
-    source: string;
-    target: string;
-    data: CustomEdgeData;
-    selected: boolean;
-  }>;
+  const edges = useStore(
+    (state) => state.edges as Array<{
+      id: string;
+      source: string;
+      target: string;
+      data: CustomEdgeData;
+      selected: boolean;
+    }>,
+    edgesEqual
+  );
 
-  // 使用useStore获取选中的节点和边
-  const selectedNodes = useStore((state) =>
-    state.nodes.filter((node) => node.selected)
-  ) as Array<{
-    id: string;
-    data: CustomNodeData;
-    selected: boolean;
-  }>;
-
-  const selectedEdges = useStore((state) =>
-    state.edges.filter((edge) => edge.selected)
-  ) as Array<{
-    id: string;
-    source: string;
-    target: string;
-    data: CustomEdgeData;
-    selected: boolean;
-  }>;
-
-  // 使用useReactFlow获取实例
   const reactFlowInstance = useReactFlow();
-
-  // 当前激活的标签页
   const [activeTab, setActiveTab] = useState<TabType>('nodes');
-  // 搜索关键词
   const [searchTerm, setSearchTerm] = useState('');
-  // 搜索类型
   const [searchType, setSearchType] = useState<'all' | 'name' | 'content'>('all');
 
-  /**
-   * 删除选中节点
-   */
-  const handleDeleteSelectedNodes = useCallback(() => {
+  const handleDeleteSelectedNodes = () => {
+    const selectedNodes = nodes.filter((node) => node.selected);
     if (selectedNodes.length === 0) {
       return;
     }
-
     reactFlowInstance.deleteElements({
-      'nodes': selectedNodes.map(node => ({ 'id': node.id }))
+      'nodes': selectedNodes.map((node) => ({ 'id': node.id }))
     });
-  }, [selectedNodes, reactFlowInstance]);
+  };
 
-  /**
-   * 批量删除连接
-   */
-  const handleBatchDeleteConnections = useCallback(() => {
+  const handleBatchDeleteConnections = () => {
+    const selectedEdges = edges.filter((edge) => edge.selected);
     if (selectedEdges.length === 0) {
       return;
     }
-
     reactFlowInstance.deleteElements({
-      'edges': selectedEdges.map(edge => ({ 'id': edge.id }))
+      'edges': selectedEdges.map((edge) => ({ 'id': edge.id }))
     });
-  }, [selectedEdges, reactFlowInstance]);
+  };
 
-  /**
-   * 删除单个连接
-   */
-  const handleDeleteConnection = useCallback((edgeId: string) => {
-    reactFlowInstance.deleteElements({
-      'edges': [{ 'id': edgeId }]
-    });
-  }, [reactFlowInstance]);
+  const handleDeleteConnection = (edgeId: string) => {
+    reactFlowInstance.deleteElements({ 'edges': [{ 'id': edgeId }] });
+  };
 
-  /**
-   * 处理节点点击选择
-   */
-  const handleNodeClick = useCallback((node: typeof nodes[0]) => {
-    // 检查节点是否已选中
-    const isSelected = node.selected || false;
+  const handleToggleSelection = (id: string, type: 'node' | 'edge') => {
+    const items = type === 'node' ? nodes : edges;
+    const isSelected = items.find((item) => item.id === id)?.selected;
+    const selectedIds = items.filter((item) => item.selected).map((item) => item.id);
+    const newSelectedIds = isSelected
+      ? selectedIds.filter((selectedId) => selectedId !== id)
+      : [...selectedIds, id];
 
-    // 获取当前选中的节点ID列表
-    const selectedNodeIds = selectedNodes.map(n => n.id);
+    if (type === 'node') {
+      reactFlowInstance.setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          'selected': newSelectedIds.includes(n.id)
+        }))
+      );
+    } else {
+      reactFlowInstance.setEdges((eds) =>
+        eds.map((e) => ({
+          ...e,
+          'selected': newSelectedIds.includes(e.id)
+        }))
+      );
+    }
+  };
 
-    // 如果已选中，则从选中列表中移除
-    // 如果未选中，则添加到选中列表
-    const newSelectedNodeIds = isSelected
-      ? selectedNodeIds.filter(id => id !== node.id)
-      : [...selectedNodeIds, node.id];
-
-    // 更新所有节点的选中状态
-    reactFlowInstance.setNodes((nds) =>
-      nds.map(n => ({
-        ...n,
-        'selected': newSelectedNodeIds.includes(n.id)
-      }))
-    );
-  }, [selectedNodes, reactFlowInstance]);
-
-  /**
-   * 处理连接点击选择
-   */
-  const handleConnectionClick = useCallback((edge: typeof edges[0]) => {
-    // 检查连接是否已选中
-    const isSelected = edge.selected || false;
-
-    // 获取当前选中的连接ID列表
-    const selectedEdgeIds = selectedEdges.map(e => e.id);
-
-    // 如果已选中，则从选中列表中移除
-    // 如果未选中，则添加到选中列表
-    const newSelectedEdgeIds = isSelected
-      ? selectedEdgeIds.filter(id => id !== edge.id)
-      : [...selectedEdgeIds, edge.id];
-
-    // 更新所有连接的选中状态
-    reactFlowInstance.setEdges((eds) =>
-      eds.map(e => ({
-        ...e,
-        'selected': newSelectedEdgeIds.includes(e.id)
-      }))
-    );
-  }, [selectedEdges, reactFlowInstance]);
-
-  // === 统计信息功能 ===
-  /**
-   * 计算基本统计数据
-   */
-  const calculateBasicStats = useCallback(() => {
-    const totalNodes = nodes.length;
-    const totalEdges = edges.length;
-    const avgConnections = totalNodes > 0 ? (totalEdges * 2) / totalNodes : 0;
-
-    // 计算不同类型节点的数量
-    const nodeTypes = nodes.reduce<Record<string, number>>((acc, node) => {
-      const category = node.data?.category || '默认';
-      const categoryStr = String(category);
-      acc[categoryStr] = (acc[categoryStr] || 0) + 1;
-      return acc;
-    }, {});
-
-    // 计算不同类型链接的数量
-    const edgeTypes = edges.reduce<Record<string, number>>((acc, edge) => {
-      const type = edge.data?.type || 'related';
-      const typeStr = String(type);
-      acc[typeStr] = (acc[typeStr] || 0) + 1;
-      return acc;
-    }, {});
-
-    return {
-      totalNodes,
-      totalEdges,
-      avgConnections,
-      nodeTypes,
-      edgeTypes
-    };
-  }, [nodes, edges]);
-
-  // 搜索过滤节点
-  const filteredNodes = useMemo(() => {
+  const getFilteredNodes = () => {
     if (!searchTerm.trim()) {
       return nodes;
     }
-
     const term = searchTerm.toLowerCase();
-
-    return nodes.filter(node => {
+    return nodes.filter((node) => {
       const nodeTitle = String(node.data?.title || '').toLowerCase();
       const nodeContent = String(node.data?.metadata?.content || '').toLowerCase();
-
       switch (searchType) {
         case 'name':
           return nodeTitle.includes(term);
         case 'content':
           return nodeContent.includes(term);
-        case 'all':
         default:
           return nodeTitle.includes(term) || nodeContent.includes(term);
       }
     });
-  }, [nodes, searchTerm, searchType]);
+  };
 
-  // 渲染节点管理标签页
-  const nodesTab = useMemo(() => (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
-      <div className="flex flex-wrap gap-3 items-center mb-4">
-        {/* 节点统计 */}
-        <div className="text-sm text-gray-600 font-medium bg-white/70 px-3 py-1.5 rounded-lg shadow-sm">
-          节点数: {nodes.length} | 搜索结果: {filteredNodes.length} | 选中: {selectedNodes.length}
-        </div>
+  const getStats = () => {
+    const totalNodes = nodes.length;
+    const totalEdges = edges.length;
+    const avgConnections = totalNodes > 0 ? (totalEdges * 2) / totalNodes : 0;
+    const nodeTypes = nodes.reduce<Record<string, number>>((acc, node) => {
+      const category = String(node.data?.category || '默认');
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {});
+    const edgeTypes = edges.reduce<Record<string, number>>((acc, edge) => {
+      const type = String(edge.data?.type || 'related');
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+    return { totalNodes, totalEdges, avgConnections, nodeTypes, edgeTypes };
+  };
 
-        {/* 添加节点按钮 */}
-        <button
-          className="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg flex items-center gap-2 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-green-500"
-          onClick={onAddNode}
-        >
-          <Plus size={16} />
-          添加节点
-        </button>
+  const filteredNodes = getFilteredNodes();
+  const stats = getStats();
+  const selectedNodes = nodes.filter((node) => node.selected);
+  const selectedEdges = edges.filter((edge) => edge.selected);
 
-        {/* 删除选中节点按钮 */}
-        <button
-          className={`px-5 py-2.5 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-[1.02] focus:outline-none ${selectedNodes.length === 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-red-600 to-rose-600 text-white hover:shadow-lg focus:ring-2 focus:ring-red-500'}`}
-          onClick={handleDeleteSelectedNodes}
-          disabled={selectedNodes.length === 0}
-        >
-          <Trash2 size={16} />
-          删除选中节点
-        </button>
-      </div>
-
-      {/* 搜索栏 */}
-      <div className="flex flex-wrap gap-3 mb-4">
-        <div className="flex-1 min-w-[200px]">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="搜索节点名称或内容..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                title="清空搜索"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="min-w-[120px]">
-          <select
-            value={searchType}
-            onChange={(e) => setSearchType(e.target.value as 'all' | 'name' | 'content')}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-          >
-            <option value="all">全部</option>
-            <option value="name">名称</option>
-            <option value="content">内容</option>
-          </select>
-        </div>
-      </div>
-
-      {/* 节点列表 */}
-      <div className="max-h-60 overflow-y-auto bg-white/80 rounded-lg shadow-sm">
-        <ul className="space-y-1.5 p-1">
-          {filteredNodes.map(node => (
-            <li
-              key={node.id}
-              className={`flex items-center gap-2 p-2.5 rounded-md cursor-pointer transition-all duration-200 ${selectedNodes.some(n => n.id === node.id) ? 'bg-blue-100 text-blue-800 shadow-sm' : 'hover:bg-gray-50 hover:shadow-sm'}`}
-              onClick={() => handleNodeClick(node)}
-            >
-              <div className="flex-1">
-                <div className="text-sm font-medium truncate">{String(node.data?.title || '未命名节点')}</div>
-                <div className="text-xs text-gray-500">类别: {String(node.data?.category || '默认')}</div>
-                {node.data?.metadata?.content && (
-                  <div className="text-xs text-gray-500 truncate mt-1">
-                    {String(node.data.metadata.content)}
-                  </div>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  ), [nodes, filteredNodes, selectedNodes, onAddNode, handleDeleteSelectedNodes, handleNodeClick, searchTerm, searchType]);
-
-  // 渲染连接管理标签页
-  const connectionsTab = useMemo(() => (
-    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 shadow-sm border border-purple-100 hover:shadow-md transition-all duration-300">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-800 flex items-center gap-2">
-          <LinkIcon size={18} className="text-purple-600" />
-          连接管理
-        </h3>
-      </div>
-
-      <div className="border-t border-purple-100 pt-4">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-sm font-medium text-gray-700 bg-white/70 px-3 py-1.5 rounded-lg shadow-sm">
-            连接列表 ({edges.length})
-          </h4>
-          <div className="flex gap-2">
-            {selectedEdges.length > 0 && (
-              <button
-                onClick={handleBatchDeleteConnections}
-                className="px-4 py-1.5 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-lg text-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02]"
-              >
-                批量删除
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-2 bg-white/80 rounded-lg shadow-sm p-1">
-        {edges.map((edge) => {
-          const sourceNode = nodes.find(n => n.id === edge.source);
-          const targetNode = nodes.find(n => n.id === edge.target);
-
-          return (
-            <div
-              key={edge.id}
-              className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-all duration-200 ${selectedEdges.some(c => c.id === edge.id) ? 'bg-purple-100 text-purple-800 shadow-sm' : 'hover:bg-gray-50 hover:shadow-sm'}`}
-              onClick={() => handleConnectionClick(edge)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-800 truncate">
-                    {sourceNode?.data?.title || edge.source}
-                  </div>
-                  <div className="text-sm text-gray-400 flex items-center justify-center">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <div className="text-sm font-medium text-gray-800 truncate">
-                    {targetNode?.data?.title || edge.target}
-                  </div>
-                </div>
-                <div className="px-2.5 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-                  {String(edge.data?.type || 'related')}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteConnection(edge.id);
-                  }}
-                  className="p-1.5 hover:bg-red-50 text-red-600 rounded-full transition-all duration-200 hover:shadow-sm transform hover:scale-110"
-                  title="删除"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  ), [edges, selectedEdges, nodes, handleBatchDeleteConnections, handleConnectionClick, handleDeleteConnection]);
-
-  // 渲染统计信息标签页
-  const statisticsTab = useMemo(() => {
-    const stats = calculateBasicStats();
-
-    return (
-      <div className="p-4 space-y-4">
-        {/* 整体统计卡片 */}
-        <div className="space-y-4">
-          {/* 节点总数 */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 shadow-sm border border-blue-200">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white">
-                <Database className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm text-blue-700 font-medium">节点总数</p>
-                <p className="text-2xl font-bold text-blue-900">{stats.totalNodes}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* 连接总数 */}
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 shadow-sm border border-green-200">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white">
-                <LinkIcon className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm text-green-700 font-medium">连接总数</p>
-                <p className="text-2xl font-bold text-green-900">{stats.totalEdges}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* 平均连接度 */}
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 shadow-sm border border-purple-200">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white">
-                <PieChart className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm text-purple-700 font-medium">平均连接度</p>
-                <p className="text-2xl font-bold text-purple-900">{stats.avgConnections.toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 节点类型统计 */}
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <BarChart2 className="w-4 h-4 text-gray-500" />
-            节点类别分布
-          </h3>
-          <div className="space-y-2">
-            {Object.entries(stats.nodeTypes).map(([type, count]) => (
-              <div key={type} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 capitalize">{type}</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-24 bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
-                      style={{ 'width': `${(count / stats.totalNodes) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-gray-800">{count}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 连接类别统计 */}
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <BarChart2 className="w-4 h-4 text-gray-500" />
-            连接类别分布
-          </h3>
-          <div className="space-y-2">
-            {Object.entries(stats.edgeTypes).map(([type, count]) => (
-              <div key={type} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 capitalize">{type}</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-24 bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300 ease-in-out"
-                      style={{ 'width': `${(count / stats.totalEdges) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-gray-800">{count}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }, [calculateBasicStats]);
+  const tabs: Array<{ key: TabType; icon: React.ReactNode; label: string }> = [
+    { 'key': 'nodes', 'icon': <Database size={16} />, 'label': '节点管理' },
+    { 'key': 'connections', 'icon': <LinkIcon size={16} />, 'label': '连接管理' },
+    { 'key': 'statistics', 'icon': <BarChart2 size={16} />, 'label': '统计信息' }
+  ];
 
   return (
-    <div className="w-[32rem] min-w-[32rem] max-w-[32rem] h-full bg-white flex flex-col overflow-hidden absolute left-0 top-0 z-10 border-r border-gray-200 transition-all duration-300 ease-in-out" style={{ boxShadow: 'var(--shadow-md)' }}>
-      {/* 面板标题 */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between" style={{ background: 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
-        <div>
-          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary-color)' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            图管理
-          </h2>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-            管理节点、连接和查看统计信息
-          </p>
+    <div className="panel-container">
+      <header className="panel-header flex items-center justify-between">
+        <div className="panel-title flex items-center gap-2">
+          <LayoutGrid className="w-5 h-5 text-primary-400" />
+          图管理
         </div>
-        <button
-          onClick={onClose}
-          className="p-1 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          title="关闭面板"
-          style={{ color: 'var(--text-secondary)' }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+        <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors" title="关闭面板">
+          <X className="h-5 w-5" />
         </button>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
-        <div className="bg-white rounded-lg flex flex-col h-full" style={{ border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
-      {/* 标签页导航 - 横向滚动 */}
-      <div className="border-b border-gray-200 bg-white/90 backdrop-blur-sm z-10">
-        <div className="overflow-x-auto whitespace-nowrap">
-          <div className="flex space-x-1 p-1">
-            <button
-              className={`py-3 px-6 text-sm font-medium transition-all ${activeTab === 'nodes' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50'}`}
-              style={{ backgroundColor: activeTab === 'nodes' ? 'var(--primary-color-light)' : 'transparent' }}
-              onClick={() => setActiveTab('nodes')}
-            >
-              <div className="flex items-center gap-2">
-                <Database size={16} style={{ color: activeTab === 'nodes' ? 'var(--primary-color)' : 'var(--text-secondary)' }} />
-                节点管理
-              </div>
-            </button>
-            <button
-              className={`py-3 px-6 text-sm font-medium transition-all ${activeTab === 'connections' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50'}`}
-              style={{ backgroundColor: activeTab === 'connections' ? 'var(--primary-color-light)' : 'transparent' }}
-              onClick={() => setActiveTab('connections')}
-            >
-              <div className="flex items-center gap-2">
-                <LinkIcon size={16} style={{ color: activeTab === 'connections' ? 'var(--primary-color)' : 'var(--text-secondary)' }} />
-                连接管理
-              </div>
-            </button>
-            <button
-              className={`py-3 px-6 text-sm font-medium transition-all ${activeTab === 'statistics' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50'}`}
-              style={{ backgroundColor: activeTab === 'statistics' ? 'var(--primary-color-light)' : 'transparent' }}
-              onClick={() => setActiveTab('statistics')}
-            >
-              <div className="flex items-center gap-2">
-                <BarChart2 size={16} style={{ color: activeTab === 'statistics' ? 'var(--primary-color)' : 'var(--text-secondary)' }} />
-                统计信息
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
+      </header>
 
-      {/* 标签页内容 - 固定区域，不随菜单滚动 */}
-      <div className="flex-1 overflow-y-auto p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
-        {activeTab === 'nodes' && nodesTab}
-        {activeTab === 'connections' && connectionsTab}
-        {activeTab === 'statistics' && statisticsTab}
-      </div>
-    </div>
+      <div className="panel-content flex flex-col h-full">
+        <nav className="border-b border-neutral-200 bg-white/90 backdrop-blur-sm z-10">
+          <div className="flex space-x-1 p-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                className={`py-3 px-6 text-sm font-medium transition-all ${activeTab === tab.key ? 'text-primary-600 border-b-2 border-primary-500 bg-primary-50/80' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                <div className="flex items-center gap-2">
+                  <span className={activeTab === tab.key ? 'text-primary-400' : 'text-neutral-500'}>
+                    {tab.icon}
+                  </span>
+                  {tab.label}
+                </div>
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        <main className="flex-1 overflow-y-auto p-4 bg-neutral-50">
+          {activeTab === 'nodes' && (
+            <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-5 shadow-sm border border-primary-100">
+              <div className="flex flex-wrap gap-3 items-center mb-4">
+                <div className="text-sm text-neutral-600 font-medium bg-white/70 px-3 py-1.5 rounded-lg shadow-sm">
+                  节点数: {nodes.length} | 搜索结果: {filteredNodes.length} | 选中: {selectedNodes.length}
+                </div>
+                <button
+                  className="px-5 py-2.5 bg-gradient-to-r from-secondary-500 to-secondary-600 text-white rounded-lg flex items-center gap-2 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-secondary-400"
+                  onClick={onAddNode}
+                >
+                  <Plus size={16} />
+                  添加节点
+                </button>
+                <button
+                  className={`px-5 py-2.5 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-[1.02] focus:outline-none ${selectedNodes.length === 0 ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-rose-600 text-white hover:shadow-lg focus:ring-2 focus:ring-red-500'}`}
+                  onClick={handleDeleteSelectedNodes}
+                  disabled={selectedNodes.length === 0}
+                >
+                  <Trash2 size={16} />
+                  删除选中节点
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-3 mb-4">
+                <div className="flex-1 min-w-[200px] relative">
+                  <input
+                    type="text"
+                    placeholder="搜索节点名称或内容..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2.5 pr-10 border border-neutral-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all duration-200 bg-neutral-50 text-neutral-800"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+                      title="清空搜索"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                <select
+                  value={searchType}
+                  onChange={(e) => setSearchType(e.target.value as 'all' | 'name' | 'content')}
+                  className="min-w-[120px] px-4 py-2.5 border border-neutral-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all duration-200 bg-neutral-50 text-neutral-800"
+                >
+                  <option value="all">全部</option>
+                  <option value="name">名称</option>
+                  <option value="content">内容</option>
+                </select>
+              </div>
+
+              <ul className="max-h-60 overflow-y-auto bg-white/80 rounded-lg shadow-sm space-y-1.5 p-1">
+                {filteredNodes.map((node) => (
+                  <li
+                    key={node.id}
+                    className={`flex items-center gap-2 p-2.5 rounded-md cursor-pointer transition-all duration-200 ${selectedNodes.some((n) => n.id === node.id) ? 'bg-primary-100 text-primary-800 shadow-sm' : 'hover:bg-neutral-50 hover:shadow-sm'}`}
+                    onClick={() => handleToggleSelection(node.id, 'node')}
+                  >
+                    <div className="flex-1">
+                      <div className="text-sm font-medium truncate text-neutral-800">{String(node.data?.title || '未命名节点')}</div>
+                      <div className="text-xs text-neutral-500">类别: {String(node.data?.category || '默认')}</div>
+                      {node.data?.metadata?.content && (
+                        <div className="text-xs text-neutral-500 truncate mt-1">
+                          {String(node.data.metadata.content)}
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {activeTab === 'connections' && (
+            <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-5 shadow-sm border border-primary-100">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-neutral-800 flex items-center gap-2">
+                  <LinkIcon size={18} className="text-primary-400" />
+                  连接管理
+                </h3>
+                {selectedEdges.length > 0 && (
+                  <button
+                    onClick={handleBatchDeleteConnections}
+                    className="px-4 py-1.5 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-lg text-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02]"
+                  >
+                    批量删除
+                  </button>
+                )}
+              </div>
+
+              <div className="border-t border-primary-100 pt-4">
+                <h4 className="text-sm font-medium text-neutral-700 bg-white/70 px-3 py-1.5 rounded-lg shadow-sm mb-4">
+                  连接列表 ({edges.length})
+                </h4>
+              </div>
+
+              <div className="space-y-2 bg-white/80 rounded-lg shadow-sm p-1">
+                {edges.map((edge) => {
+                  const sourceNode = nodes.find((n) => n.id === edge.source);
+                  const targetNode = nodes.find((n) => n.id === edge.target);
+
+                  return (
+                    <div
+                      key={edge.id}
+                      className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-all duration-200 ${selectedEdges.some((c) => c.id === edge.id) ? 'bg-primary-100 text-primary-800 shadow-sm' : 'hover:bg-neutral-50 hover:shadow-sm'}`}
+                      onClick={() => handleToggleSelection(edge.id, 'edge')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-neutral-800 truncate">
+                            {sourceNode?.data?.title || edge.source}
+                          </div>
+                          <div className="text-sm text-neutral-400 flex items-center justify-center">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                          <div className="text-sm font-medium text-neutral-800 truncate">
+                            {targetNode?.data?.title || edge.target}
+                          </div>
+                        </div>
+                        <div className="px-2.5 py-0.5 bg-primary-100 text-primary-800 rounded-full text-xs font-medium">
+                          {String(edge.data?.type || 'related')}
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteConnection(edge.id);
+                        }}
+                        className="p-1.5 hover:bg-red-50 text-red-600 rounded-full transition-all duration-200 hover:shadow-sm transform hover:scale-110"
+                        title="删除"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'statistics' && (
+            <div className="p-4 space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 shadow-sm border border-primary-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white">
+                      <Database className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-primary-700 font-medium">节点总数</p>
+                      <p className="text-2xl font-bold text-primary-900">{stats.totalNodes}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-4 shadow-sm border border-secondary-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-secondary-600 flex items-center justify-center text-white">
+                      <LinkIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-secondary-700 font-medium">连接总数</p>
+                      <p className="text-2xl font-bold text-secondary-900">{stats.totalEdges}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-xl p-4 shadow-sm border border-neutral-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-neutral-600 flex items-center justify-center text-white">
+                      <PieChart className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-neutral-700 font-medium">平均连接度</p>
+                      <p className="text-2xl font-bold text-neutral-900">{stats.avgConnections.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-neutral-200">
+                <h3 className="text-sm font-semibold text-neutral-800 mb-3 flex items-center gap-2">
+                  <BarChart2 className="w-4 h-4 text-neutral-500" />
+                  节点类别分布
+                </h3>
+                <div className="space-y-2">
+                  {Object.entries(stats.nodeTypes).map(([type, count]) => (
+                    <div key={type} className="flex items-center justify-between">
+                      <span className="text-sm text-neutral-600 capitalize">{type}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-neutral-200 rounded-full h-2">
+                          <div
+                            className="bg-primary-500 h-2 rounded-full transition-all duration-300 ease-in-out"
+                            style={{ 'width': `${(count / stats.totalNodes) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-neutral-800">{count}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-neutral-200">
+                <h3 className="text-sm font-semibold text-neutral-800 mb-3 flex items-center gap-2">
+                  <BarChart2 className="w-4 h-4 text-neutral-500" />
+                  连接类别分布
+                </h3>
+                <div className="space-y-2">
+                  {Object.entries(stats.edgeTypes).map(([type, count]) => (
+                    <div key={type} className="flex items-center justify-between">
+                      <span className="text-sm text-neutral-600 capitalize">{type}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-neutral-200 rounded-full h-2">
+                          <div
+                            className="bg-secondary-500 h-2 rounded-full transition-all duration-300 ease-in-out"
+                            style={{ 'width': `${(count / stats.totalEdges) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-neutral-800">{count}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );
 };
 
-export default React.memo(GraphManagementPanel);
+export default GraphManagementPanel;
