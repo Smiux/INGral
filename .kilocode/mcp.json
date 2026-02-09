@@ -1,1 +1,0 @@
-{"mcpServers":{"context7":{"command":"npx","args":["-y","@upstash/context7-mcp"],"env":{"DEFAULT_MINIMUM_TOKENS":""},"disabled":false,"alwaysAllow":["resolve-library-id","query-docs"]},"puppeteer":{"command":"npx","args":["-y","@modelcontextprotocol/server-puppeteer"],"alwaysAllow":["puppeteer_navigate"]}}}
