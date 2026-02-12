@@ -28,7 +28,7 @@ export function HomePage () {
             MyWiki
           </h1>
           <p className="text-xl text-neutral-600 mb-8 max-w-2xl mx-auto">
-            A community-based knowledge platform for creating, sharing, and visualizing mathematical concepts.
+            一个基于社区的知识平台，用于创建、分享和可视化数学概念。
           </p>
         </div>
 
@@ -60,7 +60,7 @@ export function HomePage () {
                     </p>
                     <div className="flex items-center justify-between text-xs text-neutral-500">
                       <span>
-                        {article.updated_at ? new Date(article.updated_at).toLocaleDateString('en-US', {
+                        {article.updated_at ? new Date(article.updated_at).toLocaleDateString('zh-CN', {
                           'month': 'short',
                           'day': 'numeric'
                         }) : 'N/A'}
@@ -71,12 +71,12 @@ export function HomePage () {
               </div>
             ) : (
               <div className="text-center py-12 bg-neutral-50 rounded-lg border border-neutral-200">
-                <p className="text-neutral-600 mb-4">No articles yet. Be the first to create one!</p>
+                <p className="text-neutral-600 mb-4">暂无文章。快来创建第一篇吧！</p>
                 <Link
                   to="/create"
                   className="inline-block bg-primary-50 text-primary-700 border border-primary-200 px-6 py-2 rounded-lg hover:bg-primary-100 hover:border-primary-300 transition-all duration-200 transform hover:scale-105"
                 >
-                  Create Article
+                  创建文章
                 </Link>
               </div>
             )}

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, BookOpen, Users, Brain } from 'lucide-react';
-import { ThemeToggle } from './ThemeToggle';
+import { Search, BookOpen, Network } from 'lucide-react';
 
 export function Header () {
   const navigate = useNavigate();
@@ -20,7 +19,6 @@ export function Header () {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity text-neutral-800">
-            <Brain className="w-6 h-6 text-primary-400" />
             <span className="font-bold text-xl tracking-tight">MyWiki</span>
           </Link>
 
@@ -48,28 +46,18 @@ export function Header () {
                 to="/graphs"
                 className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-primary-500 hover:bg-primary-50 transition-all duration-200"
               >
-                <Brain className="w-4 h-4 text-primary-300" />
-                <span className="text-sm">Knowledge Graph</span>
+                <Network className="w-4 h-4 text-primary-300" />
+                <span className="text-sm">图</span>
               </Link>
               <Link
                 to="/articles"
                 className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-secondary-500 hover:bg-secondary-50 transition-all duration-200"
               >
                 <BookOpen className="w-4 h-4 text-secondary-300" />
-                <span className="text-sm">Articles</span>
+                <span className="text-sm">文章</span>
               </Link>
-              <Link
-                to="/discussions"
-                className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-primary-500 hover:bg-primary-50 transition-all duration-200"
-              >
-                <Users className="w-4 h-4 text-primary-300" />
-                <span className="text-sm">Discussions</span>
-              </Link>
-            </nav>
 
-            <div className="p-1 rounded-full bg-neutral-100">
-              <ThemeToggle />
-            </div>
+            </nav>
           </div>
         </div>
       </div>

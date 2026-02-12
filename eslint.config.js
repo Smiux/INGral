@@ -24,14 +24,12 @@ export default tseslint.config(
       'unused-imports': unusedImports,
     },
     rules: {
-      // React Hooks规则
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
       
-      // 基本规则
       'no-debugger': 'error',
       'no-alert': 'error',
       'no-eval': 'error',

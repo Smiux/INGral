@@ -140,14 +140,14 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div
         ref={modalRef}
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
       >
         {/* 编辑器头部 */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">LaTeX公式编辑器</h2>
+        <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-50">
+          <h2 className="text-lg font-semibold text-gray-800">LaTeX公式编辑器</h2>
           <button
             onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            className="text-gray-500 hover:text-gray-700 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -160,10 +160,10 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
             {/* MathLive编辑器 */}
             <div className="editor-panel">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">公式编辑</h3>
+                <h3 className="text-sm font-medium text-gray-700">公式编辑</h3>
                 <button
                   onClick={handleClear}
-                  className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="px-3 py-1 text-xs bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition-colors"
                 >
                   清除
                 </button>
@@ -180,10 +180,10 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
                 mathStyle="displaystyle"
                 fontSize="1.25rem"
                 placeholder="输入LaTeX公式..."
-                className="w-full min-h-64 max-h-[50vh] p-4 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y overflow-auto"
+                className="w-full min-h-64 max-h-[50vh] p-4 border border-gray-300 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y overflow-auto"
                 style={{ 'width': '100%', 'maxWidth': '100%', 'minWidth': '100%', 'display': 'block' }}
               ></math-field>
-              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <div className="mt-1 text-xs text-gray-500">
                 💡 提示：直接输入LaTeX公式，或使用辅助工具
               </div>
             </div>
@@ -193,17 +193,17 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
         </div>
 
         {/* 编辑器底部 */}
-        <div className="p-4 border-t border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 flex justify-end items-center">
+        <div className="p-4 border-t border-gray-300 bg-gray-50 flex justify-end items-center">
           <div className="flex space-x-2">
             <button
               onClick={handleClear}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-100 transition-colors"
             >
               清除
             </button>
             <button
               onClick={handleCopy}
-              className="px-4 py-2 border border-blue-500 rounded bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors flex items-center"
+              className="px-4 py-2 border border-blue-500 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors flex items-center"
             >
               <Copy className="w-4 h-4 mr-1" />
               复制公式

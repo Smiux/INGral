@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { articleService } from '../../services/articleService';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
-import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table';
+import FileHandler from '@tiptap/extension-file-handler';
+import { TableKit } from '@tiptap/extension-table';
 import { TextAlign } from '@tiptap/extension-text-align';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
@@ -22,10 +23,10 @@ import { DragHandle as DragHandleReact } from '@tiptap/extension-drag-handle-rea
 import { LatexEditor } from './LatexEditor';
 import {
   Bold, Italic, Code, List, Heading1,
-  Undo, Redo, Save, Globe, User, Lock, Link as LinkIcon, Brain,
+  Undo, Redo, Save, Globe, User, Lock, Link as LinkIcon,
   Strikethrough, Underline as UnderlineIcon, Highlighter,
   ArrowDownToLine, ArrowUpToLine, Quote, Minus, CodeSquare,
-  AlignLeft, Image as ImageIcon,
+  AlignLeft,
   Plus, Calculator, GripVertical
 } from 'lucide-react';
 import { createLowlight } from 'lowlight';
@@ -258,9 +259,9 @@ export const ArticleEditor: React.FC = () => {
   const [fontColor, setFontColor] = useState('#000000');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
 
-  // 图片URL输入状态
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [imageUrl, setImageUrl] = useState('');
+  // 链接输入状态
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
 
   // 字数统计
   const [characterCount, setCharacterCount] = useState(0);
@@ -327,10 +328,42 @@ export const ArticleEditor: React.FC = () => {
         'tabSize': 2
       }),
       Image,
-      Table,
-      TableCell,
-      TableHeader,
-      TableRow,
+      FileHandler.configure({
+        'onDrop': (_, files) => {
+          files.forEach((file) => {
+            if (file.type.startsWith('image/')) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const uploadedImageUrl = e.target?.result as string;
+                editor?.chain().focus()
+                  .setImage({ 'src': uploadedImageUrl })
+                  .run();
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        },
+        'onPaste': (_, files) => {
+          files.forEach((file) => {
+            if (file.type.startsWith('image/')) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const uploadedImageUrl = e.target?.result as string;
+                editor?.chain().focus()
+                  .setImage({ 'src': uploadedImageUrl })
+                  .run();
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        },
+        'allowedMimeTypes': ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+      }),
+      TableKit.configure({
+        'table': {
+          'resizable': true
+        }
+      }),
       TextAlign.configure({ 'types': ['heading', 'paragraph'] }),
       Typography,
       InvisibleCharacters.configure({ 'visible': true, 'injectCSS': true }),
@@ -423,32 +456,23 @@ export const ArticleEditor: React.FC = () => {
     setShowLatexEditor(false);
   };
 
-  const handleImageSubmit = () => {
-    if (imageUrl.trim()) {
-      editor?.chain().focus()
-        .setImage({ 'src': imageUrl.trim() })
-        .run();
-      setImageUrl('');
-      setShowImageModal(false);
-    }
-  };
-
-  const insertImage = () => setShowImageModal(true);
-
   const handleLink = () => {
     const previousUrl = editor?.getAttributes('link').href || '';
-    // eslint-disable-next-line no-alert
-    const url = window.prompt('URL:', previousUrl) || '';
+    setLinkUrl(previousUrl);
+    setShowLinkDialog(true);
+  };
 
-    if (url) {
+  const handleLinkSubmit = () => {
+    if (linkUrl) {
       editor?.chain().focus()
-        .setLink({ 'href': url })
+        .setLink({ 'href': linkUrl })
         .run();
-    } else if (previousUrl) {
+    } else {
       editor?.chain().focus()
         .unsetLink()
         .run();
     }
+    setShowLinkDialog(false);
   };
 
   const toggleHighlight = () => {
@@ -493,6 +517,42 @@ export const ArticleEditor: React.FC = () => {
 
   return (
     <div className="min-h-screen">
+      {/* 链接输入弹窗 */}
+      {showLinkDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setShowLinkDialog(false)} />
+          <div className="bg-white rounded-lg shadow-md border border-neutral-200 p-4 relative z-10 min-w-[400px] max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-neutral-800">添加链接</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">链接地址</label>
+                <input
+                  type="text"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  placeholder="https://example.com"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => setShowLinkDialog(false)}
+                  className="px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleLinkSubmit}
+                  className="px-4 py-2 text-sm text-white bg-primary-600 hover:bg-primary-700 rounded-md transition-colors"
+                >
+                  确定
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* LaTeX编辑器 */}
       <LatexEditor
         isOpen={showLatexEditor}
@@ -505,7 +565,6 @@ export const ArticleEditor: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button onClick={() => navigate('/')} className="flex items-center gap-2 p-2 rounded hover:bg-neutral-100 transition-colors">
-              <Brain className="w-6 h-6 text-primary-400" />
               <span className="font-bold text-xl tracking-tight text-neutral-800">MyWiki</span>
             </button>
 
@@ -932,10 +991,6 @@ export const ArticleEditor: React.FC = () => {
                   <LinkIcon size={16} className="text-neutral-600" />
                   <span className="text-xs text-neutral-600 mt-1">链接</span>
                 </button>
-                <button onClick={insertImage} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
-                  <ImageIcon size={16} className="text-neutral-600" />
-                  <span className="text-xs text-neutral-600 mt-1">图片</span>
-                </button>
                 <button onClick={() => editor?.chain().focus()
                   .insertTable({ 'rows': 3, 'cols': 3, 'withHeaderRow': true })
                   .run()} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
@@ -1075,41 +1130,13 @@ export const ArticleEditor: React.FC = () => {
                   {/* 编辑器内容 */}
                   <EditorContent
                     editor={editor}
-                    className="prose prose-lg max-w-none mx-auto p-6 md:p-8 prose-headings:scroll-mt-20 prose-headings:text-neutral-800 prose-headings:font-bold prose-a:text-primary-600 prose-a:hover:text-primary-700 prose-a:underline-offset-4 prose-code:bg-neutral-100 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-neutral-800 prose-pre:bg-neutral-800 prose-pre:text-neutral-100 prose-p:text-neutral-700 prose-ul:text-neutral-700 prose-ul:list-disc prose-ul:pl-6 prose-ul:list-outside prose-ol:text-neutral-700 prose-ol:list-decimal prose-ol:pl-6 prose-ol:list-outside prose-strong:text-neutral-900 prose-em:text-neutral-800 prose-blockquote:border-l-4 prose-blockquote:border-primary-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-neutral-600 prose-hr:my-8 prose-hr:border-t prose-hr:border-neutral-200 prose-table:border-collapse prose-table:border prose-table:border-neutral-200 prose-th:border prose-th:border-neutral-200 prose-th:bg-neutral-50 prose-td:border prose-td:border-neutral-200 prose-td:p-3 prose-th:p-3 prose-td:bg-white"
+                    className="prose prose-lg max-w-none mx-auto p-6 md:p-8"
                   />
                 </>
               )}
             </div>
           </div>
         </div>
-
-        {/* 图片URL输入模态框 */}
-        {showImageModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-300">
-            <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">插入图片</h3>
-              <div className="mb-4">
-                <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-1">图片URL</label>
-                <input
-                  type="text"
-                  id="imageUrl"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  autoFocus
-                  onKeyPress={(e) => e.key === 'Enter' && handleImageSubmit()}
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <button onClick={() => {
-                  setShowImageModal(false); setImageUrl('');
-                }} className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">取消</button>
-                <button onClick={handleImageSubmit} className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700">插入</button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

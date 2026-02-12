@@ -20,7 +20,7 @@ import {
   NodeChange,
   EdgeChange
 } from '@xyflow/react';
-import { Brain, Database, Box } from 'lucide-react';
+import { Database, Box } from 'lucide-react';
 import ForceGraph2D from 'react-force-graph-2d';
 import ForceGraph3D from 'react-force-graph-3d';
 import '@xyflow/react/dist/style.css';
@@ -407,7 +407,6 @@ const GraphVisualizationContent: React.FC = () => {
       <div className="bg-white border-b border-gray-200 shadow-md flex items-center justify-between gap-0 z-50">
         <div className="flex items-center gap-2 p-1">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity px-2">
-            <Brain className="w-5 h-5 text-blue-600" />
             <span className="font-bold text-sm tracking-tight text-gray-800">MyWiki</span>
           </Link>
           <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-gray-700">

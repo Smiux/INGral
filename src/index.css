@@ -1,20 +1,13 @@
-/* eslint-disable */
-
-/* Import highlight.js default theme */
 @import 'highlight.js/styles/nord.css';
 
-/* These Tailwind directives are essential for the UI to load properly */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Variables for theming */
 :root {
-  --shadow-sm: 0 1px 2px rgba(220, 220, 220, 0.4), 0 1px 1px rgba(235, 235, 235, 0.3), 0 0 1px rgba(255, 255, 255, 0.5);
-  --shadow-md: 0 2px 3px rgba(210, 210, 210, 0.4), 0 1px 2px rgba(230, 230, 230, 0.3), 0 0 2px rgba(255, 255, 255, 0.6);
-  --shadow-lg: 0 3px 5px rgba(200, 200, 200, 0.4), 0 2px 3px rgba(220, 220, 220, 0.3), 0 0 3px rgba(255, 255, 255, 0.7);
-  --transition-fast: 0.15s ease-in-out;
-  --transition-normal: 0.3s ease-in-out;
+  --shadow-sm: 0 1px 2px rgba(220, 220, 220, 0.4), 0 1px 1px;
+  --shadow-md: 0 2px 3px rgba(210, 210, 210, 0.4), 0 1px 2px;
+  --shadow-lg: 0 3px 5px rgba(200, 200, 200, 0.4), 0 2px 3px;
   --bg-primary: #ffffff;
   --bg-hover: #f9fafb;
   --text-primary: #1f2937;
@@ -23,41 +16,18 @@
   --primary-color: #3b82f6;
   --primary-color-light: #eff6ff;
   --primary-color-dark: #2563eb;
-  --secondary-color: #10b981;
-  --secondary-color-light: #d1fae5;
-  --secondary-color-dark: #059669;
 }
 
-/* Dark mode CSS Variables */
-.dark {
-  --shadow-sm: 0 1px 2px rgba(10, 10, 10, 0.4), 0 1px 1px rgba(20, 20, 20, 0.3), 0 0 1px rgba(40, 40, 40, 0.5);
-  --shadow-md: 0 2px 3px rgba(5, 5, 5, 0.4), 0 1px 2px rgba(15, 15, 15, 0.3), 0 0 2px rgba(30, 30, 30, 0.6);
-  --shadow-lg: 0 3px 5px rgba(0, 0, 0, 0.4), 0 2px 3px rgba(10, 10, 10, 0.3), 0 0 3px rgba(25, 25, 25, 0.7);
-  --bg-primary: #1f2937;
-  --bg-hover: #374151;
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --border-color: #4b5563;
-  --primary-color: #60a5fa;
-  --primary-color-light: #1e3a8a;
-  --primary-color-dark: #3b82f6;
-  --secondary-color: #34d399;
-  --secondary-color-light: #065f46;
-  --secondary-color-dark: #10b981;
-}
-
-/* Base styles */
 body {
-  @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200;
+  @apply bg-white text-gray-900 transition-colors duration-200;
 }
 
-/* KaTeX styling */
 .katex-display {
   @apply my-4 overflow-x-auto;
 }
 
 .katex {
-  @apply text-gray-900 dark:text-gray-100;
+  @apply text-gray-900;
 }
 
 .block-math {
@@ -68,28 +38,12 @@ body {
   @apply inline;
 }
 
-/* Error states for math */
 .inline-math.error,
 .block-math.error {
-  @apply text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded;
+  @apply text-red-600 bg-red-50 px-2 py-1 rounded;
 }
 
-/* Dark mode KaTeX styles */
-.dark .katex {
-  color: #f3f4f6;
-}
-
-.dark .katex .katex-mathml {
-  color: #f3f4f6;
-}
-
-.dark .katex .katex-html {
-  color: #f3f4f6;
-}
-
-/* Prose styles for Tiptap editor */
 .prose {
-  /* Headings */
   & h1,
   & h2,
   & h3 {
@@ -97,26 +51,24 @@ body {
   }
 
   & h1 {
-    @apply text-2xl dark:text-white;
+    @apply text-2xl;
   }
 
   & h2 {
-    @apply text-xl dark:text-gray-200;
+    @apply text-xl;
   }
 
   & h3 {
-    @apply text-lg dark:text-gray-300;
+    @apply text-lg;
   }
 
-  /* Paragraphs */
   & p {
-    @apply mb-4 leading-relaxed dark:text-gray-300;
+    @apply mb-4 leading-relaxed;
   }
 
-  /* Lists */
   & ul,
   & ol {
-    @apply mb-4 ml-6 dark:text-gray-300 list-outside;
+    @apply mb-4 ml-6 list-outside;
   }
 
   & ul {
@@ -131,50 +83,47 @@ body {
     @apply mb-2;
   }
 
-  /* Blockquotes */
   & blockquote {
-    @apply border-l-4 border-gray-300 pl-4 py-2 text-gray-700 italic dark:border-gray-700 dark:text-gray-400;
+    @apply border-l-4 border-gray-300 pl-4 py-2 text-gray-700 italic;
   }
 
-  /* Tables */
   & table {
     @apply w-full border-collapse mb-4;
   }
 
   & th,
   & td {
-    @apply border border-gray-300 px-4 py-2 dark:border-gray-700 dark:text-gray-300;
+    @apply border border-gray-300 px-4 py-2;
   }
 
   & th {
-    @apply bg-gray-100 dark:bg-gray-800;
+    @apply bg-gray-100;
   }
 
   & tr:nth-child(even) {
-    @apply bg-gray-50 dark:bg-gray-800;
+    @apply bg-gray-50;
+  }
+
+  & a {
+    @apply text-primary-600 hover:text-primary-700 underline underline-offset-2 transition-colors duration-200;
+  }
+
+  & hr {
+    @apply w-1/2 mx-auto my-8 border-t border-gray-300;
   }
 }
 
-.ProseMirror code:not(pre code) {
-  /* Light mode (default) */
-  background-color: #eceff4;        
-  color: #2e3440;                    
+.ProseMirror code {
+  background-color: #eceff4;
+  color: #2e3440;
   border: 1px solid #e5e9f0;
-  padding: 0.25em 0.5em;             
-  border-radius: 4px;                
+  padding: 0.25em 0.5em;
+  border-radius: 4px;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 0.875em;
-  font-weight: 500;                   
+  font-weight: 500;
 }
 
-/* Dark mode support */
-.dark .ProseMirror code:not(pre code) {
-  background-color: #3b4252;          
-  color: #eceff4;                     
-  border-color: #434c5e;               
-}
-
-/* Prose styles for Tiptap editor */
 .prose pre {
   @apply rounded-lg overflow-x-auto mb-4;
   max-height: 800px;
@@ -185,9 +134,6 @@ body {
   @apply rounded-none;
 }
 
-
-
-/* Unified Panel Styles */
 .panel-container {
   width: 32rem;
   min-width: 32rem;
@@ -233,48 +179,10 @@ body {
   gap: 1.5rem;
 }
 
-/* Toolbar Styles */
-.toolbar {
-  background-color: var(--bg-primary);
-  border-bottom: 1px solid var(--border-color);
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.toolbar-button {
-  background-color: var(--bg-primary);
-  color: var(--text-secondary);
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--border-color);
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-}
-
-.toolbar-button:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.toolbar-button.active {
-  background-color: var(--primary-color-light);
-  color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-/* Smooth Scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;

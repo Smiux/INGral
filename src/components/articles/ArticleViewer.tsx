@@ -123,10 +123,10 @@ export function ArticleViewer () {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* 右侧文章内容 */}
         <main className="flex-1">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-neutral-200 dark:border-gray-700 transition-all hover:shadow-md">
+          <div className="bg-white rounded-lg shadow-sm border border-neutral-200 transition-all hover:shadow-md">
             <div
               ref={contentRef}
-              className="prose prose-lg max-w-none mx-auto p-6 md:p-8 prose-headings:scroll-mt-20 prose-headings:text-neutral-800 dark:prose-headings:text-neutral-100 prose-headings:font-bold prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:hover:text-primary-700 dark:prose-a:hover:text-primary-300 prose-a:underline-offset-4 prose-code:bg-neutral-100 dark:prose-code:bg-gray-700 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-neutral-800 dark:prose-code:text-neutral-200 prose-pre:bg-neutral-800 dark:prose-pre:bg-gray-900 prose-pre:text-neutral-100 dark:prose-pre:text-neutral-200 prose-p:text-neutral-700 dark:prose-p:text-neutral-300 prose-ul:text-neutral-700 dark:prose-ul:text-neutral-300 prose-ol:text-neutral-700 dark:prose-ol:text-neutral-300 prose-strong:text-neutral-900 dark:prose-strong:text-neutral-100 prose-em:text-neutral-800 dark:prose-em:text-neutral-200 wiki-link-styling"
+              className="prose prose-lg max-w-none mx-auto p-6 md:p-8 prose-headings:scroll-mt-20 prose-headings:text-neutral-800 prose-headings:font-bold prose-a:text-primary-600 prose-a:hover:text-primary-700 prose-a:underline-offset-4 prose-code:bg-neutral-100 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-neutral-800 prose-pre:bg-neutral-800 prose-pre:text-neutral-100 prose-p:text-neutral-700 prose-ul:text-neutral-700 prose-ol:text-neutral-700 prose-strong:text-neutral-900 prose-em:text-neutral-800 wiki-link-styling"
               dangerouslySetInnerHTML={{ '__html': article.content }}
             />
           </div>
