@@ -11,6 +11,7 @@ type LayoutDirection = 'DOWN' | 'RIGHT' | 'UP' | 'LEFT';
 interface GraphLayoutPanelProps {
   onLayout: (nodes: Node<CustomNodeData>[], edges: Edge<CustomEdgeData>[]) => void;
   onClose: () => void;
+  isOpen: boolean;
 }
 
 const INPUT_CLASSES = 'w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent';
@@ -35,7 +36,7 @@ const DEFAULT_OPTIONS = {
   'nodeSpacing': 50 as number,
   'edgeEdgeSpacing': 10 as number,
   'edgeNodeSpacing': 10 as number,
-  'randomSeed': 42 as number,
+  'randomSeed': 0 as number,
   'layered': {
     'rankSpacing': 100,
     'crossingMinimization': 'LAYER_SWEEP',
@@ -296,7 +297,7 @@ const DIRECTION_OPTIONS = [
 
 const elk = new ELK();
 
-export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, onClose }) => {
+export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, onClose, isOpen }) => {
   const reactFlowInstance = useReactFlow();
   const [layoutOptions, setLayoutOptions] = useState(DEFAULT_OPTIONS);
   const [isLayouting, setIsLayouting] = useState(false);
@@ -435,7 +436,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
   const algorithmConfig = layoutOptions[layoutOptions.algorithm as keyof typeof DEFAULT_OPTIONS] as Record<string, unknown>;
 
   return (
-    <div className="panel-container">
+    <div className={`panel-container ${isOpen ? 'panel-open' : 'panel-closing'}`}>
       <div className="panel-header">
         <div className="panel-title">
           <Layout className="w-5 h-5 text-primary-400" />
@@ -451,7 +452,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
       </div>
 
       <div className="panel-content space-y-6">
-        <div className="rounded-xl p-5 border border-primary-100 hover:shadow-md transition-all duration-300 bg-primary-50">
+        <div className="rounded-xl p-5 border border-primary-100 transition-all duration-300 bg-primary-50">
           <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800">
             <Zap className="w-4 h-4 text-primary-400" />
             布局算法
@@ -488,7 +489,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
           </div>
         </div>
 
-        <div className="rounded-xl p-5 border border-blue-100 hover:shadow-md transition-all duration-300 bg-primary-50">
+        <div className="rounded-xl p-5 border border-blue-100 transition-all duration-300 bg-primary-50">
           <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800">
             <Settings className="w-4 h-4 text-primary-400" />
             布局参数
@@ -641,7 +642,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
           <button
             onClick={executeLayout}
             disabled={isLayouting || nodeCount === 0}
-            className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-white ${isLayouting || nodeCount === 0 ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700'}`}
+            className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-white ${isLayouting || nodeCount === 0 ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:scale-100' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700'}`}
           >
             {isLayouting ? (
               <>

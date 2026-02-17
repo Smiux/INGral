@@ -68,7 +68,7 @@ export function ArticlesPage () {
             <Link
               key={article.id}
               to={`/articles/${article.slug}`}
-              className="block p-6 bg-white border border-neutral-200 rounded-lg hover:shadow-md hover:border-primary-200 transition-all duration-300 group"
+              className="block p-6 bg-white border border-neutral-200 rounded-lg hover:border-primary-200 transition-all duration-300 group"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">

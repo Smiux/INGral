@@ -50,7 +50,7 @@ export function HomePage () {
                   <Link
                     key={article.id}
                     to={`/articles/${article.slug}`}
-                    className="group p-6 bg-white rounded-lg border border-neutral-200 shadow-sm hover:shadow-md hover:border-primary-200 transition-all duration-300 transform hover:-translate-y-1"
+                    className="group p-6 bg-white rounded-lg border border-neutral-200 hover:border-primary-200 transition-all duration-300 transform hover:-translate-y-1"
                   >
                     <h3 className="text-lg font-semibold text-neutral-800 group-hover:text-primary-600 transition-colors mb-2 line-clamp-2">
                       {article.title}

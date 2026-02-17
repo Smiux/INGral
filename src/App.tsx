@@ -6,7 +6,7 @@ import { ArticlesPage } from './pages/ArticlesPage';
 import { ArticleViewer } from './components/articles/ArticleViewer';
 import { ArticleEditor } from './components/articles/ArticleEditor';
 import GraphVisualization from './components/graph/GraphVisualization/GraphVisualization';
-import { GraphListPage } from './pages/GraphListPage';
+
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -70,7 +70,6 @@ function AppContent () {
             <Route path="/articles/:slug" element={<ArticleViewer />} />
             <Route path="/articles/create" element={<ArticleEditor />} />
             <Route path="/articles/:slug/edit" element={<ArticleEditor />} />
-            <Route path="/graphs" element={<GraphListPage />} />
             <Route path="/graphs/create" element={<GraphVisualization />} />
             <Route path="/graphs/:graphId" element={<GraphVisualization />} />
             <Route path="*" element={<Navigate to="/" replace />} />

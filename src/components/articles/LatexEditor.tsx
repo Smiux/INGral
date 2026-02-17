@@ -1,13 +1,10 @@
-/**
- * LaTeX公式编辑器组件，集成MathLive编辑器
- */
+
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { X, Save, Copy } from 'lucide-react';
 
 import 'mathlive';
 import 'mathlive/static.css';
 
-// 声明MathLive字段元素类型
 interface MathLiveFieldElement extends HTMLElement {
   getValue: () => string;
   setValue: (value: string) => void;
@@ -15,7 +12,6 @@ interface MathLiveFieldElement extends HTMLElement {
   dispatchEvent: (event: Event) => boolean;
 }
 
-// 为math-field元素扩展HTMLAttributes，使其可以使用ref
 declare module 'react' {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
@@ -40,10 +36,6 @@ declare module 'react' {
     }
   }
 }
-
-
-
-// 类型声明
 interface LatexEditorProps {
   isOpen: boolean;
   onClose: () => void;
@@ -51,63 +43,40 @@ interface LatexEditorProps {
   initialFormula?: string;
 }
 
-
-
-/**
- * LaTeX公式编辑器主组件
- * @param isOpen - 是否打开编辑器
- * @param onClose - 关闭编辑器的回调
- * @param onInsert - 插入公式的回调
- * @param initialFormula - 初始公式
- */
 export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }: LatexEditorProps) {
   const [formula, setFormula] = useState(initialFormula);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const mathFieldRef = useRef<MathLiveFieldElement>(null);
 
-  /**
-   * 关闭编辑器
-   */
   const handleClose = useCallback(() => {
     onClose();
     setFormula('');
   }, [onClose]);
 
-  /**
-   * 插入公式到文档
-   */
   const handleInsert = () => {
     if (formula.trim()) {
       try {
-        // 调用插入回调
         onInsert(formula);
       } catch (error) {
         console.error('Error inserting formula:', error);
       } finally {
-        // 总是关闭编辑器
         handleClose();
       }
     }
   };
 
-  /**
-   * 复制公式到剪贴板
-   */
   const handleCopy = () => {
     navigator.clipboard.writeText(formula);
   };
 
-  /**
-   * 清除公式
-   */
   const handleClear = () => {
     setFormula('');
+    if (mathFieldRef.current && typeof mathFieldRef.current.setValue === 'function') {
+      mathFieldRef.current.setValue('');
+    }
   };
 
-  /**
-   * 处理MathLive编辑器输入事件
-   */
   const handleMathFieldInput = (event: React.FormEvent<MathLiveFieldElement>) => {
     const mathField = event.currentTarget;
     if (mathField && typeof mathField.getValue === 'function') {
@@ -115,7 +84,6 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
     }
   };
 
-  // 点击外部关闭模态框
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -137,12 +105,11 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div
         ref={modalRef}
-        className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
       >
-        {/* 编辑器头部 */}
         <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-50">
           <h2 className="text-lg font-semibold text-gray-800">LaTeX公式编辑器</h2>
           <button
@@ -153,11 +120,8 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
           </button>
         </div>
 
-        {/* 编辑器主体 */}
         <div className="flex-1 overflow-y-auto p-4">
-          {/* 单栏布局：充分利用宽度 */}
           <div className="grid grid-cols-1 gap-4">
-            {/* MathLive编辑器 */}
             <div className="editor-panel">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-sm font-medium text-gray-700">公式编辑</h3>
@@ -169,7 +133,6 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
                 </button>
               </div>
 
-              {/* MathLive编辑器组件 - 向右扩展，充分利用空间 */}
               <math-field
                 ref={mathFieldRef}
                 value={formula}
@@ -183,24 +146,12 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
                 className="w-full min-h-64 max-h-[50vh] p-4 border border-gray-300 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y overflow-auto"
                 style={{ 'width': '100%', 'maxWidth': '100%', 'minWidth': '100%', 'display': 'block' }}
               ></math-field>
-              <div className="mt-1 text-xs text-gray-500">
-                💡 提示：直接输入LaTeX公式，或使用辅助工具
-              </div>
             </div>
           </div>
 
-
         </div>
-
-        {/* 编辑器底部 */}
         <div className="p-4 border-t border-gray-300 bg-gray-50 flex justify-end items-center">
           <div className="flex space-x-2">
-            <button
-              onClick={handleClear}
-              className="px-4 py-2 border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              清除
-            </button>
             <button
               onClick={handleCopy}
               className="px-4 py-2 border border-blue-500 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors flex items-center"

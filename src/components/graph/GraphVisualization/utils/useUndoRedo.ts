@@ -2,17 +2,17 @@ import { useCallback, useRef, useState } from 'react';
 import { Node, Edge } from '@xyflow/react';
 
 interface GraphState {
-  nodes: Node[];
-  edges: Edge[];
+  'nodes': Node[];
+  'edges': Edge[];
 }
 
 interface UseUndoRedoReturn {
-  undo: () => GraphState;
-  redo: () => GraphState;
-  canUndo: boolean;
-  canRedo: boolean;
-  saveState: (nodes: Node[], edges: Edge[]) => void;
-  clearHistory: () => void;
+  'undo': () => GraphState;
+  'redo': () => GraphState;
+  'canUndo': boolean;
+  'canRedo': boolean;
+  'saveState': (nodes: Node[], edges: Edge[]) => void;
+  'clearHistory': () => void;
 }
 
 const MAX_HISTORY_SIZE = 50;
@@ -22,7 +22,7 @@ export const useUndoRedo = (): UseUndoRedoReturn => {
   const historyRef = useRef<GraphState[]>([]);
   const futureRef = useRef<GraphState[]>([]);
   const currentStateRef = useRef<GraphState | null>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 

@@ -20,7 +20,7 @@ import {
   NodeChange,
   EdgeChange
 } from '@xyflow/react';
-import { Database, Box } from 'lucide-react';
+import { Database, GitBranch } from 'lucide-react';
 import ForceGraph2D from 'react-force-graph-2d';
 import ForceGraph3D from 'react-force-graph-3d';
 import '@xyflow/react/dist/style.css';
@@ -141,6 +141,8 @@ const initialEdges: Edge<CustomEdgeData>[] = [
 
 const SNAP_GRID: [number, number] = [16, 16];
 
+type LeftPanelType = 'management' | 'importExport' | 'generation' | 'layout' | null;
+
 const GraphVisualizationContent: React.FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -151,12 +153,8 @@ const GraphVisualizationContent: React.FC = () => {
   const lastSavedStateRef = useRef<string>('');
   const isDraggingRef = useRef(false);
 
-  const [panels, setPanels] = useState({
-    'management': false,
-    'importExport': false,
-    'generation': false,
-    'layout': false
-  });
+  const [activeLeftPanel, setActiveLeftPanel] = useState<LeftPanelType>(null);
+  const [closingPanel, setClosingPanel] = useState<LeftPanelType>(null);
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [viewMode, setViewMode] = useState<'reactflow' | 'forcegraph2d' | 'forcegraph3d'>('reactflow');
   const [canvasDimensions, setCanvasDimensions] = useState({
@@ -199,7 +197,11 @@ const GraphVisualizationContent: React.FC = () => {
     (prev, next) => prev === next
   );
   const hasSelection = useStore(
-    (state) => state.nodes.some(node => node.selected) || state.edges.some(edge => edge.selected),
+    (state) => {
+      const hasSelectedNode = state.nodes.some(node => node.selected);
+      const hasSelectedEdge = state.edges.some(edge => edge.selected);
+      return hasSelectedNode || hasSelectedEdge;
+    },
     (prev, next) => prev === next
   );
 
@@ -286,7 +288,7 @@ const GraphVisualizationContent: React.FC = () => {
   const handleImportComplete = useCallback((importedNodes: Node<CustomNodeData>[], importedEdges: Edge<CustomEdgeData>[]) => {
     setNodes(importedNodes);
     setEdges(importedEdges);
-    setPanels(prev => ({ ...prev, 'importExport': false }));
+    setActiveLeftPanel(null);
     reactFlowInstance.fitView({ 'duration': 500 });
   }, [setNodes, setEdges, reactFlowInstance]);
 
@@ -350,21 +352,46 @@ const GraphVisualizationContent: React.FC = () => {
     setEdges(newEdges);
   }, [setNodes, setEdges]);
 
+  const closeLeftPanel = useCallback((panel: LeftPanelType) => {
+    if (activeLeftPanel === panel) {
+      setActiveLeftPanel(null);
+      setClosingPanel(panel);
+      setTimeout(() => {
+        setClosingPanel(null);
+      }, 280);
+    }
+  }, [activeLeftPanel]);
+
+  const toggleLeftPanel = useCallback((panel: Exclude<LeftPanelType, null>) => {
+    if (activeLeftPanel === panel) {
+      closeLeftPanel(panel);
+    } else if (activeLeftPanel !== null) {
+      setActiveLeftPanel(null);
+      setClosingPanel(activeLeftPanel);
+      setTimeout(() => {
+        setActiveLeftPanel(panel);
+        setClosingPanel(null);
+      }, 280);
+    } else {
+      setActiveLeftPanel(panel);
+    }
+  }, [activeLeftPanel, closeLeftPanel]);
+
   const toggleManagementPanel = useCallback(() => {
-    setPanels(prev => ({ ...prev, 'management': !prev.management }));
-  }, []);
+    toggleLeftPanel('management');
+  }, [toggleLeftPanel]);
 
   const toggleImportExportPanel = useCallback(() => {
-    setPanels(prev => ({ ...prev, 'importExport': !prev.importExport }));
-  }, []);
+    toggleLeftPanel('importExport');
+  }, [toggleLeftPanel]);
 
   const toggleGenerationPanel = useCallback(() => {
-    setPanels(prev => ({ ...prev, 'generation': !prev.generation }));
-  }, []);
+    toggleLeftPanel('generation');
+  }, [toggleLeftPanel]);
 
   const toggleLayoutPanel = useCallback(() => {
-    setPanels(prev => ({ ...prev, 'layout': !prev.layout }));
-  }, []);
+    toggleLeftPanel('layout');
+  }, [toggleLeftPanel]);
 
   const toggleSnapToGrid = useCallback(() => {
     setSnapToGrid(prev => !prev);
@@ -404,7 +431,7 @@ const GraphVisualizationContent: React.FC = () => {
         }
       `}</style>
 
-      <div className="bg-white border-b border-gray-200 shadow-md flex items-center justify-between gap-0 z-50">
+      <div className="bg-white border-b border-gray-200 flex items-center justify-between gap-0 z-50">
         <div className="flex items-center gap-2 p-1">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity px-2">
             <span className="font-bold text-sm tracking-tight text-gray-800">MyWiki</span>
@@ -416,7 +443,7 @@ const GraphVisualizationContent: React.FC = () => {
             </span>
             <span className="h-3 w-px bg-gray-400"></span>
             <span className="flex items-center gap-1">
-              <Box size={12} />
+              <GitBranch size={12} />
               连接: {edgeCount}
             </span>
           </div>
@@ -424,13 +451,13 @@ const GraphVisualizationContent: React.FC = () => {
 
         <GraphToolbar
           onAddNode={createNewNode}
-          isManagementPanelOpen={panels.management}
+          isManagementPanelOpen={activeLeftPanel === 'management'}
           onToggleManagementPanel={toggleManagementPanel}
-          isImportExportPanelOpen={panels.importExport}
+          isImportExportPanelOpen={activeLeftPanel === 'importExport'}
           onToggleImportExportPanel={toggleImportExportPanel}
-          isGenerationPanelOpen={panels.generation}
+          isGenerationPanelOpen={activeLeftPanel === 'generation'}
           onToggleGenerationPanel={toggleGenerationPanel}
-          isLayoutPanelOpen={panels.layout}
+          isLayoutPanelOpen={activeLeftPanel === 'layout'}
           onToggleLayoutPanel={toggleLayoutPanel}
           snapToGrid={snapToGrid}
           onToggleSnapToGrid={toggleSnapToGrid}
@@ -525,28 +552,32 @@ const GraphVisualizationContent: React.FC = () => {
         )}
 
         {hasSelection && <GraphControlPanel panelPosition="right" />}
-        {panels.management && (
+        {(activeLeftPanel === 'management' || closingPanel === 'management') && (
           <GraphManagementPanel
             onAddNode={createNewNode}
-            onClose={toggleManagementPanel}
+            onClose={() => closeLeftPanel('management')}
+            isOpen={activeLeftPanel === 'management'}
           />
         )}
-        {panels.importExport && (
+        {(activeLeftPanel === 'importExport' || closingPanel === 'importExport') && (
           <GraphImportExportPanel
             onImportComplete={handleImportComplete}
-            onClose={toggleImportExportPanel}
+            onClose={() => closeLeftPanel('importExport')}
+            isOpen={activeLeftPanel === 'importExport'}
           />
         )}
-        {panels.generation && (
+        {(activeLeftPanel === 'generation' || closingPanel === 'generation') && (
           <GraphGenerationPanel
             onGenerate={handleGenerateGraph}
-            onClose={toggleGenerationPanel}
+            onClose={() => closeLeftPanel('generation')}
+            isOpen={activeLeftPanel === 'generation'}
           />
         )}
-        {panels.layout && (
+        {(activeLeftPanel === 'layout' || closingPanel === 'layout') && (
           <GraphLayoutPanel
             onLayout={handleLayout}
-            onClose={toggleLayoutPanel}
+            onClose={() => closeLeftPanel('layout')}
+            isOpen={activeLeftPanel === 'layout'}
           />
         )}
       </div>

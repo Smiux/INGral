@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useReactFlow, type Node, type Edge } from '@xyflow/react';
-import { Clipboard, X, Zap, Users, Layers, Plus } from 'lucide-react';
+import { Clipboard, X, Network, Users, Layers, Plus } from 'lucide-react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './FloatingEdge';
 import ELK from 'elkjs';
@@ -8,7 +8,7 @@ import ELK from 'elkjs';
 const elk = new ELK();
 
 const INPUT_CLASS = 'w-full p-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-neutral-50 text-neutral-800';
-const SECTION_CLASS = 'bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-5 shadow-sm border border-primary-100 hover:shadow-md transition-shadow';
+const SECTION_CLASS = 'bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-5 border border-primary-100 transition-shadow';
 const SECTION_TITLE_CLASS = 'text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800';
 
 type GraphType = 'random' | 'chain' | 'cycle' | 'tree' | 'star' | 'grid';
@@ -57,6 +57,7 @@ type GraphConfig = RandomConfig | ChainConfig | CycleConfig | TreeConfig | StarC
 interface GraphGenerationPanelProps {
   onGenerate: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
   onClose: () => void;
+  isOpen: boolean;
 }
 
 const DEFAULT_CONFIGS: Record<GraphType, GraphConfig> = {
@@ -423,7 +424,7 @@ const Section = ({ 'icon': Icon, title, children }: { 'icon': React.ElementType;
   </section>
 );
 
-export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGenerate, onClose }) => {
+export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGenerate, onClose, isOpen }) => {
   const reactFlowInstance = useReactFlow();
   const [graphType, setGraphType] = useState<GraphType>('random');
   const [config, setConfig] = useState<GraphConfig>(DEFAULT_CONFIGS.random);
@@ -447,7 +448,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
   };
 
   return (
-    <div className="panel-container">
+    <div className={`panel-container ${isOpen ? 'panel-open' : 'panel-closing'}`}>
       <div className="panel-header">
         <div className="panel-title">
           <Clipboard className="w-5 h-5 text-primary-400" />
@@ -459,7 +460,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
       </div>
 
       <div className="panel-content space-y-6">
-        <Section icon={Zap} title="图类型">
+        <Section icon={Network} title="图类型">
           <SelectInput
             label=""
             value={graphType}
@@ -577,7 +578,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
           </Section>
         )}
 
-        <Section icon={Zap} title="连接配置">
+        <Section icon={Network} title="连接配置">
           <div className="space-y-4">
             {isRandom && (
               <>
@@ -628,7 +629,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
         </Section>
 
         {isChain && (
-          <Section icon={Zap} title="链状图配置">
+          <Section icon={Network} title="链状图配置">
             <SelectInput
               label="方向"
               value={(config as ChainConfig).direction}
@@ -642,7 +643,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
         )}
 
         <button
-          className="w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:scale-[1.02]"
+          className="w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:scale-[1.02]"
           onClick={handleGenerate}
         >
           <Plus className="w-5 h-5" />生成图

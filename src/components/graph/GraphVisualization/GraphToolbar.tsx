@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Undo, Redo, Plus, Layout, Grid, Sparkles, Database, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, AlignCenter, Box } from 'lucide-react';
+import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 
 interface GraphToolbarProps {
@@ -42,7 +42,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo(({
   let buttonClass = 'flex items-center justify-center w-12 h-12 rounded-md transition-all ';
 
   if (isActive) {
-    buttonClass += 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md';
+    buttonClass += 'bg-gradient-to-r from-primary-500 to-primary-600 text-white';
   } else if (isDisabled) {
     buttonClass += 'text-neutral-300 cursor-not-allowed';
   } else {
@@ -85,7 +85,7 @@ const ToggleGroup: React.FC<{
   }
 
   return (
-    <div className="flex items-center gap-0.5 bg-white/90 rounded-lg p-0.5 backdrop-blur-sm shadow-sm">
+    <div className="flex items-center gap-0.5 bg-white/90 rounded-lg p-0.5 backdrop-blur-sm">
       <ToolbarButton
         icon={isCollapsed ? collapsedIcon : expandedIcon}
         title={label}
@@ -202,7 +202,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
             onClick={onToggleGenerationPanel}
           />
           <ToolbarButton
-            icon={<Database size={16} />}
+            icon={<GitBranch size={16} />}
             title="图管理"
             isActive={isManagementPanelOpen}
             onClick={onToggleManagementPanel}
@@ -228,7 +228,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
       >
         <div className="flex items-center gap-0.5">
           <ToolbarButton
-            icon={<Grid size={16} />}
+            icon={<Grid3x3 size={16} />}
             title={snapToGrid ? '关闭网格对齐' : '开启网格对齐'}
             isActive={snapToGrid}
             onClick={onToggleSnapToGrid}
@@ -249,7 +249,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
             onClick={() => reactFlowInstance.zoomTo(1)}
           />
           <ToolbarButton
-            icon={<AlignCenter size={16} />}
+            icon={<Crosshair size={16} />}
             title="中心对齐"
             onClick={handleFitView}
           />
@@ -262,7 +262,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
       </ToggleGroup>
 
       {/* 渲染模式分组 */}
-      <div className="flex items-center gap-0.5 bg-white/90 rounded-lg p-0.5 backdrop-blur-sm shadow-sm">
+      <div className="flex items-center gap-0.5 bg-white/90 rounded-lg p-0.5 backdrop-blur-sm">
         {[
           { 'mode': 'reactflow', 'icon': <Home size={16} />, 'title': 'React Flow渲染' },
           { 'mode': 'forcegraph2d', 'icon': <Network size={16} />, 'title': 'Force Graph 2D渲染' },

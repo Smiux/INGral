@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Palette, Square, SquareGantt, Type, Heading, Text as TextIcon, Edit3, Link2, Settings, Layout, Zap, User, Layers, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { X, Palette, Square, Square as SquareGantt, Type, Heading, Text as TextIcon, Pencil, Link2, Settings, User, Layers, ArrowRight, CheckCircle2, Circle, RectangleHorizontal, MousePointer2 } from 'lucide-react';
 import { useStore, useReactFlow } from '@xyflow/react';
 
 import { CustomNodeData } from './CustomNode';
@@ -28,7 +28,7 @@ const Section: React.FC<{
 }> = ({ title, icon, color, children }) => {
   const config = colorConfig[color];
   return (
-    <div className={`rounded-xl p-4 shadow-sm border bg-gradient-to-br ${config.bg} ${config.border}`}>
+    <div className={`rounded-xl p-4 border bg-gradient-to-br ${config.bg} ${config.border}`}>
       <h3 className={`text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2 ${config.icon}`}>
         {icon}
         {title}
@@ -153,13 +153,13 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
   const title = isNode ? '编辑节点' : '编辑连接';
   const subtitle = isNode ? '调整节点属性和连接点配置' : '修改连接样式和属性';
 
-  const panelClass = `w-72 bg-white flex flex-col overflow-hidden h-full transition-all duration-300 ease-in-out ${panelPosition === 'left' ? 'border-r border-gray-200 absolute left-0 top-0 z-10' : 'border-l border-gray-200 absolute right-0 top-0 z-10'}`;
+  const panelClass = `w-72 bg-white flex flex-col overflow-hidden h-full ${panelPosition === 'left' ? 'border-r border-gray-200 absolute left-0 top-0 z-10' : 'border-l border-gray-200 absolute right-0 top-0 z-10 panel-right'}`;
 
   const header = (
     <div className="flex items-center justify-between p-4 border-b border-gray-200" style={{ 'background': 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
       <div>
         <h2 className="text-lg font-semibold flex items-center gap-2" style={{ 'color': 'var(--text-primary)' }}>
-          <Edit3 className="w-5 h-5" style={{ 'color': 'var(--primary-color)' }} />
+          <Pencil className="w-5 h-5" style={{ 'color': 'var(--primary-color)' }} />
           {title}
         </h2>
         <p className="text-sm mt-1" style={{ 'color': 'var(--text-secondary)' }}>
@@ -179,10 +179,10 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
 
   if (!selectedNode && !selectedEdge) {
     return (
-      <div className={panelClass} style={{ 'boxShadow': 'var(--shadow-md)' }}>
+      <div className={panelClass}>
         <div className="flex items-center justify-between p-4 border-b border-gray-200" style={{ 'background': 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
           <h2 className="text-lg font-semibold flex items-center gap-2" style={{ 'color': 'var(--text-primary)' }}>
-            <Edit3 className="w-5 h-5" style={{ 'color': 'var(--primary-color)' }} />
+            <Pencil className="w-5 h-5" style={{ 'color': 'var(--primary-color)' }} />
             编辑面板
           </h2>
           <button
@@ -196,7 +196,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
         </div>
         <div className="flex-1 flex items-center justify-center bg-neutral-50 text-neutral-500">
           <div className="text-center">
-            <Layout className="w-16 h-16 mx-auto mb-3 text-neutral-300" />
+            <MousePointer2 className="w-16 h-16 mx-auto mb-3 text-neutral-300" />
             <p className="text-sm">请选择一个节点或连接来编辑</p>
           </div>
         </div>
@@ -222,7 +222,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
           setEdgeLabelTextColor(selectedEdge.data?.style?.labelTextColor || '#FFFFFF');
         }
       }}
-      className={`px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all duration-200 ease-in-out whitespace-nowrap ${activePanel === panel ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50 hover:text-blue-500'}`}
+      className={`flex-1 px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all duration-200 ease-in-out whitespace-nowrap ${activePanel === panel ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50 hover:text-blue-500'}`}
       style={{ 'backgroundColor': activePanel === panel ? 'var(--primary-color-light)' : 'transparent' }}
     >
       {icon}
@@ -240,7 +240,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
       value={value}
       onChange={handleNodeChange}
       placeholder={placeholder}
-      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200"
+      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200"
     />
   );
 
@@ -273,17 +273,17 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
   );
 
   const shapeOptions = [
-    { 'value': 'circle', 'label': '圆形', 'icon': <circle cx="12" cy="12" r="10" /> },
-    { 'value': 'square', 'label': '方形', 'icon': <rect x="3" y="3" width="18" height="18" rx="2" /> },
-    { 'value': 'rectangle', 'label': '矩形', 'icon': <rect x="2" y="4" width="20" height="16" rx="2" /> }
+    { 'value': 'circle', 'label': '圆形', 'icon': <Circle className="w-6 h-6" /> },
+    { 'value': 'square', 'label': '方形', 'icon': <Square className="w-6 h-6" /> },
+    { 'value': 'rectangle', 'label': '矩形', 'icon': <RectangleHorizontal className="w-6 h-6" /> }
   ];
 
   return (
-    <div className={panelClass} style={{ 'boxShadow': 'var(--shadow-md)' }}>
+    <div className={panelClass}>
       {header}
 
       <div className="border-b border-gray-200 bg-white overflow-x-auto">
-        <div className="flex min-w-max">
+        <div className="flex w-full">
           {isNode ? (
             <>
               {tabButton('node', '节点编辑', <User className="w-4 h-4" />)}
@@ -319,13 +319,13 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                     onChange={handleNodeChange}
                     placeholder="输入节点内容"
                     rows={4}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200 resize-y"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200 resize-y"
                   />
                 </div>
               </div>
             </Section>
 
-            <Section title="连接点配置" icon={<Zap className="w-4 h-4" />} color="green">
+            <Section title="连接点配置" icon={<Circle className="w-4 h-4" />} color="green">
               <div className="space-y-3">
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">连接点数量</label>
@@ -349,7 +349,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                     value={selectedEdge.data?.type || 'related'}
                     onChange={handleEdgeChange}
                     placeholder="输入连接类别"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200"
                   />
                 </div>
                 <div className="space-y-2">
@@ -362,7 +362,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                     step={0.1}
                     value={selectedEdge.data?.weight || 1}
                     onChange={handleEdgeChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200"
                   />
                 </div>
               </div>
@@ -376,7 +376,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                     name="curveType"
                     value={selectedEdge.data?.curveType || 'default'}
                     onChange={handleEdgeChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 hover:border-teal-200"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 hover:border-teal-200"
                   >
                     <option value="default">Bezier曲线</option>
                     <option value="straight">直线</option>
@@ -403,7 +403,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                     step={0.5}
                     value={selectedEdge.data?.style?.strokeWidth || 2}
                     onChange={handleEdgeChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-200 text-center"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-200 text-center"
                   />
                 </div>
 
@@ -443,9 +443,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                       onClick={() => updateNode({ 'shape': value as 'circle' | 'square' | 'rectangle' })}
                       className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${selectedNode.data.shape === value ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'}`}
                     >
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                        {icon}
-                      </svg>
+                      {icon}
                       <span className="text-xs font-medium">{label}</span>
                     </button>
                   ))}

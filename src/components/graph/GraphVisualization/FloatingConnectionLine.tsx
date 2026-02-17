@@ -14,16 +14,14 @@ export const FloatingConnectionLine = (props: ConnectionLineComponentProps) => {
 
   const intersectionPoint = getNodeIntersectionToPoint(fromNode, { 'x': toX, 'y': toY });
 
-  const pathParams = {
+  const [edgePath] = getBezierPath({
     'sourceX': intersectionPoint.x,
     'sourceY': intersectionPoint.y,
     'sourcePosition': fromPosition || Position.Right,
     'targetPosition': toPosition || Position.Left,
     'targetX': toX,
     'targetY': toY
-  };
-
-  const [edgePath] = getBezierPath(pathParams);
+  });
 
   return (
     <g>

@@ -1,12 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { Download, Upload, FileText, Database, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
-import { useReactFlow, type Node, type Edge } from '@xyflow/react';
+import { Download, Upload, FileText, Table, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
+import { useReactFlow, useStore, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './FloatingEdge';
 
 interface GraphImportExportPanelProps {
   onImportComplete: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
   onClose: () => void;
+  isOpen: boolean;
 }
 
 type ExportFormat = 'json' | 'csv';
@@ -16,15 +17,21 @@ type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
  * 图导入导出面板组件
  * 支持多种格式的图数据导入导出
  */
-export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = React.memo(({ onImportComplete, onClose }) => {
+export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = React.memo(({ onImportComplete, onClose, isOpen }) => {
   const [exportFormat, setExportFormat] = useState<ExportFormat>('json');
   const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
   const [importMessage, setImportMessage] = useState<string>('');
   const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const reactFlowInstance = useReactFlow();
-  const nodeCount = reactFlowInstance.getNodes().length;
-  const edgeCount = reactFlowInstance.getEdges().length;
+  const nodeCount = useStore(
+    (state) => state.nodes.length,
+    (prev, next) => prev === next
+  );
+  const edgeCount = useStore(
+    (state) => state.edges.length,
+    (prev, next) => prev === next
+  );
 
   const handleExport = useCallback(() => {
     setIsExporting(true);
@@ -255,10 +262,10 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
 
 
   return (
-    <div className="panel-container">
+    <div className={`panel-container ${isOpen ? 'panel-open' : 'panel-closing'}`}>
       <div className="panel-header">
         <div className="panel-title">
-          <Database className="w-5 h-5 text-primary-400" />
+          <Table className="w-5 h-5 text-primary-400" />
           导入导出
         </div>
         <button
@@ -286,7 +293,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
           );
         })()}
 
-        <div className="rounded-xl p-5 border border-primary-100 hover:shadow-md transition-all duration-300 bg-primary-50">
+        <div className="rounded-xl p-5 border border-primary-100 transition-all duration-300 bg-primary-50">
           <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800">
             <Download className="w-4 h-4 text-primary-400" />
             导出图
@@ -300,12 +307,12 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
                   <button
                     key={format}
                     onClick={() => setExportFormat(format)}
-                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out flex items-center gap-2 transform hover:scale-[1.03] ${exportFormat === format ? 'text-white shadow-md bg-gradient-to-r from-primary-500 to-primary-600' : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'}`}
+                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out flex items-center gap-2 transform hover:scale-[1.03] ${exportFormat === format ? 'text-white bg-gradient-to-r from-primary-500 to-primary-600' : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'}`}
                   >
                     {format === 'json' ? (
                       <FileText className="w-4 h-4" />
                     ) : (
-                      <Database className="w-4 h-4" />
+                      <Table className="w-4 h-4" />
                     )}
                     {format.toUpperCase()}
                   </button>
@@ -313,7 +320,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
               </div>
             </div>
 
-            <div className="bg-white/70 p-3.5 rounded-lg shadow-sm border border-primary-100">
+            <div className="bg-white/70 p-3.5 rounded-lg border border-primary-100">
               <p className="text-sm text-neutral-600">
                 当前图包含 <strong className="text-primary-700">{nodeCount} 个节点</strong> 和 <strong className="text-primary-700">{edgeCount} 个连接</strong>
               </p>
@@ -322,7 +329,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
             <button
               onClick={handleExport}
               disabled={isExporting || nodeCount === 0}
-              className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-white ${isExporting || nodeCount === 0 ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'}`}
+              className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-white ${isExporting || nodeCount === 0 ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:scale-100' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'}`}
             >
               {isExporting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -334,26 +341,18 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-5 shadow-sm border border-secondary-100 hover:shadow-md transition-all duration-300">
+        <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-5 border border-secondary-100 transition-all duration-300">
           <h3 className="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
             <Upload className="w-4 h-4 text-secondary-500" />
             导入图
           </h3>
 
           <div className="space-y-4">
-            <div className="bg-white/70 p-3.5 rounded-lg border border-amber-200 shadow-sm">
+            <div className="bg-white/70 p-3.5 rounded-lg border border-amber-200">
               <p className="text-sm text-amber-800 flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <span><strong>注意：</strong>导入将替换当前图的所有节点和连接。请确保在导入前保存当前工作。</span>
               </p>
-            </div>
-
-            <div className="text-sm text-neutral-600 bg-white/70 p-3.5 rounded-lg shadow-sm border border-secondary-100">
-              <p className="mb-2 font-medium">支持的导入格式：</p>
-              <ul className="list-disc list-inside space-y-1 text-xs">
-                <li>JSON - 完整的图数据，包括节点和连接的所有属性</li>
-                <li>CSV - 包含节点数据和连接数据，用空行分隔</li>
-              </ul>
             </div>
 
             <div className="relative">
@@ -369,7 +368,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
                 type="button"
                 onClick={() => document.getElementById('file-upload')?.click()}
                 disabled={importStatus === 'loading'}
-                className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-sm hover:shadow-lg transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-secondary-400 focus:ring-offset-2 focus:ring-offset-white ${importStatus === 'loading' ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:shadow-sm hover:scale-100' : 'bg-gradient-to-r from-secondary-500 to-secondary-600 text-white'}`}
+                className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-secondary-400 focus:ring-offset-2 focus:ring-offset-white ${importStatus === 'loading' ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:scale-100' : 'bg-gradient-to-r from-secondary-500 to-secondary-600 text-white'}`}
               >
                 {importStatus === 'loading' ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -378,10 +377,6 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
                 )}
                 {importStatus === 'loading' ? '导入中...' : '选择文件导入'}
               </button>
-            </div>
-
-            <div className="text-xs text-neutral-500 text-center font-medium">
-              支持 .json 和 .csv 格式文件
             </div>
           </div>
         </div>
