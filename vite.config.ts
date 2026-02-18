@@ -100,9 +100,8 @@ export default defineConfig({
           if (id.includes('src/components/graph/')) {
             return 'graph-visualization';
           }
-          
-          // 其他 node_modules - 不再单独分组，让 Rollup 自动处理
-          // 这样可以避免循环依赖问题
+
+          return undefined;
         }
       }
     },

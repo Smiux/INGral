@@ -112,6 +112,9 @@ export const ArticleEditor: React.FC = () => {
 
   const tocRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<TiptapEditorRef | null>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+
+  const [isToolbarSticky, setIsToolbarSticky] = useState(false);
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -147,6 +150,22 @@ export const ArticleEditor: React.FC = () => {
       clearTimeout(scrollTimeout);
     };
   }, [showTableOfContents]);
+
+  React.useEffect(() => {
+    const headerHeight = 64;
+    const handleScroll = () => {
+      if (!toolbarRef.current) {
+        return;
+      }
+      const toolbarRect = toolbarRef.current.getBoundingClientRect();
+      const shouldBeSticky = toolbarRect.top <= headerHeight;
+      setIsToolbarSticky(shouldBeSticky);
+    };
+
+    window.addEventListener('scroll', handleScroll, { 'passive': true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState(prev => ({ ...prev, 'title': e.target.value }));
@@ -313,7 +332,7 @@ export const ArticleEditor: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button onClick={() => navigate('/')} className="flex items-center gap-2 p-2 rounded hover:bg-neutral-100 transition-colors">
-              <span className="font-bold text-xl tracking-tight text-neutral-800">MyWiki</span>
+              <span className="font-bold text-xl tracking-tight text-neutral-800">IN Gral</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -437,24 +456,32 @@ export const ArticleEditor: React.FC = () => {
           </div>
 
           <div className="bg-white rounded-lg border border-neutral-200">
-            <EditorToolbar
-              editor={editor ?? null}
-              activeMenu={activeMenu}
-              setActiveMenu={setActiveMenu}
-              fontColor={fontColor}
-              setFontColor={setFontColor}
-              backgroundColor={backgroundColor}
-              setBackgroundColor={setBackgroundColor}
-              showTableOfContents={showTableOfContents}
-              onToggleTableOfContents={handleToggleTableOfContents}
-              onLinkClick={handleLinkClick}
-              onMathClick={handleMathClick}
-            />
+            <div
+              ref={toolbarRef}
+              className={`transition-all duration-300 ${
+                isToolbarSticky
+                  ? 'sticky top-[64px] z-40 bg-white border-b border-neutral-200 shadow-sm'
+                  : ''
+              }`}
+            >
+              <EditorToolbar
+                editor={editor ?? null}
+                activeMenu={activeMenu}
+                setActiveMenu={setActiveMenu}
+                fontColor={fontColor}
+                setFontColor={setFontColor}
+                backgroundColor={backgroundColor}
+                setBackgroundColor={setBackgroundColor}
+                showTableOfContents={showTableOfContents}
+                onToggleTableOfContents={handleToggleTableOfContents}
+                onLinkClick={handleLinkClick}
+                onMathClick={handleMathClick}
+              />
+            </div>
             <TiptapEditor
               editorRef={editorRef}
               onCharacterCountChange={handleCharacterCountChange}
               onTableOfContentsChange={handleTableOfContentsChange}
-              onLinkClick={handleLinkClick}
             />
           </div>
         </div>

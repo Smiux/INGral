@@ -1,6 +1,5 @@
-import React, { useCallback } from 'react';
-import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react';
-import { BubbleMenu } from '@tiptap/react/menus';
+import React from 'react';
+import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import FileHandler from '@tiptap/extension-file-handler';
@@ -18,10 +17,7 @@ import 'katex/dist/katex.min.css';
 import NodeRange from '@tiptap/extension-node-range';
 import { TableOfContents, getHierarchicalIndexes } from '@tiptap/extension-table-of-contents';
 import { DragHandle as DragHandleReact } from '@tiptap/extension-drag-handle-react';
-import {
-  Bold, Italic, Code, Underline as UnderlineIcon, Highlighter,
-  Strikethrough, Link as LinkIcon, GripVertical
-} from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 import { createLowlight } from 'lowlight';
 import javascript from 'highlight.js/lib/languages/javascript';
 import python from 'highlight.js/lib/languages/python';
@@ -74,14 +70,12 @@ interface TiptapEditorProps {
     isActive: boolean;
     isScrolledOver: boolean;
   }>) => void;
-  onLinkClick?: () => void;
   editorRef?: React.RefObject<TiptapEditorRef | null>;
 }
 
 const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   onCharacterCountChange,
   onTableOfContentsChange,
-  onLinkClick,
   editorRef
 }) => {
   const editor = useEditor({
@@ -165,61 +159,9 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
     }
   });
 
-  const toggleHighlight = useCallback(() => {
-    if (!editor) {
-      return;
-    }
-    const hasHighlight = editor.getAttributes('textStyle').backgroundColor === '#ffff00';
-    if (hasHighlight) {
-      editor.chain().focus()
-        .unsetBackgroundColor()
-        .run();
-    } else {
-      editor.chain().focus()
-        .setBackgroundColor('#ffff00')
-        .run();
-    }
-  }, [editor]);
-
-  const handleLink = useCallback(() => {
-    onLinkClick?.();
-  }, [onLinkClick]);
-
   React.useImperativeHandle(editorRef, () => ({
     'getEditor': () => editor
   }), [editor]);
-
-  const editorState = useEditorState({
-    editor,
-    'selector': useCallback((ctx: { editor: Editor | null }) => {
-      if (!ctx.editor) {
-        return {
-          'isBold': false,
-          'isItalic': false,
-          'isStrike': false,
-          'isUnderline': false,
-          'isCode': false,
-          'isSubscript': false,
-          'isSuperscript': false,
-          'isLink': false,
-          'isHighlight': false,
-          'hasSelection': false
-        };
-      }
-      return {
-        'isBold': ctx.editor.isActive('bold'),
-        'isItalic': ctx.editor.isActive('italic'),
-        'isStrike': ctx.editor.isActive('strike'),
-        'isUnderline': ctx.editor.isActive('underline'),
-        'isCode': ctx.editor.isActive('code'),
-        'isSubscript': ctx.editor.isActive('subscript'),
-        'isSuperscript': ctx.editor.isActive('superscript'),
-        'isLink': ctx.editor.isActive('link'),
-        'isHighlight': ctx.editor.getAttributes('textStyle').backgroundColor === '#ffff00',
-        'hasSelection': !ctx.editor.state.selection.empty
-      };
-    }, [])
-  });
 
   if (!editor) {
     return null;
@@ -227,42 +169,6 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
 
   return (
     <div className="bg-white rounded-b-lg border border-neutral-200">
-      <BubbleMenu
-        editor={editor}
-        shouldShow={({ 'state': bubbleState }) => !bubbleState.selection.empty}
-        className="transition-all duration-200"
-      >
-        <div className="flex flex-wrap items-center gap-1 p-1 bg-white rounded-lg border border-neutral-200">
-          {[
-            { 'icon': <Bold size={16} />, 'action': () => editor.chain().focus()
-              .toggleBold()
-              .run(), 'active': editorState.isBold },
-            { 'icon': <Italic size={16} />, 'action': () => editor.chain().focus()
-              .toggleItalic()
-              .run(), 'active': editorState.isItalic },
-            { 'icon': <UnderlineIcon size={16} />, 'action': () => editor.chain().focus()
-              .toggleUnderline()
-              .run(), 'active': editorState.isUnderline },
-            { 'icon': <Strikethrough size={16} />, 'action': () => editor.chain().focus()
-              .toggleStrike()
-              .run(), 'active': editorState.isStrike },
-            { 'icon': <Code size={16} />, 'action': () => editor.chain().focus()
-              .toggleCode()
-              .run(), 'active': editorState.isCode },
-            { 'icon': <Highlighter size={16} />, 'action': toggleHighlight, 'active': editorState.isHighlight },
-            { 'icon': <LinkIcon size={16} />, 'action': handleLink, 'active': editorState.isLink }
-          ].map((btn, idx) => (
-            <button
-              key={idx}
-              onClick={btn.action}
-              className={`flex items-center justify-center p-2 rounded hover:bg-neutral-100 transition-colors ${btn.active ? 'bg-primary-50 text-primary-700' : ''}`}
-            >
-              <div className="text-neutral-600">{btn.icon}</div>
-            </button>
-          ))}
-        </div>
-      </BubbleMenu>
-
       <DragHandleReact
         editor={editor}
         computePositionConfig={{

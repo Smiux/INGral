@@ -25,10 +25,10 @@ export function HomePage () {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-20 text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-neutral-800 mb-6">
-            MyWiki
+            IN Gral
           </h1>
           <p className="text-xl text-neutral-600 mb-8 max-w-2xl mx-auto">
-            一个基于社区的知识平台，用于创建、分享和可视化数学概念。
+            一个个人用的知识平台
           </p>
         </div>
 

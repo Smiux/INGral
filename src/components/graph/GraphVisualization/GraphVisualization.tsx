@@ -434,7 +434,7 @@ const GraphVisualizationContent: React.FC = () => {
       <div className="bg-white border-b border-gray-200 flex items-center justify-between gap-0 z-50">
         <div className="flex items-center gap-2 p-1">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity px-2">
-            <span className="font-bold text-sm tracking-tight text-gray-800">MyWiki</span>
+            <span className="font-bold text-sm tracking-tight text-gray-800">IN Gral</span>
           </Link>
           <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-gray-700">
             <span className="flex items-center gap-1">

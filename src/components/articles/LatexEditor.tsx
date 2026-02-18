@@ -108,7 +108,7 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div
         ref={modalRef}
-        className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-lg w-full max-w-3xl max-h-[70vh] overflow-hidden flex flex-col"
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-50">
           <h2 className="text-lg font-semibold text-gray-800">LaTeX公式编辑器</h2>
@@ -143,7 +143,7 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
                 mathStyle="displaystyle"
                 fontSize="1.25rem"
                 placeholder="输入LaTeX公式..."
-                className="w-full min-h-64 max-h-[50vh] p-4 border border-gray-300 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y overflow-auto"
+                className="w-full min-h-40 max-h-[40vh] p-4 border border-gray-300 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y overflow-auto"
                 style={{ 'width': '100%', 'maxWidth': '100%', 'minWidth': '100%', 'display': 'block' }}
               ></math-field>
             </div>
