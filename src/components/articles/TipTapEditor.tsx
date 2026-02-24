@@ -2,6 +2,7 @@ import React from 'react';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import Audio from '@tiptap/extension-audio';
 import FileHandler from '@tiptap/extension-file-handler';
 import { TableKit } from '@tiptap/extension-table';
 import { TextAlign } from '@tiptap/extension-text-align';
@@ -67,15 +68,16 @@ interface TiptapEditorProps {
     textContent: string;
     level: number;
     itemIndex: number;
-    isActive: boolean;
     isScrolledOver: boolean;
   }>) => void;
+  onEditorReady?: (editor: Editor) => void;
   editorRef?: React.RefObject<TiptapEditorRef | null>;
 }
 
 const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   onCharacterCountChange,
   onTableOfContentsChange,
+  onEditorReady,
   editorRef
 }) => {
   const editor = useEditor({
@@ -101,6 +103,9 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         'tabSize': 2
       }),
       Image,
+      Audio.configure({
+        'allowBase64': true
+      }),
       FileHandler.configure({
         'onDrop': (_, files) => {
           files.forEach((file) => {
@@ -110,6 +115,15 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
                 const uploadedImageUrl = e.target?.result as string;
                 editor?.chain().focus()
                   .setImage({ 'src': uploadedImageUrl })
+                  .run();
+              };
+              reader.readAsDataURL(file);
+            } else if (file.type.startsWith('audio/')) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const uploadedAudioUrl = e.target?.result as string;
+                editor?.chain().focus()
+                  .setAudio({ 'src': uploadedAudioUrl })
                   .run();
               };
               reader.readAsDataURL(file);
@@ -127,10 +141,22 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
                   .run();
               };
               reader.readAsDataURL(file);
+            } else if (file.type.startsWith('audio/')) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const uploadedAudioUrl = e.target?.result as string;
+                editor?.chain().focus()
+                  .setAudio({ 'src': uploadedAudioUrl })
+                  .run();
+              };
+              reader.readAsDataURL(file);
             }
           });
         },
-        'allowedMimeTypes': ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        'allowedMimeTypes': [
+          'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+          'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/aac', 'audio/flac'
+        ]
       }),
       TableKit.configure({
         'table': {
@@ -162,6 +188,12 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   React.useImperativeHandle(editorRef, () => ({
     'getEditor': () => editor
   }), [editor]);
+
+  React.useEffect(() => {
+    if (editor && onEditorReady) {
+      onEditorReady(editor);
+    }
+  }, [editor, onEditorReady]);
 
   if (!editor) {
     return null;

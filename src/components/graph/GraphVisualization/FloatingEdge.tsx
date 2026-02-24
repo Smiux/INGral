@@ -12,7 +12,6 @@ import { getEdgeParams } from './utils/floatingEdgeUtils';
 export interface CustomEdgeData {
   'type'?: string;
   'curveType'?: 'default' | 'smoothstep' | 'straight' | 'simplebezier';
-  'weight'?: number;
   'label'?: string;
   'style'?: {
     'stroke'?: string;

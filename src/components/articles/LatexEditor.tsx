@@ -6,10 +6,8 @@ import 'mathlive';
 import 'mathlive/static.css';
 
 interface MathLiveFieldElement extends HTMLElement {
-  getValue: () => string;
-  setValue: (value: string) => void;
+  value: string;
   focus: () => void;
-  dispatchEvent: (event: Event) => boolean;
 }
 
 declare module 'react' {
@@ -18,19 +16,11 @@ declare module 'react' {
     interface IntrinsicElements {
       'math-field': React.HTMLAttributes<MathLiveFieldElement> & React.RefAttributes<MathLiveFieldElement> & {
         value?: string;
-        onChange?: React.FormEventHandler<MathLiveFieldElement>;
         onInput?: React.FormEventHandler<MathLiveFieldElement>;
-        onFocus?: React.FocusEventHandler<MathLiveFieldElement>;
-        onBlur?: React.FocusEventHandler<MathLiveFieldElement>;
         smartMode?: boolean;
         virtualKeyboardMode?: 'auto' | 'manual' | 'onfocus' | 'off';
-        keyboardLayout?: string;
-        fontSize?: string;
-        fontFamily?: string;
         mathStyle?: 'displaystyle' | 'textstyle';
-        color?: string;
-        backgroundColor?: string;
-        readOnly?: boolean;
+        fontSize?: string;
         placeholder?: string;
       };
     }
@@ -58,8 +48,6 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
     if (formula.trim()) {
       try {
         onInsert(formula);
-      } catch (error) {
-        console.error('Error inserting formula:', error);
       } finally {
         handleClose();
       }
@@ -72,16 +60,13 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
 
   const handleClear = () => {
     setFormula('');
-    if (mathFieldRef.current && typeof mathFieldRef.current.setValue === 'function') {
-      mathFieldRef.current.setValue('');
+    if (mathFieldRef.current) {
+      mathFieldRef.current.value = '';
     }
   };
 
-  const handleMathFieldInput = (event: React.FormEvent<MathLiveFieldElement>) => {
-    const mathField = event.currentTarget;
-    if (mathField && typeof mathField.getValue === 'function') {
-      setFormula(mathField.getValue());
-    }
+  const handleInput = (event: React.FormEvent<MathLiveFieldElement>) => {
+    setFormula(event.currentTarget.value);
   };
 
   useEffect(() => {
@@ -136,8 +121,7 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
               <math-field
                 ref={mathFieldRef}
                 value={formula}
-                onInput={handleMathFieldInput}
-                onChange={handleMathFieldInput}
+                onInput={handleInput}
                 smartMode={true}
                 virtualKeyboardMode="manual"
                 mathStyle="displaystyle"

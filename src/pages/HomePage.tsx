@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { articleService, type Article } from '../services/articleService';
+import { getAllArticles, type Article } from '../services/articleService';
 
 export function HomePage () {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -10,7 +10,7 @@ export function HomePage () {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const data = await articleService.getAllArticles();
+        const data = await getAllArticles();
         setArticles(data.slice(0, 6));
       } finally {
         setIsLoading(false);
@@ -38,7 +38,7 @@ export function HomePage () {
               <h2 className="text-3xl font-bold text-neutral-800">最近文章</h2>
               <Link
                 to="/articles"
-                className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 transition-all duration-200 transform hover:scale-105"
+                className="text-primary-600 hover:text-neutral-700 font-medium flex items-center gap-1 transition-all duration-200 transform hover:scale-105"
               >
                 查看全部 <ArrowRight className="w-4 h-4" />
               </Link>
@@ -55,12 +55,12 @@ export function HomePage () {
                     <h3 className="text-lg font-semibold text-neutral-800 group-hover:text-primary-600 transition-colors mb-2 line-clamp-2">
                       {article.title}
                     </h3>
-                    <p className="text-neutral-600 text-sm mb-4 line-clamp-3">
-                      {article.content.substring(0, 120)}...
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-neutral-500">
+                    <span className="text-sm text-neutral-500">
+                      {article.author_name}
+                    </span>
+                    <div className="flex items-center justify-between text-xs text-neutral-500 mt-2">
                       <span>
-                        {article.updated_at ? new Date(article.updated_at).toLocaleDateString('zh-CN', {
+                        {article.created_at ? new Date(article.created_at).toLocaleDateString('zh-CN', {
                           'month': 'short',
                           'day': 'numeric'
                         }) : 'N/A'}
@@ -71,13 +71,7 @@ export function HomePage () {
               </div>
             ) : (
               <div className="text-center py-12 bg-neutral-50 rounded-lg border border-neutral-200">
-                <p className="text-neutral-600 mb-4">暂无文章。快来创建第一篇吧！</p>
-                <Link
-                  to="/create"
-                  className="inline-block bg-primary-50 text-primary-700 border border-primary-200 px-6 py-2 rounded-lg hover:bg-primary-100 hover:border-primary-300 transition-all duration-200 transform hover:scale-105"
-                >
-                  创建文章
-                </Link>
+                <p className="text-neutral-600 mb-4">暂无文章</p>
               </div>
             )}
           </div>

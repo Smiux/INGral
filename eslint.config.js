@@ -6,7 +6,7 @@ import unusedImports from 'eslint-plugin-unused-imports';
 
 export default tseslint.config(
   { 
-    ignores: ['node_modules', 'dist', 'build', 'coverage', '.git', '*.log', 'scripts/**/*.js'] 
+    ignores: ['node_modules', 'dist', 'build', 'coverage', '.git', '*.log', 'scripts/**/*.js', 'src-tauri'] 
   },
   ...tseslint.configs.recommended,
   {

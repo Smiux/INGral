@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, User2 } from 'lucide-react';
-import { articleService, type Article } from '../../services/articleService';
+import katex from 'katex';
+import { getArticleBySlug, type ArticleWithContent } from '../../services/articleService';
 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
-  const [article, setArticle] = useState<Article | null>(null);
+  const [article, setArticle] = useState<ArticleWithContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!slug) {
@@ -15,7 +17,7 @@ export function ArticleViewer () {
 
     const loadArticle = async () => {
       try {
-        const data = await articleService.getArticleBySlug(slug);
+        const data = await getArticleBySlug(slug);
         setArticle(data);
       } finally {
         setIsLoading(false);
@@ -24,6 +26,50 @@ export function ArticleViewer () {
 
     loadArticle();
   }, [slug]);
+
+  useEffect(() => {
+    if (!article?.content || !contentRef.current) {
+      return;
+    }
+
+    const renderMath = () => {
+      if (!contentRef.current) {
+        return;
+      }
+
+      const inlineMathElements = contentRef.current.querySelectorAll<HTMLElement>('[data-type="inline-math"]');
+      inlineMathElements.forEach((element) => {
+        const latex = element.getAttribute('data-latex');
+        if (latex) {
+          try {
+            katex.render(latex, element, {
+              'throwOnError': false,
+              'displayMode': false
+            });
+          } catch {
+            element.textContent = latex;
+          }
+        }
+      });
+
+      const blockMathElements = contentRef.current.querySelectorAll<HTMLElement>('[data-type="block-math"]');
+      blockMathElements.forEach((element) => {
+        const latex = element.getAttribute('data-latex');
+        if (latex) {
+          try {
+            katex.render(latex, element, {
+              'throwOnError': false,
+              'displayMode': true
+            });
+          } catch {
+            element.textContent = latex;
+          }
+        }
+      });
+    };
+
+    renderMath();
+  }, [article?.content]);
 
   if (isLoading) {
     return (
@@ -40,7 +86,7 @@ export function ArticleViewer () {
         <p className="text-neutral-600 mb-8">您访问的文章不存在。</p>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition"
+          className="inline-flex items-center gap-2 bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           返回首页
@@ -49,8 +95,8 @@ export function ArticleViewer () {
     );
   }
 
-  const formattedDate = article.updated_at
-    ? new Date(article.updated_at).toLocaleDateString('zh-CN', {
+  const formattedDate = article.created_at
+    ? new Date(article.created_at).toLocaleDateString('zh-CN', {
       'year': 'numeric',
       'month': 'long',
       'day': 'numeric'
@@ -91,6 +137,7 @@ export function ArticleViewer () {
 
       <main className="bg-white rounded-lg border border-neutral-200">
         <div
+          ref={contentRef}
           className="prose prose-lg max-w-none mx-auto p-6 md:p-8"
           dangerouslySetInnerHTML={{ '__html': article.content }}
         />

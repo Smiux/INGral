@@ -292,7 +292,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                 {filteredNodes.map((node) => (
                   <li
                     key={node.id}
-                    className={`flex items-center gap-2 p-2.5 rounded-md cursor-pointer transition-all duration-200 ${selectedNodes.some((n) => n.id === node.id) ? 'bg-primary-100 text-primary-800' : 'hover:bg-neutral-50'}`}
+                    className={`flex items-center gap-2 p-2.5 rounded-md cursor-pointer transition-all duration-200 ${selectedNodes.some((n) => n.id === node.id) ? 'bg-primary-100 text-primary-600' : 'hover:bg-neutral-50'}`}
                     onClick={() => handleToggleSelection(node.id, 'node')}
                   >
                     <div className="flex-1">
@@ -341,7 +341,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                   return (
                     <div
                       key={edge.id}
-                      className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-all duration-200 ${selectedEdges.some((c) => c.id === edge.id) ? 'bg-primary-100 text-primary-800' : 'hover:bg-neutral-50'}`}
+                      className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-all duration-200 ${selectedEdges.some((c) => c.id === edge.id) ? 'bg-primary-100 text-primary-600' : 'hover:bg-neutral-50'}`}
                       onClick={() => handleToggleSelection(edge.id, 'edge')}
                     >
                       <div className="flex items-center gap-3">
@@ -356,7 +356,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                             {targetNode?.data?.title || edge.target}
                           </div>
                         </div>
-                        <div className="px-2.5 py-0.5 bg-primary-100 text-primary-800 rounded-full text-xs font-medium">
+                        <div className="px-2.5 py-0.5 bg-primary-100 text-primary-600 rounded-full text-xs font-medium">
                           {String(edge.data?.type || 'related')}
                         </div>
                       </div>
@@ -386,8 +386,8 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                       <CircleDot className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm text-primary-700 font-medium">节点总数</p>
-                      <p className="text-2xl font-bold text-primary-900">{stats.totalNodes}</p>
+                      <p className="text-sm text-primary-600 font-medium">节点总数</p>
+                      <p className="text-2xl font-bold">{stats.totalNodes}</p>
                     </div>
                   </div>
                 </div>
@@ -398,8 +398,8 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                       <LinkIcon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm text-secondary-700 font-medium">连接总数</p>
-                      <p className="text-2xl font-bold text-secondary-900">{stats.totalEdges}</p>
+                      <p className="text-sm text-secondary-600 font-medium">连接总数</p>
+                      <p className="text-2xl font-bold text-neutral-800">{stats.totalEdges}</p>
                     </div>
                   </div>
                 </div>

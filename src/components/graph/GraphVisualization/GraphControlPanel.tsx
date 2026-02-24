@@ -1,20 +1,19 @@
 import React from 'react';
-import { X, Palette, Square, Square as SquareGantt, Type, Heading, Text as TextIcon, Pencil, Link2, Settings, User, Layers, ArrowRight, CheckCircle2, Circle, RectangleHorizontal, MousePointer2 } from 'lucide-react';
+import { X, Palette, Square, Type, Heading, Text as TextIcon, Pencil, Link2, Settings, User, Layers, ArrowRight, CheckCircle2, Circle, RectangleHorizontal, MousePointer2 } from 'lucide-react';
 import { useStore, useReactFlow } from '@xyflow/react';
 
 import { CustomNodeData } from './CustomNode';
 import { CustomEdgeData } from './FloatingEdge';
 
-type ColorType = 'blue' | 'green' | 'purple' | 'orange' | 'teal' | 'pink';
+type ColorType = 'blue' | 'green' | 'purple' | 'orange' | 'teal';
 
 const colorConfig = {
   'blue': { 'bg': 'from-blue-50 to-indigo-50', 'border': 'border-blue-100', 'icon': 'text-blue-600', 'focus': 'focus:ring-blue-500' },
   'green': { 'bg': 'from-green-50 to-emerald-50', 'border': 'border-green-100', 'icon': 'text-green-600', 'focus': 'focus:ring-green-500' },
   'purple': { 'bg': 'from-purple-50 to-violet-50', 'border': 'border-purple-100', 'icon': 'text-purple-600', 'focus': 'focus:ring-purple-500' },
   'orange': { 'bg': 'from-orange-50 to-amber-50', 'border': 'border-orange-100', 'icon': 'text-orange-600', 'focus': 'focus:ring-orange-500' },
-  'teal': { 'bg': 'from-teal-50 to-cyan-50', 'border': 'border-teal-100', 'icon': 'text-teal-600', 'focus': 'focus:ring-teal-500' },
-  'pink': { 'bg': 'from-pink-50 to-rose-50', 'border': 'border-pink-100', 'icon': 'text-pink-600', 'focus': 'focus:ring-pink-500' }
-} as const;
+  'teal': { 'bg': 'from-teal-50 to-cyan-50', 'border': 'border-teal-100', 'icon': 'text-teal-600', 'focus': 'focus:ring-teal-500' }
+};
 
 interface GraphControlPanelProps {
   panelPosition?: 'left' | 'right';
@@ -38,29 +37,68 @@ const Section: React.FC<{
   );
 };
 
+type SelectedNodeInfo = { id: string; data: CustomNodeData } | null;
+type SelectedEdgeInfo = { id: string; source: string; target: string; data: CustomEdgeData } | null;
+
+const getSelectedNodeInfo = (nodes: Array<{ id: string; data: CustomNodeData; selected?: boolean }>): SelectedNodeInfo => {
+  const node = nodes.find((n) => n.selected);
+  if (node) {
+    return { 'id': node.id, 'data': node.data };
+  }
+  return null;
+};
+
+const getSelectedEdgeInfo = (edges: Array<{ id: string; source: string; target: string; data: CustomEdgeData; selected?: boolean }>): SelectedEdgeInfo => {
+  const edge = edges.find((e) => e.selected);
+  if (edge) {
+    return { 'id': edge.id, 'source': edge.source, 'target': edge.target, 'data': edge.data };
+  }
+  return null;
+};
+
+const compareSelectedInfo = <T extends SelectedNodeInfo | SelectedEdgeInfo>(a: T, b: T): boolean => {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  return a.id === b.id && JSON.stringify(a.data) === JSON.stringify(b.data);
+};
+
+const shapeOptions = [
+  { 'value': 'circle', 'label': '圆形', 'icon': <Circle className="w-6 h-6" /> },
+  { 'value': 'square', 'label': '方形', 'icon': <Square className="w-6 h-6" /> },
+  { 'value': 'rectangle', 'label': '矩形', 'icon': <RectangleHorizontal className="w-6 h-6" /> }
+];
+
 export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosition = 'right' }) => {
   const selectedNode = useStore(
-    (state) => state.nodes.find((node) => node.selected) as { id: string; data: CustomNodeData } | null,
-    (a, b) => a?.id === b?.id
+    (state) => getSelectedNodeInfo(state.nodes as Array<{ id: string; data: CustomNodeData; selected?: boolean }>),
+    compareSelectedInfo
   );
   const selectedEdge = useStore(
-    (state) => state.edges.find((edge) => edge.selected) as { id: string; source: string; target: string; data: CustomEdgeData } | null,
-    (a, b) => a?.id === b?.id
+    (state) => getSelectedEdgeInfo(state.edges as Array<{ id: string; source: string; target: string; data: CustomEdgeData; selected?: boolean }>),
+    compareSelectedInfo
   );
 
   const reactFlowInstance = useReactFlow();
   const [activePanel, setActivePanel] = React.useState<'node' | 'appearance' | 'edge' | 'edgeAppearance'>('node');
 
-  const [nodeFill, setNodeFill] = React.useState('#fff');
-  const [nodeStroke, setNodeStroke] = React.useState('#4ECDC4');
-  const [nodeTextColor, setNodeTextColor] = React.useState('#666');
-  const [nodeTitleBackgroundColor, setNodeTitleBackgroundColor] = React.useState('#4ECDC4');
-  const [nodeTitleTextColor, setNodeTitleTextColor] = React.useState('#FFFFFF');
+  const [nodeColors, setNodeColors] = React.useState({
+    'fill': '#ffffff',
+    'stroke': '#4ECDC4',
+    'textColor': '#666666',
+    'titleBackgroundColor': '#4ECDC4',
+    'titleTextColor': '#FFFFFF'
+  });
 
-  const [edgeStroke, setEdgeStroke] = React.useState('#3b82f6');
-  const [edgeArrowColor, setEdgeArrowColor] = React.useState('#3b82f6');
-  const [edgeLabelBackgroundColor, setEdgeLabelBackgroundColor] = React.useState('#3b82f6');
-  const [edgeLabelTextColor, setEdgeLabelTextColor] = React.useState('#FFFFFF');
+  const [edgeColors, setEdgeColors] = React.useState({
+    'stroke': '#3b82f6',
+    'arrowColor': '#3b82f6',
+    'labelBackgroundColor': '#3b82f6',
+    'labelTextColor': '#FFFFFF'
+  });
 
   const clearSelection = () => {
     reactFlowInstance.setNodes((nodes) => nodes.map((node) => ({ ...node, 'selected': false })));
@@ -138,14 +176,25 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
     const { name, value } = e.target;
 
     switch (name) {
-      case 'weight':
-        updateEdge({ 'weight': parseFloat(value) || 1 });
-        break;
       case 'strokeWidth':
         updateEdge({ 'style': { 'strokeWidth': parseFloat(value) || 2 } });
         break;
       default:
         updateEdge({ [name]: value });
+    }
+  };
+
+  const handleNodeColorChange = (key: keyof typeof nodeColors, color: string) => {
+    setNodeColors((prev) => ({ ...prev, [key]: color }));
+    updateNode({ 'style': { [key]: color } });
+  };
+
+  const handleEdgeColorChange = (key: keyof typeof edgeColors, color: string) => {
+    setEdgeColors((prev) => ({ ...prev, [key]: color }));
+    if (key === 'arrowColor') {
+      updateEdge({ 'style': { [key]: color } }, { 'type': 'arrowclosed', color });
+    } else {
+      updateEdge({ 'style': { [key]: color } });
     }
   };
 
@@ -155,16 +204,18 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
 
   const panelClass = `w-72 bg-white flex flex-col overflow-hidden h-full ${panelPosition === 'left' ? 'border-r border-gray-200 absolute left-0 top-0 z-10' : 'border-l border-gray-200 absolute right-0 top-0 z-10 panel-right'}`;
 
-  const header = (
+  const renderHeader = (headerTitle: string, headerSubtitle?: string) => (
     <div className="flex items-center justify-between p-4 border-b border-gray-200" style={{ 'background': 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
       <div>
         <h2 className="text-lg font-semibold flex items-center gap-2" style={{ 'color': 'var(--text-primary)' }}>
           <Pencil className="w-5 h-5" style={{ 'color': 'var(--primary-color)' }} />
-          {title}
+          {headerTitle}
         </h2>
-        <p className="text-sm mt-1" style={{ 'color': 'var(--text-secondary)' }}>
-          {subtitle}
-        </p>
+        {headerSubtitle && (
+          <p className="text-sm mt-1" style={{ 'color': 'var(--text-secondary)' }}>
+            {headerSubtitle}
+          </p>
+        )}
       </div>
       <button
         onClick={clearSelection}
@@ -180,20 +231,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
   if (!selectedNode && !selectedEdge) {
     return (
       <div className={panelClass}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-200" style={{ 'background': 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
-          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ 'color': 'var(--text-primary)' }}>
-            <Pencil className="w-5 h-5" style={{ 'color': 'var(--primary-color)' }} />
-            编辑面板
-          </h2>
-          <button
-            onClick={clearSelection}
-            className="p-1 rounded-full hover:bg-gray-100 transition-colors hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            title="关闭面板"
-            style={{ 'color': 'var(--text-secondary)' }}
-          >
-            <X size={20} />
-          </button>
-        </div>
+        {renderHeader('编辑面板')}
         <div className="flex-1 flex items-center justify-center bg-neutral-50 text-neutral-500">
           <div className="text-center">
             <MousePointer2 className="w-16 h-16 mx-auto mb-3 text-neutral-300" />
@@ -208,19 +246,6 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
     <button
       onClick={() => {
         setActivePanel(panel as 'node' | 'appearance' | 'edge' | 'edgeAppearance');
-        if (panel === 'appearance' && selectedNode) {
-          setNodeFill(selectedNode.data.style?.fill || '#fff');
-          setNodeStroke(selectedNode.data.style?.stroke || '#4ECDC4');
-          setNodeTextColor(selectedNode.data.style?.textColor || '#666');
-          setNodeTitleBackgroundColor(selectedNode.data.style?.titleBackgroundColor || '#4ECDC4');
-          setNodeTitleTextColor(selectedNode.data.style?.titleTextColor || '#FFFFFF');
-        }
-        if (panel === 'edgeAppearance' && selectedEdge) {
-          setEdgeStroke(selectedEdge.data?.style?.stroke || '#3b82f6');
-          setEdgeArrowColor(selectedEdge.data?.style?.arrowColor || (selectedEdge.data?.style?.stroke || '#3b82f6'));
-          setEdgeLabelBackgroundColor(selectedEdge.data?.style?.labelBackgroundColor || (selectedEdge.data?.style?.stroke || '#3b82f6'));
-          setEdgeLabelTextColor(selectedEdge.data?.style?.labelTextColor || '#FFFFFF');
-        }
       }}
       className={`flex-1 px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all duration-200 ease-in-out whitespace-nowrap ${activePanel === panel ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50 hover:text-blue-500'}`}
       style={{ 'backgroundColor': activePanel === panel ? 'var(--primary-color-light)' : 'transparent' }}
@@ -243,8 +268,6 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200"
     />
   );
-
-
 
   const colorPicker = (color: string, onColorChange: (color: string) => void, label: string, icon: React.ReactNode) => (
     <div className="space-y-2">
@@ -272,15 +295,9 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
     </div>
   );
 
-  const shapeOptions = [
-    { 'value': 'circle', 'label': '圆形', 'icon': <Circle className="w-6 h-6" /> },
-    { 'value': 'square', 'label': '方形', 'icon': <Square className="w-6 h-6" /> },
-    { 'value': 'rectangle', 'label': '矩形', 'icon': <RectangleHorizontal className="w-6 h-6" /> }
-  ];
-
   return (
     <div className={panelClass}>
-      {header}
+      {renderHeader(title, subtitle)}
 
       <div className="border-b border-gray-200 bg-white overflow-x-auto">
         <div className="flex w-full">
@@ -352,19 +369,6 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">连接权重</label>
-                  <input
-                    type="number"
-                    name="weight"
-                    min={0.1}
-                    max={10}
-                    step={0.1}
-                    value={selectedEdge.data?.weight || 1}
-                    onChange={handleEdgeChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200"
-                  />
-                </div>
               </div>
             </Section>
 
@@ -408,22 +412,10 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                 </div>
 
                 <div className="space-y-4 pt-2">
-                  {colorPicker(edgeStroke, (color) => {
-                    setEdgeStroke(color);
-                    updateEdge({ 'style': { 'stroke': color } });
-                  }, '连接颜色', <Square className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(edgeArrowColor, (color) => {
-                    setEdgeArrowColor(color);
-                    updateEdge({ 'style': { 'arrowColor': color } }, { 'type': 'arrowclosed', color });
-                  }, '箭头颜色', <CheckCircle2 className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(edgeLabelBackgroundColor, (color) => {
-                    setEdgeLabelBackgroundColor(color);
-                    updateEdge({ 'style': { 'labelBackgroundColor': color } });
-                  }, '标签背景色', <SquareGantt className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(edgeLabelTextColor, (color) => {
-                    setEdgeLabelTextColor(color);
-                    updateEdge({ 'style': { 'labelTextColor': color } });
-                  }, '标签文字色', <TextIcon className="w-4 h-4 text-gray-500" />)}
+                  {colorPicker(edgeColors.stroke, (color) => handleEdgeColorChange('stroke', color), '连接颜色', <Square className="w-4 h-4 text-gray-500" />)}
+                  {colorPicker(edgeColors.arrowColor, (color) => handleEdgeColorChange('arrowColor', color), '箭头颜色', <CheckCircle2 className="w-4 h-4 text-gray-500" />)}
+                  {colorPicker(edgeColors.labelBackgroundColor, (color) => handleEdgeColorChange('labelBackgroundColor', color), '标签背景色', <Square className="w-4 h-4 text-gray-500" />)}
+                  {colorPicker(edgeColors.labelTextColor, (color) => handleEdgeColorChange('labelTextColor', color), '标签文字色', <TextIcon className="w-4 h-4 text-gray-500" />)}
                 </div>
               </div>
             </Section>
@@ -450,26 +442,11 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                 </div>
 
                 <div className="space-y-4 pt-2">
-                  {colorPicker(nodeFill, (color) => {
-                    setNodeFill(color);
-                    updateNode({ 'style': { 'fill': color } });
-                  }, '背景颜色', <Square className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(nodeStroke, (color) => {
-                    setNodeStroke(color);
-                    updateNode({ 'style': { 'stroke': color } });
-                  }, '边框颜色', <SquareGantt className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(nodeTextColor, (color) => {
-                    setNodeTextColor(color);
-                    updateNode({ 'style': { 'textColor': color } });
-                  }, '文字颜色', <Type className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(nodeTitleBackgroundColor, (color) => {
-                    setNodeTitleBackgroundColor(color);
-                    updateNode({ 'style': { 'titleBackgroundColor': color } });
-                  }, '标题背景色', <Heading className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(nodeTitleTextColor, (color) => {
-                    setNodeTitleTextColor(color);
-                    updateNode({ 'style': { 'titleTextColor': color } });
-                  }, '标题文字色', <TextIcon className="w-4 h-4 text-gray-500" />)}
+                  {colorPicker(nodeColors.fill, (color) => handleNodeColorChange('fill', color), '背景颜色', <Square className="w-4 h-4 text-gray-500" />)}
+                  {colorPicker(nodeColors.stroke, (color) => handleNodeColorChange('stroke', color), '边框颜色', <Square className="w-4 h-4 text-gray-500" />)}
+                  {colorPicker(nodeColors.textColor, (color) => handleNodeColorChange('textColor', color), '文字颜色', <Type className="w-4 h-4 text-gray-500" />)}
+                  {colorPicker(nodeColors.titleBackgroundColor, (color) => handleNodeColorChange('titleBackgroundColor', color), '标题背景色', <Heading className="w-4 h-4 text-gray-500" />)}
+                  {colorPicker(nodeColors.titleTextColor, (color) => handleNodeColorChange('titleTextColor', color), '标题文字色', <TextIcon className="w-4 h-4 text-gray-500" />)}
                 </div>
               </div>
             </Section>

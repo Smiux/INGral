@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
-import { articleService, type Article } from '../services/articleService';
+import { getAllArticles, type Article } from '../services/articleService';
 
 function formatDate (dateStr: string | null | undefined): string {
   if (!dateStr) {
@@ -24,7 +24,7 @@ export function ArticlesPage () {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    articleService.getAllArticles(true)
+    getAllArticles()
       .then(setArticles)
       .finally(() => setIsLoading(false));
   }, []);
@@ -54,11 +54,11 @@ export function ArticlesPage () {
               <h2 className="text-xl font-semibold text-neutral-800 group-hover:text-primary-600 transition-colors mb-2">
                 {article.title}
               </h2>
-              <p className="text-neutral-600 mb-4 line-clamp-2">
-                {article.content.substring(0, 150)}...
-              </p>
               <span className="text-sm text-neutral-500">
-                更新于{formatDate(article.updated_at)}
+                {article.author_name}
+              </span>
+              <span className="text-sm text-neutral-500 block mt-2">
+                创建于{formatDate(article.created_at)}
               </span>
             </Link>
           ))}
@@ -71,14 +71,6 @@ export function ArticlesPage () {
         <p className="text-gray-600 mb-4">
           {searchQuery ? '没有匹配的文章。' : '暂无文章。'}
         </p>
-        {!searchQuery && (
-          <Link
-            to="/articles/create"
-            className="inline-block bg-blue-50 text-blue-700 border border-blue-200 px-6 py-2 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 transform hover:scale-105"
-          >
-            创建文章
-          </Link>
-        )}
       </div>
     );
   };
@@ -87,7 +79,7 @@ export function ArticlesPage () {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <Link
         to="/"
-        className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 mb-8 transition-all duration-200"
+        className="inline-flex items-center gap-1 text-primary-600 hover:text-neutral-700 mb-8 transition-all duration-200"
       >
         <ArrowLeft className="w-4 h-4" />
         返回首页
@@ -97,7 +89,7 @@ export function ArticlesPage () {
         <h1 className="text-3xl font-bold text-neutral-800 mb-4 md:mb-0">所有文章</h1>
         <Link
           to="/articles/create"
-          className="flex items-center gap-2 bg-secondary-50 text-secondary-700 border border-secondary-200 px-6 py-2 rounded-lg hover:bg-secondary-100 hover:border-secondary-300 transition-all duration-200 transform hover:scale-105 font-medium"
+          className="flex items-center gap-2 bg-secondary-50 text-secondary-600 border border-secondary-200 px-6 py-2 rounded-lg hover:bg-secondary-100 hover:border-secondary-200 transition-all duration-200 transform hover:scale-105 font-medium"
         >
           <Plus className="w-4 h-4 text-secondary-600" />
           创建文章

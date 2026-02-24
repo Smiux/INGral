@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Download, Upload, FileText, Table, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
+import { Download, Upload, FileText, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
 import { useReactFlow, useStore, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './FloatingEdge';
@@ -10,114 +10,47 @@ interface GraphImportExportPanelProps {
   isOpen: boolean;
 }
 
-type ExportFormat = 'json' | 'csv';
 type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
 
-/**
- * 图导入导出面板组件
- * 支持多种格式的图数据导入导出
- */
+const STATUS_CONFIG = {
+  'success': { 'bg': 'bg-green-50', 'text': 'text-green-800', 'icon': <CheckCircle2 className="w-5 h-5 text-green-500" /> },
+  'error': { 'bg': 'bg-red-50', 'text': 'text-red-800', 'icon': <AlertCircle className="w-5 h-5 text-red-500" /> },
+  'loading': { 'bg': 'bg-blue-50', 'text': 'text-blue-800', 'icon': <Loader2 className="w-5 h-5 text-blue-500 animate-spin" /> }
+} as const;
+
+const resetStatusAfter = (setStatus: (_: ImportStatus) => void, setMessage: (_: string) => void, delay: number) => {
+  setTimeout(() => {
+    setStatus('idle');
+    setMessage('');
+  }, delay);
+};
+
 export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = React.memo(({ onImportComplete, onClose, isOpen }) => {
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('json');
   const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
   const [importMessage, setImportMessage] = useState<string>('');
-  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const reactFlowInstance = useReactFlow();
-  const nodeCount = useStore(
-    (state) => state.nodes.length,
-    (prev, next) => prev === next
-  );
-  const edgeCount = useStore(
-    (state) => state.edges.length,
-    (prev, next) => prev === next
-  );
+  const nodeCount = useStore((state) => state.nodes.length);
+  const edgeCount = useStore((state) => state.edges.length);
 
   const handleExport = useCallback(() => {
-    setIsExporting(true);
+    const nodes = reactFlowInstance.getNodes();
+    const edges = reactFlowInstance.getEdges();
+    const date = new Date()
+      .toISOString()
+      .slice(0, 10);
 
-    const createDownloadLink = (content: string, filename: string, mimeType: string): void => {
-      const dataUri = `${mimeType};charset=utf-8,${encodeURIComponent(content)}`;
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', filename);
-      linkElement.click();
+    const exportData = {
+      'nodes': nodes.map(n => ({ 'id': n.id, 'position': n.position, 'data': n.data, 'type': n.type })),
+      'edges': edges.map(e => ({ 'id': e.id, 'source': e.source, 'target': e.target, 'data': e.data, 'type': e.type, 'markerEnd': e.markerEnd })),
+      'metadata': { 'exportDate': new Date().toISOString(), 'nodeCount': nodes.length, 'edgeCount': edges.length, 'version': '1.0' }
     };
+    const link = document.createElement('a');
+    link.href = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(exportData, null, 2))}`;
+    link.download = `graph-export-${date}.json`;
+    link.click();
+  }, [reactFlowInstance]);
 
-    const generateFilename = (format: ExportFormat): string => {
-      const date = new Date()
-        .toISOString()
-        .slice(0, 10);
-      return `graph-export-${date}.${format}`;
-    };
-
-    const nodesData = reactFlowInstance.getNodes().map((node) => ({
-      'id': node.id,
-      'position': node.position,
-      'data': node.data,
-      'type': node.type
-    })) as Node<CustomNodeData>[];
-
-    const edgesData = reactFlowInstance.getEdges().map((edge) => ({
-      'id': edge.id,
-      'source': edge.source,
-      'target': edge.target,
-      'data': edge.data,
-      'type': edge.type,
-      'markerEnd': edge.markerEnd
-    })) as Edge<CustomEdgeData>[];
-
-    try {
-      if (exportFormat === 'json') {
-        const exportData = {
-          'nodes': nodesData,
-          'edges': edgesData,
-          'metadata': {
-            'exportDate': new Date().toISOString(),
-            'nodeCount': nodesData.length,
-            'edgeCount': edgesData.length,
-            'version': '1.0'
-          }
-        };
-
-        const dataStr = JSON.stringify(exportData, null, 2);
-        createDownloadLink(dataStr, generateFilename('json'), 'data:application/json');
-      } else if (exportFormat === 'csv') {
-        const nodeCsv = [
-          ['Node ID', 'Type', 'Title', 'Label', 'X', 'Y'],
-          ...nodesData.map((node: Node<CustomNodeData>) => [
-            node.id,
-            node.data?.type || 'default',
-            node.data?.title || '',
-            node.data?.label || '',
-            node.position.x.toString(),
-            node.position.y.toString()
-          ])
-        ].map(row => row.join(',')).join('\n');
-
-        const edgeCsv = [
-          ['Edge ID', 'Source', 'Target', 'Type', 'Weight', 'Curve Type'],
-          ...edgesData.map((edge: Edge<CustomEdgeData>) => [
-            edge.id,
-            edge.source.toString(),
-            edge.target.toString(),
-            edge.data?.type || 'related',
-            (edge.data?.weight || 1).toString(),
-            edge.data?.curveType || 'default'
-          ])
-        ].map(row => row.join(',')).join('\n');
-
-        const csvContent = `${nodeCsv}\n\n${edgeCsv}`;
-        createDownloadLink(csvContent, generateFilename('csv'), 'data:text/csv');
-      }
-    } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [exportFormat, reactFlowInstance]);
-
-  // 导入功能 - 处理文件选择
   const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -128,144 +61,37 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
     setImportMessage('正在解析文件...');
 
     try {
-      const fileExtension = file.name.split('.').pop()
+      const ext = file.name
+        .split('.')
+        .pop()
         ?.toLowerCase();
-
-      // 文件类型验证
-      if (!['json', 'csv'].includes(fileExtension || '')) {
-        throw new Error('不支持的文件格式，请选择JSON或CSV文件');
+      if (ext !== 'json') {
+        throw new Error('不支持的文件格式，请选择JSON文件');
       }
 
-      const fileContent = await file.text();
-      let importedNodes: Node<CustomNodeData>[] = [];
-      let importedEdges: Edge<CustomEdgeData>[] = [];
+      const content = await file.text();
+      const data = JSON.parse(content);
+      const importedNodes: Node<CustomNodeData>[] = data.nodes || [];
+      const importedEdges: Edge<CustomEdgeData>[] = data.edges || [];
 
-      if (fileExtension === 'json') {
-        // 解析JSON文件
-        const importData = JSON.parse(fileContent);
-
-        // 验证JSON结构
-        if (!importData.nodes || !Array.isArray(importData.nodes)) {
-          throw new Error('无效的JSON文件：缺少nodes数组');
-        }
-
-        if (!importData.edges || !Array.isArray(importData.edges)) {
-          throw new Error('无效的JSON文件：缺少edges数组');
-        }
-
-        importedNodes = importData.nodes as Node<CustomNodeData>[];
-        importedEdges = importData.edges as Edge<CustomEdgeData>[];
-      } else if (fileExtension === 'csv') {
-        // 解析CSV文件
-        const lines = fileContent.split('\n').filter(line => line.trim() !== '');
-
-        // 找到节点和连接数据的分界点（空行之后）
-        const emptyLineIndex = lines.findIndex(line => line.trim() === '');
-
-        if (emptyLineIndex === -1) {
-          throw new Error('无效的CSV文件：缺少节点和连接数据的分隔');
-        }
-
-        // 解析节点数据
-        const nodeLines = lines.slice(0, emptyLineIndex);
-        const nodeHeaderLine = nodeLines[0];
-        if (!nodeHeaderLine) {
-          throw new Error('无效的CSV文件：缺少节点数据标题行');
-        }
-        const nodeHeaders = nodeHeaderLine.split(',');
-
-        // 验证节点头信息
-        if (!nodeHeaders.includes('Node ID') || !nodeHeaders.includes('X') || !nodeHeaders.includes('Y')) {
-          throw new Error('无效的CSV文件：节点数据缺少必要字段');
-        }
-
-        importedNodes = nodeLines.slice(1).map((line, index) => {
-          const values = line.split(',');
-          return {
-            'id': values[0] || `node-${index}`,
-            'type': 'custom',
-            'position': {
-              'x': parseFloat(values[4] || '0') || 0,
-              'y': parseFloat(values[5] || '0') || 0
-            },
-            'data': {
-              'type': values[1] || 'default',
-              'title': values[2] || `Node ${index + 1}`,
-              'label': values[3] || ''
-            },
-            'selected': false
-          } as Node<CustomNodeData>;
-        });
-
-        // 解析连接数据
-        const edgeLines = lines.slice(emptyLineIndex + 1);
-        const edgeHeaderLine = edgeLines[0];
-        if (!edgeHeaderLine) {
-          throw new Error('无效的CSV文件：缺少连接数据标题行');
-        }
-        const edgeHeaders = edgeHeaderLine.split(',');
-
-        // 验证连接头信息
-        if (!edgeHeaders.includes('Edge ID') || !edgeHeaders.includes('Source') || !edgeHeaders.includes('Target')) {
-          throw new Error('无效的CSV文件：连接数据缺少必要字段');
-        }
-
-        importedEdges = edgeLines.slice(1).map(line => {
-          const values = line.split(',');
-          return {
-            'id': values[0] || `edge-${Date.now()}-${Math.random().toString(36)
-              .substr(2, 9)}`,
-            'source': values[1] || '',
-            'target': values[2] || '',
-            'type': 'floating',
-            'data': {
-              'type': values[3] || 'related',
-              'weight': parseFloat(values[4] || '1') || 1,
-              'curveType': (values[5] as 'default' | 'smoothstep' | 'straight' | 'simplebezier') || 'default'
-            },
-            'selected': false
-          } as Edge<CustomEdgeData>;
-        });
-      }
-
-      // 验证导入数据的完整性
-      if (importedNodes.length === 0) {
-        throw new Error('无效的文件：未找到节点数据');
-      }
-
-      // 调用导入完成回调
       onImportComplete(importedNodes, importedEdges);
-
       setImportStatus('success');
       setImportMessage(`成功导入 ${importedNodes.length} 个节点和 ${importedEdges.length} 个连接`);
-
-      // 3秒后重置状态
-      setTimeout(() => {
-        setImportStatus('idle');
-        setImportMessage('');
-      }, 3000);
+      resetStatusAfter(setImportStatus, setImportMessage, 3000);
     } catch (error) {
       setImportStatus('error');
       setImportMessage(error instanceof Error ? error.message : '导入失败，请检查文件格式');
-
-      // 5秒后重置状态
-      setTimeout(() => {
-        setImportStatus('idle');
-        setImportMessage('');
-      }, 5000);
+      resetStatusAfter(setImportStatus, setImportMessage, 5000);
     } finally {
-      // 重置文件输入
       event.target.value = '';
     }
   }, [onImportComplete]);
-
-
 
   return (
     <div className={`panel-container ${isOpen ? 'panel-open' : 'panel-closing'}`}>
       <div className="panel-header">
         <div className="panel-title">
-          <Table className="w-5 h-5 text-primary-400" />
+          <FileText className="w-5 h-5 text-primary-400" />
           导入导出
         </div>
         <button
@@ -279,12 +105,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
 
       <div className="panel-content space-y-8">
         {importStatus !== 'idle' && (() => {
-          const statusConfig = {
-            'success': { 'bg': 'bg-green-50', 'text': 'text-green-800', 'icon': <CheckCircle2 className="w-5 h-5 text-green-500" /> },
-            'error': { 'bg': 'bg-red-50', 'text': 'text-red-800', 'icon': <AlertCircle className="w-5 h-5 text-red-500" /> },
-            'loading': { 'bg': 'bg-blue-50', 'text': 'text-blue-800', 'icon': <Loader2 className="w-5 h-5 text-blue-500 animate-spin" /> }
-          };
-          const config = statusConfig[importStatus];
+          const config = STATUS_CONFIG[importStatus];
           return (
             <div className={`flex items-center gap-2 px-4 py-2 rounded-lg mb-4 ${config.bg} ${config.text}`}>
               {config.icon}
@@ -300,43 +121,19 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
           </h3>
 
           <div className="space-y-4">
-            <div className="flex items-center gap-4 flex-wrap">
-              <label className="text-sm font-medium min-w-[80px] text-neutral-600">导出格式</label>
-              <div className="flex gap-3 flex-wrap">
-                {(['json', 'csv'] as const).map((format) => (
-                  <button
-                    key={format}
-                    onClick={() => setExportFormat(format)}
-                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out flex items-center gap-2 transform hover:scale-[1.03] ${exportFormat === format ? 'text-white bg-gradient-to-r from-primary-500 to-primary-600' : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'}`}
-                  >
-                    {format === 'json' ? (
-                      <FileText className="w-4 h-4" />
-                    ) : (
-                      <Table className="w-4 h-4" />
-                    )}
-                    {format.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             <div className="bg-white/70 p-3.5 rounded-lg border border-primary-100">
               <p className="text-sm text-neutral-600">
-                当前图包含 <strong className="text-primary-700">{nodeCount} 个节点</strong> 和 <strong className="text-primary-700">{edgeCount} 个连接</strong>
+                当前图包含 <strong className="text-primary-600">{nodeCount} 个节点</strong> 和 <strong className="text-primary-600">{edgeCount} 个连接</strong>
               </p>
             </div>
 
             <button
               onClick={handleExport}
-              disabled={isExporting || nodeCount === 0}
-              className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-white ${isExporting || nodeCount === 0 ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:scale-100' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'}`}
+              disabled={nodeCount === 0}
+              className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-white ${nodeCount === 0 ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:scale-100' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'}`}
             >
-              {isExporting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4" />
-              )}
-              {isExporting ? '导出中...' : '导出图'}
+              <Download className="w-4 h-4" />
+              导出图
             </button>
           </div>
         </div>
@@ -360,7 +157,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
                 type="file"
                 id="file-upload"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                accept=".json,.csv"
+                accept=".json"
                 onChange={handleFileChange}
                 disabled={importStatus === 'loading'}
               />
@@ -384,5 +181,3 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
     </div>
   );
 });
-
-

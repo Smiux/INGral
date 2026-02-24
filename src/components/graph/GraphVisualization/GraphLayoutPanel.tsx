@@ -42,10 +42,7 @@ const DEFAULT_OPTIONS = {
     'crossingMinimization': 'LAYER_SWEEP',
     'nodePlacement': 'NETWORK_SIMPLEX',
     'feedbackEdges': false,
-    'edgeEdgeSpacing': 10,
-    'edgeNodeSpacing': 5,
     'considerModelOrder': 'NODES_AND_EDGES',
-    'postCompactionStrategy': 'NONE',
     'nodeLayeringStrategy': 'NETWORK_SIMPLEX',
     'thoroughness': 7,
     'mergeEdges': false,
@@ -120,19 +117,9 @@ const ALGORITHM_CONFIGS = {
         { 'value': 'LINEAR_SEGMENTS', 'label': '线性分段' }
       ]},
       { 'key': 'feedbackEdges', 'label': '反馈连接处理', 'type': 'checkbox' as const, 'description': '允许反馈连接（形成环的连接）' },
-      { 'key': 'edgeEdgeSpacing', 'label': '连接间间距', 'type': 'number' as const },
-      { 'key': 'edgeNodeSpacing', 'label': '连接节点间间距', 'type': 'number' as const },
       { 'key': 'considerModelOrder', 'label': '考虑模型顺序', 'type': 'select' as const, 'options': [
         { 'value': 'NONE', 'label': '无' },
         { 'value': 'NODES_AND_EDGES', 'label': '节点和连接' }
-      ]},
-      { 'key': 'postCompactionStrategy', 'label': '后紧凑化策略', 'type': 'select' as const, 'options': [
-        { 'value': 'NONE', 'label': '无' },
-        { 'value': 'LEFT', 'label': '向左紧凑' },
-        { 'value': 'RIGHT', 'label': '向右紧凑' },
-        { 'value': 'LEFT_RIGHT_CONSTRAINT_LOCKING', 'label': '左右约束锁定' },
-        { 'value': 'LEFT_RIGHT_CONNECTION_LOCKING', 'label': '左右连接锁定' },
-        { 'value': 'EDGE_LENGTH', 'label': '连接长度' }
       ]},
       { 'key': 'nodeLayeringStrategy', 'label': '节点分层策略', 'type': 'select' as const, 'options': [
         { 'value': 'NETWORK_SIMPLEX', 'label': '网络单纯形法' },
@@ -246,7 +233,7 @@ const ALGORITHM_CONFIGS = {
     'title': 'Vertiflex布局 (特殊树布局) 参数',
     'bgColor': 'bg-secondary-50',
     'borderColor': 'border-secondary-100',
-    'titleColor': 'text-secondary-800',
+    'titleColor': 'text-secondary-600',
     'fields': [
       { 'key': 'layerDistance', 'label': '层间距', 'type': 'number' as const },
       { 'key': 'considerNodeModelOrder', 'label': '考虑节点模型顺序', 'type': 'checkbox' as const, 'description': '考虑节点模型顺序' }
@@ -256,7 +243,7 @@ const ALGORITHM_CONFIGS = {
     'title': '盒布局 (Box) 参数',
     'bgColor': 'bg-primary-50',
     'borderColor': 'border-primary-100',
-    'titleColor': 'text-primary-800',
+    'titleColor': 'text-primary-600',
     'fields': [
       { 'key': 'packingMode', 'label': '打包模式', 'type': 'select' as const, 'options': [
         { 'value': 'SIMPLE', 'label': '简单' },
@@ -268,7 +255,7 @@ const ALGORITHM_CONFIGS = {
     'title': 'Spore重叠布局 (SporeOverlap) 参数',
     'bgColor': 'bg-primary-50',
     'borderColor': 'border-primary-100',
-    'titleColor': 'text-primary-800',
+    'titleColor': 'text-primary-600',
     'fields': [
       { 'key': 'iterationLimit', 'label': '迭代限制', 'type': 'number' as const }
     ]
@@ -331,8 +318,6 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
           'elk.direction': layoutOptions.direction,
           'elk.layered.spacing.baseValue': layoutOptions.nodeSpacing.toString(),
           'elk.layered.spacing.nodeNodeBetweenLayers': layoutOptions.layered.rankSpacing.toString(),
-          'elk.layered.spacing.edgeEdgeBetweenLayers': layoutOptions.layered.edgeEdgeSpacing.toString(),
-          'elk.layered.spacing.edgeNodeBetweenLayers': layoutOptions.layered.edgeNodeSpacing.toString(),
           'elk.layered.crossingMinimization.strategy': layoutOptions.layered.crossingMinimization,
           'elk.layered.nodePlacement.strategy': layoutOptions.layered.nodePlacement,
           'elk.layered.feedbackEdges': layoutOptions.layered.feedbackEdges.toString(),
@@ -343,8 +328,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
           'elk.layered.layerUnzipping.strategy': layoutOptions.layered.layerUnzippingStrategy,
           'elk.layered.considerModelOrder.longEdgeStrategy': layoutOptions.layered.longEdgeOrderingStrategy,
           'elk.layered.layering.nodePromotion.strategy': layoutOptions.layered.nodePromotionStrategy,
-          'elk.layered.directionCongruency': layoutOptions.layered.directionCongruency,
-          'org.eclipse.elk.layered.compaction.postCompaction.strategy': layoutOptions.layered.postCompactionStrategy
+          'elk.layered.directionCongruency': layoutOptions.layered.directionCongruency
         },
         'force': {
           'org.eclipse.elk.force.iterations': layoutOptions.force.iterations.toString(),
@@ -394,17 +378,11 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
         'id': 'root',
         'layoutOptions': { ...baseOptions, ...algorithmOptionsMap[layoutOptions.algorithm] },
         'children': currentNodes.map(node => ({ 'id': node.id, 'width': 150, 'height': 50 })),
-        'edges': currentEdges.map(edge => {
-          const edgeObj: { 'id': string; 'sources': string[]; 'targets': string[]; 'weight'?: number } = {
-            'id': edge.id,
-            'sources': [edge.source],
-            'targets': [edge.target]
-          };
-          if (edge.data && typeof (edge.data as { weight?: number }).weight === 'number') {
-            edgeObj.weight = (edge.data as { weight: number }).weight;
-          }
-          return edgeObj;
-        })
+        'edges': currentEdges.map(edge => ({
+          'id': edge.id,
+          'sources': [edge.source],
+          'targets': [edge.target]
+        }))
       };
 
       const layoutedGraph = await elk.layout(elkGraph);
@@ -642,7 +620,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
           <button
             onClick={executeLayout}
             disabled={isLayouting || nodeCount === 0}
-            className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-white ${isLayouting || nodeCount === 0 ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:scale-100' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700'}`}
+            className={`w-full py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 ${isLayouting || nodeCount === 0 ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed' : 'bg-primary-600 text-white'}`}
           >
             {isLayouting ? (
               <>

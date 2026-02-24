@@ -33,17 +33,14 @@ const LINE_HEIGHTS = ['1.0', '1.2', '1.4', '1.6', '1.8', '2.0', '2.4'];
 interface ToolbarButtonProps {
   icon: React.ReactNode;
   label: string;
-  isActive?: boolean;
   onClick: () => void;
   showMenu?: boolean;
 }
 
-const ToolbarButton: React.FC<ToolbarButtonProps> = memo(({ icon, label, isActive, onClick, showMenu }) => (
+const ToolbarButton: React.FC<ToolbarButtonProps> = memo(({ icon, label, onClick, showMenu }) => (
   <button
     onClick={onClick}
-    className={`flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16 ${
-      isActive ? 'bg-primary-50 text-primary-700' : ''
-    }`}
+    className={'flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16'}
   >
     <div className="flex items-center gap-1">
       {icon}
@@ -282,7 +279,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
               }
               setActiveMenu(activeMenu === 'color' ? null : 'color');
             }}
-            className={`flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16 ${activeMenu === 'color' ? 'bg-primary-50 text-primary-700' : ''}`}
+            className={`flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16 ${activeMenu === 'color' ? 'bg-primary-50 text-primary-600' : ''}`}
           >
             <div className="flex items-center gap-1">
               <Palette className="w-4 h-4 text-neutral-600" />
@@ -493,7 +490,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
 
         <button
           onClick={onToggleTableOfContents}
-          className={`flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16 ${showTableOfContents ? 'bg-primary-50 text-primary-700' : ''}`}
+          className={`flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16 ${showTableOfContents ? 'bg-primary-50 text-primary-600' : ''}`}
         >
           <ListTree className="w-4 h-4 text-neutral-600" />
           <span className="text-xs text-neutral-600 mt-1">目录</span>

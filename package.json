@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "my-wiki",
+  "name": "in-gral",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -12,7 +12,10 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint",
     "check:fix": "npm run typecheck && npm run lint:fix",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "config": {
     "commitizen": {
@@ -22,6 +25,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
     "@tiptap/core": "^3.19.0",
+    "@tiptap/extension-audio": "^3.19.0",
     "@tiptap/extension-character-count": "^3.19.0",
     "@tiptap/extension-code-block": "^3.19.0",
     "@tiptap/extension-code-block-lowlight": "^3.19.0",
@@ -60,6 +64,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
+    "@tauri-apps/cli": "^2.10.0",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^5.1.4",

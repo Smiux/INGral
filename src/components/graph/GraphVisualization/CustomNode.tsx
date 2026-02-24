@@ -28,7 +28,7 @@ interface HandleConfig {
   nodeHeight: number;
 }
 
-const DEFAULT_HANDLE_STYLE: React.CSSProperties = {
+const HANDLE_STYLE: React.CSSProperties = {
   'background': '#4ECDC4',
   'borderColor': '#26A69A',
   'width': 6,
@@ -36,12 +36,13 @@ const DEFAULT_HANDLE_STYLE: React.CSSProperties = {
   'borderRadius': '50%',
   'borderWidth': 1,
   'zIndex': 10,
-  'cursor': 'pointer'
+  'cursor': 'pointer',
+  'position': 'absolute',
+  'transform': 'none'
 };
 
 function generateHandles (config: HandleConfig) {
   const { id, handleCount, shape, nodeWidth, nodeHeight } = config;
-
   if (handleCount <= 0) {
     return (
       <Handle
@@ -83,11 +84,9 @@ function generateHandles (config: HandleConfig) {
           type="source"
           position={position}
           style={{
-            ...DEFAULT_HANDLE_STYLE,
+            ...HANDLE_STYLE,
             'left': `calc(50% + ${x}px - 3px)`,
-            'top': `calc(50% + ${y}px - 3px)`,
-            'position': 'absolute',
-            'transform': 'none'
+            'top': `calc(50% + ${y}px - 3px)`
           }}
           isConnectable
         />
@@ -104,16 +103,13 @@ function generateHandles (config: HandleConfig) {
 
   const handlesPerSide = Math.floor(handleCount / 4);
   const remainingHandles = handleCount % 4;
-  const sideHandleCounts = sides.map((_, index) =>
-    handlesPerSide + (index < remainingHandles ? 1 : 0)
-  );
 
   const handles: React.ReactElement[] = [];
   let handleIndex = 0;
 
   sides.forEach((side, sideIndex) => {
-    const count = sideHandleCounts[sideIndex];
-    if (!count || count <= 0) {
+    const count = handlesPerSide + (sideIndex < remainingHandles ? 1 : 0);
+    if (count <= 0) {
       return;
     }
 
@@ -122,8 +118,8 @@ function generateHandles (config: HandleConfig) {
 
     for (let i = 0; i < count; i += 1) {
       const offset = margin + spacing * (i + 1);
-      let x: number;
-      let y: number;
+      let x = 0;
+      let y = 0;
 
       switch (side.position) {
         case Position.Top:
@@ -142,9 +138,6 @@ function generateHandles (config: HandleConfig) {
           x = -nodeWidth / 2;
           y = offset - nodeHeight / 2;
           break;
-        default:
-          x = 0;
-          y = 0;
       }
 
       handles.push(
@@ -154,11 +147,9 @@ function generateHandles (config: HandleConfig) {
           type="source"
           position={side.position}
           style={{
-            ...DEFAULT_HANDLE_STYLE,
+            ...HANDLE_STYLE,
             'left': `calc(50% + ${x}px - 3px)`,
-            'top': `calc(50% + ${y}px - 3px)`,
-            'position': 'absolute',
-            'transform': 'none'
+            'top': `calc(50% + ${y}px - 3px)`
           }}
           isConnectable
         />

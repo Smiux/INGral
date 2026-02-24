@@ -1,14 +1,6 @@
 import { Position, type InternalNode } from '@xyflow/react';
 
-interface NodeGeometry {
-  'centerX': number;
-  'centerY': number;
-  'halfWidth': number;
-  'halfHeight': number;
-  'shape': string;
-}
-
-function getNodeGeometry (node: InternalNode): NodeGeometry {
+function getNodeGeometry (node: InternalNode) {
   const position = node.internals?.positionAbsolute || { 'x': 0, 'y': 0 };
   const width = node.measured?.width || 100;
   const height = node.measured?.height || 100;
@@ -25,7 +17,7 @@ function getNodeGeometry (node: InternalNode): NodeGeometry {
 }
 
 function calculateIntersection (
-  geometry: NodeGeometry,
+  geometry: { 'centerX': number; 'centerY': number; 'halfWidth': number; 'halfHeight': number; 'shape': string },
   targetX: number,
   targetY: number
 ): { 'x': number; 'y': number } {
@@ -52,22 +44,17 @@ function calculateIntersection (
 
   let t = Infinity;
 
-  const checkIntersection = (axis: 'x' | 'y', direction: number, limit: number) => {
-    if (direction === 0) {
-      return;
-    }
-    const tVal = (direction > 0 ? limit : -limit) / direction;
-    if (tVal > 0 && tVal < t) {
-      const otherAxis = axis === 'x' ? unitY * tVal : unitX * tVal;
-      const otherLimit = axis === 'x' ? halfHeight : halfWidth;
-      if (Math.abs(otherAxis) <= otherLimit) {
+  const checkIntersection = (direction: number, limit: number) => {
+    if (direction !== 0) {
+      const tVal = (direction > 0 ? limit : -limit) / direction;
+      if (tVal > 0 && tVal < t) {
         t = tVal;
       }
     }
   };
 
-  checkIntersection('x', unitX, halfWidth);
-  checkIntersection('y', unitY, halfHeight);
+  checkIntersection(unitX, halfWidth);
+  checkIntersection(unitY, halfHeight);
 
   return {
     'x': centerX + unitX * t,

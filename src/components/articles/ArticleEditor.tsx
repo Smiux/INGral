@@ -1,26 +1,21 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { articleService } from '../../services/articleService';
+import { createArticle } from '../../services/articleService';
 import { LatexEditor } from './LatexEditor';
 import { TiptapEditor, TiptapEditorRef } from './TipTapEditor';
 import { EditorToolbar } from './EditorToolbar';
+import type { Editor } from '@tiptap/react';
 import {
-  Globe, User, Lock, Save,
-  CheckCircle, MessageCircle,
+  User, Save,
+  MessageCircle,
   FileText, ListTree
 } from 'lucide-react';
 
 interface EditorState {
   title: string;
-  visibility: 'public' | 'unlisted';
   authorName: string;
   isSaving: boolean;
 }
-
-const VisibilityOptions = [
-  { 'value': 'public', 'label': '公开', 'icon': Globe },
-  { 'value': 'unlisted', 'label': '仅分享', 'icon': Lock }
-] as const;
 
 interface TocItemProps {
   item: {
@@ -28,7 +23,6 @@ interface TocItemProps {
     textContent: string;
     level: number;
     itemIndex: number;
-    isActive: boolean;
     isScrolledOver: boolean;
   };
   onClick: () => void;
@@ -42,12 +36,8 @@ const TocItem: React.FC<TocItemProps> = ({ item, onClick }) => {
   };
 
   const style = (levelStyles[item.level] ?? levelStyles[3])!;
-  const isActiveStatus = item.isActive && !item.isScrolledOver;
 
-  const getTocItemClass = (isActiveFlag: boolean, isScrolledOverFlag: boolean) => {
-    if (isActiveFlag) {
-      return 'bg-primary-50 border-l-4 border-primary-500 text-primary-700';
-    }
+  const getTocItemClass = (isScrolledOverFlag: boolean) => {
     if (isScrolledOverFlag) {
       return 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600';
     }
@@ -56,7 +46,7 @@ const TocItem: React.FC<TocItemProps> = ({ item, onClick }) => {
 
   return (
     <div
-      className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${getTocItemClass(isActiveStatus, item.isScrolledOver)}`}
+      className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${getTocItemClass(item.isScrolledOver)}`}
       style={{ 'paddingLeft': `${(item.level - 1) * 12}px` }}
       onClick={onClick}
     >
@@ -67,9 +57,6 @@ const TocItem: React.FC<TocItemProps> = ({ item, onClick }) => {
         <span className={`truncate transition-all duration-300 max-w-[calc(100%-1rem)] ${style.fontSize} ${style.fontWeight} text-left flex-1`}>
           {item.textContent}
         </span>
-        {isActiveStatus && (
-          <CheckCircle className="w-4 h-4 text-primary-500 ml-auto flex-shrink-0 animate-pulse" />
-        )}
       </div>
     </div>
   );
@@ -80,7 +67,6 @@ export const ArticleEditor: React.FC = () => {
 
   const [state, setState] = useState<EditorState>({
     'title': '',
-    'visibility': 'public',
     'authorName': '',
     'isSaving': false
   });
@@ -97,7 +83,6 @@ export const ArticleEditor: React.FC = () => {
     textContent: string;
     level: number;
     itemIndex: number;
-    isActive: boolean;
     isScrolledOver: boolean;
   }>>([]);
 
@@ -113,6 +98,7 @@ export const ArticleEditor: React.FC = () => {
   const tocRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<TiptapEditorRef | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const [editor, setEditor] = useState<Editor | null>(null);
 
   const [isToolbarSticky, setIsToolbarSticky] = useState(false);
 
@@ -171,10 +157,6 @@ export const ArticleEditor: React.FC = () => {
     setState(prev => ({ ...prev, 'title': e.target.value }));
   };
 
-  const handleVisibilityChange = (visibility: 'public' | 'unlisted') => {
-    setState(prev => ({ ...prev, visibility }));
-  };
-
   const toggleAuthorEdit = () => {
     if (isEditingAuthor) {
       setState(prev => ({ ...prev, 'authorName': tempAuthorName }));
@@ -185,7 +167,6 @@ export const ArticleEditor: React.FC = () => {
   };
 
   const handleSave = async () => {
-    const editor = editorRef.current?.getEditor();
     if (!editor) {
       return;
     }
@@ -193,25 +174,21 @@ export const ArticleEditor: React.FC = () => {
     setState(prev => ({ ...prev, 'isSaving': true }));
 
     try {
-      const savedArticle = await articleService.createArticle({
+      const savedArticle = await createArticle({
         'title': state.title,
         'content': editor.getHTML(),
-        'visibility': state.visibility,
         'authorName': state.authorName
       });
 
       if (savedArticle) {
         navigate(`/articles/${savedArticle.slug}`);
       }
-    } catch (error) {
-      console.error('Failed to save article:', error);
     } finally {
       setState(prev => ({ ...prev, 'isSaving': false }));
     }
   };
 
   const handleInsertMath = useCallback((formula: string) => {
-    const editor = editorRef.current?.getEditor();
     if (!editor) {
       return;
     }
@@ -224,17 +201,15 @@ export const ArticleEditor: React.FC = () => {
       })
       .run();
     setShowLatexEditor(false);
-  }, [mathType]);
+  }, [mathType, editor]);
 
   const handleLink = useCallback(() => {
-    const editor = editorRef.current?.getEditor();
     const previousUrl = editor?.getAttributes('link').href || '';
     setLinkUrl(previousUrl);
     setShowLinkDialog(true);
-  }, []);
+  }, [editor]);
 
   const handleLinkSubmit = useCallback(() => {
-    const editor = editorRef.current?.getEditor();
     if (!editor) {
       return;
     }
@@ -249,10 +224,9 @@ export const ArticleEditor: React.FC = () => {
         .run();
     }
     setShowLinkDialog(false);
-  }, [linkUrl]);
+  }, [linkUrl, editor]);
 
   const handleTocClick = (itemId: string) => {
-    const editor = editorRef.current?.getEditor();
     const element = editor?.view.dom.querySelector(`[data-toc-id="${itemId}"]`);
     if (element) {
       window.scrollTo({
@@ -283,7 +257,9 @@ export const ArticleEditor: React.FC = () => {
     handleLink();
   }, [handleLink]);
 
-  const editor = editorRef.current?.getEditor();
+  const handleEditorReady = useCallback((editorInstance: Editor) => {
+    setEditor(editorInstance);
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -306,13 +282,13 @@ export const ArticleEditor: React.FC = () => {
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setShowLinkDialog(false)}
-                  className="px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
+                  className="px-4 py-2 text-sm text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-md transition-colors"
                 >
                   取消
                 </button>
                 <button
                   onClick={handleLinkSubmit}
-                  className="px-4 py-2 text-sm text-white bg-primary-600 hover:bg-primary-700 rounded-md transition-colors"
+                  className="px-4 py-2 text-sm text-white bg-primary-200 hover:bg-primary-500 rounded-md transition-colors"
                 >
                   确定
                 </button>
@@ -403,29 +379,6 @@ export const ArticleEditor: React.FC = () => {
 
             <div className="flex flex-wrap items-center gap-6 mt-4 text-sm text-neutral-600">
               <div className="flex items-center gap-2">
-                <span className="text-neutral-500">可见性：</span>
-                <div className="flex items-center gap-1">
-                  {VisibilityOptions.map((option) => {
-                    const Icon = option.icon;
-                    return (
-                      <button
-                        key={option.value}
-                        onClick={() => handleVisibilityChange(option.value)}
-                        className={`flex items-center gap-1 px-3 py-1 rounded-full transition-all ${
-                          state.visibility === option.value
-                            ? 'bg-primary-50 text-primary-700 border border-primary-200'
-                            : 'hover:bg-neutral-100 border border-neutral-200'
-                        }`}
-                      >
-                        <Icon size={14} />
-                        <span>{option.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-neutral-500" />
                 {isEditingAuthor ? (
                   <input
@@ -482,6 +435,7 @@ export const ArticleEditor: React.FC = () => {
               editorRef={editorRef}
               onCharacterCountChange={handleCharacterCountChange}
               onTableOfContentsChange={handleTableOfContentsChange}
+              onEditorReady={handleEditorReady}
             />
           </div>
         </div>

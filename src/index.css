@@ -26,7 +26,6 @@ button:disabled {
   --color-primary-400: #38bdf8;
   --color-primary-500: #0ea5e9;
   --color-primary-600: #0284c7;
-  --color-primary-700: #0369a1;
 
   --color-secondary-50: #f0fdf4;
   --color-secondary-100: #dcfce7;
@@ -35,7 +34,6 @@ button:disabled {
   --color-secondary-400: #4ade80;
   --color-secondary-500: #22c55e;
   --color-secondary-600: #16a34a;
-  --color-secondary-700: #15803d;
 
   --color-neutral-50: #ffffff;
   --color-neutral-100: #f9fafb;
@@ -117,8 +115,8 @@ body {
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
     color: #374151;
-    font-style: italic;
     background-color: #f9fafb;
+    border-radius: 0 0.5rem 0.5rem 0;
   }
 
   & blockquote p {
@@ -136,6 +134,16 @@ body {
     border-radius: 0.5rem;
   }
 
+  & audio {
+    display: block;
+    width: 100%;
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
   & table {
     width: 100%;
     table-layout: fixed;
@@ -151,6 +159,7 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     word-wrap: break-word;
+    text-align: center;
   }
 
   & th {
@@ -162,14 +171,14 @@ body {
   }
 
   & a {
-    color: var(--color-primary-600);
+    color: var(--color-primary-500);
     text-decoration-line: underline;
     text-underline-offset: 2px;
     transition: color 200ms;
   }
 
   & a:hover {
-    color: var(--color-primary-700);
+    color: var(--color-primary-600);
   }
 
   & hr {

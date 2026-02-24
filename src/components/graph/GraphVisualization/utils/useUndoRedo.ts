@@ -12,10 +12,9 @@ interface UseUndoRedoReturn {
   'canUndo': boolean;
   'canRedo': boolean;
   'saveState': (nodes: Node[], edges: Edge[]) => void;
-  'clearHistory': () => void;
 }
 
-const MAX_HISTORY_SIZE = 50;
+const MAX_HISTORY_SIZE = 100;
 const DEBOUNCE_DELAY = 300;
 
 export const useUndoRedo = (): UseUndoRedoReturn => {
@@ -101,23 +100,11 @@ export const useUndoRedo = (): UseUndoRedoReturn => {
     };
   }, [updateUndoRedoState]);
 
-  const clearHistory = useCallback(() => {
-    historyRef.current = [];
-    futureRef.current = [];
-    currentStateRef.current = null;
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-      debounceTimeoutRef.current = null;
-    }
-    updateUndoRedoState();
-  }, [updateUndoRedoState]);
-
   return {
     undo,
     redo,
     canUndo,
     canRedo,
-    saveState,
-    clearHistory
+    saveState
   };
 };

@@ -112,7 +112,6 @@ const initialEdges: Edge<CustomEdgeData>[] = [
     'data': {
       'type': 'related',
       'curveType': 'default',
-      'weight': 1,
       'style': {}
     },
     'markerEnd': {
@@ -129,7 +128,6 @@ const initialEdges: Edge<CustomEdgeData>[] = [
     'data': {
       'type': 'related',
       'curveType': 'default',
-      'weight': 1,
       'style': {}
     },
     'markerEnd': {
@@ -274,7 +272,6 @@ const GraphVisualizationContent: React.FC = () => {
       'data': {
         'type': 'related',
         'curveType': 'default',
-        'weight': 1,
         'style': {}
       },
       'markerEnd': {

@@ -1,7 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Network } from 'lucide-react';
 
 export function Header () {
+  const navigate = useNavigate();
+
   return (
     <header className="sticky top-0 z-50 bg-neutral-50 border-b border-neutral-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -13,7 +15,7 @@ export function Header () {
           <div className="flex items-center gap-4">
             <nav className="hidden md:flex items-center gap-2">
               <button
-                onClick={() => window.open('/graphs/create', '_blank', 'noopener noreferrer')}
+                onClick={() => navigate('/graphs/create')}
                 className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-primary-500 hover:bg-primary-50 transition-all duration-200"
               >
                 <Network className="w-4 h-4 text-primary-300" />
