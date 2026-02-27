@@ -17,36 +17,31 @@ interface EditorState {
   isSaving: boolean;
 }
 
+interface TocItem {
+  id: string;
+  textContent: string;
+  level: number;
+  itemIndex: number;
+  isScrolledOver: boolean;
+}
+
 interface TocItemProps {
-  item: {
-    id: string;
-    textContent: string;
-    level: number;
-    itemIndex: number;
-    isScrolledOver: boolean;
-  };
+  item: TocItem;
   onClick: () => void;
 }
 
-const TocItem: React.FC<TocItemProps> = ({ item, onClick }) => {
-  const levelStyles: Record<number, { fontSize: string; fontWeight: string; color: string; numberColor: string }> = {
-    '1': { 'fontSize': 'text-base', 'fontWeight': 'font-semibold', 'color': 'text-primary-600', 'numberColor': 'font-semibold text-primary-600' },
-    '2': { 'fontSize': 'text-sm', 'fontWeight': 'font-medium', 'color': 'text-secondary-500', 'numberColor': 'text-sm font-medium text-secondary-500' },
-    '3': { 'fontSize': 'text-xs', 'fontWeight': 'font-medium', 'color': 'text-neutral-500', 'numberColor': 'text-xs font-medium text-neutral-500' }
-  };
+const TOC_LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string; numberColor: string }> = {
+  '1': { 'fontSize': 'text-base', 'fontWeight': 'font-semibold', 'numberColor': 'font-semibold text-primary-500' },
+  '2': { 'fontSize': 'text-sm', 'fontWeight': 'font-medium', 'numberColor': 'text-sm font-medium text-secondary-500' },
+  '3': { 'fontSize': 'text-xs', 'fontWeight': 'font-medium', 'numberColor': 'text-xs font-medium text-neutral-500' }
+};
 
-  const style = (levelStyles[item.level] ?? levelStyles[3])!;
-
-  const getTocItemClass = (isScrolledOverFlag: boolean) => {
-    if (isScrolledOverFlag) {
-      return 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600';
-    }
-    return 'hover:bg-neutral-50 text-neutral-700';
-  };
+const TocItem: React.FC<TocItemProps> = React.memo(({ item, onClick }) => {
+  const style = TOC_LEVEL_STYLES[item.level] ?? TOC_LEVEL_STYLES[3]!;
 
   return (
     <div
-      className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${getTocItemClass(item.isScrolledOver)}`}
+      className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600' : 'hover:bg-neutral-50 text-neutral-700'}`}
       style={{ 'paddingLeft': `${(item.level - 1) * 12}px` }}
       onClick={onClick}
     >
@@ -60,7 +55,7 @@ const TocItem: React.FC<TocItemProps> = ({ item, onClick }) => {
       </div>
     </div>
   );
-};
+});
 
 export const ArticleEditor: React.FC = () => {
   const navigate = useNavigate();
@@ -78,13 +73,7 @@ export const ArticleEditor: React.FC = () => {
   const [mathType, setMathType] = useState<'inline' | 'block'>('inline');
 
   const [showTableOfContents, setShowTableOfContents] = useState(false);
-  const [tableOfContentsItems, setTableOfContentsItems] = useState<Array<{
-    id: string;
-    textContent: string;
-    level: number;
-    itemIndex: number;
-    isScrolledOver: boolean;
-  }>>([]);
+  const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [fontColor, setFontColor] = useState('#000000');
@@ -95,7 +84,6 @@ export const ArticleEditor: React.FC = () => {
 
   const [characterCount, setCharacterCount] = useState(0);
 
-  const tocRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<TiptapEditorRef | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -113,29 +101,6 @@ export const ArticleEditor: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [handleClickOutside]);
-
-  React.useEffect(() => {
-    if (!showTableOfContents || !tocRef.current) {
-      return;
-    }
-
-    let scrollTimeout: NodeJS.Timeout;
-    const handleScroll = () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        if (tocRef.current) {
-          tocRef.current.style.top = `${window.scrollY + 16}px`;
-        }
-      }, 150);
-    };
-
-    window.addEventListener('scroll', handleScroll, { 'passive': true });
-    // eslint-disable-next-line consistent-return
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimeout);
-    };
-  }, [showTableOfContents]);
 
   React.useEffect(() => {
     const headerHeight = 64;
@@ -253,10 +218,6 @@ export const ArticleEditor: React.FC = () => {
     setShowTableOfContents(prev => !prev);
   }, []);
 
-  const handleLinkClick = useCallback(() => {
-    handleLink();
-  }, [handleLink]);
-
   const handleEditorReady = useCallback((editorInstance: Editor) => {
     setEditor(editorInstance);
   }, []);
@@ -336,15 +297,16 @@ export const ArticleEditor: React.FC = () => {
 
       <div className="relative">
         {showTableOfContents && (
-          <div ref={tocRef} className="absolute left-0 top-4 w-48 bg-white border border-neutral-200 rounded-lg overflow-y-auto max-h-[calc(100vh-120px)] z-20 ml-4 transition-all duration-300 ease-in-out transform flex flex-col">
-            <div className="p-3">
-              <h3 className="text-lg font-semibold text-neutral-800 flex items-center gap-2 mb-4">
+          <div className="sticky top-20 w-48 bg-white border border-neutral-200 rounded-lg z-20 ml-4 flex flex-col float-left mb-4">
+            <div className="p-3 border-b border-neutral-200 flex-shrink-0">
+              <h3 className="text-lg font-semibold text-neutral-800 flex items-center gap-2">
                 <ListTree className="w-4 h-4 text-primary-400" />
                 目录
               </h3>
-
+            </div>
+            <div className="overflow-y-auto max-h-[calc(60vh)]">
               {tableOfContentsItems.length > 0 ? (
-                <nav className="space-y-1">
+                <nav className="p-3 pt-0 space-y-1">
                   {tableOfContentsItems.map((item) => (
                     <TocItem
                       key={item.id}
@@ -427,7 +389,7 @@ export const ArticleEditor: React.FC = () => {
                 setBackgroundColor={setBackgroundColor}
                 showTableOfContents={showTableOfContents}
                 onToggleTableOfContents={handleToggleTableOfContents}
-                onLinkClick={handleLinkClick}
+                onLinkClick={handleLink}
                 onMathClick={handleMathClick}
               />
             </div>

@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, User2 } from 'lucide-react';
 import katex from 'katex';
+import 'katex/dist/katex.min.css';
+import hljs from 'highlight.js';
 import { getArticleBySlug, type ArticleWithContent } from '../../services/articleService';
 
 export function ArticleViewer () {
@@ -56,19 +58,34 @@ export function ArticleViewer () {
       blockMathElements.forEach((element) => {
         const latex = element.getAttribute('data-latex');
         if (latex) {
+          element.classList.add('tiptap-mathematics-render');
+          const inner = document.createElement('span');
+          inner.className = 'block-math-inner';
+          element.appendChild(inner);
           try {
-            katex.render(latex, element, {
+            katex.render(latex, inner, {
               'throwOnError': false,
               'displayMode': true
             });
           } catch {
-            element.textContent = latex;
+            inner.textContent = latex;
           }
         }
       });
     };
 
+    const highlightCode = () => {
+      if (!contentRef.current) {
+        return;
+      }
+
+      contentRef.current.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block as HTMLElement);
+      });
+    };
+
     renderMath();
+    highlightCode();
   }, [article?.content]);
 
   if (isLoading) {
@@ -138,7 +155,7 @@ export function ArticleViewer () {
       <main className="bg-white rounded-lg border border-neutral-200">
         <div
           ref={contentRef}
-          className="prose prose-lg max-w-none mx-auto p-6 md:p-8"
+          className="prose prose-lg max-w-none mx-auto p-6 md:p-8 [counter-reset:equation]"
           dangerouslySetInnerHTML={{ '__html': article.content }}
         />
       </main>

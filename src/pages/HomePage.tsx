@@ -28,7 +28,7 @@ export function HomePage () {
             IN Gral
           </h1>
           <p className="text-xl text-neutral-600 mb-8 max-w-2xl mx-auto">
-            一个个人用的知识平台
+            个人用的知识平台
           </p>
         </div>
 

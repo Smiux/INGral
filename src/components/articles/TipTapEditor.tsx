@@ -19,33 +19,9 @@ import NodeRange from '@tiptap/extension-node-range';
 import { TableOfContents, getHierarchicalIndexes } from '@tiptap/extension-table-of-contents';
 import { DragHandle as DragHandleReact } from '@tiptap/extension-drag-handle-react';
 import { GripVertical } from 'lucide-react';
-import { createLowlight } from 'lowlight';
-import javascript from 'highlight.js/lib/languages/javascript';
-import python from 'highlight.js/lib/languages/python';
-import html from 'highlight.js/lib/languages/xml';
-import css from 'highlight.js/lib/languages/css';
-import json from 'highlight.js/lib/languages/json';
-import typescript from 'highlight.js/lib/languages/typescript';
-import bash from 'highlight.js/lib/languages/bash';
-import sql from 'highlight.js/lib/languages/sql';
-import markdown from 'highlight.js/lib/languages/markdown';
-import java from 'highlight.js/lib/languages/java';
-import csharp from 'highlight.js/lib/languages/csharp';
-import php from 'highlight.js/lib/languages/php';
+import { all, createLowlight } from 'lowlight';
 
-const lowlight = createLowlight();
-lowlight.register('javascript', javascript);
-lowlight.register('python', python);
-lowlight.register('html', html);
-lowlight.register('css', css);
-lowlight.register('json', json);
-lowlight.register('typescript', typescript);
-lowlight.register('bash', bash);
-lowlight.register('sql', sql);
-lowlight.register('markdown', markdown);
-lowlight.register('java', java);
-lowlight.register('csharp', csharp);
-lowlight.register('php', php);
+const lowlight = createLowlight(all);
 
 const CustomCodeBlock = CodeBlockLowlight.extend({
   'renderHTML': () => {
@@ -56,6 +32,23 @@ const CustomCodeBlock = CodeBlockLowlight.extend({
     ];
   }
 });
+
+const handleFileInsert = (editor: Editor | null, file: File) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const url = e.target?.result as string;
+    if (file.type.startsWith('image/')) {
+      editor?.chain().focus()
+        .setImage({ 'src': url })
+        .run();
+    } else if (file.type.startsWith('audio/')) {
+      editor?.chain().focus()
+        .setAudio({ 'src': url })
+        .run();
+    }
+  };
+  reader.readAsDataURL(file);
+};
 
 export interface TiptapEditorRef {
   getEditor: () => Editor | null;
@@ -107,51 +100,11 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         'allowBase64': true
       }),
       FileHandler.configure({
-        'onDrop': (_, files) => {
-          files.forEach((file) => {
-            if (file.type.startsWith('image/')) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const uploadedImageUrl = e.target?.result as string;
-                editor?.chain().focus()
-                  .setImage({ 'src': uploadedImageUrl })
-                  .run();
-              };
-              reader.readAsDataURL(file);
-            } else if (file.type.startsWith('audio/')) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const uploadedAudioUrl = e.target?.result as string;
-                editor?.chain().focus()
-                  .setAudio({ 'src': uploadedAudioUrl })
-                  .run();
-              };
-              reader.readAsDataURL(file);
-            }
-          });
+        'onDrop': (editorInstance, files) => {
+          files.forEach((file) => handleFileInsert(editorInstance, file));
         },
-        'onPaste': (_, files) => {
-          files.forEach((file) => {
-            if (file.type.startsWith('image/')) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const uploadedImageUrl = e.target?.result as string;
-                editor?.chain().focus()
-                  .setImage({ 'src': uploadedImageUrl })
-                  .run();
-              };
-              reader.readAsDataURL(file);
-            } else if (file.type.startsWith('audio/')) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const uploadedAudioUrl = e.target?.result as string;
-                editor?.chain().focus()
-                  .setAudio({ 'src': uploadedAudioUrl })
-                  .run();
-              };
-              reader.readAsDataURL(file);
-            }
-          });
+        'onPaste': (editorInstance, files) => {
+          files.forEach((file) => handleFileInsert(editorInstance, file));
         },
         'allowedMimeTypes': [
           'image/jpeg', 'image/png', 'image/gif', 'image/webp',
