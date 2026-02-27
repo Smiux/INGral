@@ -97,9 +97,6 @@ const ToggleGroup: React.FC<{
   );
 });
 
-/**
- * 图工具栏组件
- */
 export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
   onAddNode,
   isManagementPanelOpen,
@@ -149,7 +146,6 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
 
   return (
     <div className="flex items-center gap-1 flex-grow justify-center flex-wrap p-1">
-      {/* 编辑操作组 */}
       <ToggleGroup
         label="编辑操作"
         isCollapsed={collapsedGroups.edit}
@@ -178,7 +174,6 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         </div>
       </ToggleGroup>
 
-      {/* 工具组 - 仅在reactflow模式下显示 */}
       <ToggleGroup
         label="工具"
         isCollapsed={collapsedGroups.tools}
@@ -216,7 +211,6 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         </div>
       </ToggleGroup>
 
-      {/* 视图控制组 - 仅在reactflow模式下显示 */}
       <ToggleGroup
         label="视图控制"
         isCollapsed={collapsedGroups.view}
@@ -261,7 +255,6 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         </div>
       </ToggleGroup>
 
-      {/* 渲染模式分组 */}
       <div className="flex items-center gap-0.5 bg-white/90 rounded-lg p-0.5 backdrop-blur-sm">
         {[
           { 'mode': 'reactflow', 'icon': <Home size={16} />, 'title': 'React Flow渲染' },

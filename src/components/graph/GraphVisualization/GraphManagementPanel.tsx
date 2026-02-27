@@ -22,7 +22,6 @@ interface GraphManagementPanelProps {
   isOpen: boolean;
 }
 
-// 节点比较函数
 const nodesEqual = (
   prev: Array<{ id: string; data: CustomNodeData; selected: boolean }>,
   next: Array<{ id: string; data: CustomNodeData; selected: boolean }>
@@ -50,7 +49,6 @@ const nodesEqual = (
   return true;
 };
 
-// 边比较函数
 const edgesEqual = (
   prev: Array<{ id: string; source: string; target: string; data: CustomEdgeData; selected: boolean }>,
   next: Array<{ id: string; source: string; target: string; data: CustomEdgeData; selected: boolean }>
