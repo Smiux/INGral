@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Palette, Square, Type, Heading, Text as TextIcon, Pencil, Link2, Settings, User, Layers, ArrowRight, CheckCircle2, Circle, RectangleHorizontal, MousePointer2 } from 'lucide-react';
+import { X, Square, Pencil, Circle, RectangleHorizontal, MousePointer2 } from 'lucide-react';
 import { useStore, useReactFlow } from '@xyflow/react';
 
 import { CustomNodeData } from './CustomNode';
@@ -21,15 +21,13 @@ interface GraphControlPanelProps {
 
 const Section: React.FC<{
   title: string;
-  icon: React.ReactNode;
   color: ColorType;
   children: React.ReactNode;
-}> = ({ title, icon, color, children }) => {
+}> = ({ title, color, children }) => {
   const config = colorConfig[color];
   return (
     <div className={`rounded-xl p-4 border bg-gradient-to-br ${config.bg} ${config.border}`}>
-      <h3 className={`text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2 ${config.icon}`}>
-        {icon}
+      <h3 className={`text-sm font-semibold text-neutral-800 mb-3 flex items-center gap-2 ${config.icon}`}>
         {title}
       </h3>
       {children}
@@ -83,7 +81,6 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
   );
 
   const reactFlowInstance = useReactFlow();
-  const [activePanel, setActivePanel] = React.useState<'node' | 'appearance' | 'edge' | 'edgeAppearance'>('node');
 
   const [nodeColors, setNodeColors] = React.useState({
     'fill': '#ffffff',
@@ -155,7 +152,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
     switch (name) {
       case 'handleCount': {
         const numValue = parseInt(value, 10);
-        updateNode({ 'handleCount': Math.max(0, Math.min(20, isNaN(numValue) ? 0 : numValue)) });
+        updateNode({ 'handleCount': Math.max(0, isNaN(numValue) ? 0 : numValue) });
         break;
       }
       case 'content':
@@ -176,9 +173,11 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
     const { name, value } = e.target;
 
     switch (name) {
-      case 'strokeWidth':
-        updateEdge({ 'style': { 'strokeWidth': parseFloat(value) || 2 } });
+      case 'strokeWidth': {
+        const numValue = parseFloat(value);
+        updateEdge({ 'style': { 'strokeWidth': Math.max(0, isNaN(numValue) ? 0 : numValue) } });
         break;
+      }
       default:
         updateEdge({ [name]: value });
     }
@@ -202,26 +201,24 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
   const title = isNode ? '编辑节点' : '编辑连接';
   const subtitle = isNode ? '调整节点属性和连接点配置' : '修改连接样式和属性';
 
-  const panelClass = `w-72 bg-white flex flex-col overflow-hidden h-full ${panelPosition === 'left' ? 'border-r border-gray-200 absolute left-0 top-0 z-10' : 'border-l border-gray-200 absolute right-0 top-0 z-10 panel-right'}`;
+  const panelClass = `w-72 bg-white flex flex-col overflow-hidden h-full ${panelPosition === 'left' ? 'border-r border-neutral-200 absolute left-0 top-0 z-10' : 'border-l border-neutral-200 absolute right-0 top-0 z-10 panel-right'}`;
 
   const renderHeader = (headerTitle: string, headerSubtitle?: string) => (
-    <div className="flex items-center justify-between p-4 border-b border-gray-200" style={{ 'background': 'linear-gradient(to right, var(--bg-hover), var(--bg-primary))' }}>
+    <div className="flex items-center justify-between p-4 border-b border-neutral-200">
       <div>
-        <h2 className="text-lg font-semibold flex items-center gap-2" style={{ 'color': 'var(--text-primary)' }}>
-          <Pencil className="w-5 h-5" style={{ 'color': 'var(--primary-color)' }} />
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Pencil className="w-5 h-5" style={{ 'color': '#3b82f6' }} />
           {headerTitle}
         </h2>
         {headerSubtitle && (
-          <p className="text-sm mt-1" style={{ 'color': 'var(--text-secondary)' }}>
+          <p className="text-sm mt-1">
             {headerSubtitle}
           </p>
         )}
       </div>
       <button
         onClick={clearSelection}
-        className="p-1 rounded-full hover:bg-gray-100 transition-colors hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        title="关闭面板"
-        style={{ 'color': 'var(--text-secondary)' }}
+        className="p-1 rounded-full hover:bg-neutral-100 transition-colors hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       >
         <X size={20} />
       </button>
@@ -232,7 +229,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
     return (
       <div className={panelClass}>
         {renderHeader('编辑面板')}
-        <div className="flex-1 flex items-center justify-center bg-neutral-50 text-neutral-500">
+        <div className="flex-1 flex items-center justify-center text-neutral-500">
           <div className="text-center">
             <MousePointer2 className="w-16 h-16 mx-auto mb-3 text-neutral-300" />
             <p className="text-sm">请选择一个节点或连接来编辑</p>
@@ -241,19 +238,6 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
       </div>
     );
   }
-
-  const tabButton = (panel: string, label: string, icon: React.ReactNode) => (
-    <button
-      onClick={() => {
-        setActivePanel(panel as 'node' | 'appearance' | 'edge' | 'edgeAppearance');
-      }}
-      className={`flex-1 px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all duration-200 ease-in-out whitespace-nowrap ${activePanel === panel ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-50 hover:text-blue-500'}`}
-      style={{ 'backgroundColor': activePanel === panel ? 'var(--primary-color-light)' : 'transparent' }}
-    >
-      {icon}
-      {label}
-    </button>
-  );
 
   const inputField = ({ name, value, placeholder, type = 'text', min, max, step }: { name: string; value: string; placeholder: string; type?: 'text' | 'number'; min?: number; max?: number; step?: number }) => (
     <input
@@ -265,31 +249,30 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
       value={value}
       onChange={handleNodeChange}
       placeholder={placeholder}
-      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200"
+      className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200"
     />
   );
 
-  const colorPicker = (color: string, onColorChange: (color: string) => void, label: string, icon: React.ReactNode) => (
+  const colorPicker = (color: string, onColorChange: (color: string) => void, label: string) => (
     <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide flex items-center gap-2">
-        {icon}
+      <label className="block text-xs font-medium text-neutral-600 uppercase tracking-wide flex items-center gap-2">
         {label}
       </label>
-      <div className="flex items-center gap-3 h-10 rounded-lg border border-gray-300 overflow-hidden">
+      <div className="flex items-center gap-3 h-10 rounded-lg border border-neutral-300 overflow-hidden">
         <div className="relative w-8 h-8 ml-1 flex-shrink-0">
           <input
             type="color"
             value={color}
             onChange={(e) => onColorChange(e.target.value)}
-            className="w-8 h-8 rounded cursor-pointer border border-gray-300 bg-transparent opacity-0 absolute inset-0"
+            className="w-8 h-8 rounded cursor-pointer border border-neutral-300 bg-transparent opacity-0 absolute inset-0"
           />
-          <div className="w-8 h-8 rounded border border-gray-300" style={{ 'backgroundColor': color }} />
+          <div className="w-8 h-8 rounded border border-neutral-300" style={{ 'backgroundColor': color }} />
         </div>
         <input
           type="text"
           value={color}
           onChange={(e) => onColorChange(e.target.value)}
-          className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none h-full"
+          className="flex-1 text-sm px-2 py-0 bg-neutral-50 text-neutral-700 border-0 focus:outline-none h-full"
         />
       </div>
     </div>
@@ -299,88 +282,99 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
     <div className={panelClass}>
       {renderHeader(title, subtitle)}
 
-      <div className="border-b border-gray-200 bg-white overflow-x-auto">
-        <div className="flex w-full">
-          {isNode ? (
-            <>
-              {tabButton('node', '节点编辑', <User className="w-4 h-4" />)}
-              {tabButton('appearance', '节点外观', <Palette className="w-4 h-4" />)}
-            </>
-          ) : (
-            <>
-              {tabButton('edge', '连接编辑', <Link2 className="w-4 h-4" />)}
-              {tabButton('edgeAppearance', '连接外观', <Settings className="w-4 h-4" />)}
-            </>
-          )}
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4" style={{ 'backgroundColor': 'var(--bg-primary)' }}>
-        {activePanel === 'node' && selectedNode && (
+      <div className="flex-1 overflow-y-auto p-4">
+        {selectedNode && (
           <div className="space-y-6 p-1">
-            <Section title="节点基本信息" icon={<User className="w-4 h-4" />} color="blue">
+            <Section title="节点基本信息" color="blue">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">节点标题</label>
+                  <label className="block text-xs font-medium text-neutral-600 uppercase tracking-wide">节点标题</label>
                   {inputField({ 'name': 'title', 'value': selectedNode.data.title || '', 'placeholder': '输入节点标题' })}
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">节点类别</label>
-                  {inputField({ 'name': 'category', 'value': selectedNode.data.category || '', 'placeholder': '输入节点类别（如：概念、理论等）' })}
+                  <label className="block text-xs font-medium text-neutral-600 uppercase tracking-wide">节点类别</label>
+                  {inputField({ 'name': 'category', 'value': selectedNode.data.category || '', 'placeholder': '输入节点类别' })}
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">节点内容</label>
+                  <label className="block text-xs font-medium text-neutral-600 uppercase tracking-wide">节点内容</label>
                   <textarea
                     name="content"
                     value={selectedNode.data.metadata?.content || ''}
                     onChange={handleNodeChange}
                     placeholder="输入节点内容"
                     rows={4}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200 resize-y"
+                    className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200 resize-y"
                   />
                 </div>
               </div>
             </Section>
 
-            <Section title="连接点配置" icon={<Circle className="w-4 h-4" />} color="green">
+            <Section title="连接点配置" color="green">
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">连接点数量</label>
-                  {inputField({ 'name': 'handleCount', 'value': String(selectedNode.data.handleCount ?? 0), 'placeholder': '', 'type': 'number', 'min': 0, 'max': 20 })}
-                  <p className="text-xs text-gray-500 mt-1 italic">连接点会均匀分布在节点外围</p>
+                  <label className="block text-xs font-medium text-neutral-600 uppercase tracking-wide">连接点数量</label>
+                  {inputField({ 'name': 'handleCount', 'value': String(selectedNode.data.handleCount ?? 0), 'placeholder': '', 'type': 'number', 'min': 0 })}
+                  <p className="text-xs text-neutral-500 mt-1 italic">连接点会均匀分布在节点外围</p>
+                </div>
+              </div>
+            </Section>
+
+            <Section title="节点外观" color="purple">
+              <div className="space-y-3">
+                <label className="block text-xs font-medium text-neutral-600 uppercase tracking-wide">节点形状</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {shapeOptions.map(({ value, label, icon }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => updateNode({ 'shape': value as 'circle' | 'square' | 'rectangle' })}
+                      className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${selectedNode.data.shape === value ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-neutral-200 hover:border-purple-300 hover:bg-purple-50'}`}
+                    >
+                      {icon}
+                      <span className="text-xs font-medium">{label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  {colorPicker(nodeColors.fill, (color) => handleNodeColorChange('fill', color), '背景颜色')}
+                  {colorPicker(nodeColors.stroke, (color) => handleNodeColorChange('stroke', color), '边框颜色')}
+                  {colorPicker(nodeColors.textColor, (color) => handleNodeColorChange('textColor', color), '文字颜色')}
+                  {colorPicker(nodeColors.titleBackgroundColor, (color) => handleNodeColorChange('titleBackgroundColor', color), '标题背景色')}
+                  {colorPicker(nodeColors.titleTextColor, (color) => handleNodeColorChange('titleTextColor', color), '标题文字色')}
                 </div>
               </div>
             </Section>
           </div>
         )}
 
-        {activePanel === 'edge' && selectedEdge && (
+        {selectedEdge && (
           <div className="space-y-6 p-1">
-            <Section title="连接基本信息" icon={<ArrowRight className="w-4 h-4" />} color="orange">
+            <Section title="连接基本信息" color="orange">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">连接类别</label>
+                  <label className="block text-xs font-medium text-neutral-600 uppercase tracking-wide">连接类别</label>
                   <input
                     name="type"
                     type="text"
                     value={selectedEdge.data?.type || 'related'}
                     onChange={handleEdgeChange}
                     placeholder="输入连接类别"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200"
+                    className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200"
                   />
                 </div>
               </div>
             </Section>
 
-            <Section title="连接线样式" icon={<Layers className="w-4 h-4" />} color="teal">
+            <Section title="连接线样式" color="teal">
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">连接线样式</label>
+                  <label className="block text-xs font-medium text-neutral-600 uppercase tracking-wide">连接线样式</label>
                   <select
                     name="curveType"
                     value={selectedEdge.data?.curveType || 'default'}
                     onChange={handleEdgeChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 hover:border-teal-200"
+                    className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 hover:border-teal-200"
                   >
                     <option value="default">Bezier曲线</option>
                     <option value="straight">直线</option>
@@ -390,63 +384,26 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                 </div>
               </div>
             </Section>
-          </div>
-        )}
 
-        {activePanel === 'edgeAppearance' && selectedEdge && (
-          <div className="space-y-6 p-1">
-            <Section title="连接外观" icon={<Palette className="w-4 h-4" />} color="purple">
+            <Section title="连接外观" color="purple">
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">连接宽度</label>
+                  <label className="block text-xs font-medium text-neutral-600 uppercase tracking-wide">连接宽度</label>
                   <input
                     name="strokeWidth"
                     type="number"
-                    min={1}
-                    max={10}
-                    step={0.5}
-                    value={selectedEdge.data?.style?.strokeWidth || 2}
+                    min={0}
+                    value={selectedEdge.data?.style?.strokeWidth ?? 2}
                     onChange={handleEdgeChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-200 text-center"
+                    className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-200 text-center"
                   />
                 </div>
 
                 <div className="space-y-4 pt-2">
-                  {colorPicker(edgeColors.stroke, (color) => handleEdgeColorChange('stroke', color), '连接颜色', <Square className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(edgeColors.arrowColor, (color) => handleEdgeColorChange('arrowColor', color), '箭头颜色', <CheckCircle2 className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(edgeColors.labelBackgroundColor, (color) => handleEdgeColorChange('labelBackgroundColor', color), '标签背景色', <Square className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(edgeColors.labelTextColor, (color) => handleEdgeColorChange('labelTextColor', color), '标签文字色', <TextIcon className="w-4 h-4 text-gray-500" />)}
-                </div>
-              </div>
-            </Section>
-          </div>
-        )}
-
-        {activePanel === 'appearance' && selectedNode && (
-          <div className="space-y-6 p-1">
-            <Section title="节点外观" icon={<Palette className="w-4 h-4" />} color="purple">
-              <div className="space-y-3">
-                <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">节点形状</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {shapeOptions.map(({ value, label, icon }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => updateNode({ 'shape': value as 'circle' | 'square' | 'rectangle' })}
-                      className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${selectedNode.data.shape === value ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'}`}
-                    >
-                      {icon}
-                      <span className="text-xs font-medium">{label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="space-y-4 pt-2">
-                  {colorPicker(nodeColors.fill, (color) => handleNodeColorChange('fill', color), '背景颜色', <Square className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(nodeColors.stroke, (color) => handleNodeColorChange('stroke', color), '边框颜色', <Square className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(nodeColors.textColor, (color) => handleNodeColorChange('textColor', color), '文字颜色', <Type className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(nodeColors.titleBackgroundColor, (color) => handleNodeColorChange('titleBackgroundColor', color), '标题背景色', <Heading className="w-4 h-4 text-gray-500" />)}
-                  {colorPicker(nodeColors.titleTextColor, (color) => handleNodeColorChange('titleTextColor', color), '标题文字色', <TextIcon className="w-4 h-4 text-gray-500" />)}
+                  {colorPicker(edgeColors.stroke, (color) => handleEdgeColorChange('stroke', color), '连接颜色')}
+                  {colorPicker(edgeColors.arrowColor, (color) => handleEdgeColorChange('arrowColor', color), '箭头颜色')}
+                  {colorPicker(edgeColors.labelBackgroundColor, (color) => handleEdgeColorChange('labelBackgroundColor', color), '标签背景色')}
+                  {colorPicker(edgeColors.labelTextColor, (color) => handleEdgeColorChange('labelTextColor', color), '标签文字色')}
                 </div>
               </div>
             </Section>

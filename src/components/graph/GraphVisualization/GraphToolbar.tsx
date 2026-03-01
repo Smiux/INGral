@@ -42,7 +42,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo(({
   let buttonClass = 'flex items-center justify-center w-12 h-12 rounded-md transition-all ';
 
   if (isActive) {
-    buttonClass += 'bg-gradient-to-r from-primary-500 to-primary-600 text-white';
+    buttonClass += 'bg-sky-500 text-white';
   } else if (isDisabled) {
     buttonClass += 'text-neutral-300 cursor-not-allowed';
   } else {

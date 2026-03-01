@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Download, Upload, FileText, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
+import { Download, Upload, FileText, AlertCircle, X } from 'lucide-react';
 import { useReactFlow, useStore, type Node, type Edge } from '@xyflow/react';
 import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './FloatingEdge';
@@ -10,24 +10,8 @@ interface GraphImportExportPanelProps {
   isOpen: boolean;
 }
 
-type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
-
-const STATUS_CONFIG = {
-  'success': { 'bg': 'bg-green-50', 'text': 'text-green-800', 'icon': <CheckCircle2 className="w-5 h-5 text-green-500" /> },
-  'error': { 'bg': 'bg-red-50', 'text': 'text-red-800', 'icon': <AlertCircle className="w-5 h-5 text-red-500" /> },
-  'loading': { 'bg': 'bg-blue-50', 'text': 'text-blue-800', 'icon': <Loader2 className="w-5 h-5 text-blue-500 animate-spin" /> }
-} as const;
-
-const resetStatusAfter = (setStatus: (_: ImportStatus) => void, setMessage: (_: string) => void, delay: number) => {
-  setTimeout(() => {
-    setStatus('idle');
-    setMessage('');
-  }, delay);
-};
-
 export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = React.memo(({ onImportComplete, onClose, isOpen }) => {
-  const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
-  const [importMessage, setImportMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const reactFlowInstance = useReactFlow();
   const nodeCount = useStore((state) => state.nodes.length);
@@ -57,8 +41,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
       return;
     }
 
-    setImportStatus('loading');
-    setImportMessage('正在解析文件...');
+    setErrorMessage(null);
 
     try {
       const ext = file.name
@@ -75,13 +58,8 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
       const importedEdges: Edge<CustomEdgeData>[] = data.edges || [];
 
       onImportComplete(importedNodes, importedEdges);
-      setImportStatus('success');
-      setImportMessage(`成功导入 ${importedNodes.length} 个节点和 ${importedEdges.length} 个连接`);
-      resetStatusAfter(setImportStatus, setImportMessage, 3000);
     } catch (error) {
-      setImportStatus('error');
-      setImportMessage(error instanceof Error ? error.message : '导入失败，请检查文件格式');
-      resetStatusAfter(setImportStatus, setImportMessage, 5000);
+      setErrorMessage(error instanceof Error ? error.message : '导入失败，请检查文件格式');
     } finally {
       event.target.value = '';
     }
@@ -91,7 +69,7 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
     <div className={`panel-container ${isOpen ? 'panel-open' : 'panel-closing'}`}>
       <div className="panel-header">
         <div className="panel-title">
-          <FileText className="w-5 h-5 text-primary-400" />
+          <FileText className="w-5 h-5 text-sky-400" />
           导入导出
         </div>
         <button
@@ -104,33 +82,30 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
       </div>
 
       <div className="panel-content space-y-8">
-        {importStatus !== 'idle' && (() => {
-          const config = STATUS_CONFIG[importStatus];
-          return (
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg mb-4 ${config.bg} ${config.text}`}>
-              {config.icon}
-              <span className="text-sm font-medium">{importMessage}</span>
-            </div>
-          );
-        })()}
+        {errorMessage && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 text-red-800">
+            <AlertCircle className="w-5 h-5 text-red-500" />
+            <span className="text-sm font-medium">{errorMessage}</span>
+          </div>
+        )}
 
-        <div className="rounded-xl p-5 border border-primary-100 transition-all duration-300 bg-primary-50">
+        <div className="rounded-xl p-5 border border-sky-100 transition-all duration-300 bg-sky-50">
           <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800">
-            <Download className="w-4 h-4 text-primary-400" />
+            <Download className="w-4 h-4 text-sky-400" />
             导出图
           </h3>
 
           <div className="space-y-4">
-            <div className="bg-white/70 p-3.5 rounded-lg border border-primary-100">
+            <div className="bg-white/70 p-3.5 rounded-lg border border-sky-100">
               <p className="text-sm text-neutral-600">
-                当前图包含 <strong className="text-primary-600">{nodeCount} 个节点</strong> 和 <strong className="text-primary-600">{edgeCount} 个连接</strong>
+                当前图包含 <strong className="text-sky-600">{nodeCount} 个节点</strong> 和 <strong className="text-sky-600">{edgeCount} 个连接</strong>
               </p>
             </div>
 
             <button
               onClick={handleExport}
               disabled={nodeCount === 0}
-              className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-white ${nodeCount === 0 ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:scale-100' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'}`}
+              className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-white ${nodeCount === 0 ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed hover:scale-100' : 'bg-sky-500 text-white'}`}
             >
               <Download className="w-4 h-4" />
               导出图
@@ -138,9 +113,9 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-5 border border-secondary-100 transition-all duration-300">
+        <div className="bg-green-50 rounded-xl p-5 border border-green-100 transition-all duration-300">
           <h3 className="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
-            <Upload className="w-4 h-4 text-secondary-500" />
+            <Upload className="w-4 h-4 text-green-500" />
             导入图
           </h3>
 
@@ -159,20 +134,14 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 accept=".json"
                 onChange={handleFileChange}
-                disabled={importStatus === 'loading'}
               />
               <button
                 type="button"
                 onClick={() => document.getElementById('file-upload')?.click()}
-                disabled={importStatus === 'loading'}
-                className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-secondary-400 focus:ring-offset-2 focus:ring-offset-white ${importStatus === 'loading' ? 'bg-gradient-to-r from-neutral-300 to-neutral-400 text-neutral-500 cursor-not-allowed hover:scale-100' : 'bg-gradient-to-r from-secondary-500 to-secondary-600 text-white'}`}
+                className="w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ease-in-out flex items-center justify-center gap-2 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-white bg-green-500 text-white"
               >
-                {importStatus === 'loading' ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Upload className="w-4 h-4" />
-                )}
-                {importStatus === 'loading' ? '导入中...' : '选择文件导入'}
+                <Upload className="w-4 h-4" />
+                选择文件导入
               </button>
             </div>
           </div>

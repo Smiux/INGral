@@ -5,7 +5,7 @@ import type { CustomNodeData } from './CustomNode';
 import type { CustomEdgeData } from './FloatingEdge';
 import ELK, { ElkNode } from 'elkjs';
 
-type LayoutAlgorithm = 'layered' | 'force' | 'stress' | 'mrtree' | 'radial' | 'box' | 'random' | 'sporeOverlap' | 'rectpacking' | 'vertiflex';
+type LayoutAlgorithm = 'layered' | 'force' | 'stress' | 'mrtree' | 'radial' | 'box';
 type LayoutDirection = 'DOWN' | 'RIGHT' | 'UP' | 'LEFT';
 
 interface GraphLayoutPanelProps {
@@ -14,8 +14,8 @@ interface GraphLayoutPanelProps {
   isOpen: boolean;
 }
 
-const INPUT_CLASSES = 'w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent';
-const LABEL_CLASSES = 'block text-xs text-gray-600 mb-1';
+const INPUT_CLASSES = 'w-full p-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+const LABEL_CLASSES = 'block text-xs text-neutral-600 mb-1';
 
 const ALGORITHM_ID_MAP = {
   'layered': 'org.eclipse.elk.layered',
@@ -23,11 +23,7 @@ const ALGORITHM_ID_MAP = {
   'stress': 'org.eclipse.elk.stress',
   'mrtree': 'org.eclipse.elk.mrtree',
   'radial': 'org.eclipse.elk.radial',
-  'box': 'org.eclipse.elk.box',
-  'random': 'org.eclipse.elk.random',
-  'sporeOverlap': 'org.eclipse.elk.sporeOverlap',
-  'rectpacking': 'org.eclipse.elk.rectpacking',
-  'vertiflex': 'org.eclipse.elk.vertiflex'
+  'box': 'org.eclipse.elk.box'
 } as const;
 
 const DEFAULT_OPTIONS = {
@@ -44,19 +40,13 @@ const DEFAULT_OPTIONS = {
     'feedbackEdges': false,
     'considerModelOrder': 'NODES_AND_EDGES',
     'nodeLayeringStrategy': 'NETWORK_SIMPLEX',
-    'thoroughness': 7,
-    'mergeEdges': false,
-    'layerUnzippingStrategy': 'NONE',
-    'longEdgeOrderingStrategy': 'DUMMY_NODE_OVER',
-    'nodePromotionStrategy': 'NONE',
-    'directionCongruency': 'READING_DIRECTION'
+    'mergeEdges': false
   },
   'force': {
     'iterations': 300,
     'forceModel': 'FRUCHTERMAN_REINGOLD',
     'repulsion': 5.0,
-    'temperature': 0.001,
-    'interactive': false
+    'temperature': 0.001
   },
   'radial': {
     'compaction': 'NONE',
@@ -70,25 +60,10 @@ const DEFAULT_OPTIONS = {
     'desiredEdgeLength': 100,
     'epsilon': 0.0001,
     'dimension': 'XY',
-    'iterationLimit': 1000000,
-    'interactive': false
-  },
-  'rectpacking': {
-    'tryBox': false,
-    'widthApproximation': {
-      'strategy': 'GREEDY',
-      'targetWidth': -1
-    }
-  },
-  'vertiflex': {
-    'layerDistance': 50,
-    'considerNodeModelOrder': false
+    'iterationLimit': 1000000
   },
   'box': {
     'packingMode': 'SIMPLE'
-  },
-  'sporeOverlap': {
-    'iterationLimit': 64
   }
 };
 
@@ -127,28 +102,7 @@ const ALGORITHM_CONFIGS = {
         { 'value': 'COFFMAN_GRAHAM', 'label': 'Coffman-Graham' },
         { 'value': 'SIMPLE', 'label': '简单' }
       ]},
-      { 'key': 'thoroughness', 'label': '彻底性', 'type': 'number' as const, 'min': 1, 'max': 10 },
-      { 'key': 'mergeEdges', 'label': '合并边', 'type': 'checkbox' as const, 'description': '合并平行边' },
-      { 'key': 'layerUnzippingStrategy', 'label': '层解压缩策略', 'type': 'select' as const, 'options': [
-        { 'value': 'NONE', 'label': '无' },
-        { 'value': 'ALTERNATING', 'label': '交替' }
-      ]},
-      { 'key': 'longEdgeOrderingStrategy', 'label': '长边排序策略', 'type': 'select' as const, 'options': [
-        { 'value': 'DUMMY_NODE_OVER', 'label': '虚拟节点上方' },
-        { 'value': 'DUMMY_NODE_UNDER', 'label': '虚拟节点下方' },
-        { 'value': 'EQUAL', 'label': '相等' }
-      ]},
-      { 'key': 'nodePromotionStrategy', 'label': '节点提升策略', 'type': 'select' as const, 'options': [
-        { 'value': 'NONE', 'label': '无' },
-        { 'value': 'NIKOLOV', 'label': 'Nikolov算法' },
-        { 'value': 'NIKOLOV_PIXEL', 'label': 'Nikolov像素算法' },
-        { 'value': 'MODEL_ORDER_LEFT_TO_RIGHT', 'label': '模型顺序从左到右' },
-        { 'value': 'MODEL_ORDER_RIGHT_TO_LEFT', 'label': '模型顺序从右到左' }
-      ]},
-      { 'key': 'directionCongruency', 'label': '方向一致性', 'type': 'select' as const, 'options': [
-        { 'value': 'READING_DIRECTION', 'label': '阅读方向' },
-        { 'value': 'ROTATION', 'label': '旋转' }
-      ]}
+      { 'key': 'mergeEdges', 'label': '合并边', 'type': 'checkbox' as const, 'description': '合并平行边' }
     ]
   },
   'force': {
@@ -163,8 +117,7 @@ const ALGORITHM_CONFIGS = {
         { 'value': 'FRUCHTERMAN_REINGOLD', 'label': 'Fruchterman-Reingold模型' }
       ]},
       { 'key': 'repulsion', 'label': 'Eades模型排斥力', 'type': 'number' as const },
-      { 'key': 'temperature', 'label': 'FR模型温度', 'type': 'number' as const, 'step': '0.0001' },
-      { 'key': 'interactive', 'label': '交互式布局', 'type': 'checkbox' as const, 'description': '启用交互式布局' }
+      { 'key': 'temperature', 'label': 'FR模型温度', 'type': 'number' as const, 'step': '0.0001' }
     ]
   },
   'mrtree': {
@@ -211,68 +164,30 @@ const ALGORITHM_CONFIGS = {
         { 'value': 'X', 'label': 'X轴' },
         { 'value': 'Y', 'label': 'Y轴' }
       ]},
-      { 'key': 'iterationLimit', 'label': '迭代限制', 'type': 'number' as const },
-      { 'key': 'interactive', 'label': '交互式布局', 'type': 'checkbox' as const, 'description': '启用交互式布局' }
-    ]
-  },
-  'rectpacking': {
-    'title': '矩形打包布局 (Rectpacking) 参数',
-    'bgColor': 'bg-yellow-50',
-    'borderColor': 'border-yellow-100',
-    'titleColor': 'text-yellow-800',
-    'fields': [
-      { 'key': 'tryBox', 'label': '尝试盒布局', 'type': 'checkbox' as const, 'description': '先检查是否适合盒布局' },
-      { 'key': 'widthApproximation.strategy', 'label': '宽度近似策略', 'type': 'select' as const, 'options': [
-        { 'value': 'GREEDY', 'label': '贪心算法' },
-        { 'value': 'TARGET_WIDTH', 'label': '按目标宽度' }
-      ]},
-      { 'key': 'widthApproximation.targetWidth', 'label': '目标宽度', 'type': 'number' as const }
-    ]
-  },
-  'vertiflex': {
-    'title': 'Vertiflex布局 (特殊树布局) 参数',
-    'bgColor': 'bg-secondary-50',
-    'borderColor': 'border-secondary-100',
-    'titleColor': 'text-secondary-600',
-    'fields': [
-      { 'key': 'layerDistance', 'label': '层间距', 'type': 'number' as const },
-      { 'key': 'considerNodeModelOrder', 'label': '考虑节点模型顺序', 'type': 'checkbox' as const, 'description': '考虑节点模型顺序' }
+      { 'key': 'iterationLimit', 'label': '迭代限制', 'type': 'number' as const }
     ]
   },
   'box': {
     'title': '盒布局 (Box) 参数',
-    'bgColor': 'bg-primary-50',
-    'borderColor': 'border-primary-100',
-    'titleColor': 'text-primary-600',
+    'bgColor': 'bg-sky-50',
+    'borderColor': 'border-sky-100',
+    'titleColor': 'text-sky-600',
     'fields': [
       { 'key': 'packingMode', 'label': '打包模式', 'type': 'select' as const, 'options': [
         { 'value': 'SIMPLE', 'label': '简单' },
         { 'value': 'GROUP_MIXED', 'label': '分组混合' }
       ]}
     ]
-  },
-  'sporeOverlap': {
-    'title': 'Spore重叠布局 (SporeOverlap) 参数',
-    'bgColor': 'bg-primary-50',
-    'borderColor': 'border-primary-100',
-    'titleColor': 'text-primary-600',
-    'fields': [
-      { 'key': 'iterationLimit', 'label': '迭代限制', 'type': 'number' as const }
-    ]
   }
 } as const;
 
 const ALGORITHM_OPTIONS = [
-  { 'value': 'layered', 'label': '层次布局 (Layered)' },
-  { 'value': 'force', 'label': '力导向布局 (Force)' },
-  { 'value': 'stress', 'label': '应力布局 (Stress)' },
-  { 'value': 'mrtree', 'label': '树布局 (Mr.Tree)' },
-  { 'value': 'radial', 'label': '辐射状布局 (Radial)' },
-  { 'value': 'rectpacking', 'label': '矩形打包布局 (Rectpacking)' },
-  { 'value': 'vertiflex', 'label': '垂直约束布局 (Vertiflex)' },
-  { 'value': 'box', 'label': '盒布局 (Box)' },
-  { 'value': 'random', 'label': '随机布局 (Random)' },
-  { 'value': 'sporeOverlap', 'label': 'Spore重叠布局 (SporeOverlap)' }
+  { 'value': 'layered', 'label': '层次布局' },
+  { 'value': 'force', 'label': '力导向布局' },
+  { 'value': 'stress', 'label': '应力布局' },
+  { 'value': 'mrtree', 'label': '树布局' },
+  { 'value': 'radial', 'label': '辐射状布局' },
+  { 'value': 'box', 'label': '盒布局' }
 ] as const;
 
 const DIRECTION_OPTIONS = [
@@ -288,10 +203,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
   const reactFlowInstance = useReactFlow();
   const [layoutOptions, setLayoutOptions] = useState(DEFAULT_OPTIONS);
   const [isLayouting, setIsLayouting] = useState(false);
-  const nodeCount = useStore(
-    (state) => state.nodes.length,
-    (prev, next) => prev === next
-  );
+  const nodeCount = useStore((state) => state.nodes.length);
 
   const executeLayout = async () => {
     const currentNodes = reactFlowInstance.getNodes() as Node<CustomNodeData>[];
@@ -305,7 +217,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
 
     try {
       const baseOptions: Record<string, string> = {
-        'elk.algorithm': ALGORITHM_ID_MAP[layoutOptions.algorithm] || layoutOptions.algorithm,
+        'elk.algorithm': ALGORITHM_ID_MAP[layoutOptions.algorithm],
         'elk.randomSeed': layoutOptions.randomSeed.toString(),
         'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
         'elk.spacing.nodeNode': layoutOptions.nodeSpacing.toString(),
@@ -323,12 +235,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
           'elk.layered.feedbackEdges': layoutOptions.layered.feedbackEdges.toString(),
           'elk.layered.considerModelOrder.strategy': layoutOptions.layered.considerModelOrder,
           'elk.layered.layering.strategy': layoutOptions.layered.nodeLayeringStrategy,
-          'elk.layered.thoroughness': layoutOptions.layered.thoroughness.toString(),
-          'elk.layered.mergeEdges': layoutOptions.layered.mergeEdges.toString(),
-          'elk.layered.layerUnzipping.strategy': layoutOptions.layered.layerUnzippingStrategy,
-          'elk.layered.considerModelOrder.longEdgeStrategy': layoutOptions.layered.longEdgeOrderingStrategy,
-          'elk.layered.layering.nodePromotion.strategy': layoutOptions.layered.nodePromotionStrategy,
-          'elk.layered.directionCongruency': layoutOptions.layered.directionCongruency
+          'elk.layered.mergeEdges': layoutOptions.layered.mergeEdges.toString()
         },
         'force': {
           'org.eclipse.elk.force.iterations': layoutOptions.force.iterations.toString(),
@@ -336,7 +243,6 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
           'org.eclipse.elk.force.spacing.nodeNode': layoutOptions.nodeSpacing.toString(),
           'org.eclipse.elk.force.repulsion': layoutOptions.force.repulsion.toString(),
           'org.eclipse.elk.force.temperature': layoutOptions.force.temperature.toString(),
-          'org.eclipse.elk.interactive': layoutOptions.force.interactive.toString(),
           'elk.randomSeed': layoutOptions.randomSeed.toString()
         },
         'mrtree': {
@@ -353,25 +259,11 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
           'org.eclipse.elk.stress.desiredEdgeLength': layoutOptions.stress.desiredEdgeLength.toString(),
           'org.eclipse.elk.stress.epsilon': layoutOptions.stress.epsilon.toString(),
           'org.eclipse.elk.stress.dimension': layoutOptions.stress.dimension,
-          'org.eclipse.elk.stress.iterationLimit': layoutOptions.stress.iterationLimit.toString(),
-          'org.eclipse.elk.interactive': layoutOptions.stress.interactive.toString()
-        },
-        'rectpacking': {
-          'elk.rectpacking.trybox': layoutOptions.rectpacking.tryBox.toString(),
-          'elk.rectpacking.widthApproximation.strategy': layoutOptions.rectpacking.widthApproximation.strategy,
-          'elk.rectpacking.widthApproximation.targetWidth': layoutOptions.rectpacking.widthApproximation.targetWidth.toString()
-        },
-        'vertiflex': {
-          'elk.vertiflex.layerDistance': layoutOptions.vertiflex.layerDistance.toString(),
-          'elk.vertiflex.considerNodeModelOrder': layoutOptions.vertiflex.considerNodeModelOrder.toString()
+          'org.eclipse.elk.stress.iterationLimit': layoutOptions.stress.iterationLimit.toString()
         },
         'box': {
           'org.eclipse.elk.box.packingMode': layoutOptions.box.packingMode
-        },
-        'sporeOverlap': {
-          'org.eclipse.elk.overlapRemoval.maxIterations': layoutOptions.sporeOverlap.iterationLimit.toString()
-        },
-        'random': {}
+        }
       };
 
       const elkGraph: ElkNode = {
@@ -387,21 +279,16 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
 
       const layoutedGraph = await elk.layout(elkGraph);
 
-      const layoutedNodesMap = new Map<string, { 'x': number; 'y': number }>();
-      if (layoutedGraph.children) {
-        for (const layoutedNode of layoutedGraph.children) {
-          if (layoutedNode.x !== undefined && layoutedNode.y !== undefined) {
-            layoutedNodesMap.set(layoutedNode.id, { 'x': layoutedNode.x, 'y': layoutedNode.y });
-          }
+      const layoutedNodesMap = new Map<string, { x: number; y: number }>();
+      layoutedGraph.children?.forEach(node => {
+        if (node.x !== undefined && node.y !== undefined) {
+          layoutedNodesMap.set(node.id, { 'x': node.x, 'y': node.y });
         }
-      }
+      });
 
       const updatedNodes = currentNodes.map(node => {
-        const layoutedPosition = layoutedNodesMap.get(node.id);
-        if (layoutedPosition) {
-          return { ...node, 'position': { 'x': layoutedPosition.x, 'y': layoutedPosition.y } };
-        }
-        return node;
+        const pos = layoutedNodesMap.get(node.id);
+        return pos ? { ...node, 'position': { 'x': pos.x, 'y': pos.y } } : node;
       });
 
       onLayout(updatedNodes, currentEdges);
@@ -410,14 +297,74 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
     }
   };
 
-  const config = ALGORITHM_CONFIGS[layoutOptions.algorithm as keyof typeof ALGORITHM_CONFIGS];
-  const algorithmConfig = layoutOptions[layoutOptions.algorithm as keyof typeof DEFAULT_OPTIONS] as Record<string, unknown>;
+  const config = ALGORITHM_CONFIGS[layoutOptions.algorithm];
+  const algorithmConfig = layoutOptions[layoutOptions.algorithm] as Record<string, unknown>;
+
+  const updateAlgorithmOption = (key: string, value: unknown) => {
+    setLayoutOptions(prev => ({
+      ...prev,
+      [layoutOptions.algorithm]: { ...(prev[layoutOptions.algorithm] as object), [key]: value }
+    }));
+  };
+
+  const renderField = (field: FieldConfig) => {
+    const fieldValue = algorithmConfig[field.key];
+
+    if (field.type === 'select') {
+      return (
+        <div key={field.key}>
+          <label className={LABEL_CLASSES}>{field.label}</label>
+          <select
+            className={INPUT_CLASSES}
+            value={fieldValue as string}
+            onChange={(e) => updateAlgorithmOption(field.key, e.target.value)}
+          >
+            {field.options.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+      );
+    }
+
+    if (field.type === 'checkbox') {
+      return (
+        <div key={field.key}>
+          <label className={LABEL_CLASSES}>{field.label}</label>
+          <label className="flex items-center gap-2 p-2 border border-neutral-300 rounded-md cursor-pointer hover:bg-neutral-50">
+            <input
+              type="checkbox"
+              checked={fieldValue as boolean}
+              onChange={(e) => updateAlgorithmOption(field.key, e.target.checked)}
+              className="rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="text-xs text-neutral-600">{field.description || field.label}</span>
+          </label>
+        </div>
+      );
+    }
+
+    return (
+      <div key={field.key}>
+        <label className={LABEL_CLASSES}>{field.label}</label>
+        <input
+          type="number"
+          min={field.min}
+          max={field.max}
+          step={field.step}
+          className={INPUT_CLASSES}
+          value={fieldValue as number}
+          onChange={(e) => updateAlgorithmOption(field.key, parseFloat(e.target.value))}
+        />
+      </div>
+    );
+  };
 
   return (
     <div className={`panel-container ${isOpen ? 'panel-open' : 'panel-closing'}`}>
       <div className="panel-header">
         <div className="panel-title">
-          <Layout className="w-5 h-5 text-primary-400" />
+          <Layout className="w-5 h-5 text-sky-400" />
           布局管理
         </div>
         <button
@@ -430,9 +377,9 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
       </div>
 
       <div className="panel-content space-y-6">
-        <div className="rounded-xl p-5 border border-primary-100 transition-all duration-300 bg-primary-50">
+        <div className="rounded-xl p-5 border border-sky-100 bg-sky-50">
           <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800">
-            <Zap className="w-4 h-4 text-primary-400" />
+            <Zap className="w-4 h-4 text-sky-400" />
             布局算法
           </h3>
 
@@ -444,7 +391,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
                 value={layoutOptions.algorithm}
                 onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'algorithm': e.target.value as LayoutAlgorithm }))}
               >
-                {ALGORITHM_OPTIONS.map((opt) => (
+                {ALGORITHM_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
@@ -458,7 +405,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
                   value={layoutOptions.direction}
                   onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'direction': e.target.value as LayoutDirection }))}
                 >
-                  {DIRECTION_OPTIONS.map((opt) => (
+                  {DIRECTION_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
@@ -467,9 +414,9 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
           </div>
         </div>
 
-        <div className="rounded-xl p-5 border border-blue-100 transition-all duration-300 bg-primary-50">
+        <div className="rounded-xl p-5 border border-neutral-200 bg-white">
           <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800">
-            <Settings className="w-4 h-4 text-primary-400" />
+            <Settings className="w-4 h-4 text-sky-400" />
             布局参数
           </h3>
 
@@ -512,135 +459,30 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
             </div>
           </div>
 
-          <div className="space-y-6">
-            {config && (
-              <div className={`${config.bgColor} rounded-lg p-4 border ${config.borderColor}`}>
-                <h4 className={`text-xs font-semibold ${config.titleColor} mb-3`}>{config.title}</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  {config.fields.map((field) => {
-                    const getFieldValue = () => {
-                      if (field.key.includes('.')) {
-                        const [parentKey, childKey] = field.key.split('.');
-                        const parentValue = algorithmConfig[parentKey as string];
-                        if (typeof parentValue === 'object' && parentValue !== null) {
-                          return (parentValue as Record<string, unknown>)[childKey as string];
-                        }
-                      }
-                      return algorithmConfig[field.key];
-                    };
-
-                    const fieldValue = getFieldValue();
-
-                    const handleChange = (value: unknown) => {
-                      if (field.key.includes('.')) {
-                        const [parentKey, childKey] = field.key.split('.');
-                        setLayoutOptions(prev => {
-                          const currentValue = prev[layoutOptions.algorithm as keyof typeof DEFAULT_OPTIONS];
-                          if (typeof currentValue !== 'object' || currentValue === null) {
-                            return prev;
-                          }
-                          const parentValue = (currentValue as Record<string, unknown>)[parentKey as string];
-                          if (typeof parentValue === 'object' && parentValue !== null) {
-                            const newParentValue = { ...(parentValue as Record<string, unknown>) };
-                            (newParentValue as Record<string, unknown>)[childKey as string] = value;
-                            const newAlgorithmValue = { ...currentValue };
-                            (newAlgorithmValue as Record<string, unknown>)[parentKey as string] = newParentValue;
-                            return { ...prev, [layoutOptions.algorithm]: newAlgorithmValue };
-                          }
-                          return prev;
-                        });
-                      } else {
-                        setLayoutOptions(prev => {
-                          const currentValue = prev[layoutOptions.algorithm as keyof typeof DEFAULT_OPTIONS];
-                          if (typeof currentValue === 'object' && currentValue !== null) {
-                            return { ...prev, [layoutOptions.algorithm]: { ...currentValue, [field.key]: value } };
-                          }
-                          return { ...prev, [layoutOptions.algorithm]: value };
-                        });
-                      }
-                    };
-
-                    if (field.type === 'select') {
-                      return (
-                        <div key={field.key}>
-                          <label className={LABEL_CLASSES}>{field.label}</label>
-                          <select
-                            className={INPUT_CLASSES}
-                            value={fieldValue as string}
-                            onChange={(e) => handleChange(e.target.value)}
-                          >
-                            {field.options.map((opt) => (
-                              <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                      );
-                    }
-
-                    if (field.type === 'checkbox') {
-                      return (
-                        <div key={field.key}>
-                          <label className={LABEL_CLASSES}>{field.label}</label>
-                          <div className="flex items-center p-2 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
-                            <input
-                              type="checkbox"
-                              checked={fieldValue as boolean}
-                              onChange={(e) => handleChange(e.target.checked)}
-                              className="rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                            />
-                            <span className="ml-2 text-xs text-gray-600">{(field as FieldConfig & { type: 'checkbox' }).description || field.label}</span>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    const numberField = field as FieldConfig & { type: 'number' };
-                    return (
-                      <div key={field.key}>
-                        <label className={LABEL_CLASSES}>{field.label}</label>
-                        <input
-                          type="number"
-                          min={numberField.min}
-                          max={numberField.max}
-                          step={numberField.step}
-                          className={INPUT_CLASSES}
-                          value={fieldValue as number}
-                          onChange={(e) => handleChange(parseFloat(e.target.value))}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
+          {config && (
+            <div className={`${config.bgColor} rounded-lg p-4 border ${config.borderColor}`}>
+              <h4 className={`text-xs font-semibold ${config.titleColor} mb-3`}>{config.title}</h4>
+              <div className="grid grid-cols-2 gap-4">
+                {config.fields.map(renderField)}
               </div>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <button
-            onClick={executeLayout}
-            disabled={isLayouting || nodeCount === 0}
-            className={`w-full py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 ${isLayouting || nodeCount === 0 ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed' : 'bg-primary-600 text-white'}`}
-          >
-            {isLayouting ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                布局中...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-5 h-5" />
-                应用布局
-              </>
-            )}
-          </button>
-
-          {nodeCount === 0 && (
-            <p className="text-xs text-neutral-500 text-center bg-neutral-50 p-3 rounded-lg border border-neutral-100">
-              请先添加节点再执行布局
-            </p>
+            </div>
           )}
         </div>
+
+        <button
+          onClick={executeLayout}
+          disabled={isLayouting || nodeCount === 0}
+          className={`w-full py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${isLayouting || nodeCount === 0 ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed' : 'bg-sky-600 text-white hover:bg-sky-700'}`}
+        >
+          <RefreshCw className={`w-5 h-5 ${isLayouting ? 'animate-spin' : ''}`} />
+          {isLayouting ? '布局中...' : '应用布局'}
+        </button>
+
+        {nodeCount === 0 && (
+          <p className="text-xs text-neutral-500 text-center p-3 rounded-lg border border-neutral-100 bg-neutral-50">
+            请先添加节点再执行布局
+          </p>
+        )}
       </div>
     </div>
   );

@@ -30,9 +30,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   override render () {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 bg-gray-50">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 bg-neutral-50">
           <h2 className="text-2xl font-bold text-red-600 mb-4">加载失败</h2>
-          <p className="text-gray-700 mb-6">很抱歉，页面加载时出现了错误。</p>
+          <p className="text-neutral-700 mb-6">很抱歉，页面加载时出现了错误。</p>
           <button
             onClick={() => window.location.reload()}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -56,12 +56,14 @@ function AppContent () {
                          pathname.startsWith('/graphs/create') ||
                          (/^\/graphs\/[a-zA-Z0-9-]+$/).test(pathname);
 
+  const isHomePage = pathname === '/';
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-neutral-50">
       {!isEditPage && <Header />}
 
       <main
-        className={`flex-1 transition-all duration-300 ease-in-out ${isEditPage ? '' : 'p-4 sm:p-6 lg:p-8'}`}
+        className={`flex-1 transition-all duration-300 ease-in-out ${isEditPage || isHomePage ? '' : 'p-4 sm:p-6 lg:p-8'}`}
       >
         <ErrorBoundary>
           <Routes>

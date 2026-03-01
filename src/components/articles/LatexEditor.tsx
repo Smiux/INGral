@@ -95,11 +95,11 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
         ref={modalRef}
         className="bg-white rounded-lg w-full max-w-3xl max-h-[70vh] overflow-hidden flex flex-col"
       >
-        <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-800">LaTeX公式编辑器</h2>
+        <div className="flex justify-between items-center p-4 border-b border-neutral-300 bg-neutral-50">
+          <h2 className="text-lg font-semibold text-neutral-800">LaTeX公式编辑器</h2>
           <button
             onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-neutral-500 hover:text-neutral-700 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -107,12 +107,12 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
 
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-1 gap-4">
-            <div className="editor-panel">
+            <div>
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-medium text-gray-700">公式编辑</h3>
+                <h3 className="text-sm font-medium text-neutral-700">公式编辑</h3>
                 <button
                   onClick={handleClear}
-                  className="px-3 py-1 text-xs bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition-colors"
+                  className="px-3 py-1 text-xs bg-neutral-100 text-neutral-800 rounded hover:bg-neutral-200 transition-colors"
                 >
                   清除
                 </button>
@@ -127,14 +127,13 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
                 mathStyle="displaystyle"
                 fontSize="1.25rem"
                 placeholder="输入LaTeX公式..."
-                className="w-full min-h-40 max-h-[40vh] p-4 border border-gray-300 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y overflow-auto"
                 style={{ 'width': '100%', 'maxWidth': '100%', 'minWidth': '100%', 'display': 'block' }}
               ></math-field>
             </div>
           </div>
 
         </div>
-        <div className="p-4 border-t border-gray-300 bg-gray-50 flex justify-end items-center">
+        <div className="p-4 border-t border-neutral-300 bg-neutral-50 flex justify-end items-center">
           <div className="flex space-x-2">
             <button
               onClick={handleCopy}

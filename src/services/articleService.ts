@@ -5,7 +5,6 @@ export interface Article {
   title: string;
   slug: string;
   content_path: string;
-  author_name: string;
   created_at: string;
 }
 
@@ -39,19 +38,19 @@ export async function getArticleBySlug (slug: string): Promise<ArticleWithConten
 }
 
 export async function getAllArticles (): Promise<Article[]> {
-  const { data } = await supabase.from(TABLE_NAME).select('id, title, slug, content_path, author_name, created_at');
+  const { data } = await supabase.from(TABLE_NAME)
+    .select('id, title, slug, content_path, created_at')
+    .order('created_at', { 'ascending': false });
 
   return data || [];
 }
 
 export async function createArticle ({
   title,
-  content,
-  authorName
+  content
 }: {
   title: string;
   content: string;
-  authorName?: string;
 }): Promise<ArticleWithContent | null> {
   const id = crypto.randomUUID();
   const slug = generateSlug();
@@ -67,8 +66,7 @@ export async function createArticle ({
       id,
       title,
       slug,
-      'content_path': contentPath,
-      'author_name': authorName || 'Anonymous'
+      'content_path': contentPath
     })
     .select()
     .single<Article>();

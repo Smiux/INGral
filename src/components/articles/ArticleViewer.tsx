@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, User2 } from 'lucide-react';
+import { ArrowLeft, CalendarDays } from 'lucide-react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import hljs from 'highlight.js';
@@ -91,7 +91,7 @@ export function ArticleViewer () {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400" />
       </div>
     );
   }
@@ -103,7 +103,7 @@ export function ArticleViewer () {
         <p className="text-neutral-600 mb-8">您访问的文章不存在。</p>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition"
+          className="inline-flex items-center gap-2 bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-sky-600 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           返回首页
@@ -125,11 +125,11 @@ export function ArticleViewer () {
       <nav className="mb-6">
         <ol className="flex items-center gap-1 text-sm text-neutral-500">
           <li>
-            <Link to="/" className="hover:text-primary-600 transition-colors">首页</Link>
+            <Link to="/" className="hover:text-sky-600 transition-colors">首页</Link>
           </li>
           <li className="text-neutral-400">/</li>
           <li>
-            <Link to="/articles" className="hover:text-primary-600 transition-colors">文章</Link>
+            <Link to="/articles" className="hover:text-sky-600 transition-colors">文章</Link>
           </li>
           <li className="text-neutral-400">/</li>
           <li>
@@ -144,10 +144,6 @@ export function ArticleViewer () {
           <div className="flex items-center gap-1">
             <CalendarDays className="w-4 h-4 text-neutral-500" />
             {formattedDate}
-          </div>
-          <div className="flex items-center gap-1">
-            <User2 className="w-4 h-4 text-neutral-500" />
-            {article.author_name}
           </div>
         </div>
       </div>

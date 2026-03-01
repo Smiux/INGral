@@ -5,7 +5,7 @@ export function Header () {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-50 bg-neutral-50 border-b border-neutral-200">
+    <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity text-neutral-800">
@@ -16,16 +16,16 @@ export function Header () {
             <nav className="hidden md:flex items-center gap-2">
               <button
                 onClick={() => navigate('/graphs/create')}
-                className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-primary-500 hover:bg-primary-50 transition-all duration-200"
+                className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-sky-500 hover:bg-sky-50 transition-all duration-200"
               >
-                <Network className="w-4 h-4 text-primary-300" />
+                <Network className="w-4 h-4 text-sky-300" />
                 <span className="text-sm">图</span>
               </button>
               <Link
                 to="/articles"
-                className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-secondary-500 hover:bg-secondary-50 transition-all duration-200"
+                className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 hover:text-green-500 hover:bg-green-50 transition-all duration-200"
               >
-                <BookOpen className="w-4 h-4 text-secondary-300" />
+                <BookOpen className="w-4 h-4 text-green-300" />
                 <span className="text-sm">文章</span>
               </Link>
 

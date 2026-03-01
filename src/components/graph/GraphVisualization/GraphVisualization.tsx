@@ -428,17 +428,17 @@ const GraphVisualizationContent: React.FC = () => {
         }
       `}</style>
 
-      <div className="bg-white border-b border-gray-200 flex items-center justify-between gap-0 z-50">
+      <div className="bg-white border-b border-neutral-200 flex items-center justify-between gap-0 z-50">
         <div className="flex items-center gap-2 p-1">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity px-2">
-            <span className="font-bold text-sm tracking-tight text-gray-800">IN Gral</span>
+            <span className="font-bold text-sm tracking-tight text-neutral-800">IN Gral</span>
           </Link>
-          <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-gray-700">
+          <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-neutral-700">
             <span className="flex items-center gap-1">
               <Database size={12} />
               节点: {nodeCount}
             </span>
-            <span className="h-3 w-px bg-gray-400"></span>
+            <span className="h-3 w-px bg-neutral-400"></span>
             <span className="flex items-center gap-1">
               <GitBranch size={12} />
               连接: {edgeCount}
@@ -467,7 +467,7 @@ const GraphVisualizationContent: React.FC = () => {
         />
       </div>
 
-      <div ref={canvasWrapperRef} className="flex-1 w-full bg-gray-50 relative">
+      <div ref={canvasWrapperRef} className="flex-1 w-full bg-neutral-50 relative">
         {viewMode === 'reactflow' && (
           <div ref={reactFlowWrapper} className="w-full h-full">
             <ReactFlow

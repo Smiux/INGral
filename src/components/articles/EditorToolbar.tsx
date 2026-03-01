@@ -5,7 +5,7 @@ import {
   Undo, Redo, Link as LinkIcon,
   Strikethrough, Underline as UnderlineIcon, Highlighter,
   Quote, Minus, CodeSquare,
-  Plus, ChevronDown, FunctionSquare, Subscript, Superscript, ListTree, Palette
+  Plus, ChevronDown, FunctionSquare, Subscript, Superscript, Palette, AlignLeft
 } from 'lucide-react';
 
 const FONTS: Record<string, string> = {
@@ -77,22 +77,22 @@ interface ColorPickerProps {
 
 const ColorPicker: React.FC<ColorPickerProps> = memo(({ color, onChange, label }) => (
   <div className="mb-3">
-    <h3 className="text-sm font-semibold text-gray-700 mb-2">{label}</h3>
-    <div className="flex items-center gap-3 h-10 rounded-lg border border-gray-300 overflow-hidden">
+    <h3 className="text-sm font-semibold text-neutral-700 mb-2">{label}</h3>
+    <div className="flex items-center gap-3 h-10 rounded-lg border border-neutral-300 overflow-hidden">
       <div className="relative w-8 h-8 ml-1 flex-shrink-0">
         <input
           type="color"
           value={color}
           onChange={(e) => onChange(e.target.value)}
-          className="w-8 h-8 rounded cursor-pointer border border-gray-300 bg-transparent opacity-0 absolute inset-0"
+          className="w-8 h-8 rounded cursor-pointer border border-neutral-300 bg-transparent opacity-0 absolute inset-0"
         />
-        <div className="w-8 h-8 rounded border border-gray-300" style={{ 'backgroundColor': color }} />
+        <div className="w-8 h-8 rounded border border-neutral-300" style={{ 'backgroundColor': color }} />
       </div>
       <input
         type="text"
         value={color}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 text-sm px-2 py-0 bg-gray-50 text-gray-700 border-0 focus:outline-none h-full"
+        className="flex-1 text-sm px-2 py-0 bg-neutral-50 text-neutral-700 border-0 focus:outline-none h-full"
       />
     </div>
   </div>
@@ -106,8 +106,6 @@ interface EditorToolbarProps {
   setFontColor: (color: string) => void;
   backgroundColor: string;
   setBackgroundColor: (color: string) => void;
-  showTableOfContents: boolean;
-  onToggleTableOfContents: () => void;
   onLinkClick: () => void;
   onMathClick: (type: 'inline' | 'block') => void;
 }
@@ -133,8 +131,6 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
   setFontColor,
   backgroundColor,
   setBackgroundColor,
-  showTableOfContents,
-  onToggleTableOfContents,
   onLinkClick,
   onMathClick
 }) => {
@@ -224,7 +220,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<span className="text-sm font-bold text-neutral-600">≡</span>}
+            icon={<AlignLeft size={16} className="text-neutral-600" />}
             label="对齐"
             showMenu={activeMenu === 'align'}
             onClick={() => setActiveMenu(activeMenu === 'align' ? null : 'align')}
@@ -256,7 +252,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
               }
               setActiveMenu(activeMenu === 'color' ? null : 'color');
             }}
-            className={`flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16 ${activeMenu === 'color' ? 'bg-primary-50 text-primary-600' : ''}`}
+            className={`flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16 ${activeMenu === 'color' ? 'bg-sky-50 text-sky-600' : ''}`}
           >
             <div className="flex items-center gap-1">
               <Palette className="w-4 h-4 text-neutral-600" />
@@ -271,14 +267,14 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
             <ColorPicker color={backgroundColor} onChange={(color) => {
               setBackgroundColor(color); runEditorCommand(c => c.setBackgroundColor(color).run());
             }} label="背景颜色" />
-            <div className="border-t border-gray-200 my-3" />
+            <div className="border-t border-neutral-200 my-3" />
             <div className="flex gap-2">
               <button onClick={() => {
                 setFontColor('#000000'); runEditorCommand(c => c.unsetColor().run());
-              }} className="flex-1 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">清除颜色</button>
+              }} className="flex-1 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg">清除颜色</button>
               <button onClick={() => {
                 setBackgroundColor('#ffffff'); runEditorCommand(c => c.unsetBackgroundColor().run());
-              }} className="flex-1 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">清除背景</button>
+              }} className="flex-1 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg">清除背景</button>
             </div>
           </div>
         </div>
@@ -296,7 +292,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
                 runEditorCommand(c => c.setFontFamily(family).run()); setActiveMenu(null);
               }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100" style={{ 'fontFamily': family }}>{label}</button>
             ))}
-            <div className="border-t border-gray-200 my-1" />
+            <div className="border-t border-neutral-200 my-1" />
             <button onClick={() => {
               runEditorCommand(c => c.unsetFontFamily().run()); setActiveMenu(null);
             }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">清除字体</button>
@@ -316,7 +312,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
                 runEditorCommand(c => c.setFontSize(size).run()); setActiveMenu(null);
               }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100" style={{ 'fontSize': size }}>{size}</button>
             ))}
-            <div className="border-t border-gray-200 my-1" />
+            <div className="border-t border-neutral-200 my-1" />
             <button onClick={() => {
               runEditorCommand(c => c.unsetFontSize().run()); setActiveMenu(null);
             }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">清除字号</button>
@@ -336,7 +332,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
                 runEditorCommand(c => c.setLineHeight(height).run()); setActiveMenu(null);
               }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100" style={{ 'lineHeight': height }}>{height}</button>
             ))}
-            <div className="border-t border-gray-200 my-1" />
+            <div className="border-t border-neutral-200 my-1" />
             <button onClick={() => {
               runEditorCommand(c => c.unsetLineHeight().run()); setActiveMenu(null);
             }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">清除行高</button>
@@ -432,14 +428,6 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
         </div>
 
         <span className="w-px h-12 bg-neutral-300 mx-1" />
-
-        <button
-          onClick={onToggleTableOfContents}
-          className={`flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16 ${showTableOfContents ? 'bg-primary-50 text-primary-600' : ''}`}
-        >
-          <ListTree className="w-4 h-4 text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">目录</span>
-        </button>
 
         <button onClick={() => runEditorCommand(c => c.undo().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
           <Undo size={16} className="text-neutral-600 mx-auto" />

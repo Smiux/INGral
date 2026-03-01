@@ -7,11 +7,11 @@ import ELK from 'elkjs';
 
 const elk = new ELK();
 
-const INPUT_CLASS = 'w-full p-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-neutral-50 text-neutral-800';
-const SECTION_CLASS = 'bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-5 border border-primary-100 transition-shadow';
+const INPUT_CLASS = 'w-full p-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent text-neutral-800';
+const SECTION_CLASS = 'bg-sky-50 rounded-xl p-5 border border-sky-100 transition-shadow';
 const SECTION_TITLE_CLASS = 'text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800';
 
-type GraphType = 'random' | 'chain' | 'cycle' | 'tree' | 'star';
+type GraphType = 'random' | 'cycle' | 'tree' | 'star';
 type CurveType = 'default' | 'smoothstep' | 'straight' | 'simplebezier';
 
 interface BaseConfig {
@@ -21,11 +21,6 @@ interface BaseConfig {
 interface RandomConfig extends BaseConfig {
   nodeCount: number;
   edgeCount: number;
-}
-
-interface ChainConfig extends BaseConfig {
-  nodeCount: number;
-  direction: 'horizontal' | 'vertical';
 }
 
 interface CycleConfig extends BaseConfig {
@@ -46,7 +41,7 @@ interface StarConfig extends BaseConfig {
   nodeCount: number;
 }
 
-type GraphConfig = RandomConfig | ChainConfig | CycleConfig | TreeConfig | StarConfig;
+type GraphConfig = RandomConfig | CycleConfig | TreeConfig | StarConfig;
 
 interface GraphGenerationPanelProps {
   onGenerate: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
@@ -56,7 +51,6 @@ interface GraphGenerationPanelProps {
 
 const DEFAULT_CONFIGS: Record<GraphType, GraphConfig> = {
   'random': { 'curveType': 'default', 'nodeCount': 50, 'edgeCount': 150 },
-  'chain': { 'curveType': 'straight', 'nodeCount': 20, 'direction': 'horizontal' },
   'cycle': { 'curveType': 'straight', 'nodeCount': 15 },
   'tree': { 'curveType': 'straight', 'maxDepth': 3, 'minDepth': 1, 'minChildrenPerNode': 1, 'maxChildrenPerNode': 3, 'childrenCount': 2, 'branchingMode': 'random', 'countMode': 'range' },
   'star': { 'curveType': 'simplebezier', 'nodeCount': 12 }
@@ -64,7 +58,6 @@ const DEFAULT_CONFIGS: Record<GraphType, GraphConfig> = {
 
 const LAYOUT_CONFIG: Record<GraphType, { algorithm: string; spacing: string; direction?: string }> = {
   'random': { 'algorithm': 'org.eclipse.elk.random', 'spacing': '30' },
-  'chain': { 'algorithm': 'org.eclipse.elk.layered', 'spacing': '100', 'direction': 'RIGHT' },
   'tree': { 'algorithm': 'org.eclipse.elk.mrtree', 'spacing': '100', 'direction': 'DOWN' },
   'star': { 'algorithm': 'org.eclipse.elk.radial', 'spacing': '50' },
   'cycle': { 'algorithm': 'org.eclipse.elk.force', 'spacing': '30' }
@@ -131,18 +124,6 @@ const layoutGraph = async (
   } catch {
     return nodes;
   }
-};
-
-const generateChainGraph = (config: ChainConfig) => {
-  const nodes: Node<CustomNodeData>[] = [];
-  const edges: Edge<CustomEdgeData>[] = [];
-  for (let i = 0; i < config.nodeCount; i += 1) {
-    nodes.push(createNode(i));
-  }
-  for (let i = 0; i < config.nodeCount - 1; i += 1) {
-    edges.push(createEdge(`generated-node-${i}`, `generated-node-${i + 1}`, i, config));
-  }
-  return { nodes, edges };
 };
 
 const generateCycleGraph = (config: CycleConfig) => {
@@ -246,7 +227,6 @@ const generateRandomGraph = (config: RandomConfig) => {
 
 const generateGraph = (graphType: GraphType, config: GraphConfig) => {
   switch (graphType) {
-    case 'chain': return generateChainGraph(config as ChainConfig);
     case 'cycle': return generateCycleGraph(config as CycleConfig);
     case 'tree': return generateTreeGraph(config as TreeConfig);
     case 'star': return generateStarGraph(config as StarConfig);
@@ -280,7 +260,7 @@ const SelectInput = ({ label, value, onChange, options }: { label: string; value
 const Section = ({ 'icon': Icon, title, children }: { 'icon': React.ElementType; title: string; children: React.ReactNode }) => (
   <section className={SECTION_CLASS}>
     <h3 className={SECTION_TITLE_CLASS}>
-      <Icon className="w-4 h-4 text-primary-400" />
+      <Icon className="w-4 h-4 text-sky-400" />
       {title}
     </h3>
     {children}
@@ -301,14 +281,13 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
 
   const treeConfig = graphType === 'tree' ? (config as TreeConfig) : null;
   const randomConfig = graphType === 'random' ? (config as RandomConfig) : null;
-  const chainConfig = graphType === 'chain' ? (config as ChainConfig) : null;
   const nodeCountConfig = (config as { nodeCount?: number }).nodeCount;
 
   return (
     <div className={`panel-container ${isOpen ? 'panel-open' : 'panel-closing'}`}>
       <div className="panel-header">
         <div className="panel-title">
-          <Clipboard className="w-5 h-5 text-primary-400" />
+          <Clipboard className="w-5 h-5 text-sky-400" />
           图生成
         </div>
         <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors flex-shrink-0" title="关闭面板">
@@ -328,7 +307,6 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
             }}
             options={[
               { 'value': 'random', 'label': '🎲 随机图' },
-              { 'value': 'chain', 'label': '🔗 链状图' },
               { 'value': 'cycle', 'label': '🔄 环状图' },
               { 'value': 'tree', 'label': '🌳 随机树' },
               { 'value': 'star', 'label': '⭐ 星状图' }
@@ -402,19 +380,8 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
           </div>
         </Section>
 
-        {chainConfig && (
-          <Section icon={Network} title="链状图配置">
-            <SelectInput
-              label="方向"
-              value={chainConfig.direction}
-              onChange={(v) => setConfig({ ...config, 'direction': v as 'horizontal' | 'vertical' })}
-              options={[{ 'value': 'horizontal', 'label': '水平' }, { 'value': 'vertical', 'label': '垂直' }]}
-            />
-          </Section>
-        )}
-
         <button
-          className="w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white"
+          className="w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white"
           onClick={handleGenerate}
         >
           <Plus className="w-5 h-5" />生成图
