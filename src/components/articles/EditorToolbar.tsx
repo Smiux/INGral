@@ -5,7 +5,7 @@ import {
   Undo, Redo, Link as LinkIcon,
   Strikethrough, Underline as UnderlineIcon, Highlighter,
   Quote, Minus, CodeSquare,
-  Plus, ChevronDown, FunctionSquare, Subscript, Superscript, Palette, AlignLeft
+  Plus, ChevronDown, FunctionSquare, Subscript, Superscript, Palette, AlignLeft, CodeXml
 } from 'lucide-react';
 
 const FONTS: Record<string, string> = {
@@ -108,6 +108,7 @@ interface EditorToolbarProps {
   setBackgroundColor: (color: string) => void;
   onLinkClick: () => void;
   onMathClick: (type: 'inline' | 'block') => void;
+  onIframeClick: () => void;
 }
 
 const getHeadingLabel = (level: number) => {
@@ -132,7 +133,8 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
   backgroundColor,
   setBackgroundColor,
   onLinkClick,
-  onMathClick
+  onMathClick,
+  onIframeClick
 }) => {
   const runEditorCommand = useCallback((command: (chain: ReturnType<Editor['chain']>) => void) => {
     if (!editor) {
@@ -389,6 +391,10 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
         <button onClick={onLinkClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
           <LinkIcon size={16} className="text-neutral-600 mx-auto" />
           <span className="text-xs text-neutral-600 mt-1">链接</span>
+        </button>
+        <button onClick={onIframeClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
+          <CodeXml size={16} className="text-neutral-600 mx-auto" />
+          <span className="text-xs text-neutral-600 mt-1">嵌入</span>
         </button>
         <button onClick={() => runEditorCommand(c => c.insertTable({ 'rows': 3, 'cols': 3, 'withHeaderRow': true }).run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
           <Plus size={16} className="text-neutral-600 mx-auto" />

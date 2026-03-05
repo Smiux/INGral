@@ -20,6 +20,7 @@ import { TableOfContents, getHierarchicalIndexes } from '@tiptap/extension-table
 import { DragHandle as DragHandleReact } from '@tiptap/extension-drag-handle-react';
 import { GripVertical } from 'lucide-react';
 import { all, createLowlight } from 'lowlight';
+import { IframeEmbed } from './IframeEmbed';
 
 const lowlight = createLowlight(all);
 
@@ -126,7 +127,8 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         'getIndex': getHierarchicalIndexes,
         'onUpdate': onTableOfContentsChange
       })] : []),
-      CharacterCount
+      CharacterCount,
+      IframeEmbed
     ],
     'onUpdate': ({ 'editor': editorInstance }) => {
       onCharacterCountChange?.(editorInstance.storage.characterCount.characters());
