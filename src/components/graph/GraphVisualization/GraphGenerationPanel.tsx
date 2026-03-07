@@ -7,9 +7,9 @@ import ELK from 'elkjs';
 
 const elk = new ELK();
 
-const INPUT_CLASS = 'w-full p-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent text-neutral-800';
-const SECTION_CLASS = 'bg-sky-50 rounded-xl p-5 border border-sky-100 transition-shadow';
-const SECTION_TITLE_CLASS = 'text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800';
+const INPUT_CLASS = 'w-full p-2 border border-neutral-200 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent text-neutral-800 dark:text-neutral-200 bg-white dark:bg-neutral-700';
+const SECTION_CLASS = 'bg-sky-50 dark:bg-sky-950/30 rounded-xl p-5 border border-sky-100 dark:border-sky-900 transition-shadow';
+const SECTION_TITLE_CLASS = 'text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800 dark:text-neutral-200';
 
 type GraphType = 'random' | 'cycle' | 'tree' | 'star';
 type CurveType = 'default' | 'smoothstep' | 'straight' | 'simplebezier';
@@ -236,7 +236,7 @@ const generateGraph = (graphType: GraphType, config: GraphConfig) => {
 
 const NumberInput = ({ label, value, onChange, min, max }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number }) => (
   <label className="block">
-    {label && <span className="text-xs text-neutral-600 mb-1 block">{label}</span>}
+    {label && <span className="text-xs text-neutral-600 dark:text-neutral-400 mb-1 block">{label}</span>}
     <input
       type="number"
       className={INPUT_CLASS}
@@ -250,7 +250,7 @@ const NumberInput = ({ label, value, onChange, min, max }: { label: string; valu
 
 const SelectInput = ({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) => (
   <label className="block">
-    {label && <span className="text-xs text-neutral-600 mb-1 block">{label}</span>}
+    {label && <span className="text-xs text-neutral-600 dark:text-neutral-400 mb-1 block">{label}</span>}
     <select className={INPUT_CLASS} value={value} onChange={(e) => onChange(e.target.value)}>
       {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
     </select>
@@ -290,7 +290,7 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
           <Clipboard className="w-5 h-5 text-sky-400" />
           图生成
         </div>
-        <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors flex-shrink-0" title="关闭面板">
+        <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400 transition-colors flex-shrink-0" title="关闭面板">
           <X className="h-5 w-5" />
         </button>
       </div>

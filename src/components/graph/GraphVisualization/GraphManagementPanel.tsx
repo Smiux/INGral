@@ -209,21 +209,21 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
           <Settings2 className="w-5 h-5 text-sky-400" />
           图管理
         </div>
-        <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors" title="关闭面板">
+        <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400 transition-colors" title="关闭面板">
           <X className="h-5 w-5" />
         </button>
       </header>
 
       <div className="panel-content flex flex-col h-full">
-        <nav className="bg-white/90 backdrop-blur-sm z-10">
+        <nav className="bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm z-10">
           <div className="flex w-full p-1">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
-                className={`flex-1 py-3 px-6 text-sm font-medium transition-all flex items-center justify-center gap-2 ${activeTab === tab.key ? 'text-sky-600 border-b-2 border-sky-500 bg-sky-50/80' : 'text-neutral-600'}`}
+                className={`flex-1 py-3 px-6 text-sm font-medium transition-all flex items-center justify-center gap-2 ${activeTab === tab.key ? 'text-sky-600 dark:text-sky-400 border-b-2 border-sky-500 bg-sky-50/80 dark:bg-sky-950/30' : 'text-neutral-600 dark:text-neutral-400'}`}
                 onClick={() => setActiveTab(tab.key)}
               >
-                <span className={activeTab === tab.key ? 'text-sky-400' : 'text-neutral-500'}>
+                <span className={activeTab === tab.key ? 'text-sky-400' : 'text-neutral-500 dark:text-neutral-500'}>
                   {tab.icon}
                 </span>
                 {tab.label}
@@ -234,9 +234,9 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
 
         <main className="flex-1 overflow-y-auto p-4">
           {activeTab === 'nodes' && (
-            <div className="bg-sky-50 rounded-xl p-5 border border-sky-100">
+            <div className="bg-sky-50 dark:bg-sky-950/30 rounded-xl p-5 border border-sky-100 dark:border-sky-900">
               <div className="flex flex-wrap gap-3 items-center mb-4">
-                <div className="text-sm text-neutral-600 font-medium bg-white/70 px-3 py-1.5 rounded-lg">
+                <div className="text-sm text-neutral-600 dark:text-neutral-400 font-medium bg-white/70 dark:bg-neutral-800/70 px-3 py-1.5 rounded-lg">
                   节点数: {nodes.length} | 搜索结果: {filteredNodes.length} | 选中: {selectedNodes.length}
                 </div>
                 <button
@@ -247,7 +247,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                   添加节点
                 </button>
                 <button
-                  className={`px-5 py-2.5 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-[1.02] focus:outline-none ${selectedNodes.length === 0 ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed' : 'bg-rose-600 text-white focus:ring-2 focus:ring-red-500'}`}
+                  className={`px-5 py-2.5 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-[1.02] focus:outline-none ${selectedNodes.length === 0 ? 'bg-neutral-300 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 cursor-not-allowed' : 'bg-rose-600 text-white focus:ring-2 focus:ring-red-500'}`}
                   onClick={handleDeleteSelectedNodes}
                   disabled={selectedNodes.length === 0}
                 >
@@ -263,12 +263,12 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                     placeholder="搜索节点名称或内容..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2.5 pr-10 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all duration-200 text-neutral-800"
+                    className="w-full px-4 py-2.5 pr-10 border border-neutral-200 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all duration-200 text-neutral-800 dark:text-neutral-200 bg-white dark:bg-neutral-700"
                   />
                   {searchTerm && (
                     <button
                       onClick={() => setSearchTerm('')}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                       title="清空搜索"
                     >
                       <X className="w-4 h-4" />
@@ -278,7 +278,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                 <select
                   value={searchType}
                   onChange={(e) => setSearchType(e.target.value as 'all' | 'name' | 'content')}
-                  className="min-w-[120px] px-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all duration-200 text-neutral-800"
+                  className="min-w-[120px] px-4 py-2.5 border border-neutral-200 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all duration-200 text-neutral-800 dark:text-neutral-200 bg-white dark:bg-neutral-700"
                 >
                   <option value="all">全部</option>
                   <option value="name">名称</option>
@@ -286,18 +286,18 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                 </select>
               </div>
 
-              <ul className="max-h-60 overflow-y-auto bg-white/80 rounded-lg space-y-1.5 p-1">
+              <ul className="max-h-60 overflow-y-auto bg-white/80 dark:bg-neutral-800/80 rounded-lg space-y-1.5 p-1">
                 {filteredNodes.map((node) => (
                   <li
                     key={node.id}
-                    className={`flex items-center gap-2 p-2.5 rounded-md cursor-pointer transition-all duration-200 ${selectedNodes.some((n) => n.id === node.id) ? 'bg-sky-100 text-sky-600' : ''}`}
+                    className={`flex items-center gap-2 p-2.5 rounded-md cursor-pointer transition-all duration-200 ${selectedNodes.some((n) => n.id === node.id) ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' : ''}`}
                     onClick={() => handleToggleSelection(node.id, 'node')}
                   >
                     <div className="flex-1">
-                      <div className="text-sm font-medium truncate text-neutral-800">{String(node.data?.title || '未命名节点')}</div>
-                      <div className="text-xs text-neutral-500">类别: {String(node.data?.category || '默认')}</div>
+                      <div className="text-sm font-medium truncate text-neutral-800 dark:text-neutral-200">{String(node.data?.title || '未命名节点')}</div>
+                      <div className="text-xs text-neutral-500 dark:text-neutral-400">类别: {String(node.data?.category || '默认')}</div>
                       {node.data?.metadata?.content && (
-                        <div className="text-xs text-neutral-500 truncate mt-1">
+                        <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-1">
                           {String(node.data.metadata.content)}
                         </div>
                       )}
@@ -309,9 +309,9 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
           )}
 
           {activeTab === 'connections' && (
-            <div className="bg-sky-50 rounded-xl p-5 border border-sky-100">
+            <div className="bg-sky-50 dark:bg-sky-950/30 rounded-xl p-5 border border-sky-100 dark:border-sky-900">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-neutral-800 flex items-center gap-2">
+                <h3 className="text-lg font-medium text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
                   <LinkIcon size={18} className="text-sky-400" />
                   连接管理
                 </h3>
@@ -325,13 +325,13 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                 )}
               </div>
 
-              <div className="border-t border-sky-100 pt-4">
-                <h4 className="text-sm font-medium text-neutral-700 bg-white/70 px-3 py-1.5 rounded-lg mb-4">
+              <div className="border-t border-sky-100 dark:border-sky-900 pt-4">
+                <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-white/70 dark:bg-neutral-800/70 px-3 py-1.5 rounded-lg mb-4">
                   连接列表 ({edges.length})
                 </h4>
               </div>
 
-              <div className="space-y-2 bg-white/80 rounded-lg p-1">
+              <div className="space-y-2 bg-white/80 dark:bg-neutral-800/80 rounded-lg p-1">
                 {edges.map((edge) => {
                   const sourceNode = nodes.find((n) => n.id === edge.source);
                   const targetNode = nodes.find((n) => n.id === edge.target);
@@ -339,22 +339,22 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                   return (
                     <div
                       key={edge.id}
-                      className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-all duration-200 ${selectedEdges.some((c) => c.id === edge.id) ? 'bg-sky-100 text-sky-600' : ''}`}
+                      className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-all duration-200 ${selectedEdges.some((c) => c.id === edge.id) ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' : ''}`}
                       onClick={() => handleToggleSelection(edge.id, 'edge')}
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex-1">
-                          <div className="text-sm font-medium text-neutral-800 truncate">
+                          <div className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate">
                             {sourceNode?.data?.title || edge.source}
                           </div>
                           <div className="text-sm text-neutral-400 flex items-center justify-center">
                             <ArrowRight className="w-3 h-3" />
                           </div>
-                          <div className="text-sm font-medium text-neutral-800 truncate">
+                          <div className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate">
                             {targetNode?.data?.title || edge.target}
                           </div>
                         </div>
-                        <div className="px-2.5 py-0.5 bg-sky-100 text-sky-600 rounded-full text-xs font-medium">
+                        <div className="px-2.5 py-0.5 bg-sky-100 dark:bg-sky-900 text-sky-600 dark:text-sky-400 rounded-full text-xs font-medium">
                           {String(edge.data?.type || 'related')}
                         </div>
                       </div>
@@ -363,7 +363,7 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
                           e.stopPropagation();
                           handleDeleteConnection(edge.id);
                         }}
-                        className="p-1.5 hover:bg-red-50 text-red-600 rounded-full transition-all duration-200 transform hover:scale-110"
+                        className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full transition-all duration-200 transform hover:scale-110"
                         title="删除"
                       >
                         <Trash2 size={16} />
@@ -378,83 +378,83 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
           {activeTab === 'statistics' && (
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-1 gap-4">
-                <div className="bg-sky-50 rounded-xl p-4 border border-sky-200">
+                <div className="bg-sky-50 dark:bg-sky-950/30 rounded-xl p-4 border border-sky-200 dark:border-sky-800">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center text-white">
                       <CircleDot className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm text-sky-600 font-medium">节点总数</p>
-                      <p className="text-2xl font-bold">{stats.totalNodes}</p>
+                      <p className="text-sm text-sky-600 dark:text-sky-400 font-medium">节点总数</p>
+                      <p className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">{stats.totalNodes}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                <div className="bg-green-50 dark:bg-green-950/30 rounded-xl p-4 border border-green-200 dark:border-green-800">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white">
                       <LinkIcon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm text-green-600 font-medium">连接总数</p>
-                      <p className="text-2xl font-bold text-neutral-800">{stats.totalEdges}</p>
+                      <p className="text-sm text-green-600 dark:text-green-400 font-medium">连接总数</p>
+                      <p className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">{stats.totalEdges}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-neutral-100 rounded-xl p-4 border border-neutral-200">
+                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-xl p-4 border border-neutral-200 dark:border-neutral-700">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-neutral-600 flex items-center justify-center text-white">
                       <PieChart className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm text-neutral-700 font-medium">平均连接度</p>
-                      <p className="text-2xl font-bold text-neutral-900">{stats.avgConnections.toFixed(2)}</p>
+                      <p className="text-sm text-neutral-700 dark:text-neutral-300 font-medium">平均连接度</p>
+                      <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">{stats.avgConnections.toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-4 border border-neutral-200">
-                <h3 className="text-sm font-semibold text-neutral-800 mb-3 flex items-center gap-2">
-                  <BarChart className="w-4 h-4 text-neutral-500" />
+              <div className="bg-white dark:bg-neutral-800 rounded-xl p-4 border border-neutral-200 dark:border-neutral-700">
+                <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-3 flex items-center gap-2">
+                  <BarChart className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
                   节点类别分布
                 </h3>
                 <div className="space-y-2">
                   {Object.entries(stats.nodeTypes).map(([type, count]) => (
                     <div key={type} className="flex items-center justify-between">
-                      <span className="text-sm text-neutral-600 capitalize">{type}</span>
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400 capitalize">{type}</span>
                       <div className="flex items-center gap-2">
-                        <div className="w-24 bg-neutral-200 rounded-full h-2">
+                        <div className="w-24 bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
                           <div
                             className="bg-sky-500 h-2 rounded-full transition-all duration-300 ease-in-out"
                             style={{ 'width': `${(count / stats.totalNodes) * 100}%` }}
                           />
                         </div>
-                        <span className="text-sm font-medium text-neutral-800">{count}</span>
+                        <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{count}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-4 border border-neutral-200">
-                <h3 className="text-sm font-semibold text-neutral-800 mb-3 flex items-center gap-2">
-                  <BarChart className="w-4 h-4 text-neutral-500" />
+              <div className="bg-white dark:bg-neutral-800 rounded-xl p-4 border border-neutral-200 dark:border-neutral-700">
+                <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-3 flex items-center gap-2">
+                  <BarChart className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
                   连接类别分布
                 </h3>
                 <div className="space-y-2">
                   {Object.entries(stats.edgeTypes).map(([type, count]) => (
                     <div key={type} className="flex items-center justify-between">
-                      <span className="text-sm text-neutral-600 capitalize">{type}</span>
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400 capitalize">{type}</span>
                       <div className="flex items-center gap-2">
-                        <div className="w-24 bg-neutral-200 rounded-full h-2">
+                        <div className="w-24 bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
                           <div
                             className="bg-green-500 h-2 rounded-full transition-all duration-300 ease-in-out"
                             style={{ 'width': `${(count / stats.totalEdges) * 100}%` }}
                           />
                         </div>
-                        <span className="text-sm font-medium text-neutral-800">{count}</span>
+                        <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{count}</span>
                       </div>
                     </div>
                   ))}

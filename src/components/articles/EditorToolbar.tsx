@@ -39,15 +39,15 @@ interface ToolbarButtonProps {
 const ToolbarButton: React.FC<ToolbarButtonProps> = memo(({ icon, label, onClick, showMenu }) => (
   <button
     onClick={onClick}
-    className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16"
+    className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16"
   >
     <div className="flex items-center gap-1">
       {icon}
       {showMenu !== undefined && (
-        <ChevronDown className={`w-4 h-4 text-neutral-600 transition-transform duration-200 ${showMenu ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-neutral-600 dark:text-neutral-400 transition-transform duration-200 ${showMenu ? 'rotate-180' : ''}`} />
       )}
     </div>
-    <span className="text-xs text-neutral-600 mt-1">{label}</span>
+    <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">{label}</span>
   </button>
 ));
 
@@ -58,16 +58,22 @@ interface DropdownMenuProps {
   maxHeight?: string;
 }
 
-const DropdownMenu: React.FC<DropdownMenuProps> = memo(({ isOpen, children, width = 'w-32', maxHeight = 'max-h-60' }) => (
-  <div
-    className={`absolute left-0 mt-1 ${width} ${maxHeight} bg-white rounded-md py-1 z-10 transition-all duration-200 border border-neutral-200 overflow-y-auto ${
-      isOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'
-    }`}
-    style={{ 'top': '100%' }}
-  >
-    {children}
-  </div>
-));
+const DropdownMenu: React.FC<DropdownMenuProps> = memo(({ isOpen, children, width = 'w-32', maxHeight = 'max-h-60' }) => {
+  const visibilityClasses = isOpen
+    ? 'opacity-100 visible pointer-events-auto'
+    : 'opacity-0 invisible pointer-events-none';
+
+  const baseClasses = 'absolute left-0 mt-1 rounded-md py-1 z-10 transition-all duration-200 overflow-y-auto';
+
+  return (
+    <div
+      className={`${baseClasses} ${width} ${maxHeight} bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 ${visibilityClasses}`}
+      style={{ 'top': '100%' }}
+    >
+      {children}
+    </div>
+  );
+});
 
 interface ColorPickerProps {
   color: string;
@@ -77,22 +83,22 @@ interface ColorPickerProps {
 
 const ColorPicker: React.FC<ColorPickerProps> = memo(({ color, onChange, label }) => (
   <div className="mb-3">
-    <h3 className="text-sm font-semibold text-neutral-700 mb-2">{label}</h3>
-    <div className="flex items-center gap-3 h-10 rounded-lg border border-neutral-300 overflow-hidden">
+    <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">{label}</h3>
+    <div className="flex items-center gap-3 h-10 rounded-lg border border-neutral-300 dark:border-neutral-600 overflow-hidden">
       <div className="relative w-8 h-8 ml-1 flex-shrink-0">
         <input
           type="color"
           value={color}
           onChange={(e) => onChange(e.target.value)}
-          className="w-8 h-8 rounded cursor-pointer border border-neutral-300 bg-transparent opacity-0 absolute inset-0"
+          className="w-8 h-8 rounded cursor-pointer border border-neutral-300 dark:border-neutral-600 bg-transparent opacity-0 absolute inset-0"
         />
-        <div className="w-8 h-8 rounded border border-neutral-300" style={{ 'backgroundColor': color }} />
+        <div className="w-8 h-8 rounded border border-neutral-300 dark:border-neutral-600" style={{ 'backgroundColor': color }} />
       </div>
       <input
         type="text"
         value={color}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 text-sm px-2 py-0 bg-neutral-50 text-neutral-700 border-0 focus:outline-none h-full"
+        className="flex-1 text-sm px-2 py-0 bg-neutral-50 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border-0 focus:outline-none h-full"
       />
     </div>
   </div>
@@ -160,11 +166,11 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
   }
 
   return (
-    <div className="mb-2 p-2 bg-white rounded-t-lg border border-neutral-200 border-b-0">
+    <div className="mb-2 p-2 bg-white dark:bg-neutral-800 rounded-t-lg border border-neutral-200 dark:border-neutral-700 border-b-0">
       <div className="flex flex-wrap items-center gap-1">
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<Heading1 size={16} className="text-neutral-600" />}
+            icon={<Heading1 size={16} className="text-neutral-600 dark:text-neutral-400" />}
             label="标题"
             showMenu={activeMenu === 'heading'}
             onClick={() => setActiveMenu(activeMenu === 'heading' ? null : 'heading')}
@@ -177,7 +183,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
                   runEditorCommand(c => c.toggleHeading({ 'level': level as 1 | 2 | 3 }).run());
                   setActiveMenu(null);
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
+                className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
               >
                 {getHeadingLabel(level)}
               </button>
@@ -185,44 +191,44 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           </DropdownMenu>
         </div>
 
-        <span className="w-px h-12 bg-neutral-300 mx-1" />
+        <span className="w-px h-12 bg-neutral-300 dark:bg-neutral-600 mx-1" />
 
-        <button onClick={() => runEditorCommand(c => c.toggleBold().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16">
-          <Bold size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">粗体</span>
+        <button onClick={() => runEditorCommand(c => c.toggleBold().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
+          <Bold size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">粗体</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleItalic().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16">
-          <Italic size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">斜体</span>
+        <button onClick={() => runEditorCommand(c => c.toggleItalic().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
+          <Italic size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">斜体</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleStrike().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16">
-          <Strikethrough size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">删除线</span>
+        <button onClick={() => runEditorCommand(c => c.toggleStrike().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
+          <Strikethrough size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">删除线</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleUnderline().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16">
-          <UnderlineIcon size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">下划线</span>
+        <button onClick={() => runEditorCommand(c => c.toggleUnderline().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
+          <UnderlineIcon size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">下划线</span>
         </button>
-        <button onClick={toggleHighlight} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16">
-          <Highlighter size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">高亮</span>
+        <button onClick={toggleHighlight} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
+          <Highlighter size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">高亮</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleCode().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16">
-          <Code size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">行内代码</span>
+        <button onClick={() => runEditorCommand(c => c.toggleCode().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
+          <Code size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">行内代码</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleSubscript().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16">
-          <Subscript size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">下标</span>
+        <button onClick={() => runEditorCommand(c => c.toggleSubscript().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
+          <Subscript size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">下标</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleSuperscript().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all duration-200 w-16">
-          <Superscript size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">上标</span>
+        <button onClick={() => runEditorCommand(c => c.toggleSuperscript().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
+          <Superscript size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">上标</span>
         </button>
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<AlignLeft size={16} className="text-neutral-600" />}
+            icon={<AlignLeft size={16} className="text-neutral-600 dark:text-neutral-400" />}
             label="对齐"
             showMenu={activeMenu === 'align'}
             onClick={() => setActiveMenu(activeMenu === 'align' ? null : 'align')}
@@ -230,20 +236,20 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           <DropdownMenu isOpen={activeMenu === 'align'} width="w-32">
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('left').run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">左对齐</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">左对齐</button>
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('center').run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">居中对齐</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">居中对齐</button>
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('right').run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">右对齐</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">右对齐</button>
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('justify').run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">两端对齐</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">两端对齐</button>
           </DropdownMenu>
         </div>
 
-        <span className="w-px h-12 bg-neutral-300 mx-1" />
+        <span className="w-px h-12 bg-neutral-300 dark:bg-neutral-600 mx-1" />
 
         <div className="relative menu-container">
           <button
@@ -254,36 +260,36 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
               }
               setActiveMenu(activeMenu === 'color' ? null : 'color');
             }}
-            className={`flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16 ${activeMenu === 'color' ? 'bg-sky-50 text-sky-600' : ''}`}
+            className={`flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16 ${activeMenu === 'color' ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : ''}`}
           >
             <div className="flex items-center gap-1">
-              <Palette className="w-4 h-4 text-neutral-600" />
-              <ChevronDown className={`w-3 h-3 text-neutral-600 transition-transform duration-200 ${activeMenu === 'color' ? 'rotate-180' : ''}`} />
+              <Palette className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+              <ChevronDown className={`w-3 h-3 text-neutral-600 dark:text-neutral-400 transition-transform duration-200 ${activeMenu === 'color' ? 'rotate-180' : ''}`} />
             </div>
-            <span className="text-xs text-neutral-600 mt-1">颜色</span>
+            <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">颜色</span>
           </button>
-          <div className={`absolute left-0 mt-1 w-[280px] bg-white rounded-md py-4 px-3 z-10 transition-all duration-200 border border-neutral-200 ${activeMenu === 'color' ? 'opacity-100 visible' : 'opacity-0 invisible'}`} style={{ 'top': '100%' }}>
+          <div className={`absolute left-0 mt-1 w-[280px] bg-white dark:bg-neutral-800 rounded-md py-4 px-3 z-10 transition-all duration-200 border border-neutral-200 dark:border-neutral-700 ${activeMenu === 'color' ? 'opacity-100 visible' : 'opacity-0 invisible'}`} style={{ 'top': '100%' }}>
             <ColorPicker color={fontColor} onChange={(color) => {
               setFontColor(color); runEditorCommand(c => c.setColor(color).run());
             }} label="字体颜色" />
             <ColorPicker color={backgroundColor} onChange={(color) => {
               setBackgroundColor(color); runEditorCommand(c => c.setBackgroundColor(color).run());
             }} label="背景颜色" />
-            <div className="border-t border-neutral-200 my-3" />
+            <div className="border-t border-neutral-200 dark:border-neutral-700 my-3" />
             <div className="flex gap-2">
               <button onClick={() => {
                 setFontColor('#000000'); runEditorCommand(c => c.unsetColor().run());
-              }} className="flex-1 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg">清除颜色</button>
+              }} className="flex-1 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg">清除颜色</button>
               <button onClick={() => {
                 setBackgroundColor('#ffffff'); runEditorCommand(c => c.unsetBackgroundColor().run());
-              }} className="flex-1 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg">清除背景</button>
+              }} className="flex-1 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg">清除背景</button>
             </div>
           </div>
         </div>
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<span className="text-sm text-neutral-600">Aa</span>}
+            icon={<span className="text-sm text-neutral-600 dark:text-neutral-400">Aa</span>}
             label="字体"
             showMenu={activeMenu === 'font'}
             onClick={() => setActiveMenu(activeMenu === 'font' ? null : 'font')}
@@ -292,18 +298,18 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
             {Object.entries(FONTS).map(([family, label]) => (
               <button key={family} onClick={() => {
                 runEditorCommand(c => c.setFontFamily(family).run()); setActiveMenu(null);
-              }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100" style={{ 'fontFamily': family }}>{label}</button>
+              }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700" style={{ 'fontFamily': family }}>{label}</button>
             ))}
-            <div className="border-t border-neutral-200 my-1" />
+            <div className="border-t border-neutral-200 dark:border-neutral-700 my-1" />
             <button onClick={() => {
               runEditorCommand(c => c.unsetFontFamily().run()); setActiveMenu(null);
-            }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">清除字体</button>
+            }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">清除字体</button>
           </DropdownMenu>
         </div>
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<span className="text-sm text-neutral-600">12px</span>}
+            icon={<span className="text-sm text-neutral-600 dark:text-neutral-400">12px</span>}
             label="字号"
             showMenu={activeMenu === 'fontSize'}
             onClick={() => setActiveMenu(activeMenu === 'fontSize' ? null : 'fontSize')}
@@ -312,18 +318,18 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
             {FONT_SIZES.map((size) => (
               <button key={size} onClick={() => {
                 runEditorCommand(c => c.setFontSize(size).run()); setActiveMenu(null);
-              }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100" style={{ 'fontSize': size }}>{size}</button>
+              }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700" style={{ 'fontSize': size }}>{size}</button>
             ))}
-            <div className="border-t border-neutral-200 my-1" />
+            <div className="border-t border-neutral-200 dark:border-neutral-700 my-1" />
             <button onClick={() => {
               runEditorCommand(c => c.unsetFontSize().run()); setActiveMenu(null);
-            }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">清除字号</button>
+            }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">清除字号</button>
           </DropdownMenu>
         </div>
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<span className="text-sm text-neutral-600">Aa</span>}
+            icon={<span className="text-sm text-neutral-600 dark:text-neutral-400">Aa</span>}
             label="行高"
             showMenu={activeMenu === 'lineHeight'}
             onClick={() => setActiveMenu(activeMenu === 'lineHeight' ? null : 'lineHeight')}
@@ -332,18 +338,18 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
             {LINE_HEIGHTS.map((height) => (
               <button key={height} onClick={() => {
                 runEditorCommand(c => c.setLineHeight(height).run()); setActiveMenu(null);
-              }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100" style={{ 'lineHeight': height }}>{height}</button>
+              }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700" style={{ 'lineHeight': height }}>{height}</button>
             ))}
-            <div className="border-t border-neutral-200 my-1" />
+            <div className="border-t border-neutral-200 dark:border-neutral-700 my-1" />
             <button onClick={() => {
               runEditorCommand(c => c.unsetLineHeight().run()); setActiveMenu(null);
-            }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">清除行高</button>
+            }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">清除行高</button>
           </DropdownMenu>
         </div>
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<List size={16} className="text-neutral-600" />}
+            icon={<List size={16} className="text-neutral-600 dark:text-neutral-400" />}
             label="列表"
             showMenu={activeMenu === 'list'}
             onClick={() => setActiveMenu(activeMenu === 'list' ? null : 'list')}
@@ -351,16 +357,16 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           <DropdownMenu isOpen={activeMenu === 'list'}>
             <button onClick={() => {
               runEditorCommand(c => c.toggleBulletList().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">无序列表</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">无序列表</button>
             <button onClick={() => {
               runEditorCommand(c => c.toggleOrderedList().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">有序列表</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">有序列表</button>
           </DropdownMenu>
         </div>
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<FunctionSquare size={16} className="text-neutral-600" />}
+            icon={<FunctionSquare size={16} className="text-neutral-600 dark:text-neutral-400" />}
             label="公式"
             showMenu={activeMenu === 'math'}
             onClick={() => setActiveMenu(activeMenu === 'math' ? null : 'math')}
@@ -368,42 +374,42 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           <DropdownMenu isOpen={activeMenu === 'math'}>
             <button onClick={() => {
               onMathClick('inline'); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">行内公式 ($...$)</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">行内公式 ($...$)</button>
             <button onClick={() => {
               onMathClick('block'); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">公式块 ($$...$$)</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">公式块 ($$...$$)</button>
           </DropdownMenu>
         </div>
 
-        <button onClick={() => runEditorCommand(c => c.toggleBlockquote().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
-          <Quote size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">引用</span>
+        <button onClick={() => runEditorCommand(c => c.toggleBlockquote().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
+          <Quote size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">引用</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.setHorizontalRule().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
-          <Minus size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">水平线</span>
+        <button onClick={() => runEditorCommand(c => c.setHorizontalRule().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
+          <Minus size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">水平线</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleCodeBlock().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
-          <CodeSquare size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">代码块</span>
+        <button onClick={() => runEditorCommand(c => c.toggleCodeBlock().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
+          <CodeSquare size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">代码块</span>
         </button>
 
-        <button onClick={onLinkClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
-          <LinkIcon size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">链接</span>
+        <button onClick={onLinkClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
+          <LinkIcon size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">链接</span>
         </button>
-        <button onClick={onIframeClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
-          <CodeXml size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">嵌入</span>
+        <button onClick={onIframeClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
+          <CodeXml size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">嵌入</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.insertTable({ 'rows': 3, 'cols': 3, 'withHeaderRow': true }).run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
-          <Plus size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">表格</span>
+        <button onClick={() => runEditorCommand(c => c.insertTable({ 'rows': 3, 'cols': 3, 'withHeaderRow': true }).run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
+          <Plus size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">表格</span>
         </button>
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<Plus size={16} className="text-neutral-600" />}
+            icon={<Plus size={16} className="text-neutral-600 dark:text-neutral-400" />}
             label="表格操作"
             showMenu={activeMenu === 'table'}
             onClick={() => setActiveMenu(activeMenu === 'table' ? null : 'table')}
@@ -411,37 +417,37 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           <DropdownMenu isOpen={activeMenu === 'table'} width="w-48">
             <button onClick={() => {
               runEditorCommand(c => c.addColumnBefore().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">添加列 (左)</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">添加列 (左)</button>
             <button onClick={() => {
               runEditorCommand(c => c.addColumnAfter().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">添加列 (右)</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">添加列 (右)</button>
             <button onClick={() => {
               runEditorCommand(c => c.deleteColumn().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">删除列</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">删除列</button>
             <button onClick={() => {
               runEditorCommand(c => c.addRowBefore().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">添加行 (上)</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">添加行 (上)</button>
             <button onClick={() => {
               runEditorCommand(c => c.addRowAfter().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">添加行 (下)</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">添加行 (下)</button>
             <button onClick={() => {
               runEditorCommand(c => c.deleteRow().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">删除行</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">删除行</button>
             <button onClick={() => {
               runEditorCommand(c => c.deleteTable().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">删除表格</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">删除表格</button>
           </DropdownMenu>
         </div>
 
-        <span className="w-px h-12 bg-neutral-300 mx-1" />
+        <span className="w-px h-12 bg-neutral-300 dark:bg-neutral-600 mx-1" />
 
-        <button onClick={() => runEditorCommand(c => c.undo().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
-          <Undo size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">撤销</span>
+        <button onClick={() => runEditorCommand(c => c.undo().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
+          <Undo size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">撤销</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.redo().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 transition-all w-16">
-          <Redo size={16} className="text-neutral-600 mx-auto" />
-          <span className="text-xs text-neutral-600 mt-1">重做</span>
+        <button onClick={() => runEditorCommand(c => c.redo().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
+          <Redo size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">重做</span>
         </button>
       </div>
     </div>

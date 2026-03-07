@@ -57,93 +57,13 @@ const edgeTypes = {
   'floating': FloatingEdge
 } as const as EdgeTypes;
 
-const initialNodes: Node<CustomNodeData>[] = [
-  {
-    'id': '1',
-    'type': 'custom',
-    'position': { 'x': 0, 'y': 0 },
-    'data': {
-      'title': '新节点1',
-      'category': '默认',
-      'handleCount': 4,
-      'style': {},
-      'metadata': {
-        'content': ''
-      }
-    }
-  },
-  {
-    'id': '2',
-    'type': 'custom',
-    'position': { 'x': 200, 'y': 50 },
-    'data': {
-      'title': '新节点2',
-      'category': '默认',
-      'handleCount': 4,
-      'style': {},
-      'metadata': {
-        'content': ''
-      }
-    }
-  },
-  {
-    'id': '3',
-    'type': 'custom',
-    'position': { 'x': 0, 'y': 200 },
-    'data': {
-      'title': '新节点3',
-      'category': '默认',
-      'handleCount': 4,
-      'style': {},
-      'metadata': {
-        'content': ''
-      }
-    }
-  }
-];
-
-const initialEdges: Edge<CustomEdgeData>[] = [
-  {
-    'id': 'e1-2',
-    'type': 'floating',
-    'source': '1',
-    'target': '2',
-    'label': '连接 1-2',
-    'data': {
-      'type': 'related',
-      'curveType': 'default',
-      'style': {}
-    },
-    'markerEnd': {
-      'type': 'arrowclosed',
-      'color': '#3b82f6'
-    }
-  },
-  {
-    'id': 'e1-3',
-    'type': 'floating',
-    'source': '1',
-    'target': '3',
-    'label': '连接 1-3',
-    'data': {
-      'type': 'related',
-      'curveType': 'default',
-      'style': {}
-    },
-    'markerEnd': {
-      'type': 'arrowclosed',
-      'color': '#3b82f6'
-    }
-  }
-];
-
 const SNAP_GRID: [number, number] = [16, 16];
 
 type LeftPanelType = 'management' | 'importExport' | 'generation' | 'layout' | null;
 
 const GraphVisualizationContent: React.FC = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<CustomNodeData>>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<CustomEdgeData>>([]);
   const reactFlowInstance = useReactFlow();
   const { undo, redo, canUndo, canRedo, saveState } = useUndoRedo();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -428,17 +348,17 @@ const GraphVisualizationContent: React.FC = () => {
         }
       `}</style>
 
-      <div className="bg-white border-b border-neutral-200 flex items-center justify-between gap-0 z-50">
+      <div className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between gap-0 z-50">
         <div className="flex items-center gap-2 p-1">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity px-2">
-            <span className="font-bold text-sm tracking-tight text-neutral-800">IN Gral</span>
+            <span className="font-bold text-sm tracking-tight text-neutral-800 dark:text-neutral-200">IN Gral</span>
           </Link>
-          <div className="flex items-center gap-2 px-2 py-1 bg-white/50 rounded-full text-xs font-medium text-neutral-700">
+          <div className="flex items-center gap-2 px-2 py-1 bg-white/50 dark:bg-neutral-700/50 rounded-full text-xs font-medium text-neutral-700 dark:text-neutral-300">
             <span className="flex items-center gap-1">
               <Database size={12} />
               节点: {nodeCount}
             </span>
-            <span className="h-3 w-px bg-neutral-400"></span>
+            <span className="h-3 w-px bg-neutral-400 dark:bg-neutral-500"></span>
             <span className="flex items-center gap-1">
               <GitBranch size={12} />
               连接: {edgeCount}
@@ -467,7 +387,7 @@ const GraphVisualizationContent: React.FC = () => {
         />
       </div>
 
-      <div ref={canvasWrapperRef} className="flex-1 w-full bg-neutral-50 relative">
+      <div ref={canvasWrapperRef} className="flex-1 w-full bg-neutral-50 dark:bg-neutral-900 relative">
         {viewMode === 'reactflow' && (
           <div ref={reactFlowWrapper} className="w-full h-full">
             <ReactFlow
@@ -498,6 +418,7 @@ const GraphVisualizationContent: React.FC = () => {
               connectionLineComponent={FloatingConnectionLine}
               snapToGrid={snapToGrid}
               snapGrid={SNAP_GRID}
+              colorMode={'system'}
             >
               <Background
                 variant={snapToGrid ? BackgroundVariant.Lines : BackgroundVariant.Dots}
@@ -509,8 +430,8 @@ const GraphVisualizationContent: React.FC = () => {
                 nodeColor={() => '#3b82f6'}
                 zoomable
                 pannable
-                style={{ 'backgroundColor': '#fff', 'border': '1px solid #ccc' }}
-                maskColor="rgba(255, 255, 255, 0.6)"
+                style={{ 'backgroundColor': 'var(--minimap-bg, #fff)', 'border': '1px solid var(--minimap-border, #ccc)' }}
+                maskColor="var(--minimap-mask, rgba(255, 255, 255, 0.6))"
                 position="bottom-right"
               />
             </ReactFlow>

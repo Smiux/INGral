@@ -155,7 +155,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-b-lg border border-neutral-200">
+    <div className="bg-white dark:bg-neutral-800 rounded-b-lg border border-neutral-200 dark:border-neutral-700">
       <DragHandleReact
         editor={editor}
         computePositionConfig={{
@@ -167,7 +167,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
           }]
         }}
       >
-        <div className="flex items-center justify-center w-5 h-5 text-neutral-400 hover:text-neutral-600 cursor-move transition-colors">
+        <div className="flex items-center justify-center w-5 h-5 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 cursor-move transition-colors">
           <GripVertical size={16} />
         </div>
       </DragHandleReact>

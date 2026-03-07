@@ -99,8 +99,8 @@ export function ArticleViewer () {
   if (!article) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold text-neutral-900 mb-4">文章未找到</h1>
-        <p className="text-neutral-600 mb-8">您访问的文章不存在。</p>
+        <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">文章未找到</h1>
+        <p className="text-neutral-600 dark:text-neutral-400 mb-8">您访问的文章不存在。</p>
         <Link
           to="/"
           className="inline-flex items-center gap-2 bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-sky-600 transition"
@@ -123,35 +123,35 @@ export function ArticleViewer () {
   return (
     <article className="max-w-7xl mx-auto px-4 py-8">
       <nav className="mb-6">
-        <ol className="flex items-center gap-1 text-sm text-neutral-500">
+        <ol className="flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400">
           <li>
-            <Link to="/" className="hover:text-sky-600 transition-colors">首页</Link>
+            <Link to="/" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">首页</Link>
           </li>
-          <li className="text-neutral-400">/</li>
+          <li className="text-neutral-400 dark:text-neutral-500">/</li>
           <li>
-            <Link to="/articles" className="hover:text-sky-600 transition-colors">文章</Link>
+            <Link to="/articles" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">文章</Link>
           </li>
-          <li className="text-neutral-400">/</li>
+          <li className="text-neutral-400 dark:text-neutral-500">/</li>
           <li>
-            <span className="font-medium text-neutral-900 truncate max-w-[300px]">{article.title}</span>
+            <span className="font-medium text-neutral-900 dark:text-neutral-100 truncate max-w-[300px]">{article.title}</span>
           </li>
         </ol>
       </nav>
 
       <div className="mb-6">
-        <h1 className="text-4xl font-bold text-neutral-800 mb-4">{article.title}</h1>
-        <div className="flex flex-wrap gap-6 text-sm text-neutral-600">
+        <h1 className="text-4xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">{article.title}</h1>
+        <div className="flex flex-wrap gap-6 text-sm text-neutral-600 dark:text-neutral-400">
           <div className="flex items-center gap-1">
-            <CalendarDays className="w-4 h-4 text-neutral-500" />
+            <CalendarDays className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
             {formattedDate}
           </div>
         </div>
       </div>
 
-      <main className="bg-white rounded-lg border border-neutral-200">
+      <main className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
         <div
           ref={contentRef}
-          className="prose prose-lg max-w-none mx-auto p-6 md:p-8 [counter-reset:equation]"
+          className="prose prose-lg max-w-none mx-auto p-6 md:p-8 [counter-reset:equation] dark:prose-invert"
           dangerouslySetInnerHTML={{ '__html': article.content }}
         />
       </main>

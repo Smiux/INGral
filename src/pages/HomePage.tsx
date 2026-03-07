@@ -61,16 +61,16 @@ export function HomePage () {
           className="h-full flex flex-col items-center justify-center relative snap-start snap-always"
         >
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-neutral-800 mb-6">
+            <h1 className="text-5xl md:text-6xl font-bold text-neutral-800 dark:text-neutral-200 mb-6">
               IN Gral
             </h1>
-            <p className="text-xl text-neutral-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-neutral-600 dark:text-neutral-400 mb-8 max-w-2xl mx-auto">
               记录一切
             </p>
           </div>
           <button
             onClick={() => scrollToPage(1)}
-            className="absolute bottom-12 text-neutral-400 hover:text-neutral-600 transition-colors"
+            className="absolute bottom-12 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
           >
             <ChevronDown className="w-8 h-8 animate-bounce" />
           </button>
@@ -82,10 +82,10 @@ export function HomePage () {
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-8 flex-shrink-0">
-              <h2 className="text-3xl font-bold text-neutral-800">最近文章</h2>
+              <h2 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">最近文章</h2>
               <Link
                 to="/articles"
-                className="text-sky-600 hover:text-neutral-700 font-medium flex items-center gap-1 transition-all duration-200 transform hover:scale-105"
+                className="text-sky-600 dark:text-sky-400 hover:text-neutral-700 dark:hover:text-neutral-300 font-medium flex items-center gap-1 transition-all duration-200 transform hover:scale-105"
               >
                 查看全部 <ArrowRight className="w-4 h-4" />
               </Link>
@@ -98,8 +98,8 @@ export function HomePage () {
             )}
 
             {!isLoading && articles.length === 0 && (
-              <div className="text-center py-12 rounded-lg border border-neutral-200 flex-1 flex items-center justify-center">
-                <p className="text-neutral-600">暂无文章</p>
+              <div className="text-center py-12 rounded-lg border border-neutral-200 dark:border-neutral-700 flex-1 flex items-center justify-center">
+                <p className="text-neutral-600 dark:text-neutral-400">暂无文章</p>
               </div>
             )}
 
@@ -109,12 +109,12 @@ export function HomePage () {
                   <Link
                     key={article.id}
                     to={`/articles/${article.slug}`}
-                    className="group p-4 bg-white rounded-lg border border-neutral-200 hover:border-sky-200 transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-center"
+                    className="group p-4 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-center"
                   >
-                    <h3 className="text-sm font-semibold text-neutral-800 group-hover:text-sky-600 transition-colors mb-1 line-clamp-2">
+                    <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors mb-1 line-clamp-2">
                       {article.title}
                     </h3>
-                    <div className="flex items-center justify-between text-xs text-neutral-500 mt-1">
+                    <div className="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                       <span>
                         {article.created_at ? new Date(article.created_at).toLocaleDateString('zh-CN', {
                           'month': 'short',

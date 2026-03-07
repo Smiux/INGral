@@ -2,6 +2,8 @@
 @import "tailwindcss";
 @import 'prosemirror-tables/style/tables.css';
 
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
 button {
   cursor: pointer;
 }
@@ -14,6 +16,25 @@ body {
   background-color: #ffffff;
   color: #1f2937;
   transition: color 200ms, background-color 200ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #171717;
+    color: #f5f5f5;
+  }
+}
+
+:root {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    background-color: #171717;
+    color: #f5f5f5;
+  }
 }
 
 .prose {
@@ -153,6 +174,31 @@ body {
   }
 }
 
+.dark .prose {
+  & blockquote {
+    border-color: #404040;
+    color: #a3a3a3;
+    background-color: #262626;
+  }
+
+  & th,
+  & td {
+    border-color: #404040;
+  }
+
+  & th {
+    background-color: #262626;
+  }
+
+  & tr:nth-child(even) {
+    background-color: #1f1f1f;
+  }
+
+  & hr {
+    border-color: #404040;
+  }
+}
+
 .tiptap-mathematics-render[data-type="block-math"] {
   display: flex;
   justify-content: center;
@@ -196,6 +242,19 @@ body {
   background-color: #f3f4f6;
 }
 
+.dark .tiptap-mathematics-render[data-type="block-math"]::after {
+  color: #a3a3a3;
+}
+
+.dark .tiptap-mathematics-render[data-type="block-math"]:hover {
+  background-color: #262626;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+}
+
+.dark .tiptap-mathematics-render[data-type="inline-math"]:hover {
+  background-color: #262626;
+}
+
 .ProseMirror code:not(pre code) {
   background-color: #eceff4;
   color: #2e3440;
@@ -205,6 +264,12 @@ body {
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 0.875em;
   font-weight: 500;
+}
+
+.dark .ProseMirror code:not(pre code) {
+  background-color: #262626;
+  color: #e5e5e5;
+  border-color: #404040;
 }
 
 .prose pre {
@@ -232,6 +297,19 @@ body {
   top: 0;
   z-index: 100 !important;
   border-right: 1px solid #e5e7eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  .panel-container {
+    background-color: #262626;
+    border-right-color: #404040;
+  }
+
+  :root {
+    --minimap-bg: #262626;
+    --minimap-border: #404040;
+    --minimap-mask: rgba(0, 0, 0, 0.4);
+  }
 }
 
 .panel-container.panel-open {
@@ -272,6 +350,12 @@ body {
   justify-content: space-between;
 }
 
+@media (prefers-color-scheme: dark) {
+  .panel-header {
+    border-bottom-color: #404040;
+  }
+}
+
 .panel-title {
   font-size: 1.125rem;
   font-weight: 600;
@@ -279,6 +363,12 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .panel-title {
+    color: #e5e5e5;
+  }
 }
 
 .panel-content {
@@ -324,6 +414,20 @@ html {
   background: #ced0d5;
 }
 
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #262626;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #404040;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #525252;
+  }
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -331,4 +435,53 @@ html {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+math-field {
+  --primary: #0ea5e9;
+  --caret-color: #0ea5e9;
+  --selection-background-color: rgba(14, 165, 233, 0.3);
+  --selection-color: inherit;
+  --contains-highlight-background-color: rgba(14, 165, 233, 0.1);
+  --placeholder-color: #a3a3a3;
+  --placeholder-opacity: 0.6;
+  background: #ffffff;
+  color: #171717;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+}
+
+math-field:focus-within {
+  border-color: #0ea5e9;
+  outline: 2px solid rgba(14, 165, 233, 0.3);
+}
+
+math-field::part(virtual-keyboard-toggle),
+math-field::part(menu-toggle) {
+  color: #525252;
+}
+
+@media (prefers-color-scheme: dark) {
+  math-field {
+    --primary: #38bdf8;
+    --caret-color: #38bdf8;
+    --selection-background-color: rgba(56, 189, 248, 0.3);
+    --selection-color: inherit;
+    --contains-highlight-background-color: rgba(56, 189, 248, 0.15);
+    --placeholder-color: #737373;
+    --placeholder-opacity: 0.7;
+    background: #262626;
+    color: #e5e5e5;
+    border-color: #404040;
+  }
+
+  math-field:focus-within {
+    border-color: #38bdf8;
+    outline-color: rgba(56, 189, 248, 0.3);
+  }
+
+  math-field::part(virtual-keyboard-toggle),
+  math-field::part(menu-toggle) {
+    color: #a3a3a3;
+  }
 }

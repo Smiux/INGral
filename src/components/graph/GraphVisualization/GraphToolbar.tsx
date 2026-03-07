@@ -44,9 +44,9 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo(({
   if (isActive) {
     buttonClass += 'bg-sky-500 text-white';
   } else if (isDisabled) {
-    buttonClass += 'text-neutral-300 cursor-not-allowed';
+    buttonClass += 'text-neutral-300 dark:text-neutral-600 cursor-not-allowed';
   } else {
-    buttonClass += 'hover:bg-neutral-100 text-neutral-600';
+    buttonClass += 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400';
   }
 
   return (
@@ -85,7 +85,7 @@ const ToggleGroup: React.FC<{
   }
 
   return (
-    <div className="flex items-center gap-0.5 bg-white/90 rounded-lg p-0.5 backdrop-blur-sm">
+    <div className="flex items-center gap-0.5 bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
       <ToolbarButton
         icon={isCollapsed ? collapsedIcon : expandedIcon}
         title={label}
@@ -255,7 +255,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
         </div>
       </ToggleGroup>
 
-      <div className="flex items-center gap-0.5 bg-white/90 rounded-lg p-0.5 backdrop-blur-sm">
+      <div className="flex items-center gap-0.5 bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
         {[
           { 'mode': 'reactflow', 'icon': <Home size={16} />, 'title': 'React Flow渲染' },
           { 'mode': 'forcegraph2d', 'icon': <Network size={16} />, 'title': 'Force Graph 2D渲染' },

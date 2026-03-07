@@ -14,8 +14,8 @@ interface GraphLayoutPanelProps {
   isOpen: boolean;
 }
 
-const INPUT_CLASSES = 'w-full p-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
-const LABEL_CLASSES = 'block text-xs text-neutral-600 mb-1';
+const INPUT_CLASSES = 'w-full p-2 border border-neutral-300 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200';
+const LABEL_CLASSES = 'block text-xs text-neutral-600 dark:text-neutral-400 mb-1';
 
 const ALGORITHM_ID_MAP = {
   'layered': 'org.eclipse.elk.layered',
@@ -75,9 +75,9 @@ type FieldConfig =
 const ALGORITHM_CONFIGS = {
   'layered': {
     'title': '层次布局 (Layered) 参数',
-    'bgColor': 'bg-blue-50',
-    'borderColor': 'border-blue-100',
-    'titleColor': 'text-blue-800',
+    'bgColor': 'bg-blue-50 dark:bg-blue-950/30',
+    'borderColor': 'border-blue-100 dark:border-blue-900',
+    'titleColor': 'text-blue-800 dark:text-blue-300',
     'fields': [
       { 'key': 'rankSpacing', 'label': '层级间距', 'type': 'number' as const },
       { 'key': 'crossingMinimization', 'label': '交叉最小化', 'type': 'select' as const, 'options': [
@@ -107,9 +107,9 @@ const ALGORITHM_CONFIGS = {
   },
   'force': {
     'title': '力导向布局 (Force) 参数',
-    'bgColor': 'bg-green-50',
-    'borderColor': 'border-green-100',
-    'titleColor': 'text-green-800',
+    'bgColor': 'bg-green-50 dark:bg-green-950/30',
+    'borderColor': 'border-green-100 dark:border-green-900',
+    'titleColor': 'text-green-800 dark:text-green-300',
     'fields': [
       { 'key': 'iterations', 'label': '迭代次数', 'type': 'number' as const },
       { 'key': 'forceModel', 'label': '力模型', 'type': 'select' as const, 'options': [
@@ -122,9 +122,9 @@ const ALGORITHM_CONFIGS = {
   },
   'mrtree': {
     'title': '树布局 (Mr.Tree) 参数',
-    'bgColor': 'bg-purple-50',
-    'borderColor': 'border-purple-100',
-    'titleColor': 'text-purple-800',
+    'bgColor': 'bg-purple-50 dark:bg-purple-950/30',
+    'borderColor': 'border-purple-100 dark:border-purple-900',
+    'titleColor': 'text-purple-800 dark:text-purple-300',
     'fields': [
       { 'key': 'weighting', 'label': '节点加权', 'type': 'select' as const, 'options': [
         { 'value': 'MODEL_ORDER', 'label': '模型顺序' },
@@ -139,9 +139,9 @@ const ALGORITHM_CONFIGS = {
   },
   'radial': {
     'title': '辐射状布局 (Radial) 参数',
-    'bgColor': 'bg-orange-50',
-    'borderColor': 'border-orange-100',
-    'titleColor': 'text-orange-800',
+    'bgColor': 'bg-orange-50 dark:bg-orange-950/30',
+    'borderColor': 'border-orange-100 dark:border-orange-900',
+    'titleColor': 'text-orange-800 dark:text-orange-300',
     'fields': [
       { 'key': 'compaction', 'label': '压缩策略', 'type': 'select' as const, 'options': [
         { 'value': 'NONE', 'label': '无' },
@@ -153,9 +153,9 @@ const ALGORITHM_CONFIGS = {
   },
   'stress': {
     'title': '应力布局 (Stress) 参数',
-    'bgColor': 'bg-pink-50',
-    'borderColor': 'border-pink-100',
-    'titleColor': 'text-pink-800',
+    'bgColor': 'bg-pink-50 dark:bg-pink-950/30',
+    'borderColor': 'border-pink-100 dark:border-pink-900',
+    'titleColor': 'text-pink-800 dark:text-pink-300',
     'fields': [
       { 'key': 'desiredEdgeLength', 'label': '期望连接长度', 'type': 'number' as const },
       { 'key': 'epsilon', 'label': '应力阈值', 'type': 'number' as const, 'step': '0.0001' },
@@ -169,9 +169,9 @@ const ALGORITHM_CONFIGS = {
   },
   'box': {
     'title': '盒布局 (Box) 参数',
-    'bgColor': 'bg-sky-50',
-    'borderColor': 'border-sky-100',
-    'titleColor': 'text-sky-600',
+    'bgColor': 'bg-sky-50 dark:bg-sky-950/30',
+    'borderColor': 'border-sky-100 dark:border-sky-900',
+    'titleColor': 'text-sky-600 dark:text-sky-400',
     'fields': [
       { 'key': 'packingMode', 'label': '打包模式', 'type': 'select' as const, 'options': [
         { 'value': 'SIMPLE', 'label': '简单' },
@@ -331,14 +331,14 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
       return (
         <div key={field.key}>
           <label className={LABEL_CLASSES}>{field.label}</label>
-          <label className="flex items-center gap-2 p-2 border border-neutral-300 rounded-md cursor-pointer hover:bg-neutral-50">
+          <label className="flex items-center gap-2 p-2 border border-neutral-300 dark:border-neutral-600 rounded-md cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700 bg-white dark:bg-neutral-800">
             <input
               type="checkbox"
               checked={fieldValue as boolean}
               onChange={(e) => updateAlgorithmOption(field.key, e.target.checked)}
-              className="rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+              className="rounded border-neutral-300 dark:border-neutral-600 text-blue-600 focus:ring-2 focus:ring-blue-500"
             />
-            <span className="text-xs text-neutral-600">{field.description || field.label}</span>
+            <span className="text-xs text-neutral-600 dark:text-neutral-400">{field.description || field.label}</span>
           </label>
         </div>
       );
@@ -369,7 +369,7 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
         </div>
         <button
           onClick={onClose}
-          className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors flex-shrink-0"
+          className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400 transition-colors flex-shrink-0"
           title="关闭面板"
         >
           <X className="h-5 w-5" />
@@ -377,8 +377,8 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
       </div>
 
       <div className="panel-content space-y-6">
-        <div className="rounded-xl p-5 border border-sky-100 bg-sky-50">
-          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800">
+        <div className="rounded-xl p-5 border border-sky-100 dark:border-sky-900 bg-sky-50 dark:bg-sky-950/30">
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
             <Zap className="w-4 h-4 text-sky-400" />
             布局算法
           </h3>
@@ -414,8 +414,8 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
           </div>
         </div>
 
-        <div className="rounded-xl p-5 border border-neutral-200 bg-white">
-          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800">
+        <div className="rounded-xl p-5 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
             <Settings className="w-4 h-4 text-sky-400" />
             布局参数
           </h3>
@@ -472,14 +472,14 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
         <button
           onClick={executeLayout}
           disabled={isLayouting || nodeCount === 0}
-          className={`w-full py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${isLayouting || nodeCount === 0 ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed' : 'bg-sky-600 text-white hover:bg-sky-700'}`}
+          className={`w-full py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${isLayouting || nodeCount === 0 ? 'bg-neutral-300 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 cursor-not-allowed' : 'bg-sky-600 text-white hover:bg-sky-700'}`}
         >
           <RefreshCw className={`w-5 h-5 ${isLayouting ? 'animate-spin' : ''}`} />
           {isLayouting ? '布局中...' : '应用布局'}
         </button>
 
         {nodeCount === 0 && (
-          <p className="text-xs text-neutral-500 text-center p-3 rounded-lg border border-neutral-100 bg-neutral-50">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center p-3 rounded-lg border border-neutral-100 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
             请先添加节点再执行布局
           </p>
         )}

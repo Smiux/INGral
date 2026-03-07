@@ -4,11 +4,14 @@ import { createArticle } from '../../services/articleService';
 import { LatexEditor } from './LatexEditor';
 import { TiptapEditor, TiptapEditorRef } from './TipTapEditor';
 import { EditorToolbar } from './EditorToolbar';
+import { DraftManager } from './DraftManager';
+
+import { createDraft, updateDraft, getDraftById, type ArticleDraft } from './draftUtils';
 import type { Editor } from '@tiptap/react';
 import {
   Save,
   MessageCircle,
-  FileText, ListTree
+  FileText, ListTree, FolderOpen
 } from 'lucide-react';
 
 interface EditorState {
@@ -32,7 +35,7 @@ interface TocItemProps {
 const TOC_LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string; numberColor: string }> = {
   '1': { 'fontSize': 'text-base', 'fontWeight': 'font-semibold', 'numberColor': 'font-semibold text-sky-500' },
   '2': { 'fontSize': 'text-sm', 'fontWeight': 'font-medium', 'numberColor': 'text-sm font-medium text-green-500' },
-  '3': { 'fontSize': 'text-xs', 'fontWeight': 'font-medium', 'numberColor': 'text-xs font-medium text-neutral-500' }
+  '3': { 'fontSize': 'text-xs', 'fontWeight': 'font-medium', 'numberColor': 'text-xs font-medium text-neutral-500 dark:text-neutral-400' }
 };
 
 const TocItem: React.FC<TocItemProps> = React.memo(({ item, onClick }) => {
@@ -40,7 +43,7 @@ const TocItem: React.FC<TocItemProps> = React.memo(({ item, onClick }) => {
 
   return (
     <div
-      className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600' : 'text-neutral-700'}`}
+      className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-600 dark:hover:text-neutral-300' : 'text-neutral-700 dark:text-neutral-200'}`}
       style={{ 'paddingLeft': `${(item.level - 1) * 12}px` }}
       onClick={onClick}
     >
@@ -83,6 +86,8 @@ export const ArticleEditor: React.FC = () => {
 
   const [characterCount, setCharacterCount] = useState(0);
 
+  const [showDraftManager, setShowDraftManager] = useState(false);
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
   const editorRef = useRef<TiptapEditorRef | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -233,34 +238,69 @@ export const ArticleEditor: React.FC = () => {
     setEditor(editorInstance);
   }, []);
 
+  const handleCreateNewDraft = useCallback(() => {
+    const draft = createDraft(state.title, editor?.getHTML() || '');
+    setCurrentDraftId(draft.id);
+    setShowDraftManager(false);
+  }, [state.title, editor]);
+
+  const handleLoadDraft = useCallback((draft: ArticleDraft) => {
+    setState(prev => ({ ...prev, 'title': draft.title }));
+    setCurrentDraftId(draft.id);
+    if (editor) {
+      editor.commands.setContent(draft.content);
+    }
+  }, [editor]);
+
+  const handleOpenDraftManager = useCallback(() => {
+    setShowDraftManager(true);
+  }, []);
+
+  const handleSaveDraft = useCallback(() => {
+    if (currentDraftId) {
+      const existingDraft = getDraftById(currentDraftId);
+      const draft: ArticleDraft = {
+        'id': currentDraftId,
+        'title': state.title,
+        'content': editor?.getHTML() || '',
+        'createdAt': existingDraft?.createdAt || new Date().toISOString(),
+        'lastSaved': new Date().toISOString()
+      };
+      updateDraft(draft);
+    } else {
+      const draft = createDraft(state.title, editor?.getHTML() || '');
+      setCurrentDraftId(draft.id);
+    }
+  }, [currentDraftId, state.title, editor]);
+
   return (
     <div className="min-h-screen">
       {showLinkDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowLinkDialog(false)} />
-          <div className="bg-white rounded-lg border border-neutral-200 p-4 relative z-10 min-w-[400px] max-w-md">
-            <h3 className="text-lg font-semibold mb-4 text-neutral-800">添加链接</h3>
+          <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 relative z-10 min-w-[400px] max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-neutral-800 dark:text-neutral-200">添加链接</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">链接地址</label>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">链接地址</label>
                 <input
                   type="text"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://example.com"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                 />
               </div>
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setShowLinkDialog(false)}
-                  className="px-4 py-2 text-sm text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-md transition-colors"
+                  className="px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-md transition-colors"
                 >
                   取消
                 </button>
                 <button
                   onClick={handleLinkSubmit}
-                  className="px-4 py-2 text-sm text-white bg-sky-200 hover:bg-sky-500 rounded-md transition-colors"
+                  className="px-4 py-2 text-sm text-white bg-sky-500 hover:bg-sky-600 rounded-md transition-colors"
                 >
                   确定
                 </button>
@@ -273,23 +313,23 @@ export const ArticleEditor: React.FC = () => {
       {showIframeDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowIframeDialog(false)} />
-          <div className="bg-white rounded-lg border border-neutral-200 p-4 relative z-10 min-w-[450px] max-w-lg">
-            <h3 className="text-lg font-semibold mb-4 text-neutral-800">嵌入内容</h3>
+          <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 relative z-10 min-w-[450px] max-w-lg">
+            <h3 className="text-lg font-semibold mb-4 text-neutral-800 dark:text-neutral-200">嵌入内容</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">嵌入地址</label>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">嵌入地址</label>
                 <input
                   type="text"
                   value={iframeSrc}
                   onChange={(e) => setIframeSrc(e.target.value)}
                   placeholder="https://www.youtube.com/embed/..."
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                 />
-                <p className="text-xs text-neutral-500 mt-1">支持 YouTube、Bilibili 等视频平台的嵌入链接</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">支持 YouTube、Bilibili 等视频平台的嵌入链接</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">宽度</label>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">宽度</label>
                   <input
                     type="number"
                     value={iframeWidthInput}
@@ -301,11 +341,11 @@ export const ArticleEditor: React.FC = () => {
                     }}
                     min={200}
                     max={1920}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">高度</label>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">高度</label>
                   <input
                     type="number"
                     value={iframeHeightInput}
@@ -317,21 +357,21 @@ export const ArticleEditor: React.FC = () => {
                     }}
                     min={150}
                     max={1080}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                   />
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setShowIframeDialog(false)}
-                  className="px-4 py-2 text-sm text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-md transition-colors"
+                  className="px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-md transition-colors"
                 >
                   取消
                 </button>
                 <button
                   onClick={handleIframeSubmit}
                   disabled={!iframeSrc.trim()}
-                  className="px-4 py-2 text-sm text-white bg-sky-200 hover:bg-sky-500 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm text-white bg-sky-500 hover:bg-sky-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   确定
                 </button>
@@ -341,34 +381,56 @@ export const ArticleEditor: React.FC = () => {
         </div>
       )}
 
+      <DraftManager
+        key={showDraftManager ? 'open' : 'closed'}
+        isOpen={showDraftManager}
+        onClose={() => setShowDraftManager(false)}
+        onLoadDraft={handleLoadDraft}
+        onCreateNewDraft={handleCreateNewDraft}
+      />
+
       <LatexEditor
         isOpen={showLatexEditor}
         onClose={() => setShowLatexEditor(false)}
         onInsert={handleInsertMath}
       />
 
-      <header className="sticky top-0 left-0 right-0 z-50 bg-white border-b border-neutral-200">
+      <header className="sticky top-0 left-0 right-0 z-50 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <button onClick={() => navigate('/')} className="flex items-center gap-2 p-2 rounded hover:bg-neutral-100 transition-colors">
-              <span className="font-bold text-xl tracking-tight text-neutral-800">IN Gral</span>
+            <button onClick={() => navigate('/')} className="flex items-center gap-2 p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+              <span className="font-bold text-xl tracking-tight text-neutral-800 dark:text-neutral-200">IN Gral</span>
             </button>
 
             <div className="flex items-center space-x-3">
               <button
+                onClick={handleOpenDraftManager}
+                className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
+              >
+                <FolderOpen size={16} className="mr-2 text-neutral-600 dark:text-neutral-400" />
+                草稿
+              </button>
+              <button
+                onClick={handleSaveDraft}
+                className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
+              >
+                <FileText size={16} className="mr-2 text-neutral-600 dark:text-neutral-400" />
+                保存草稿
+              </button>
+              <button
                 onClick={handleSave}
                 disabled={state.isSaving}
-                className="inline-flex items-center px-4 py-2 border border-neutral-200 text-sm font-medium rounded-md text-neutral-700 bg-white hover:bg-sky-50 hover:text-sky-600 hover:border-sky-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-4 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:text-sky-600 dark:hover:text-sky-400 hover:border-sky-200 dark:hover:border-sky-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {state.isSaving ? (
                   <>
                     <span className="inline-block w-4 h-4 border-2 border-sky-400 border-t-transparent rounded-full animate-spin mr-2" />
-                    保存中...
+                    发布中...
                   </>
                 ) : (
                   <>
-                    <Save size={16} className="mr-2 text-neutral-600" />
-                    保存
+                    <Save size={16} className="mr-2 text-neutral-600 dark:text-neutral-400" />
+                    发布文章
                   </>
                 )}
               </button>
@@ -378,9 +440,9 @@ export const ArticleEditor: React.FC = () => {
       </header>
 
       <div className="relative">
-        <div className="sticky top-20 w-48 bg-white border border-neutral-200 rounded-lg z-20 ml-4 flex flex-col float-left mb-4">
-          <div className="p-3 border-b border-neutral-200 flex-shrink-0">
-            <h3 className="text-lg font-semibold text-neutral-800 flex items-center gap-2">
+        <div className="sticky top-20 w-48 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg z-20 ml-4 flex flex-col float-left mb-4">
+          <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0">
+            <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
               <ListTree className="w-4 h-4 text-sky-400" />
               目录
             </h3>
@@ -397,8 +459,8 @@ export const ArticleEditor: React.FC = () => {
                 ))}
               </nav>
             ) : (
-              <div className="text-center py-8 text-neutral-500">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neutral-100 mb-4">
+              <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-700 mb-4">
                   <FileText className="w-8 h-8" />
                 </div>
                 <p className="text-sm font-medium">暂无标题</p>
@@ -415,24 +477,24 @@ export const ArticleEditor: React.FC = () => {
               placeholder="请输入文章标题..."
               value={state.title}
               onChange={handleTitleChange}
-              className="w-full text-4xl font-bold text-neutral-800 bg-transparent border-none outline-none placeholder-neutral-400 focus:ring-0"
+              className="w-full text-4xl font-bold text-neutral-800 dark:text-neutral-200 bg-transparent border-none outline-none placeholder-neutral-400 dark:placeholder-neutral-500 focus:ring-0"
               autoFocus
             />
 
-            <div className="flex flex-wrap items-center gap-6 mt-4 text-sm text-neutral-600">
+            <div className="flex flex-wrap items-center gap-6 mt-4 text-sm text-neutral-600 dark:text-neutral-400">
               <div className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-neutral-500" />
-                <span className="text-sm text-neutral-600">{characterCount} 个字符</span>
+                <MessageCircle className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                <span className="text-sm text-neutral-600 dark:text-neutral-400">{characterCount} 个字符</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-neutral-200">
+          <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
             <div
               ref={toolbarRef}
               className={`transition-all duration-300 ${
                 isToolbarSticky
-                  ? 'sticky top-[64px] z-40 bg-white border-b border-neutral-200'
+                  ? 'sticky top-[64px] z-40 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700'
                   : ''
               }`}
             >
