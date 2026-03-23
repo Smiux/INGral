@@ -395,7 +395,7 @@ export const ArticleEditor: React.FC = () => {
         onInsert={handleInsertMath}
       />
 
-      <header className="sticky top-0 left-0 right-0 z-50 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700">
+      <header className="sticky top-0 left-0 right-0 z-50 bg-white dark:bg-neutral-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button onClick={() => navigate('/')} className="flex items-center gap-2 p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">

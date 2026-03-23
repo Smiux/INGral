@@ -98,7 +98,7 @@ export function HomePage () {
             )}
 
             {!isLoading && articles.length === 0 && (
-              <div className="text-center py-12 rounded-lg border border-neutral-200 dark:border-neutral-700 flex-1 flex items-center justify-center">
+              <div className="text-center py-12 rounded-lg flex-1 flex items-center justify-center">
                 <p className="text-neutral-600 dark:text-neutral-400">暂无文章</p>
               </div>
             )}
