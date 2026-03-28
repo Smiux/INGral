@@ -21,6 +21,7 @@ import { DragHandle as DragHandleReact } from '@tiptap/extension-drag-handle-rea
 import { GripVertical } from 'lucide-react';
 import { all, createLowlight } from 'lowlight';
 import { IframeEmbed } from './IframeEmbed';
+import { CollapsibleNode } from './CollapsibleNode';
 
 const lowlight = createLowlight(all);
 
@@ -87,7 +88,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         'color': { 'types': ['textStyle'] },
         'fontFamily': { 'types': ['textStyle'] },
         'fontSize': { 'types': ['textStyle', 'heading'] },
-        'lineHeight': { 'types': ['textStyle', 'heading'] }
+        'lineHeight': { 'types': ['textStyle', 'heading', 'paragraph'] }
       }),
       SubscriptTiptap,
       SuperscriptTiptap,
@@ -128,7 +129,8 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         'onUpdate': onTableOfContentsChange
       })] : []),
       CharacterCount,
-      IframeEmbed
+      IframeEmbed,
+      CollapsibleNode
     ],
     'onUpdate': ({ 'editor': editorInstance }) => {
       onCharacterCountChange?.(editorInstance.storage.characterCount.characters());

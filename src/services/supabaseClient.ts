@@ -26,15 +26,22 @@ export async function uploadContent (articleId: string, content: string): Promis
 }
 
 export async function downloadContent (path: string): Promise<string | null> {
-  const { data, error } = await supabase.storage
+  const timestamp = Date.now();
+  const { data } = supabase.storage
     .from(BUCKET_NAME)
-    .download(path);
+    .getPublicUrl(path);
 
-  if (error || !data) {
+  const cacheBustedUrl = `${data.publicUrl}?t=${timestamp}`;
+
+  try {
+    const response = await fetch(cacheBustedUrl);
+    if (!response.ok) {
+      return null;
+    }
+    return response.text();
+  } catch {
     return null;
   }
-
-  return data.text();
 }
 
 export async function uploadCoverImage (articleId: string, file: File | Blob): Promise<string | null> {
@@ -76,9 +83,10 @@ export function getCoverImageUrl (path: string | null | undefined): string | nul
     return null;
   }
 
+  const timestamp = Date.now();
   const { data } = supabase.storage
     .from(COVER_BUCKET_NAME)
     .getPublicUrl(path);
 
-  return data.publicUrl;
+  return `${data.publicUrl}?t=${timestamp}`;
 }

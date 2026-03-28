@@ -6,8 +6,10 @@ export interface Article {
   slug: string;
   content_path: string;
   created_at: string;
+  updated_at: string;
   cover_image_path: string | null;
   summary: string | null;
+  tags: string[] | null;
 }
 
 export interface ArticleWithContent extends Article {
@@ -19,6 +21,7 @@ export interface CreateArticleParams {
   content: string;
   coverImage?: File | Blob | null;
   summary?: string | undefined;
+  tags?: string[] | undefined;
 }
 
 export interface UpdateArticleParams {
@@ -28,6 +31,7 @@ export interface UpdateArticleParams {
   coverImage?: File | Blob | null;
   coverImageModified?: boolean;
   summary?: string | undefined;
+  tags?: string[] | undefined;
 }
 
 const TABLE_NAME = 'articles';
@@ -57,8 +61,8 @@ export async function getArticleBySlug (slug: string): Promise<ArticleWithConten
 
 export async function getAllArticles (): Promise<Article[]> {
   const { data } = await supabase.from(TABLE_NAME)
-    .select('id, title, slug, content_path, created_at, cover_image_path, summary')
-    .order('created_at', { 'ascending': false });
+    .select('id, title, slug, content_path, created_at, updated_at, cover_image_path, summary, tags')
+    .order('updated_at', { 'ascending': false });
 
   return data || [];
 }
@@ -67,7 +71,8 @@ export async function createArticle ({
   title,
   content,
   coverImage,
-  summary
+  summary,
+  tags
 }: CreateArticleParams): Promise<ArticleWithContent | null> {
   const id = crypto.randomUUID();
   const slug = generateSlug();
@@ -90,7 +95,8 @@ export async function createArticle ({
       slug,
       'content_path': contentPath,
       'cover_image_path': coverImagePath,
-      'summary': summary || null
+      'summary': summary || null,
+      'tags': tags || null
     })
     .select()
     .single<Article>();
@@ -111,7 +117,8 @@ export async function updateArticle ({
   content,
   coverImage,
   coverImageModified,
-  summary
+  summary,
+  tags
 }: UpdateArticleParams): Promise<ArticleWithContent | null> {
   const contentPath = await uploadContent(articleId, content);
 
@@ -122,7 +129,9 @@ export async function updateArticle ({
   const updates: Partial<Article> = {
     title,
     'content_path': contentPath,
-    'summary': summary || null
+    'summary': summary || null,
+    'tags': tags || null,
+    'updated_at': new Date().toISOString()
   };
 
   if (coverImageModified) {

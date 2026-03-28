@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, ChevronDown, Tag } from 'lucide-react';
 import { getAllArticles, getCoverImageUrl, type Article } from '../services/articleService';
 
 export function HomePage () {
@@ -14,7 +14,7 @@ export function HomePage () {
     const loadData = async () => {
       try {
         const data = await getAllArticles();
-        setArticles(data.slice(0, 9));
+        setArticles(data.slice(0, 12));
       } finally {
         setIsLoading(false);
       }
@@ -32,7 +32,7 @@ export function HomePage () {
       }
       const scrollTop = container.scrollTop;
       const pageHeight = container.clientHeight;
-      const newPage = Math.round(scrollTop / pageHeight);
+      const newPage = scrollTop < pageHeight * 0.5 ? 0 : 1;
       setCurrentPage(newPage);
     };
 
@@ -78,7 +78,7 @@ export function HomePage () {
 
         <section
           ref={setSectionRef(1)}
-          className="h-full py-12 snap-start snap-always flex flex-col"
+          className="min-h-full py-12 snap-start flex flex-col"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-8 flex-shrink-0">
@@ -137,8 +137,26 @@ export function HomePage () {
                             {article.summary}
                           </p>
                         )}
+                        {article.tags && article.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {article.tags.slice(0, 3).map((tag, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-0.5 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-full text-xs"
+                              >
+                                <Tag className="w-2.5 h-2.5 mr-1" />
+                                <span className="truncate max-w-[80px]">{tag}</span>
+                              </span>
+                            ))}
+                            {article.tags.length > 3 && (
+                              <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                                +{article.tags.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
                         <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-auto">
-                          {article.created_at ? new Date(article.created_at).toLocaleDateString('zh-CN', {
+                          {article.updated_at ? new Date(article.updated_at).toLocaleDateString('zh-CN', {
                             'year': 'numeric',
                             'month': 'long',
                             'day': 'numeric'

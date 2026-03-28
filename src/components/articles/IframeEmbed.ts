@@ -77,14 +77,14 @@ export const IframeEmbed = Node.create<IframeEmbedOptions>({
   renderHTML ({ HTMLAttributes }) {
     return [
       'div',
-      { 'class': 'iframe-embed-wrapper my-4' },
+      { 'class': 'iframe-embed-wrapper my-4 max-w-full overflow-hidden' },
       [
         'iframe',
         mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
           'data-iframe-embed': '',
           'frameborder': '0',
           'allowfullscreen': 'true',
-          'class': 'rounded-lg'
+          'class': 'rounded-lg max-w-full'
         })
       ]
     ];

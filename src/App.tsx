@@ -6,6 +6,7 @@ import { ArticlesPage } from './pages/ArticlesPage';
 import { ArticleViewer } from './components/articles/ArticleViewer';
 import { ArticleEditor } from './components/articles/ArticleEditor';
 import GraphVisualization from './components/graph/GraphVisualization/GraphVisualization';
+import { useIsMobile } from './hooks';
 
 
 interface ErrorBoundaryProps {
@@ -50,6 +51,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 function AppContent () {
   const location = useLocation();
   const { pathname } = location;
+  const isMobile = useIsMobile();
 
   const isEditPage = pathname.startsWith('/articles/create') ||
                          pathname.startsWith('/articles/') && pathname.endsWith('/edit') ||
@@ -57,6 +59,16 @@ function AppContent () {
                          (/^\/graphs\/[a-zA-Z0-9-]+$/).test(pathname);
 
   const isHomePage = pathname === '/';
+
+  const isRestrictedPage = isMobile && (
+    pathname.startsWith('/articles/create') ||
+    pathname.startsWith('/articles/') && pathname.endsWith('/edit') ||
+    pathname.startsWith('/graphs/')
+  );
+
+  if (isRestrictedPage) {
+    return <Navigate to="/articles" replace />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-neutral-900">
@@ -70,10 +82,14 @@ function AppContent () {
             <Route path="/" element={<HomePage />} />
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/articles/:slug" element={<ArticleViewer />} />
-            <Route path="/articles/create" element={<ArticleEditor />} />
-            <Route path="/articles/:slug/edit" element={<ArticleEditor />} />
-            <Route path="/graphs/create" element={<GraphVisualization />} />
-            <Route path="/graphs/:graphId" element={<GraphVisualization />} />
+            {!isMobile && (
+              <>
+                <Route path="/articles/create" element={<ArticleEditor />} />
+                <Route path="/articles/:slug/edit" element={<ArticleEditor />} />
+                <Route path="/graphs/create" element={<GraphVisualization />} />
+                <Route path="/graphs/:graphId" element={<GraphVisualization />} />
+              </>
+            )}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ErrorBoundary>

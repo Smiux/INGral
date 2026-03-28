@@ -271,7 +271,7 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
               点击或拖拽图片到此处上传
             </p>
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              支持 JPEG、PNG、WebP、GIF 格式，最大 5MB
+              支持 JPEG、PNG、WebP、GIF 格式
             </p>
             <input
               ref={fileInputRef}

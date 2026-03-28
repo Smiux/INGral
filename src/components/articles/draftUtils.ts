@@ -3,6 +3,7 @@ export interface ArticleDraft {
   'title': string;
   'content': string;
   'summary'?: string;
+  'tags'?: string[];
   'coverImageDataUrl'?: string;
   'coverImageName'?: string;
   'createdAt': string;
@@ -70,6 +71,7 @@ export interface CreateDraftOptions {
   title?: string;
   content?: string;
   summary?: string;
+  tags?: string[];
   coverImageDataUrl?: string;
   coverImageName?: string;
 }
@@ -86,6 +88,9 @@ export const createDraft = (options: CreateDraftOptions = {}): ArticleDraft => {
   };
   if (options.summary) {
     draft.summary = options.summary;
+  }
+  if (options.tags) {
+    draft.tags = options.tags;
   }
   if (options.coverImageDataUrl) {
     draft.coverImageDataUrl = options.coverImageDataUrl;

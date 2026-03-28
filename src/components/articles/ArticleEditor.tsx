@@ -12,7 +12,7 @@ import type { Editor } from '@tiptap/react';
 import {
   Save,
   MessageCircle,
-  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp
+  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag
 } from 'lucide-react';
 
 interface EditorState {
@@ -109,6 +109,10 @@ export const ArticleEditor: React.FC = () => {
   const [showSummaryInput, setShowSummaryInput] = useState(false);
   const [summary, setSummary] = useState('');
 
+  const [showTagInput, setShowTagInput] = useState(false);
+  const [tagInput, setTagInput] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+
   const handleClickOutside = useCallback((event: MouseEvent) => {
     const target = event.target as HTMLElement;
     if (!target.closest('.menu-container')) {
@@ -149,6 +153,7 @@ export const ArticleEditor: React.FC = () => {
         if (article) {
           setState(prev => ({ ...prev, 'title': article.title }));
           setSummary(article.summary || '');
+          setTags(article.tags || []);
           setExistingArticleId(article.id);
           setOriginalCoverImagePath(article.cover_image_path);
           setCoverImageModified(false);
@@ -183,7 +188,8 @@ export const ArticleEditor: React.FC = () => {
           'content': editor.getHTML(),
           coverImage,
           coverImageModified,
-          'summary': summary.trim() || undefined
+          'summary': summary.trim() || undefined,
+          'tags': tags.length > 0 ? tags : undefined
         });
 
         if (updatedArticle) {
@@ -194,7 +200,8 @@ export const ArticleEditor: React.FC = () => {
           'title': state.title,
           'content': editor.getHTML(),
           coverImage,
-          'summary': summary.trim() || undefined
+          'summary': summary.trim() || undefined,
+          'tags': tags.length > 0 ? tags : undefined
         });
 
         if (savedArticle) {
@@ -298,14 +305,15 @@ export const ArticleEditor: React.FC = () => {
   }, []);
 
   const handleCreateNewDraft = useCallback(() => {
-    const draft = createDraft({ 'title': state.title, 'content': editor?.getHTML() || '' });
+    const draft = createDraft({ 'title': state.title, 'content': editor?.getHTML() || '', summary, tags });
     setCurrentDraftId(draft.id);
     setShowDraftManager(false);
-  }, [state.title, editor]);
+  }, [state.title, editor, summary, tags]);
 
   const handleLoadDraft = useCallback((draft: ArticleDraft) => {
     setState(prev => ({ ...prev, 'title': draft.title }));
     setSummary(draft.summary || '');
+    setTags(draft.tags || []);
     setCurrentDraftId(draft.id);
     if (draft.coverImageDataUrl) {
       fetch(draft.coverImageDataUrl)
@@ -348,6 +356,9 @@ export const ArticleEditor: React.FC = () => {
         if (summaryText) {
           draft.summary = summaryText;
         }
+        if (tags.length > 0) {
+          draft.tags = tags;
+        }
         if (coverDataUrl) {
           draft.coverImageDataUrl = coverDataUrl;
           if (coverName) {
@@ -360,6 +371,7 @@ export const ArticleEditor: React.FC = () => {
           'title': state.title,
           'content': editor?.getHTML() || '',
           ...(summaryText ? { 'summary': summaryText } : {}),
+          ...(tags.length > 0 ? { tags } : {}),
           ...(coverDataUrl ? { 'coverImageDataUrl': coverDataUrl, ...(coverName ? { 'coverImageName': coverName } : {}) } : {})
         });
         setCurrentDraftId(draft.id);
@@ -376,7 +388,7 @@ export const ArticleEditor: React.FC = () => {
     } else {
       saveDraftWithCover(summary, null, undefined);
     }
-  }, [currentDraftId, state.title, editor, summary, coverImage]);
+  }, [currentDraftId, state.title, editor, summary, tags, coverImage]);
 
   const handleOpenCoverManager = useCallback(() => {
     setShowCoverManager(true);
@@ -396,15 +408,30 @@ export const ArticleEditor: React.FC = () => {
     }
   }, [originalCoverImagePath]);
 
+  const handleAddTag = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      const trimmedTag = tagInput.trim();
+      if (!tags.includes(trimmedTag)) {
+        setTags(prev => [...prev, trimmedTag]);
+      }
+      setTagInput('');
+      setShowTagInput(false);
+    }
+  }, [tagInput, tags]);
+
+  const handleRemoveTag = useCallback((tagToRemove: string) => {
+    setTags(prev => prev.filter(tag => tag !== tagToRemove));
+  }, []);
+
   return (
     <div className="min-h-screen">
       {isLoadingArticle && (
-        <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400" />
         </div>
       )}
 
-      {!isLoadingArticle && showLinkDialog && (
+      {showLinkDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowLinkDialog(false)} />
           <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 relative z-10 min-w-[400px] max-w-md">
@@ -455,6 +482,65 @@ export const ArticleEditor: React.FC = () => {
                   className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                 />
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">支持 YouTube、Bilibili 等视频平台的嵌入链接</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">比例预设</label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIframeWidthInput('640'); setIframeHeightInput('360');
+                    }}
+                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    16:9 小
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIframeWidthInput('854'); setIframeHeightInput('480');
+                    }}
+                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    16:9 中
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIframeWidthInput('1280'); setIframeHeightInput('720');
+                    }}
+                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    16:9 大
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIframeWidthInput('640'); setIframeHeightInput('480');
+                    }}
+                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    4:3
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIframeWidthInput('500'); setIframeHeightInput('500');
+                    }}
+                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    1:1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIframeWidthInput('640'); setIframeHeightInput('274');
+                    }}
+                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    21:9
+                  </button>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -636,6 +722,19 @@ export const ArticleEditor: React.FC = () => {
                 <span>文章简介</span>
                 {showSummaryInput ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
+              <button
+                onClick={() => {
+                  setShowTagInput(!showTagInput);
+                  if (!showTagInput) {
+                    setTagInput('');
+                  }
+                }}
+                className="flex items-center gap-1 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+              >
+                <Tag className="w-4 h-4" />
+                <span>添加标签</span>
+                <Plus className="w-4 h-4" />
+              </button>
             </div>
 
             <div
@@ -660,6 +759,53 @@ export const ArticleEditor: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {showTagInput && (
+              <div className="mt-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 relative">
+                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <input
+                      type="text"
+                      placeholder="输入标签后按 Enter 确认..."
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={handleAddTag}
+                      className="w-full pl-10 pr-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowTagInput(false);
+                      setTagInput('');
+                    }}
+                    className="px-4 py-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {tags.map((tag, index) => (
+                  <div
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-full text-sm max-w-full"
+                  >
+                    <span className="truncate max-w-[150px]">{tag}</span>
+                    <button
+                      onClick={() => handleRemoveTag(tag)}
+                      className="ml-1 hover:text-sky-900 dark:hover:text-sky-100 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">

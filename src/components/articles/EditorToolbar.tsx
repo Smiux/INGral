@@ -5,7 +5,7 @@ import {
   Undo, Redo, Link as LinkIcon,
   Strikethrough, Underline as UnderlineIcon, Highlighter,
   Quote, Minus, CodeSquare,
-  Plus, ChevronDown, FunctionSquare, Subscript, Superscript, Palette, AlignLeft, CodeXml
+  Plus, ChevronDown, FunctionSquare, Subscript, Superscript, Palette, AlignLeft, CodeXml, ChevronRightSquare
 } from 'lucide-react';
 
 const FONTS: Record<string, string> = {
@@ -17,17 +17,17 @@ const FONTS: Record<string, string> = {
   'Verdana': 'Verdana',
   'Trebuchet MS': 'Trebuchet MS',
   'Comic Sans MS': 'Comic Sans MS',
-  'Microsoft YaHei': '微软雅黑',
-  'SimSun': '宋体',
-  'SimHei': '黑体',
-  'KaiTi': '楷体',
-  'FangSong': '仿宋',
-  'STHeiti': '华文黑体',
-  'Source Han Sans': '思源黑体',
-  'Source Han Serif': '思源宋体'
+  '微软雅黑': '"Microsoft YaHei", sans-serif',
+  '宋体': '"SimSun", serif',
+  '黑体': '"SimHei", sans-serif',
+  '楷体': '"KaiTi", serif',
+  '仿宋': '"FangSong", serif',
+  '华文黑体': '"STHeiti", "STHeiti Light", "Microsoft YaHei", sans-serif',
+  '思源黑体': '"Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif',
+  '思源宋体': '"Source Han Serif SC", "Noto Serif CJK SC", "SimSun", serif'
 };
 const FONT_SIZES = ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'];
-const LINE_HEIGHTS = ['1.0', '1.2', '1.4', '1.6', '1.8', '2.0', '2.4'];
+const LINE_HEIGHTS = ['0.8', '0.9', '1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.8', '2.0', '2.2', '2.4', '2.6', '2.8', '3.0'];
 
 interface ToolbarButtonProps {
   icon: React.ReactNode;
@@ -295,8 +295,8 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
             onClick={() => setActiveMenu(activeMenu === 'font' ? null : 'font')}
           />
           <DropdownMenu isOpen={activeMenu === 'font'} width="w-48" maxHeight="max-h-48">
-            {Object.entries(FONTS).map(([family, label]) => (
-              <button key={family} onClick={() => {
+            {Object.entries(FONTS).map(([label, family]) => (
+              <button key={label} onClick={() => {
                 runEditorCommand(c => c.setFontFamily(family).run()); setActiveMenu(null);
               }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700" style={{ 'fontFamily': family }}>{label}</button>
             ))}
@@ -337,12 +337,12 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           <DropdownMenu isOpen={activeMenu === 'lineHeight'} width="w-32">
             {LINE_HEIGHTS.map((height) => (
               <button key={height} onClick={() => {
-                runEditorCommand(c => c.setLineHeight(height).run()); setActiveMenu(null);
+                runEditorCommand(c => c.updateAttributes('paragraph', { 'lineHeight': height }).run()); setActiveMenu(null);
               }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700" style={{ 'lineHeight': height }}>{height}</button>
             ))}
             <div className="border-t border-neutral-200 dark:border-neutral-700 my-1" />
             <button onClick={() => {
-              runEditorCommand(c => c.unsetLineHeight().run()); setActiveMenu(null);
+              runEditorCommand(c => c.updateAttributes('paragraph', { 'lineHeight': null }).run()); setActiveMenu(null);
             }} className="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">清除行高</button>
           </DropdownMenu>
         </div>
@@ -374,10 +374,10 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           <DropdownMenu isOpen={activeMenu === 'math'}>
             <button onClick={() => {
               onMathClick('inline'); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">行内公式 ($...$)</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">行内公式 </button>
             <button onClick={() => {
               onMathClick('block'); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">公式块 ($$...$$)</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">公式块</button>
           </DropdownMenu>
         </div>
 
@@ -392,6 +392,11 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
         <button onClick={() => runEditorCommand(c => c.toggleCodeBlock().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
           <CodeSquare size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
           <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">代码块</span>
+        </button>
+
+        <button onClick={() => runEditorCommand(c => c.insertCollapsible().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
+          <ChevronRightSquare size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">折叠</span>
         </button>
 
         <button onClick={onLinkClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
