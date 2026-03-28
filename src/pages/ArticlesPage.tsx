@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
-import { getAllArticles, type Article } from '../services/articleService';
+import { getAllArticles, getCoverImageUrl, type Article } from '../services/articleService';
 
 function formatDate (dateStr: string | null | undefined): string {
   if (!dateStr) {
@@ -9,12 +9,10 @@ function formatDate (dateStr: string | null | undefined): string {
   }
   const date = new Date(dateStr);
   const options: Intl.DateTimeFormatOptions = {
-    'month': 'short',
+    'year': 'numeric',
+    'month': 'long',
     'day': 'numeric'
   };
-  if (date.getFullYear() !== new Date().getFullYear()) {
-    options.year = 'numeric';
-  }
   return date.toLocaleDateString('zh-CN', options);
 }
 
@@ -44,21 +42,50 @@ export function ArticlesPage () {
 
     if (filteredArticles.length > 0) {
       return (
-        <div className="space-y-4">
-          {filteredArticles.map((article) => (
-            <Link
-              key={article.id}
-              to={`/articles/${article.slug}`}
-              className="block p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-300 group"
-            >
-              <h2 className="text-xl font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors mb-2">
-                {article.title}
-              </h2>
-              <span className="text-sm text-neutral-500 dark:text-neutral-400 block mt-2">
-                创建于{formatDate(article.created_at)}
-              </span>
-            </Link>
-          ))}
+        <div className="space-y-6">
+          {filteredArticles.map((article) => {
+            const coverUrl = getCoverImageUrl(article.cover_image_path);
+            return (
+              <Link
+                key={article.id}
+                to={`/articles/${article.slug}`}
+                className="block bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-300 group overflow-hidden"
+              >
+                <div className="flex flex-col md:flex-row">
+                  <div className="w-full md:w-72 lg:w-80 flex-shrink-0">
+                    <div className="aspect-video md:aspect-[4/3] md:h-full bg-neutral-100 dark:bg-neutral-700 relative overflow-hidden">
+                      {coverUrl ? (
+                        <img
+                          src={coverUrl}
+                          alt={article.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-5xl font-bold text-neutral-300 dark:text-neutral-600">
+                            {article.title.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1 p-6 flex flex-col">
+                    <h2 className="text-xl font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors mb-3">
+                      {article.title}
+                    </h2>
+                    {article.summary && (
+                      <p className="text-neutral-600 dark:text-neutral-400 mb-4 flex-1 line-clamp-3">
+                        {article.summary}
+                      </p>
+                    )}
+                    <div className="text-sm text-neutral-500 dark:text-neutral-400 mt-auto">
+                      创建于 {formatDate(article.created_at)}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       );
     }

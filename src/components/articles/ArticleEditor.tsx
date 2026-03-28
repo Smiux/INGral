@@ -5,13 +5,14 @@ import { LatexEditor } from './LatexEditor';
 import { TiptapEditor, TiptapEditorRef } from './TipTapEditor';
 import { EditorToolbar } from './EditorToolbar';
 import { DraftManager } from './DraftManager';
+import { CoverManager } from './CoverManager';
 
 import { createDraft, updateDraft, getDraftById, type ArticleDraft } from './draftUtils';
 import type { Editor } from '@tiptap/react';
 import {
   Save,
   MessageCircle,
-  FileText, ListTree, FolderOpen
+  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp
 } from 'lucide-react';
 
 interface EditorState {
@@ -49,7 +50,7 @@ const TocItem: React.FC<TocItemProps> = React.memo(({ item, onClick }) => {
     >
       <div className="flex items-center gap-2 min-h-[26px]">
         <span className={`${style.numberColor} flex-shrink-0 mr-2`}>
-          {item.itemIndex}{item.level === 1 ? '.' : ''}
+          {item.itemIndex}
         </span>
         <span className={`truncate transition-all duration-300 max-w-[calc(100%-1rem)] ${style.fontSize} ${style.fontWeight} text-left flex-1`}>
           {item.textContent}
@@ -94,6 +95,13 @@ export const ArticleEditor: React.FC = () => {
 
   const [isToolbarSticky, setIsToolbarSticky] = useState(false);
 
+  const [showCoverManager, setShowCoverManager] = useState(false);
+  const [coverImage, setCoverImage] = useState<File | Blob | null>(null);
+  const [coverImagePath, setCoverImagePath] = useState<string | null>(null);
+
+  const [showSummaryInput, setShowSummaryInput] = useState(false);
+  const [summary, setSummary] = useState('');
+
   const handleClickOutside = useCallback((event: MouseEvent) => {
     const target = event.target as HTMLElement;
     if (!target.closest('.menu-container')) {
@@ -136,7 +144,9 @@ export const ArticleEditor: React.FC = () => {
     try {
       const savedArticle = await createArticle({
         'title': state.title,
-        'content': editor.getHTML()
+        'content': editor.getHTML(),
+        coverImage,
+        'summary': summary.trim() || undefined
       });
 
       if (savedArticle) {
@@ -273,6 +283,15 @@ export const ArticleEditor: React.FC = () => {
     }
   }, [currentDraftId, state.title, editor]);
 
+  const handleOpenCoverManager = useCallback(() => {
+    setShowCoverManager(true);
+  }, []);
+
+  const handleCoverChange = useCallback((file: File | Blob | null) => {
+    setCoverImage(file);
+    setCoverImagePath(null);
+  }, []);
+
   return (
     <div className="min-h-screen">
       {showLinkDialog && (
@@ -389,6 +408,13 @@ export const ArticleEditor: React.FC = () => {
         onCreateNewDraft={handleCreateNewDraft}
       />
 
+      <CoverManager
+        isOpen={showCoverManager}
+        onClose={() => setShowCoverManager(false)}
+        currentCoverPath={coverImagePath}
+        onCoverChange={handleCoverChange}
+      />
+
       <LatexEditor
         isOpen={showLatexEditor}
         onClose={() => setShowLatexEditor(false)}
@@ -403,6 +429,13 @@ export const ArticleEditor: React.FC = () => {
             </button>
 
             <div className="flex items-center space-x-3">
+              <button
+                onClick={handleOpenCoverManager}
+                className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
+              >
+                <Image size={16} className="mr-2 text-neutral-600 dark:text-neutral-400" />
+                封面
+              </button>
               <button
                 onClick={handleOpenDraftManager}
                 className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
@@ -447,7 +480,7 @@ export const ArticleEditor: React.FC = () => {
               目录
             </h3>
           </div>
-          <div className="overflow-y-auto max-h-[calc(60vh)]">
+          <div className="overflow-y-auto max-h-[50vh]">
             {tableOfContentsItems.length > 0 ? (
               <nav className="p-3 pt-0 space-y-1">
                 {tableOfContentsItems.map((item) => (
@@ -485,6 +518,36 @@ export const ArticleEditor: React.FC = () => {
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
                 <span className="text-sm text-neutral-600 dark:text-neutral-400">{characterCount} 个字符</span>
+              </div>
+              <button
+                onClick={() => setShowSummaryInput(!showSummaryInput)}
+                className="flex items-center gap-1 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+              >
+                <span>文章简介</span>
+                {showSummaryInput ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+            </div>
+
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                showSummaryInput ? 'max-h-40 opacity-100 mt-4' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  文章简介
+                </label>
+                <textarea
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  placeholder="输入文章简介，用于在文章列表和卡片中展示..."
+                  rows={3}
+                  maxLength={200}
+                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-none text-sm"
+                />
+                <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 text-right">
+                  {summary.length}/200
+                </div>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronDown } from 'lucide-react';
-import { getAllArticles, type Article } from '../services/articleService';
+import { getAllArticles, getCoverImageUrl, type Article } from '../services/articleService';
 
 export function HomePage () {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -14,7 +14,7 @@ export function HomePage () {
     const loadData = async () => {
       try {
         const data = await getAllArticles();
-        setArticles(data.slice(0, 16));
+        setArticles(data.slice(0, 9));
       } finally {
         setIsLoading(false);
       }
@@ -104,26 +104,50 @@ export function HomePage () {
             )}
 
             {!isLoading && articles.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid-rows-4 gap-3 flex-1">
-                {articles.map((article) => (
-                  <Link
-                    key={article.id}
-                    to={`/articles/${article.slug}`}
-                    className="group p-4 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-center"
-                  >
-                    <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors mb-1 line-clamp-2">
-                      {article.title}
-                    </h3>
-                    <div className="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                      <span>
-                        {article.created_at ? new Date(article.created_at).toLocaleDateString('zh-CN', {
-                          'month': 'short',
-                          'day': 'numeric'
-                        }) : 'N/A'}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
+                {articles.map((article) => {
+                  const coverUrl = getCoverImageUrl(article.cover_image_path);
+                  return (
+                    <Link
+                      key={article.id}
+                      to={`/articles/${article.slug}`}
+                      className="group bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-300 transform hover:-translate-y-1 flex flex-col overflow-hidden"
+                    >
+                      <div className="aspect-video bg-neutral-100 dark:bg-neutral-700 relative overflow-hidden">
+                        {coverUrl ? (
+                          <img
+                            src={coverUrl}
+                            alt={article.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-4xl font-bold text-neutral-300 dark:text-neutral-600">
+                              {article.title.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4 flex flex-col flex-1">
+                        <h3 className="text-base font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors mb-2 line-clamp-2">
+                          {article.title}
+                        </h3>
+                        {article.summary && (
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2 mb-3 flex-1">
+                            {article.summary}
+                          </p>
+                        )}
+                        <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-auto">
+                          {article.created_at ? new Date(article.created_at).toLocaleDateString('zh-CN', {
+                            'year': 'numeric',
+                            'month': 'long',
+                            'day': 'numeric'
+                          }) : 'N/A'}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

@@ -192,6 +192,16 @@ button:disabled {
     overflow-x: visible;
     border-radius: 0.5rem;
   }
+
+  & code:not(pre code) {
+    background-color: #eceff4;
+    color: #2e3440;
+    border: 1px solid #e5e9f0;
+    padding: 0.25em 0.5em;
+    border-radius: 4px;
+    font-size: 0.875em;
+    font-weight: 500;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -218,28 +228,12 @@ button:disabled {
       color: #d1d5db;
       background-color: #1e3a5f;
     }
-  }
-}
 
-/* ========================================
-   ProseMirror 行内代码样式
-   ======================================== */
-
-.ProseMirror code:not(pre code) {
-  background-color: #eceff4;
-  color: #2e3440;
-  border: 1px solid #e5e9f0;
-  padding: 0.25em 0.5em;
-  border-radius: 4px;
-  font-size: 0.875em;
-  font-weight: 500;
-}
-
-@media (prefers-color-scheme: dark) {
-  .ProseMirror code:not(pre code) {
-    background-color: #374151;
-    color: #e5e7eb;
-    border-color: #4b5563;
+    & code:not(pre code) {
+      background-color: #374151;
+      color: #e5e7eb;
+      border-color: #4b5563;
+    }
   }
 }
 
