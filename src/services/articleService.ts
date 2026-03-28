@@ -21,6 +21,15 @@ export interface CreateArticleParams {
   summary?: string | undefined;
 }
 
+export interface UpdateArticleParams {
+  articleId: string;
+  title: string;
+  content: string;
+  coverImage?: File | Blob | null;
+  coverImageModified?: boolean;
+  summary?: string | undefined;
+}
+
 const TABLE_NAME = 'articles';
 
 function generateSlug (): string {
@@ -83,6 +92,62 @@ export async function createArticle ({
       'cover_image_path': coverImagePath,
       'summary': summary || null
     })
+    .select()
+    .single<Article>();
+
+  if (!articleData) {
+    return null;
+  }
+
+  return {
+    ...articleData,
+    content
+  };
+}
+
+export async function updateArticle ({
+  articleId,
+  title,
+  content,
+  coverImage,
+  coverImageModified,
+  summary
+}: UpdateArticleParams): Promise<ArticleWithContent | null> {
+  const contentPath = await uploadContent(articleId, content);
+
+  if (!contentPath) {
+    return null;
+  }
+
+  const updates: Partial<Article> = {
+    title,
+    'content_path': contentPath,
+    'summary': summary || null
+  };
+
+  if (coverImageModified) {
+    let coverImagePath: string | null = null;
+    if (coverImage) {
+      coverImagePath = await uploadCoverImage(articleId, coverImage);
+    }
+
+    const { 'data': existingArticle } = await supabase
+      .from(TABLE_NAME)
+      .select('cover_image_path')
+      .eq('id', articleId)
+      .single<{ cover_image_path: string | null }>();
+
+    if (coverImage === null && existingArticle?.cover_image_path) {
+      await deleteCoverImage(existingArticle.cover_image_path);
+    }
+
+    updates.cover_image_path = coverImagePath;
+  }
+
+  const { 'data': articleData } = await supabase
+    .from(TABLE_NAME)
+    .update(updates)
+    .eq('id', articleId)
     .select()
     .single<Article>();
 

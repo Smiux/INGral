@@ -2,6 +2,9 @@ export interface ArticleDraft {
   'id': string;
   'title': string;
   'content': string;
+  'summary'?: string;
+  'coverImageDataUrl'?: string;
+  'coverImageName'?: string;
   'createdAt': string;
   'lastSaved': string;
 }
@@ -63,16 +66,33 @@ export const saveDraft = (draft: ArticleDraft): boolean => {
   }
 };
 
-export const createDraft = (title: string = '', content: string = ''): ArticleDraft => {
+export interface CreateDraftOptions {
+  title?: string;
+  content?: string;
+  summary?: string;
+  coverImageDataUrl?: string;
+  coverImageName?: string;
+}
+
+export const createDraft = (options: CreateDraftOptions = {}): ArticleDraft => {
   const now = new Date().toISOString();
   const draft: ArticleDraft = {
     'id': `draft_${Date.now()}_${Math.random().toString(36)
       .substring(2, 9)}`,
-    title,
-    content,
+    'title': options.title ?? '',
+    'content': options.content ?? '',
     'createdAt': now,
     'lastSaved': now
   };
+  if (options.summary) {
+    draft.summary = options.summary;
+  }
+  if (options.coverImageDataUrl) {
+    draft.coverImageDataUrl = options.coverImageDataUrl;
+    if (options.coverImageName) {
+      draft.coverImageName = options.coverImageName;
+    }
+  }
   saveDraft(draft);
   return draft;
 };

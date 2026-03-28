@@ -1,6 +1,6 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createArticle } from '../../services/articleService';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createArticle, getArticleBySlug, updateArticle } from '../../services/articleService';
 import { LatexEditor } from './LatexEditor';
 import { TiptapEditor, TiptapEditorRef } from './TipTapEditor';
 import { EditorToolbar } from './EditorToolbar';
@@ -62,11 +62,16 @@ const TocItem: React.FC<TocItemProps> = React.memo(({ item, onClick }) => {
 
 export const ArticleEditor: React.FC = () => {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+  const isEditing = Boolean(slug);
 
   const [state, setState] = useState<EditorState>({
     'title': '',
     'isSaving': false
   });
+
+  const [isLoadingArticle, setIsLoadingArticle] = useState(false);
+  const [existingArticleId, setExistingArticleId] = useState<string | null>(null);
 
   const [showLatexEditor, setShowLatexEditor] = useState(false);
   const [mathType, setMathType] = useState<'inline' | 'block'>('inline');
@@ -98,6 +103,8 @@ export const ArticleEditor: React.FC = () => {
   const [showCoverManager, setShowCoverManager] = useState(false);
   const [coverImage, setCoverImage] = useState<File | Blob | null>(null);
   const [coverImagePath, setCoverImagePath] = useState<string | null>(null);
+  const [originalCoverImagePath, setOriginalCoverImagePath] = useState<string | null>(null);
+  const [coverImageModified, setCoverImageModified] = useState(false);
 
   const [showSummaryInput, setShowSummaryInput] = useState(false);
   const [summary, setSummary] = useState('');
@@ -130,6 +137,33 @@ export const ArticleEditor: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!slug) {
+      return;
+    }
+
+    const loadArticle = async () => {
+      setIsLoadingArticle(true);
+      try {
+        const article = await getArticleBySlug(slug);
+        if (article) {
+          setState(prev => ({ ...prev, 'title': article.title }));
+          setSummary(article.summary || '');
+          setExistingArticleId(article.id);
+          setOriginalCoverImagePath(article.cover_image_path);
+          setCoverImageModified(false);
+          if (editor) {
+            editor.commands.setContent(article.content);
+          }
+        }
+      } finally {
+        setIsLoadingArticle(false);
+      }
+    };
+
+    loadArticle();
+  }, [slug, editor]);
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState(prev => ({ ...prev, 'title': e.target.value }));
   };
@@ -142,15 +176,30 @@ export const ArticleEditor: React.FC = () => {
     setState(prev => ({ ...prev, 'isSaving': true }));
 
     try {
-      const savedArticle = await createArticle({
-        'title': state.title,
-        'content': editor.getHTML(),
-        coverImage,
-        'summary': summary.trim() || undefined
-      });
+      if (isEditing && existingArticleId) {
+        const updatedArticle = await updateArticle({
+          'articleId': existingArticleId,
+          'title': state.title,
+          'content': editor.getHTML(),
+          coverImage,
+          coverImageModified,
+          'summary': summary.trim() || undefined
+        });
 
-      if (savedArticle) {
-        navigate(`/articles/${savedArticle.slug}`);
+        if (updatedArticle) {
+          navigate(`/articles/${updatedArticle.slug}`);
+        }
+      } else {
+        const savedArticle = await createArticle({
+          'title': state.title,
+          'content': editor.getHTML(),
+          coverImage,
+          'summary': summary.trim() || undefined
+        });
+
+        if (savedArticle) {
+          navigate(`/articles/${savedArticle.slug}`);
+        }
       }
     } finally {
       setState(prev => ({ ...prev, 'isSaving': false }));
@@ -249,14 +298,33 @@ export const ArticleEditor: React.FC = () => {
   }, []);
 
   const handleCreateNewDraft = useCallback(() => {
-    const draft = createDraft(state.title, editor?.getHTML() || '');
+    const draft = createDraft({ 'title': state.title, 'content': editor?.getHTML() || '' });
     setCurrentDraftId(draft.id);
     setShowDraftManager(false);
   }, [state.title, editor]);
 
   const handleLoadDraft = useCallback((draft: ArticleDraft) => {
     setState(prev => ({ ...prev, 'title': draft.title }));
+    setSummary(draft.summary || '');
     setCurrentDraftId(draft.id);
+    if (draft.coverImageDataUrl) {
+      fetch(draft.coverImageDataUrl)
+        .then(res => res.blob())
+        .then(blob => {
+          const fileName = (draft as ArticleDraft & { coverImageName?: string }).coverImageName || 'cover.png';
+          const file = new File([blob], fileName, { 'type': blob.type });
+          setCoverImage(file);
+          setCoverImagePath(draft.coverImageDataUrl || null);
+          setCoverImageModified(true);
+        })
+        .catch(() => {
+          setCoverImageModified(false);
+        });
+    } else {
+      setCoverImage(null);
+      setCoverImagePath(null);
+      setCoverImageModified(false);
+    }
     if (editor) {
       editor.commands.setContent(draft.content);
     }
@@ -267,34 +335,76 @@ export const ArticleEditor: React.FC = () => {
   }, []);
 
   const handleSaveDraft = useCallback(() => {
-    if (currentDraftId) {
-      const existingDraft = getDraftById(currentDraftId);
-      const draft: ArticleDraft = {
-        'id': currentDraftId,
-        'title': state.title,
-        'content': editor?.getHTML() || '',
-        'createdAt': existingDraft?.createdAt || new Date().toISOString(),
-        'lastSaved': new Date().toISOString()
+    const saveDraftWithCover = (summaryText: string, coverDataUrl: string | null, coverName: string | undefined) => {
+      if (currentDraftId) {
+        const existingDraft = getDraftById(currentDraftId);
+        const draft: ArticleDraft = {
+          'id': currentDraftId,
+          'title': state.title,
+          'content': editor?.getHTML() || '',
+          'createdAt': existingDraft?.createdAt || new Date().toISOString(),
+          'lastSaved': new Date().toISOString()
+        };
+        if (summaryText) {
+          draft.summary = summaryText;
+        }
+        if (coverDataUrl) {
+          draft.coverImageDataUrl = coverDataUrl;
+          if (coverName) {
+            draft.coverImageName = coverName;
+          }
+        }
+        updateDraft(draft);
+      } else {
+        const draft = createDraft({
+          'title': state.title,
+          'content': editor?.getHTML() || '',
+          ...(summaryText ? { 'summary': summaryText } : {}),
+          ...(coverDataUrl ? { 'coverImageDataUrl': coverDataUrl, ...(coverName ? { 'coverImageName': coverName } : {}) } : {})
+        });
+        setCurrentDraftId(draft.id);
+      }
+    };
+
+    if (coverImage) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const coverName = (coverImage as File).name || 'cover.png';
+        saveDraftWithCover(summary, reader.result as string, coverName);
       };
-      updateDraft(draft);
+      reader.readAsDataURL(coverImage);
     } else {
-      const draft = createDraft(state.title, editor?.getHTML() || '');
-      setCurrentDraftId(draft.id);
+      saveDraftWithCover(summary, null, undefined);
     }
-  }, [currentDraftId, state.title, editor]);
+  }, [currentDraftId, state.title, editor, summary, coverImage]);
 
   const handleOpenCoverManager = useCallback(() => {
     setShowCoverManager(true);
   }, []);
 
   const handleCoverChange = useCallback((file: File | Blob | null) => {
+    if (file) {
+      const newCoverUrl = URL.createObjectURL(file);
+      setCoverImagePath(newCoverUrl);
+    } else {
+      setCoverImagePath(null);
+    }
     setCoverImage(file);
-    setCoverImagePath(null);
-  }, []);
+    setCoverImageModified(true);
+    if (file === null && originalCoverImagePath) {
+      setCoverImage(null);
+    }
+  }, [originalCoverImagePath]);
 
   return (
     <div className="min-h-screen">
-      {showLinkDialog && (
+      {isLoadingArticle && (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400" />
+        </div>
+      )}
+
+      {!isLoadingArticle && showLinkDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowLinkDialog(false)} />
           <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 relative z-10 min-w-[400px] max-w-md">
@@ -411,7 +521,7 @@ export const ArticleEditor: React.FC = () => {
       <CoverManager
         isOpen={showCoverManager}
         onClose={() => setShowCoverManager(false)}
-        currentCoverPath={coverImagePath}
+        currentCoverPath={coverImageModified ? coverImagePath : originalCoverImagePath}
         onCoverChange={handleCoverChange}
       />
 
@@ -458,12 +568,12 @@ export const ArticleEditor: React.FC = () => {
                 {state.isSaving ? (
                   <>
                     <span className="inline-block w-4 h-4 border-2 border-sky-400 border-t-transparent rounded-full animate-spin mr-2" />
-                    发布中...
+                    {isEditing ? '更新中...' : '发布中...'}
                   </>
                 ) : (
                   <>
                     <Save size={16} className="mr-2 text-neutral-600 dark:text-neutral-400" />
-                    发布文章
+                    {isEditing ? '更新文章' : '发布文章'}
                   </>
                 )}
               </button>

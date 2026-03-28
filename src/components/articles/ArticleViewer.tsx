@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, ListTree, Trash2 } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ListTree, Trash2, Edit3 } from 'lucide-react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import hljs from 'highlight.js';
@@ -272,14 +272,23 @@ export function ArticleViewer () {
       <div className="mb-6">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-4xl font-bold text-neutral-800 dark:text-neutral-100">{article.title}</h1>
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-          >
-            <Trash2 className="w-4 h-4" />
-            {isDeleting ? '删除中...' : '删除文章'}
-          </button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => navigate(`/articles/${article.slug}/edit`)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
+            >
+              <Edit3 className="w-4 h-4" />
+              编辑文章
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 className="w-4 h-4" />
+              {isDeleting ? '删除中...' : '删除文章'}
+            </button>
+          </div>
         </div>
         <div className="flex flex-wrap gap-6 text-sm text-neutral-600 dark:text-neutral-400 mt-4">
           <div className="flex items-center gap-1">
