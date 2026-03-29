@@ -63,33 +63,13 @@ export const CollapsibleNode = Node.create<CollapsibleNodeOptions>({
   },
 
   renderHTML ({ HTMLAttributes }) {
-    const isOpen = HTMLAttributes['data-open'] !== 'false';
-    const title = HTMLAttributes['data-title'] || '折叠标题';
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-collapsible': '',
         'class': 'collapsible-node'
       }),
-      [
-        'div',
-        { 'class': 'collapsible-header', 'data-collapsible-header': '' },
-        [
-          'span',
-          { 'class': `collapsible-icon ${isOpen ? 'open' : ''}` },
-          isOpen ? '▼' : '▶'
-        ],
-        [
-          'span',
-          { 'class': 'collapsible-title' },
-          title
-        ]
-      ],
-      [
-        'div',
-        { 'class': `collapsible-content ${isOpen ? 'open' : ''}`, 'data-collapsible-content': '' },
-        0
-      ]
+      0
     ];
   },
 
@@ -111,12 +91,41 @@ export const CollapsibleNode = Node.create<CollapsibleNodeOptions>({
               },
               'content': [
                 {
-                  'type': 'paragraph',
-                  'content': [{ 'type': 'text', 'text': '折叠内容...' }]
+                  'type': 'paragraph'
                 }
               ]
             });
           }
+    };
+  },
+
+  addKeyboardShortcuts () {
+    return {
+      'Backspace': () => {
+        const { state } = this.editor.view;
+        const { selection } = state;
+        const { $from } = selection;
+
+        if (!selection.empty) {
+          return false;
+        }
+
+        if ($from.parentOffset !== 0) {
+          return false;
+        }
+
+        for (let d = $from.depth; d > 0; d -= 1) {
+          const node = $from.node(d);
+          if (node.type.name === 'collapsible') {
+            if (node.content.size <= 4) {
+              return this.editor.commands.deleteNode('collapsible');
+            }
+            break;
+          }
+        }
+
+        return false;
+      }
     };
   }
 });

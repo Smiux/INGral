@@ -173,8 +173,99 @@ export function ArticleViewer () {
       });
     };
 
+    const initCollapsibleNodes = () => {
+      if (!contentRef.current) {
+        return;
+      }
+
+      const processCollapsibleNode = (node: HTMLElement): HTMLElement => {
+        const isOpen = node.getAttribute('data-open') === 'true';
+        const title = node.getAttribute('data-title') || '折叠标题';
+
+        const nestedCollapsibles = node.querySelectorAll<HTMLElement>('[data-collapsible]');
+        if (nestedCollapsibles && nestedCollapsibles.length > 0) {
+          nestedCollapsibles.forEach((nested) => {
+            if (nested.parentElement?.closest('[data-collapsible]') === node) {
+              const processed = processCollapsibleNode(nested);
+              nested.replaceWith(processed);
+            }
+          });
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'collapsible-node-wrapper my-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 overflow-hidden';
+        wrapper.setAttribute('data-open', String(isOpen));
+
+        const header = document.createElement('div');
+        header.className = 'collapsible-header flex items-center gap-2 px-4 py-3 cursor-pointer select-none bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors';
+
+        const icon = document.createElement('span');
+        icon.className = 'flex-shrink-0 text-neutral-500 dark:text-neutral-400 transition-transform duration-200';
+        icon.innerHTML = isOpen
+          ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>'
+          : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'flex-1 text-sm font-medium text-neutral-800 dark:text-neutral-200';
+        titleSpan.textContent = title;
+
+        header.appendChild(icon);
+        header.appendChild(titleSpan);
+
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = `collapsible-content-wrapper overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`;
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'collapsible-content px-4 py-3 border-t border-neutral-200 dark:border-neutral-700';
+
+        while (node.firstChild) {
+          contentDiv.appendChild(node.firstChild);
+        }
+
+        contentWrapper.appendChild(contentDiv);
+
+        wrapper.appendChild(header);
+        wrapper.appendChild(contentWrapper);
+
+        header.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const currentOpen = wrapper.getAttribute('data-open') === 'true';
+          const newOpen = !currentOpen;
+          wrapper.setAttribute('data-open', String(newOpen));
+          icon.innerHTML = newOpen
+            ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>'
+            : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+          contentWrapper.className = `collapsible-content-wrapper overflow-hidden transition-all duration-300 ease-in-out ${newOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`;
+        });
+
+        return wrapper;
+      };
+
+      const topLevelCollapsibles = contentRef.current.querySelectorAll<HTMLElement>('[data-collapsible]');
+      const processed = new Set<HTMLElement>();
+
+      topLevelCollapsibles.forEach((node) => {
+        let parent = node.parentElement;
+        let isTopLevel = true;
+        while (parent && parent !== contentRef.current) {
+          if (parent.hasAttribute('data-collapsible')) {
+            isTopLevel = false;
+            break;
+          }
+          parent = parent.parentElement;
+        }
+
+        if (isTopLevel && !processed.has(node)) {
+          const wrapper = processCollapsibleNode(node);
+          node.replaceWith(wrapper);
+          processed.add(node);
+        }
+      });
+    };
+
     renderMath();
     highlightCode();
+    initCollapsibleNodes();
   }, [article?.content]);
 
   const handleTocClick = (itemId: string) => {
@@ -239,10 +330,13 @@ export function ArticleViewer () {
     if (!dateStr) {
       return '未知';
     }
-    return new Date(dateStr).toLocaleDateString('zh-CN', {
+    return new Date(dateStr).toLocaleString('zh-CN', {
       'year': 'numeric',
       'month': 'long',
-      'day': 'numeric'
+      'day': 'numeric',
+      'hour': '2-digit',
+      'minute': '2-digit',
+      'second': '2-digit'
     });
   };
 
@@ -305,12 +399,10 @@ export function ArticleViewer () {
             <CalendarDays className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
             创建于 {createdDate}
           </div>
-          {updatedDate !== createdDate && (
-            <div className="flex items-center gap-1">
-              <CalendarDays className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
-              更新于 {updatedDate}
-            </div>
-          )}
+          <div className="flex items-center gap-1">
+            <CalendarDays className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+            更新于 {updatedDate}
+          </div>
         </div>
 
         {article.tags && article.tags.length > 0 && (
@@ -318,6 +410,7 @@ export function ArticleViewer () {
             {article.tags.map((tag, index) => (
               <span
                 key={index}
+                title={tag}
                 className="inline-flex items-center gap-1 px-3 py-1 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-full text-sm"
               >
                 <Tag className="w-3 h-3" />

@@ -2,15 +2,19 @@ import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { NodeViewWrapper, NodeViewContent, type NodeViewProps } from '@tiptap/react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 
+const DEFAULT_TITLE = '折叠标题';
+
 export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
   node,
   updateAttributes
 }) => {
   const isOpen = node.attrs.open ?? true;
-  const title = node.attrs.title ?? '折叠标题';
+  const title = node.attrs.title ?? DEFAULT_TITLE;
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(title);
   const titleInputRef = useRef<HTMLInputElement>(null);
+
+  const isDefaultTitle = title === DEFAULT_TITLE || !title;
 
   useEffect(() => {
     setEditTitle(title);
@@ -77,14 +81,19 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
             onBlur={handleTitleBlur}
             onKeyDown={handleTitleKeyDown}
             onClick={(e) => e.stopPropagation()}
-            className="flex-1 px-2 py-1 text-sm font-medium bg-white dark:bg-neutral-700 border border-sky-400 rounded outline-none text-neutral-800 dark:text-neutral-200"
+            placeholder={DEFAULT_TITLE}
+            className="flex-1 px-2 py-1 text-sm font-medium bg-white dark:bg-neutral-700 border border-sky-400 rounded outline-none text-neutral-800 dark:text-neutral-200 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
           />
         ) : (
           <span
-            className="flex-1 text-sm font-medium text-neutral-800 dark:text-neutral-200 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+            className={`flex-1 text-sm font-medium transition-colors ${
+              isDefaultTitle
+                ? 'text-neutral-400 dark:text-neutral-500 italic'
+                : 'text-neutral-800 dark:text-neutral-200 hover:text-sky-600 dark:hover:text-sky-400'
+            }`}
             onClick={handleTitleClick}
           >
-            {title}
+            {title || DEFAULT_TITLE}
           </span>
         )}
       </div>
@@ -94,8 +103,12 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
           isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="collapsible-content px-4 py-3 border-t border-neutral-200 dark:border-neutral-700">
-          <NodeViewContent as="div" className="collapsible-body-content" />
+        <div className="collapsible-content px-4 py-3 border-t border-neutral-200 dark:border-neutral-700 relative">
+          <NodeViewContent
+            as="div"
+            className="collapsible-body-content min-h-[1.5em] empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-400 empty:before:dark:text-neutral-500 empty:before:pointer-events-none"
+            data-placeholder="输入内容..."
+          />
         </div>
       </div>
     </NodeViewWrapper>

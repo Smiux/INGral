@@ -793,6 +793,7 @@ export const ArticleEditor: React.FC = () => {
                 {tags.map((tag, index) => (
                   <div
                     key={index}
+                    title={tag}
                     className="inline-flex items-center gap-1 px-3 py-1 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-full text-sm max-w-full"
                   >
                     <span className="truncate max-w-[150px]">{tag}</span>

@@ -105,8 +105,14 @@ export async function createArticle ({
     return null;
   }
 
+  await supabase
+    .from(TABLE_NAME)
+    .update({ 'updated_at': articleData.created_at })
+    .eq('id', id);
+
   return {
     ...articleData,
+    'updated_at': articleData.created_at,
     content
   };
 }

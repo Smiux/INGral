@@ -142,6 +142,7 @@ export function HomePage () {
                             {article.tags.slice(0, 3).map((tag, index) => (
                               <span
                                 key={index}
+                                title={tag}
                                 className="inline-flex items-center px-2 py-0.5 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-full text-xs"
                               >
                                 <Tag className="w-2.5 h-2.5 mr-1" />
@@ -156,10 +157,13 @@ export function HomePage () {
                           </div>
                         )}
                         <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-auto">
-                          {article.updated_at ? new Date(article.updated_at).toLocaleDateString('zh-CN', {
+                          {article.updated_at ? new Date(article.updated_at).toLocaleString('zh-CN', {
                             'year': 'numeric',
                             'month': 'long',
-                            'day': 'numeric'
+                            'day': 'numeric',
+                            'hour': '2-digit',
+                            'minute': '2-digit',
+                            'second': '2-digit'
                           }) : 'N/A'}
                         </div>
                       </div>
