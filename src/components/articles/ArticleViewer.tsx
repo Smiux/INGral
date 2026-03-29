@@ -12,7 +12,6 @@ interface TocItem {
   id: string;
   textContent: string;
   level: number;
-  itemIndex: string;
   isScrolledOver: boolean;
 }
 
@@ -21,10 +20,10 @@ interface TocItemProps {
   onClick: () => void;
 }
 
-const TOC_LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string; numberColor: string }> = {
-  '1': { 'fontSize': 'text-base', 'fontWeight': 'font-semibold', 'numberColor': 'font-semibold text-sky-500' },
-  '2': { 'fontSize': 'text-sm', 'fontWeight': 'font-medium', 'numberColor': 'text-sm font-medium text-green-500' },
-  '3': { 'fontSize': 'text-xs', 'fontWeight': 'font-medium', 'numberColor': 'text-xs font-medium text-neutral-500 dark:text-neutral-400' }
+const TOC_LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string }> = {
+  '1': { 'fontSize': 'text-base', 'fontWeight': 'font-semibold' },
+  '2': { 'fontSize': 'text-sm', 'fontWeight': 'font-medium' },
+  '3': { 'fontSize': 'text-xs', 'fontWeight': 'font-medium' }
 };
 
 const TocItemComponent: React.FC<TocItemProps> = ({ item, onClick }) => {
@@ -36,14 +35,9 @@ const TocItemComponent: React.FC<TocItemProps> = ({ item, onClick }) => {
       style={{ 'paddingLeft': `${(item.level - 1) * 12}px` }}
       onClick={onClick}
     >
-      <div className="flex items-center gap-2 min-h-[26px]">
-        <span className={`${style.numberColor} flex-shrink-0 mr-2`}>
-          {item.itemIndex}
-        </span>
-        <span className={`truncate transition-all duration-300 max-w-[calc(100%-1rem)] ${style.fontSize} ${style.fontWeight} text-left flex-1`}>
-          {item.textContent}
-        </span>
-      </div>
+      <span className={`truncate transition-all duration-300 max-w-full ${style.fontSize} ${style.fontWeight} text-left`}>
+        {item.textContent}
+      </span>
     </div>
   );
 };
@@ -84,31 +78,10 @@ export function ArticleViewer () {
 
     const headings = contentRef.current.querySelectorAll('h1, h2, h3');
     const tocItems: TocItem[] = [];
-    const levelCounters: Record<number, number> = { '1': 0, '2': 0, '3': 0 };
 
     headings.forEach((heading, index) => {
       const level = parseInt(heading.tagName.charAt(1), 10);
       const text = heading.textContent ?? '';
-
-      const counters = { ...levelCounters };
-      counters[level] = (counters[level] || 0) + 1;
-      if (level < 3) {
-        counters[level + 1] = 0;
-        if (level < 2) {
-          counters[3] = 0;
-        }
-      }
-      Object.assign(levelCounters, counters);
-
-      let itemIndex = `${counters[1]}`;
-      if (level === 1) {
-        itemIndex += '.';
-      } else if (level === 2) {
-        itemIndex += `.${counters[2]}`;
-      } else if (level === 3) {
-        itemIndex += `.${counters[2]}.${counters[3]}`;
-      }
-
       const id = `heading-${index}`;
       heading.id = id;
 
@@ -116,7 +89,6 @@ export function ArticleViewer () {
         id,
         'textContent': text,
         level,
-        itemIndex,
         'isScrolledOver': false
       });
     });

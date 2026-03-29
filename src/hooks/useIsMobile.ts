@@ -1,24 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-const MOBILE_BREAKPOINT = 768;
+const MOBILE_USER_AGENT_PATTERNS = [
+  /Android/i,
+  /webOS/i,
+  /iPhone/i,
+  /iPad/i,
+  /iPod/i,
+  /BlackBerry/i,
+  /IEMobile/i,
+  /Opera Mini/i,
+  /Mobile/i,
+  /Windows Phone/i
+];
+
+function checkIsMobile (): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  const userAgent = window.navigator.userAgent;
+  return MOBILE_USER_AGENT_PATTERNS.some((pattern) => pattern.test(userAgent));
+}
 
 export function useIsMobile (): boolean {
-  const [isMobile, setIsMobile] = useState<boolean>(() =>
-    window.innerWidth < MOBILE_BREAKPOINT
-  );
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
+  const [isMobile] = useState<boolean>(checkIsMobile);
   return isMobile;
 }

@@ -27,7 +27,7 @@ const FONTS: Record<string, string> = {
   '思源宋体': '"Source Han Serif SC", "Noto Serif CJK SC", "SimSun", serif'
 };
 const FONT_SIZES = ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'];
-const LINE_HEIGHTS = ['0.8', '0.9', '1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.8', '2.0', '2.2', '2.4', '2.6', '2.8', '3.0'];
+const LINE_HEIGHTS = ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.8', '2.0', '2.2', '2.4', '2.6', '2.8', '3.0'];
 
 interface ToolbarButtonProps {
   icon: React.ReactNode;

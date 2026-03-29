@@ -97,7 +97,9 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         'enableTabIndentation': true,
         'tabSize': 2
       }),
-      Image,
+      Image.configure({
+        'allowBase64': true
+      }),
       Audio.configure({
         'allowBase64': true
       }),

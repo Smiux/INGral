@@ -67,6 +67,22 @@ export async function getAllArticles (): Promise<Article[]> {
   return data || [];
 }
 
+export async function getAllArticlesWithContent (): Promise<ArticleWithContent[]> {
+  const articles = await getAllArticles();
+
+  const articlesWithContent = await Promise.all(
+    articles.map(async (article) => {
+      const content = await downloadContent(article.content_path);
+      return {
+        ...article,
+        'content': content || ''
+      };
+    })
+  );
+
+  return articlesWithContent;
+}
+
 export async function createArticle ({
   title,
   content,
