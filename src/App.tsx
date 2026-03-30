@@ -6,15 +6,16 @@ import { ArticlesPage } from './pages/ArticlesPage';
 import { ArticleViewer } from './components/articles/ArticleViewer';
 import { ArticleEditor } from './components/articles/ArticleEditor';
 import GraphVisualization from './components/graph/GraphVisualization/GraphVisualization';
-
+import { CollaborationProvider, useCollaboration } from './components/collaboration';
+import { GlobalCollaborationFeatures } from './components/collaboration/GlobalCollaborationFeatures';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
+  'hasError': boolean;
+  'error'?: Error;
 }
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -50,11 +51,12 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 function AppContent () {
   const location = useLocation();
   const { pathname } = location;
+  const collaboration = useCollaboration();
 
   const isEditPage = pathname.startsWith('/articles/create') ||
-                         pathname.startsWith('/articles/') && pathname.endsWith('/edit') ||
-                         pathname.startsWith('/graphs/create') ||
-                         (/^\/graphs\/[a-zA-Z0-9-]+$/).test(pathname);
+    (pathname.startsWith('/articles/') && pathname.endsWith('/edit')) ||
+    pathname.startsWith('/graphs/create') ||
+    (/^\/graphs\/[a-zA-Z0-9-]+$/).test(pathname);
 
   const isHomePage = pathname === '/';
 
@@ -70,14 +72,26 @@ function AppContent () {
             <Route path="/" element={<HomePage />} />
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/articles/:slug" element={<ArticleViewer />} />
-            <Route path="/articles/create" element={<ArticleEditor />} />
-            <Route path="/articles/:slug/edit" element={<ArticleEditor />} />
+            <Route
+              path="/articles/create"
+              element={
+                <ArticleEditor />
+              }
+            />
+            <Route
+              path="/articles/:slug/edit"
+              element={
+                <ArticleEditor />
+              }
+            />
             <Route path="/graphs/create" element={<GraphVisualization />} />
             <Route path="/graphs/:graphId" element={<GraphVisualization />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ErrorBoundary>
       </main>
+
+      {collaboration.isConnected && <GlobalCollaborationFeatures />}
     </div>
   );
 }
@@ -85,7 +99,9 @@ function AppContent () {
 function App () {
   return (
     <BrowserRouter>
-      <AppContent />
+      <CollaborationProvider>
+        <AppContent />
+      </CollaborationProvider>
     </BrowserRouter>
   );
 }

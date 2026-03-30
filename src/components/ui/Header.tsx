@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Network } from 'lucide-react';
+import { CollaborationControls } from '../collaboration';
 
 export function Header () {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export function Header () {
             <span className="font-bold text-xl tracking-tight">IN Gral</span>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <nav className="flex items-center gap-2">
               <button
                 onClick={() => navigate('/graphs/create')}
@@ -30,6 +31,8 @@ export function Header () {
               </Link>
 
             </nav>
+
+            <CollaborationControls />
           </div>
         </div>
       </div>

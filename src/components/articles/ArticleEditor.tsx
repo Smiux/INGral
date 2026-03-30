@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createArticle, getArticleBySlug, updateArticle } from '../../services/articleService';
 import { LatexEditor } from './LatexEditor';
@@ -6,6 +6,9 @@ import { TiptapEditor, TiptapEditorRef } from './TipTapEditor';
 import { EditorToolbar } from './EditorToolbar';
 import { DraftManager } from './DraftManager';
 import { CoverManager } from './CoverManager';
+import {
+  useCollaboration
+} from '../collaboration';
 
 import { createDraft, updateDraft, getDraftById, type ArticleDraft } from './draftUtils';
 import type { Editor } from '@tiptap/react';
@@ -109,9 +112,52 @@ export const ArticleEditor: React.FC = () => {
   const [showSummaryInput, setShowSummaryInput] = useState(false);
   const [summary, setSummary] = useState('');
 
+  const collaboration = useCollaboration();
+
+  const isLocalUpdateRef = useRef(false);
+
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (collaboration.isConnected && collaboration.meta) {
+      if (isLocalUpdateRef.current) {
+        isLocalUpdateRef.current = false;
+        return;
+      }
+      if (collaboration.meta.title && collaboration.meta.title !== state.title) {
+        isLocalUpdateRef.current = true;
+        setState(prev => ({ ...prev, 'title': collaboration.meta.title }));
+      }
+      if (collaboration.meta.summary !== undefined && collaboration.meta.summary !== summary) {
+        isLocalUpdateRef.current = true;
+        setSummary(collaboration.meta.summary);
+      }
+      if (collaboration.meta.tags && JSON.stringify(collaboration.meta.tags) !== JSON.stringify(tags)) {
+        isLocalUpdateRef.current = true;
+        setTags(collaboration.meta.tags);
+      }
+      if (collaboration.meta.coverImage !== undefined && collaboration.meta.coverImage !== coverImagePath) {
+        isLocalUpdateRef.current = true;
+        setCoverImagePath(collaboration.meta.coverImage);
+        setCoverImageModified(true);
+        if (collaboration.meta.coverImage) {
+          const byteString = atob(collaboration.meta.coverImage.split(',')[1] || '');
+          const mimeType = collaboration.meta.coverImage.split(',')[0]?.match(/:(.*?);/)?.[1] || 'image/png';
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i += 1) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+          const blob = new Blob([ab], { 'type': mimeType });
+          setCoverImage(blob);
+        } else {
+          setCoverImage(null);
+        }
+      }
+    }
+  }, [collaboration.meta, collaboration.isConnected, state.title, summary, tags, coverImagePath, coverImage]);
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -171,6 +217,8 @@ export const ArticleEditor: React.FC = () => {
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState(prev => ({ ...prev, 'title': e.target.value }));
+    isLocalUpdateRef.current = true;
+    collaboration.updateMeta({ 'title': e.target.value });
   };
 
   const handleSave = async () => {
@@ -396,32 +444,55 @@ export const ArticleEditor: React.FC = () => {
 
   const handleCoverChange = useCallback((file: File | Blob | null) => {
     if (file) {
-      const newCoverUrl = URL.createObjectURL(file);
-      setCoverImagePath(newCoverUrl);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Data = reader.result as string;
+        setCoverImagePath(base64Data);
+        collaboration.updateMeta({ 'coverImage': base64Data });
+      };
+      reader.readAsDataURL(file);
     } else {
       setCoverImagePath(null);
+      collaboration.updateMeta({ 'coverImage': null });
     }
     setCoverImage(file);
     setCoverImageModified(true);
     if (file === null && originalCoverImagePath) {
       setCoverImage(null);
     }
-  }, [originalCoverImagePath]);
+  }, [originalCoverImagePath, collaboration]);
 
   const handleAddTag = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
       const trimmedTag = tagInput.trim();
       if (!tags.includes(trimmedTag)) {
-        setTags(prev => [...prev, trimmedTag]);
+        const newTags = [...tags, trimmedTag];
+        setTags(newTags);
+        collaboration.updateMeta({ 'tags': newTags });
       }
       setTagInput('');
       setShowTagInput(false);
     }
-  }, [tagInput, tags]);
+  }, [tagInput, tags, collaboration]);
 
   const handleRemoveTag = useCallback((tagToRemove: string) => {
-    setTags(prev => prev.filter(tag => tag !== tagToRemove));
-  }, []);
+    const newTags = tags.filter(tag => tag !== tagToRemove);
+    setTags(newTags);
+    collaboration.updateMeta({ 'tags': newTags });
+  }, [tags, collaboration]);
+
+  const collaborationConfig = useMemo(() => {
+    if (collaboration.isConnected && collaboration.doc && collaboration.provider) {
+      return {
+        'provider': collaboration.provider,
+        'document': collaboration.doc,
+        'userName': collaboration.userName,
+        'userColor': collaboration.userColor,
+        'roomId': collaboration.roomId
+      };
+    }
+    return undefined;
+  }, [collaboration.isConnected, collaboration.doc, collaboration.provider, collaboration.userName, collaboration.userColor, collaboration.roomId]);
 
   return (
     <div className="min-h-screen">
@@ -748,7 +819,10 @@ export const ArticleEditor: React.FC = () => {
                 </label>
                 <textarea
                   value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
+                  onChange={(e) => {
+                    setSummary(e.target.value);
+                    collaboration.updateMeta({ 'summary': e.target.value });
+                  }}
                   placeholder="输入文章简介，用于在文章列表和卡片中展示..."
                   rows={3}
                   maxLength={200}
@@ -832,10 +906,12 @@ export const ArticleEditor: React.FC = () => {
               />
             </div>
             <TiptapEditor
+              key={collaborationConfig ? `collab-${collaboration.roomId}` : 'solo'}
               editorRef={editorRef}
               onCharacterCountChange={handleCharacterCountChange}
               onTableOfContentsChange={handleTableOfContentsChange}
               onEditorReady={handleEditorReady}
+              collaboration={collaborationConfig}
             />
           </div>
         </div>

@@ -29,6 +29,7 @@
     "@tiptap/extension-code-block": "^3.19.0",
     "@tiptap/extension-code-block-lowlight": "^3.19.0",
     "@tiptap/extension-collaboration": "^3.21.0",
+    "@tiptap/extension-collaboration-caret": "^3.21.0",
     "@tiptap/extension-drag-handle-react": "^3.19.0",
     "@tiptap/extension-file-handler": "^3.19.0",
     "@tiptap/extension-image": "^3.19.0",
@@ -48,6 +49,7 @@
     "@tiptap/y-tiptap": "^3.0.2",
     "@types/highlight.js": "^9.12.4",
     "@xyflow/react": "^12.10.0",
+    "@y/websocket-server": "^0.1.5",
     "elkjs": "^0.11.0",
     "highlight.js": "^11.11.1",
     "katex": "^0.16.28",
@@ -60,9 +62,7 @@
     "react-force-graph-3d": "^1.29.1",
     "react-router-dom": "^7.13.0",
     "web-worker": "^1.5.0",
-    "ws": "^8.20.0",
     "y-protocols": "^1.0.7",
-    "y-websocket": "^3.0.0",
     "yjs": "^13.6.30"
   },
   "devDependencies": {

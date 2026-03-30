@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -14,16 +14,27 @@ import InvisibleCharacters from '@tiptap/extension-invisible-characters';
 import { TextStyleKit } from '@tiptap/extension-text-style';
 import { BlockMath, InlineMath } from '@tiptap/extension-mathematics';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import Collaboration from '@tiptap/extension-collaboration';
+import CollaborationCaret from '@tiptap/extension-collaboration-caret';
 import 'katex/dist/katex.min.css';
 import NodeRange from '@tiptap/extension-node-range';
 import { TableOfContents, getHierarchicalIndexes } from '@tiptap/extension-table-of-contents';
 import { DragHandle as DragHandleReact } from '@tiptap/extension-drag-handle-react';
 import { GripVertical } from 'lucide-react';
 import { all, createLowlight } from 'lowlight';
+import * as Y from 'yjs';
 import { IframeEmbed } from './IframeEmbed';
 import { CollapsibleNode } from './CollapsibleNode';
 
 const lowlight = createLowlight(all);
+
+interface CollaborationProvider {
+  awareness: {
+    clientID: number;
+    getLocalState: () => Record<string, unknown> | null;
+    setLocalStateField: (key: string, value: unknown) => void;
+  };
+}
 
 const CustomCodeBlock = CodeBlockLowlight.extend({
   'renderHTML': () => {
@@ -56,6 +67,14 @@ export interface TiptapEditorRef {
   getEditor: () => Editor | null;
 }
 
+export interface CollaborationConfig {
+  provider: CollaborationProvider;
+  document: Y.Doc;
+  userName: string;
+  userColor: string;
+  roomId: string | null;
+}
+
 interface TiptapEditorProps {
   onCharacterCountChange?: (count: number) => void;
   onTableOfContentsChange?: (items: Array<{
@@ -69,6 +88,7 @@ interface TiptapEditorProps {
   editorRef?: React.RefObject<TiptapEditorRef | null>;
   editable?: boolean;
   content?: string;
+  collaboration?: CollaborationConfig | undefined;
 }
 
 const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
@@ -77,69 +97,87 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   onEditorReady,
   editorRef,
   editable = true,
-  content
+  content,
+  collaboration
 }) => {
+  const extensions = useMemo(() => [
+    StarterKit.configure({
+      'codeBlock': false,
+      'link': { 'openOnClick': false },
+      ...(collaboration?.provider ? { 'undoRedo': false } : {})
+    }),
+    TextStyleKit.configure({
+      'backgroundColor': { 'types': ['textStyle'] },
+      'color': { 'types': ['textStyle'] },
+      'fontFamily': { 'types': ['textStyle'] },
+      'fontSize': { 'types': ['textStyle', 'heading'] },
+      'lineHeight': { 'types': ['textStyle', 'heading', 'paragraph'] }
+    }),
+    SubscriptTiptap,
+    SuperscriptTiptap,
+    CustomCodeBlock.configure({
+      lowlight,
+      'enableTabIndentation': true,
+      'tabSize': 2
+    }),
+    Image.configure({
+      'allowBase64': true
+    }),
+    Audio.configure({
+      'allowBase64': true
+    }),
+    FileHandler.configure({
+      'onDrop': (editorInstance, files) => {
+        files.forEach((file) => handleFileInsert(editorInstance, file));
+      },
+      'onPaste': (editorInstance, files) => {
+        files.forEach((file) => handleFileInsert(editorInstance, file));
+      },
+      'allowedMimeTypes': [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/aac', 'audio/flac'
+      ]
+    }),
+    TableKit.configure({
+      'table': {
+        'resizable': true
+      }
+    }),
+    TextAlign.configure({ 'types': ['heading', 'paragraph'] }),
+    Typography,
+    InvisibleCharacters.configure({ 'visible': editable, 'injectCSS': true }),
+    InlineMath,
+    BlockMath,
+    NodeRange,
+    ...(onTableOfContentsChange ? [TableOfContents.configure({
+      'getIndex': getHierarchicalIndexes,
+      'onUpdate': onTableOfContentsChange
+    })] : []),
+    CharacterCount,
+    IframeEmbed,
+    CollapsibleNode,
+    ...(collaboration?.document ? [
+      Collaboration.configure({
+        'document': collaboration.document
+      })
+    ] : []),
+    ...(collaboration?.provider ? [
+      CollaborationCaret.configure({
+        'provider': collaboration.provider,
+        'user': {
+          'name': collaboration.userName,
+          'color': collaboration.userColor
+        }
+      })
+    ] : [])
+  ], [collaboration, editable, onTableOfContentsChange]);
+
   const editor = useEditor({
     'shouldRerenderOnTransaction': false,
     'immediatelyRender': true,
     editable,
     ...(content ? { content } : {}),
-    'extensions': [
-      StarterKit.configure({
-        'codeBlock': false,
-        'link': { 'openOnClick': false }
-      }),
-      TextStyleKit.configure({
-        'backgroundColor': { 'types': ['textStyle'] },
-        'color': { 'types': ['textStyle'] },
-        'fontFamily': { 'types': ['textStyle'] },
-        'fontSize': { 'types': ['textStyle', 'heading'] },
-        'lineHeight': { 'types': ['textStyle', 'heading', 'paragraph'] }
-      }),
-      SubscriptTiptap,
-      SuperscriptTiptap,
-      CustomCodeBlock.configure({
-        lowlight,
-        'enableTabIndentation': true,
-        'tabSize': 2
-      }),
-      Image.configure({
-        'allowBase64': true
-      }),
-      Audio.configure({
-        'allowBase64': true
-      }),
-      FileHandler.configure({
-        'onDrop': (editorInstance, files) => {
-          files.forEach((file) => handleFileInsert(editorInstance, file));
-        },
-        'onPaste': (editorInstance, files) => {
-          files.forEach((file) => handleFileInsert(editorInstance, file));
-        },
-        'allowedMimeTypes': [
-          'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-          'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/aac', 'audio/flac'
-        ]
-      }),
-      TableKit.configure({
-        'table': {
-          'resizable': true
-        }
-      }),
-      TextAlign.configure({ 'types': ['heading', 'paragraph'] }),
-      Typography,
-      InvisibleCharacters.configure({ 'visible': editable, 'injectCSS': true }),
-      InlineMath,
-      BlockMath,
-      NodeRange,
-      ...(onTableOfContentsChange ? [TableOfContents.configure({
-        'getIndex': getHierarchicalIndexes,
-        'onUpdate': onTableOfContentsChange
-      })] : []),
-      CharacterCount,
-      IframeEmbed,
-      CollapsibleNode
-    ],
+    extensions,
     'onUpdate': ({ 'editor': editorInstance }) => {
       onCharacterCountChange?.(editorInstance.storage.characterCount.characters());
     },
