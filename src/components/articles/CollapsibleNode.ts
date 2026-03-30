@@ -34,7 +34,7 @@ export const CollapsibleNode = Node.create<CollapsibleNodeOptions>({
   addAttributes () {
     return {
       'open': {
-        'default': true,
+        'default': false,
         'parseHTML': (element) => element.getAttribute('data-open') === 'true',
         'renderHTML': (attributes) => {
           return {
@@ -86,7 +86,7 @@ export const CollapsibleNode = Node.create<CollapsibleNodeOptions>({
             return commands.insertContent({
               'type': this.name,
               'attrs': {
-                'open': true,
+                'open': false,
                 'title': '折叠标题'
               },
               'content': [

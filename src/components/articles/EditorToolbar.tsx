@@ -26,7 +26,7 @@ const FONTS: Record<string, string> = {
   '思源黑体': '"Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif',
   '思源宋体': '"Source Han Serif SC", "Noto Serif CJK SC", "SimSun", serif'
 };
-const FONT_SIZES = ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'];
+const FONT_SIZES = ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '19px', '20px', '22px', '24px', '26px', '28px', '30px', '32px', '36px', '40px', '44px', '48px', '54px', '60px', '68px', '76px', '84px', '96px'];
 const LINE_HEIGHTS = ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.8', '2.0', '2.2', '2.4', '2.6', '2.8', '3.0'];
 
 interface ToolbarButtonProps {

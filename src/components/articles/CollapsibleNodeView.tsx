@@ -8,7 +8,7 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
   node,
   updateAttributes
 }) => {
-  const isOpen = node.attrs.open ?? true;
+  const isOpen = node.attrs.open ?? false;
   const title = node.attrs.title ?? DEFAULT_TITLE;
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(title);

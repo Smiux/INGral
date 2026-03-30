@@ -67,17 +67,23 @@ interface TiptapEditorProps {
   }>) => void;
   onEditorReady?: (editor: Editor) => void;
   editorRef?: React.RefObject<TiptapEditorRef | null>;
+  editable?: boolean;
+  content?: string;
 }
 
 const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   onCharacterCountChange,
   onTableOfContentsChange,
   onEditorReady,
-  editorRef
+  editorRef,
+  editable = true,
+  content
 }) => {
   const editor = useEditor({
     'shouldRerenderOnTransaction': false,
     'immediatelyRender': true,
+    editable,
+    ...(content ? { content } : {}),
     'extensions': [
       StarterKit.configure({
         'codeBlock': false,
@@ -122,7 +128,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
       }),
       TextAlign.configure({ 'types': ['heading', 'paragraph'] }),
       Typography,
-      InvisibleCharacters.configure({ 'visible': true, 'injectCSS': true }),
+      InvisibleCharacters.configure({ 'visible': editable, 'injectCSS': true }),
       InlineMath,
       BlockMath,
       NodeRange,
@@ -139,7 +145,9 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
     },
     'editorProps': {
       'attributes': {
-        'class': 'prose prose-lg max-w-none mx-auto p-12 md:p-16 focus:outline-none'
+        'class': editable
+          ? 'prose prose-lg max-w-none mx-auto p-12 md:p-16 focus:outline-none'
+          : 'prose prose-lg max-w-none mx-auto p-6 md:p-8'
       }
     }
   });
@@ -159,22 +167,27 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   }
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-b-lg border border-neutral-200 dark:border-neutral-700">
-      <DragHandleReact
-        editor={editor}
-        computePositionConfig={{
-          'placement': 'left',
-          'strategy': 'absolute',
-          'middleware': [{
-            'name': 'offset',
-            'fn': ({ x, y }) => ({ 'x': x - 20, y })
-          }]
-        }}
-      >
-        <div className="flex items-center justify-center w-5 h-5 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 cursor-move transition-colors">
-          <GripVertical size={16} />
-        </div>
-      </DragHandleReact>
+    <div className={editable
+      ? 'bg-white dark:bg-neutral-800 rounded-b-lg border border-neutral-200 dark:border-neutral-700'
+      : ''
+    }>
+      {editable && (
+        <DragHandleReact
+          editor={editor}
+          computePositionConfig={{
+            'placement': 'left',
+            'strategy': 'absolute',
+            'middleware': [{
+              'name': 'offset',
+              'fn': ({ x, y }) => ({ 'x': x - 20, y })
+            }]
+          }}
+        >
+          <div className="flex items-center justify-center w-5 h-5 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 cursor-move transition-colors">
+            <GripVertical size={16} />
+          </div>
+        </DragHandleReact>
+      )}
 
       <EditorContent
         editor={editor}

@@ -1,12 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, ListTree, Trash2, Edit3, Tag } from 'lucide-react';
-import katex from 'katex';
-import 'katex/dist/katex.min.css';
-import hljs from 'highlight.js';
-import { useIsMobile } from '@/hooks';
 import { getArticleBySlug, getCoverImageUrl, deleteArticle, type ArticleWithContent } from '../../services/articleService';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { TiptapEditor } from './TipTapEditor';
 
 interface TocItem {
   id: string;
@@ -50,9 +47,9 @@ export function ArticleViewer () {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [editorReady, setEditorReady] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!slug) {
@@ -71,12 +68,19 @@ export function ArticleViewer () {
     loadArticle();
   }, [slug]);
 
+  const handleEditorReady = () => {
+    setEditorReady(true);
+  };
+
   useEffect(() => {
-    if (!article?.content || !contentRef.current) {
+    if (!article?.content || !contentRef.current || !editorReady) {
       return;
     }
 
-    const headings = contentRef.current.querySelectorAll('h1, h2, h3');
+    const editorContainer = contentRef.current.querySelector('.ProseMirror');
+    const targetContainer = editorContainer || contentRef.current;
+
+    const headings = targetContainer.querySelectorAll('h1, h2, h3');
     const tocItems: TocItem[] = [];
 
     headings.forEach((heading, index) => {
@@ -95,153 +99,110 @@ export function ArticleViewer () {
 
     setTableOfContentsItems(tocItems);
 
-    const renderMath = () => {
-      if (!contentRef.current) {
+    const highlightSearchMatches = (): void => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const query = urlParams.get('q');
+      const matchIndex = parseInt(urlParams.get('match') || '0', 10);
+
+      if (!query) {
         return;
       }
 
-      const inlineMathElements = contentRef.current.querySelectorAll<HTMLElement>('[data-type="inline-math"]');
-      inlineMathElements.forEach((element) => {
-        const latex = element.getAttribute('data-latex');
-        if (latex) {
-          try {
-            katex.render(latex, element, {
-              'throwOnError': false,
-              'displayMode': false
-            });
-          } catch {
-            element.textContent = latex;
-          }
+      const highlightRegex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      const walker = document.createTreeWalker(
+        targetContainer,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      const textNodes: Text[] = [];
+      while (walker.nextNode()) {
+        textNodes.push(walker.currentNode as Text);
+      }
+
+      let currentMatchIndex = 0;
+
+      textNodes.forEach((textNode) => {
+        if (!textNode.textContent?.match(highlightRegex)) {
+          return;
         }
+        const parent2 = textNode.parentNode as HTMLElement | null;
+        if (!parent2 || parent2.tagName === 'MARK') {
+          return;
+        }
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+        const text = textNode.textContent || '';
+        let match: RegExpExecArray | null;
+        const regex = new RegExp(highlightRegex.source, 'gi');
+
+        while ((match = regex.exec(text)) !== null) {
+          if (match.index > lastIndex) {
+            fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+          }
+          const mark = document.createElement('mark');
+          mark.className = 'bg-yellow-200 dark:bg-yellow-600 text-inherit rounded px-0.5';
+          mark.textContent = match[0];
+          mark.setAttribute('data-match-index', currentMatchIndex.toString());
+          fragment.appendChild(mark);
+          currentMatchIndex += 1;
+          lastIndex = regex.lastIndex;
+        }
+        if (lastIndex < text.length) {
+          fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+        }
+        parent2.replaceChild(fragment, textNode);
       });
 
-      const blockMathElements = contentRef.current.querySelectorAll<HTMLElement>('[data-type="block-math"]');
-      blockMathElements.forEach((element) => {
-        const latex = element.getAttribute('data-latex');
-        if (latex) {
-          element.classList.add('tiptap-mathematics-render');
-          const inner = document.createElement('span');
-          inner.className = 'block-math-inner';
-          element.appendChild(inner);
-          try {
-            katex.render(latex, inner, {
-              'throwOnError': false,
-              'displayMode': true
-            });
-          } catch {
-            inner.textContent = latex;
-          }
+      setTimeout(() => {
+        const marks = targetContainer.querySelectorAll('mark[data-match-index]');
+        const targetMark = marks?.[matchIndex];
+        if (targetMark) {
+          targetMark.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
         }
-      });
+      }, 500);
     };
 
-    const highlightCode = () => {
-      if (!contentRef.current) {
+    highlightSearchMatches();
+  }, [article?.content, editorReady]);
+
+  useEffect(() => {
+    const handleHashChange = (): void => {
+      const hash = window.location.hash;
+      if (hash !== '#content-match') {
         return;
       }
 
-      contentRef.current.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block as HTMLElement);
-      });
+      const urlParams = new URLSearchParams(window.location.search);
+      const matchIndex = parseInt(urlParams.get('match') || '0', 10);
+
+      setTimeout(() => {
+        const editorContainer = contentRef.current?.querySelector('.ProseMirror');
+        const targetContainer = editorContainer || contentRef.current;
+        if (!targetContainer) {
+          return;
+        }
+        const marks = targetContainer.querySelectorAll('mark[data-match-index]');
+        const targetMark = marks?.[matchIndex];
+        if (targetMark) {
+          targetMark.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
+        }
+      }, 500);
     };
 
-    const initCollapsibleNodes = () => {
-      if (!contentRef.current) {
-        return;
-      }
-
-      const processCollapsibleNode = (node: HTMLElement): HTMLElement => {
-        const isOpen = node.getAttribute('data-open') === 'true';
-        const title = node.getAttribute('data-title') || '折叠标题';
-
-        const nestedCollapsibles = node.querySelectorAll<HTMLElement>('[data-collapsible]');
-        if (nestedCollapsibles && nestedCollapsibles.length > 0) {
-          nestedCollapsibles.forEach((nested) => {
-            if (nested.parentElement?.closest('[data-collapsible]') === node) {
-              const processed = processCollapsibleNode(nested);
-              nested.replaceWith(processed);
-            }
-          });
-        }
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'collapsible-node-wrapper my-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 overflow-hidden';
-        wrapper.setAttribute('data-open', String(isOpen));
-
-        const header = document.createElement('div');
-        header.className = 'collapsible-header flex items-center gap-2 px-4 py-3 cursor-pointer select-none bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors';
-
-        const icon = document.createElement('span');
-        icon.className = 'flex-shrink-0 text-neutral-500 dark:text-neutral-400 transition-transform duration-200';
-        icon.innerHTML = isOpen
-          ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>'
-          : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
-
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'flex-1 text-sm font-medium text-neutral-800 dark:text-neutral-200';
-        titleSpan.textContent = title;
-
-        header.appendChild(icon);
-        header.appendChild(titleSpan);
-
-        const contentWrapper = document.createElement('div');
-        contentWrapper.className = `collapsible-content-wrapper overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`;
-
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'collapsible-content px-4 py-3 border-t border-neutral-200 dark:border-neutral-700';
-
-        while (node.firstChild) {
-          contentDiv.appendChild(node.firstChild);
-        }
-
-        contentWrapper.appendChild(contentDiv);
-
-        wrapper.appendChild(header);
-        wrapper.appendChild(contentWrapper);
-
-        header.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const currentOpen = wrapper.getAttribute('data-open') === 'true';
-          const newOpen = !currentOpen;
-          wrapper.setAttribute('data-open', String(newOpen));
-          icon.innerHTML = newOpen
-            ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>'
-            : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
-          contentWrapper.className = `collapsible-content-wrapper overflow-hidden transition-all duration-300 ease-in-out ${newOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`;
-        });
-
-        return wrapper;
-      };
-
-      const topLevelCollapsibles = contentRef.current.querySelectorAll<HTMLElement>('[data-collapsible]');
-      const processed = new Set<HTMLElement>();
-
-      topLevelCollapsibles.forEach((node) => {
-        let parent = node.parentElement;
-        let isTopLevel = true;
-        while (parent && parent !== contentRef.current) {
-          if (parent.hasAttribute('data-collapsible')) {
-            isTopLevel = false;
-            break;
-          }
-          parent = parent.parentElement;
-        }
-
-        if (isTopLevel && !processed.has(node)) {
-          const wrapper = processCollapsibleNode(node);
-          node.replaceWith(wrapper);
-          processed.add(node);
-        }
-      });
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
     };
-
-    renderMath();
-    highlightCode();
-    initCollapsibleNodes();
-  }, [article?.content]);
+  }, []);
 
   const handleTocClick = (itemId: string) => {
-    const element = contentRef.current?.querySelector(`[data-toc-id="${itemId}"], #${itemId}`);
+    const editorContainer = contentRef.current?.querySelector('.ProseMirror');
+    const targetContainer = editorContainer || contentRef.current;
+    if (!targetContainer) {
+      return;
+    }
+    const element = targetContainer.querySelector(`[data-toc-id="${itemId}"], #${itemId}`);
     if (element) {
       element.scrollIntoView({ 'behavior': 'smooth' });
     }
@@ -344,27 +305,25 @@ export function ArticleViewer () {
       )}
 
       <div className="mb-6">
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="text-4xl font-bold text-neutral-800 dark:text-neutral-100">{article.title}</h1>
-          {!isMobile && (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => navigate(`/articles/${article.slug}/edit`)}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
-              >
-                <Edit3 className="w-4 h-4" />
-                编辑文章
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Trash2 className="w-4 h-4" />
-                {isDeleting ? '删除中...' : '删除文章'}
-              </button>
-            </div>
-          )}
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-neutral-800 dark:text-neutral-100 flex-1">{article.title}</h1>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => navigate(`/articles/${article.slug}/edit`)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
+            >
+              <Edit3 className="w-4 h-4" />
+              编辑文章
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 className="w-4 h-4" />
+              {isDeleting ? '删除中...' : '删除文章'}
+            </button>
+          </div>
         </div>
         <div className="flex flex-wrap gap-6 text-sm text-neutral-600 dark:text-neutral-400 mt-4">
           <div className="flex items-center gap-1">
@@ -423,13 +382,15 @@ export function ArticleViewer () {
         </aside>
       )}
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0" ref={contentRef}>
         <main className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
-          <div
-            ref={contentRef}
-            className="prose prose-lg max-w-none mx-auto p-6 md:p-8 [counter-reset:equation] dark:prose-invert"
-            dangerouslySetInnerHTML={{ '__html': article.content }}
-          />
+          {article.content && (
+            <TiptapEditor
+              editable={false}
+              content={article.content}
+              onEditorReady={handleEditorReady}
+            />
+          )}
         </main>
       </div>
 
