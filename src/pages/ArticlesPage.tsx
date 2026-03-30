@@ -1,7 +1,14 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Tag, Layout, List, AlignJustify, ChevronLeft, ChevronRight, X, Search, ChevronDown, ChevronUp } from 'lucide-react';
-import { getAllArticlesWithContent, getCoverImageUrl, type ArticleWithContent } from '../services/articleService';
+import {
+  getArticlesPaginated,
+  getAllArticles,
+  getArticlesContentBatch,
+  getCoverImageUrl,
+  type Article,
+  type ArticleWithContent
+} from '../services/articleService';
 
 interface SearchResult {
   article: ArticleWithContent;
@@ -198,20 +205,6 @@ function searchArticles (
   });
 
   return results;
-}
-
-function getAllUniqueTags (articles: ArticleWithContent[]): string[] {
-  const tagSet = new Set<string>();
-
-  articles.forEach((article) => {
-    if (article.tags) {
-      article.tags.forEach((tag) => {
-        tagSet.add(tag);
-      });
-    }
-  });
-
-  return Array.from(tagSet).sort((a, b) => a.localeCompare(b, 'zh-CN'));
 }
 
 function formatDate (dateStr: string | null | undefined): string {
@@ -560,8 +553,11 @@ const ARTICLES_PER_PAGE = 20;
 
 export function ArticlesPage (): JSX.Element {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [articles, setArticles] = useState<ArticleWithContent[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [allArticlesForSearch, setAllArticlesForSearch] = useState<Article[]>([]);
+  const [articlesWithContent, setArticlesWithContent] = useState<Map<string, string>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingAllArticles, setIsLoadingAllArticles] = useState(false);
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
   const [selectedTags, setSelectedTags] = useState<string[]>(() => {
     const tagsParam = searchParams.get('tags');
@@ -569,15 +565,37 @@ export function ArticlesPage (): JSX.Element {
   });
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('comfortable');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalArticles, setTotalArticles] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [jumpPageInput, setJumpPageInput] = useState('');
   const [tagSearchQuery, setTagSearchQuery] = useState('');
   const [showAllTags, setShowAllTags] = useState(false);
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const [allTags, setAllTags] = useState<string[]>([]);
+
+  const loadArticles = useCallback(async (page: number) => {
+    setIsLoading(true);
+    try {
+      const result = await getArticlesPaginated(page, ARTICLES_PER_PAGE);
+      setArticles(result.articles);
+      setTotalArticles(result.total);
+      setTotalPages(result.totalPages);
+
+      const tagSet = new Set<string>();
+      result.articles.forEach((article) => {
+        if (article.tags) {
+          article.tags.forEach((tag) => tagSet.add(tag));
+        }
+      });
+      setAllTags(Array.from(tagSet).sort((a, b) => a.localeCompare(b, 'zh-CN')));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    getAllArticlesWithContent()
-      .then(setArticles)
-      .finally(() => setIsLoading(false));
-  }, []);
+    loadArticles(currentPage);
+  }, [currentPage, loadArticles]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -590,8 +608,6 @@ export function ArticlesPage (): JSX.Element {
     setSearchParams(params, { 'replace': true });
   }, [searchQuery, selectedTags, setSearchParams]);
 
-  const allTags = useMemo(() => getAllUniqueTags(articles), [articles]);
-
   const filteredTags = useMemo(() => {
     if (!tagSearchQuery.trim()) {
       return allTags;
@@ -602,21 +618,69 @@ export function ArticlesPage (): JSX.Element {
 
   const displayTags = showAllTags ? filteredTags : filteredTags.slice(0, 10);
 
+  const loadContentForSearch = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      return;
+    }
+
+    setIsLoadingContent(true);
+    setIsLoadingAllArticles(true);
+    try {
+      let articlesToSearch = allArticlesForSearch;
+
+      if (articlesToSearch.length === 0) {
+        articlesToSearch = await getAllArticles();
+        setAllArticlesForSearch(articlesToSearch);
+      }
+
+      const articleIds = articlesToSearch.map(a => a.id);
+      const contentMap = await getArticlesContentBatch(articleIds);
+      setArticlesWithContent(contentMap);
+    } finally {
+      setIsLoadingContent(false);
+      setIsLoadingAllArticles(false);
+    }
+  }, [allArticlesForSearch]);
+
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      loadContentForSearch(searchQuery);
+    }
+  }, [searchQuery, loadContentForSearch]);
+
   const searchResults = useMemo(() => {
-    return searchArticles(articles, {
+    const articlesToSearch = searchQuery.trim() || selectedTags.length > 0
+      ? allArticlesForSearch
+      : articles;
+
+    const articlesWithContentLoaded = articlesToSearch.map(article => ({
+      ...article,
+      'content': articlesWithContent.get(article.id) || ''
+    }));
+
+    return searchArticles(articlesWithContentLoaded, {
       'query': searchQuery,
       'tags': selectedTags
     });
-  }, [articles, searchQuery, selectedTags]);
+  }, [articles, allArticlesForSearch, articlesWithContent, searchQuery, selectedTags]);
 
-  const totalPages = Math.ceil(searchResults.length / ARTICLES_PER_PAGE);
+  const displayTotalPages = searchQuery.trim() || selectedTags.length > 0
+    ? Math.ceil(searchResults.length / ARTICLES_PER_PAGE)
+    : totalPages;
+
   const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
   const endIndex = startIndex + ARTICLES_PER_PAGE;
-  const currentResults = searchResults.slice(startIndex, endIndex);
+  const currentResults = searchQuery.trim() || selectedTags.length > 0
+    ? searchResults.slice(startIndex, endIndex)
+    : searchResults;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
+    if (!e.target.value.trim()) {
+      setArticlesWithContent(new Map());
+      setAllArticlesForSearch([]);
+    }
   };
 
   const handleTagClick = useCallback((tag: string) => {
@@ -652,15 +716,17 @@ export function ArticlesPage (): JSX.Element {
     setSelectedTags([]);
     setSearchQuery('');
     setCurrentPage(1);
+    setArticlesWithContent(new Map());
+    setAllArticlesForSearch([]);
   }, []);
 
   const handleJumpToPage = useCallback(() => {
     const page = parseInt(jumpPageInput, 10);
-    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+    if (!isNaN(page) && page >= 1 && page <= displayTotalPages) {
       setCurrentPage(page);
       setJumpPageInput('');
     }
-  }, [jumpPageInput, totalPages]);
+  }, [jumpPageInput, displayTotalPages]);
 
   const handleJumpInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -685,7 +751,7 @@ export function ArticlesPage (): JSX.Element {
     const pageNumbers = [];
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    const endPage = Math.min(displayTotalPages, startPage + maxVisiblePages - 1);
 
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
@@ -698,7 +764,22 @@ export function ArticlesPage (): JSX.Element {
     return (
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-neutral-200 dark:border-neutral-700">
         <div className="text-sm text-neutral-500 dark:text-neutral-400">
-          显示 {startIndex + 1}-{Math.min(endIndex, searchResults.length)} 条，共 {searchResults.length} 条
+          {(() => {
+            const displayCount = searchQuery.trim() || selectedTags.length > 0
+              ? searchResults.length
+              : totalArticles;
+            return (
+              <>
+                显示 {startIndex + 1}-{Math.min(endIndex, displayCount)} 条，共 {displayCount} 条
+              </>
+            );
+          })()}
+          {isLoadingAllArticles && (
+            <span className="ml-2 text-sky-500">(正在加载所有文章进行搜索...)</span>
+          )}
+          {isLoadingContent && !isLoadingAllArticles && (
+            <span className="ml-2 text-sky-500">(正在加载文章内容...)</span>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -738,23 +819,23 @@ export function ArticlesPage (): JSX.Element {
             </button>
           ))}
 
-          {endPage < totalPages && (
+          {endPage < displayTotalPages && (
             <>
-              {endPage < totalPages - 1 && (
+              {endPage < displayTotalPages - 1 && (
                 <span className="text-neutral-400 dark:text-neutral-500">...</span>
               )}
               <button
-                onClick={() => setCurrentPage(totalPages)}
+                onClick={() => setCurrentPage(displayTotalPages)}
                 className="px-3 py-2 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
-                {totalPages}
+                {displayTotalPages}
               </button>
             </>
           )}
 
           <button
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(Math.min(displayTotalPages, currentPage + 1))}
+            disabled={currentPage === displayTotalPages}
             className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
@@ -766,7 +847,7 @@ export function ArticlesPage (): JSX.Element {
           <input
             type="number"
             min={1}
-            max={totalPages}
+            max={displayTotalPages}
             value={jumpPageInput}
             onChange={(e) => setJumpPageInput(e.target.value)}
             onKeyDown={handleJumpInputKeyDown}
@@ -785,10 +866,13 @@ export function ArticlesPage (): JSX.Element {
   };
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading || isLoadingAllArticles) {
       return (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mb-4"></div>
+          <p className="text-neutral-600 dark:text-neutral-400">
+            {isLoadingAllArticles ? '正在加载所有文章进行搜索...' : '加载中...'}
+          </p>
         </div>
       );
     }
@@ -799,7 +883,7 @@ export function ArticlesPage (): JSX.Element {
           <div className={layoutMode === 'dense' ? 'space-y-3' : 'space-y-6'}>
             {currentResults.map(renderArticle)}
           </div>
-          {totalPages > 1 && renderPagination()}
+          {displayTotalPages > 1 && renderPagination()}
         </>
       );
     }

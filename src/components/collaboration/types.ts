@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import { SupabaseProvider } from './SupabaseProvider';
+import { SupabaseProvider, ConnectionStatus } from './SupabaseProvider';
 
 export interface Collaborator {
   id: string;
@@ -23,6 +23,7 @@ export interface ChatMessage {
 export interface CollaborationState {
   isConnected: boolean;
   isConnecting: boolean;
+  connectionStatus: ConnectionStatus;
   roomId: string | null;
   userName: string;
   userId: string;

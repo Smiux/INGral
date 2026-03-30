@@ -7,7 +7,8 @@ import { EditorToolbar } from './EditorToolbar';
 import { DraftManager } from './DraftManager';
 import { CoverManager } from './CoverManager';
 import {
-  useCollaboration
+  useCollaboration,
+  CollaborationPanel
 } from '../collaboration';
 
 import { createDraft, updateDraft, getDraftById, type ArticleDraft } from './draftUtils';
@@ -15,7 +16,7 @@ import type { Editor } from '@tiptap/react';
 import {
   Save,
   MessageCircle,
-  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag
+  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, AlertTriangle, RefreshCw
 } from 'lucide-react';
 
 interface EditorState {
@@ -119,6 +120,7 @@ export const ArticleEditor: React.FC = () => {
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+  const [showCollabPanel, setShowCollabPanel] = useState(false);
 
   useEffect(() => {
     if (collaboration.isConnected && collaboration.meta) {
@@ -494,6 +496,22 @@ export const ArticleEditor: React.FC = () => {
     return undefined;
   }, [collaboration.isConnected, collaboration.doc, collaboration.provider, collaboration.userName, collaboration.userColor, collaboration.roomId]);
 
+  const getCollabStatusIcon = useCallback(() => {
+    if (collaboration.connectionStatus === 'reconnecting') {
+      return <RefreshCw size={16} className="mr-2 text-orange-500 animate-spin" />;
+    }
+    if (collaboration.connectionStatus === 'error') {
+      return <AlertTriangle size={16} className="mr-2 text-red-500" />;
+    }
+    if (collaboration.isConnecting) {
+      return <Loader2 size={16} className="mr-2 text-sky-400 animate-spin" />;
+    }
+    if (collaboration.isConnected) {
+      return <Wifi size={16} className="mr-2 text-green-500" />;
+    }
+    return <Users size={16} className="mr-2 text-sky-400" />;
+  }, [collaboration.connectionStatus, collaboration.isConnecting, collaboration.isConnected]);
+
   return (
     <div className="min-h-screen">
       {isLoadingArticle && (
@@ -696,6 +714,13 @@ export const ArticleEditor: React.FC = () => {
             </button>
 
             <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowCollabPanel(true)}
+                className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
+              >
+                {getCollabStatusIcon()}
+                协作
+              </button>
               <button
                 onClick={handleOpenCoverManager}
                 className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
@@ -916,6 +941,8 @@ export const ArticleEditor: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <CollaborationPanel isOpen={showCollabPanel} onClose={() => setShowCollabPanel(false)} />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch } from 'lucide-react';
+import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch, Users, Wifi, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
+import { useCollaboration, CollaborationPanel } from '../../collaboration';
 
 interface GraphToolbarProps {
   onAddNode: () => void;
@@ -122,6 +123,8 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
     'tools': false,
     'view': false
   });
+  const [showCollabPanel, setShowCollabPanel] = useState(false);
+  const { isConnected, isConnecting, connectionStatus } = useCollaboration();
 
   const toggleGroup = useCallback((group: 'edit' | 'tools' | 'view') => {
     setCollapsedGroups(prev => ({ ...prev, [group]: !prev[group] }));
@@ -144,133 +147,163 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
     }
   }, []);
 
+  const getCollabStatusIcon = () => {
+    if (connectionStatus === 'reconnecting') {
+      return <RefreshCw size={16} className="animate-spin text-orange-500" />;
+    }
+    if (connectionStatus === 'error') {
+      return <AlertTriangle size={16} className="text-red-500" />;
+    }
+    if (isConnecting) {
+      return <Loader2 size={16} className="animate-spin text-sky-400" />;
+    }
+    if (isConnected) {
+      return <Wifi size={16} className="text-green-500" />;
+    }
+    return <Users size={16} className="text-sky-400" />;
+  };
+
   return (
-    <div className="flex items-center gap-1 flex-grow justify-center flex-wrap p-1">
-      <ToggleGroup
-        label="编辑操作"
-        isCollapsed={collapsedGroups.edit}
-        collapsedIcon={<Edit3 size={16} />}
-        expandedIcon={<ChevronDown size={16} />}
-        onToggle={() => toggleGroup('edit')}
-      >
-        <div className="flex items-center gap-0.5">
-          <ToolbarButton
-            icon={<Undo size={16} />}
-            title="撤销 (Ctrl+Z)"
-            isDisabled={!canUndo}
-            onClick={onUndo}
-          />
-          <ToolbarButton
-            icon={<Redo size={16} />}
-            title="重做 (Ctrl+Y)"
-            isDisabled={!canRedo}
-            onClick={onRedo}
-          />
-          <ToolbarButton
-            icon={<Plus size={16} />}
-            title="创建节点"
-            onClick={onAddNode}
-          />
-        </div>
-      </ToggleGroup>
+    <>
+      <div className="flex items-center gap-1 flex-grow justify-center flex-wrap p-1">
+        <ToggleGroup
+          label="编辑操作"
+          isCollapsed={collapsedGroups.edit}
+          collapsedIcon={<Edit3 size={16} />}
+          expandedIcon={<ChevronDown size={16} />}
+          onToggle={() => toggleGroup('edit')}
+        >
+          <div className="flex items-center gap-0.5">
+            <ToolbarButton
+              icon={<Undo size={16} />}
+              title="撤销 (Ctrl+Z)"
+              isDisabled={!canUndo}
+              onClick={onUndo}
+            />
+            <ToolbarButton
+              icon={<Redo size={16} />}
+              title="重做 (Ctrl+Y)"
+              isDisabled={!canRedo}
+              onClick={onRedo}
+            />
+            <ToolbarButton
+              icon={<Plus size={16} />}
+              title="创建节点"
+              onClick={onAddNode}
+            />
+          </div>
+        </ToggleGroup>
 
-      <ToggleGroup
-        label="工具"
-        isCollapsed={collapsedGroups.tools}
-        collapsedIcon={<Layers size={16} />}
-        expandedIcon={<ChevronDown size={16} />}
-        onToggle={() => toggleGroup('tools')}
-        isReactFlowOnly
-        viewMode={viewMode}
-      >
-        <div className="flex items-center gap-0.5">
-          <ToolbarButton
-            icon={<Layout size={16} />}
-            title="布局管理"
-            isActive={isLayoutPanelOpen}
-            onClick={onToggleLayoutPanel}
-          />
-          <ToolbarButton
-            icon={<Sparkles size={16} />}
-            title="图生成"
-            isActive={isGenerationPanelOpen}
-            onClick={onToggleGenerationPanel}
-          />
-          <ToolbarButton
-            icon={<GitBranch size={16} />}
-            title="图管理"
-            isActive={isManagementPanelOpen}
-            onClick={onToggleManagementPanel}
-          />
-          <ToolbarButton
-            icon={<Download size={16} />}
-            title="导入导出"
-            isActive={isImportExportPanelOpen}
-            onClick={onToggleImportExportPanel}
-          />
-        </div>
-      </ToggleGroup>
+        <ToggleGroup
+          label="工具"
+          isCollapsed={collapsedGroups.tools}
+          collapsedIcon={<Layers size={16} />}
+          expandedIcon={<ChevronDown size={16} />}
+          onToggle={() => toggleGroup('tools')}
+          isReactFlowOnly
+          viewMode={viewMode}
+        >
+          <div className="flex items-center gap-0.5">
+            <ToolbarButton
+              icon={<Layout size={16} />}
+              title="布局管理"
+              isActive={isLayoutPanelOpen}
+              onClick={onToggleLayoutPanel}
+            />
+            <ToolbarButton
+              icon={<Sparkles size={16} />}
+              title="图生成"
+              isActive={isGenerationPanelOpen}
+              onClick={onToggleGenerationPanel}
+            />
+            <ToolbarButton
+              icon={<GitBranch size={16} />}
+              title="图管理"
+              isActive={isManagementPanelOpen}
+              onClick={onToggleManagementPanel}
+            />
+            <ToolbarButton
+              icon={<Download size={16} />}
+              title="导入导出"
+              isActive={isImportExportPanelOpen}
+              onClick={onToggleImportExportPanel}
+            />
+          </div>
+        </ToggleGroup>
 
-      <ToggleGroup
-        label="视图控制"
-        isCollapsed={collapsedGroups.view}
-        collapsedIcon={<View size={16} />}
-        expandedIcon={<ChevronDown size={16} />}
-        onToggle={() => toggleGroup('view')}
-        isReactFlowOnly
-        viewMode={viewMode}
-      >
-        <div className="flex items-center gap-0.5">
-          <ToolbarButton
-            icon={<Grid3x3 size={16} />}
-            title={snapToGrid ? '关闭网格对齐' : '开启网格对齐'}
-            isActive={snapToGrid}
-            onClick={onToggleSnapToGrid}
-          />
-          <ToolbarButton
-            icon={<ZoomIn size={16} />}
-            title="放大"
-            onClick={() => reactFlowInstance.zoomIn()}
-          />
-          <ToolbarButton
-            icon={<ZoomOut size={16} />}
-            title="缩小"
-            onClick={() => reactFlowInstance.zoomOut()}
-          />
-          <ToolbarButton
-            icon={<ZoomIn size={16} className="rotate-45" />}
-            title="重置缩放"
-            onClick={() => reactFlowInstance.zoomTo(1)}
-          />
-          <ToolbarButton
-            icon={<Crosshair size={16} />}
-            title="中心对齐"
-            onClick={handleFitView}
-          />
-          <ToolbarButton
-            icon={<Maximize2 size={16} className="rotate-45" />}
-            title="全屏"
-            onClick={handleToggleFullscreen}
-          />
-        </div>
-      </ToggleGroup>
+        <ToggleGroup
+          label="视图控制"
+          isCollapsed={collapsedGroups.view}
+          collapsedIcon={<View size={16} />}
+          expandedIcon={<ChevronDown size={16} />}
+          onToggle={() => toggleGroup('view')}
+          isReactFlowOnly
+          viewMode={viewMode}
+        >
+          <div className="flex items-center gap-0.5">
+            <ToolbarButton
+              icon={<Grid3x3 size={16} />}
+              title={snapToGrid ? '关闭网格对齐' : '开启网格对齐'}
+              isActive={snapToGrid}
+              onClick={onToggleSnapToGrid}
+            />
+            <ToolbarButton
+              icon={<ZoomIn size={16} />}
+              title="放大"
+              onClick={() => reactFlowInstance.zoomIn()}
+            />
+            <ToolbarButton
+              icon={<ZoomOut size={16} />}
+              title="缩小"
+              onClick={() => reactFlowInstance.zoomOut()}
+            />
+            <ToolbarButton
+              icon={<ZoomIn size={16} className="rotate-45" />}
+              title="重置缩放"
+              onClick={() => reactFlowInstance.zoomTo(1)}
+            />
+            <ToolbarButton
+              icon={<Crosshair size={16} />}
+              title="中心对齐"
+              onClick={handleFitView}
+            />
+            <ToolbarButton
+              icon={<Maximize2 size={16} className="rotate-45" />}
+              title="全屏"
+              onClick={handleToggleFullscreen}
+            />
+          </div>
+        </ToggleGroup>
 
-      <div className="flex items-center gap-0.5 bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
-        {[
-          { 'mode': 'reactflow', 'icon': <Home size={16} />, 'title': 'React Flow渲染' },
-          { 'mode': 'forcegraph2d', 'icon': <Network size={16} />, 'title': 'Force Graph 2D渲染' },
-          { 'mode': 'forcegraph3d', 'icon': <Box size={16} />, 'title': 'Force Graph 3D渲染' }
-        ].map(({ mode, icon, title }) => (
-          <ToolbarButton
-            key={mode}
-            icon={icon}
-            title={title}
-            isActive={viewMode === mode}
-            onClick={() => onSetViewMode(mode as 'reactflow' | 'forcegraph2d' | 'forcegraph3d')}
-          />
-        ))}
+        <div className="flex items-center gap-0.5 bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
+          {[
+            { 'mode': 'reactflow', 'icon': <Home size={16} />, 'title': 'React Flow渲染' },
+            { 'mode': 'forcegraph2d', 'icon': <Network size={16} />, 'title': 'Force Graph 2D渲染' },
+            { 'mode': 'forcegraph3d', 'icon': <Box size={16} />, 'title': 'Force Graph 3D渲染' }
+          ].map(({ mode, icon, title }) => (
+            <ToolbarButton
+              key={mode}
+              icon={icon}
+              title={title}
+              isActive={viewMode === mode}
+              onClick={() => onSetViewMode(mode as 'reactflow' | 'forcegraph2d' | 'forcegraph3d')}
+            />
+          ))}
+        </div>
+
+        <div className="flex items-center bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
+          <button
+            onClick={() => setShowCollabPanel(true)}
+            className="flex items-center justify-center w-12 h-12 rounded-md transition-all hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400"
+            title="协作"
+          >
+            {getCollabStatusIcon()}
+          </button>
+        </div>
       </div>
-    </div>
+
+      <CollaborationPanel isOpen={showCollabPanel} onClose={() => setShowCollabPanel(false)} />
+    </>
   );
 });
 

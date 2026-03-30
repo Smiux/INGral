@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { CollaborationContext } from './CollaborationContext';
+import { CollaborationContext } from './CollaborationContextDef';
 import type { CollaborationContextValue } from './types';
 
 export function useCollaboration (): CollaborationContextValue {

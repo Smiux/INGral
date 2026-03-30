@@ -5,4 +5,5 @@ export { GlobalCollaborationFeatures } from './GlobalCollaborationFeatures';
 export { PageLeaveToast } from './PageLeaveToast';
 export { useCollaboration, useCollaborationOptional } from './useCollaboration';
 export { useCollaborationSettings } from './useCollaborationSettings';
+export type { ConnectionStatus } from './SupabaseProvider';
 export * from './types';

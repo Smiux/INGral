@@ -1,6 +1,6 @@
-import React, { createContext, useCallback, useRef, useMemo, useState } from 'react';
+import React, { useCallback, useRef, useMemo, useState } from 'react';
 import * as Y from 'yjs';
-import { SupabaseProvider } from './SupabaseProvider';
+import { SupabaseProvider, ConnectionStatus } from './SupabaseProvider';
 import {
   CollaborationContextValue,
   CollaborationState,
@@ -9,8 +9,17 @@ import {
   generateUserId
 } from './types';
 import { useCollaborationSettings } from './useCollaborationSettings';
+import { CollaborationContext } from './CollaborationContextDef';
 
-const CollaborationContext = createContext<CollaborationContextValue | null>(null);
+interface AwarenessUserState {
+  id: string;
+  name: string;
+  color: string;
+  cursorPosition?: number | undefined;
+  mousePosition?: { x: number; y: number } | null | undefined;
+  currentPath?: string | null | undefined;
+  lastActive: number;
+}
 
 interface CollaborationProviderProps {
   children: React.ReactNode;
@@ -33,6 +42,7 @@ export function CollaborationProvider ({
   const initialState = useMemo<CollaborationState>(() => ({
     'isConnected': false,
     'isConnecting': false,
+    'connectionStatus': 'disconnected' as ConnectionStatus,
     'roomId': null,
     userName,
     'userId': generateUserId(),
@@ -54,6 +64,22 @@ export function CollaborationProvider ({
   const awarenessRef = useRef<SupabaseProvider['awareness'] | null>(null);
   const chatMapRef = useRef<Y.Map<string> | null>(null);
   const metaMapRef = useRef<Y.Map<unknown> | null>(null);
+  const currentUserStateRef = useRef<AwarenessUserState | null>(null);
+
+  const updateAwarenessState = useCallback((updates: Partial<AwarenessUserState>) => {
+    if (!currentUserStateRef.current) {
+      return;
+    }
+    currentUserStateRef.current = {
+      ...currentUserStateRef.current,
+      ...updates,
+      'lastActive': Date.now()
+    };
+
+    if (awarenessRef.current) {
+      awarenessRef.current.setLocalStateField('user', currentUserStateRef.current);
+    }
+  }, []);
 
   const cleanup = useCallback(() => {
     if (providerRef.current) {
@@ -70,7 +96,7 @@ export function CollaborationProvider ({
   const connect = useCallback((roomId: string) => {
     cleanup();
 
-    setState((prev) => ({ ...prev, 'isConnecting': true, 'error': null, roomId }));
+    setState((prev) => ({ ...prev, 'isConnecting': true, 'error': null, roomId, 'connectionStatus': 'connecting' }));
 
     const newDoc = new Y.Doc();
     const newProvider = new SupabaseProvider(newDoc, {
@@ -86,18 +112,25 @@ export function CollaborationProvider ({
     chatMapRef.current = newDoc.getMap('chat');
     metaMapRef.current = newDoc.getMap('meta');
 
-    newProvider.awareness.setLocalStateField('user', {
+    currentUserStateRef.current = {
       'id': state.userId,
       'name': userName,
       'color': userColor,
-      'cursorPosition': null,
-      'mousePosition': null,
-      'currentPath': null,
+      'cursorPosition': undefined,
+      'mousePosition': undefined,
+      'currentPath': undefined,
       'lastActive': Date.now()
-    });
+    };
 
-    newProvider.setStatusCallback(() => {
-      setState((prev) => ({ ...prev, 'isConnected': true, 'isConnecting': false }));
+    newProvider.awareness.setLocalStateField('user', currentUserStateRef.current);
+
+    newProvider.setStatusCallback((status) => {
+      setState((prev) => ({
+        ...prev,
+        'isConnected': status.connected,
+        'isConnecting': !status.connected && status.connectionStatus === 'connecting',
+        'connectionStatus': status.connectionStatus || 'disconnected'
+      }));
     });
 
     newProvider.on('awareness', () => {
@@ -108,16 +141,6 @@ export function CollaborationProvider ({
 
       const states = awareness.getStates();
       const collaborators: Collaborator[] = [];
-
-      type AwarenessUserState = {
-        id: string;
-        name: string;
-        color: string;
-        cursorPosition?: number;
-        mousePosition?: { x: number; y: number } | null;
-        currentPath?: string | null;
-        lastActive: number;
-      };
 
       states.forEach((awarenessState: { user?: AwarenessUserState }, clientId: number) => {
         if (clientId !== awareness.clientID && awarenessState.user) {
@@ -195,6 +218,7 @@ export function CollaborationProvider ({
       ...prev,
       'isConnected': false,
       'isConnecting': false,
+      'connectionStatus': 'disconnected',
       'roomId': null,
       'collaborators': [],
       'messages': []
@@ -203,29 +227,13 @@ export function CollaborationProvider ({
 
   const setUserName = useCallback((name: string) => {
     setState((prev) => ({ ...prev, 'userName': name }));
-    if (awarenessRef.current) {
-      awarenessRef.current.setLocalStateField('user', {
-        'id': state.userId,
-        name,
-        'color': state.userColor,
-        'cursorPosition': null,
-        'lastActive': Date.now()
-      });
-    }
-  }, [state.userId, state.userColor]);
+    updateAwarenessState({ name });
+  }, [updateAwarenessState]);
 
   const setUserColor = useCallback((color: string) => {
     setState((prev) => ({ ...prev, 'userColor': color }));
-    if (awarenessRef.current) {
-      awarenessRef.current.setLocalStateField('user', {
-        'id': state.userId,
-        'name': state.userName,
-        color,
-        'cursorPosition': null,
-        'lastActive': Date.now()
-      });
-    }
-  }, [state.userId, state.userName]);
+    updateAwarenessState({ color });
+  }, [updateAwarenessState]);
 
   const sendMessage = useCallback((content: string) => {
     if (!chatMapRef.current || !content.trim()) {
@@ -246,40 +254,16 @@ export function CollaborationProvider ({
   }, [state.userId, state.userName, state.userColor]);
 
   const updateCursorPosition = useCallback((position: number) => {
-    if (awarenessRef.current) {
-      awarenessRef.current.setLocalStateField('user', {
-        'id': state.userId,
-        'name': state.userName,
-        'color': state.userColor,
-        'cursorPosition': position,
-        'lastActive': Date.now()
-      });
-    }
-  }, [state.userId, state.userName, state.userColor]);
+    updateAwarenessState({ 'cursorPosition': position });
+  }, [updateAwarenessState]);
 
   const updateMousePosition = useCallback((position: { x: number; y: number } | null) => {
-    if (awarenessRef.current) {
-      awarenessRef.current.setLocalStateField('user', {
-        'id': state.userId,
-        'name': state.userName,
-        'color': state.userColor,
-        'mousePosition': position,
-        'lastActive': Date.now()
-      });
-    }
-  }, [state.userId, state.userName, state.userColor]);
+    updateAwarenessState({ 'mousePosition': position });
+  }, [updateAwarenessState]);
 
   const updateCurrentPath = useCallback((path: string | null) => {
-    if (awarenessRef.current) {
-      awarenessRef.current.setLocalStateField('user', {
-        'id': state.userId,
-        'name': state.userName,
-        'color': state.userColor,
-        'currentPath': path,
-        'lastActive': Date.now()
-      });
-    }
-  }, [state.userId, state.userName, state.userColor]);
+    updateAwarenessState({ 'currentPath': path });
+  }, [updateAwarenessState]);
 
   const updateMeta = useCallback((meta: Partial<CollaborationState['meta']>) => {
     if (!metaMapRef.current) {
@@ -320,5 +304,3 @@ export function CollaborationProvider ({
     </CollaborationContext.Provider>
   );
 }
-
-export { CollaborationContext };

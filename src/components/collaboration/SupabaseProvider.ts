@@ -8,6 +8,11 @@ const AWARENESS_EVENT = 'awareness-update';
 const SYNC_REQUEST_EVENT = 'sync-request';
 const SYNC_RESPONSE_EVENT = 'sync-response';
 
+const RECONNECT_DELAY = 1000;
+const MAX_RECONNECT_DELAY = 30000;
+
+export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'error';
+
 export class SupabaseProvider {
   awareness: Awareness;
 
@@ -17,11 +22,19 @@ export class SupabaseProvider {
 
   private isDestroyed = false;
 
-  private statusCallback: ((status: { connected: boolean }) => void) | null = null;
+  private statusCallback: ((status: { connected: boolean; connectionStatus?: ConnectionStatus }) => void) | null = null;
 
   private pendingUpdates: Uint8Array[] = [];
 
   private syncedCallback: (() => void) | null = null;
+
+  private channelName: string;
+
+  private reconnectAttempts = 0;
+
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  private connectionStatus: ConnectionStatus = 'disconnected';
 
   constructor (doc: Y.Doc, options: {
     channel: string;
@@ -29,13 +42,18 @@ export class SupabaseProvider {
   }) {
     this.doc = doc;
     this.awareness = new Awareness(doc);
+    this.channelName = options.channel;
 
-    this.initChannel(options.channel);
+    this.initChannel();
     this.initDocumentListener();
   }
 
-  private initChannel (channelName: string) {
-    this.channel = supabase.channel(`collaboration:${channelName}`, {
+  private initChannel () {
+    this.clearReconnectTimeout();
+    this.connectionStatus = 'connecting';
+    this.notifyStatusChange(false, 'connecting');
+
+    this.channel = supabase.channel(this.channelName, {
       'config': {
         'broadcast': { 'self': false, 'ack': true }
       }
@@ -84,11 +102,74 @@ export class SupabaseProvider {
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          this.statusCallback?.({ 'connected': true });
+          this.connectionStatus = 'connected';
+          this.reconnectAttempts = 0;
+          this.statusCallback?.({ 'connected': true, 'connectionStatus': 'connected' });
           this.flushPendingUpdates();
           this.requestSyncState();
+        } else if (status === 'CLOSED') {
+          this.handleDisconnection('disconnected');
+        } else if (status === 'CHANNEL_ERROR') {
+          this.handleDisconnection('error');
+        } else if (status === 'TIMED_OUT') {
+          this.handleDisconnection('error');
         }
       });
+  }
+
+  private handleDisconnection (status: ConnectionStatus) {
+    if (this.isDestroyed) {
+      return;
+    }
+
+    this.connectionStatus = status;
+    this.statusCallback?.({ 'connected': false, 'connectionStatus': status });
+
+    this.scheduleReconnect();
+  }
+
+  private scheduleReconnect () {
+    if (this.isDestroyed) {
+      return;
+    }
+
+    this.clearReconnectTimeout();
+
+    const delay = Math.min(
+      RECONNECT_DELAY * Math.pow(2, this.reconnectAttempts),
+      MAX_RECONNECT_DELAY
+    );
+    this.reconnectAttempts += 1;
+
+    this.connectionStatus = 'reconnecting';
+    this.notifyStatusChange(false, 'reconnecting');
+
+    this.reconnectTimeout = setTimeout(() => {
+      if (!this.isDestroyed) {
+        this.reconnect();
+      }
+    }, delay);
+  }
+
+  private reconnect () {
+    if (this.isDestroyed || this.connectionStatus === 'connected') {
+      return;
+    }
+
+    this.channel?.unsubscribe();
+    this.channel = null;
+    this.initChannel();
+  }
+
+  private clearReconnectTimeout () {
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+  }
+
+  private notifyStatusChange (connected: boolean, status: ConnectionStatus) {
+    this.statusCallback?.({ connected, 'connectionStatus': status });
   }
 
   private base64ToUint8Array (base64: string): Uint8Array {
@@ -181,7 +262,7 @@ export class SupabaseProvider {
     }
   }
 
-  setStatusCallback (callback: (status: { connected: boolean }) => void) {
+  setStatusCallback (callback: (status: { connected: boolean; connectionStatus?: ConnectionStatus }) => void) {
     this.statusCallback = callback;
   }
 
@@ -202,11 +283,13 @@ export class SupabaseProvider {
   }
 
   disconnect () {
+    this.clearReconnectTimeout();
     this.channel?.unsubscribe();
   }
 
   destroy () {
     this.isDestroyed = true;
+    this.clearReconnectTimeout();
     this.pendingUpdates = [];
     this.awareness.destroy();
     this.channel?.unsubscribe();

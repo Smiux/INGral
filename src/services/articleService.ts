@@ -1,4 +1,4 @@
-import { supabase, uploadContent, downloadContent, uploadCoverImage, deleteCoverImage, deleteContent, getCoverImageUrl } from './supabaseClient';
+import { supabase, uploadContent, downloadContent, uploadCoverImage, deleteArticleFolder, getCoverImageUrl } from './supabaseClient';
 
 export interface Article {
   id: string;
@@ -83,6 +83,80 @@ export async function getAllArticlesWithContent (): Promise<ArticleWithContent[]
   return articlesWithContent;
 }
 
+export interface PaginatedArticles {
+  articles: Article[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export async function getArticlesPaginated (
+  page: number = 1,
+  pageSize: number = 20
+): Promise<PaginatedArticles> {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase.from(TABLE_NAME)
+    .select('id, title, slug, content_path, created_at, updated_at, cover_image_path, summary, tags', { 'count': 'exact' })
+    .order('updated_at', { 'ascending': false })
+    .range(from, to);
+
+  if (error || !data) {
+    return {
+      'articles': [],
+      'total': 0,
+      page,
+      pageSize,
+      'totalPages': 0
+    };
+  }
+
+  return {
+    'articles': data,
+    'total': count || 0,
+    page,
+    pageSize,
+    'totalPages': Math.ceil((count || 0) / pageSize)
+  };
+}
+
+export async function getArticleContentById (articleId: string): Promise<string> {
+  const { data } = await supabase.from(TABLE_NAME)
+    .select('content_path')
+    .eq('id', articleId)
+    .single<{ content_path: string }>();
+
+  if (!data) {
+    return '';
+  }
+
+  const content = await downloadContent(data.content_path);
+  return content || '';
+}
+
+export async function getArticlesContentBatch (articleIds: string[]): Promise<Map<string, string>> {
+  const contentMap = new Map<string, string>();
+
+  const { data } = await supabase.from(TABLE_NAME)
+    .select('id, content_path')
+    .in('id', articleIds);
+
+  if (!data) {
+    return contentMap;
+  }
+
+  await Promise.all(
+    data.map(async (item) => {
+      const content = await downloadContent(item.content_path);
+      contentMap.set(item.id, content || '');
+    })
+  );
+
+  return contentMap;
+}
+
 export async function createArticle ({
   title,
   content,
@@ -92,7 +166,7 @@ export async function createArticle ({
 }: CreateArticleParams): Promise<ArticleWithContent | null> {
   const id = crypto.randomUUID();
   const slug = generateSlug();
-  const contentPath = await uploadContent(id, content);
+  const contentPath = await uploadContent(slug, content);
 
   if (!contentPath) {
     return null;
@@ -100,7 +174,7 @@ export async function createArticle ({
 
   let coverImagePath: string | null = null;
   if (coverImage) {
-    coverImagePath = await uploadCoverImage(id, coverImage);
+    coverImagePath = await uploadCoverImage(slug, coverImage);
   }
 
   const { 'data': articleData } = await supabase
@@ -142,7 +216,18 @@ export async function updateArticle ({
   summary,
   tags
 }: UpdateArticleParams): Promise<ArticleWithContent | null> {
-  const contentPath = await uploadContent(articleId, content);
+  const { 'data': existingArticle } = await supabase
+    .from(TABLE_NAME)
+    .select('slug')
+    .eq('id', articleId)
+    .single<{ slug: string }>();
+
+  if (!existingArticle) {
+    return null;
+  }
+
+  const slug = existingArticle.slug;
+  const contentPath = await uploadContent(slug, content);
 
   if (!contentPath) {
     return null;
@@ -157,22 +242,12 @@ export async function updateArticle ({
   };
 
   if (coverImageModified) {
-    let coverImagePath: string | null = null;
     if (coverImage) {
-      coverImagePath = await uploadCoverImage(articleId, coverImage);
+      const coverImagePath = await uploadCoverImage(slug, coverImage);
+      updates.cover_image_path = coverImagePath;
+    } else {
+      updates.cover_image_path = null;
     }
-
-    const { 'data': existingArticle } = await supabase
-      .from(TABLE_NAME)
-      .select('cover_image_path')
-      .eq('id', articleId)
-      .single<{ cover_image_path: string | null }>();
-
-    if (coverImage === null && existingArticle?.cover_image_path) {
-      await deleteCoverImage(existingArticle.cover_image_path);
-    }
-
-    updates.cover_image_path = coverImagePath;
   }
 
   const { 'data': articleData } = await supabase
@@ -193,8 +268,18 @@ export async function updateArticle ({
 }
 
 export async function updateArticleCover (articleId: string, coverImage: File | Blob | null): Promise<string | null> {
+  const { 'data': article } = await supabase
+    .from(TABLE_NAME)
+    .select('slug')
+    .eq('id', articleId)
+    .single<{ slug: string }>();
+
+  if (!article) {
+    return null;
+  }
+
   if (coverImage) {
-    const path = await uploadCoverImage(articleId, coverImage);
+    const path = await uploadCoverImage(article.slug, coverImage);
     if (path) {
       await supabase
         .from(TABLE_NAME)
@@ -202,15 +287,6 @@ export async function updateArticleCover (articleId: string, coverImage: File | 
         .eq('id', articleId);
     }
     return path;
-  }
-  const { data } = await supabase
-    .from(TABLE_NAME)
-    .select('cover_image_path')
-    .eq('id', articleId)
-    .single<{ cover_image_path: string | null }>();
-
-  if (data?.cover_image_path) {
-    await deleteCoverImage(data.cover_image_path);
   }
 
   await supabase
@@ -233,19 +309,15 @@ export async function updateArticleSummary (articleId: string, summary: string |
 export async function deleteArticle (articleId: string): Promise<boolean> {
   const { data } = await supabase
     .from(TABLE_NAME)
-    .select('content_path, cover_image_path')
+    .select('slug')
     .eq('id', articleId)
-    .single<{ content_path: string; cover_image_path: string | null }>();
+    .single<{ slug: string }>();
 
   if (!data) {
     return false;
   }
 
-  await deleteContent(data.content_path);
-
-  if (data.cover_image_path) {
-    await deleteCoverImage(data.cover_image_path);
-  }
+  await deleteArticleFolder(data.slug);
 
   const { error } = await supabase
     .from(TABLE_NAME)

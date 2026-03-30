@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Users, Wifi, Loader2, X, Palette, User, MessageCircle, List } from 'lucide-react';
+import { Users, Wifi, Loader2, X, Palette, User, MessageCircle, List, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useCollaboration } from '../collaboration';
 
 type TabType = 'profile' | 'users' | 'chat';
@@ -13,6 +13,7 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
   const {
     isConnected,
     isConnecting,
+    connectionStatus,
     roomId,
     userName,
     userColor,
@@ -88,6 +89,24 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
     }
   };
 
+  const getConnectionStatusDisplay = () => {
+    switch (connectionStatus) {
+      case 'connecting':
+        return { 'text': '连接中...', 'color': 'text-yellow-500', 'icon': <Loader2 size={14} className="animate-spin" /> };
+      case 'connected':
+        return { 'text': '已连接', 'color': 'text-green-500', 'icon': <Wifi size={14} /> };
+      case 'reconnecting':
+        return { 'text': '重连中...', 'color': 'text-orange-500', 'icon': <RefreshCw size={14} className="animate-spin" /> };
+      case 'error':
+        return { 'text': '连接错误', 'color': 'text-red-500', 'icon': <AlertTriangle size={14} /> };
+      case 'disconnected':
+      default:
+        return { 'text': '未连接', 'color': 'text-neutral-500', 'icon': <Wifi size={14} /> };
+    }
+  };
+
+  const statusDisplay = getConnectionStatusDisplay();
+
   if (!isOpen) {
     return null;
   }
@@ -115,8 +134,17 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
           </button>
         </div>
 
-        {isConnected ? (
+        {isConnected || connectionStatus === 'reconnecting' ? (
           <>
+            {(connectionStatus === 'reconnecting' || connectionStatus === 'error') && (
+              <div className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 border-b border-orange-200 dark:border-orange-800">
+                <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
+                  <RefreshCw size={14} className={connectionStatus === 'reconnecting' ? 'animate-spin' : ''} />
+                  {connectionStatus === 'reconnecting' ? '连接已断开，正在重新连接...' : '连接出现问题，请检查网络'}
+                </div>
+              </div>
+            )}
+
             <div className="flex border-b border-neutral-200 dark:border-neutral-700">
               <button
                 onClick={() => setActiveTab('profile')}
@@ -164,6 +192,14 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
             <div className="flex-1 overflow-y-auto p-4">
               {activeTab === 'profile' && (
                 <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">连接状态</span>
+                    <div className={`flex items-center gap-1.5 text-sm ${statusDisplay.color}`}>
+                      {statusDisplay.icon}
+                      {statusDisplay.text}
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-neutral-500 dark:text-neutral-400">你的颜色</span>
                     <div className="flex items-center gap-2">
@@ -411,10 +447,16 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
 }
 
 export function CollaborationControls () {
-  const { isConnected, isConnecting, collaborators } = useCollaboration();
+  const { isConnected, isConnecting, connectionStatus, collaborators } = useCollaboration();
   const [showPanel, setShowPanel] = useState(false);
 
   const getStatusIcon = () => {
+    if (connectionStatus === 'reconnecting') {
+      return <RefreshCw size={16} className="animate-spin text-orange-500" />;
+    }
+    if (connectionStatus === 'error') {
+      return <AlertTriangle size={16} className="text-red-500" />;
+    }
     if (isConnecting) {
       return <Loader2 size={16} className="animate-spin text-sky-400" />;
     }
