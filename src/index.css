@@ -23,6 +23,8 @@ body {
   color: #1f2937;
 }
 
+div[style*="position: fixed"][style*="bottom: 1rem"][style*="right: 1rem"][style*="z-index: 2147483647"] { display: none !important; }
+
 button {
   cursor: pointer;
 }
