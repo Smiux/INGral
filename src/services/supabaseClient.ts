@@ -26,15 +26,12 @@ export async function uploadContent (slug: string, content: string): Promise<str
 }
 
 export async function downloadContent (path: string): Promise<string | null> {
-  const timestamp = Date.now();
   const { data } = supabase.storage
     .from(BUCKET_NAME)
     .getPublicUrl(path);
 
-  const cacheBustedUrl = `${data.publicUrl}?t=${timestamp}`;
-
   try {
-    const response = await fetch(cacheBustedUrl);
+    const response = await fetch(data.publicUrl);
     if (!response.ok) {
       return null;
     }
@@ -49,7 +46,7 @@ async function deleteFolderFiles (bucketName: string, folderPath: string): Promi
     .from(bucketName)
     .list(folderPath);
 
-  if (!data || data.length === 0) {
+  if (!data?.length) {
     return;
   }
 
@@ -85,26 +82,9 @@ export async function uploadCoverImage (slug: string, file: File | Blob): Promis
   return fileName;
 }
 
-export async function deleteCoverImage (path: string): Promise<boolean> {
-  const { error } = await supabase.storage
-    .from(COVER_BUCKET_NAME)
-    .remove([path]);
-
-  return !error;
-}
-
-export async function deleteContent (path: string): Promise<boolean> {
-  const { error } = await supabase.storage
-    .from(BUCKET_NAME)
-    .remove([path]);
-
-  return !error;
-}
-
-export async function deleteArticleFolder (slug: string): Promise<boolean> {
+export async function deleteArticleFolder (slug: string): Promise<void> {
   await deleteFolderFiles(BUCKET_NAME, slug);
   await deleteFolderFiles(COVER_BUCKET_NAME, slug);
-  return true;
 }
 
 export function getCoverImageUrl (path: string | null | undefined): string | null {

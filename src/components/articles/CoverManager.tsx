@@ -26,7 +26,7 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
   onCoverChange
 }) => {
   const [uploadedImageSrc, setUploadedImageSrc] = useState<string | null>(null);
-  const [originalFile, setOriginalFile] = useState<File | null>(null);
+  const [originalImageSrc, setOriginalImageSrc] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [cropArea, setCropArea] = useState<CropArea>({ 'x': 0, 'y': 0, 'width': 300, 'height': 169 });
   const [isCropping, setIsCropping] = useState(false);
@@ -43,15 +43,21 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
 
   const imageSrc = uploadedImageSrc || currentCoverUrl;
 
+  React.useEffect(() => {
+    if (currentCoverUrl && !originalImageSrc && !uploadedImageSrc) {
+      setOriginalImageSrc(currentCoverUrl);
+    }
+  }, [currentCoverUrl, originalImageSrc, uploadedImageSrc]);
+
   const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
       return;
     }
 
-    setOriginalFile(file);
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
+      setOriginalImageSrc(result);
       setUploadedImageSrc(result);
       setIsCropping(true);
     };
@@ -175,7 +181,7 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
   }, []);
 
   const handleCropConfirm = useCallback(async () => {
-    if (!imageRef.current || !originalFile) {
+    if (!imageRef.current) {
       return;
     }
 
@@ -205,31 +211,48 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
         ctx.drawImage(tempImg, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
         resolve();
       };
-      tempImg.src = imageSrc || '';
+      tempImg.src = originalImageSrc || imageSrc || '';
     });
 
     canvas.toBlob((blob) => {
       if (blob) {
         const croppedUrl = URL.createObjectURL(blob);
         setUploadedImageSrc(croppedUrl);
-        setOriginalFile(null);
         onCoverChange(blob);
       }
       setIsCropping(false);
     }, 'image/webp', 0.9);
-  }, [cropArea, originalFile, imageSrc, onCoverChange]);
+  }, [cropArea, imageSrc, originalImageSrc, onCoverChange]);
 
   const handleReset = useCallback(() => {
-    setUploadedImageSrc(null);
-    setOriginalFile(null);
-    setIsCropping(false);
-    setCropArea({ 'x': 0, 'y': 0, 'width': 300, 'height': 169 });
-  }, []);
+    if (isCropping) {
+      const containerWidth = containerRef.current?.clientWidth || 400;
+      const displayHeight = containerWidth / ASPECT_RATIO;
+
+      setCropArea({
+        'x': 0,
+        'y': 0,
+        'width': containerWidth,
+        'height': displayHeight
+      });
+    } else {
+      setUploadedImageSrc(null);
+      setOriginalImageSrc(null);
+      setCropArea({ 'x': 0, 'y': 0, 'width': 300, 'height': 169 });
+    }
+  }, [isCropping]);
+
+  const handleStartRecrop = useCallback(() => {
+    if (originalImageSrc) {
+      setUploadedImageSrc(originalImageSrc);
+    }
+    setIsCropping(true);
+  }, [originalImageSrc]);
 
   const handleRemoveCover = useCallback(() => {
     onCoverChange(null);
     setUploadedImageSrc(null);
-    setOriginalFile(null);
+    setOriginalImageSrc(null);
     setIsCropping(false);
   }, [onCoverChange]);
 
@@ -367,7 +390,7 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
                       更换图片
                     </button>
                     <button
-                      onClick={() => setIsCropping(true)}
+                      onClick={handleStartRecrop}
                       className="inline-flex items-center px-3 py-2 text-sm text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
                     >
                       <Crop className="w-4 h-4 mr-1" />

@@ -16,7 +16,7 @@ import type { Editor } from '@tiptap/react';
 import {
   Save,
   MessageCircle,
-  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, AlertTriangle, RefreshCw
+  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, AlertTriangle, RefreshCw, ChevronRight
 } from 'lucide-react';
 
 interface EditorState {
@@ -35,6 +35,10 @@ interface TocItem {
 interface TocItemProps {
   item: TocItem;
   onClick: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+  hasChildren: boolean;
+  isHidden: boolean;
 }
 
 const TOC_LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string; numberColor: string }> = {
@@ -43,22 +47,39 @@ const TOC_LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string; n
   '3': { 'fontSize': 'text-xs', 'fontWeight': 'font-medium', 'numberColor': 'text-xs font-medium text-neutral-500 dark:text-neutral-400' }
 };
 
-const TocItem: React.FC<TocItemProps> = React.memo(({ item, onClick }) => {
+const TocItem: React.FC<TocItemProps> = React.memo(({ item, onClick, isCollapsed, onToggleCollapse, hasChildren, isHidden }) => {
   const style = TOC_LEVEL_STYLES[item.level] ?? TOC_LEVEL_STYLES[3]!;
 
   return (
     <div
-      className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-600 dark:hover:text-neutral-300' : 'text-neutral-700 dark:text-neutral-200'}`}
+      className={`overflow-hidden transition-all duration-200 ease-in-out ${isHidden ? 'max-h-0 opacity-0 py-0' : 'max-h-20 opacity-100'}`}
       style={{ 'paddingLeft': `${(item.level - 1) * 12}px` }}
-      onClick={onClick}
     >
-      <div className="flex items-center gap-2 min-h-[26px]">
-        <span className={`${style.numberColor} flex-shrink-0 mr-2`}>
-          {item.itemIndex}
-        </span>
-        <span className={`truncate transition-all duration-300 max-w-[calc(100%-1rem)] ${style.fontSize} ${style.fontWeight} text-left flex-1`}>
-          {item.textContent}
-        </span>
+      <div
+        className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-600 dark:hover:text-neutral-300' : 'text-neutral-700 dark:text-neutral-200'}`}
+        onClick={onClick}
+      >
+        <div className="flex items-center gap-2 min-h-[26px]">
+          {item.level < 3 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleCollapse();
+              }}
+              className="flex-shrink-0 p-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+            >
+              {hasChildren && isCollapsed && <ChevronRight className="w-3 h-3 transition-transform duration-200" />}
+              {hasChildren && !isCollapsed && <ChevronDown className="w-3 h-3 transition-transform duration-200" />}
+              {!hasChildren && <span className="w-3 h-3" />}
+            </button>
+          )}
+          <span className={`${style.numberColor} flex-shrink-0 mr-2`}>
+            {item.itemIndex}
+          </span>
+          <span className={`truncate transition-all duration-300 max-w-[calc(100%-1rem)] ${style.fontSize} ${style.fontWeight} text-left flex-1`}>
+            {item.textContent}
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -81,6 +102,52 @@ export const ArticleEditor: React.FC = () => {
   const [mathType, setMathType] = useState<'inline' | 'block'>('inline');
 
   const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
+  const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
+
+  const toggleCollapsed = useCallback((itemId: string) => {
+    setCollapsedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  }, []);
+
+  const getChildIds = useCallback((parentId: string, items: TocItem[]): string[] => {
+    const parentIndex = items.findIndex((item) => item.id === parentId);
+    if (parentIndex === -1) {
+      return [];
+    }
+
+    const parentLevel = items[parentIndex]!.level;
+    const childIds: string[] = [];
+
+    for (let i = parentIndex + 1; i < items.length; i += 1) {
+      const item = items[i]!;
+      if (item.level <= parentLevel) {
+        break;
+      }
+      childIds.push(item.id);
+    }
+    return childIds;
+  }, []);
+
+  const isItemCollapsed = useCallback((itemId: string): boolean => {
+    return collapsedItems.has(itemId);
+  }, [collapsedItems]);
+
+  const shouldShowItem = useCallback((itemId: string, items: TocItem[]): boolean => {
+    for (const collapsedId of collapsedItems) {
+      const childIds = getChildIds(collapsedId, items);
+      if (childIds.includes(itemId)) {
+        return false;
+      }
+    }
+    return true;
+  }, [collapsedItems, getChildIds]);
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [fontColor, setFontColor] = useState('#000000');
@@ -305,7 +372,7 @@ export const ArticleEditor: React.FC = () => {
     const element = editor?.view.dom.querySelector(`[data-toc-id="${itemId}"]`);
     if (element) {
       window.scrollTo({
-        'top': element.getBoundingClientRect().top + window.scrollY - 100,
+        'top': element.getBoundingClientRect().top + window.scrollY - 240,
         'behavior': 'smooth'
       });
     }
@@ -473,7 +540,6 @@ export const ArticleEditor: React.FC = () => {
         collaboration.updateMeta({ 'tags': newTags });
       }
       setTagInput('');
-      setShowTagInput(false);
     }
   }, [tagInput, tags, collaboration]);
 
@@ -774,12 +840,16 @@ export const ArticleEditor: React.FC = () => {
           </div>
           <div className="overflow-y-auto max-h-[50vh]">
             {tableOfContentsItems.length > 0 ? (
-              <nav className="p-3 pt-0 space-y-1">
+              <nav className="p-3 pt-0">
                 {tableOfContentsItems.map((item) => (
                   <TocItem
                     key={item.id}
                     item={item}
                     onClick={() => handleTocClick(item.id)}
+                    isCollapsed={isItemCollapsed(item.id)}
+                    onToggleCollapse={() => toggleCollapsed(item.id)}
+                    hasChildren={getChildIds(item.id, tableOfContentsItems).length > 0}
+                    isHidden={!shouldShowItem(item.id, tableOfContentsItems)}
                   />
                 ))}
               </nav>
@@ -859,33 +929,35 @@ export const ArticleEditor: React.FC = () => {
               </div>
             </div>
 
-            {showTagInput && (
-              <div className="mt-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 relative">
-                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input
-                      type="text"
-                      placeholder="输入标签后按 Enter 确认..."
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={handleAddTag}
-                      className="w-full pl-10 pr-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
-                      autoFocus
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowTagInput(false);
-                      setTagInput('');
-                    }}
-                    className="px-4 py-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                showTagInput ? 'max-h-20 opacity-100 mt-4' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex-1 relative">
+                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                  <input
+                    type="text"
+                    placeholder="输入标签后按 Enter 确认..."
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleAddTag}
+                    className="w-full pl-10 pr-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:border-sky-400"
+                    autoFocus
+                  />
                 </div>
+                <button
+                  onClick={() => {
+                    setShowTagInput(false);
+                    setTagInput('');
+                  }}
+                  className="px-4 py-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-            )}
+            </div>
 
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">

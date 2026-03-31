@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, ListTree, Trash2, Edit3, Tag } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ListTree, Trash2, Edit3, Tag, ChevronDown, ChevronRight } from 'lucide-react';
 import { getArticleBySlug, getCoverImageUrl, deleteArticle, type ArticleWithContent } from '../../services/articleService';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { TiptapEditor } from './TipTapEditor';
@@ -15,6 +15,10 @@ interface TocItem {
 interface TocItemProps {
   item: TocItem;
   onClick: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+  hasChildren: boolean;
+  isHidden: boolean;
 }
 
 const TOC_LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string }> = {
@@ -23,18 +27,37 @@ const TOC_LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string }>
   '3': { 'fontSize': 'text-xs', 'fontWeight': 'font-medium' }
 };
 
-const TocItemComponent: React.FC<TocItemProps> = ({ item, onClick }) => {
+const TocItemComponent: React.FC<TocItemProps> = ({ item, onClick, isCollapsed, onToggleCollapse, hasChildren, isHidden }) => {
   const style = TOC_LEVEL_STYLES[item.level] ?? TOC_LEVEL_STYLES[3]!;
 
   return (
     <div
-      className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-600 dark:hover:text-neutral-300' : 'text-neutral-700 dark:text-neutral-200'}`}
+      className={`overflow-hidden transition-all duration-200 ease-in-out ${isHidden ? 'max-h-0 opacity-0 py-0' : 'max-h-20 opacity-100'}`}
       style={{ 'paddingLeft': `${(item.level - 1) * 12}px` }}
-      onClick={onClick}
     >
-      <span className={`truncate transition-all duration-300 max-w-full ${style.fontSize} ${style.fontWeight} text-left`}>
-        {item.textContent}
-      </span>
+      <div
+        className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-600 dark:hover:text-neutral-300' : 'text-neutral-700 dark:text-neutral-200'}`}
+        onClick={onClick}
+      >
+        <div className="flex items-center gap-2">
+          {item.level < 3 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleCollapse();
+              }}
+              className="flex-shrink-0 p-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+            >
+              {hasChildren && isCollapsed && <ChevronRight className="w-3 h-3 transition-transform duration-200" />}
+              {hasChildren && !isCollapsed && <ChevronDown className="w-3 h-3 transition-transform duration-200" />}
+              {!hasChildren && <span className="w-3 h-3" />}
+            </button>
+          )}
+          <span className={`truncate transition-all duration-300 max-w-full ${style.fontSize} ${style.fontWeight} text-left`}>
+            {item.textContent}
+          </span>
+        </div>
+      </div>
     </div>
   );
 };
@@ -50,6 +73,52 @@ export function ArticleViewer () {
   const [editorReady, setEditorReady] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
+  const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
+
+  const toggleCollapsed = useCallback((itemId: string) => {
+    setCollapsedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  }, []);
+
+  const getChildIds = useCallback((parentId: string, items: TocItem[]): string[] => {
+    const parentIndex = items.findIndex((item) => item.id === parentId);
+    if (parentIndex === -1) {
+      return [];
+    }
+
+    const parentLevel = items[parentIndex]!.level;
+    const childIds: string[] = [];
+
+    for (let i = parentIndex + 1; i < items.length; i += 1) {
+      const item = items[i]!;
+      if (item.level <= parentLevel) {
+        break;
+      }
+      childIds.push(item.id);
+    }
+    return childIds;
+  }, []);
+
+  const isItemCollapsed = useCallback((itemId: string): boolean => {
+    return collapsedItems.has(itemId);
+  }, [collapsedItems]);
+
+  const shouldShowItem = useCallback((itemId: string, items: TocItem[]): boolean => {
+    for (const collapsedId of collapsedItems) {
+      const childIds = getChildIds(collapsedId, items);
+      if (childIds.includes(itemId)) {
+        return false;
+      }
+    }
+    return true;
+  }, [collapsedItems, getChildIds]);
 
   useEffect(() => {
     if (!slug) {
@@ -204,7 +273,11 @@ export function ArticleViewer () {
     }
     const element = targetContainer.querySelector(`[data-toc-id="${itemId}"], #${itemId}`);
     if (element) {
-      element.scrollIntoView({ 'behavior': 'smooth' });
+      const offsetTop = element.getBoundingClientRect().top + window.scrollY - 88;
+      window.scrollTo({
+        'top': offsetTop,
+        'behavior': 'smooth'
+      });
     }
   };
 
@@ -369,12 +442,16 @@ export function ArticleViewer () {
                 目录
               </h3>
             </div>
-            <nav className="p-2 pt-0 space-y-0.5 max-h-[50vh] overflow-y-auto">
+            <nav className="p-2 pt-0 max-h-[50vh] overflow-y-auto">
               {tableOfContentsItems.map((item) => (
                 <TocItemComponent
                   key={item.id}
                   item={item}
                   onClick={() => handleTocClick(item.id)}
+                  isCollapsed={isItemCollapsed(item.id)}
+                  onToggleCollapse={() => toggleCollapsed(item.id)}
+                  hasChildren={getChildIds(item.id, tableOfContentsItems).length > 0}
+                  isHidden={!shouldShowItem(item.id, tableOfContentsItems)}
                 />
               ))}
             </nav>

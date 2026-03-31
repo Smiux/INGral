@@ -67,22 +67,6 @@ export async function getAllArticles (): Promise<Article[]> {
   return data || [];
 }
 
-export async function getAllArticlesWithContent (): Promise<ArticleWithContent[]> {
-  const articles = await getAllArticles();
-
-  const articlesWithContent = await Promise.all(
-    articles.map(async (article) => {
-      const content = await downloadContent(article.content_path);
-      return {
-        ...article,
-        'content': content || ''
-      };
-    })
-  );
-
-  return articlesWithContent;
-}
-
 export interface PaginatedArticles {
   articles: Article[];
   total: number;
@@ -120,20 +104,6 @@ export async function getArticlesPaginated (
     pageSize,
     'totalPages': Math.ceil((count || 0) / pageSize)
   };
-}
-
-export async function getArticleContentById (articleId: string): Promise<string> {
-  const { data } = await supabase.from(TABLE_NAME)
-    .select('content_path')
-    .eq('id', articleId)
-    .single<{ content_path: string }>();
-
-  if (!data) {
-    return '';
-  }
-
-  const content = await downloadContent(data.content_path);
-  return content || '';
 }
 
 export async function getArticlesContentBatch (articleIds: string[]): Promise<Map<string, string>> {
@@ -177,6 +147,7 @@ export async function createArticle ({
     coverImagePath = await uploadCoverImage(slug, coverImage);
   }
 
+  const now = new Date().toISOString();
   const { 'data': articleData } = await supabase
     .from(TABLE_NAME)
     .insert({
@@ -186,7 +157,9 @@ export async function createArticle ({
       'content_path': contentPath,
       'cover_image_path': coverImagePath,
       'summary': summary || null,
-      'tags': tags || null
+      'tags': tags || null,
+      'created_at': now,
+      'updated_at': now
     })
     .select()
     .single<Article>();
@@ -195,14 +168,8 @@ export async function createArticle ({
     return null;
   }
 
-  await supabase
-    .from(TABLE_NAME)
-    .update({ 'updated_at': articleData.created_at })
-    .eq('id', id);
-
   return {
     ...articleData,
-    'updated_at': articleData.created_at,
     content
   };
 }
@@ -307,24 +274,24 @@ export async function updateArticleSummary (articleId: string, summary: string |
 }
 
 export async function deleteArticle (articleId: string): Promise<boolean> {
-  const { data } = await supabase
+  const { data, 'error': selectError } = await supabase
     .from(TABLE_NAME)
     .select('slug')
     .eq('id', articleId)
     .single<{ slug: string }>();
 
-  if (!data) {
+  if (selectError || !data) {
     return false;
   }
 
   await deleteArticleFolder(data.slug);
 
-  const { error } = await supabase
+  const { 'error': deleteError } = await supabase
     .from(TABLE_NAME)
     .delete()
     .eq('id', articleId);
 
-  return !error;
+  return !deleteError;
 }
 
 export { getCoverImageUrl };

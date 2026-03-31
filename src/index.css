@@ -59,18 +59,18 @@ button:disabled {
   }
 
   & h1 {
-    font-size: 2rem;
-    line-height: 2.5rem;
+    font-size: 2.5rem;
+    line-height: 4rem;
   }
 
   & h2 {
     font-size: 1.5rem;
-    line-height: 2rem;
+    line-height: 2.5rem;
   }
 
   & h3 {
-    font-size: 1.25rem;
-    line-height: 2rem;
+    font-size: 1.3rem;
+    line-height: 1.8rem;
   }
 
   & p {
@@ -413,6 +413,7 @@ button:disabled {
     --minimap-bg: #262626;
     --minimap-border: #404040;
     --minimap-mask: rgba(0, 0, 0, 0.4);
+    --forcegraph-bg: #262626;
   }
 }
 

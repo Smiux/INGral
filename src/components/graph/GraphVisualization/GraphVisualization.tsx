@@ -448,7 +448,7 @@ const GraphVisualizationContent: React.FC = () => {
             linkDirectionalParticles={2}
             linkDirectionalParticleWidth={4}
             linkDirectionalParticleColor="#6b7280"
-            backgroundColor="#f5f5f5"
+            backgroundColor="transparent"
             width={canvasDimensions.width}
             height={canvasDimensions.height}
           />
@@ -468,7 +468,6 @@ const GraphVisualizationContent: React.FC = () => {
             height={canvasDimensions.height}
           />
         )}
-
         {hasSelection && <GraphControlPanel panelPosition="right" />}
         {(activeLeftPanel === 'management' || closingPanel === 'management') && (
           <GraphManagementPanel

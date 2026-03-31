@@ -102,6 +102,11 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
 }) => {
   const extensions = useMemo(() => [
     StarterKit.configure({
+      'underline': {
+        'HTMLAttributes': {
+          'class': 'underlineStyle'
+        }
+      },
       'codeBlock': false,
       'link': { 'openOnClick': false },
       ...(collaboration?.provider ? { 'undoRedo': false } : {})
