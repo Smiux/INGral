@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useCollaboration } from '../collaboration';
+import { useOthers } from './liveblocks.config';
 
 interface ToastMessage {
   id: string;
@@ -17,9 +18,10 @@ interface CollaboratorState {
 
 const PageLeaveToast: React.FC = () => {
   const location = useLocation();
-  const { collaborators } = useCollaboration();
+  const { isConnected } = useCollaboration();
+  const others = useOthers();
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const prevCollaboratorsRef = useRef<Map<string, CollaboratorState>>(new Map());
+  const prevCollaboratorsRef = useRef<Map<number, CollaboratorState>>(new Map());
   const timeoutMapRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   const removeToast = useCallback((toastId: string) => {
@@ -42,33 +44,40 @@ const PageLeaveToast: React.FC = () => {
   }, [removeToast]);
 
   useEffect(() => {
+    if (!isConnected) {
+      return;
+    }
+
     const prevCollaborators = prevCollaboratorsRef.current;
     const currentPath = location.pathname;
 
-    collaborators.forEach((collaborator) => {
-      const prevState = prevCollaborators.get(collaborator.id);
+    others.forEach((other) => {
+      const prevState = prevCollaborators.get(other.connectionId);
+      const otherPath = other.presence?.currentPath ?? null;
+      const otherName = other.presence?.userName ?? 'Anonymous';
+      const otherColor = other.presence?.userColor ?? '#888888';
 
-      if (prevState && prevState.currentPath === currentPath && collaborator.currentPath !== currentPath) {
-        createToast(collaborator.name, collaborator.color, collaborator.id);
+      if (prevState && prevState.currentPath === currentPath && otherPath !== currentPath) {
+        createToast(otherName, otherColor, String(other.connectionId));
       }
 
-      prevCollaborators.set(collaborator.id, {
-        'name': collaborator.name,
-        'color': collaborator.color,
-        'currentPath': collaborator.currentPath ?? null
+      prevCollaborators.set(other.connectionId, {
+        'name': otherName,
+        'color': otherColor,
+        'currentPath': otherPath
       });
     });
 
-    collaborators.forEach((collaborator) => {
-      if (!prevCollaborators.has(collaborator.id)) {
-        prevCollaborators.set(collaborator.id, {
-          'name': collaborator.name,
-          'color': collaborator.color,
-          'currentPath': collaborator.currentPath ?? null
+    others.forEach((other) => {
+      if (!prevCollaborators.has(other.connectionId)) {
+        prevCollaborators.set(other.connectionId, {
+          'name': other.presence?.userName ?? 'Anonymous',
+          'color': other.presence?.userColor ?? '#888888',
+          'currentPath': other.presence?.currentPath ?? null
         });
       }
     });
-  }, [collaborators, location.pathname, createToast]);
+  }, [others, location.pathname, isConnected, createToast]);
 
   useEffect(() => {
     const timeoutMap = timeoutMapRef.current;
@@ -77,7 +86,7 @@ const PageLeaveToast: React.FC = () => {
     };
   }, []);
 
-  if (toasts.length === 0) {
+  if (!isConnected || toasts.length === 0) {
     return null;
   }
 

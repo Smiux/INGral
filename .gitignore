@@ -3,7 +3,6 @@ node_modules
 
 # Production
 dist
-dist-ssr
 build
 
 # Environment variables
@@ -17,3 +16,7 @@ docs/
 
 # Tauri
 src-tauri/
+
+# Skills
+.agents/
+skills-lock.json

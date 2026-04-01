@@ -38,7 +38,13 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const currentCoverUrl = useMemo(() => {
-    return currentCoverPath ? getCoverImageUrl(currentCoverPath) : null;
+    if (!currentCoverPath) {
+      return null;
+    }
+    if (currentCoverPath.startsWith('data:')) {
+      return currentCoverPath;
+    }
+    return getCoverImageUrl(currentCoverPath);
   }, [currentCoverPath]);
 
   const imageSrc = uploadedImageSrc || currentCoverUrl;

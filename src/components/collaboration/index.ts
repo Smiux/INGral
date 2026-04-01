@@ -1,9 +1,10 @@
 export { CollaborationProvider } from './CollaborationContext';
+export { useCollaboration, useCollaborationOptional } from './CollaborationContextDef';
 export { CollaborationPanel, CollaborationControls } from './CollaborationPanel';
+export { ChatPanel } from './ChatPanel';
+export { useChatMessages, useSendMessage, useSendReply } from './useChat';
+export type { ChatMessage } from './useChat';
 export { RemoteCursors } from './RemoteCursors';
 export { GlobalCollaborationFeatures } from './GlobalCollaborationFeatures';
-export { PageLeaveToast } from './PageLeaveToast';
-export { useCollaboration, useCollaborationOptional } from './useCollaboration';
 export { useCollaborationSettings } from './useCollaborationSettings';
-export type { ConnectionStatus } from './SupabaseProvider';
 export * from './types';

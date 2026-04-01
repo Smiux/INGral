@@ -1,6 +1,16 @@
-import { createContext } from 'react';
+import { createContext, useContext } from 'react';
 import { CollaborationContextValue } from './types';
 
-const CollaborationContext = createContext<CollaborationContextValue | null>(null);
+export const CollaborationContext = createContext<CollaborationContextValue | null>(null);
 
-export { CollaborationContext };
+export const useCollaboration = (): CollaborationContextValue => {
+  const context = useContext(CollaborationContext);
+  if (!context) {
+    throw new Error('useCollaboration must be used within a CollaborationProvider');
+  }
+  return context;
+};
+
+export const useCollaborationOptional = (): CollaborationContextValue | null => {
+  return useContext(CollaborationContext);
+};

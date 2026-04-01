@@ -1,63 +1,72 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useCollaboration, RemoteCursors } from '../collaboration';
 import { PageLeaveToast } from './PageLeaveToast';
+import { useUpdateMyPresence } from './liveblocks.config';
 
 const GlobalMouseTracker: React.FC = () => {
-  const collaboration = useCollaboration();
-  const updateMousePositionRef = useRef<(position: { x: number; y: number } | null) => void>(() => {});
+  const { isConnected } = useCollaboration();
+  const updateMyPresence = useUpdateMyPresence();
 
   useEffect(() => {
-    updateMousePositionRef.current = collaboration.updateMousePosition;
-  }, [collaboration.updateMousePosition]);
-
-  useEffect(() => {
-    if (!collaboration.isConnected) {
+    if (!isConnected) {
       return undefined;
     }
 
-    const handleMouseMove = (e: MouseEvent) => {
-      updateMousePositionRef.current({ 'x': e.clientX, 'y': e.clientY });
+    const handlePointerMove = (e: PointerEvent) => {
+      updateMyPresence({ 'cursor': { 'x': e.clientX, 'y': e.clientY } });
     };
 
-    const handleMouseLeave = () => {
-      updateMousePositionRef.current(null);
+    const handlePointerLeave = () => {
+      updateMyPresence({ 'cursor': null });
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('pointermove', handlePointerMove);
+    document.addEventListener('pointerleave', handlePointerLeave);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseleave', handleMouseLeave);
-      updateMousePositionRef.current(null);
+      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointerleave', handlePointerLeave);
+      updateMyPresence({ 'cursor': null });
     };
-  }, [collaboration.isConnected]);
+  }, [isConnected, updateMyPresence]);
 
   return null;
 };
 
 const PageTracker: React.FC = () => {
+  const { isConnected } = useCollaboration();
   const location = useLocation();
-  const collaboration = useCollaboration();
-  const updateCurrentPathRef = useRef<(path: string | null) => void>(() => {});
+  const updateMyPresence = useUpdateMyPresence();
 
   useEffect(() => {
-    updateCurrentPathRef.current = collaboration.updateCurrentPath;
-  }, [collaboration.updateCurrentPath]);
-
-  useEffect(() => {
-    if (!collaboration.isConnected) {
+    if (!isConnected) {
       return;
     }
 
-    updateCurrentPathRef.current(location.pathname);
-  }, [location.pathname, collaboration.isConnected]);
+    updateMyPresence({ 'currentPath': location.pathname });
+  }, [location.pathname, isConnected, updateMyPresence]);
 
   return null;
 };
 
 export const GlobalCollaborationFeatures: React.FC = () => {
+  const { isConnected, userName, userColor } = useCollaboration();
+  const updateMyPresence = useUpdateMyPresence();
+
+  useEffect(() => {
+    if (isConnected) {
+      updateMyPresence({
+        userName,
+        userColor
+      });
+    }
+  }, [isConnected, userName, userColor, updateMyPresence]);
+
+  if (!isConnected) {
+    return null;
+  }
+
   return (
     <>
       <GlobalMouseTracker />

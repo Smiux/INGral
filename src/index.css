@@ -23,6 +23,12 @@ body {
   color: #1f2937;
 }
 
+#liveblocks-badge {
+  display: none !important;
+}
+
+div[style*="position: fixed"][style*="bottom: 1rem"][style*="right: 1rem"][style*="z-index: 2147483647"] { display: none !important; }
+
 button {
   cursor: pointer;
 }
@@ -64,7 +70,7 @@ button:disabled {
   }
 
   & h2 {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     line-height: 2.5rem;
   }
 
@@ -413,7 +419,6 @@ button:disabled {
     --minimap-bg: #262626;
     --minimap-border: #404040;
     --minimap-mask: rgba(0, 0, 0, 0.4);
-    --forcegraph-bg: #262626;
   }
 }
 

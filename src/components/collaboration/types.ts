@@ -1,23 +1,12 @@
 import * as Y from 'yjs';
-import { SupabaseProvider, ConnectionStatus } from './SupabaseProvider';
+
+export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'error';
 
 export interface Collaborator {
   id: string;
   name: string;
   color: string;
-  cursorPosition?: number;
-  mousePosition?: { x: number; y: number } | null;
-  currentPath?: string | null;
-  lastActive: number;
-}
-
-export interface ChatMessage {
-  id: string;
-  userId: string;
-  userName: string;
-  userColor: string;
-  content: string;
-  timestamp: number;
+  currentPath: string | null;
 }
 
 export interface CollaborationState {
@@ -39,17 +28,24 @@ export interface CollaborationState {
   };
 }
 
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  userName: string;
+  userColor: string;
+  content: string;
+  timestamp: number;
+}
+
 export interface CollaborationContextValue extends CollaborationState {
   doc: Y.Doc | null;
-  provider: SupabaseProvider | null;
+  provider: unknown;
   connect: (roomId: string) => void;
   disconnect: () => void;
   setUserName: (name: string) => void;
   setUserColor: (color: string) => void;
   sendMessage: (content: string) => void;
-  updateCursorPosition: (position: number) => void;
   updateMeta: (meta: Partial<CollaborationState['meta']>) => void;
-  updateMousePosition: (position: { x: number; y: number } | null) => void;
   updateCurrentPath: (path: string | null) => void;
 }
 
@@ -68,9 +64,4 @@ export const COLLABORATOR_COLORS = [
 
 export function getRandomColor (): string {
   return COLLABORATOR_COLORS[Math.floor(Math.random() * COLLABORATOR_COLORS.length)]!;
-}
-
-export function generateUserId (): string {
-  return `user-${Date.now()}-${Math.random().toString(36)
-    .substring(2, 9)}`;
 }

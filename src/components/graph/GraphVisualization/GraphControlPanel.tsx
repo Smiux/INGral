@@ -97,6 +97,28 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
     'labelTextColor': '#FFFFFF'
   });
 
+  const [isComposing, setIsComposing] = React.useState(false);
+  const [localNodeState, setLocalNodeState] = React.useState<{
+    title: string;
+    category: string;
+    content: string;
+    handleCount: string;
+  }>({
+    'title': '',
+    'category': '',
+    'content': '',
+    'handleCount': '0'
+  });
+  const [localEdgeState, setLocalEdgeState] = React.useState<{
+    type: string;
+    strokeWidth: string;
+    curveType: string;
+  }>({
+    'type': 'related',
+    'strokeWidth': '2',
+    'curveType': 'default'
+  });
+
   const clearSelection = () => {
     reactFlowInstance.setNodes((nodes) => nodes.map((node) => ({ ...node, 'selected': false })));
     reactFlowInstance.setEdges((edges) => edges.map((edge) => ({ ...edge, 'selected': false })));
@@ -143,12 +165,10 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
     );
   };
 
-  const handleNodeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const commitNodeChange = (name: string, value: string) => {
     if (!selectedNode) {
       return;
     }
-    const { name, value } = e.target;
-
     switch (name) {
       case 'handleCount': {
         const numValue = parseInt(value, 10);
@@ -166,12 +186,10 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
     }
   };
 
-  const handleEdgeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const commitEdgeChange = (name: string, value: string) => {
     if (!selectedEdge) {
       return;
     }
-    const { name, value } = e.target;
-
     switch (name) {
       case 'strokeWidth': {
         const numValue = parseFloat(value);
@@ -182,6 +200,83 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
         updateEdge({ [name]: value });
     }
   };
+
+  const handleNodeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    if (!selectedNode) {
+      return;
+    }
+    const { name, value } = e.target;
+
+    setLocalNodeState((prev) => ({ ...prev, [name]: value }));
+
+    if (!isComposing) {
+      commitNodeChange(name, value);
+    }
+  };
+
+  const handleEdgeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    if (!selectedEdge) {
+      return;
+    }
+    const { name, value } = e.target;
+
+    setLocalEdgeState((prev) => ({ ...prev, [name]: value }));
+
+    if (!isComposing) {
+      commitEdgeChange(name, value);
+    }
+  };
+
+  const handleCompositionStart = () => {
+    setIsComposing(true);
+  };
+
+  const handleCompositionEnd = (e: React.CompositionEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setIsComposing(false);
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+    const name = target.name;
+    const value = target.value;
+
+    if (selectedNode && ['title', 'category', 'content', 'handleCount'].includes(name)) {
+      commitNodeChange(name, value);
+    } else if (selectedEdge && ['type', 'strokeWidth', 'curveType'].includes(name)) {
+      commitEdgeChange(name, value);
+    }
+  };
+
+  React.useEffect(() => {
+    if (selectedNode) {
+      setLocalNodeState({
+        'title': selectedNode.data.title || '',
+        'category': selectedNode.data.category || '',
+        'content': selectedNode.data.metadata?.content || '',
+        'handleCount': String(selectedNode.data.handleCount ?? 0)
+      });
+      setNodeColors({
+        'fill': selectedNode.data.style?.fill || '#ffffff',
+        'stroke': selectedNode.data.style?.stroke || '#4ECDC4',
+        'textColor': selectedNode.data.style?.textColor || '#666666',
+        'titleBackgroundColor': selectedNode.data.style?.titleBackgroundColor || '#4ECDC4',
+        'titleTextColor': selectedNode.data.style?.titleTextColor || '#FFFFFF'
+      });
+    }
+  }, [selectedNode]);
+
+  React.useEffect(() => {
+    if (selectedEdge) {
+      setLocalEdgeState({
+        'type': selectedEdge.data?.type || 'related',
+        'strokeWidth': String(selectedEdge.data?.style?.strokeWidth ?? 2),
+        'curveType': selectedEdge.data?.curveType || 'default'
+      });
+      setEdgeColors({
+        'stroke': selectedEdge.data?.style?.stroke || '#3b82f6',
+        'arrowColor': selectedEdge.data?.style?.arrowColor || '#3b82f6',
+        'labelBackgroundColor': selectedEdge.data?.style?.labelBackgroundColor || '#3b82f6',
+        'labelTextColor': selectedEdge.data?.style?.labelTextColor || '#FFFFFF'
+      });
+    }
+  }, [selectedEdge]);
 
   const handleNodeColorChange = (key: keyof typeof nodeColors, color: string) => {
     setNodeColors((prev) => ({ ...prev, [key]: color }));
@@ -248,6 +343,8 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
       step={step}
       value={value}
       onChange={handleNodeChange}
+      onCompositionStart={handleCompositionStart}
+      onCompositionEnd={handleCompositionEnd}
       placeholder={placeholder}
       className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200 dark:hover:border-blue-400 bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
     />
@@ -289,18 +386,20 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">节点标题</label>
-                  {inputField({ 'name': 'title', 'value': selectedNode.data.title || '', 'placeholder': '输入节点标题' })}
+                  {inputField({ 'name': 'title', 'value': localNodeState.title, 'placeholder': '输入节点标题' })}
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">节点类别</label>
-                  {inputField({ 'name': 'category', 'value': selectedNode.data.category || '', 'placeholder': '输入节点类别' })}
+                  {inputField({ 'name': 'category', 'value': localNodeState.category, 'placeholder': '输入节点类别' })}
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">节点内容</label>
                   <textarea
                     name="content"
-                    value={selectedNode.data.metadata?.content || ''}
+                    value={localNodeState.content}
                     onChange={handleNodeChange}
+                    onCompositionStart={handleCompositionStart}
+                    onCompositionEnd={handleCompositionEnd}
                     placeholder="输入节点内容"
                     rows={4}
                     className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200 dark:hover:border-blue-400 resize-y bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
@@ -313,7 +412,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
               <div className="space-y-3">
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">连接点数量</label>
-                  {inputField({ 'name': 'handleCount', 'value': String(selectedNode.data.handleCount ?? 0), 'placeholder': '', 'type': 'number', 'min': 0 })}
+                  {inputField({ 'name': 'handleCount', 'value': localNodeState.handleCount, 'placeholder': '', 'type': 'number', 'min': 0 })}
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 italic">连接点会均匀分布在节点外围</p>
                 </div>
               </div>
@@ -357,8 +456,10 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                   <input
                     name="type"
                     type="text"
-                    value={selectedEdge.data?.type || 'related'}
+                    value={localEdgeState.type}
                     onChange={handleEdgeChange}
+                    onCompositionStart={handleCompositionStart}
+                    onCompositionEnd={handleCompositionEnd}
                     placeholder="输入连接类别"
                     className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200 dark:hover:border-orange-400 bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
                   />
@@ -372,7 +473,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                   <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">连接线样式</label>
                   <select
                     name="curveType"
-                    value={selectedEdge.data?.curveType || 'default'}
+                    value={localEdgeState.curveType}
                     onChange={handleEdgeChange}
                     className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 hover:border-teal-200 dark:hover:border-teal-400 bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
                   >
@@ -393,7 +494,7 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
                     name="strokeWidth"
                     type="number"
                     min={0}
-                    value={selectedEdge.data?.style?.strokeWidth ?? 2}
+                    value={localEdgeState.strokeWidth}
                     onChange={handleEdgeChange}
                     className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-200 dark:hover:border-purple-400 text-center bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
                   />

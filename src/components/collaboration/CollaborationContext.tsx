@@ -1,25 +1,16 @@
-import React, { useCallback, useRef, useMemo, useState } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import * as Y from 'yjs';
-import { SupabaseProvider, ConnectionStatus } from './SupabaseProvider';
+import { getYjsProviderForRoom, type LiveblocksYjsProvider } from '@liveblocks/yjs';
+import { LiveList, LiveMap } from '@liveblocks/client';
+import { RoomProvider, useRoom, useUpdateMyPresence, useOthers, useStatus, type Storage } from './liveblocks.config';
 import {
   CollaborationContextValue,
   CollaborationState,
   Collaborator,
-  ChatMessage,
-  generateUserId
+  ConnectionStatus
 } from './types';
 import { useCollaborationSettings } from './useCollaborationSettings';
 import { CollaborationContext } from './CollaborationContextDef';
-
-interface AwarenessUserState {
-  id: string;
-  name: string;
-  color: string;
-  cursorPosition?: number | undefined;
-  mousePosition?: { x: number; y: number } | null | undefined;
-  currentPath?: string | null | undefined;
-  lastActive: number;
-}
 
 interface CollaborationProviderProps {
   children: React.ReactNode;
@@ -27,25 +18,256 @@ interface CollaborationProviderProps {
   externalUserColor?: string;
 }
 
+function CollaborationRoomInner ({
+  children,
+  userName,
+  userColor,
+  userId,
+  roomId,
+  onDisconnect
+}: {
+  children: React.ReactNode;
+  userName: string;
+  userColor: string;
+  userId: string;
+  roomId: string;
+  onDisconnect: () => void;
+}) {
+  const updateMyPresence = useUpdateMyPresence();
+  const others = useOthers();
+  const status = useStatus();
+  const room = useRoom();
+  const [doc, setDoc] = useState<Y.Doc | null>(null);
+  const [provider, setProvider] = useState<LiveblocksYjsProvider | null>(null);
+  const [meta, setMeta] = useState<CollaborationState['meta']>({
+    'title': '',
+    'summary': '',
+    'tags': [],
+    'coverImage': null
+  });
+
+  const metaMapRef = useRef<Y.Map<unknown> | null>(null);
+  const localUpdateRef = useRef(false);
+
+  useEffect(() => {
+    updateMyPresence({
+      'cursor': null,
+      'currentPath': null
+    });
+  }, [updateMyPresence]);
+
+  useEffect(() => {
+    const yjsProvider = getYjsProviderForRoom(
+      room as unknown as Parameters<typeof getYjsProviderForRoom>[0],
+      { 'offlineSupport_experimental': true }
+    );
+
+    const yDoc = yjsProvider.getYDoc();
+
+    metaMapRef.current = yDoc.getMap('meta');
+
+    const handleMetaChange = () => {
+      if (!metaMapRef.current) {
+        return;
+      }
+
+      const title = metaMapRef.current.get('title') as string | undefined;
+      const summary = metaMapRef.current.get('summary') as string | undefined;
+      const tags = metaMapRef.current.get('tags') as string[] | undefined;
+      const coverImage = metaMapRef.current.get('coverImage') as string | undefined;
+
+      if (localUpdateRef.current) {
+        return;
+      }
+
+      setMeta({
+        'title': title ?? '',
+        'summary': summary ?? '',
+        'tags': tags ?? [],
+        'coverImage': coverImage !== undefined ? coverImage : null
+      });
+    };
+
+    metaMapRef.current.observe(handleMetaChange);
+
+    const initialTitle = metaMapRef.current.get('title') as string | undefined;
+    const initialSummary = metaMapRef.current.get('summary') as string | undefined;
+    const initialTags = metaMapRef.current.get('tags') as string[] | undefined;
+    const initialCoverImage = metaMapRef.current.get('coverImage') as string | undefined;
+
+    if (initialTitle || initialSummary || (initialTags && initialTags.length > 0) || initialCoverImage) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMeta({
+        'title': initialTitle ?? '',
+        'summary': initialSummary ?? '',
+        'tags': initialTags ?? [],
+        'coverImage': initialCoverImage ?? null
+      });
+    }
+
+    queueMicrotask(() => {
+      setProvider(yjsProvider);
+      setDoc(yDoc);
+    });
+
+    return () => {
+      metaMapRef.current?.unobserve(handleMetaChange);
+      yjsProvider.destroy();
+      queueMicrotask(() => {
+        setProvider(null);
+        setDoc(null);
+      });
+    };
+  }, [room]);
+
+  const collaborators = useMemo<Collaborator[]>(() => {
+    return others.map((other) => ({
+      'id': String(other.connectionId),
+      'name': other.presence?.userName ?? 'Anonymous',
+      'color': other.presence?.userColor ?? '#888888',
+      'currentPath': other.presence?.currentPath ?? null
+    }));
+  }, [others]);
+
+  const connectionStatus: ConnectionStatus = useMemo(() => {
+    if (status === 'connected') {
+      return 'connected';
+    }
+    if (status === 'reconnecting') {
+      return 'reconnecting';
+    }
+    if (status === 'connecting') {
+      return 'connecting';
+    }
+    return 'disconnected';
+  }, [status]);
+
+  const updateMeta = useCallback((newMeta: Partial<CollaborationState['meta']>) => {
+    if (!metaMapRef.current) {
+      return;
+    }
+
+    localUpdateRef.current = true;
+
+    metaMapRef.current.doc?.transact(() => {
+      if (newMeta.title !== undefined) {
+        metaMapRef.current!.set('title', newMeta.title);
+      }
+      if (newMeta.summary !== undefined) {
+        metaMapRef.current!.set('summary', newMeta.summary);
+      }
+      if (newMeta.tags !== undefined) {
+        metaMapRef.current!.set('tags', newMeta.tags);
+      }
+      if (newMeta.coverImage !== undefined) {
+        metaMapRef.current!.set('coverImage', newMeta.coverImage);
+      }
+    }, 'local');
+
+    setMeta((prev) => ({
+      'title': newMeta.title !== undefined ? newMeta.title : prev.title,
+      'summary': newMeta.summary !== undefined ? newMeta.summary : prev.summary,
+      'tags': newMeta.tags !== undefined ? newMeta.tags : prev.tags,
+      'coverImage': newMeta.coverImage !== undefined ? newMeta.coverImage : prev.coverImage
+    }));
+
+    queueMicrotask(() => {
+      localUpdateRef.current = false;
+    });
+  }, []);
+
+  const updateCurrentPath = useCallback((path: string | null) => {
+    updateMyPresence({ 'currentPath': path });
+  }, [updateMyPresence]);
+
+  const value = useMemo<CollaborationContextValue>(() => ({
+    'isConnected': connectionStatus === 'connected',
+    'isConnecting': connectionStatus === 'connecting',
+    connectionStatus,
+    roomId,
+    userName,
+    userId,
+    userColor,
+    collaborators,
+    'messages': [],
+    'error': null,
+    meta,
+    doc,
+    'provider': provider as unknown,
+    'connect': () => {},
+    'disconnect': onDisconnect,
+    'setUserName': () => {},
+    'setUserColor': () => {},
+    'sendMessage': () => {},
+    'updateCursorPosition': () => {},
+    updateMeta,
+    'updateMousePosition': () => {},
+    updateCurrentPath
+  }), [
+    connectionStatus, roomId, userName, userId, userColor, collaborators,
+    meta, doc, provider, onDisconnect,
+    updateMeta, updateCurrentPath
+  ]);
+
+  return (
+    <CollaborationContext.Provider value={value}>
+      {children}
+    </CollaborationContext.Provider>
+  );
+}
+
+let globalUserId: string | null = null;
+
+function generateUserId (): string {
+  if (!globalUserId) {
+    globalUserId = `user-${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 9)}`;
+  }
+  return globalUserId;
+}
+
 export function CollaborationProvider ({
   children,
   externalUserName,
   externalUserColor
 }: CollaborationProviderProps) {
-  const { 'userName': savedUserName, 'userColor': savedUserColor } = useCollaborationSettings();
-  const [doc, setDoc] = useState<Y.Doc | null>(null);
-  const [provider, setProvider] = useState<SupabaseProvider | null>(null);
+  const {
+    'userName': savedUserName,
+    'userColor': savedUserColor,
+    'setUserName': saveUserName,
+    'setUserColor': saveUserColor
+  } = useCollaborationSettings();
 
   const userName = externalUserName ?? savedUserName;
   const userColor = externalUserColor ?? savedUserColor;
+  const userId = useMemo(() => generateUserId(), []);
 
-  const initialState = useMemo<CollaborationState>(() => ({
+  const [roomId, setRoomId] = useState<string | null>(null);
+
+  const connect = useCallback((newRoomId: string) => {
+    setRoomId(newRoomId);
+  }, []);
+
+  const disconnect = useCallback(() => {
+    setRoomId(null);
+  }, []);
+
+  const setUserName = useCallback((name: string) => {
+    saveUserName(name);
+  }, [saveUserName]);
+
+  const setUserColor = useCallback((color: string) => {
+    saveUserColor(color);
+  }, [saveUserColor]);
+
+  const contextValue = useMemo<CollaborationContextValue>(() => ({
     'isConnected': false,
     'isConnecting': false,
-    'connectionStatus': 'disconnected' as ConnectionStatus,
+    'connectionStatus': 'disconnected',
     'roomId': null,
     userName,
-    'userId': generateUserId(),
+    userId,
     userColor,
     'collaborators': [],
     'messages': [],
@@ -55,252 +277,46 @@ export function CollaborationProvider ({
       'summary': '',
       'tags': [],
       'coverImage': null
-    }
-  }), [userName, userColor]);
-
-  const [state, setState] = useState<CollaborationState>(initialState);
-
-  const providerRef = useRef<SupabaseProvider | null>(null);
-  const awarenessRef = useRef<SupabaseProvider['awareness'] | null>(null);
-  const chatMapRef = useRef<Y.Map<string> | null>(null);
-  const metaMapRef = useRef<Y.Map<unknown> | null>(null);
-  const currentUserStateRef = useRef<AwarenessUserState | null>(null);
-
-  const updateAwarenessState = useCallback((updates: Partial<AwarenessUserState>) => {
-    if (!currentUserStateRef.current) {
-      return;
-    }
-    currentUserStateRef.current = {
-      ...currentUserStateRef.current,
-      ...updates,
-      'lastActive': Date.now()
-    };
-
-    if (awarenessRef.current) {
-      awarenessRef.current.setLocalStateField('user', currentUserStateRef.current);
-    }
-  }, []);
-
-  const cleanup = useCallback(() => {
-    if (providerRef.current) {
-      providerRef.current.destroy();
-      providerRef.current = null;
-    }
-    setProvider(null);
-    setDoc(null);
-    awarenessRef.current = null;
-    chatMapRef.current = null;
-    metaMapRef.current = null;
-  }, []);
-
-  const connect = useCallback((roomId: string) => {
-    cleanup();
-
-    setState((prev) => ({ ...prev, 'isConnecting': true, 'error': null, roomId, 'connectionStatus': 'connecting' }));
-
-    const newDoc = new Y.Doc();
-    const newProvider = new SupabaseProvider(newDoc, {
-      'channel': `collaboration-${roomId}`,
-      'id': roomId
-    });
-
-    setDoc(newDoc);
-    setProvider(newProvider);
-    providerRef.current = newProvider;
-    awarenessRef.current = newProvider.awareness;
-
-    chatMapRef.current = newDoc.getMap('chat');
-    metaMapRef.current = newDoc.getMap('meta');
-
-    currentUserStateRef.current = {
-      'id': state.userId,
-      'name': userName,
-      'color': userColor,
-      'cursorPosition': undefined,
-      'mousePosition': undefined,
-      'currentPath': undefined,
-      'lastActive': Date.now()
-    };
-
-    newProvider.awareness.setLocalStateField('user', currentUserStateRef.current);
-
-    newProvider.setStatusCallback((status) => {
-      setState((prev) => ({
-        ...prev,
-        'isConnected': status.connected,
-        'isConnecting': !status.connected && status.connectionStatus === 'connecting',
-        'connectionStatus': status.connectionStatus || 'disconnected'
-      }));
-    });
-
-    newProvider.on('awareness', () => {
-      const awareness = awarenessRef.current;
-      if (!awareness) {
-        return;
-      }
-
-      const states = awareness.getStates();
-      const collaborators: Collaborator[] = [];
-
-      states.forEach((awarenessState: { user?: AwarenessUserState }, clientId: number) => {
-        if (clientId !== awareness.clientID && awarenessState.user) {
-          const collaborator: Collaborator = {
-            'id': awarenessState.user.id,
-            'name': awarenessState.user.name,
-            'color': awarenessState.user.color,
-            'lastActive': awarenessState.user.lastActive
-          };
-          if (awarenessState.user.cursorPosition !== undefined) {
-            collaborator.cursorPosition = awarenessState.user.cursorPosition;
-          }
-          if (awarenessState.user.mousePosition !== undefined) {
-            collaborator.mousePosition = awarenessState.user.mousePosition;
-          }
-          if (awarenessState.user.currentPath !== undefined) {
-            collaborator.currentPath = awarenessState.user.currentPath;
-          }
-          collaborators.push(collaborator);
-        }
-      });
-
-      setState((prev) => ({ ...prev, collaborators }));
-    });
-
-    chatMapRef.current.observe(() => {
-      const messages: ChatMessage[] = [];
-      chatMapRef.current?.forEach((value, key) => {
-        try {
-          const msg = JSON.parse(value as string);
-          messages.push({ 'id': key, ...msg });
-        } catch {
-          // 忽略解析错误
-        }
-      });
-      messages.sort((a, b) => a.timestamp - b.timestamp);
-      setState((prev) => ({ ...prev, messages }));
-    });
-
-    metaMapRef.current.observe(() => {
-      const title = metaMapRef.current?.get('title') as string | undefined;
-      const summary = metaMapRef.current?.get('summary') as string | undefined;
-      const tags = metaMapRef.current?.get('tags') as string[] | undefined;
-      const coverImage = metaMapRef.current?.get('coverImage') as string | undefined;
-
-      setState((prev) => ({
-        ...prev,
-        'meta': {
-          'title': title ?? prev.meta.title,
-          'summary': summary ?? prev.meta.summary,
-          'tags': tags ?? prev.meta.tags,
-          'coverImage': coverImage !== undefined ? coverImage : prev.meta.coverImage
-        }
-      }));
-    });
-
-    newProvider.on('sync', () => {
-      const messages: ChatMessage[] = [];
-      chatMapRef.current?.forEach((value, key) => {
-        try {
-          const msg = JSON.parse(value as string);
-          messages.push({ 'id': key, ...msg });
-        } catch {
-          // 忽略解析错误
-        }
-      });
-      messages.sort((a, b) => a.timestamp - b.timestamp);
-      setState((prev) => ({ ...prev, messages }));
-    });
-  }, [state.userId, userName, userColor, cleanup]);
-
-  const disconnect = useCallback(() => {
-    cleanup();
-    setState((prev) => ({
-      ...prev,
-      'isConnected': false,
-      'isConnecting': false,
-      'connectionStatus': 'disconnected',
-      'roomId': null,
-      'collaborators': [],
-      'messages': []
-    }));
-  }, [cleanup]);
-
-  const setUserName = useCallback((name: string) => {
-    setState((prev) => ({ ...prev, 'userName': name }));
-    updateAwarenessState({ name });
-  }, [updateAwarenessState]);
-
-  const setUserColor = useCallback((color: string) => {
-    setState((prev) => ({ ...prev, 'userColor': color }));
-    updateAwarenessState({ color });
-  }, [updateAwarenessState]);
-
-  const sendMessage = useCallback((content: string) => {
-    if (!chatMapRef.current || !content.trim()) {
-      return;
-    }
-
-    const messageId = `msg-${Date.now()}-${Math.random().toString(36)
-      .substring(2, 9)}`;
-    const messageData = JSON.stringify({
-      'userId': state.userId,
-      'userName': state.userName,
-      'userColor': state.userColor,
-      'content': content.trim(),
-      'timestamp': Date.now()
-    });
-
-    chatMapRef.current.set(messageId, messageData);
-  }, [state.userId, state.userName, state.userColor]);
-
-  const updateCursorPosition = useCallback((position: number) => {
-    updateAwarenessState({ 'cursorPosition': position });
-  }, [updateAwarenessState]);
-
-  const updateMousePosition = useCallback((position: { x: number; y: number } | null) => {
-    updateAwarenessState({ 'mousePosition': position });
-  }, [updateAwarenessState]);
-
-  const updateCurrentPath = useCallback((path: string | null) => {
-    updateAwarenessState({ 'currentPath': path });
-  }, [updateAwarenessState]);
-
-  const updateMeta = useCallback((meta: Partial<CollaborationState['meta']>) => {
-    if (!metaMapRef.current) {
-      return;
-    }
-    if (meta.title !== undefined) {
-      metaMapRef.current.set('title', meta.title);
-    }
-    if (meta.summary !== undefined) {
-      metaMapRef.current.set('summary', meta.summary);
-    }
-    if (meta.tags !== undefined) {
-      metaMapRef.current.set('tags', meta.tags);
-    }
-    if (meta.coverImage !== undefined) {
-      metaMapRef.current.set('coverImage', meta.coverImage);
-    }
-  }, []);
-
-  const value = useMemo<CollaborationContextValue>(() => ({
-    ...state,
-    doc,
-    provider,
+    },
+    'doc': null,
+    'provider': null,
     connect,
     disconnect,
     setUserName,
     setUserColor,
-    sendMessage,
-    updateCursorPosition,
-    updateMeta,
-    updateMousePosition,
-    updateCurrentPath
-  }), [state, doc, provider, connect, disconnect, setUserName, setUserColor, sendMessage, updateCursorPosition, updateMeta, updateMousePosition, updateCurrentPath]);
+    'sendMessage': () => {},
+    'updateMeta': () => {},
+    'updateCurrentPath': () => {}
+  }), [userName, userId, userColor, connect, disconnect, setUserName, setUserColor]);
+
+  if (!roomId) {
+    return (
+      <CollaborationContext.Provider value={contextValue}>
+        {children}
+      </CollaborationContext.Provider>
+    );
+  }
 
   return (
-    <CollaborationContext.Provider value={value}>
-      {children}
-    </CollaborationContext.Provider>
+    <RoomProvider
+      id={roomId}
+      initialPresence={{
+        'cursor': null,
+        'currentPath': null,
+        userName,
+        userColor
+      }}
+      initialStorage={{ 'messages': new LiveList([]), 'threads': new LiveMap(), 'mainThreadTitle': '主聊天' } as Storage}
+    >
+      <CollaborationRoomInner
+        userName={userName}
+        userColor={userColor}
+        userId={userId}
+        roomId={roomId}
+        onDisconnect={disconnect}
+      >
+        {children}
+      </CollaborationRoomInner>
+    </RoomProvider>
   );
 }

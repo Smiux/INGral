@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { createArticle, getArticleBySlug, updateArticle } from '../../services/articleService';
 import { LatexEditor } from './LatexEditor';
-import { TiptapEditor, TiptapEditorRef } from './TipTapEditor';
+import { TiptapEditor, TiptapEditorRef, type CollaborationProvider } from './TipTapEditor';
 import { EditorToolbar } from './EditorToolbar';
 import { DraftManager } from './DraftManager';
 import { CoverManager } from './CoverManager';
@@ -182,51 +182,45 @@ export const ArticleEditor: React.FC = () => {
 
   const collaboration = useCollaboration();
 
-  const isLocalUpdateRef = useRef(false);
-
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [showCollabPanel, setShowCollabPanel] = useState(false);
 
   useEffect(() => {
-    if (collaboration.isConnected && collaboration.meta) {
-      if (isLocalUpdateRef.current) {
-        isLocalUpdateRef.current = false;
-        return;
-      }
-      if (collaboration.meta.title && collaboration.meta.title !== state.title) {
-        isLocalUpdateRef.current = true;
-        setState(prev => ({ ...prev, 'title': collaboration.meta.title }));
-      }
-      if (collaboration.meta.summary !== undefined && collaboration.meta.summary !== summary) {
-        isLocalUpdateRef.current = true;
-        setSummary(collaboration.meta.summary);
-      }
-      if (collaboration.meta.tags && JSON.stringify(collaboration.meta.tags) !== JSON.stringify(tags)) {
-        isLocalUpdateRef.current = true;
-        setTags(collaboration.meta.tags);
-      }
-      if (collaboration.meta.coverImage !== undefined && collaboration.meta.coverImage !== coverImagePath) {
-        isLocalUpdateRef.current = true;
-        setCoverImagePath(collaboration.meta.coverImage);
-        setCoverImageModified(true);
-        if (collaboration.meta.coverImage) {
-          const byteString = atob(collaboration.meta.coverImage.split(',')[1] || '');
-          const mimeType = collaboration.meta.coverImage.split(',')[0]?.match(/:(.*?);/)?.[1] || 'image/png';
-          const ab = new ArrayBuffer(byteString.length);
-          const ia = new Uint8Array(ab);
-          for (let i = 0; i < byteString.length; i += 1) {
-            ia[i] = byteString.charCodeAt(i);
-          }
-          const blob = new Blob([ab], { 'type': mimeType });
-          setCoverImage(blob);
-        } else {
-          setCoverImage(null);
-        }
+    if (!collaboration.isConnected || !collaboration.meta) {
+      return;
+    }
+    if (collaboration.meta.title !== undefined && collaboration.meta.title !== state.title) {
+      setState(prev => ({ ...prev, 'title': collaboration.meta.title || '' }));
+    }
+    if (collaboration.meta.summary !== undefined && collaboration.meta.summary !== summary) {
+      setSummary(collaboration.meta.summary || '');
+    }
+    if (collaboration.meta.tags !== undefined) {
+      const newTags = collaboration.meta.tags || [];
+      if (JSON.stringify(newTags) !== JSON.stringify(tags)) {
+        setTags(newTags);
       }
     }
-  }, [collaboration.meta, collaboration.isConnected, state.title, summary, tags, coverImagePath, coverImage]);
+    if (collaboration.meta.coverImage !== undefined && collaboration.meta.coverImage !== coverImagePath) {
+      setCoverImagePath(collaboration.meta.coverImage);
+      setCoverImageModified(true);
+      if (collaboration.meta.coverImage) {
+        const byteString = atob(collaboration.meta.coverImage.split(',')[1] || '');
+        const mimeType = collaboration.meta.coverImage.split(',')[0]?.match(/:(.*?);/)?.[1] || 'image/png';
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i += 1) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        const blob = new Blob([ab], { 'type': mimeType });
+        setCoverImage(blob);
+      } else {
+        setCoverImage(null);
+      }
+    }
+  }, [collaboration.meta, collaboration.isConnected, state.title, summary, tags, coverImagePath]);
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -286,7 +280,6 @@ export const ArticleEditor: React.FC = () => {
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState(prev => ({ ...prev, 'title': e.target.value }));
-    isLocalUpdateRef.current = true;
     collaboration.updateMeta({ 'title': e.target.value });
   };
 
@@ -552,7 +545,7 @@ export const ArticleEditor: React.FC = () => {
   const collaborationConfig = useMemo(() => {
     if (collaboration.isConnected && collaboration.doc && collaboration.provider) {
       return {
-        'provider': collaboration.provider,
+        'provider': collaboration.provider as CollaborationProvider,
         'document': collaboration.doc,
         'userName': collaboration.userName,
         'userColor': collaboration.userColor,

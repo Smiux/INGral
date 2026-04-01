@@ -33,8 +33,14 @@ interface CollaborationProvider {
     clientID: number;
     getLocalState: () => Record<string, unknown> | null;
     setLocalStateField: (key: string, value: unknown) => void;
+    on: (event: string, callback: () => void) => void;
+    off: (event: string, callback: () => void) => void;
+    getStates: () => Map<number, Record<string, unknown>>;
   };
+  destroy: () => void;
 }
+
+export type { CollaborationProvider };
 
 const CustomCodeBlock = CodeBlockLowlight.extend({
   'renderHTML': () => {
@@ -100,82 +106,96 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   content,
   collaboration
 }) => {
-  const extensions = useMemo(() => [
-    StarterKit.configure({
-      'underline': {
-        'HTMLAttributes': {
-          'class': 'underlineStyle'
+  const onTableOfContentsChangeRef = React.useRef(onTableOfContentsChange);
+
+  React.useEffect(() => {
+    onTableOfContentsChangeRef.current = onTableOfContentsChange;
+  }, [onTableOfContentsChange]);
+
+  const handleTocUpdate = React.useCallback((items: Parameters<NonNullable<TiptapEditorProps['onTableOfContentsChange']>>[0]) => {
+    queueMicrotask(() => {
+      onTableOfContentsChangeRef.current?.(items);
+    });
+  }, []);
+
+  const extensions = useMemo(() => {
+    const tocExt = onTableOfContentsChange
+      // eslint-disable-next-line react-hooks/refs
+      ? [TableOfContents.configure({
+        'getIndex': getHierarchicalIndexes,
+        'onUpdate': handleTocUpdate
+      })]
+      : [];
+
+    return [
+      StarterKit.configure({
+        'codeBlock': false,
+        'link': { 'openOnClick': false },
+        ...(collaboration?.provider ? { 'undoRedo': false } : {})
+      }),
+      TextStyleKit.configure({
+        'backgroundColor': { 'types': ['textStyle'] },
+        'color': { 'types': ['textStyle'] },
+        'fontFamily': { 'types': ['textStyle'] },
+        'fontSize': { 'types': ['textStyle', 'heading'] },
+        'lineHeight': { 'types': ['textStyle', 'heading', 'paragraph'] }
+      }),
+      SubscriptTiptap,
+      SuperscriptTiptap,
+      CustomCodeBlock.configure({
+        lowlight,
+        'enableTabIndentation': true,
+        'tabSize': 2
+      }),
+      Image.configure({
+        'allowBase64': true
+      }),
+      Audio.configure({
+        'allowBase64': true
+      }),
+      FileHandler.configure({
+        'onDrop': (editorInstance, files) => {
+          files.forEach((file) => handleFileInsert(editorInstance, file));
+        },
+        'onPaste': (editorInstance, files) => {
+          files.forEach((file) => handleFileInsert(editorInstance, file));
+        },
+        'allowedMimeTypes': [
+          'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+          'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/aac', 'audio/flac'
+        ]
+      }),
+      TableKit.configure({
+        'table': {
+          'resizable': true
         }
-      },
-      'codeBlock': false,
-      'link': { 'openOnClick': false },
-      ...(collaboration?.provider ? { 'undoRedo': false } : {})
-    }),
-    TextStyleKit.configure({
-      'backgroundColor': { 'types': ['textStyle'] },
-      'color': { 'types': ['textStyle'] },
-      'fontFamily': { 'types': ['textStyle'] },
-      'fontSize': { 'types': ['textStyle', 'heading'] },
-      'lineHeight': { 'types': ['textStyle', 'heading', 'paragraph'] }
-    }),
-    SubscriptTiptap,
-    SuperscriptTiptap,
-    CustomCodeBlock.configure({
-      lowlight,
-      'enableTabIndentation': true,
-      'tabSize': 2
-    }),
-    Image.configure({
-      'allowBase64': true
-    }),
-    Audio.configure({
-      'allowBase64': true
-    }),
-    FileHandler.configure({
-      'onDrop': (editorInstance, files) => {
-        files.forEach((file) => handleFileInsert(editorInstance, file));
-      },
-      'onPaste': (editorInstance, files) => {
-        files.forEach((file) => handleFileInsert(editorInstance, file));
-      },
-      'allowedMimeTypes': [
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/aac', 'audio/flac'
-      ]
-    }),
-    TableKit.configure({
-      'table': {
-        'resizable': true
-      }
-    }),
-    TextAlign.configure({ 'types': ['heading', 'paragraph'] }),
-    Typography,
-    InvisibleCharacters.configure({ 'visible': editable, 'injectCSS': true }),
-    InlineMath,
-    BlockMath,
-    NodeRange,
-    ...(onTableOfContentsChange ? [TableOfContents.configure({
-      'getIndex': getHierarchicalIndexes,
-      'onUpdate': onTableOfContentsChange
-    })] : []),
-    CharacterCount,
-    IframeEmbed,
-    CollapsibleNode,
-    ...(collaboration?.document ? [
-      Collaboration.configure({
-        'document': collaboration.document
-      })
-    ] : []),
-    ...(collaboration?.provider ? [
-      CollaborationCaret.configure({
-        'provider': collaboration.provider,
-        'user': {
-          'name': collaboration.userName,
-          'color': collaboration.userColor
-        }
-      })
-    ] : [])
-  ], [collaboration, editable, onTableOfContentsChange]);
+      }),
+      TextAlign.configure({ 'types': ['heading', 'paragraph'] }),
+      Typography,
+      InvisibleCharacters.configure({ 'visible': editable, 'injectCSS': true }),
+      InlineMath,
+      BlockMath,
+      NodeRange,
+      ...tocExt,
+      CharacterCount,
+      IframeEmbed,
+      CollapsibleNode,
+      ...(collaboration?.document ? [
+        Collaboration.configure({
+          'document': collaboration.document
+        })
+      ] : []),
+      ...(collaboration?.provider ? [
+        CollaborationCaret.configure({
+          'provider': collaboration.provider,
+          'user': {
+            'name': collaboration.userName,
+            'color': collaboration.userColor
+          }
+        })
+      ] : [])
+    ];
+  }, [collaboration, editable, onTableOfContentsChange, handleTocUpdate]);
 
   const editor = useEditor({
     'shouldRerenderOnTransaction': false,
