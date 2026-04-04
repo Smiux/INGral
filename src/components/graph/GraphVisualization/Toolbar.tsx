@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch, Users, Wifi, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch, Users, Wifi, Loader2, RefreshCw } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 import { useCollaboration, CollaborationPanel } from '../../collaboration';
 
-interface GraphToolbarProps {
+interface ToolbarProps {
   onAddNode: () => void;
   isManagementPanelOpen: boolean;
   onToggleManagementPanel: () => void;
@@ -98,7 +98,7 @@ const ToggleGroup: React.FC<{
   );
 });
 
-export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
+export const Toolbar: React.FC<ToolbarProps> = React.memo(({
   onAddNode,
   isManagementPanelOpen,
   onToggleManagementPanel,
@@ -150,9 +150,6 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
   const getCollabStatusIcon = () => {
     if (connectionStatus === 'reconnecting') {
       return <RefreshCw size={16} className="animate-spin text-orange-500" />;
-    }
-    if (connectionStatus === 'error') {
-      return <AlertTriangle size={16} className="text-red-500" />;
     }
     if (isConnecting) {
       return <Loader2 size={16} className="animate-spin text-sky-400" />;
@@ -307,4 +304,4 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = React.memo(({
   );
 });
 
-export default GraphToolbar;
+export default Toolbar;

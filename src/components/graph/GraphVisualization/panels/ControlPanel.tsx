@@ -2,8 +2,8 @@ import React from 'react';
 import { X, Square, Pencil, Circle, RectangleHorizontal, MousePointer2 } from 'lucide-react';
 import { useStore, useReactFlow } from '@xyflow/react';
 
-import { CustomNodeData } from './CustomNode';
-import { CustomEdgeData } from './FloatingEdge';
+import { CustomNodeData } from '../Node';
+import { CustomEdgeData } from '../Edge';
 
 type ColorType = 'blue' | 'green' | 'purple' | 'orange' | 'teal';
 
@@ -15,7 +15,7 @@ const colorConfig = {
   'teal': { 'bg': 'from-teal-50 to-cyan-50 dark:from-teal-950/30 dark:to-cyan-950/30', 'border': 'border-teal-100 dark:border-teal-900', 'icon': 'text-teal-600 dark:text-teal-400', 'focus': 'focus:ring-teal-500' }
 };
 
-interface GraphControlPanelProps {
+interface ControlPanelProps {
   panelPosition?: 'left' | 'right';
 }
 
@@ -70,7 +70,7 @@ const shapeOptions = [
   { 'value': 'rectangle', 'label': '矩形', 'icon': <RectangleHorizontal className="w-6 h-6" /> }
 ];
 
-export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosition = 'right' }) => {
+export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'right' }) => {
   const selectedNode = useStore(
     (state) => getSelectedNodeInfo(state.nodes as Array<{ id: string; data: CustomNodeData; selected?: boolean }>),
     compareSelectedInfo
@@ -515,4 +515,4 @@ export const GraphControlPanel: React.FC<GraphControlPanelProps> = ({ panelPosit
   );
 };
 
-export default GraphControlPanel;
+export default ControlPanel;

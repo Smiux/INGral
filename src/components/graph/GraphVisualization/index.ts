@@ -1,1 +1,1 @@
-export { default } from './GraphVisualization';
+export { default } from './Visualization';

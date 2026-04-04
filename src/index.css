@@ -3,6 +3,7 @@
 @import 'prosemirror-tables/style/tables.css';
 
 @custom-variant dark (@media (prefers-color-scheme: dark));
+@custom-variant print (@media print);
 
 /* ========================================
    基础样式
@@ -563,5 +564,403 @@ math-field::part(menu-toggle) {
 
   .tiptap .collaboration-carets__label {
     color: #f5f5f5;
+  }
+}
+
+/* ========================================
+   打印样式
+   ======================================== */
+
+@media print {
+  @page {
+    margin: 1.5cm;
+    size: A4;
+  }
+
+  html,
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body > div {
+    background-color: #ffffff !important;
+  }
+
+  article {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  nav,
+  aside,
+  header {
+    display: none !important;
+  }
+
+  .border,
+  .border-neutral-200,
+  .dark\:border-neutral-700,
+  .border-sky-200,
+  .border-sky-400 {
+    border: none !important;
+  }
+
+  .rounded-lg,
+  .rounded-r-lg,
+  .rounded-full {
+    border-radius: 0 !important;
+  }
+
+  .shadow-sm,
+  .shadow,
+  .shadow-xl {
+    box-shadow: none !important;
+  }
+
+  .bg-white,
+  .dark\:bg-neutral-800,
+  .bg-neutral-50,
+  .bg-neutral-100,
+  .bg-neutral-700,
+  .bg-neutral-800,
+  .bg-neutral-900,
+  .dark\:bg-neutral-700,
+  .dark\:bg-neutral-900,
+  .bg-sky-50,
+  .bg-sky-100,
+  .bg-sky-900\/20,
+  .bg-sky-900\/30,
+  .bg-red-50,
+  .bg-red-900\/20 {
+    background-color: #ffffff !important;
+  }
+
+  .text-neutral-800,
+  .text-neutral-900,
+  .dark\:text-neutral-100,
+  .dark\:text-neutral-200,
+  .text-neutral-700 {
+    color: #000000 !important;
+  }
+
+  .text-neutral-500,
+  .text-neutral-600,
+  .dark\:text-neutral-300,
+  .dark\:text-neutral-400 {
+    color: #333333 !important;
+  }
+
+  .text-sky-600,
+  .text-sky-700,
+  .dark\:text-sky-300,
+  .dark\:text-sky-400,
+  .text-sky-500 {
+    color: #000000 !important;
+    text-decoration: underline;
+  }
+
+  .prose {
+    font-size: 11pt;
+    color: #000000 !important;
+    background-color: #ffffff !important;
+  }
+
+  .prose h1 {
+    font-size: 22pt;
+    color: #000000 !important;
+    page-break-after: avoid;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .prose h2 {
+    font-size: 16pt;
+    color: #000000 !important;
+    page-break-after: avoid;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .prose h3 {
+    font-size: 13pt;
+    color: #000000 !important;
+    page-break-after: avoid;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .prose p {
+    margin-bottom: 0.75rem;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .prose ul,
+  .prose ol {
+    margin-left: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .prose li {
+    margin-bottom: 0.25rem;
+  }
+
+  .prose blockquote {
+    border-left: 3px solid #666666 !important;
+    background-color: transparent !important;
+    color: #333333 !important;
+    padding: 0.25rem 0 0.25rem 0.75rem;
+    margin: 0.75rem 0;
+    page-break-inside: avoid;
+    font-style: italic;
+  }
+
+  .prose a {
+    color: #000000 !important;
+    text-decoration: underline;
+  }
+
+  .prose img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+    margin: 0.75rem auto;
+    display: block;
+  }
+
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    page-break-inside: avoid;
+    margin-bottom: 0.75rem;
+  }
+
+  .prose th,
+  .prose td {
+    border: 1px solid #000000 !important;
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+  }
+
+  .prose th {
+    font-weight: 600;
+  }
+
+  .prose pre {
+    background-color: #f5f5f5 !important;
+    border: 1px solid #cccccc !important;
+    padding: 0.5rem;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 9pt;
+    page-break-inside: avoid;
+    border-radius: 0;
+    margin-bottom: 0.75rem;
+  }
+
+  .prose code:not(pre code) {
+    background-color: #f0f0f0 !important;
+    color: #000000 !important;
+    border: none !important;
+    padding: 0.1rem 0.25rem;
+    font-size: 10pt;
+  }
+
+  .prose hr {
+    border: none;
+    border-top: 1px solid #cccccc !important;
+    margin: 1rem 0;
+  }
+
+  .hljs {
+    background-color: #f5f5f5 !important;
+    color: #000000 !important;
+  }
+
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-built_in,
+  .hljs-name,
+  .hljs-tag {
+    color: #000080 !important;
+    font-weight: 600;
+  }
+
+  .hljs-string,
+  .hljs-title,
+  .hljs-section,
+  .hljs-attribute,
+  .hljs-literal,
+  .hljs-template-tag,
+  .hljs-template-variable,
+  .hljs-type {
+    color: #008000 !important;
+  }
+
+  .hljs-comment,
+  .hljs-deletion {
+    color: #808080 !important;
+  }
+
+  .tiptap-mathematics-render {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .tiptap-mathematics-render[data-type="block-math"]::after {
+    color: #333333 !important;
+  }
+
+  .iframe-embed-wrapper,
+  .collaboration-carets,
+  audio,
+  video {
+    display: none !important;
+  }
+
+  mark,
+  mark[data-match-index] {
+    background-color: #ffffcc !important;
+    color: #000000 !important;
+    padding: 0 0.1rem;
+  }
+
+  button {
+    display: none !important;
+  }
+
+  .p-6,
+  .p-8,
+  .p-12,
+  .p-16 {
+    padding: 0 !important;
+  }
+
+  .px-4,
+  .px-6,
+  .px-8 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .py-8,
+  .py-6 {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .mb-6 {
+    margin-bottom: 0.75rem !important;
+  }
+
+  .mt-4,
+  .mt-6 {
+    margin-top: 0.5rem !important;
+  }
+
+  .gap-1,
+  .gap-2,
+  .gap-4,
+  .gap-6 {
+    gap: 0.5rem !important;
+  }
+
+  .prose strong,
+  .prose b {
+    font-weight: 700 !important;
+  }
+
+  .prose em,
+  .prose i {
+    font-style: italic !important;
+  }
+
+  .prose s,
+  .prose del {
+    text-decoration: line-through !important;
+  }
+
+  .prose sub {
+    vertical-align: sub !important;
+    font-size: 0.75em !important;
+  }
+
+  .prose sup {
+    vertical-align: super !important;
+    font-size: 0.75em !important;
+  }
+
+  .prose span[style*="color"] {
+    color: #000000 !important;
+  }
+
+  .prose span[style*="background-color"] {
+    background-color: transparent !important;
+  }
+
+  .prose span[style*="font-size"] {
+    font-size: inherit !important;
+  }
+
+  .prose span[style*="font-family"] {
+    font-family: inherit !important;
+  }
+
+  .collapsible-node-wrapper {
+    border: 1px solid #cccccc !important;
+    border-radius: 0 !important;
+    background-color: #ffffff !important;
+    margin: 0.75rem 0 !important;
+    page-break-inside: avoid;
+  }
+
+  .collapsible-header {
+    background-color: #f5f5f5 !important;
+    padding: 0.5rem 0.75rem !important;
+    cursor: default !important;
+  }
+
+  .collapsible-header svg {
+    display: none !important;
+  }
+
+  .collapsible-header span {
+    color: #000000 !important;
+    font-weight: 600 !important;
+    font-style: normal !important;
+  }
+
+  .collapsible-content-wrapper {
+    max-height: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+  }
+
+  .collapsible-content {
+    border-top: 1px solid #cccccc !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  .collapsible-body-content {
+    min-height: 0 !important;
+  }
+
+  .collapsible-node-wrapper input {
+    display: none !important;
+  }
+
+  [data-type="dragHandle"] {
+    display: none !important;
   }
 }

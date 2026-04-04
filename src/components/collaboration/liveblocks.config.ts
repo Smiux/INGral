@@ -1,51 +1,78 @@
-import { createClient, LiveList, LiveMap } from '@liveblocks/client';
-import { createRoomContext } from '@liveblocks/react';
+import { createClient, LiveList, LiveObject } from '@liveblocks/client';
+import { createRoomContext, shallow } from '@liveblocks/react';
+
+export { LiveList, LiveObject };
 
 export type Presence = {
   cursor: { x: number; y: number } | null;
   currentPath: string | null;
   userName: string;
   userColor: string;
+  peerId: string | null;
 };
 
-export type MediaType = 'image' | 'audio' | 'gif';
+export type MessageAttachmentType = 'image' | 'audio';
 
-export type MediaAttachment = {
-  type: MediaType;
-  url: string;
-  filename: string;
-  mimeType: string;
-  size: number;
-  duration?: number;
-  width?: number;
-  height?: number;
-};
-
-export type ChatThread = {
+export type MessageAttachment = {
   id: string;
-  title: string | null;
-  createdAt: number;
-  createdBy: string;
+  type: MessageAttachmentType;
+  data: string;
+  mimeType?: string;
+  fileName?: string;
 };
 
-export type ChatMessage = {
+export type Message = {
   id: string;
+  channelId: string;
   userId: string;
   userName: string;
   userColor: string;
   content: string;
+  attachments: MessageAttachment[];
   createdAt: number;
-  threadId: string | null;
-  replyTo: string | null;
-  media: MediaAttachment[];
-  isEdited: boolean;
   editedAt: number | null;
+  deletedAt: number | null;
+  replyToId: string | null;
+  threadId: string | null;
+};
+
+export type Thread = {
+  id: string;
+  channelId: string;
+  parentMessageId: string;
+  createdAt: number;
+  createdBy: string;
+  createdByUserName: string;
+};
+
+export type PinnedMessage = {
+  id: string;
+  messageId: string;
+  channelId: string;
+  pinnedAt: number;
+  pinnedBy: string;
+  pinnedByUserName: string;
+};
+
+export type Channel = {
+  id: string;
+  name: string;
+  isDefault: boolean;
+};
+
+export type ArticleMetadata = {
+  title: string;
+  summary: string;
+  tags: string[];
+  coverImage: string | null;
 };
 
 export type Storage = {
-  messages: LiveList<ChatMessage>;
-  threads: LiveMap<string, ChatThread>;
-  mainThreadTitle: string;
+  channels: LiveList<LiveObject<Channel>>;
+  messages: LiveList<LiveObject<Message>>;
+  threads: LiveList<LiveObject<Thread>>;
+  pinnedMessages: LiveList<LiveObject<PinnedMessage>>;
+  articleMetadata: LiveObject<ArticleMetadata>;
 };
 
 const client = createClient({
@@ -59,6 +86,7 @@ export const {
   useMyPresence,
   useUpdateMyPresence,
   useOthers,
+  useOthersMapped,
   useOthersConnectionIds,
   useOther,
   useSelf,
@@ -66,3 +94,5 @@ export const {
   useStorage,
   useMutation
 } = createRoomContext<Presence, Storage>(client);
+
+export { shallow };

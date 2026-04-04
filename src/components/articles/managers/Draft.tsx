@@ -4,7 +4,7 @@ import {
   ArticleDraft,
   getAllDrafts,
   deleteDraft
-} from './draftUtils';
+} from '../utils/draft';
 
 interface DraftManagerProps {
   'isOpen': boolean;

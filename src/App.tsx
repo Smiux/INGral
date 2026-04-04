@@ -3,11 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { Header } from './components/ui/Header';
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
-import { ArticleViewer } from './components/articles/ArticleViewer';
-import { ArticleEditor } from './components/articles/ArticleEditor';
-import GraphVisualization from './components/graph/GraphVisualization/GraphVisualization';
-import { CollaborationProvider, useCollaboration } from './components/collaboration';
-import { GlobalCollaborationFeatures } from './components/collaboration/GlobalCollaborationFeatures';
+import { ArticleViewer, ArticleEditor } from './components/articles';
+import GraphVisualization from './components/graph/GraphVisualization';
+import { CollaborationProvider, useCollaboration, Features } from './components/collaboration';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -91,7 +89,7 @@ function AppContent () {
         </ErrorBoundary>
       </main>
 
-      {collaboration.isConnected && <GlobalCollaborationFeatures />}
+      {collaboration.isConnected && <Features className="print:hidden" />}
     </div>
   );
 }

@@ -161,7 +161,7 @@ function generateHandles (config: HandleConfig) {
   return handles;
 }
 
-export const CustomNode = (props: NodeProps) => {
+export const Node = (props: NodeProps) => {
   const { id, data, selected } = props;
 
   const nodeData = data as CustomNodeData;
@@ -279,4 +279,4 @@ export const CustomNode = (props: NodeProps) => {
   );
 };
 
-export default React.memo(CustomNode);
+export default React.memo(Node);

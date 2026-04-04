@@ -264,7 +264,7 @@ function ContentMatchPreview ({ matches, articleSlug, onMatchClick, searchQuery 
   }
 
   return (
-    <div className="mt-3 space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-600">
+    <div className="mt-3 space-y-2 max-h-40 overflow-y-auto pr-1">
       {matches.map((match, index) => (
         <div
           key={index}
@@ -918,7 +918,7 @@ export function ArticlesPage (): JSX.Element {
                   ? 'bg-white dark:bg-neutral-700 text-sky-600 dark:text-sky-400 shadow-sm'
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
               }`}
-              title="舒适模式"
+              title="大图模式"
             >
               <Layout className="w-4 h-4" />
             </button>
@@ -929,7 +929,7 @@ export function ArticlesPage (): JSX.Element {
                   ? 'bg-white dark:bg-neutral-700 text-sky-600 dark:text-sky-400 shadow-sm'
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
               }`}
-              title="紧凑模式"
+              title="标准模式"
             >
               <List className="w-4 h-4" />
             </button>
@@ -940,7 +940,7 @@ export function ArticlesPage (): JSX.Element {
                   ? 'bg-white dark:bg-neutral-700 text-sky-600 dark:text-sky-400 shadow-sm'
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
               }`}
-              title="最紧凑模式"
+              title="紧凑模式"
             >
               <AlignJustify className="w-4 h-4" />
             </button>

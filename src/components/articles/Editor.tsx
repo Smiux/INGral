@@ -1,22 +1,23 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createArticle, getArticleBySlug, updateArticle } from '../../services/articleService';
-import { LatexEditor } from './LatexEditor';
-import { TiptapEditor, TiptapEditorRef, type CollaborationProvider } from './TipTapEditor';
-import { EditorToolbar } from './EditorToolbar';
-import { DraftManager } from './DraftManager';
-import { CoverManager } from './CoverManager';
+import { LatexEditor } from './managers/Latex';
+import { TiptapEditor, TiptapEditorRef, type CollaborationProvider } from './core/TipTap';
+import { EditorToolbar } from './core/Toolbar';
+import { DraftManager } from './managers/Draft';
+import { CoverManager } from './managers/Cover';
 import {
   useCollaboration,
   CollaborationPanel
 } from '../collaboration';
 
-import { createDraft, updateDraft, getDraftById, type ArticleDraft } from './draftUtils';
+import { createDraft, updateDraft, getDraftById, type ArticleDraft } from './utils/draft';
 import type { Editor } from '@tiptap/react';
 import {
   Save,
   MessageCircle,
-  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, AlertTriangle, RefreshCw, ChevronRight
+  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, RefreshCw, ChevronRight,
+  Trash2
 } from 'lucide-react';
 
 interface EditorState {
@@ -186,41 +187,7 @@ export const ArticleEditor: React.FC = () => {
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [showCollabPanel, setShowCollabPanel] = useState(false);
-
-  useEffect(() => {
-    if (!collaboration.isConnected || !collaboration.meta) {
-      return;
-    }
-    if (collaboration.meta.title !== undefined && collaboration.meta.title !== state.title) {
-      setState(prev => ({ ...prev, 'title': collaboration.meta.title || '' }));
-    }
-    if (collaboration.meta.summary !== undefined && collaboration.meta.summary !== summary) {
-      setSummary(collaboration.meta.summary || '');
-    }
-    if (collaboration.meta.tags !== undefined) {
-      const newTags = collaboration.meta.tags || [];
-      if (JSON.stringify(newTags) !== JSON.stringify(tags)) {
-        setTags(newTags);
-      }
-    }
-    if (collaboration.meta.coverImage !== undefined && collaboration.meta.coverImage !== coverImagePath) {
-      setCoverImagePath(collaboration.meta.coverImage);
-      setCoverImageModified(true);
-      if (collaboration.meta.coverImage) {
-        const byteString = atob(collaboration.meta.coverImage.split(',')[1] || '');
-        const mimeType = collaboration.meta.coverImage.split(',')[0]?.match(/:(.*?);/)?.[1] || 'image/png';
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
-        for (let i = 0; i < byteString.length; i += 1) {
-          ia[i] = byteString.charCodeAt(i);
-        }
-        const blob = new Blob([ab], { 'type': mimeType });
-        setCoverImage(blob);
-      } else {
-        setCoverImage(null);
-      }
-    }
-  }, [collaboration.meta, collaboration.isConnected, state.title, summary, tags, coverImagePath]);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -278,9 +245,68 @@ export const ArticleEditor: React.FC = () => {
     loadArticle();
   }, [slug, editor]);
 
+  useEffect(() => {
+    if (!collaboration.articleMetadata) {
+      return undefined;
+    }
+
+    const metaTitle = collaboration.articleMetadata.title;
+    const metaSummary = collaboration.articleMetadata.summary;
+    const metaTags = collaboration.articleMetadata.tags;
+    const metaCoverImage = collaboration.articleMetadata.coverImage;
+
+    const titleObserver = () => {
+      const remoteTitle = metaTitle.get('value');
+      if (remoteTitle !== undefined && remoteTitle !== state.title) {
+        setState(prev => ({ ...prev, 'title': remoteTitle }));
+      }
+    };
+    metaTitle.observe(titleObserver);
+
+    const summaryObserver = () => {
+      const remoteSummary = metaSummary.get('value');
+      if (remoteSummary !== undefined) {
+        setSummary(remoteSummary);
+      }
+    };
+    metaSummary.observe(summaryObserver);
+
+    const tagsObserver = () => {
+      const remoteTags = metaTags.toArray();
+      if (JSON.stringify(remoteTags) !== JSON.stringify(tags)) {
+        setTags(remoteTags);
+      }
+    };
+    metaTags.observe(tagsObserver);
+
+    const coverImageObserver = () => {
+      const remoteCoverImage = metaCoverImage.get('value');
+      if (remoteCoverImage !== undefined && remoteCoverImage !== coverImagePath) {
+        if (remoteCoverImage) {
+          setCoverImagePath(remoteCoverImage);
+          setCoverImageModified(true);
+        } else {
+          setCoverImagePath(null);
+          setCoverImageModified(false);
+        }
+      }
+    };
+    metaCoverImage.observe(coverImageObserver);
+
+    return () => {
+      metaTitle.unobserve(titleObserver);
+      metaSummary.unobserve(summaryObserver);
+      metaTags.unobserve(tagsObserver);
+      metaCoverImage.unobserve(coverImageObserver);
+    };
+  }, [collaboration.articleMetadata, state.title, tags, coverImagePath]);
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setState(prev => ({ ...prev, 'title': e.target.value }));
-    collaboration.updateMeta({ 'title': e.target.value });
+    const newTitle = e.target.value;
+    setState(prev => ({ ...prev, 'title': newTitle }));
+    if (collaboration.articleMetadata?.title) {
+      collaboration.articleMetadata.title.set('value', newTitle);
+    }
   };
 
   const handleSave = async () => {
@@ -322,6 +348,26 @@ export const ArticleEditor: React.FC = () => {
       setState(prev => ({ ...prev, 'isSaving': false }));
     }
   };
+
+  const handleClearArticle = useCallback(() => {
+    setShowClearConfirm(true);
+  }, []);
+
+  const confirmClearArticle = useCallback(() => {
+    if (!editor) {
+      return;
+    }
+    editor.commands.clearContent();
+    setState({ 'title': '', 'isSaving': false });
+    setSummary('');
+    setTags([]);
+    setExistingArticleId(null);
+    setCoverImage(null);
+    setCoverImagePath(null);
+    setOriginalCoverImagePath(null);
+    setCoverImageModified(false);
+    setShowClearConfirm(false);
+  }, [editor]);
 
   const handleInsertMath = useCallback((formula: string) => {
     if (!editor) {
@@ -510,19 +556,23 @@ export const ArticleEditor: React.FC = () => {
       reader.onload = () => {
         const base64Data = reader.result as string;
         setCoverImagePath(base64Data);
-        collaboration.updateMeta({ 'coverImage': base64Data });
+        if (collaboration.articleMetadata?.coverImage) {
+          collaboration.articleMetadata.coverImage.set('value', base64Data);
+        }
       };
       reader.readAsDataURL(file);
     } else {
       setCoverImagePath(null);
-      collaboration.updateMeta({ 'coverImage': null });
+      if (collaboration.articleMetadata?.coverImage) {
+        collaboration.articleMetadata.coverImage.set('value', null);
+      }
     }
     setCoverImage(file);
     setCoverImageModified(true);
     if (file === null && originalCoverImagePath) {
       setCoverImage(null);
     }
-  }, [originalCoverImagePath, collaboration]);
+  }, [originalCoverImagePath, collaboration.articleMetadata]);
 
   const handleAddTag = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
@@ -530,37 +580,42 @@ export const ArticleEditor: React.FC = () => {
       if (!tags.includes(trimmedTag)) {
         const newTags = [...tags, trimmedTag];
         setTags(newTags);
-        collaboration.updateMeta({ 'tags': newTags });
+        if (collaboration.articleMetadata?.tags) {
+          collaboration.articleMetadata.tags.push([trimmedTag]);
+        }
       }
       setTagInput('');
     }
-  }, [tagInput, tags, collaboration]);
+  }, [tagInput, tags, collaboration.articleMetadata]);
 
   const handleRemoveTag = useCallback((tagToRemove: string) => {
     const newTags = tags.filter(tag => tag !== tagToRemove);
     setTags(newTags);
-    collaboration.updateMeta({ 'tags': newTags });
-  }, [tags, collaboration]);
+    if (collaboration.articleMetadata?.tags) {
+      const index = tags.indexOf(tagToRemove);
+      if (index !== -1) {
+        collaboration.articleMetadata.tags.delete(index, 1);
+      }
+    }
+  }, [tags, collaboration.articleMetadata]);
 
   const collaborationConfig = useMemo(() => {
-    if (collaboration.isConnected && collaboration.doc && collaboration.provider) {
+    if (collaboration.isConnected && collaboration.doc && collaboration.provider && collaboration.articleMetadata) {
       return {
         'provider': collaboration.provider as CollaborationProvider,
         'document': collaboration.doc,
         'userName': collaboration.userName,
         'userColor': collaboration.userColor,
-        'roomId': collaboration.roomId
+        'roomId': collaboration.roomId,
+        'metadata': collaboration.articleMetadata
       };
     }
     return undefined;
-  }, [collaboration.isConnected, collaboration.doc, collaboration.provider, collaboration.userName, collaboration.userColor, collaboration.roomId]);
+  }, [collaboration.isConnected, collaboration.doc, collaboration.provider, collaboration.userName, collaboration.userColor, collaboration.roomId, collaboration.articleMetadata]);
 
   const getCollabStatusIcon = useCallback(() => {
     if (collaboration.connectionStatus === 'reconnecting') {
       return <RefreshCw size={16} className="mr-2 text-orange-500 animate-spin" />;
-    }
-    if (collaboration.connectionStatus === 'error') {
-      return <AlertTriangle size={16} className="mr-2 text-red-500" />;
     }
     if (collaboration.isConnecting) {
       return <Loader2 size={16} className="mr-2 text-sky-400 animate-spin" />;
@@ -802,6 +857,13 @@ export const ArticleEditor: React.FC = () => {
                 保存草稿
               </button>
               <button
+                onClick={handleClearArticle}
+                className="inline-flex items-center px-3 py-2 border border-red-200 dark:border-red-800 text-sm font-medium rounded-md text-red-600 dark:text-red-400 bg-white dark:bg-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition-all duration-200"
+              >
+                <Trash2 size={16} className="mr-2" />
+                清除
+              </button>
+              <button
                 onClick={handleSave}
                 disabled={state.isSaving}
                 className="inline-flex items-center px-4 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:text-sky-600 dark:hover:text-sky-400 hover:border-sky-200 dark:hover:border-sky-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -908,8 +970,11 @@ export const ArticleEditor: React.FC = () => {
                 <textarea
                   value={summary}
                   onChange={(e) => {
-                    setSummary(e.target.value);
-                    collaboration.updateMeta({ 'summary': e.target.value });
+                    const newSummary = e.target.value;
+                    setSummary(newSummary);
+                    if (collaboration.articleMetadata?.summary) {
+                      collaboration.articleMetadata.summary.set('value', newSummary);
+                    }
                   }}
                   placeholder="输入文章简介，用于在文章列表和卡片中展示..."
                   rows={3}
@@ -1006,6 +1071,41 @@ export const ArticleEditor: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200">清除文章</h3>
+                  <p className="text-sm text-neutral-500">此操作不可恢复</p>
+                </div>
+              </div>
+              <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+                确定要清除所有文章内容吗？
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowClearConfirm(false)}
+                  className="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-lg transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={confirmClearArticle}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                >
+                  确认清除
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <CollaborationPanel isOpen={showCollabPanel} onClose={() => setShowCollabPanel(false)} />
     </div>

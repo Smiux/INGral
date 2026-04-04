@@ -3,9 +3,9 @@ import {
   getBezierPath,
   Position
 } from '@xyflow/react';
-import { getNodeIntersectionToPoint } from './utils/floatingEdgeUtils';
+import { getNodeIntersectionToPoint } from './utils/edgeUtils';
 
-export const FloatingConnectionLine = (props: ConnectionLineComponentProps) => {
+export const ConnectionLine = (props: ConnectionLineComponentProps) => {
   const { fromNode, toX, toY, fromPosition, toPosition } = props;
 
   if (!fromNode) {
@@ -44,4 +44,4 @@ export const FloatingConnectionLine = (props: ConnectionLineComponentProps) => {
   );
 };
 
-export default FloatingConnectionLine;
+export default ConnectionLine;

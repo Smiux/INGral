@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Node, Edge, useReactFlow, useStore } from '@xyflow/react';
 import { Layout, Settings, X, Zap, RefreshCw } from 'lucide-react';
-import type { CustomNodeData } from './CustomNode';
-import type { CustomEdgeData } from './FloatingEdge';
+import type { CustomNodeData } from '../Node';
+import type { CustomEdgeData } from '../Edge';
 import ELK, { ElkNode } from 'elkjs';
 
 type LayoutAlgorithm = 'layered' | 'force' | 'stress' | 'mrtree' | 'radial' | 'box';
 type LayoutDirection = 'DOWN' | 'RIGHT' | 'UP' | 'LEFT';
 
-interface GraphLayoutPanelProps {
+interface LayoutPanelProps {
   onLayout: (nodes: Node<CustomNodeData>[], edges: Edge<CustomEdgeData>[]) => void;
   onClose: () => void;
   isOpen: boolean;
@@ -199,7 +199,7 @@ const DIRECTION_OPTIONS = [
 
 const elk = new ELK();
 
-export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, onClose, isOpen }) => {
+export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose, isOpen }) => {
   const reactFlowInstance = useReactFlow();
   const [layoutOptions, setLayoutOptions] = useState(DEFAULT_OPTIONS);
   const [isLayouting, setIsLayouting] = useState(false);
@@ -488,4 +488,4 @@ export const GraphLayoutPanel: React.FC<GraphLayoutPanelProps> = ({ onLayout, on
   );
 };
 
-export default GraphLayoutPanel;
+export default LayoutPanel;

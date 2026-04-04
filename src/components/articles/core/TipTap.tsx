@@ -23,8 +23,8 @@ import { DragHandle as DragHandleReact } from '@tiptap/extension-drag-handle-rea
 import { GripVertical } from 'lucide-react';
 import { all, createLowlight } from 'lowlight';
 import * as Y from 'yjs';
-import { IframeEmbed } from './IframeEmbed';
-import { CollapsibleNode } from './CollapsibleNode';
+import { IframeEmbed } from '../extensions/Iframe';
+import { CollapsibleNode } from '../extensions/Collapsible';
 
 const lowlight = createLowlight(all);
 
@@ -79,6 +79,12 @@ export interface CollaborationConfig {
   userName: string;
   userColor: string;
   roomId: string | null;
+  metadata?: {
+    title: Y.Map<string>;
+    summary: Y.Map<string>;
+    tags: Y.Array<string>;
+    coverImage: Y.Map<string | null>;
+  };
 }
 
 interface TiptapEditorProps {

@@ -1,16 +1,16 @@
 import React, { useState, useCallback } from 'react';
 import { Download, Upload, FileText, AlertCircle, X } from 'lucide-react';
 import { useReactFlow, useStore, type Node, type Edge } from '@xyflow/react';
-import type { CustomNodeData } from './CustomNode';
-import type { CustomEdgeData } from './FloatingEdge';
+import type { CustomNodeData } from '../Node';
+import type { CustomEdgeData } from '../Edge';
 
-interface GraphImportExportPanelProps {
+interface ImportExportPanelProps {
   onImportComplete: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
   onClose: () => void;
   isOpen: boolean;
 }
 
-export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = React.memo(({ onImportComplete, onClose, isOpen }) => {
+export const ImportExportPanel: React.FC<ImportExportPanelProps> = React.memo(({ onImportComplete, onClose, isOpen }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const reactFlowInstance = useReactFlow();
@@ -150,3 +150,5 @@ export const GraphImportExportPanel: React.FC<GraphImportExportPanelProps> = Rea
     </div>
   );
 });
+
+export default ImportExportPanel;

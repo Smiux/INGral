@@ -1,6 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
-import { CollapsibleNodeView } from './CollapsibleNodeView';
+import { CollapsibleNodeView } from './CollapsibleView';
 
 export interface CollapsibleNodeOptions {
   HTMLAttributes: Record<string, unknown>;

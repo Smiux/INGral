@@ -6,7 +6,7 @@ export function Header () {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-neutral-800">
+    <header className="sticky top-0 z-50 bg-white dark:bg-neutral-800 print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity text-neutral-800 dark:text-neutral-200">

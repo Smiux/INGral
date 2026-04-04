@@ -1,10 +1,6 @@
-export { CollaborationProvider } from './CollaborationContext';
-export { useCollaboration, useCollaborationOptional } from './CollaborationContextDef';
-export { CollaborationPanel, CollaborationControls } from './CollaborationPanel';
-export { ChatPanel } from './ChatPanel';
-export { useChatMessages, useSendMessage, useSendReply } from './useChat';
-export type { ChatMessage } from './useChat';
-export { RemoteCursors } from './RemoteCursors';
-export { GlobalCollaborationFeatures } from './GlobalCollaborationFeatures';
-export { useCollaborationSettings } from './useCollaborationSettings';
+export { CollaborationProvider } from './Context';
+export { useCollaboration, useCollaborationOptional } from './ContextDef';
+export { CollaborationPanel, CollaborationControls } from './Panel';
+export { Features } from './Features';
+export { useCollaborationSettings } from './internal/settings';
 export * from './types';

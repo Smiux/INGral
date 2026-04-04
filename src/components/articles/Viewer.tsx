@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, ListTree, Trash2, Edit3, Tag, ChevronDown, ChevronRight } from 'lucide-react';
 import { getArticleBySlug, getCoverImageUrl, deleteArticle, type ArticleWithContent } from '../../services/articleService';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { TiptapEditor } from './TipTapEditor';
+import { TiptapEditor } from './core/TipTap';
 
 interface TocItem {
   id: string;
@@ -351,7 +351,7 @@ export function ArticleViewer () {
 
   return (
     <article className="max-w-7xl mx-auto px-4 py-8">
-      <nav className="mb-6">
+      <nav className="mb-6 print:hidden">
         <ol className="flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400">
           <li>
             <Link to="/" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">首页</Link>
@@ -378,9 +378,9 @@ export function ArticleViewer () {
       )}
 
       <div className="mb-6">
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-neutral-800 dark:text-neutral-100 flex-1">{article.title}</h1>
-          <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <h1 className="text-3xl md:text-4xl font-bold text-neutral-800 dark:text-neutral-100 min-w-0">{article.title}</h1>
+          <div className="flex items-center gap-2 flex-shrink-0 print:hidden">
             <button
               onClick={() => navigate(`/articles/${article.slug}/edit`)}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
@@ -434,7 +434,7 @@ export function ArticleViewer () {
       )}
 
       {tableOfContentsItems.length > 0 && (
-        <aside className="hidden xl:block fixed left-4 top-[11rem] w-48 z-10">
+        <aside className="hidden xl:block fixed left-4 top-[11rem] w-48 z-10 print:hidden">
           <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden shadow-sm">
             <div className="p-3 border-b border-neutral-200 dark:border-neutral-700">
               <h3 className="text-base font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
@@ -480,6 +480,7 @@ export function ArticleViewer () {
         onConfirm={confirmDelete}
         onCancel={() => setShowDeleteDialog(false)}
         isLoading={isDeleting}
+        className="print:hidden"
       />
 
       <ConfirmDialog
@@ -489,6 +490,7 @@ export function ArticleViewer () {
         confirmText="确定"
         onConfirm={() => setShowErrorDialog(false)}
         onCancel={() => setShowErrorDialog(false)}
+        className="print:hidden"
       />
     </article>
   );

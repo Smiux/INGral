@@ -1,7 +1,8 @@
-export { ArticleEditor } from './ArticleEditor';
-export { DraftManager } from './DraftManager';
-export { CoverManager } from './CoverManager';
-export type { ArticleDraft } from './draftUtils';
+export { ArticleEditor } from './Editor';
+export { ArticleViewer } from './Viewer';
+export { DraftManager } from './managers/Draft';
+export { CoverManager } from './managers/Cover';
+export type { ArticleDraft } from './utils/draft';
 export {
   createDraft,
   updateDraft,
@@ -9,4 +10,4 @@ export {
   getAllDrafts,
   getDraftById,
   saveDraft
-} from './draftUtils';
+} from './utils/draft';

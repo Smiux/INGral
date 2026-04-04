@@ -20,3 +20,5 @@ src-tauri/
 # Skills
 .agents/
 skills-lock.json
+
+.vscode/

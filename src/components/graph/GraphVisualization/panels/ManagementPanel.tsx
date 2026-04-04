@@ -11,12 +11,12 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useStore, useReactFlow } from '@xyflow/react';
-import type { CustomNodeData } from './CustomNode';
-import type { CustomEdgeData } from './FloatingEdge';
+import type { CustomNodeData } from '../Node';
+import type { CustomEdgeData } from '../Edge';
 
 type TabType = 'nodes' | 'connections' | 'statistics';
 
-interface GraphManagementPanelProps {
+interface ManagementPanelProps {
   onAddNode: () => void;
   onClose: () => void;
   isOpen: boolean;
@@ -76,7 +76,7 @@ const edgesEqual = (
   return true;
 };
 
-export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
+export const ManagementPanel: React.FC<ManagementPanelProps> = ({
   onAddNode,
   onClose,
   isOpen
@@ -468,4 +468,4 @@ export const GraphManagementPanel: React.FC<GraphManagementPanelProps> = ({
   );
 };
 
-export default GraphManagementPanel;
+export default ManagementPanel;

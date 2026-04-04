@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
 
-export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'error';
+export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
 
 export interface Collaborator {
   id: string;
@@ -9,44 +9,41 @@ export interface Collaborator {
   currentPath: string | null;
 }
 
-export interface CollaborationState {
+export interface RecentRoom {
+  id: string;
+  lastAccessed: number;
+}
+
+export interface ArticleMetadataMaps {
+  title: Y.Map<string>;
+  summary: Y.Map<string>;
+  tags: Y.Array<string>;
+  coverImage: Y.Map<string | null>;
+}
+
+export interface CollaborationContextValue {
   isConnected: boolean;
   isConnecting: boolean;
   connectionStatus: ConnectionStatus;
   roomId: string | null;
+  userId: string | null;
   userName: string;
-  userId: string;
   userColor: string;
   collaborators: Collaborator[];
-  messages: ChatMessage[];
-  error: string | null;
-  meta: {
-    title: string;
-    summary: string;
-    tags: string[];
-    coverImage: string | null;
-  };
-}
-
-export interface ChatMessage {
-  id: string;
-  userId: string;
-  userName: string;
-  userColor: string;
-  content: string;
-  timestamp: number;
-}
-
-export interface CollaborationContextValue extends CollaborationState {
-  doc: Y.Doc | null;
+  doc: import('yjs').Doc | null;
   provider: unknown;
   connect: (roomId: string) => void;
   disconnect: () => void;
   setUserName: (name: string) => void;
   setUserColor: (color: string) => void;
-  sendMessage: (content: string) => void;
-  updateMeta: (meta: Partial<CollaborationState['meta']>) => void;
-  updateCurrentPath: (path: string | null) => void;
+  isPanelOpen: boolean;
+  setPanelOpen: (open: boolean) => void;
+  recentRooms: RecentRoom[];
+  isLoadingRooms: boolean;
+  refreshRooms: () => Promise<void>;
+  inputRoomId: string;
+  setInputRoomId: (roomId: string) => void;
+  articleMetadata: ArticleMetadataMaps | null;
 }
 
 export const COLLABORATOR_COLORS = [

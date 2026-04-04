@@ -12,8 +12,8 @@ import {
   useEdgesState,
   useReactFlow,
   useStore,
-  type Node,
-  type Edge,
+  type Node as NodeType,
+  type Edge as EdgeType,
   type NodeTypes,
   type EdgeTypes,
   ConnectionMode,
@@ -24,16 +24,16 @@ import { Database, GitBranch } from 'lucide-react';
 import ForceGraph2D from 'react-force-graph-2d';
 import ForceGraph3D from 'react-force-graph-3d';
 import '@xyflow/react/dist/style.css';
-import GraphToolbar from './GraphToolbar';
-import FloatingConnectionLine from './FloatingConnectionLine';
+import Toolbar from './Toolbar';
+import ConnectionLine from './ConnectionLine';
 import { useUndoRedo } from './utils/useUndoRedo';
-import CustomNode, { CustomNodeData } from './CustomNode';
-import FloatingEdge, { CustomEdgeData } from './FloatingEdge';
-import GraphControlPanel from './GraphControlPanel';
-import GraphManagementPanel from './GraphManagementPanel';
-import { GraphImportExportPanel } from './GraphImportExportPanel';
-import GraphGenerationPanel from './GraphGenerationPanel';
-import GraphLayoutPanel from './GraphLayoutPanel';
+import Node, { CustomNodeData } from './Node';
+import Edge, { CustomEdgeData } from './Edge';
+import ControlPanel from './panels/ControlPanel';
+import ManagementPanel from './panels/ManagementPanel';
+import { ImportExportPanel } from './panels/ImportExportPanel';
+import GenerationPanel from './panels/GenerationPanel';
+import LayoutPanel from './panels/LayoutPanel';
 
 interface ForceGraphNode {
   id: string;
@@ -50,20 +50,20 @@ interface ForceGraphLink {
 }
 
 const nodeTypes = {
-  'custom': CustomNode
+  'custom': Node
 } as const as NodeTypes;
 
 const edgeTypes = {
-  'floating': FloatingEdge
+  'floating': Edge
 } as const as EdgeTypes;
 
 const SNAP_GRID: [number, number] = [16, 16];
 
 type LeftPanelType = 'management' | 'importExport' | 'generation' | 'layout' | null;
 
-const GraphVisualizationContent: React.FC = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<CustomNodeData>>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<CustomEdgeData>>([]);
+const VisualizationContent: React.FC = () => {
+  const [nodes, setNodes, onNodesChange] = useNodesState<NodeType<CustomNodeData>>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeType<CustomEdgeData>>([]);
   const reactFlowInstance = useReactFlow();
   const { undo, redo, canUndo, canRedo, saveState } = useUndoRedo();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -179,7 +179,7 @@ const GraphVisualizationContent: React.FC = () => {
     }
   }, [redo, setNodes, setEdges]);
 
-  const handleLayout = useCallback((layoutedNodes: Node<CustomNodeData>[], layoutedEdges: Edge<CustomEdgeData>[]) => {
+  const handleLayout = useCallback((layoutedNodes: NodeType<CustomNodeData>[], layoutedEdges: EdgeType<CustomEdgeData>[]) => {
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
     reactFlowInstance.fitView({ 'duration': 500 });
@@ -202,7 +202,7 @@ const GraphVisualizationContent: React.FC = () => {
     setEdges((eds) => addEdge(customEdge, eds));
   }, [setEdges]);
 
-  const handleImportComplete = useCallback((importedNodes: Node<CustomNodeData>[], importedEdges: Edge<CustomEdgeData>[]) => {
+  const handleImportComplete = useCallback((importedNodes: NodeType<CustomNodeData>[], importedEdges: EdgeType<CustomEdgeData>[]) => {
     setNodes(importedNodes);
     setEdges(importedEdges);
     setActiveLeftPanel(null);
@@ -245,7 +245,7 @@ const GraphVisualizationContent: React.FC = () => {
         y = avgY + Math.sin(angle) * distance;
       }
 
-      const newNode: Node<CustomNodeData> = {
+      const newNode: NodeType<CustomNodeData> = {
         'id': `node-${Date.now()}`,
         'type': 'custom',
         'position': { x, y },
@@ -264,7 +264,7 @@ const GraphVisualizationContent: React.FC = () => {
     });
   }, [reactFlowInstance, setNodes]);
 
-  const handleGenerateGraph = useCallback((newNodes: Node<CustomNodeData>[], newEdges: Edge<CustomEdgeData>[]) => {
+  const handleGenerateGraph = useCallback((newNodes: NodeType<CustomNodeData>[], newEdges: EdgeType<CustomEdgeData>[]) => {
     setNodes(newNodes);
     setEdges(newEdges);
   }, [setNodes, setEdges]);
@@ -366,7 +366,7 @@ const GraphVisualizationContent: React.FC = () => {
           </div>
         </div>
 
-        <GraphToolbar
+        <Toolbar
           onAddNode={createNewNode}
           isManagementPanelOpen={activeLeftPanel === 'management'}
           onToggleManagementPanel={toggleManagementPanel}
@@ -415,7 +415,7 @@ const GraphVisualizationContent: React.FC = () => {
               multiSelectionKeyCode={['Shift', 'Control']}
               selectionOnDrag
               connectionLineStyle={connectionLineStyle}
-              connectionLineComponent={FloatingConnectionLine}
+              connectionLineComponent={ConnectionLine}
               snapToGrid={snapToGrid}
               snapGrid={SNAP_GRID}
               colorMode={'system'}
@@ -468,30 +468,30 @@ const GraphVisualizationContent: React.FC = () => {
             height={canvasDimensions.height}
           />
         )}
-        {hasSelection && <GraphControlPanel panelPosition="right" />}
+        {hasSelection && <ControlPanel panelPosition="right" />}
         {(activeLeftPanel === 'management' || closingPanel === 'management') && (
-          <GraphManagementPanel
+          <ManagementPanel
             onAddNode={createNewNode}
             onClose={() => closeLeftPanel('management')}
             isOpen={activeLeftPanel === 'management'}
           />
         )}
         {(activeLeftPanel === 'importExport' || closingPanel === 'importExport') && (
-          <GraphImportExportPanel
+          <ImportExportPanel
             onImportComplete={handleImportComplete}
             onClose={() => closeLeftPanel('importExport')}
             isOpen={activeLeftPanel === 'importExport'}
           />
         )}
         {(activeLeftPanel === 'generation' || closingPanel === 'generation') && (
-          <GraphGenerationPanel
+          <GenerationPanel
             onGenerate={handleGenerateGraph}
             onClose={() => closeLeftPanel('generation')}
             isOpen={activeLeftPanel === 'generation'}
           />
         )}
         {(activeLeftPanel === 'layout' || closingPanel === 'layout') && (
-          <GraphLayoutPanel
+          <LayoutPanel
             onLayout={handleLayout}
             onClose={() => closeLeftPanel('layout')}
             isOpen={activeLeftPanel === 'layout'}
@@ -502,12 +502,12 @@ const GraphVisualizationContent: React.FC = () => {
   );
 };
 
-const GraphVisualization: React.FC = () => {
+const Visualization: React.FC = () => {
   return (
     <ReactFlowProvider>
-      <GraphVisualizationContent />
+      <VisualizationContent />
     </ReactFlowProvider>
   );
 };
 
-export default GraphVisualization;
+export default Visualization;

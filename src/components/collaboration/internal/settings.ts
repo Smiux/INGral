@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { getRandomColor } from './types';
+import { getRandomColor } from '../types';
 
 const STORAGE_KEY_USER_NAME = 'collaboration_user_name';
 const STORAGE_KEY_USER_COLOR = 'collaboration_user_color';

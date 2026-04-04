@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useReactFlow, type Node, type Edge } from '@xyflow/react';
 import { Clipboard, X, Network, Users, Layers, Plus } from 'lucide-react';
-import type { CustomNodeData } from './CustomNode';
-import type { CustomEdgeData } from './FloatingEdge';
+import type { CustomNodeData } from '../Node';
+import type { CustomEdgeData } from '../Edge';
 import ELK from 'elkjs';
 
 const elk = new ELK();
@@ -43,7 +43,7 @@ interface StarConfig extends BaseConfig {
 
 type GraphConfig = RandomConfig | CycleConfig | TreeConfig | StarConfig;
 
-interface GraphGenerationPanelProps {
+interface GenerationPanelProps {
   onGenerate: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
   onClose: () => void;
   isOpen: boolean;
@@ -267,7 +267,7 @@ const Section = ({ 'icon': Icon, title, children }: { 'icon': React.ElementType;
   </section>
 );
 
-export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGenerate, onClose, isOpen }) => {
+export const GenerationPanel: React.FC<GenerationPanelProps> = ({ onGenerate, onClose, isOpen }) => {
   const reactFlowInstance = useReactFlow();
   const [graphType, setGraphType] = useState<GraphType>('random');
   const [config, setConfig] = useState<GraphConfig>(DEFAULT_CONFIGS.random);
@@ -391,4 +391,4 @@ export const GraphGenerationPanel: React.FC<GraphGenerationPanelProps> = ({ onGe
   );
 };
 
-export default GraphGenerationPanel;
+export default GenerationPanel;

@@ -7,7 +7,7 @@ import {
   getSimpleBezierPath,
   useInternalNode
 } from '@xyflow/react';
-import { getEdgeParams } from './utils/floatingEdgeUtils';
+import { getEdgeParams } from './utils/edgeUtils';
 
 export interface CustomEdgeData {
   'type'?: string;
@@ -31,7 +31,7 @@ const PATH_GENERATORS = {
   'default': getBezierPath
 } as const;
 
-export const FloatingEdge = (props: EdgeProps) => {
+export const Edge = (props: EdgeProps) => {
   const { source, target, id, style, data, markerEnd } = props;
 
   const edgeData = data as CustomEdgeData | undefined;
@@ -109,4 +109,4 @@ export const FloatingEdge = (props: EdgeProps) => {
   );
 };
 
-export default React.memo(FloatingEdge);
+export default React.memo(Edge);
