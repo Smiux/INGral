@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import * as Y from 'yjs';
 import { getYjsProviderForRoom, type LiveblocksYjsProvider } from '@liveblocks/yjs';
-import { RoomProvider, useRoom, useUpdateMyPresence, useOthers, useSelf, useStatus, LiveList, LiveObject, type Storage } from './liveblocks.config';
+import { RoomProvider, useRoom, useUpdateMyPresence, useOthers, useStatus, LiveList, LiveObject, type Storage } from './liveblocks.config';
 import {
   CollaborationContextValue,
   Collaborator,
@@ -20,6 +20,7 @@ interface CollaborationProviderProps {
 
 function CollaborationRoomInner ({
   children,
+  userId,
   userName,
   userColor,
   roomId,
@@ -35,6 +36,7 @@ function CollaborationRoomInner ({
   setInputRoomId
 }: {
   children: React.ReactNode;
+  userId: string;
   userName: string;
   userColor: string;
   roomId: string;
@@ -51,7 +53,6 @@ function CollaborationRoomInner ({
 }) {
   const updateMyPresence = useUpdateMyPresence();
   const others = useOthers();
-  const self = useSelf();
   const status = useStatus();
   const room = useRoom();
   const [doc, setDoc] = useState<Y.Doc | null>(null);
@@ -117,10 +118,11 @@ function CollaborationRoomInner ({
     updateMyPresence({
       'cursor': null,
       'currentPath': null,
+      userId,
       userName,
       userColor
     });
-  }, [updateMyPresence, userName, userColor]);
+  }, [updateMyPresence, userId, userName, userColor]);
 
   useEffect(() => {
     const yjsProvider = getYjsProviderForRoom(
@@ -177,7 +179,7 @@ function CollaborationRoomInner ({
 
   const collaborators = useMemo<Collaborator[]>(() => {
     return others.map((other) => ({
-      'id': String(other.connectionId),
+      'id': other.presence?.userId ?? String(other.connectionId),
       'name': other.presence?.userName ?? 'Anonymous',
       'color': other.presence?.userColor ?? '#888888',
       'currentPath': other.presence?.currentPath ?? null
@@ -202,7 +204,7 @@ function CollaborationRoomInner ({
     'isConnecting': connectionStatus === 'connecting',
     connectionStatus,
     roomId,
-    'userId': self ? String(self.connectionId) : null,
+    userId,
     userName,
     userColor,
     collaborators,
@@ -221,7 +223,7 @@ function CollaborationRoomInner ({
     setInputRoomId,
     articleMetadata
   }), [
-    connectionStatus, roomId, self, userName, userColor, collaborators,
+    connectionStatus, roomId, userId, userName, userColor, collaborators,
     doc, provider, onDisconnect, setUserName, setUserColor, isPanelOpen, setPanelOpen, recentRooms, isLoadingRooms, refreshRooms, inputRoomId, setInputRoomId, articleMetadata
   ]);
 
@@ -234,12 +236,14 @@ function CollaborationRoomInner ({
 
 export function CollaborationProvider ({ children }: CollaborationProviderProps) {
   const {
+    'userId': savedUserId,
     'userName': savedUserName,
     'userColor': savedUserColor,
     'setUserName': saveUserName,
     'setUserColor': saveUserColor
   } = useCollaborationSettings();
 
+  const userId = savedUserId;
   const userName = savedUserName;
   const userColor = savedUserColor;
 
@@ -288,7 +292,7 @@ export function CollaborationProvider ({ children }: CollaborationProviderProps)
     'isConnecting': false,
     'connectionStatus': 'disconnected',
     'roomId': null,
-    'userId': null,
+    userId,
     userName,
     userColor,
     'collaborators': [],
@@ -306,7 +310,7 @@ export function CollaborationProvider ({ children }: CollaborationProviderProps)
     inputRoomId,
     setInputRoomId,
     'articleMetadata': null
-  }), [userName, userColor, connect, disconnect, setUserName, setUserColor, isPanelOpen, setPanelOpen, recentRooms, isLoadingRooms, refreshRooms, inputRoomId]);
+  }), [userId, userName, userColor, connect, disconnect, setUserName, setUserColor, isPanelOpen, setPanelOpen, recentRooms, isLoadingRooms, refreshRooms, inputRoomId]);
 
   if (!roomId) {
     return (
@@ -322,9 +326,11 @@ export function CollaborationProvider ({ children }: CollaborationProviderProps)
       initialPresence={{
         'cursor': null,
         'currentPath': null,
+        userId,
         userName,
         userColor,
-        'peerId': null
+        'peerId': null,
+        'joinedAt': Date.now()
       }}
       initialStorage={{
         'channels': new LiveList([new LiveObject({
@@ -344,6 +350,7 @@ export function CollaborationProvider ({ children }: CollaborationProviderProps)
       } as Storage}
     >
       <CollaborationRoomInner
+        userId={userId}
         userName={userName}
         userColor={userColor}
         roomId={roomId}

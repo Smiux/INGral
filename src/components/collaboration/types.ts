@@ -26,7 +26,7 @@ export interface CollaborationContextValue {
   isConnecting: boolean;
   connectionStatus: ConnectionStatus;
   roomId: string | null;
-  userId: string | null;
+  userId: string;
   userName: string;
   userColor: string;
   collaborators: Collaborator[];

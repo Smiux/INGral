@@ -6,9 +6,11 @@ export { LiveList, LiveObject };
 export type Presence = {
   cursor: { x: number; y: number } | null;
   currentPath: string | null;
+  userId: string;
   userName: string;
   userColor: string;
   peerId: string | null;
+  joinedAt: number;
 };
 
 export type MessageAttachmentType = 'image' | 'audio';
@@ -92,7 +94,8 @@ export const {
   useSelf,
   useStatus,
   useStorage,
-  useMutation
+  useMutation,
+  useUser
 } = createRoomContext<Presence, Storage>(client);
 
 export { shallow };

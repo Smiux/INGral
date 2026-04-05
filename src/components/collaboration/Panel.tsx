@@ -255,7 +255,7 @@ function RoomInput ({
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="输入房间ID或选择已有房间"
-          className="w-full px-4 py-3 pr-16 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+          className="w-full px-4 py-3 pr-16 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
           <button
@@ -264,7 +264,7 @@ function RoomInput ({
               e.stopPropagation();
               refreshRooms();
             }}
-            className="p-1.5 text-neutral-400 hover:text-neutral-200 transition-colors"
+            className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
             title="刷新房间列表"
           >
             {isLoadingRooms ? (
@@ -276,7 +276,7 @@ function RoomInput ({
           <button
             type="button"
             onClick={toggleDropdown}
-            className="p-1.5 text-neutral-400 hover:text-neutral-200 transition-colors"
+            className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
           >
             <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -286,20 +286,20 @@ function RoomInput ({
       {isOpen && filteredRooms.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto"
         >
           {filteredRooms.map((room) => (
             <div
               key={room.id}
-              className="flex items-center justify-between px-4 py-3 hover:bg-neutral-700 cursor-pointer group"
+              className="flex items-center justify-between px-4 py-3 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer group"
               onClick={() => handleSelectRoom(room.id)}
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <Hash size={16} className="text-neutral-400 flex-shrink-0" />
-                <span className="text-neutral-200 truncate">{room.id}</span>
+                <span className="text-neutral-700 dark:text-neutral-200 truncate">{room.id}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-neutral-500 flex items-center gap-1">
+                <span className="text-xs text-neutral-400 dark:text-neutral-500 flex items-center gap-1">
                   <Clock size={12} />
                   {formatLastAccessed(room.lastAccessed)}
                 </span>
@@ -312,9 +312,9 @@ function RoomInput ({
       {isOpen && value.trim() && filteredRooms.length === 0 && recentRooms.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl"
+          className="absolute z-50 w-full mt-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-xl"
         >
-          <div className="px-4 py-3 text-neutral-500 text-sm">
+          <div className="px-4 py-3 text-neutral-400 dark:text-neutral-500 text-sm">
             未找到匹配的房间
           </div>
         </div>
@@ -323,9 +323,9 @@ function RoomInput ({
       {isOpen && recentRooms.length === 0 && !isLoadingRooms && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl"
+          className="absolute z-50 w-full mt-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-xl"
         >
-          <div className="px-4 py-3 text-neutral-500 text-sm">
+          <div className="px-4 py-3 text-neutral-400 dark:text-neutral-500 text-sm">
             暂无房间，请输入新的房间ID
           </div>
         </div>
@@ -375,7 +375,7 @@ function MessageItem ({
     return (
       <div className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''} opacity-50`}>
         <div className="w-8 h-8" />
-        <div className="px-3 py-2 rounded-lg bg-neutral-800 text-neutral-500 text-sm italic">
+        <div className="px-3 py-2 rounded-lg bg-neutral-200 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 text-sm italic">
           消息已删除
         </div>
       </div>
@@ -388,28 +388,28 @@ function MessageItem ({
       <div className={`max-w-[70%] flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
         <div className="flex items-center gap-2 mb-1">
           {!isOwn && (
-            <span className="text-sm font-medium text-neutral-200">
+            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
               {message.userName}
             </span>
           )}
-          <span className="text-[10px] text-neutral-500">{formatTime(message.createdAt)}</span>
+          <span className="text-[10px] text-neutral-400 dark:text-neutral-500">{formatTime(message.createdAt)}</span>
           {message.editedAt !== null && (
-            <span className="text-[10px] text-neutral-500 italic">(已编辑)</span>
+            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 italic">(已编辑)</span>
           )}
           {isPinned && (
             <Pin size={12} className="text-yellow-500" />
           )}
           {isOwn && (
-            <span className="text-sm font-medium text-neutral-200">
+            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
               你
             </span>
           )}
         </div>
 
         {replyToMessage && replyToMessage.deletedAt === null && (
-          <div className={`mb-1 px-2 py-1 rounded text-xs ${isOwn ? 'bg-sky-600/20' : 'bg-neutral-700/50'} border-l-2 ${isOwn ? 'border-sky-400' : 'border-neutral-500'}`}>
-            <span className="text-neutral-400">{replyToMessage.userName}: </span>
-            <span className="text-neutral-300 truncate max-w-[200px] inline-block align-bottom">
+          <div className={`mb-1 px-2 py-1 rounded text-xs ${isOwn ? 'bg-sky-100 dark:bg-sky-600/20' : 'bg-neutral-200/50 dark:bg-neutral-700/50'} border-l-2 ${isOwn ? 'border-sky-400' : 'border-neutral-300 dark:border-neutral-500'}`}>
+            <span className="text-neutral-500 dark:text-neutral-400">{replyToMessage.userName}: </span>
+            <span className="text-neutral-600 dark:text-neutral-300 truncate max-w-[200px] inline-block align-bottom">
               {replyToMessage.content || '附件'}
             </span>
           </div>
@@ -420,7 +420,7 @@ function MessageItem ({
             className={`px-3 py-2 rounded-lg text-sm ${
               isOwn
                 ? 'bg-sky-500 text-white'
-                : 'bg-neutral-700 text-neutral-100'
+                : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100'
             }`}
           >
             {message.content}
@@ -435,7 +435,7 @@ function MessageItem ({
                   <img
                     src={attachment.data}
                     alt={attachment.fileName || '图片'}
-                    className="max-w-[250px] rounded-lg border border-neutral-600"
+                    className="max-w-[250px] rounded-lg border border-neutral-300 dark:border-neutral-600"
                   />
                 )}
                 {attachment.type === 'audio' && (
@@ -449,7 +449,7 @@ function MessageItem ({
         {hasThread && (
           <button
             onClick={() => onOpenThread(message.id)}
-            className={`mt-1 flex items-center gap-1 text-xs ${isOwn ? 'text-sky-300' : 'text-sky-400'} hover:underline`}
+            className={`mt-1 flex items-center gap-1 text-xs ${isOwn ? 'text-sky-500 dark:text-sky-300' : 'text-sky-500 dark:text-sky-400'} hover:underline`}
           >
             <MessageSquare size={12} />
             {threadReplyCount} 条讨论
@@ -459,7 +459,7 @@ function MessageItem ({
         <div className={`opacity-0 group-hover:opacity-100 transition-opacity mt-1 ${isOwn ? 'flex-row-reverse' : ''} flex items-center gap-0.5`}>
           <button
             onClick={() => onReply(message)}
-            className="p-1 rounded hover:bg-neutral-600/50 text-neutral-400 hover:text-white transition-colors"
+            className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600/50 text-neutral-400 hover:text-neutral-600 dark:hover:text-white transition-colors"
             title="回复"
           >
             <Reply size={14} />
@@ -468,7 +468,7 @@ function MessageItem ({
           {message.deletedAt === null && !hasThread && (
             <button
               onClick={() => onThread(message)}
-              className="p-1 rounded hover:bg-neutral-600/50 text-neutral-400 hover:text-white transition-colors"
+              className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600/50 text-neutral-400 hover:text-neutral-600 dark:hover:text-white transition-colors"
               title="创建讨论串"
             >
               <MessageSquare size={14} />
@@ -479,14 +479,14 @@ function MessageItem ({
             <>
               <button
                 onClick={() => onEdit(message)}
-                className="p-1 rounded hover:bg-neutral-600/50 text-neutral-400 hover:text-white transition-colors"
+                className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600/50 text-neutral-400 hover:text-neutral-600 dark:hover:text-white transition-colors"
                 title="编辑"
               >
                 <Edit3 size={14} />
               </button>
               <button
                 onClick={() => onDelete(message.id)}
-                className="p-1 rounded hover:bg-red-600/50 text-neutral-400 hover:text-red-400 transition-colors"
+                className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-600/50 text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                 title="删除"
               >
                 <Trash2 size={14} />
@@ -498,7 +498,7 @@ function MessageItem ({
             isPinned ? (
               <button
                 onClick={() => onUnpin(message.id)}
-                className="p-1 rounded hover:bg-neutral-600/50 text-yellow-500 hover:text-yellow-400 transition-colors"
+                className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600/50 text-yellow-500 hover:text-yellow-400 transition-colors"
                 title="取消置顶"
               >
                 <PinOff size={14} />
@@ -506,7 +506,7 @@ function MessageItem ({
             ) : (
               <button
                 onClick={() => onPin(message.id)}
-                className="p-1 rounded hover:bg-neutral-600/50 text-neutral-400 hover:text-yellow-500 transition-colors"
+                className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600/50 text-neutral-400 hover:text-yellow-500 transition-colors"
                 title="置顶"
               >
                 <Pin size={14} />
@@ -526,7 +526,7 @@ function ThreadPanel ({
   onSendMessage
 }: {
   messages: MessageType[];
-  currentUserId: string | null;
+  currentUserId: string;
   onClose: () => void;
   onSendMessage: (content: string) => void;
 }) {
@@ -545,16 +545,16 @@ function ThreadPanel ({
   };
 
   return (
-    <div className="w-80 bg-neutral-850 border-l border-neutral-700 flex flex-col">
-      <div className="p-3 border-b border-neutral-700 flex items-center justify-between">
+    <div className="w-80 bg-neutral-100 dark:bg-neutral-850 border-l border-neutral-200 dark:border-neutral-700 flex flex-col">
+      <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MessageSquare size={16} className="text-sky-400" />
-          <span className="text-white font-medium text-sm">讨论串</span>
-          <span className="text-xs text-neutral-400">({messages.length})</span>
+          <MessageSquare size={16} className="text-sky-500 dark:text-sky-400" />
+          <span className="text-neutral-900 dark:text-white font-medium text-sm">讨论串</span>
+          <span className="text-xs text-neutral-400 dark:text-neutral-400">({messages.length})</span>
         </div>
         <button
           onClick={onClose}
-          className="p-1 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white"
+          className="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded text-neutral-400 hover:text-neutral-600 dark:hover:text-white"
         >
           <X size={16} />
         </button>
@@ -562,7 +562,7 @@ function ThreadPanel ({
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {messages.length === 0 && (
-          <div className="text-center text-sm text-neutral-500 py-6">
+          <div className="text-center text-sm text-neutral-400 dark:text-neutral-500 py-6">
             开始讨论吧
           </div>
         )}
@@ -574,12 +574,12 @@ function ThreadPanel ({
               <div className={`max-w-[80%] flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
                 <div className="flex items-center gap-1 mb-0.5">
                   {!isOwn && (
-                    <span className="text-xs font-medium text-neutral-300">{msg.userName}</span>
+                    <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">{msg.userName}</span>
                   )}
-                  <span className="text-[10px] text-neutral-500">{formatTime(msg.createdAt)}</span>
+                  <span className="text-[10px] text-neutral-400 dark:text-neutral-500">{formatTime(msg.createdAt)}</span>
                 </div>
                 {msg.content && (
-                  <div className={`px-2 py-1.5 rounded-lg text-xs ${isOwn ? 'bg-sky-500 text-white' : 'bg-neutral-700 text-neutral-100'}`}>
+                  <div className={`px-2 py-1.5 rounded-lg text-xs ${isOwn ? 'bg-sky-500 text-white' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100'}`}>
                     {msg.content}
                   </div>
                 )}
@@ -590,14 +590,14 @@ function ThreadPanel ({
         <div ref={chatEndRef} />
       </div>
 
-      <div className="p-3 border-t border-neutral-700">
+      <div className="p-3 border-t border-neutral-200 dark:border-neutral-700">
         <div className="flex items-center gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="发送回复..."
-            className="flex-1 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-sm text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            className="flex-1 px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm text-neutral-700 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 handleSend();
@@ -607,7 +607,7 @@ function ThreadPanel ({
           <button
             onClick={handleSend}
             disabled={!input.trim()}
-            className="p-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 disabled:bg-neutral-700 disabled:cursor-not-allowed transition-colors"
+            className="p-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 disabled:bg-neutral-200 dark:disabled:bg-neutral-700 disabled:cursor-not-allowed transition-colors"
           >
             <Send size={16} />
           </button>
@@ -620,10 +620,12 @@ function ThreadPanel ({
 function ConnectedPanelContent ({
   userName,
   userColor,
+  userId,
   onDisconnect
 }: {
   userName: string;
   userColor: string;
+  userId: string;
   onDisconnect: () => void;
 }) {
   const [activeChannelId, setActiveChannelId] = useState('main');
@@ -653,11 +655,11 @@ function ConnectedPanelContent ({
   const pinnedMessages = useMemo(() => pinnedMessagesRaw || [], [pinnedMessagesRaw]);
   const {
     collaborators,
-    'userId': currentUserId,
     'setUserName': contextSetUserName,
     'setUserColor': contextSetUserColor
   } = useCollaboration();
   const [myPresence] = useMyPresence();
+  const currentUserId = userId;
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -699,7 +701,7 @@ function ConnectedPanelContent ({
       msgs.push(new LiveObject<MessageType>({
         'id': generateId(),
         'channelId': activeChannelId,
-        'userId': currentUserId ?? 'anonymous',
+        userId,
         'userName': myPresence.userName ?? 'Anonymous',
         'userColor': myPresence.userColor ?? '#888888',
         'content': content.trim(),
@@ -711,7 +713,7 @@ function ConnectedPanelContent ({
         'threadId': threadId ?? null
       }));
     },
-    [currentUserId, myPresence.userName, myPresence.userColor, activeChannelId]
+    [userId, myPresence.userName, myPresence.userColor, activeChannelId]
   );
 
   const editMessage = useMutation(
@@ -753,13 +755,13 @@ function ConnectedPanelContent ({
         'channelId': activeChannelId,
         'parentMessageId': parentMessage.id,
         'createdAt': Date.now(),
-        'createdBy': currentUserId ?? 'anonymous',
+        'createdBy': userId,
         'createdByUserName': myPresence.userName ?? 'Anonymous'
       }));
 
       setActiveThreadId(threadId);
     },
-    [activeChannelId, currentUserId, myPresence.userName]
+    [activeChannelId, userId, myPresence.userName]
   );
 
   const pinMessage = useMutation(
@@ -779,12 +781,12 @@ function ConnectedPanelContent ({
           messageId,
           'channelId': activeChannelId,
           'pinnedAt': Date.now(),
-          'pinnedBy': currentUserId ?? 'anonymous',
+          'pinnedBy': userId,
           'pinnedByUserName': myPresence.userName ?? 'Anonymous'
         }));
       }
     },
-    [activeChannelId, currentUserId, myPresence.userName]
+    [activeChannelId, userId, myPresence.userName]
   );
 
   const unpinMessage = useMutation(
@@ -969,7 +971,7 @@ function ConnectedPanelContent ({
   }, [allMessages, threads]);
 
   return (
-    <div className="flex h-[75vh] bg-neutral-900">
+    <div className="flex h-[75vh] bg-neutral-50 dark:bg-neutral-900">
       <input
         ref={fileInputRef}
         type="file"
@@ -985,9 +987,9 @@ function ConnectedPanelContent ({
         onChange={handleFileSelect}
       />
 
-      <div className="w-64 bg-neutral-800 flex flex-col border-r border-neutral-700">
-        <div className="p-4 border-b border-neutral-700">
-          <h2 className="text-white font-semibold flex items-center gap-2">
+      <div className="w-64 bg-neutral-100 dark:bg-neutral-800 flex flex-col border-r border-neutral-200 dark:border-neutral-700">
+        <div className="p-4 border-b border-neutral-200 dark:border-neutral-700">
+          <h2 className="text-neutral-900 dark:text-white font-semibold flex items-center gap-2">
             <Hash size={18} />
             聊天分区
           </h2>
@@ -997,12 +999,12 @@ function ConnectedPanelContent ({
           {channels.map((channel) => (
             <div key={channel.id} className="group">
               {editingChannelId === channel.id ? (
-                <div className="flex items-center gap-2 px-3 py-2 bg-neutral-700 rounded-lg">
+                <div className="flex items-center gap-2 px-3 py-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg">
                   <input
                     type="text"
                     value={channelEditInput}
                     onChange={(e) => setChannelEditInput(e.target.value)}
-                    className="flex-1 bg-transparent text-neutral-200 text-sm focus:outline-none"
+                    className="flex-1 bg-transparent text-neutral-700 dark:text-neutral-200 text-sm focus:outline-none"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         handleChannelRename();
@@ -1015,7 +1017,7 @@ function ConnectedPanelContent ({
                   />
                   <button
                     onClick={handleChannelRename}
-                    className="text-green-400 hover:text-green-300"
+                    className="text-green-500 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300"
                   >
                     <ChevronRight size={16} />
                   </button>
@@ -1024,8 +1026,8 @@ function ConnectedPanelContent ({
                 <div
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                     activeChannelId === channel.id
-                      ? 'bg-neutral-600 text-white'
-                      : 'text-neutral-300 hover:bg-neutral-700'
+                      ? 'bg-neutral-200 dark:bg-neutral-600 text-neutral-900 dark:text-white'
+                      : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                   }`}
                 >
                   <button
@@ -1042,14 +1044,14 @@ function ConnectedPanelContent ({
                         setEditingChannelId(channel.id);
                         setChannelEditInput(channel.name);
                       }}
-                      className="p-1 hover:bg-neutral-600 rounded"
+                      className="p-1 hover:bg-neutral-300 dark:hover:bg-neutral-600 rounded"
                     >
                       <Edit3 size={14} />
                     </button>
                     {!channel.isDefault && (
                       <button
                         onClick={() => deleteChannel(channel.id)}
-                        className="p-1 hover:bg-red-900/50 text-red-400 rounded"
+                        className="p-1 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-500 dark:text-red-400 rounded"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -1062,16 +1064,16 @@ function ConnectedPanelContent ({
 
           <button
             onClick={() => addChannel()}
-            className="w-full flex items-center gap-2 px-3 py-2 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700 rounded-lg transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
           >
             <Plus size={16} />
             <span className="text-sm">新建频道</span>
           </button>
         </div>
 
-        <div className="p-3 border-t border-neutral-700 bg-neutral-850">
+        <div className="p-3 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-850">
           <div className="flex items-center gap-3 mb-3">
-            <Avatar userId={currentUserId ?? userName} size={36} />
+            <Avatar userId={userId} size={36} />
             <div className="flex-1 min-w-0">
               {showUserNameEdit ? (
                 <div className="flex gap-1">
@@ -1080,7 +1082,7 @@ function ConnectedPanelContent ({
                     value={tempUserName}
                     onChange={(e) => setTempUserName(e.target.value)}
                     placeholder="输入名字"
-                    className="w-full px-2 py-1 bg-neutral-700 border border-neutral-600 rounded text-neutral-200 text-sm focus:outline-none focus:ring-1 focus:ring-sky-400"
+                    className="w-full px-2 py-1 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded text-neutral-700 dark:text-neutral-200 text-sm focus:outline-none focus:ring-1 focus:ring-sky-400"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         handleUserNameSave();
@@ -1095,14 +1097,14 @@ function ConnectedPanelContent ({
               ) : (
                 <button
                   onClick={() => setShowUserNameEdit(true)}
-                  className="text-sm font-medium text-white hover:text-sky-400 truncate text-left"
+                  className="text-sm font-medium text-neutral-900 dark:text-white hover:text-sky-500 dark:hover:text-sky-400 truncate text-left"
                 >
                   {userName}
                 </button>
               )}
               <div className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
-                <span className="text-[10px] text-neutral-400">在线</span>
+                <span className="text-[10px] text-neutral-500 dark:text-neutral-400">在线</span>
               </div>
             </div>
           </div>
@@ -1110,12 +1112,12 @@ function ConnectedPanelContent ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div
-                className="w-6 h-6 rounded-full border border-neutral-600 cursor-pointer"
+                className="w-6 h-6 rounded-full border border-neutral-300 dark:border-neutral-600 cursor-pointer"
                 style={{ 'backgroundColor': tempUserColor }}
                 onClick={() => setShowUserColorPicker(!showUserColorPicker)}
               />
               {showUserColorPicker && (
-                <div className="absolute bottom-32 left-4 bg-neutral-700 p-3 rounded-lg shadow-xl border border-neutral-600 z-50">
+                <div className="absolute bottom-32 left-4 bg-white dark:bg-neutral-700 p-3 rounded-lg shadow-xl border border-neutral-200 dark:border-neutral-600 z-50">
                   <input
                     type="color"
                     value={tempUserColor}
@@ -1150,7 +1152,7 @@ function ConnectedPanelContent ({
             </div>
             <button
               onClick={onDisconnect}
-              className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-xs font-medium"
+              className="px-3 py-1.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-500/30 transition-colors text-xs font-medium"
             >
               离开房间
             </button>
@@ -1158,18 +1160,18 @@ function ConnectedPanelContent ({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col bg-neutral-900">
-        <div className="p-4 border-b border-neutral-700 flex items-center justify-between">
+      <div className="flex-1 flex flex-col bg-white dark:bg-neutral-900">
+        <div className="p-4 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Hash size={18} className="text-neutral-400" />
-            <h3 className="text-white font-medium">{activeChannel?.name || '主聊天'}</h3>
+            <h3 className="text-neutral-900 dark:text-white font-medium">{activeChannel?.name || '主聊天'}</h3>
           </div>
           <div className="flex items-center gap-1">
             {channelPinnedMessages.length > 0 && (
               <button
                 onClick={() => setShowPinnedPanel(!showPinnedPanel)}
                 className={`p-2 rounded-lg transition-colors ${
-                  showPinnedPanel ? 'bg-yellow-500/20 text-yellow-400' : 'text-neutral-400 hover:bg-neutral-800'
+                  showPinnedPanel ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                 }`}
                 title="置顶消息"
               >
@@ -1179,7 +1181,7 @@ function ConnectedPanelContent ({
             <button
               onClick={() => setShowUserList(!showUserList)}
               className={`p-2 rounded-lg transition-colors ${
-                showUserList ? 'bg-neutral-700 text-sky-400' : 'text-neutral-400 hover:bg-neutral-800'
+                showUserList ? 'bg-neutral-200 dark:bg-neutral-700 text-sky-500 dark:text-sky-400' : 'text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
               }`}
               title="在线成员"
             >
@@ -1190,7 +1192,7 @@ function ConnectedPanelContent ({
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {channelMessages.length === 0 && (
-            <div className="text-center text-sm text-neutral-500 py-12">
+            <div className="text-center text-sm text-neutral-400 dark:text-neutral-500 py-12">
               暂无消息，发送第一条消息开始协作吧
             </div>
           )}
@@ -1224,13 +1226,13 @@ function ConnectedPanelContent ({
         </div>
 
         {editingMessage && (
-          <div className="px-4 py-2 bg-neutral-800 border-t border-neutral-700">
+          <div className="px-4 py-2 bg-neutral-100 dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700">
             <div className="flex items-center gap-2 mb-2">
-              <Edit3 size={14} className="text-sky-400" />
-              <span className="text-sm text-neutral-300">编辑消息</span>
+              <Edit3 size={14} className="text-sky-500 dark:text-sky-400" />
+              <span className="text-sm text-neutral-600 dark:text-neutral-300">编辑消息</span>
               <button
                 onClick={handleCancelEdit}
-                className="ml-auto p-1 hover:bg-neutral-700 rounded text-neutral-400"
+                className="ml-auto p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded text-neutral-400"
               >
                 <X size={14} />
               </button>
@@ -1241,7 +1243,7 @@ function ConnectedPanelContent ({
                 type="text"
                 value={editInput}
                 onChange={(e) => setEditInput(e.target.value)}
-                className="flex-1 px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-neutral-200 text-sm focus:outline-none focus:ring-1 focus:ring-sky-400"
+                className="flex-1 px-3 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-700 dark:text-neutral-200 text-sm focus:outline-none focus:ring-1 focus:ring-sky-400"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleSaveEdit();
@@ -1253,7 +1255,7 @@ function ConnectedPanelContent ({
               <button
                 onClick={handleSaveEdit}
                 disabled={!editInput.trim()}
-                className="px-3 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 disabled:bg-neutral-700 disabled:cursor-not-allowed transition-colors text-sm"
+                className="px-3 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 disabled:bg-neutral-200 dark:disabled:bg-neutral-700 disabled:cursor-not-allowed transition-colors text-sm"
               >
                 保存
               </button>
@@ -1262,18 +1264,18 @@ function ConnectedPanelContent ({
         )}
 
         {replyingTo && (
-          <div className="px-4 py-2 bg-neutral-800 border-t border-neutral-700">
+          <div className="px-4 py-2 bg-neutral-100 dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700">
             <div className="flex items-center gap-2">
-              <Reply size={14} className="text-sky-400" />
-              <span className="text-sm text-neutral-300">
+              <Reply size={14} className="text-sky-500 dark:text-sky-400" />
+              <span className="text-sm text-neutral-600 dark:text-neutral-300">
                 回复 <span className="font-medium">{replyingTo.userName}</span>
               </span>
-              <span className="text-xs text-neutral-500 truncate max-w-[200px]">
+              <span className="text-xs text-neutral-400 dark:text-neutral-500 truncate max-w-[200px]">
                 {replyingTo.content || '附件'}
               </span>
               <button
                 onClick={() => setReplyingTo(null)}
-                className="ml-auto p-1 hover:bg-neutral-700 rounded text-neutral-400"
+                className="ml-auto p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded text-neutral-400"
               >
                 <X size={14} />
               </button>
@@ -1281,19 +1283,19 @@ function ConnectedPanelContent ({
           </div>
         )}
 
-        <div className="p-4 border-t border-neutral-700">
+        <div className="p-4 border-t border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
           <div className="flex items-center gap-2">
             <div className="flex gap-1">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2.5 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-lg transition-colors"
+                className="p-2.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
                 title="发送图片"
               >
                 <ImageIcon size={20} />
               </button>
               <button
                 onClick={() => audioInputRef.current?.click()}
-                className="p-2.5 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-lg transition-colors"
+                className="p-2.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
                 title="发送音频"
               >
                 <Music size={20} />
@@ -1304,7 +1306,7 @@ function ConnectedPanelContent ({
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
                 placeholder={`在 #${activeChannel?.name || '主聊天'} 发送消息...`}
-                className="flex-1 px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none max-h-32 min-h-[44px]"
+                className="flex-1 px-4 py-2.5 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-700 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none max-h-32 min-h-[44px]"
                 rows={1}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
@@ -1316,7 +1318,7 @@ function ConnectedPanelContent ({
               <button
                 onClick={() => handleSend()}
                 disabled={!messageInput.trim()}
-                className="p-2.5 bg-sky-500 text-white rounded-xl hover:bg-sky-600 disabled:bg-neutral-700 disabled:cursor-not-allowed transition-colors"
+                className="p-2.5 bg-sky-500 text-white rounded-xl hover:bg-sky-600 disabled:bg-neutral-200 dark:disabled:bg-neutral-700 disabled:cursor-not-allowed transition-colors"
               >
                 <Send size={20} />
               </button>
@@ -1335,16 +1337,16 @@ function ConnectedPanelContent ({
       )}
 
       {showPinnedPanel && channelPinnedMessages.length > 0 && !activeThreadId && (
-        <div className="w-80 bg-neutral-800 border-l border-neutral-700 flex flex-col">
-          <div className="p-3 border-b border-neutral-700 flex items-center justify-between">
+        <div className="w-80 bg-neutral-100 dark:bg-neutral-800 border-l border-neutral-200 dark:border-neutral-700 flex flex-col">
+          <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Pin size={16} className="text-yellow-500" />
-              <span className="text-white font-medium text-sm">置顶消息</span>
-              <span className="text-xs text-neutral-400">({channelPinnedMessages.length})</span>
+              <span className="text-neutral-900 dark:text-white font-medium text-sm">置顶消息</span>
+              <span className="text-xs text-neutral-400 dark:text-neutral-400">({channelPinnedMessages.length})</span>
             </div>
             <button
               onClick={() => setShowPinnedPanel(false)}
-              className="p-1 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white"
+              className="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded text-neutral-400 hover:text-neutral-600 dark:hover:text-white"
             >
               <X size={16} />
             </button>
@@ -1356,14 +1358,14 @@ function ConnectedPanelContent ({
                 return null;
               }
               return (
-                <div key={pinned.id} className="bg-neutral-700/50 rounded-lg p-2">
+                <div key={pinned.id} className="bg-neutral-200/50 dark:bg-neutral-700/50 rounded-lg p-2">
                   <div className="flex items-center gap-2 mb-1">
                     <Avatar userId={msg.userId} size={20} />
-                    <span className="text-xs font-medium text-neutral-300">{msg.userName}</span>
-                    <span className="text-[10px] text-neutral-500">{formatTime(msg.createdAt)}</span>
+                    <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">{msg.userName}</span>
+                    <span className="text-[10px] text-neutral-400 dark:text-neutral-500">{formatTime(msg.createdAt)}</span>
                   </div>
                   {msg.content && (
-                    <p className="text-sm text-neutral-200 line-clamp-3">{msg.content}</p>
+                    <p className="text-sm text-neutral-700 dark:text-neutral-200 line-clamp-3">{msg.content}</p>
                   )}
                 </div>
               );
@@ -1373,24 +1375,24 @@ function ConnectedPanelContent ({
       )}
 
       {showUserList && !activeThreadId && !showPinnedPanel && (
-        <div className="w-60 bg-neutral-800 border-l border-neutral-700 flex flex-col">
-          <div className="p-4 border-b border-neutral-700">
-            <h3 className="text-white font-medium flex items-center gap-2">
+        <div className="w-60 bg-neutral-100 dark:bg-neutral-800 border-l border-neutral-200 dark:border-neutral-700 flex flex-col">
+          <div className="p-4 border-b border-neutral-200 dark:border-neutral-700">
+            <h3 className="text-neutral-900 dark:text-white font-medium flex items-center gap-2">
               <Users size={16} />
               在线成员
-              <span className="text-sm text-neutral-400">
+              <span className="text-sm text-neutral-400 dark:text-neutral-400">
                 ({collaborators.length + 1})
               </span>
             </h3>
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-neutral-700/50">
-              <Avatar userId={currentUserId ?? userName} size={32} />
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-neutral-200/50 dark:bg-neutral-700/50">
+              <Avatar userId={userId} size={32} />
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-white truncate">{userName}</div>
-                <div className="flex items-center gap-1 text-[10px] text-green-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                <div className="text-sm font-medium text-neutral-900 dark:text-white truncate">{userName}</div>
+                <div className="flex items-center gap-1 text-[10px] text-green-500 dark:text-green-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 dark:bg-green-400" />
                   你
                 </div>
               </div>
@@ -1399,13 +1401,13 @@ function ConnectedPanelContent ({
             {collaborators.map((collaborator) => (
               <div
                 key={collaborator.id}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-neutral-700/30 transition-colors"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-neutral-200/50 dark:hover:bg-neutral-700/30 transition-colors"
               >
                 <Avatar userId={collaborator.id} size={32} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-neutral-200 truncate">{collaborator.name}</div>
-                  <div className="flex items-center gap-1 text-[10px] text-green-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                  <div className="text-sm font-medium text-neutral-700 dark:text-neutral-200 truncate">{collaborator.name}</div>
+                  <div className="flex items-center gap-1 text-[10px] text-green-500 dark:text-green-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 dark:bg-green-400" />
                     在线
                   </div>
                 </div>
@@ -1413,7 +1415,7 @@ function ConnectedPanelContent ({
             ))}
 
             {collaborators.length === 0 && (
-              <div className="text-center text-sm text-neutral-500 py-6">
+              <div className="text-center text-sm text-neutral-400 dark:text-neutral-500 py-6">
                 暂无其他成员
               </div>
             )}
@@ -1437,6 +1439,7 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
     roomId,
     userName,
     userColor,
+    userId,
     connect,
     disconnect,
     recentRooms,
@@ -1471,21 +1474,21 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 dark:bg-black/70" onClick={onClose}>
       <div
-        className="bg-neutral-900 rounded-xl shadow-2xl w-full max-w-6xl mx-4 overflow-hidden max-h-[85vh]"
+        className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl w-full max-w-6xl mx-4 overflow-hidden max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-700 bg-neutral-800">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
           <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-white">协作</h3>
+            <h3 className="font-semibold text-neutral-900 dark:text-white">协作</h3>
             {isConnected && roomId && (
-              <code className="px-2 py-0.5 bg-neutral-700 rounded text-xs font-mono text-neutral-300">
+              <code className="px-2 py-0.5 bg-neutral-200 dark:bg-neutral-700 rounded text-xs font-mono text-neutral-600 dark:text-neutral-300">
                 {roomId}
               </code>
             )}
             {(connectionStatus === 'reconnecting') && (
-              <div className="flex items-center gap-2 text-sm text-orange-400">
+              <div className="flex items-center gap-2 text-sm text-orange-500 dark:text-orange-400">
                 <RefreshCw size={14} className="animate-spin" />
                 正在重新连接...
               </div>
@@ -1493,7 +1496,7 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-neutral-700 transition-colors text-neutral-400 hover:text-white"
+            className="p-1.5 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
           >
             <X size={18} />
           </button>
@@ -1503,21 +1506,22 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
           <ConnectedPanelContent
             userName={userName}
             userColor={userColor}
+            userId={userId}
             onDisconnect={handleDisconnect}
           />
         ) : (
-          <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
-            <div className="w-16 h-16 bg-neutral-700 rounded-full flex items-center justify-center mb-6">
-              <Users size={32} className="text-neutral-400" />
+          <div className="p-8 flex flex-col items-center justify-center min-h-[400px] bg-white dark:bg-neutral-900">
+            <div className="w-16 h-16 bg-neutral-100 dark:bg-neutral-700 rounded-full flex items-center justify-center mb-6">
+              <Users size={32} className="text-neutral-400 dark:text-neutral-400" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">加入协作房间</h2>
-            <p className="text-neutral-400 mb-8 text-center max-w-md">
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">加入协作房间</h2>
+            <p className="text-neutral-500 dark:text-neutral-400 mb-8 text-center max-w-md">
               输入房间ID或选择已有的房间
             </p>
 
             <div className="w-full max-w-sm space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1.5">
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
                   房间ID
                 </label>
                 <RoomInput
@@ -1531,7 +1535,7 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1.5">
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
                   你的名字
                 </label>
                 <input
@@ -1539,14 +1543,14 @@ export function CollaborationPanel ({ isOpen, onClose }: CollaborationPanelProps
                   value={inputUserName}
                   onChange={(e) => setInputUserName(e.target.value)}
                   placeholder={userName}
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                 />
               </div>
 
               <button
                 onClick={handleConnect}
                 disabled={!inputRoomId.trim() || isConnecting}
-                className="w-full py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 disabled:bg-neutral-700 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                className="w-full py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 disabled:bg-neutral-200 dark:disabled:bg-neutral-700 disabled:text-neutral-400 dark:disabled:text-neutral-400 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
               >
                 {isConnecting ? (
                   <>

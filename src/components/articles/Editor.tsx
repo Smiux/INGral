@@ -10,6 +10,7 @@ import {
   useCollaboration,
   CollaborationPanel
 } from '../collaboration';
+import { useArticleMetadata } from '../collaboration/internal/useArticleMetadata';
 
 import { createDraft, updateDraft, getDraftById, type ArticleDraft } from './utils/draft';
 import type { Editor } from '@tiptap/react';
@@ -174,18 +175,20 @@ export const ArticleEditor: React.FC = () => {
 
   const [showCoverManager, setShowCoverManager] = useState(false);
   const [coverImage, setCoverImage] = useState<File | Blob | null>(null);
-  const [coverImagePath, setCoverImagePath] = useState<string | null>(null);
   const [originalCoverImagePath, setOriginalCoverImagePath] = useState<string | null>(null);
   const [coverImageModified, setCoverImageModified] = useState(false);
 
   const [showSummaryInput, setShowSummaryInput] = useState(false);
-  const [summary, setSummary] = useState('');
 
   const collaboration = useCollaboration();
 
+  const [articleMetadata, articleMetadataActions] = useArticleMetadata(
+    collaboration.articleMetadata,
+    collaboration.provider
+  );
+
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
   const [showCollabPanel, setShowCollabPanel] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -228,8 +231,9 @@ export const ArticleEditor: React.FC = () => {
         const article = await getArticleBySlug(slug);
         if (article) {
           setState(prev => ({ ...prev, 'title': article.title }));
-          setSummary(article.summary || '');
-          setTags(article.tags || []);
+          articleMetadataActions.setTitle(article.title);
+          articleMetadataActions.setSummary(article.summary || '');
+          article.tags?.forEach(tag => articleMetadataActions.addTag(tag));
           setExistingArticleId(article.id);
           setOriginalCoverImagePath(article.cover_image_path);
           setCoverImageModified(false);
@@ -243,70 +247,12 @@ export const ArticleEditor: React.FC = () => {
     };
 
     loadArticle();
-  }, [slug, editor]);
-
-  useEffect(() => {
-    if (!collaboration.articleMetadata) {
-      return undefined;
-    }
-
-    const metaTitle = collaboration.articleMetadata.title;
-    const metaSummary = collaboration.articleMetadata.summary;
-    const metaTags = collaboration.articleMetadata.tags;
-    const metaCoverImage = collaboration.articleMetadata.coverImage;
-
-    const titleObserver = () => {
-      const remoteTitle = metaTitle.get('value');
-      if (remoteTitle !== undefined && remoteTitle !== state.title) {
-        setState(prev => ({ ...prev, 'title': remoteTitle }));
-      }
-    };
-    metaTitle.observe(titleObserver);
-
-    const summaryObserver = () => {
-      const remoteSummary = metaSummary.get('value');
-      if (remoteSummary !== undefined) {
-        setSummary(remoteSummary);
-      }
-    };
-    metaSummary.observe(summaryObserver);
-
-    const tagsObserver = () => {
-      const remoteTags = metaTags.toArray();
-      if (JSON.stringify(remoteTags) !== JSON.stringify(tags)) {
-        setTags(remoteTags);
-      }
-    };
-    metaTags.observe(tagsObserver);
-
-    const coverImageObserver = () => {
-      const remoteCoverImage = metaCoverImage.get('value');
-      if (remoteCoverImage !== undefined && remoteCoverImage !== coverImagePath) {
-        if (remoteCoverImage) {
-          setCoverImagePath(remoteCoverImage);
-          setCoverImageModified(true);
-        } else {
-          setCoverImagePath(null);
-          setCoverImageModified(false);
-        }
-      }
-    };
-    metaCoverImage.observe(coverImageObserver);
-
-    return () => {
-      metaTitle.unobserve(titleObserver);
-      metaSummary.unobserve(summaryObserver);
-      metaTags.unobserve(tagsObserver);
-      metaCoverImage.unobserve(coverImageObserver);
-    };
-  }, [collaboration.articleMetadata, state.title, tags, coverImagePath]);
+  }, [slug, editor, articleMetadataActions]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setState(prev => ({ ...prev, 'title': newTitle }));
-    if (collaboration.articleMetadata?.title) {
-      collaboration.articleMetadata.title.set('value', newTitle);
-    }
+    articleMetadataActions.setTitle(newTitle);
   };
 
   const handleSave = async () => {
@@ -324,8 +270,8 @@ export const ArticleEditor: React.FC = () => {
           'content': editor.getHTML(),
           coverImage,
           coverImageModified,
-          'summary': summary.trim() || undefined,
-          'tags': tags.length > 0 ? tags : undefined
+          'summary': articleMetadata.summary.trim() || undefined,
+          'tags': articleMetadata.tags.length > 0 ? articleMetadata.tags : undefined
         });
 
         if (updatedArticle) {
@@ -336,8 +282,8 @@ export const ArticleEditor: React.FC = () => {
           'title': state.title,
           'content': editor.getHTML(),
           coverImage,
-          'summary': summary.trim() || undefined,
-          'tags': tags.length > 0 ? tags : undefined
+          'summary': articleMetadata.summary.trim() || undefined,
+          'tags': articleMetadata.tags.length > 0 ? articleMetadata.tags : undefined
         });
 
         if (savedArticle) {
@@ -359,15 +305,13 @@ export const ArticleEditor: React.FC = () => {
     }
     editor.commands.clearContent();
     setState({ 'title': '', 'isSaving': false });
-    setSummary('');
-    setTags([]);
+    articleMetadataActions.clearAll();
     setExistingArticleId(null);
     setCoverImage(null);
-    setCoverImagePath(null);
     setOriginalCoverImagePath(null);
     setCoverImageModified(false);
     setShowClearConfirm(false);
-  }, [editor]);
+  }, [editor, articleMetadataActions]);
 
   const handleInsertMath = useCallback((formula: string) => {
     if (!editor) {
@@ -461,15 +405,16 @@ export const ArticleEditor: React.FC = () => {
   }, []);
 
   const handleCreateNewDraft = useCallback(() => {
-    const draft = createDraft({ 'title': state.title, 'content': editor?.getHTML() || '', summary, tags });
+    const draft = createDraft({ 'title': state.title, 'content': editor?.getHTML() || '', 'summary': articleMetadata.summary, 'tags': articleMetadata.tags });
     setCurrentDraftId(draft.id);
     setShowDraftManager(false);
-  }, [state.title, editor, summary, tags]);
+  }, [state.title, editor, articleMetadata]);
 
   const handleLoadDraft = useCallback((draft: ArticleDraft) => {
     setState(prev => ({ ...prev, 'title': draft.title }));
-    setSummary(draft.summary || '');
-    setTags(draft.tags || []);
+    articleMetadataActions.setTitle(draft.title);
+    articleMetadataActions.setSummary(draft.summary || '');
+    draft.tags?.forEach(tag => articleMetadataActions.addTag(tag));
     setCurrentDraftId(draft.id);
     if (draft.coverImageDataUrl) {
       fetch(draft.coverImageDataUrl)
@@ -478,7 +423,7 @@ export const ArticleEditor: React.FC = () => {
           const fileName = (draft as ArticleDraft & { coverImageName?: string }).coverImageName || 'cover.png';
           const file = new File([blob], fileName, { 'type': blob.type });
           setCoverImage(file);
-          setCoverImagePath(draft.coverImageDataUrl || null);
+          articleMetadataActions.setCoverImage(draft.coverImageDataUrl || null);
           setCoverImageModified(true);
         })
         .catch(() => {
@@ -486,20 +431,20 @@ export const ArticleEditor: React.FC = () => {
         });
     } else {
       setCoverImage(null);
-      setCoverImagePath(null);
+      articleMetadataActions.setCoverImage(null);
       setCoverImageModified(false);
     }
     if (editor) {
       editor.commands.setContent(draft.content);
     }
-  }, [editor]);
+  }, [editor, articleMetadataActions]);
 
   const handleOpenDraftManager = useCallback(() => {
     setShowDraftManager(true);
   }, []);
 
   const handleSaveDraft = useCallback(() => {
-    const saveDraftWithCover = (summaryText: string, coverDataUrl: string | null, coverName: string | undefined) => {
+    const saveDraftWithCover = (summaryText: string, coverDataUrl: string | null, coverName: string | undefined, draftTags: string[]) => {
       if (currentDraftId) {
         const existingDraft = getDraftById(currentDraftId);
         const draft: ArticleDraft = {
@@ -512,8 +457,8 @@ export const ArticleEditor: React.FC = () => {
         if (summaryText) {
           draft.summary = summaryText;
         }
-        if (tags.length > 0) {
-          draft.tags = tags;
+        if (draftTags.length > 0) {
+          draft.tags = draftTags;
         }
         if (coverDataUrl) {
           draft.coverImageDataUrl = coverDataUrl;
@@ -527,7 +472,7 @@ export const ArticleEditor: React.FC = () => {
           'title': state.title,
           'content': editor?.getHTML() || '',
           ...(summaryText ? { 'summary': summaryText } : {}),
-          ...(tags.length > 0 ? { tags } : {}),
+          ...(draftTags.length > 0 ? { 'tags': draftTags } : {}),
           ...(coverDataUrl ? { 'coverImageDataUrl': coverDataUrl, ...(coverName ? { 'coverImageName': coverName } : {}) } : {})
         });
         setCurrentDraftId(draft.id);
@@ -538,13 +483,13 @@ export const ArticleEditor: React.FC = () => {
       const reader = new FileReader();
       reader.onload = () => {
         const coverName = (coverImage as File).name || 'cover.png';
-        saveDraftWithCover(summary, reader.result as string, coverName);
+        saveDraftWithCover(articleMetadata.summary, reader.result as string, coverName, articleMetadata.tags);
       };
       reader.readAsDataURL(coverImage);
     } else {
-      saveDraftWithCover(summary, null, undefined);
+      saveDraftWithCover(articleMetadata.summary, null, undefined, articleMetadata.tags);
     }
-  }, [currentDraftId, state.title, editor, summary, tags, coverImage]);
+  }, [currentDraftId, state.title, editor, articleMetadata, coverImage]);
 
   const handleOpenCoverManager = useCallback(() => {
     setShowCoverManager(true);
@@ -555,49 +500,29 @@ export const ArticleEditor: React.FC = () => {
       const reader = new FileReader();
       reader.onload = () => {
         const base64Data = reader.result as string;
-        setCoverImagePath(base64Data);
-        if (collaboration.articleMetadata?.coverImage) {
-          collaboration.articleMetadata.coverImage.set('value', base64Data);
-        }
+        articleMetadataActions.setCoverImage(base64Data);
       };
       reader.readAsDataURL(file);
     } else {
-      setCoverImagePath(null);
-      if (collaboration.articleMetadata?.coverImage) {
-        collaboration.articleMetadata.coverImage.set('value', null);
-      }
+      articleMetadataActions.setCoverImage(null);
     }
     setCoverImage(file);
     setCoverImageModified(true);
     if (file === null && originalCoverImagePath) {
       setCoverImage(null);
     }
-  }, [originalCoverImagePath, collaboration.articleMetadata]);
+  }, [originalCoverImagePath, articleMetadataActions]);
 
   const handleAddTag = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
-      const trimmedTag = tagInput.trim();
-      if (!tags.includes(trimmedTag)) {
-        const newTags = [...tags, trimmedTag];
-        setTags(newTags);
-        if (collaboration.articleMetadata?.tags) {
-          collaboration.articleMetadata.tags.push([trimmedTag]);
-        }
-      }
+      articleMetadataActions.addTag(tagInput.trim());
       setTagInput('');
     }
-  }, [tagInput, tags, collaboration.articleMetadata]);
+  }, [tagInput, articleMetadataActions]);
 
   const handleRemoveTag = useCallback((tagToRemove: string) => {
-    const newTags = tags.filter(tag => tag !== tagToRemove);
-    setTags(newTags);
-    if (collaboration.articleMetadata?.tags) {
-      const index = tags.indexOf(tagToRemove);
-      if (index !== -1) {
-        collaboration.articleMetadata.tags.delete(index, 1);
-      }
-    }
-  }, [tags, collaboration.articleMetadata]);
+    articleMetadataActions.removeTag(tagToRemove);
+  }, [articleMetadataActions]);
 
   const collaborationConfig = useMemo(() => {
     if (collaboration.isConnected && collaboration.doc && collaboration.provider && collaboration.articleMetadata) {
@@ -810,7 +735,7 @@ export const ArticleEditor: React.FC = () => {
       <CoverManager
         isOpen={showCoverManager}
         onClose={() => setShowCoverManager(false)}
-        currentCoverPath={coverImageModified ? coverImagePath : originalCoverImagePath}
+        currentCoverPath={coverImageModified ? articleMetadata.coverImage : originalCoverImagePath}
         onCoverChange={handleCoverChange}
       />
 
@@ -968,13 +893,9 @@ export const ArticleEditor: React.FC = () => {
                   文章简介
                 </label>
                 <textarea
-                  value={summary}
+                  value={articleMetadata.summary}
                   onChange={(e) => {
-                    const newSummary = e.target.value;
-                    setSummary(newSummary);
-                    if (collaboration.articleMetadata?.summary) {
-                      collaboration.articleMetadata.summary.set('value', newSummary);
-                    }
+                    articleMetadataActions.setSummary(e.target.value);
                   }}
                   placeholder="输入文章简介，用于在文章列表和卡片中展示..."
                   rows={3}
@@ -982,7 +903,7 @@ export const ArticleEditor: React.FC = () => {
                   className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-none text-sm"
                 />
                 <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 text-right">
-                  {summary.length}/200
+                  {articleMetadata.summary.length}/200
                 </div>
               </div>
             </div>
@@ -1017,9 +938,9 @@ export const ArticleEditor: React.FC = () => {
               </div>
             </div>
 
-            {tags.length > 0 && (
+            {articleMetadata.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">
-                {tags.map((tag, index) => (
+                {articleMetadata.tags.map((tag, index) => (
                   <div
                     key={index}
                     title={tag}

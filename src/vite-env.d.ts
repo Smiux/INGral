@@ -11,6 +11,7 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY: string;
   readonly VITE_LIVEBLOCKS_PUBLIC_KEY: string;
   readonly VITE_LIVEBLOCKS_SECRET_KEY: string;
+  readonly VITE_TURN_ICE_SERVERS?: string;
 }
 
 interface ImportMeta {

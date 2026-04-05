@@ -6,6 +6,8 @@ export interface CursorData {
   userName: string;
   userColor: string;
   currentPath: string | null;
+  scrollX: number;
+  scrollY: number;
 }
 
 type CursorUpdateCallback = (connectionId: number, data: CursorData) => void;
@@ -44,6 +46,34 @@ class CursorManager {
 
   private baseRetryDelay = 1000;
 
+  private getIceServers (): RTCIceServer[] {
+    const iceServers: RTCIceServer[] = [];
+
+    iceServers.push({ 'urls': 'stun:global.stun.twilio.com:3478' });
+
+    const customIceServers = import.meta.env.VITE_TURN_ICE_SERVERS;
+    if (customIceServers) {
+      try {
+        const parsed = JSON.parse(customIceServers);
+        if (Array.isArray(parsed)) {
+          iceServers.push(...parsed);
+        }
+      } catch (error) {
+        console.error('Error parsing custom ice servers:', error);
+      }
+    }
+
+    iceServers.push(
+      { 'urls': 'stun:stun.l.google.com:19302' },
+      { 'urls': 'stun:stun1.l.google.com:19302' },
+      { 'urls': 'stun:stun2.l.google.com:19302' },
+      { 'urls': 'stun:stun3.l.google.com:19302' },
+      { 'urls': 'stun:stun4.l.google.com:19302' }
+    );
+
+    return iceServers;
+  }
+
   async initialize (userName: string, userColor: string): Promise<string> {
     this.refCount += 1;
 
@@ -55,16 +85,12 @@ class CursorManager {
     return new Promise((resolve, reject) => {
       this.isDestroyed = false;
 
+      const iceServers = this.getIceServers();
+
       this.peer = new Peer({
         'debug': 0,
         'config': {
-          'iceServers': [
-            { 'urls': 'stun:stun.l.google.com:19302' },
-            { 'urls': 'stun:stun1.l.google.com:19302' },
-            { 'urls': 'stun:stun2.l.google.com:19302' },
-            { 'urls': 'stun:stun3.l.google.com:19302' },
-            { 'urls': 'stun:stun4.l.google.com:19302' }
-          ]
+          iceServers
         }
       });
 
@@ -153,7 +179,9 @@ class CursorManager {
         'y': msg.y as number,
         'userName': msg.userName as string,
         'userColor': msg.userColor as string,
-        'currentPath': msg.currentPath as string | null
+        'currentPath': msg.currentPath as string | null,
+        'scrollX': (msg.scrollX as number) || 0,
+        'scrollY': (msg.scrollY as number) || 0
       });
     }
   }
@@ -285,18 +313,20 @@ class CursorManager {
     }
   }
 
-  sendCursorUpdate (x: number, y: number): void {
+  sendCursorUpdate (pageX: number, pageY: number, scrollX: number, scrollY: number): void {
     if (!this.myUserData) {
       return;
     }
 
     const data = {
       'type': 'cursor',
-      x,
-      y,
+      'x': pageX,
+      'y': pageY,
       'userName': this.myUserData.userName,
       'userColor': this.myUserData.userColor,
-      'currentPath': this.myUserData.currentPath
+      'currentPath': this.myUserData.currentPath,
+      scrollX,
+      scrollY
     };
 
     for (const conn of this.connections.values()) {

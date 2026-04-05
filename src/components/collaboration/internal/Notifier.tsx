@@ -1,19 +1,22 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useOthersMapped, useOthersConnectionIds, shallow } from '../liveblocks.config';
+import { useOthersMapped, useOthersConnectionIds, useSelf, shallow } from '../liveblocks.config';
 import { Avatar } from './Avatar';
 
 interface PreviousUserState {
   connectionId: number;
+  userId: string;
   userName: string;
   userColor: string;
   currentPath: string | null;
+  joinedAt: number;
 }
 
 interface UserActivityEvent {
   id: string;
   connectionId: number;
+  userId: string;
   userName: string;
   userColor: string;
   timestamp: number;
@@ -27,7 +30,7 @@ interface ToastCardProps {
 
 function ToastCard ({ notification, onDismiss }: ToastCardProps) {
   const [progress, setProgress] = useState(100);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
   const DURATION = 3000;
 
@@ -88,7 +91,7 @@ function ToastCard ({ notification, onDismiss }: ToastCardProps) {
       <div className="bg-neutral-800 border border-neutral-700 rounded-xl shadow-2xl overflow-hidden">
         <div className="flex items-start gap-3 p-4">
           <Avatar
-            userId={String(notification.connectionId)}
+            userId={notification.userId}
             size={40}
             color={notification.userColor}
           />
@@ -124,31 +127,38 @@ function ToastCard ({ notification, onDismiss }: ToastCardProps) {
 
 export function Notifier () {
   const [notifications, setNotifications] = useState<UserActivityEvent[]>([]);
+  const self = useSelf();
+  const myJoinedAt = self?.presence?.joinedAt ?? 0;
 
   const connectionIds = useOthersConnectionIds();
   const othersMap = useOthersMapped(
     (other) => ({
+      'userId': other.presence?.userId ?? String(other.connectionId),
       'userName': other.presence?.userName,
       'userColor': other.presence?.userColor,
-      'currentPath': other.presence?.currentPath
+      'currentPath': other.presence?.currentPath,
+      'joinedAt': other.presence?.joinedAt ?? 0
     }),
     shallow
   );
 
   const previousUsersRef = useRef<PreviousUserState[]>([]);
-  const pendingNotificationsRef = useRef<UserActivityEvent[]>([]);
+  const knownConnectionIdsRef = useRef<Set<number>>(new Set());
+  const processedEventsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    const currentUsersMap = new Map<number, PreviousUserState>();
     const currentConnectionIds = new Set(connectionIds);
+    const currentUsersMap = new Map<number, PreviousUserState>();
 
     for (const [connectionId, data] of othersMap) {
       if (data.userName && data.userColor) {
         currentUsersMap.set(connectionId, {
           connectionId,
+          'userId': data.userId,
           'userName': data.userName,
           'userColor': data.userColor,
-          'currentPath': data.currentPath ?? null
+          'currentPath': data.currentPath ?? null,
+          'joinedAt': data.joinedAt
         });
       }
     }
@@ -157,20 +167,27 @@ export function Notifier () {
 
     const joinedUsers: PreviousUserState[] = [];
     for (const [connectionId, user] of currentUsersMap) {
-      if (!previousUsersRef.current.some((prev) => prev.connectionId === connectionId)) {
-        joinedUsers.push(user);
+      if (!knownConnectionIdsRef.current.has(connectionId)) {
+        knownConnectionIdsRef.current.add(connectionId);
+        if (user.joinedAt > myJoinedAt) {
+          joinedUsers.push(user);
+        }
       }
     }
 
     if (joinedUsers.length > 0) {
-      newEvents.push(...joinedUsers.map((joinedUser) => ({
-        'id': `${joinedUser.connectionId}-${Date.now()}-join`,
-        'connectionId': joinedUser.connectionId,
-        'userName': joinedUser.userName,
-        'userColor': joinedUser.userColor,
-        'timestamp': Date.now(),
-        'eventType': 'join' as const
-      })));
+      newEvents.push(...joinedUsers.map((joinedUser) => {
+        const eventId = `${joinedUser.connectionId}-${joinedUser.joinedAt}-join`;
+        return {
+          'id': eventId,
+          'connectionId': joinedUser.connectionId,
+          'userId': joinedUser.userId,
+          'userName': joinedUser.userName,
+          'userColor': joinedUser.userColor,
+          'timestamp': Date.now(),
+          'eventType': 'join' as const
+        };
+      }));
     }
 
     const leftRoomUsers: PreviousUserState[] = [];
@@ -178,40 +195,39 @@ export function Notifier () {
       const stillInRoom = currentConnectionIds.has(prevUser.connectionId);
       if (!stillInRoom) {
         leftRoomUsers.push(prevUser);
+        knownConnectionIdsRef.current.delete(prevUser.connectionId);
       }
     }
 
     if (leftRoomUsers.length > 0) {
-      newEvents.push(...leftRoomUsers.map((leftUser) => ({
-        'id': `${leftUser.connectionId}-${Date.now()}-room`,
-        'connectionId': leftUser.connectionId,
-        'userName': leftUser.userName,
-        'userColor': leftUser.userColor,
-        'timestamp': Date.now(),
-        'eventType': 'leave_room' as const
-      })));
+      newEvents.push(...leftRoomUsers.map((leftUser) => {
+        const eventId = `${leftUser.connectionId}-${Date.now()}-room`;
+        return {
+          'id': eventId,
+          'connectionId': leftUser.connectionId,
+          'userId': leftUser.userId,
+          'userName': leftUser.userName,
+          'userColor': leftUser.userColor,
+          'timestamp': Date.now(),
+          'eventType': 'leave_room' as const
+        };
+      }));
     }
 
-    if (newEvents.length > 0) {
-      pendingNotificationsRef.current = [
-        ...pendingNotificationsRef.current,
-        ...newEvents
-      ];
+    const uniqueNewEvents = newEvents.filter((event) => {
+      if (processedEventsRef.current.has(event.id)) {
+        return false;
+      }
+      processedEventsRef.current.add(event.id);
+      return true;
+    });
+
+    if (uniqueNewEvents.length > 0) {
+      setNotifications((prev) => [...prev, ...uniqueNewEvents]);
     }
 
     previousUsersRef.current = Array.from(currentUsersMap.values());
-  }, [othersMap, connectionIds]);
-
-  useEffect(() => {
-    if (pendingNotificationsRef.current.length === 0) {
-      return;
-    }
-
-    const pending = pendingNotificationsRef.current;
-    pendingNotificationsRef.current = [];
-
-    setNotifications((prev) => [...prev, ...pending]);
-  }, [othersMap, connectionIds]);
+  }, [connectionIds, othersMap, myJoinedAt]);
 
   const handleDismiss = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));

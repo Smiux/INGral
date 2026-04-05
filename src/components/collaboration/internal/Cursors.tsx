@@ -14,29 +14,74 @@ const springConfig = {
 };
 
 interface RemoteCursor {
-  x: number;
-  y: number;
+  pageX: number;
+  pageY: number;
+  scrollX: number;
+  scrollY: number;
   userName: string;
   userColor: string;
   currentPath: string | null;
 }
 
 function Cursor ({
-  x,
-  y,
+  pageX,
+  pageY,
+  remoteScrollX,
+  remoteScrollY,
   userName,
   userColor
 }: {
-  x: number;
-  y: number;
+  pageX: number;
+  pageY: number;
+  remoteScrollX: number;
+  remoteScrollY: number;
   userName: string;
   userColor: string;
 }) {
+  const [viewportPosition, setViewportPosition] = useState({ 'x': 0, 'y': 0 });
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const updatePosition = () => {
+      const localScrollX = window.scrollX;
+      const localScrollY = window.scrollY;
+
+      const viewportX = pageX - localScrollX;
+      const viewportY = pageY - localScrollY;
+
+      const cursorWidth = 32;
+      const cursorHeight = 44;
+      const isVisibleX = viewportX >= -cursorWidth && viewportX <= window.innerWidth + cursorWidth;
+      const isVisibleY = viewportY >= -cursorHeight && viewportY <= window.innerHeight + cursorHeight;
+
+      setIsVisible(isVisibleX && isVisibleY);
+      setViewportPosition({ 'x': viewportX, 'y': viewportY });
+    };
+
+    updatePosition();
+
+    const handleScroll = () => {
+      updatePosition();
+    };
+
+    window.addEventListener('scroll', handleScroll, { 'passive': true });
+    window.addEventListener('resize', updatePosition, { 'passive': true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [pageX, pageY, remoteScrollX, remoteScrollY]);
+
+  if (!isVisible) {
+    return null;
+  }
+
   return (
     <motion.div
       className="fixed pointer-events-none z-[9998]"
-      initial={{ x, y }}
-      animate={{ x, y }}
+      initial={{ 'x': viewportPosition.x, 'y': viewportPosition.y }}
+      animate={{ 'x': viewportPosition.x, 'y': viewportPosition.y }}
       transition={springConfig}
       style={{ 'top': 0, 'left': 0 }}
     >
@@ -91,8 +136,10 @@ export function Cursors () {
     setRemoteCursors((prev) => {
       const next = new Map(prev);
       next.set(connectionId, {
-        'x': data.x,
-        'y': data.y,
+        'pageX': data.x,
+        'pageY': data.y,
+        'scrollX': data.scrollX,
+        'scrollY': data.scrollY,
         'userName': data.userName,
         'userColor': data.userColor,
         'currentPath': data.currentPath
@@ -160,7 +207,7 @@ export function Cursors () {
 
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
-      cursorManager.sendCursorUpdate(e.clientX, e.clientY);
+      cursorManager.sendCursorUpdate(e.pageX, e.pageY, window.scrollX, window.scrollY);
     };
 
     window.addEventListener('pointermove', handlePointerMove);
@@ -177,8 +224,10 @@ export function Cursors () {
         .map(([connectionId, cursor]) => (
           <Cursor
             key={connectionId}
-            x={cursor.x}
-            y={cursor.y}
+            pageX={cursor.pageX}
+            pageY={cursor.pageY}
+            remoteScrollX={cursor.scrollX}
+            remoteScrollY={cursor.scrollY}
             userName={cursor.userName}
             userColor={cursor.userColor}
           />
