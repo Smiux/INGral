@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, ListTree, Trash2, Edit3, Tag, ChevronDown, ChevronRight } from 'lucide-react';
-import { getArticleBySlug, getCoverImageUrl, deleteArticle, type ArticleWithContent } from '../../services/articleService';
+import { getArticleBySlug, deleteArticle, type ArticleWithContent } from '../../services/articleService';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { TiptapEditor } from './core/TipTap';
+import { FootnotePanel } from './panels/FootnotePanel';
+import type { Editor } from '@tiptap/react';
 
 interface TocItem {
   id: string;
@@ -65,12 +67,14 @@ const TocItemComponent: React.FC<TocItemProps> = ({ item, onClick, isCollapsed, 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [article, setArticle] = useState<ArticleWithContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [editorReady, setEditorReady] = useState(false);
+  const [editor, setEditor] = useState<Editor | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
   const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
@@ -135,9 +139,10 @@ export function ArticleViewer () {
     };
 
     loadArticle();
-  }, [slug]);
+  }, [slug, location.key]);
 
-  const handleEditorReady = () => {
+  const handleEditorReady = (editorInstance: Editor) => {
+    setEditor(editorInstance);
     setEditorReady(true);
   };
 
@@ -367,10 +372,10 @@ export function ArticleViewer () {
         </ol>
       </nav>
 
-      {article.cover_image_path && (
+      {article.cover_image && (
         <div className="mb-6 rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-700">
           <img
-            src={getCoverImageUrl(article.cover_image_path) || ''}
+            src={article.cover_image}
             alt={article.title}
             className="w-full h-auto object-cover max-h-[70vh]"
           />
@@ -458,6 +463,8 @@ export function ArticleViewer () {
           </div>
         </aside>
       )}
+
+      <FootnotePanel editor={editor} editable={false} />
 
       <div className="flex-1 min-w-0" ref={contentRef}>
         <main className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">

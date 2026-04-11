@@ -1,12 +1,11 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Upload, X, Crop, Check, RotateCcw, Image as ImageIcon } from 'lucide-react';
-import { getCoverImageUrl } from '@/services/articleService';
 
 interface CoverManagerProps {
   isOpen: boolean;
   onClose: () => void;
-  currentCoverPath: string | null;
-  onCoverChange: (file: File | Blob | null) => void;
+  currentCoverImage: string | null;
+  onCoverChange: (base64Image: string | null) => void;
 }
 
 interface CropArea {
@@ -22,7 +21,7 @@ const MIN_CROP_SIZE = 100;
 export const CoverManager: React.FC<CoverManagerProps> = ({
   isOpen,
   onClose,
-  currentCoverPath,
+  currentCoverImage,
   onCoverChange
 }) => {
   const [uploadedImageSrc, setUploadedImageSrc] = useState<string | null>(null);
@@ -37,23 +36,13 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const currentCoverUrl = useMemo(() => {
-    if (!currentCoverPath) {
-      return null;
-    }
-    if (currentCoverPath.startsWith('data:')) {
-      return currentCoverPath;
-    }
-    return getCoverImageUrl(currentCoverPath);
-  }, [currentCoverPath]);
-
-  const imageSrc = uploadedImageSrc || currentCoverUrl;
+  const imageSrc = uploadedImageSrc || currentCoverImage;
 
   React.useEffect(() => {
-    if (currentCoverUrl && !originalImageSrc && !uploadedImageSrc) {
-      setOriginalImageSrc(currentCoverUrl);
+    if (currentCoverImage && !originalImageSrc && !uploadedImageSrc) {
+      setOriginalImageSrc(currentCoverImage);
     }
-  }, [currentCoverUrl, originalImageSrc, uploadedImageSrc]);
+  }, [currentCoverImage, originalImageSrc, uploadedImageSrc]);
 
   const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -220,14 +209,10 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
       tempImg.src = originalImageSrc || imageSrc || '';
     });
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const croppedUrl = URL.createObjectURL(blob);
-        setUploadedImageSrc(croppedUrl);
-        onCoverChange(blob);
-      }
-      setIsCropping(false);
-    }, 'image/webp', 0.9);
+    const base64Image = canvas.toDataURL('image/webp', 0.9);
+    setUploadedImageSrc(base64Image);
+    onCoverChange(base64Image);
+    setIsCropping(false);
   }, [cropArea, imageSrc, originalImageSrc, onCoverChange]);
 
   const handleReset = useCallback(() => {

@@ -39,6 +39,7 @@ export function useArticleMetadata (
   const summaryRef = useRef(summary);
   const tagsRef = useRef(tags);
   const coverImageRef = useRef(coverImage);
+  const isMountedRef = useRef(false);
 
   useEffect(() => {
     titleRef.current = title;
@@ -58,9 +59,15 @@ export function useArticleMetadata (
 
   useEffect(() => {
     if (!metadata) {
-      queueMicrotask(() => setIsSynced(false));
+      queueMicrotask(() => {
+        if (isMountedRef.current) {
+          setIsSynced(false);
+        }
+      });
       return undefined;
     }
+
+    isMountedRef.current = true;
 
     const metaTitle = metadata.title;
     const metaSummary = metadata.summary;
@@ -68,6 +75,10 @@ export function useArticleMetadata (
     const metaCoverImage = metadata.coverImage;
 
     const syncFromRemote = () => {
+      if (!isMountedRef.current) {
+        return;
+      }
+
       const remoteTitle = metaTitle.get('value');
       const remoteSummary = metaSummary.get('value');
       const remoteTags = metaTags.toArray();
@@ -101,6 +112,9 @@ export function useArticleMetadata (
         localChangeRef.current = false;
         return;
       }
+      if (!isMountedRef.current) {
+        return;
+      }
       const remoteTitle = metaTitle.get('value');
       if (remoteTitle !== undefined && remoteTitle !== titleRef.current) {
         setTitleState(remoteTitle);
@@ -110,6 +124,9 @@ export function useArticleMetadata (
     const summaryObserver = () => {
       if (localChangeRef.current) {
         localChangeRef.current = false;
+        return;
+      }
+      if (!isMountedRef.current) {
         return;
       }
       const remoteSummary = metaSummary.get('value');
@@ -123,6 +140,9 @@ export function useArticleMetadata (
         localChangeRef.current = false;
         return;
       }
+      if (!isMountedRef.current) {
+        return;
+      }
       const remoteTags = metaTags.toArray();
       const remoteTagsStr = JSON.stringify(remoteTags);
       const localTagsStr = JSON.stringify(tagsRef.current);
@@ -134,6 +154,9 @@ export function useArticleMetadata (
     const coverImageObserver = () => {
       if (localChangeRef.current) {
         localChangeRef.current = false;
+        return;
+      }
+      if (!isMountedRef.current) {
         return;
       }
       const remoteCoverImage = metaCoverImage.get('value');
@@ -151,6 +174,9 @@ export function useArticleMetadata (
     let syncHandler: ((isSynced: boolean) => void) | null = null;
 
     const handleSync = (synced: boolean) => {
+      if (!isMountedRef.current) {
+        return;
+      }
       if (synced) {
         syncFromRemote();
         setIsSynced(true);
@@ -160,7 +186,11 @@ export function useArticleMetadata (
     if (typedProvider && typeof typedProvider.synced === 'boolean') {
       if (typedProvider.synced) {
         syncFromRemote();
-        queueMicrotask(() => setIsSynced(true));
+        queueMicrotask(() => {
+          if (isMountedRef.current) {
+            setIsSynced(true);
+          }
+        });
       }
 
       syncHandler = handleSync;
@@ -169,10 +199,15 @@ export function useArticleMetadata (
       }
     } else {
       syncFromRemote();
-      queueMicrotask(() => setIsSynced(true));
+      queueMicrotask(() => {
+        if (isMountedRef.current) {
+          setIsSynced(true);
+        }
+      });
     }
 
     return () => {
+      isMountedRef.current = false;
       metaTitle.unobserve(titleObserver);
       metaSummary.unobserve(summaryObserver);
       metaTags.unobserve(tagsObserver);
@@ -182,7 +217,11 @@ export function useArticleMetadata (
         typedProvider.off('sync', syncHandler);
       }
 
-      queueMicrotask(() => setIsSynced(false));
+      queueMicrotask(() => {
+        if (isMountedRef.current) {
+          setIsSynced(false);
+        }
+      });
     };
   }, [metadata, provider]);
 

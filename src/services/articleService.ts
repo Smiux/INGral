@@ -1,13 +1,13 @@
-import { supabase, uploadContent, downloadContent, uploadCoverImage, deleteArticleFolder, getCoverImageUrl } from './supabaseClient';
+import { supabase } from './supabaseClient';
 
 export interface Article {
   id: string;
   title: string;
   slug: string;
-  content_path: string;
+  content: string | null;
   created_at: string;
   updated_at: string;
-  cover_image_path: string | null;
+  cover_image: string | null;
   summary: string | null;
   tags: string[] | null;
 }
@@ -19,7 +19,7 @@ export interface ArticleWithContent extends Article {
 export interface CreateArticleParams {
   title: string;
   content: string;
-  coverImage?: File | Blob | null;
+  coverImage?: string | null;
   summary?: string | undefined;
   tags?: string[] | undefined;
 }
@@ -28,7 +28,7 @@ export interface UpdateArticleParams {
   articleId: string;
   title: string;
   content: string;
-  coverImage?: File | Blob | null;
+  coverImage?: string | null;
   coverImageModified?: boolean;
   summary?: string | undefined;
   tags?: string[] | undefined;
@@ -52,16 +52,15 @@ export async function getArticleBySlug (slug: string): Promise<ArticleWithConten
     return null;
   }
 
-  const content = await downloadContent(data.content_path);
   return {
     ...data,
-    'content': content || ''
+    'content': data.content || ''
   };
 }
 
 export async function getAllArticles (): Promise<Article[]> {
   const { data } = await supabase.from(TABLE_NAME)
-    .select('id, title, slug, content_path, created_at, updated_at, cover_image_path, summary, tags')
+    .select('id, title, slug, content, created_at, updated_at, cover_image, summary, tags')
     .order('updated_at', { 'ascending': false });
 
   return data || [];
@@ -83,7 +82,7 @@ export async function getArticlesPaginated (
   const to = from + pageSize - 1;
 
   const { data, error, count } = await supabase.from(TABLE_NAME)
-    .select('id, title, slug, content_path, created_at, updated_at, cover_image_path, summary, tags', { 'count': 'exact' })
+    .select('id, title, slug, content, created_at, updated_at, cover_image, summary, tags', { 'count': 'exact' })
     .order('updated_at', { 'ascending': false })
     .range(from, to);
 
@@ -110,19 +109,16 @@ export async function getArticlesContentBatch (articleIds: string[]): Promise<Ma
   const contentMap = new Map<string, string>();
 
   const { data } = await supabase.from(TABLE_NAME)
-    .select('id, content_path')
+    .select('id, content')
     .in('id', articleIds);
 
   if (!data) {
     return contentMap;
   }
 
-  await Promise.all(
-    data.map(async (item) => {
-      const content = await downloadContent(item.content_path);
-      contentMap.set(item.id, content || '');
-    })
-  );
+  data.forEach((item) => {
+    contentMap.set(item.id, item.content || '');
+  });
 
   return contentMap;
 }
@@ -136,16 +132,6 @@ export async function createArticle ({
 }: CreateArticleParams): Promise<ArticleWithContent | null> {
   const id = crypto.randomUUID();
   const slug = generateSlug();
-  const contentPath = await uploadContent(slug, content);
-
-  if (!contentPath) {
-    return null;
-  }
-
-  let coverImagePath: string | null = null;
-  if (coverImage) {
-    coverImagePath = await uploadCoverImage(slug, coverImage);
-  }
 
   const now = new Date().toISOString();
   const { 'data': articleData } = await supabase
@@ -154,8 +140,8 @@ export async function createArticle ({
       id,
       title,
       slug,
-      'content_path': contentPath,
-      'cover_image_path': coverImagePath,
+      content,
+      'cover_image': coverImage || null,
       'summary': summary || null,
       'tags': tags || null,
       'created_at': now,
@@ -183,38 +169,16 @@ export async function updateArticle ({
   summary,
   tags
 }: UpdateArticleParams): Promise<ArticleWithContent | null> {
-  const { 'data': existingArticle } = await supabase
-    .from(TABLE_NAME)
-    .select('slug')
-    .eq('id', articleId)
-    .single<{ slug: string }>();
-
-  if (!existingArticle) {
-    return null;
-  }
-
-  const slug = existingArticle.slug;
-  const contentPath = await uploadContent(slug, content);
-
-  if (!contentPath) {
-    return null;
-  }
-
   const updates: Partial<Article> = {
     title,
-    'content_path': contentPath,
+    content,
     'summary': summary || null,
     'tags': tags || null,
     'updated_at': new Date().toISOString()
   };
 
   if (coverImageModified) {
-    if (coverImage) {
-      const coverImagePath = await uploadCoverImage(slug, coverImage);
-      updates.cover_image_path = coverImagePath;
-    } else {
-      updates.cover_image_path = null;
-    }
+    updates.cover_image = coverImage || null;
   }
 
   const { 'data': articleData } = await supabase
@@ -234,34 +198,13 @@ export async function updateArticle ({
   };
 }
 
-export async function updateArticleCover (articleId: string, coverImage: File | Blob | null): Promise<string | null> {
-  const { 'data': article } = await supabase
+export async function updateArticleCover (articleId: string, coverImage: string | null): Promise<boolean> {
+  const { error } = await supabase
     .from(TABLE_NAME)
-    .select('slug')
-    .eq('id', articleId)
-    .single<{ slug: string }>();
-
-  if (!article) {
-    return null;
-  }
-
-  if (coverImage) {
-    const path = await uploadCoverImage(article.slug, coverImage);
-    if (path) {
-      await supabase
-        .from(TABLE_NAME)
-        .update({ 'cover_image_path': path })
-        .eq('id', articleId);
-    }
-    return path;
-  }
-
-  await supabase
-    .from(TABLE_NAME)
-    .update({ 'cover_image_path': null })
+    .update({ 'cover_image': coverImage })
     .eq('id', articleId);
 
-  return null;
+  return !error;
 }
 
 export async function updateArticleSummary (articleId: string, summary: string | null): Promise<boolean> {
@@ -274,18 +217,6 @@ export async function updateArticleSummary (articleId: string, summary: string |
 }
 
 export async function deleteArticle (articleId: string): Promise<boolean> {
-  const { data, 'error': selectError } = await supabase
-    .from(TABLE_NAME)
-    .select('slug')
-    .eq('id', articleId)
-    .single<{ slug: string }>();
-
-  if (selectError || !data) {
-    return false;
-  }
-
-  await deleteArticleFolder(data.slug);
-
   const { 'error': deleteError } = await supabase
     .from(TABLE_NAME)
     .delete()
@@ -294,4 +225,21 @@ export async function deleteArticle (articleId: string): Promise<boolean> {
   return !deleteError;
 }
 
-export { getCoverImageUrl };
+export function getCoverImageUrl (coverImage: string | null | undefined): string | null {
+  if (!coverImage) {
+    return null;
+  }
+  if (coverImage.startsWith('data:')) {
+    return coverImage;
+  }
+  return coverImage;
+}
+
+export async function fileToBase64 (file: File | Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}

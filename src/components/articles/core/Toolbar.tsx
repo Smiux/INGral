@@ -5,7 +5,8 @@ import {
   Undo, Redo, Link as LinkIcon,
   Strikethrough, Underline as UnderlineIcon, Highlighter,
   Quote, Minus, CodeSquare,
-  Plus, ChevronDown, FunctionSquare, Subscript, Superscript, Palette, AlignLeft, CodeXml, ChevronRightSquare
+  Plus, ChevronDown, FunctionSquare, Subscript, Superscript, Palette, AlignLeft, CodeXml, ChevronRightSquare,
+  BookOpen
 } from 'lucide-react';
 
 const FONTS: Record<string, string> = {
@@ -115,6 +116,7 @@ interface EditorToolbarProps {
   onLinkClick: () => void;
   onMathClick: (type: 'inline' | 'block') => void;
   onIframeClick: () => void;
+  onFootnoteClick: () => void;
 }
 
 const getHeadingLabel = (level: number) => {
@@ -140,7 +142,8 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
   setBackgroundColor,
   onLinkClick,
   onMathClick,
-  onIframeClick
+  onIframeClick,
+  onFootnoteClick
 }) => {
   const runEditorCommand = useCallback((command: (chain: ReturnType<Editor['chain']>) => void) => {
     if (!editor) {
@@ -406,6 +409,10 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
         <button onClick={onIframeClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
           <CodeXml size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
           <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">嵌入</span>
+        </button>
+        <button onClick={onFootnoteClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
+          <BookOpen size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">注释</span>
         </button>
         <button onClick={() => runEditorCommand(c => c.insertTable({ 'rows': 3, 'cols': 3, 'withHeaderRow': true }).run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
           <Plus size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />

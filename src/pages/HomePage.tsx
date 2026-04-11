@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronDown, Tag } from 'lucide-react';
-import { getAllArticles, getCoverImageUrl, type Article } from '../services/articleService';
+import { getAllArticles, type Article } from '../services/articleService';
 
 export function HomePage () {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -106,7 +106,7 @@ export function HomePage () {
             {!isLoading && articles.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
                 {articles.map((article) => {
-                  const coverUrl = getCoverImageUrl(article.cover_image_path);
+                  const coverUrl = article.cover_image;
                   return (
                     <Link
                       key={article.id}

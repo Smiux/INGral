@@ -12,6 +12,7 @@ import {
 import { useCollaborationSettings } from './internal/settings';
 import { CollaborationContext } from './ContextDef';
 import { cursorManager } from './internal/CursorManager';
+import { mediaManager } from './internal/MediaManager';
 import { getRooms } from './internal/api';
 
 interface CollaborationProviderProps {
@@ -58,6 +59,7 @@ function CollaborationRoomInner ({
   const [doc, setDoc] = useState<Y.Doc | null>(null);
   const [provider, setProvider] = useState<LiveblocksYjsProvider | null>(null);
   const [peerId, setPeerId] = useState<string | null>(null);
+  const [mediaPeerId, setMediaPeerId] = useState<string | null>(null);
   const [articleMetadata, setArticleMetadata] = useState<ArticleMetadataMaps | null>(null);
 
   const retryCountRef = useRef(0);
@@ -113,6 +115,33 @@ function CollaborationRoomInner ({
       cursorManager.updateUserData(userName, userColor, undefined);
     }
   }, [userName, userColor, peerId]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const initMediaManager = async () => {
+      if (!mounted) {
+        return;
+      }
+
+      try {
+        const id = await mediaManager.initialize(userName, userColor);
+        if (mounted) {
+          setMediaPeerId(id);
+          updateMyPresence({ 'mediaPeerId': id });
+        }
+      } catch (error) {
+        console.error('Failed to initialize MediaManager:', error);
+      }
+    };
+
+    initMediaManager();
+
+    return () => {
+      mounted = false;
+      mediaManager.disconnect();
+    };
+  }, [userName, userColor, updateMyPresence]);
 
   useEffect(() => {
     updateMyPresence({
@@ -221,10 +250,12 @@ function CollaborationRoomInner ({
     refreshRooms,
     inputRoomId,
     setInputRoomId,
-    articleMetadata
+    articleMetadata,
+    peerId,
+    mediaPeerId
   }), [
     connectionStatus, roomId, userId, userName, userColor, collaborators,
-    doc, provider, onDisconnect, setUserName, setUserColor, isPanelOpen, setPanelOpen, recentRooms, isLoadingRooms, refreshRooms, inputRoomId, setInputRoomId, articleMetadata
+    doc, provider, onDisconnect, setUserName, setUserColor, isPanelOpen, setPanelOpen, recentRooms, isLoadingRooms, refreshRooms, inputRoomId, setInputRoomId, articleMetadata, peerId, mediaPeerId
   ]);
 
   return (
@@ -309,7 +340,9 @@ export function CollaborationProvider ({ children }: CollaborationProviderProps)
     refreshRooms,
     inputRoomId,
     setInputRoomId,
-    'articleMetadata': null
+    'articleMetadata': null,
+    'peerId': null,
+    'mediaPeerId': null
   }), [userId, userName, userColor, connect, disconnect, setUserName, setUserColor, isPanelOpen, setPanelOpen, recentRooms, isLoadingRooms, refreshRooms, inputRoomId]);
 
   if (!roomId) {
@@ -330,12 +363,15 @@ export function CollaborationProvider ({ children }: CollaborationProviderProps)
         userName,
         userColor,
         'peerId': null,
-        'joinedAt': Date.now()
+        'joinedAt': Date.now(),
+        'mediaPeerId': null,
+        'mediaType': null
       }}
       initialStorage={{
         'channels': new LiveList([new LiveObject({
           'id': 'main',
           'name': '主聊天',
+          'type': 'chat',
           'isDefault': true
         })]),
         'messages': new LiveList([]),
@@ -346,6 +382,13 @@ export function CollaborationProvider ({ children }: CollaborationProviderProps)
           'summary': '',
           'tags': [],
           'coverImage': null
+        }),
+        'audioPlaylist': new LiveList([]),
+        'audioPlaybackState': new LiveObject({
+          'currentTrackIndex': 0,
+          'isPlaying': false,
+          'currentTime': 0,
+          'autoPlayNext': false
         })
       } as Storage}
     >

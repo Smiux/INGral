@@ -44,6 +44,8 @@ export interface CollaborationContextValue {
   inputRoomId: string;
   setInputRoomId: (roomId: string) => void;
   articleMetadata: ArticleMetadataMaps | null;
+  peerId: string | null;
+  mediaPeerId: string | null;
 }
 
 export const COLLABORATOR_COLORS = [

@@ -20,6 +20,7 @@ import {
   FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, RefreshCw, ChevronRight,
   Trash2
 } from 'lucide-react';
+import { FootnotePanel } from './panels/FootnotePanel';
 
 interface EditorState {
   title: string;
@@ -174,8 +175,8 @@ export const ArticleEditor: React.FC = () => {
   const [isToolbarSticky, setIsToolbarSticky] = useState(false);
 
   const [showCoverManager, setShowCoverManager] = useState(false);
-  const [coverImage, setCoverImage] = useState<File | Blob | null>(null);
-  const [originalCoverImagePath, setOriginalCoverImagePath] = useState<string | null>(null);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [originalCoverImage, setOriginalCoverImage] = useState<string | null>(null);
   const [coverImageModified, setCoverImageModified] = useState(false);
 
   const [showSummaryInput, setShowSummaryInput] = useState(false);
@@ -191,6 +192,8 @@ export const ArticleEditor: React.FC = () => {
   const [tagInput, setTagInput] = useState('');
   const [showCollabPanel, setShowCollabPanel] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const articleLoadedRef = useRef(false);
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -222,8 +225,19 @@ export const ArticleEditor: React.FC = () => {
 
   useEffect(() => {
     if (!slug) {
+      articleLoadedRef.current = false;
       return;
     }
+
+    if (articleLoadedRef.current) {
+      return;
+    }
+
+    if (!editor) {
+      return;
+    }
+
+    articleLoadedRef.current = true;
 
     const loadArticle = async () => {
       setIsLoadingArticle(true);
@@ -235,11 +249,13 @@ export const ArticleEditor: React.FC = () => {
           articleMetadataActions.setSummary(article.summary || '');
           article.tags?.forEach(tag => articleMetadataActions.addTag(tag));
           setExistingArticleId(article.id);
-          setOriginalCoverImagePath(article.cover_image_path);
+          setOriginalCoverImage(article.cover_image);
           setCoverImageModified(false);
-          if (editor) {
-            editor.commands.setContent(article.content);
+          if (article.cover_image) {
+            setCoverImage(article.cover_image);
+            articleMetadataActions.setCoverImage(article.cover_image);
           }
+          editor.commands.setContent(article.content);
         }
       } finally {
         setIsLoadingArticle(false);
@@ -308,7 +324,7 @@ export const ArticleEditor: React.FC = () => {
     articleMetadataActions.clearAll();
     setExistingArticleId(null);
     setCoverImage(null);
-    setOriginalCoverImagePath(null);
+    setOriginalCoverImage(null);
     setCoverImageModified(false);
     setShowClearConfirm(false);
   }, [editor, articleMetadataActions]);
@@ -392,6 +408,15 @@ export const ArticleEditor: React.FC = () => {
     setIframeSrc('');
   }, [editor, iframeSrc, iframeWidthInput, iframeHeightInput]);
 
+  const handleFootnoteClick = useCallback(() => {
+    if (!editor) {
+      return;
+    }
+    editor.chain().focus()
+      .insertFootnote()
+      .run();
+  }, [editor]);
+
   const handleCharacterCountChange = useCallback((count: number) => {
     setCharacterCount(count);
   }, []);
@@ -417,18 +442,9 @@ export const ArticleEditor: React.FC = () => {
     draft.tags?.forEach(tag => articleMetadataActions.addTag(tag));
     setCurrentDraftId(draft.id);
     if (draft.coverImageDataUrl) {
-      fetch(draft.coverImageDataUrl)
-        .then(res => res.blob())
-        .then(blob => {
-          const fileName = (draft as ArticleDraft & { coverImageName?: string }).coverImageName || 'cover.png';
-          const file = new File([blob], fileName, { 'type': blob.type });
-          setCoverImage(file);
-          articleMetadataActions.setCoverImage(draft.coverImageDataUrl || null);
-          setCoverImageModified(true);
-        })
-        .catch(() => {
-          setCoverImageModified(false);
-        });
+      setCoverImage(draft.coverImageDataUrl);
+      articleMetadataActions.setCoverImage(draft.coverImageDataUrl);
+      setCoverImageModified(true);
     } else {
       setCoverImage(null);
       articleMetadataActions.setCoverImage(null);
@@ -444,50 +460,34 @@ export const ArticleEditor: React.FC = () => {
   }, []);
 
   const handleSaveDraft = useCallback(() => {
-    const saveDraftWithCover = (summaryText: string, coverDataUrl: string | null, coverName: string | undefined, draftTags: string[]) => {
-      if (currentDraftId) {
-        const existingDraft = getDraftById(currentDraftId);
-        const draft: ArticleDraft = {
-          'id': currentDraftId,
-          'title': state.title,
-          'content': editor?.getHTML() || '',
-          'createdAt': existingDraft?.createdAt || new Date().toISOString(),
-          'lastSaved': new Date().toISOString()
-        };
-        if (summaryText) {
-          draft.summary = summaryText;
-        }
-        if (draftTags.length > 0) {
-          draft.tags = draftTags;
-        }
-        if (coverDataUrl) {
-          draft.coverImageDataUrl = coverDataUrl;
-          if (coverName) {
-            draft.coverImageName = coverName;
-          }
-        }
-        updateDraft(draft);
-      } else {
-        const draft = createDraft({
-          'title': state.title,
-          'content': editor?.getHTML() || '',
-          ...(summaryText ? { 'summary': summaryText } : {}),
-          ...(draftTags.length > 0 ? { 'tags': draftTags } : {}),
-          ...(coverDataUrl ? { 'coverImageDataUrl': coverDataUrl, ...(coverName ? { 'coverImageName': coverName } : {}) } : {})
-        });
-        setCurrentDraftId(draft.id);
-      }
-    };
-
-    if (coverImage) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const coverName = (coverImage as File).name || 'cover.png';
-        saveDraftWithCover(articleMetadata.summary, reader.result as string, coverName, articleMetadata.tags);
+    if (currentDraftId) {
+      const existingDraft = getDraftById(currentDraftId);
+      const draft: ArticleDraft = {
+        'id': currentDraftId,
+        'title': state.title,
+        'content': editor?.getHTML() || '',
+        'createdAt': existingDraft?.createdAt || new Date().toISOString(),
+        'lastSaved': new Date().toISOString()
       };
-      reader.readAsDataURL(coverImage);
+      if (articleMetadata.summary) {
+        draft.summary = articleMetadata.summary;
+      }
+      if (articleMetadata.tags.length > 0) {
+        draft.tags = articleMetadata.tags;
+      }
+      if (coverImage) {
+        draft.coverImageDataUrl = coverImage;
+      }
+      updateDraft(draft);
     } else {
-      saveDraftWithCover(articleMetadata.summary, null, undefined, articleMetadata.tags);
+      const draft = createDraft({
+        'title': state.title,
+        'content': editor?.getHTML() || '',
+        ...(articleMetadata.summary ? { 'summary': articleMetadata.summary } : {}),
+        ...(articleMetadata.tags.length > 0 ? { 'tags': articleMetadata.tags } : {}),
+        ...(coverImage ? { 'coverImageDataUrl': coverImage } : {})
+      });
+      setCurrentDraftId(draft.id);
     }
   }, [currentDraftId, state.title, editor, articleMetadata, coverImage]);
 
@@ -495,23 +495,14 @@ export const ArticleEditor: React.FC = () => {
     setShowCoverManager(true);
   }, []);
 
-  const handleCoverChange = useCallback((file: File | Blob | null) => {
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64Data = reader.result as string;
-        articleMetadataActions.setCoverImage(base64Data);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      articleMetadataActions.setCoverImage(null);
-    }
-    setCoverImage(file);
+  const handleCoverChange = useCallback((base64Image: string | null) => {
+    setCoverImage(base64Image);
+    articleMetadataActions.setCoverImage(base64Image);
     setCoverImageModified(true);
-    if (file === null && originalCoverImagePath) {
+    if (base64Image === null && originalCoverImage) {
       setCoverImage(null);
     }
-  }, [originalCoverImagePath, articleMetadataActions]);
+  }, [originalCoverImage, articleMetadataActions]);
 
   const handleAddTag = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
@@ -735,7 +726,7 @@ export const ArticleEditor: React.FC = () => {
       <CoverManager
         isOpen={showCoverManager}
         onClose={() => setShowCoverManager(false)}
-        currentCoverPath={coverImageModified ? articleMetadata.coverImage : originalCoverImagePath}
+        currentCoverImage={coverImageModified ? coverImage : originalCoverImage}
         onCoverChange={handleCoverChange}
       />
 
@@ -844,6 +835,8 @@ export const ArticleEditor: React.FC = () => {
             )}
           </div>
         </div>
+
+        <FootnotePanel editor={editor} editable={true} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
@@ -979,6 +972,7 @@ export const ArticleEditor: React.FC = () => {
                 onLinkClick={handleLink}
                 onMathClick={handleMathClick}
                 onIframeClick={handleIframe}
+                onFootnoteClick={handleFootnoteClick}
               />
             </div>
             <TiptapEditor

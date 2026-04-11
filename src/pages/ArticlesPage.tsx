@@ -5,7 +5,6 @@ import {
   getArticlesPaginated,
   getAllArticles,
   getArticlesContentBatch,
-  getCoverImageUrl,
   type Article,
   type ArticleWithContent
 } from '../services/articleService';
@@ -49,6 +48,38 @@ function highlightText (text: string, query: string): string {
   return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-600 text-inherit rounded px-0.5">$1</mark>');
 }
 
+function highlightSingleMatch (text: string, query: string, targetPosition: number): string {
+  if (!query.trim()) {
+    return text;
+  }
+
+  const escapedQuery = escapeRegExp(query);
+  const regex = new RegExp(escapedQuery, 'gi');
+
+  let result = text;
+  let offset = 0;
+
+  let match: RegExpExecArray | null = regex.exec(text);
+
+  while (match !== null) {
+    const matchStart = match.index;
+    const matchEnd = matchStart + match[0].length;
+
+    if (matchStart <= targetPosition && targetPosition < matchEnd) {
+      const beforeMatch = result.slice(0, matchStart + offset);
+      const matchText = match[0];
+      const afterMatch = result.slice(matchEnd + offset);
+
+      result = `${beforeMatch}<mark class="bg-yellow-200 dark:bg-yellow-600 text-inherit rounded px-0.5">${matchText}</mark>${afterMatch}`;
+      offset += '<mark class="bg-yellow-200 dark:bg-yellow-600 text-inherit rounded px-0.5">'.length + '</mark>'.length;
+    }
+
+    match = regex.exec(text);
+  }
+
+  return result;
+}
+
 function extractContentContext (content: string, query: string, contextLength: number = 100): ContentMatch[] {
   const matches: ContentMatch[] = [];
 
@@ -82,7 +113,7 @@ function extractContentContext (content: string, query: string, contextLength: n
         context = `${context}...`;
       }
 
-      const highlightedContext = highlightText(context, query);
+      const highlightedContext = highlightSingleMatch(context, query, matchIndex - start + (start > 0 ? 3 : 0));
 
       matches.push({
         context,
@@ -295,7 +326,7 @@ const ComfortableArticleCard = ({
   searchQuery: string;
 }): JSX.Element => {
   const { article, highlightedTitle, highlightedSummary, contentMatches, matchedFields } = result;
-  const coverUrl = getCoverImageUrl(article.cover_image_path);
+  const coverUrl = article.cover_image;
   const hasContentMatches = matchedFields.length > 0 && matchedFields.includes('content');
 
   return (
@@ -384,7 +415,7 @@ const CompactArticleCard = ({
   searchQuery: string;
 }): JSX.Element => {
   const { article, highlightedTitle, highlightedSummary, contentMatches, matchedFields } = result;
-  const coverUrl = getCoverImageUrl(article.cover_image_path);
+  const coverUrl = article.cover_image;
   const hasContentMatches = matchedFields.length > 0 && matchedFields.includes('content');
 
   return (
@@ -593,6 +624,28 @@ export function ArticlesPage (): JSX.Element {
     }
   }, []);
 
+  const loadAllArticlesForSearch = useCallback(async () => {
+    if (allArticlesForSearch.length > 0) {
+      return;
+    }
+
+    setIsLoadingAllArticles(true);
+    try {
+      const allArticles = await getAllArticles();
+      setAllArticlesForSearch(allArticles);
+
+      const tagSet = new Set<string>();
+      allArticles.forEach((article) => {
+        if (article.tags) {
+          article.tags.forEach((tag) => tagSet.add(tag));
+        }
+      });
+      setAllTags(Array.from(tagSet).sort((a, b) => a.localeCompare(b, 'zh-CN')));
+    } finally {
+      setIsLoadingAllArticles(false);
+    }
+  }, [allArticlesForSearch.length]);
+
   useEffect(() => {
     loadArticles(currentPage);
   }, [currentPage, loadArticles]);
@@ -624,36 +677,33 @@ export function ArticlesPage (): JSX.Element {
     }
 
     setIsLoadingContent(true);
-    setIsLoadingAllArticles(true);
     try {
-      let articlesToSearch = allArticlesForSearch;
-
-      if (articlesToSearch.length === 0) {
-        articlesToSearch = await getAllArticles();
-        setAllArticlesForSearch(articlesToSearch);
-      }
-
-      const articleIds = articlesToSearch.map(a => a.id);
+      const articleIds = allArticlesForSearch.map(a => a.id);
       const contentMap = await getArticlesContentBatch(articleIds);
       setArticlesWithContent(contentMap);
     } finally {
       setIsLoadingContent(false);
-      setIsLoadingAllArticles(false);
     }
   }, [allArticlesForSearch]);
 
   useEffect(() => {
-    if (searchQuery.trim()) {
+    if (searchQuery.trim() || selectedTags.length > 0) {
+      loadAllArticlesForSearch();
+    }
+  }, [searchQuery, selectedTags, loadAllArticlesForSearch]);
+
+  useEffect(() => {
+    if (searchQuery.trim() && allArticlesForSearch.length > 0) {
       loadContentForSearch(searchQuery);
     }
-  }, [searchQuery, loadContentForSearch]);
+  }, [searchQuery, allArticlesForSearch.length, loadContentForSearch]);
 
   const searchResults = useMemo(() => {
-    const articlesToSearch = searchQuery.trim() || selectedTags.length > 0
-      ? allArticlesForSearch
-      : articles;
+    if (allArticlesForSearch.length === 0) {
+      return [];
+    }
 
-    const articlesWithContentLoaded = articlesToSearch.map(article => ({
+    const articlesWithContentLoaded = allArticlesForSearch.map(article => ({
       ...article,
       'content': articlesWithContent.get(article.id) || ''
     }));
@@ -662,24 +712,32 @@ export function ArticlesPage (): JSX.Element {
       'query': searchQuery,
       'tags': selectedTags
     });
-  }, [articles, allArticlesForSearch, articlesWithContent, searchQuery, selectedTags]);
+  }, [allArticlesForSearch, articlesWithContent, searchQuery, selectedTags]);
 
-  const displayTotalPages = searchQuery.trim() || selectedTags.length > 0
+  const isSearchMode = searchQuery.trim() || selectedTags.length > 0;
+
+  const displayTotalPages = isSearchMode
     ? Math.ceil(searchResults.length / ARTICLES_PER_PAGE)
     : totalPages;
 
   const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
   const endIndex = startIndex + ARTICLES_PER_PAGE;
-  const currentResults = searchQuery.trim() || selectedTags.length > 0
+
+  const currentResults: SearchResult[] = isSearchMode
     ? searchResults.slice(startIndex, endIndex)
-    : searchResults;
+    : articles.map(article => ({
+      'article': { ...article, 'content': '' },
+      'matchedFields': [],
+      'highlightedTitle': article.title,
+      'highlightedSummary': article.summary || '',
+      'contentMatches': []
+    }));
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
     if (!e.target.value.trim()) {
       setArticlesWithContent(new Map());
-      setAllArticlesForSearch([]);
     }
   };
 
@@ -717,7 +775,6 @@ export function ArticlesPage (): JSX.Element {
     setSearchQuery('');
     setCurrentPage(1);
     setArticlesWithContent(new Map());
-    setAllArticlesForSearch([]);
   }, []);
 
   const handleJumpToPage = useCallback(() => {

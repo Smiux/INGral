@@ -11,6 +11,8 @@ export type Presence = {
   userColor: string;
   peerId: string | null;
   joinedAt: number;
+  mediaPeerId: string | null;
+  mediaType: 'video' | 'screen' | 'audio-call' | 'audio-share' | null;
 };
 
 export type MessageAttachmentType = 'image' | 'audio';
@@ -33,7 +35,6 @@ export type Message = {
   attachments: MessageAttachment[];
   createdAt: number;
   editedAt: number | null;
-  deletedAt: number | null;
   replyToId: string | null;
   threadId: string | null;
 };
@@ -56,9 +57,12 @@ export type PinnedMessage = {
   pinnedByUserName: string;
 };
 
+export type ChannelType = 'chat' | 'share';
+
 export type Channel = {
   id: string;
   name: string;
+  type: ChannelType;
   isDefault: boolean;
 };
 
@@ -69,12 +73,33 @@ export type ArticleMetadata = {
   coverImage: string | null;
 };
 
+export type AudioTrackData = {
+  id: string;
+  title: string;
+  artist: string;
+  album: string;
+  duration: number;
+  coverUrl: string | null;
+  addedBy: string;
+  addedByName: string;
+  addedAt: number;
+};
+
+export type AudioPlaybackState = {
+  currentTrackIndex: number;
+  isPlaying: boolean;
+  currentTime: number;
+  autoPlayNext: boolean;
+};
+
 export type Storage = {
   channels: LiveList<LiveObject<Channel>>;
   messages: LiveList<LiveObject<Message>>;
   threads: LiveList<LiveObject<Thread>>;
   pinnedMessages: LiveList<LiveObject<PinnedMessage>>;
   articleMetadata: LiveObject<ArticleMetadata>;
+  audioPlaylist: LiveList<LiveObject<AudioTrackData>>;
+  audioPlaybackState: LiveObject<AudioPlaybackState>;
 };
 
 const client = createClient({

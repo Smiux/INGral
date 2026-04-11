@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
-import Audio from '@tiptap/extension-audio';
+import { CustomAudio } from '../extensions/CustomAudio';
 import FileHandler from '@tiptap/extension-file-handler';
 import { TableKit } from '@tiptap/extension-table';
 import { TextAlign } from '@tiptap/extension-text-align';
@@ -25,6 +25,7 @@ import { all, createLowlight } from 'lowlight';
 import * as Y from 'yjs';
 import { IframeEmbed } from '../extensions/Iframe';
 import { CollapsibleNode } from '../extensions/Collapsible';
+import { FootnoteExtension } from '../extensions/Footnote';
 
 const lowlight = createLowlight(all);
 
@@ -156,7 +157,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
       Image.configure({
         'allowBase64': true
       }),
-      Audio.configure({
+      CustomAudio.configure({
         'allowBase64': true
       }),
       FileHandler.configure({
@@ -168,7 +169,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         },
         'allowedMimeTypes': [
           'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-          'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/aac', 'audio/flac'
+          'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/aac'
         ]
       }),
       TableKit.configure({
@@ -186,6 +187,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
       CharacterCount,
       IframeEmbed,
       CollapsibleNode,
+      FootnoteExtension,
       ...(collaboration?.document ? [
         Collaboration.configure({
           'document': collaboration.document
