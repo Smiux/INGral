@@ -7,7 +7,7 @@ export interface FootnoteData {
   index: number;
 }
 
-export const FootnoteNodeView: React.FC<NodeViewProps> = ({ node, editor }) => {
+export const FootnoteView: React.FC<NodeViewProps> = ({ node, editor }) => {
   const footnoteId = node.attrs.id as string;
   const footnoteContent = node.attrs.content as string;
 

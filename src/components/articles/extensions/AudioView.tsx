@@ -39,7 +39,7 @@ function createBlobUrl (blob: Blob): string {
   return URL.createObjectURL(blob);
 }
 
-export const AudioNodeView: React.FC<NodeViewProps> = ({ node }) => {
+export const AudioView: React.FC<NodeViewProps> = ({ node }) => {
   const src = node.attrs.src as string;
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);

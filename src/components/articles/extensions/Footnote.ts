@@ -1,6 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
-import { FootnoteNodeView } from './FootnoteNodeView';
+import { FootnoteView } from './FootnoteView';
 
 export interface FootnoteOptions {
   HTMLAttributes: Record<string, unknown>;
@@ -77,8 +77,10 @@ export const FootnoteExtension = Node.create<FootnoteOptions>({
   },
 
   addNodeView () {
-    // eslint-disable-next-line new-cap
-    return ReactNodeViewRenderer(FootnoteNodeView);
+    return (
+      // eslint-disable-next-line new-cap
+      ReactNodeViewRenderer(FootnoteView)
+    );
   },
 
   addCommands () {

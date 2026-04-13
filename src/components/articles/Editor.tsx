@@ -17,76 +17,17 @@ import type { Editor } from '@tiptap/react';
 import {
   Save,
   MessageCircle,
-  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, RefreshCw, ChevronRight,
+  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, RefreshCw,
   Trash2
 } from 'lucide-react';
-import { FootnotePanel } from './panels/FootnotePanel';
+import { FootnotePanel } from './panels/Footnote';
+import { TocItem, TocItemComponent } from './panels/TableOfContents';
+import { useTocUtils } from './utils/ToC';
 
 interface EditorState {
   title: string;
   isSaving: boolean;
 }
-
-interface TocItem {
-  id: string;
-  textContent: string;
-  level: number;
-  itemIndex: number;
-  isScrolledOver: boolean;
-}
-
-interface TocItemProps {
-  item: TocItem;
-  onClick: () => void;
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
-  hasChildren: boolean;
-  isHidden: boolean;
-}
-
-const TOC_LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string; numberColor: string }> = {
-  '1': { 'fontSize': 'text-base', 'fontWeight': 'font-semibold', 'numberColor': 'font-semibold text-sky-500' },
-  '2': { 'fontSize': 'text-sm', 'fontWeight': 'font-medium', 'numberColor': 'text-sm font-medium text-green-500' },
-  '3': { 'fontSize': 'text-xs', 'fontWeight': 'font-medium', 'numberColor': 'text-xs font-medium text-neutral-500 dark:text-neutral-400' }
-};
-
-const TocItem: React.FC<TocItemProps> = React.memo(({ item, onClick, isCollapsed, onToggleCollapse, hasChildren, isHidden }) => {
-  const style = TOC_LEVEL_STYLES[item.level] ?? TOC_LEVEL_STYLES[3]!;
-
-  return (
-    <div
-      className={`overflow-hidden transition-all duration-200 ease-in-out ${isHidden ? 'max-h-0 opacity-0 py-0' : 'max-h-20 opacity-100'}`}
-      style={{ 'paddingLeft': `${(item.level - 1) * 12}px` }}
-    >
-      <div
-        className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-600 dark:hover:text-neutral-300' : 'text-neutral-700 dark:text-neutral-200'}`}
-        onClick={onClick}
-      >
-        <div className="flex items-center gap-2 min-h-[26px]">
-          {item.level < 3 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleCollapse();
-              }}
-              className="flex-shrink-0 p-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
-            >
-              {hasChildren && isCollapsed && <ChevronRight className="w-3 h-3 transition-transform duration-200" />}
-              {hasChildren && !isCollapsed && <ChevronDown className="w-3 h-3 transition-transform duration-200" />}
-              {!hasChildren && <span className="w-3 h-3" />}
-            </button>
-          )}
-          <span className={`${style.numberColor} flex-shrink-0 mr-2`}>
-            {item.itemIndex}
-          </span>
-          <span className={`truncate transition-all duration-300 max-w-[calc(100%-1rem)] ${style.fontSize} ${style.fontWeight} text-left flex-1`}>
-            {item.textContent}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-});
 
 export const ArticleEditor: React.FC = () => {
   const navigate = useNavigate();
@@ -107,50 +48,11 @@ export const ArticleEditor: React.FC = () => {
   const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
   const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
 
-  const toggleCollapsed = useCallback((itemId: string) => {
-    setCollapsedItems((prev) => {
-      const next = new Set(prev);
-      if (next.has(itemId)) {
-        next.delete(itemId);
-      } else {
-        next.add(itemId);
-      }
-      return next;
-    });
-  }, []);
+  const { toggleCollapsed, getChildIds, isItemCollapsed, shouldShowItem } = useTocUtils();
 
-  const getChildIds = useCallback((parentId: string, items: TocItem[]): string[] => {
-    const parentIndex = items.findIndex((item) => item.id === parentId);
-    if (parentIndex === -1) {
-      return [];
-    }
-
-    const parentLevel = items[parentIndex]!.level;
-    const childIds: string[] = [];
-
-    for (let i = parentIndex + 1; i < items.length; i += 1) {
-      const item = items[i]!;
-      if (item.level <= parentLevel) {
-        break;
-      }
-      childIds.push(item.id);
-    }
-    return childIds;
-  }, []);
-
-  const isItemCollapsed = useCallback((itemId: string): boolean => {
-    return collapsedItems.has(itemId);
-  }, [collapsedItems]);
-
-  const shouldShowItem = useCallback((itemId: string, items: TocItem[]): boolean => {
-    for (const collapsedId of collapsedItems) {
-      const childIds = getChildIds(collapsedId, items);
-      if (childIds.includes(itemId)) {
-        return false;
-      }
-    }
-    return true;
-  }, [collapsedItems, getChildIds]);
+  const handleToggleCollapsed = useCallback((itemId: string) => {
+    setCollapsedItems((prev) => toggleCollapsed(prev, itemId));
+  }, [toggleCollapsed]);
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [fontColor, setFontColor] = useState('#000000');
@@ -802,39 +704,31 @@ export const ArticleEditor: React.FC = () => {
       </header>
 
       <div className="relative">
-        <div className="sticky top-20 w-48 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg z-20 ml-4 flex flex-col float-left mb-4">
-          <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0">
-            <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
-              <ListTree className="w-4 h-4 text-sky-400" />
-              目录
-            </h3>
-          </div>
-          <div className="overflow-y-auto max-h-[50vh]">
-            {tableOfContentsItems.length > 0 ? (
+        {tableOfContentsItems.length > 0 && (
+          <div className="sticky top-20 w-48 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg z-20 ml-4 flex flex-col float-left mb-4">
+            <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0">
+              <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
+                <ListTree className="w-4 h-4 text-sky-400" />
+                目录
+              </h3>
+            </div>
+            <div className="overflow-y-auto max-h-[50vh]">
               <nav className="p-3 pt-0">
                 {tableOfContentsItems.map((item) => (
-                  <TocItem
+                  <TocItemComponent
                     key={item.id}
                     item={item}
                     onClick={() => handleTocClick(item.id)}
-                    isCollapsed={isItemCollapsed(item.id)}
-                    onToggleCollapse={() => toggleCollapsed(item.id)}
+                    isCollapsed={isItemCollapsed(collapsedItems, item.id)}
+                    onToggleCollapse={() => handleToggleCollapsed(item.id)}
                     hasChildren={getChildIds(item.id, tableOfContentsItems).length > 0}
-                    isHidden={!shouldShowItem(item.id, tableOfContentsItems)}
+                    isHidden={!shouldShowItem(collapsedItems, item.id, tableOfContentsItems)}
                   />
                 ))}
               </nav>
-            ) : (
-              <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-700 mb-4">
-                  <FileText className="w-8 h-8" />
-                </div>
-                <p className="text-sm font-medium">暂无标题</p>
-                <p className="text-xs mt-2 opacity-75">添加标题后将自动生成目录</p>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         <FootnotePanel editor={editor} editable={true} />
 
@@ -890,7 +784,7 @@ export const ArticleEditor: React.FC = () => {
                   onChange={(e) => {
                     articleMetadataActions.setSummary(e.target.value);
                   }}
-                  placeholder="输入文章简介，用于在文章列表和卡片中展示..."
+                  placeholder="输入文章简介..."
                   rows={3}
                   maxLength={200}
                   className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-none text-sm"

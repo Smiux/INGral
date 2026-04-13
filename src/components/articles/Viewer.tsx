@@ -1,68 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, ListTree, Trash2, Edit3, Tag, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ListTree, Trash2, Edit3, Tag } from 'lucide-react';
 import { getArticleBySlug, deleteArticle, type ArticleWithContent } from '../../services/articleService';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { TiptapEditor } from './core/TipTap';
-import { FootnotePanel } from './panels/FootnotePanel';
+import { FootnotePanel } from './panels/Footnote';
+import { TocItem, TocItemComponent } from './panels/TableOfContents';
+import { useTocUtils } from './utils/ToC';
 import type { Editor } from '@tiptap/react';
-
-interface TocItem {
-  id: string;
-  textContent: string;
-  level: number;
-  isScrolledOver: boolean;
-}
-
-interface TocItemProps {
-  item: TocItem;
-  onClick: () => void;
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
-  hasChildren: boolean;
-  isHidden: boolean;
-}
-
-const TOC_LEVEL_STYLES: Record<number, { fontSize: string; fontWeight: string }> = {
-  '1': { 'fontSize': 'text-base', 'fontWeight': 'font-semibold' },
-  '2': { 'fontSize': 'text-sm', 'fontWeight': 'font-medium' },
-  '3': { 'fontSize': 'text-xs', 'fontWeight': 'font-medium' }
-};
-
-const TocItemComponent: React.FC<TocItemProps> = ({ item, onClick, isCollapsed, onToggleCollapse, hasChildren, isHidden }) => {
-  const style = TOC_LEVEL_STYLES[item.level] ?? TOC_LEVEL_STYLES[3]!;
-
-  return (
-    <div
-      className={`overflow-hidden transition-all duration-200 ease-in-out ${isHidden ? 'max-h-0 opacity-0 py-0' : 'max-h-20 opacity-100'}`}
-      style={{ 'paddingLeft': `${(item.level - 1) * 12}px` }}
-    >
-      <div
-        className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-600 dark:hover:text-neutral-300' : 'text-neutral-700 dark:text-neutral-200'}`}
-        onClick={onClick}
-      >
-        <div className="flex items-center gap-2">
-          {item.level < 3 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleCollapse();
-              }}
-              className="flex-shrink-0 p-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
-            >
-              {hasChildren && isCollapsed && <ChevronRight className="w-3 h-3 transition-transform duration-200" />}
-              {hasChildren && !isCollapsed && <ChevronDown className="w-3 h-3 transition-transform duration-200" />}
-              {!hasChildren && <span className="w-3 h-3" />}
-            </button>
-          )}
-          <span className={`truncate transition-all duration-300 max-w-full ${style.fontSize} ${style.fontWeight} text-left`}>
-            {item.textContent}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
@@ -79,50 +24,11 @@ export function ArticleViewer () {
   const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
   const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
 
-  const toggleCollapsed = useCallback((itemId: string) => {
-    setCollapsedItems((prev) => {
-      const next = new Set(prev);
-      if (next.has(itemId)) {
-        next.delete(itemId);
-      } else {
-        next.add(itemId);
-      }
-      return next;
-    });
-  }, []);
+  const { toggleCollapsed, getChildIds, isItemCollapsed, shouldShowItem } = useTocUtils();
 
-  const getChildIds = useCallback((parentId: string, items: TocItem[]): string[] => {
-    const parentIndex = items.findIndex((item) => item.id === parentId);
-    if (parentIndex === -1) {
-      return [];
-    }
-
-    const parentLevel = items[parentIndex]!.level;
-    const childIds: string[] = [];
-
-    for (let i = parentIndex + 1; i < items.length; i += 1) {
-      const item = items[i]!;
-      if (item.level <= parentLevel) {
-        break;
-      }
-      childIds.push(item.id);
-    }
-    return childIds;
-  }, []);
-
-  const isItemCollapsed = useCallback((itemId: string): boolean => {
-    return collapsedItems.has(itemId);
-  }, [collapsedItems]);
-
-  const shouldShowItem = useCallback((itemId: string, items: TocItem[]): boolean => {
-    for (const collapsedId of collapsedItems) {
-      const childIds = getChildIds(collapsedId, items);
-      if (childIds.includes(itemId)) {
-        return false;
-      }
-    }
-    return true;
-  }, [collapsedItems, getChildIds]);
+  const handleToggleCollapsed = useCallback((itemId: string) => {
+    setCollapsedItems((prev) => toggleCollapsed(prev, itemId));
+  }, [toggleCollapsed]);
 
   useEffect(() => {
     if (!slug) {
@@ -453,10 +359,10 @@ export function ArticleViewer () {
                   key={item.id}
                   item={item}
                   onClick={() => handleTocClick(item.id)}
-                  isCollapsed={isItemCollapsed(item.id)}
-                  onToggleCollapse={() => toggleCollapsed(item.id)}
+                  isCollapsed={isItemCollapsed(collapsedItems, item.id)}
+                  onToggleCollapse={() => handleToggleCollapsed(item.id)}
                   hasChildren={getChildIds(item.id, tableOfContentsItems).length > 0}
-                  isHidden={!shouldShowItem(item.id, tableOfContentsItems)}
+                  isHidden={!shouldShowItem(collapsedItems, item.id, tableOfContentsItems)}
                 />
               ))}
             </nav>

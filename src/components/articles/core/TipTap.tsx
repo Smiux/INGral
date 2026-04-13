@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
-import { CustomAudio } from '../extensions/CustomAudio';
+import { Audio } from '../extensions/Audio';
 import FileHandler from '@tiptap/extension-file-handler';
 import { TableKit } from '@tiptap/extension-table';
 import { TextAlign } from '@tiptap/extension-text-align';
@@ -119,18 +119,16 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
     onTableOfContentsChangeRef.current = onTableOfContentsChange;
   }, [onTableOfContentsChange]);
 
-  const handleTocUpdate = React.useCallback((items: Parameters<NonNullable<TiptapEditorProps['onTableOfContentsChange']>>[0]) => {
-    queueMicrotask(() => {
-      onTableOfContentsChangeRef.current?.(items);
-    });
-  }, []);
-
   const extensions = useMemo(() => {
     const tocExt = onTableOfContentsChange
       // eslint-disable-next-line react-hooks/refs
       ? [TableOfContents.configure({
         'getIndex': getHierarchicalIndexes,
-        'onUpdate': handleTocUpdate
+        'onUpdate': (items) => {
+          queueMicrotask(() => {
+            onTableOfContentsChangeRef.current?.(items);
+          });
+        }
       })]
       : [];
 
@@ -157,7 +155,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
       Image.configure({
         'allowBase64': true
       }),
-      CustomAudio.configure({
+      Audio.configure({
         'allowBase64': true
       }),
       FileHandler.configure({
@@ -203,10 +201,9 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         })
       ] : [])
     ];
-  }, [collaboration, editable, onTableOfContentsChange, handleTocUpdate]);
+  }, [collaboration, editable, onTableOfContentsChange]);
 
   const editor = useEditor({
-    'shouldRerenderOnTransaction': false,
     'immediatelyRender': true,
     editable,
     ...(content ? { content } : {}),
