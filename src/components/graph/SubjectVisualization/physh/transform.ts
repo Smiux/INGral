@@ -48,8 +48,8 @@ const getUIConfig = (): SubjectUIConfig => ({
   'panelFields': [
     { 'key': 'title', 'label': '概念名称', 'type': 'text', 'icon': 'FileText' },
     { 'key': 'level', 'label': '层级', 'type': 'badge', 'icon': 'ChevronDown' },
-    { 'key': 'broader', 'label': '父概念 (Broader)', 'type': 'list', 'icon': 'GitBranch' },
-    { 'key': 'narrower', 'label': '子概念 (Narrower)', 'type': 'list', 'icon': 'Layers' },
+    { 'key': 'parentNodes', 'label': '父节点', 'type': 'list', 'icon': 'GitBranch' },
+    { 'key': 'childNodes', 'label': '子节点', 'type': 'list', 'icon': 'Layers' },
     { 'key': 'related', 'label': '相关概念 (Related)', 'type': 'list', 'icon': 'Link2' },
     { 'key': 'inFacet', 'label': '所属板块', 'type': 'list', 'icon': 'Folder' },
     { 'key': 'scopeNote', 'label': '范围说明', 'type': 'text', 'icon': 'FileText' }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { X, Hash, FileText, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Code, Layers, GitBranch, Link2, Folder, Settings, Info, Star, List, type LucideIcon } from 'lucide-react';
+import { X, Hash, FileText, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Code, Layers, GitBranch, Link2, Folder, Settings, Info, Star, List, MessageSquare, type LucideIcon } from 'lucide-react';
 import { getAvailableSubjects, getSubject } from './register';
 import type { SubjectNode, SelectedNode, SubjectUIConfig } from './types';
 import {
@@ -22,6 +22,7 @@ import './msc2020';
 import './physh';
 import './mesh';
 import './chebi';
+import './ncbi';
 
 const iconMap: Record<string, LucideIcon> = {
   Hash,
@@ -35,7 +36,8 @@ const iconMap: Record<string, LucideIcon> = {
   Folder,
   Info,
   Star,
-  List
+  List,
+  MessageSquare
 };
 
 const formatIdToName = (id: string, getIdName?: (id: string) => string): string => {
@@ -520,11 +522,30 @@ export default function SubjectVisualization () {
       return null;
     }
 
+    const parentNodeIds: string[] = [];
+    const childNodeIds: string[] = [];
+
+    for (let i = 0; i < graphData.links.length; i += 1) {
+      const link = graphData.links[i];
+      if (link && link.target === selectedNode.code) {
+        if (typeof link.source === 'string') {
+          parentNodeIds.push(link.source);
+        }
+      }
+      if (link && link.source === selectedNode.code) {
+        if (typeof link.target === 'string') {
+          childNodeIds.push(link.target);
+        }
+      }
+    }
+
     const panelData: Record<string, unknown> = {
       'code': selectedNode.code,
       'title': selectedNode.title,
       'level': selectedNode.level,
       'parentId': selectedNode.parentId,
+      'parentNodes': parentNodeIds,
+      'childNodes': childNodeIds,
       ...selectedNode.extraInfo
     };
 

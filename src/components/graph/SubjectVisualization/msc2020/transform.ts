@@ -31,7 +31,8 @@ const getUIConfig = (): SubjectUIConfig => ({
     { 'key': 'code', 'label': '分类代码', 'type': 'code', 'icon': 'Hash' },
     { 'key': 'title', 'label': '分类名称', 'type': 'text', 'icon': 'FileText' },
     { 'key': 'level', 'label': '分类级别', 'type': 'badge', 'icon': 'ChevronDown' },
-    { 'key': 'parentId', 'label': '父节点', 'type': 'code', 'icon': 'Code' }
+    { 'key': 'parentNodes', 'label': '父节点', 'type': 'list', 'icon': 'GitBranch' },
+    { 'key': 'childNodes', 'label': '子节点', 'type': 'list', 'icon': 'Layers' }
   ],
   'levelLabels': {
     'root': '根节点',

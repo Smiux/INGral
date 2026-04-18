@@ -1,0 +1,21 @@
+{
+  "totalNodes": 2736637,
+  "totalLinks": 2736636,
+  "chunkCount": 13,
+  "linkChunkCount": 2,
+  "mapChunkCount": 2,
+  "divisions": {
+    "0": "Bacteria",
+    "1": "Invertebrates",
+    "2": "Mammals",
+    "3": "Phages",
+    "4": "Plants and Fungi",
+    "5": "Primates",
+    "6": "Rodents",
+    "7": "Synthetic and Chimeric",
+    "8": "Unassigned",
+    "9": "Viruses",
+    "10": "Vertebrates",
+    "11": "Environmental samples"
+  }
+}

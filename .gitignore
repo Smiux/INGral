@@ -25,4 +25,5 @@ skills-lock.json
 
 scripts/
 
-public/
+# Raw data files (original data sources)
+public/data/raw/

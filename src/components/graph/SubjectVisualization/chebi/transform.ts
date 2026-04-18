@@ -7,9 +7,14 @@ const idToNameMap = new Map<string, string>();
 const buildIdToNameMap = () => {
   const cachedData = getCachedData('chebi');
   if (cachedData && cachedData.idToNameMap) {
-    Object.entries(cachedData.idToNameMap).forEach(([key, value]) => {
-      idToNameMap.set(key, value);
-    });
+    const entries = Object.entries(cachedData.idToNameMap);
+    for (let i = 0; i < entries.length; i += 1) {
+      const entry = entries[i];
+      if (entry) {
+        const [key, value] = entry;
+        idToNameMap.set(key, value);
+      }
+    }
   }
 };
 
@@ -51,6 +56,8 @@ const getUIConfig = (): SubjectUIConfig => ({
     { 'key': 'definition', 'label': '定义', 'type': 'text', 'icon': 'Info' },
     { 'key': 'starRating', 'label': '数据质量', 'type': 'badge', 'icon': 'Star' },
     { 'key': 'level', 'label': '层级', 'type': 'badge', 'icon': 'ChevronDown' },
+    { 'key': 'parentNodes', 'label': '父节点', 'type': 'list', 'icon': 'GitBranch' },
+    { 'key': 'childNodes', 'label': '子节点', 'type': 'list', 'icon': 'Layers' },
     { 'key': 'synonyms', 'label': '同义词', 'type': 'list', 'icon': 'List' }
   ],
   'levelLabels': {}

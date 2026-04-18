@@ -7,9 +7,14 @@ const idToNameMap = new Map<string, string>();
 const buildIdToNameMap = () => {
   const cachedData = getCachedData('mesh');
   if (cachedData && cachedData.idToNameMap) {
-    Object.entries(cachedData.idToNameMap).forEach(([key, value]) => {
-      idToNameMap.set(key, value);
-    });
+    const entries = Object.entries(cachedData.idToNameMap);
+    for (let i = 0; i < entries.length; i += 1) {
+      const entry = entries[i];
+      if (entry) {
+        const [key, value] = entry;
+        idToNameMap.set(key, value);
+      }
+    }
   }
 };
 
@@ -49,6 +54,8 @@ const getUIConfig = (): SubjectUIConfig => ({
     { 'key': 'code', 'label': '分类', 'type': 'code', 'icon': 'Hash' },
     { 'key': 'title', 'label': '分类名称', 'type': 'text', 'icon': 'FileText' },
     { 'key': 'level', 'label': '层级', 'type': 'badge', 'icon': 'ChevronDown' },
+    { 'key': 'parentNodes', 'label': '父节点', 'type': 'list', 'icon': 'GitBranch' },
+    { 'key': 'childNodes', 'label': '子节点', 'type': 'list', 'icon': 'Layers' },
     { 'key': 'allLevels', 'label': '所有层级', 'type': 'list', 'icon': 'Layers' },
     { 'key': 'treeNumbers', 'label': '树编号', 'type': 'list', 'icon': 'Layers' },
     { 'key': 'scopeNote', 'label': '范围说明', 'type': 'text', 'icon': 'FileText' },
