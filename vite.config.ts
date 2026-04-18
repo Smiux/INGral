@@ -43,12 +43,9 @@ export default defineConfig({
             return 'react-spring';
           }
           
-          if (id.includes('node_modules/@tiptap/')) {
+          if (id.includes('node_modules/@tiptap/') || 
+              id.includes('node_modules/prosemirror-')) {
             return 'tiptap';
-          }
-          
-          if (id.includes('node_modules/prosemirror-')) {
-            return 'prosemirror';
           }
           
           if (id.includes('node_modules/@xyflow/')) {
@@ -74,15 +71,6 @@ export default defineConfig({
           
           if (id.includes('node_modules/@supabase/')) {
             return 'supabase';
-          }
-          
-          if (id.includes('src/components/articles/') || 
-              id.includes('src/services/articleService')) {
-            return 'article-editor';
-          }
-          
-          if (id.includes('src/components/graph/')) {
-            return 'graph-visualization';
           }
 
           return undefined;
