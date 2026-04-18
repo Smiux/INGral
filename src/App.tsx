@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { Header } from './components/ui/Header';
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
+import SubjectVisualization from './components/graph/SubjectVisualization';
 import { ArticleViewer, ArticleEditor } from './components/articles';
 import GraphVisualization from './components/graph/GraphVisualization';
 import { CollaborationProvider, useCollaboration, Features } from './components/collaboration';
@@ -54,6 +55,8 @@ function AppContent () {
   const isEditPage = pathname.startsWith('/articles/create') ||
     (pathname.startsWith('/articles/') && pathname.endsWith('/edit')) ||
     pathname.startsWith('/graphs/create') ||
+    pathname === '/graphs/subject-visualization' ||
+    pathname.startsWith('/graphs/subject-visualization/') ||
     (/^\/graphs\/[a-zA-Z0-9-]+$/).test(pathname);
 
   const isHomePage = pathname === '/';
@@ -83,6 +86,8 @@ function AppContent () {
               }
             />
             <Route path="/graphs/create" element={<GraphVisualization />} />
+            <Route path="/graphs/subject-visualization" element={<SubjectVisualization />} />
+            <Route path="/graphs/subject-visualization/:subject" element={<SubjectVisualization />} />
             <Route path="/graphs/:graphId" element={<GraphVisualization />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

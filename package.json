@@ -22,10 +22,14 @@
     }
   },
   "dependencies": {
+    "@cosmos.gl/graph": "^2.6.4",
+    "@deck.gl/core": "^9.3.0",
+    "@deck.gl/layers": "^9.3.0",
+    "@deck.gl/react": "^9.3.0",
+    "@libsql/client": "^0.17.2",
     "@liveblocks/client": "^3.17.0",
     "@liveblocks/react": "^3.17.0",
     "@liveblocks/yjs": "^3.17.0",
-    "@supabase/supabase-js": "^2.95.3",
     "@tiptap/core": "^3.19.0",
     "@tiptap/extension-audio": "^3.19.0",
     "@tiptap/extension-character-count": "^3.19.0",

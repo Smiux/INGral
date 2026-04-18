@@ -12,14 +12,13 @@ declare module 'parse-audio-metadata' {
     duration?: number;
   }
 
-  function parseAudioMetadata (input: File | Blob | ArrayBuffer): Promise<AudioMetadata>;
+  function parseAudioMetadata(input: File | Blob | ArrayBuffer): Promise<AudioMetadata>;
   export default parseAudioMetadata;
 }
 
 interface ImportMetaEnv {
-  readonly VITE_BASE_URL: string;
-  readonly VITE_SUPABASE_URL: string;
-  readonly VITE_SUPABASE_ANON_KEY: string;
+  readonly VITE_TURSO_DATABASE_URL: string;
+  readonly VITE_TURSO_AUTH_TOKEN?: string;
   readonly VITE_LIVEBLOCKS_PUBLIC_KEY: string;
   readonly VITE_LIVEBLOCKS_SECRET_KEY: string;
   readonly VITE_TURN_ICE_SERVERS?: string;

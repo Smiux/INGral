@@ -17,11 +17,11 @@ import type { Editor } from '@tiptap/react';
 import {
   Save,
   MessageCircle,
-  FileText, ListTree, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, RefreshCw,
+  FileText, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, RefreshCw,
   Trash2
 } from 'lucide-react';
 import { FootnotePanel } from './panels/Footnote';
-import { TocItem, TocItemComponent } from './panels/TableOfContents';
+import { TocItem, TableOfContentsPanel } from './panels/TableOfContents';
 import { useTocUtils } from './utils/ToC';
 
 interface EditorState {
@@ -704,31 +704,17 @@ export const ArticleEditor: React.FC = () => {
       </header>
 
       <div className="relative">
-        {tableOfContentsItems.length > 0 && (
-          <div className="sticky top-20 w-48 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg z-20 ml-4 flex flex-col float-left mb-4">
-            <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0">
-              <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
-                <ListTree className="w-4 h-4 text-sky-400" />
-                目录
-              </h3>
-            </div>
-            <div className="overflow-y-auto max-h-[50vh]">
-              <nav className="p-3 pt-0">
-                {tableOfContentsItems.map((item) => (
-                  <TocItemComponent
-                    key={item.id}
-                    item={item}
-                    onClick={() => handleTocClick(item.id)}
-                    isCollapsed={isItemCollapsed(collapsedItems, item.id)}
-                    onToggleCollapse={() => handleToggleCollapsed(item.id)}
-                    hasChildren={getChildIds(item.id, tableOfContentsItems).length > 0}
-                    isHidden={!shouldShowItem(collapsedItems, item.id, tableOfContentsItems)}
-                  />
-                ))}
-              </nav>
-            </div>
-          </div>
-        )}
+        <TableOfContentsPanel
+          items={tableOfContentsItems}
+          collapsedItems={collapsedItems}
+          onTocItemClick={handleTocClick}
+          onToggleCollapsed={handleToggleCollapsed}
+          getChildIds={getChildIds}
+          isItemCollapsed={isItemCollapsed}
+          shouldShowItem={shouldShowItem}
+          containerClassName="sticky top-20 w-48 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg z-20 ml-4 flex flex-col float-left mb-4"
+          collapsedButtonClassName="sticky top-20 z-20 ml-4"
+        />
 
         <FootnotePanel editor={editor} editable={true} />
 

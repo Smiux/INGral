@@ -1159,3 +1159,35 @@ math-field::part(menu-toggle) {
   }
 }
 }
+
+/* ========================================
+   HTML 内容样式 (ChEBI 等)
+   ======================================== */
+
+.html-content {
+  line-height: 1.6;
+}
+
+.html-content em,
+.html-content i {
+  font-style: italic;
+}
+
+.html-content strong,
+.html-content b {
+  font-weight: 600;
+}
+
+.html-content sub {
+  vertical-align: sub;
+  font-size: 0.75em;
+}
+
+.html-content sup {
+  vertical-align: super;
+  font-size: 0.75em;
+}
+
+.html-content small {
+  font-size: 0.85em;
+}

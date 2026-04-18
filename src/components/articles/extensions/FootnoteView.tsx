@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react';
 
 export interface FootnoteData {
@@ -10,31 +10,43 @@ export interface FootnoteData {
 export const FootnoteView: React.FC<NodeViewProps> = ({ node, editor }) => {
   const footnoteId = node.attrs.id as string;
   const footnoteContent = node.attrs.content as string;
+  const [index, setIndex] = useState(0);
 
-  const getFootnoteIndex = useCallback((): number => {
+  useEffect(() => {
     if (!editor) {
-      return 0;
+      return () => {
+        // noop
+      };
     }
 
-    const doc = editor.state.doc;
-    let index = 0;
-    let found = false;
+    const updateIndex = (): void => {
+      const doc = editor.state.doc;
+      let currentIndex = 0;
 
-    doc.descendants((descendantNode) => {
-      if (descendantNode.type.name === 'footnote') {
-        index += 1;
-        if (descendantNode.attrs.id === footnoteId) {
-          found = true;
-          return false;
+      doc.descendants((descendantNode): boolean | void => {
+        if (descendantNode.type.name === 'footnote') {
+          currentIndex += 1;
+          if (descendantNode.attrs.id === footnoteId) {
+            setIndex(currentIndex);
+            return false;
+          }
         }
-      }
-      return !found;
-    });
+        return true;
+      });
+    };
 
-    return index;
+    updateIndex();
+
+    const listener = () => {
+      updateIndex();
+    };
+
+    editor.on('transaction', listener);
+
+    return () => {
+      editor.off('transaction', listener);
+    };
   }, [editor, footnoteId]);
-
-  const index = useMemo(() => getFootnoteIndex(), [getFootnoteIndex]);
 
   return (
     <NodeViewWrapper

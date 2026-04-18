@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { BookOpen, Trash2 } from 'lucide-react';
+import { BookOpen, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Editor } from '@tiptap/react';
 
 export interface FootnoteItem {
@@ -11,12 +11,16 @@ export interface FootnoteItem {
 interface FootnotePanelProps {
   editor: Editor | null;
   editable?: boolean;
+  containerClassName?: string;
+  collapsedButtonClassName?: string;
+  position?: 'left' | 'right';
 }
 
-export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable = true }) => {
+export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable = true, containerClassName = 'hidden xl:block fixed right-4 top-[5rem] w-48 z-10 print:hidden', collapsedButtonClassName = 'hidden xl:block fixed right-4 top-[5rem] z-10 print:hidden', position = 'right' }) => {
   const [footnotes, setFootnotes] = useState<FootnoteItem[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const collectFootnotes = useCallback((): FootnoteItem[] => {
     if (!editor) {
@@ -162,18 +166,45 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
     }
   }, [handleCancelEdit]);
 
+  if (isCollapsed) {
+    return (
+      <div className={collapsedButtonClassName}>
+        <button
+          onClick={() => setIsCollapsed(false)}
+          className="flex items-center gap-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-sm px-2 py-1.5 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+        >
+          {position === 'left'
+            ? <ChevronRight className="w-4 h-4 text-sky-400" />
+            : <ChevronLeft className="w-4 h-4 text-sky-400" />
+          }
+          注释
+        </button>
+      </div>
+    );
+  }
+
   if (footnotes.length === 0) {
     return null;
   }
 
   return (
-    <aside className="hidden xl:block fixed right-4 top-[5rem] w-48 z-10 print:hidden">
+    <aside className={containerClassName}>
       <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden shadow-sm">
-        <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0">
+        <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-sky-400" />
             注释
           </h3>
+          <button
+            onClick={() => setIsCollapsed(true)}
+            className="p-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            title="收起"
+          >
+            {position === 'left'
+              ? <ChevronLeft className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+              : <ChevronRight className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+            }
+          </button>
         </div>
         <div className="overflow-y-auto max-h-[50vh]">
           <nav className="p-3">

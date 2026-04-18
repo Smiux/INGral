@@ -22,3 +22,7 @@ src-tauri/
 skills-lock.json
 
 .vscode/
+
+scripts/
+
+public/

@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, ListTree, Trash2, Edit3, Tag } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Trash2, Edit3, Tag, Download } from 'lucide-react';
 import { getArticleBySlug, deleteArticle, type ArticleWithContent } from '../../services/articleService';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { TiptapEditor } from './core/TipTap';
 import { FootnotePanel } from './panels/Footnote';
-import { TocItem, TocItemComponent } from './panels/TableOfContents';
+import { TocItem, TableOfContentsPanel } from './panels/TableOfContents';
 import { useTocUtils } from './utils/ToC';
 import type { Editor } from '@tiptap/react';
 
@@ -18,7 +18,6 @@ export function ArticleViewer () {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const [editorReady, setEditorReady] = useState(false);
   const [editor, setEditor] = useState<Editor | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
@@ -47,44 +46,31 @@ export function ArticleViewer () {
     loadArticle();
   }, [slug, location.key]);
 
-  const handleEditorReady = (editorInstance: Editor) => {
+  const handleEditorReady = useCallback((editorInstance: Editor) => {
     setEditor(editorInstance);
-    setEditorReady(true);
-  };
+  }, []);
+
+  const handleTableOfContentsChange = useCallback((items: TocItem[]) => {
+    setTableOfContentsItems(items);
+  }, []);
 
   useEffect(() => {
-    if (!article?.content || !contentRef.current || !editorReady) {
+    if (!editor || !contentRef.current) {
       return;
     }
 
-    const editorContainer = contentRef.current.querySelector('.ProseMirror');
-    const targetContainer = editorContainer || contentRef.current;
-
-    const headings = targetContainer.querySelectorAll('h1, h2, h3');
-    const tocItems: TocItem[] = [];
-
-    headings.forEach((heading, index) => {
-      const level = parseInt(heading.tagName.charAt(1), 10);
-      const text = heading.textContent ?? '';
-      const id = `heading-${index}`;
-      heading.id = id;
-
-      tocItems.push({
-        id,
-        'textContent': text,
-        level,
-        'isScrolledOver': false
-      });
-    });
-
-    setTableOfContentsItems(tocItems);
-
-    const highlightSearchMatches = (): void => {
+    const highlightSearchMatches = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const query = urlParams.get('q');
       const matchIndex = parseInt(urlParams.get('match') || '0', 10);
 
       if (!query) {
+        return;
+      }
+
+      const editorContainer = contentRef.current?.querySelector('.ProseMirror');
+      const targetContainer = editorContainer || contentRef.current;
+      if (!targetContainer) {
         return;
       }
 
@@ -139,14 +125,14 @@ export function ArticleViewer () {
         if (targetMark) {
           targetMark.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
         }
-      }, 500);
+      }, 100);
     };
 
     highlightSearchMatches();
-  }, [article?.content, editorReady]);
+  }, [editor]);
 
   useEffect(() => {
-    const handleHashChange = (): void => {
+    const handleHashChange = () => {
       const hash = window.location.hash;
       if (hash !== '#content-match') {
         return;
@@ -166,7 +152,7 @@ export function ArticleViewer () {
         if (targetMark) {
           targetMark.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
         }
-      }, 500);
+      }, 100);
     };
 
     handleHashChange();
@@ -176,13 +162,8 @@ export function ArticleViewer () {
     };
   }, []);
 
-  const handleTocClick = (itemId: string) => {
-    const editorContainer = contentRef.current?.querySelector('.ProseMirror');
-    const targetContainer = editorContainer || contentRef.current;
-    if (!targetContainer) {
-      return;
-    }
-    const element = targetContainer.querySelector(`[data-toc-id="${itemId}"], #${itemId}`);
+  const handleTocClick = useCallback((itemId: string) => {
+    const element = document.querySelector(`[data-toc-id="${itemId}"]`);
     if (element) {
       const offsetTop = element.getBoundingClientRect().top + window.scrollY - 88;
       window.scrollTo({
@@ -190,7 +171,7 @@ export function ArticleViewer () {
         'behavior': 'smooth'
       });
     }
-  };
+  }, []);
 
   const handleDelete = async () => {
     if (!article || isDeleting) {
@@ -217,6 +198,135 @@ export function ArticleViewer () {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleExportHtml = () => {
+    if (!article) {
+      return;
+    }
+
+    const formatDateForExport = (dateStr: string | null | undefined): string => {
+      if (!dateStr) {
+        return '未知';
+      }
+      return new Date(dateStr).toLocaleString('zh-CN', {
+        'year': 'numeric',
+        'month': 'long',
+        'day': 'numeric',
+        'hour': '2-digit',
+        'minute': '2-digit',
+        'second': '2-digit'
+      });
+    };
+
+    const exportCreatedDate = formatDateForExport(article.created_at);
+    const exportUpdatedDate = formatDateForExport(article.updated_at);
+
+    const htmlContent = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${article.title}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+      color: #333;
+    }
+    h1 { font-size: 2em; margin-bottom: 0.5em; }
+    h2 { font-size: 1.5em; margin-top: 1.5em; }
+    h3 { font-size: 1.25em; margin-top: 1.25em; }
+    blockquote {
+      border-left: 4px solid #0ea5e9;
+      padding-left: 1em;
+      margin-left: 0;
+      color: #666;
+      background: #f0f9ff;
+      padding: 0.5em 1em;
+      border-radius: 0 4px 4px 0;
+    }
+    .meta {
+      color: #666;
+      font-size: 0.9em;
+      margin-bottom: 1em;
+    }
+    .tags {
+      margin: 1em 0;
+    }
+    .tag {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.85em;
+      margin-right: 4px;
+    }
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1em;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    code {
+      background: #f1f5f9;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background: #f8fafc;
+    }
+  </style>
+</head>
+<body>
+  <h1>${article.title}</h1>
+  <div class="meta">
+    <div>创建时间: ${exportCreatedDate}</div>
+    <div>更新时间: ${exportUpdatedDate}</div>
+  </div>
+  ${article.summary ? `<blockquote>${article.summary}</blockquote>` : ''}
+  ${article.tags && article.tags.length > 0 ? `
+  <div class="tags">
+    ${article.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+  </div>
+  ` : ''}
+  <article>
+    ${article.content || ''}
+  </article>
+</body>
+</html>`;
+
+    const blob = new Blob([htmlContent], { 'type': 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${article.title.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_')}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   if (isLoading) {
@@ -293,6 +403,13 @@ export function ArticleViewer () {
           <h1 className="text-3xl md:text-4xl font-bold text-neutral-800 dark:text-neutral-100 min-w-0">{article.title}</h1>
           <div className="flex items-center gap-2 flex-shrink-0 print:hidden">
             <button
+              onClick={handleExportHtml}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              导出HTML
+            </button>
+            <button
               onClick={() => navigate(`/articles/${article.slug}/edit`)}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
             >
@@ -344,33 +461,24 @@ export function ArticleViewer () {
         </blockquote>
       )}
 
-      {tableOfContentsItems.length > 0 && (
-        <aside className="hidden xl:block fixed left-4 top-[11rem] w-48 z-10 print:hidden">
-          <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden shadow-sm">
-            <div className="p-3 border-b border-neutral-200 dark:border-neutral-700">
-              <h3 className="text-base font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
-                <ListTree className="w-4 h-4 text-sky-400" />
-                目录
-              </h3>
-            </div>
-            <nav className="p-2 pt-0 max-h-[50vh] overflow-y-auto">
-              {tableOfContentsItems.map((item) => (
-                <TocItemComponent
-                  key={item.id}
-                  item={item}
-                  onClick={() => handleTocClick(item.id)}
-                  isCollapsed={isItemCollapsed(collapsedItems, item.id)}
-                  onToggleCollapse={() => handleToggleCollapsed(item.id)}
-                  hasChildren={getChildIds(item.id, tableOfContentsItems).length > 0}
-                  isHidden={!shouldShowItem(collapsedItems, item.id, tableOfContentsItems)}
-                />
-              ))}
-            </nav>
-          </div>
-        </aside>
-      )}
+      <TableOfContentsPanel
+        items={tableOfContentsItems}
+        collapsedItems={collapsedItems}
+        onTocItemClick={handleTocClick}
+        onToggleCollapsed={handleToggleCollapsed}
+        getChildIds={getChildIds}
+        isItemCollapsed={isItemCollapsed}
+        shouldShowItem={shouldShowItem}
+        containerClassName="hidden xl:block fixed left-4 top-[11rem] w-48 z-10 print:hidden"
+        collapsedButtonClassName="hidden xl:block fixed left-4 top-[11rem] z-10 print:hidden"
+      />
 
-      <FootnotePanel editor={editor} editable={false} />
+      <FootnotePanel
+        editor={editor}
+        editable={false}
+        containerClassName="hidden xl:block fixed right-4 top-[11rem] w-48 z-10 print:hidden"
+        collapsedButtonClassName="hidden xl:block fixed right-4 top-[11rem] z-10 print:hidden"
+      />
 
       <div className="flex-1 min-w-0" ref={contentRef}>
         <main className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
@@ -379,6 +487,7 @@ export function ArticleViewer () {
               editable={false}
               content={article.content}
               onEditorReady={handleEditorReady}
+              onTableOfContentsChange={handleTableOfContentsChange}
             />
           )}
         </main>

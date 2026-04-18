@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Network } from 'lucide-react';
+import { BookOpen, Network, Calculator } from 'lucide-react';
 import { CollaborationControls } from '../collaboration';
 
 export function Header () {
@@ -22,6 +22,13 @@ export function Header () {
                 <Network className="w-4 h-4 text-sky-300" />
                 <span className="text-sm">图</span>
               </button>
+              <Link
+                to="/graphs/subject-visualization"
+                className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 dark:text-neutral-300 hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200"
+              >
+                <Calculator className="w-4 h-4 text-purple-300" />
+                <span className="text-sm">分类</span>
+              </Link>
               <Link
                 to="/articles"
                 className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 dark:text-neutral-300 hover:text-green-500 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200"
