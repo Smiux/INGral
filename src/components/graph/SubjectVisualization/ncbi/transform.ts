@@ -23,12 +23,34 @@ const RANK_NAMES: Record<string, string> = {
   'domain': '域',
   'superkingdom': '超界',
   'kingdom': '界',
+  'subkingdom': '亚界',
   'phylum': '门',
+  'subphylum': '亚门',
   'class': '纲',
+  'subclass': '亚纲',
   'order': '目',
+  'suborder': '亚目',
   'family': '科',
+  'subfamily': '亚科',
   'genus': '属',
-  'species': '种'
+  'subgenus': '亚属',
+  'species': '种',
+  'subspecies': '亚种',
+  'variety': '变种',
+  'forma': '型',
+  'no rank': '无等级',
+  'superorder': '总目',
+  'superfamily': '总科',
+  'tribe': '族',
+  'subtribe': '亚族',
+  'species group': '物种组',
+  'species subgroup': '物种亚组',
+  'infraorder': '下目',
+  'parvorder': '小目',
+  'cohort': '群',
+  'subcohort': '亚群',
+  'infraclass': '下纲',
+  'superclass': '总纲'
 };
 
 const buildIdToNameMap = () => {
@@ -81,12 +103,12 @@ const getUIConfig = (): SubjectUIConfig => ({
     { 'key': 'code', 'label': 'Taxonomy ID', 'type': 'code', 'icon': 'Hash' },
     { 'key': 'title', 'label': '学名', 'type': 'text', 'icon': 'FileText' },
     { 'key': 'commonName', 'label': '通用名', 'type': 'text', 'icon': 'Info' },
-    { 'key': 'rank', 'label': '层级', 'type': 'badge', 'icon': 'Layers' },
-    { 'key': 'division', 'label': '大类', 'type': 'badge', 'icon': 'Folder' },
+    { 'key': 'rank', 'label': '分类等级', 'type': 'badge', 'icon': 'Layers' },
+    { 'key': 'divisionName', 'label': '大类', 'type': 'badge', 'icon': 'Folder' },
     { 'key': 'level', 'label': '层级', 'type': 'badge', 'icon': 'ChevronDown' },
     { 'key': 'parentNodes', 'label': '父节点', 'type': 'list', 'icon': 'GitBranch' },
     { 'key': 'childNodes', 'label': '子节点', 'type': 'list', 'icon': 'Layers' },
-    { 'key': 'comments', 'label': '注释', 'type': 'text', 'icon': 'MessageSquare' },
+    { 'key': 'authorities', 'label': '命名确立', 'type': 'list', 'icon': 'Award' },
     { 'key': 'synonyms', 'label': '同义词', 'type': 'list', 'icon': 'List' }
   ],
   'levelLabels': {}
@@ -104,12 +126,14 @@ const getNodeExtraInfo = (node: SubjectNode): NodeExtraInfo | null => {
     extra.rank = RANK_NAMES[data.rank] || data.rank;
   }
 
-  if (data.divisionId && typeof data.divisionId === 'string') {
-    extra.division = DIVISION_NAMES[data.divisionId] || `大类 ${data.divisionId}`;
+  if (data.divisionName && typeof data.divisionName === 'string') {
+    extra.divisionName = data.divisionName;
+  } else if (data.divisionId && typeof data.divisionId === 'string') {
+    extra.divisionName = DIVISION_NAMES[data.divisionId] || `大类 ${data.divisionId}`;
   }
 
-  if (data.comments && typeof data.comments === 'string' && data.comments.length > 0) {
-    extra.comments = data.comments;
+  if (data.authorities && Array.isArray(data.authorities) && data.authorities.length > 0) {
+    extra.authorities = data.authorities as string[];
   }
 
   if (data.synonyms && Array.isArray(data.synonyms) && data.synonyms.length > 0) {

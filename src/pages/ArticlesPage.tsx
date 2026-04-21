@@ -5,7 +5,7 @@ import {
   getArticlesPaginated,
   getAllArticles,
   getArticlesContentBatch,
-  type Article,
+  type ArticleListItem,
   type ArticleWithContent
 } from '../services/articleService';
 
@@ -584,8 +584,8 @@ const ARTICLES_PER_PAGE = 20;
 
 export function ArticlesPage (): JSX.Element {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [allArticlesForSearch, setAllArticlesForSearch] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<ArticleListItem[]>([]);
+  const [allArticlesForSearch, setAllArticlesForSearch] = useState<ArticleListItem[]>([]);
   const [articlesWithContent, setArticlesWithContent] = useState<Map<string, string>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingAllArticles, setIsLoadingAllArticles] = useState(false);

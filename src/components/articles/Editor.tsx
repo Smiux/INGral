@@ -772,11 +772,10 @@ export const ArticleEditor: React.FC = () => {
                   }}
                   placeholder="输入文章简介..."
                   rows={3}
-                  maxLength={200}
                   className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-none text-sm"
                 />
                 <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 text-right">
-                  {articleMetadata.summary.length}/200
+                  {articleMetadata.summary.length}
                 </div>
               </div>
             </div>

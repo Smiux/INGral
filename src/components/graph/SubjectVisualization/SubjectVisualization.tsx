@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { X, Hash, FileText, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Code, Layers, GitBranch, Link2, Folder, Settings, Info, Star, List, MessageSquare, type LucideIcon } from 'lucide-react';
+import { X, Hash, FileText, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Code, Layers, GitBranch, Link2, Folder, Settings, Info, Star, List, MessageSquare, Award, type LucideIcon } from 'lucide-react';
 import { getAvailableSubjects, getSubject } from './register';
 import type { SubjectNode, SelectedNode, SubjectUIConfig } from './types';
 import {
@@ -37,7 +37,8 @@ const iconMap: Record<string, LucideIcon> = {
   Info,
   Star,
   List,
-  MessageSquare
+  MessageSquare,
+  Award
 };
 
 const formatIdToName = (id: string, getIdName?: (id: string) => string): string => {
