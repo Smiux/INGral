@@ -945,10 +945,10 @@ export function MediaPanel ({
 
                     <div className="flex-1 flex flex-col justify-center">
                       <div className="mb-2.5">
-                        <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 truncate leading-tight">
+                        <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 truncate leading-tight" title={currentTrack.title}>
                           {currentTrack.title}
                         </p>
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5" title={`${currentTrack.artist}${currentTrack.album ? ` · ${currentTrack.album}` : ''}`}>
                           {currentTrack.artist}
                           {currentTrack.album && <span className="text-neutral-400 dark:text-neutral-500"> · {currentTrack.album}</span>}
                         </p>
@@ -1104,10 +1104,10 @@ export function MediaPanel ({
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate">
+                          <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate" title={track.title}>
                             {track.title}
                           </p>
-                          <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate" title={`${track.artist}${track.addedByName ? ` · ${track.addedByName}` : ''}`}>
                             {track.artist}
                             {track.addedByName && <span className="text-neutral-400 dark:text-neutral-500"> · {track.addedByName}</span>}
                           </p>

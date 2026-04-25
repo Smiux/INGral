@@ -37,13 +37,23 @@ const TABLE_NAME = 'articles';
 
 interface CachedArticle {
   article: ArticleWithContent;
-  timestamp: number;
+  updatedAt: string;
+}
+
+interface CachedList {
+  articles: ArticleListItem[];
+  total: number;
+  updatedAt: string;
+}
+
+interface CachedContent {
+  content: string;
+  updatedAt: string;
 }
 
 const articleCache = new Map<string, CachedArticle>();
-const listCache = new Map<string, { articles: ArticleListItem[]; total: number; timestamp: number }>();
-const contentCache = new Map<string, { content: string; timestamp: number }>();
-const CACHE_TTL = 30 * 1000;
+const listCache = new Map<string, CachedList>();
+const contentCache = new Map<string, CachedContent>();
 
 function generateSlug (): string {
   const timestamp = Date.now()
@@ -79,10 +89,6 @@ function parseArticleWithContent (row: Record<string, unknown>): ArticleWithCont
   };
 }
 
-function isCacheValid (timestamp: number): boolean {
-  return Date.now() - timestamp < CACHE_TTL;
-}
-
 export function invalidateArticleCache (slug?: string): void {
   if (slug) {
     articleCache.delete(slug);
@@ -96,8 +102,19 @@ export function invalidateArticleCache (slug?: string): void {
 }
 
 export async function getArticleBySlug (slug: string): Promise<ArticleWithContent | null> {
+  const updatedAtResult = await turso.execute({
+    'sql': `SELECT updated_at FROM ${TABLE_NAME} WHERE slug = ?`,
+    'args': [slug]
+  });
+
+  if (updatedAtResult.rows.length === 0) {
+    return null;
+  }
+
+  const currentUpdatedAt = updatedAtResult.rows[0]?.updated_at as string;
   const cached = articleCache.get(slug);
-  if (cached && isCacheValid(cached.timestamp)) {
+
+  if (cached && cached.updatedAt === currentUpdatedAt) {
     return cached.article;
   }
 
@@ -112,15 +129,22 @@ export async function getArticleBySlug (slug: string): Promise<ArticleWithConten
 
   const article = parseArticleWithContent(result.rows[0] as Record<string, unknown>);
 
-  articleCache.set(slug, { article, 'timestamp': Date.now() });
-  contentCache.set(article.id, { 'content': article.content, 'timestamp': Date.now() });
+  articleCache.set(slug, { article, 'updatedAt': currentUpdatedAt });
+  contentCache.set(article.id, { 'content': article.content, 'updatedAt': currentUpdatedAt });
 
   return article;
 }
 
 export async function getAllArticles (): Promise<ArticleListItem[]> {
+  const maxUpdatedAtResult = await turso.execute({
+    'sql': `SELECT MAX(updated_at) as max_updated_at FROM ${TABLE_NAME}`,
+    'args': []
+  });
+
+  const currentMaxUpdatedAt = (maxUpdatedAtResult.rows[0]?.max_updated_at as string) || '';
   const cached = listCache.get('all');
-  if (cached && isCacheValid(cached.timestamp)) {
+
+  if (cached && cached.updatedAt === currentMaxUpdatedAt) {
     return cached.articles;
   }
 
@@ -132,7 +156,7 @@ export async function getAllArticles (): Promise<ArticleListItem[]> {
   });
 
   const articles = result.rows.map(row => parseArticleListItem(row as Record<string, unknown>));
-  listCache.set('all', { articles, 'total': articles.length, 'timestamp': Date.now() });
+  listCache.set('all', { articles, 'total': articles.length, 'updatedAt': currentMaxUpdatedAt });
 
   return articles;
 }
@@ -149,9 +173,17 @@ export async function getArticlesPaginated (
   page: number = 1,
   pageSize: number = 20
 ): Promise<PaginatedArticles> {
+  const maxUpdatedAtResult = await turso.execute({
+    'sql': `SELECT MAX(updated_at) as max_updated_at FROM ${TABLE_NAME}`,
+    'args': []
+  });
+
+  const currentMaxUpdatedAt = (maxUpdatedAtResult.rows[0]?.max_updated_at as string) || '';
+
   const cacheKey = `page_${page}_${pageSize}`;
   const cached = listCache.get(cacheKey);
-  if (cached && isCacheValid(cached.timestamp)) {
+
+  if (cached && cached.updatedAt === currentMaxUpdatedAt) {
     return {
       'articles': cached.articles,
       'total': cached.total,
@@ -184,7 +216,7 @@ export async function getArticlesPaginated (
   const total = (result.rows[0]?.total_count as number | undefined) || 0;
   const articles = result.rows.map(row => parseArticleListItem(row as Record<string, unknown>));
 
-  listCache.set(cacheKey, { articles, total, 'timestamp': Date.now() });
+  listCache.set(cacheKey, { articles, total, 'updatedAt': currentMaxUpdatedAt });
 
   return {
     articles,
@@ -202,11 +234,24 @@ export async function getArticlesContentBatch (articleIds: string[]): Promise<Ma
     return contentMap;
   }
 
+  const placeholders = articleIds.map(() => '?').join(',');
+  const updatedAtResult = await turso.execute({
+    'sql': `SELECT id, updated_at FROM ${TABLE_NAME} WHERE id IN (${placeholders})`,
+    'args': articleIds
+  });
+
+  const updatedAtMap = new Map<string, string>();
+  updatedAtResult.rows.forEach(row => {
+    updatedAtMap.set(row.id as string, row.updated_at as string);
+  });
+
   const uncachedIds: string[] = [];
 
   articleIds.forEach(id => {
     const cached = contentCache.get(id);
-    if (cached && isCacheValid(cached.timestamp)) {
+    const currentUpdatedAt = updatedAtMap.get(id);
+
+    if (cached && currentUpdatedAt && cached.updatedAt === currentUpdatedAt) {
       contentMap.set(id, cached.content);
     } else {
       uncachedIds.push(id);
@@ -217,17 +262,18 @@ export async function getArticlesContentBatch (articleIds: string[]): Promise<Ma
     return contentMap;
   }
 
-  const placeholders = uncachedIds.map(() => '?').join(',');
+  const uncachedPlaceholders = uncachedIds.map(() => '?').join(',');
   const result = await turso.execute({
-    'sql': `SELECT id, content FROM ${TABLE_NAME} WHERE id IN (${placeholders})`,
+    'sql': `SELECT id, content FROM ${TABLE_NAME} WHERE id IN (${uncachedPlaceholders})`,
     'args': uncachedIds
   });
 
   result.rows.forEach(row => {
     const id = row.id as string;
     const content = (row.content as string) || '';
+    const updatedAt = updatedAtMap.get(id) || '';
     contentMap.set(id, content);
-    contentCache.set(id, { content, 'timestamp': Date.now() });
+    contentCache.set(id, { content, updatedAt });
   });
 
   return contentMap;

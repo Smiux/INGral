@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Trash2, Edit3, Tag, Download } from 'lucide-react';
 import { getArticleBySlug, deleteArticle, type ArticleWithContent } from '../../services/articleService';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
@@ -7,12 +7,14 @@ import { TiptapEditor } from './core/TipTap';
 import { FootnotePanel } from './panels/Footnote';
 import { TocItem, TableOfContentsPanel } from './panels/TableOfContents';
 import { useTocUtils } from './utils/ToC';
+import { ExplorationNavigator } from '../gallerys';
 import type { Editor } from '@tiptap/react';
 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const explorationMode = searchParams.get('explorationMode') === 'true';
   const [article, setArticle] = useState<ArticleWithContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -35,6 +37,7 @@ export function ArticleViewer () {
     }
 
     const loadArticle = async () => {
+      setIsLoading(true);
       try {
         const data = await getArticleBySlug(slug);
         setArticle(data);
@@ -44,7 +47,7 @@ export function ArticleViewer () {
     };
 
     loadArticle();
-  }, [slug, location.key]);
+  }, [slug]);
 
   const handleEditorReady = useCallback((editorInstance: Editor) => {
     setEditor(editorInstance);
@@ -383,7 +386,7 @@ export function ArticleViewer () {
           </li>
           <li className="text-neutral-400 dark:text-neutral-500">/</li>
           <li>
-            <span className="font-medium text-neutral-900 dark:text-neutral-100 truncate max-w-[300px]">{article.title}</span>
+            <span className="font-medium text-neutral-900 dark:text-neutral-100 truncate max-w-[300px]" title={article.title}>{article.title}</span>
           </li>
         </ol>
       </nav>
@@ -514,6 +517,8 @@ export function ArticleViewer () {
         onCancel={() => setShowErrorDialog(false)}
         className="print:hidden"
       />
+
+      {explorationMode && <ExplorationNavigator />}
     </article>
   );
 }

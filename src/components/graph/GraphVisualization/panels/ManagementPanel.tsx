@@ -106,54 +106,8 @@ export const ManagementPanel: React.FC<ManagementPanelProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'all' | 'name' | 'content'>('all');
 
-  const handleDeleteSelectedNodes = () => {
-    const selectedNodes = nodes.filter((node) => node.selected);
-    if (selectedNodes.length === 0) {
-      return;
-    }
-    reactFlowInstance.deleteElements({
-      'nodes': selectedNodes.map((node) => ({ 'id': node.id }))
-    });
-  };
-
-  const handleBatchDeleteConnections = () => {
-    const selectedEdges = edges.filter((edge) => edge.selected);
-    if (selectedEdges.length === 0) {
-      return;
-    }
-    reactFlowInstance.deleteElements({
-      'edges': selectedEdges.map((edge) => ({ 'id': edge.id }))
-    });
-  };
-
-  const handleDeleteConnection = (edgeId: string) => {
-    reactFlowInstance.deleteElements({ 'edges': [{ 'id': edgeId }] });
-  };
-
-  const handleToggleSelection = (id: string, type: 'node' | 'edge') => {
-    const items = type === 'node' ? nodes : edges;
-    const isSelected = items.find((item) => item.id === id)?.selected;
-    const selectedIds = items.filter((item) => item.selected).map((item) => item.id);
-    const newSelectedIds = isSelected
-      ? selectedIds.filter((selectedId) => selectedId !== id)
-      : [...selectedIds, id];
-
-    if (type === 'node') {
-      reactFlowInstance.setNodes((nds) =>
-        nds.map((n) => ({
-          ...n,
-          'selected': newSelectedIds.includes(n.id)
-        }))
-      );
-    } else {
-      reactFlowInstance.setEdges((eds) =>
-        eds.map((e) => ({
-          ...e,
-          'selected': newSelectedIds.includes(e.id)
-        }))
-      );
-    }
-  };
+  const selectedNodes = nodes.filter((node) => node.selected);
+  const selectedEdges = edges.filter((edge) => edge.selected);
 
   const getFilteredNodes = () => {
     if (!searchTerm.trim()) {
@@ -191,10 +145,57 @@ export const ManagementPanel: React.FC<ManagementPanelProps> = ({
     return { totalNodes, totalEdges, avgConnections, nodeTypes, edgeTypes };
   };
 
+  const handleDeleteSelectedNodes = () => {
+    const selectedNodesList = nodes.filter((node) => node.selected);
+    if (selectedNodesList.length === 0) {
+      return;
+    }
+    reactFlowInstance.deleteElements({
+      'nodes': selectedNodesList.map((node) => ({ 'id': node.id }))
+    });
+  };
+
+  const handleBatchDeleteConnections = () => {
+    const selectedEdgesList = edges.filter((edge) => edge.selected);
+    if (selectedEdgesList.length === 0) {
+      return;
+    }
+    reactFlowInstance.deleteElements({
+      'edges': selectedEdgesList.map((edge) => ({ 'id': edge.id }))
+    });
+  };
+
+  const handleDeleteConnection = (edgeId: string) => {
+    reactFlowInstance.deleteElements({ 'edges': [{ 'id': edgeId }] });
+  };
+
+  const handleToggleSelection = (id: string, type: 'node' | 'edge') => {
+    const items = type === 'node' ? nodes : edges;
+    const isSelected = items.find((item) => item.id === id)?.selected;
+    const selectedIds = items.filter((item) => item.selected).map((item) => item.id);
+    const newSelectedIds = isSelected
+      ? selectedIds.filter((selectedId) => selectedId !== id)
+      : [...selectedIds, id];
+
+    if (type === 'node') {
+      reactFlowInstance.setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          'selected': newSelectedIds.includes(n.id)
+        }))
+      );
+    } else {
+      reactFlowInstance.setEdges((eds) =>
+        eds.map((e) => ({
+          ...e,
+          'selected': newSelectedIds.includes(e.id)
+        }))
+      );
+    }
+  };
+
   const filteredNodes = getFilteredNodes();
   const stats = getStats();
-  const selectedNodes = nodes.filter((node) => node.selected);
-  const selectedEdges = edges.filter((edge) => edge.selected);
 
   const tabs: Array<{ key: TabType; icon: React.ReactNode; label: string }> = [
     { 'key': 'nodes', 'icon': <CircleDot size={16} />, 'label': '节点管理' },
@@ -294,10 +295,10 @@ export const ManagementPanel: React.FC<ManagementPanelProps> = ({
                     onClick={() => handleToggleSelection(node.id, 'node')}
                   >
                     <div className="flex-1">
-                      <div className="text-sm font-medium truncate text-neutral-800 dark:text-neutral-200">{String(node.data?.title || '未命名节点')}</div>
+                      <div className="text-sm font-medium truncate text-neutral-800 dark:text-neutral-200" title={String(node.data?.title || '未命名节点')}>{String(node.data?.title || '未命名节点')}</div>
                       <div className="text-xs text-neutral-500 dark:text-neutral-400">类别: {String(node.data?.category || '默认')}</div>
                       {node.data?.metadata?.content && (
-                        <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-1">
+                        <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-1" title={String(node.data.metadata.content)}>
                           {String(node.data.metadata.content)}
                         </div>
                       )}
@@ -344,13 +345,13 @@ export const ManagementPanel: React.FC<ManagementPanelProps> = ({
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex-1">
-                          <div className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate">
+                          <div className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate" title={String(sourceNode?.data?.title || edge.source)}>
                             {sourceNode?.data?.title || edge.source}
                           </div>
                           <div className="text-sm text-neutral-400 flex items-center justify-center">
                             <ArrowRight className="w-3 h-3" />
                           </div>
-                          <div className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate">
+                          <div className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate" title={String(targetNode?.data?.title || edge.target)}>
                             {targetNode?.data?.title || edge.target}
                           </div>
                         </div>

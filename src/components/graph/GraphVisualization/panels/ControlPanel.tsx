@@ -7,7 +7,14 @@ import { CustomEdgeData } from '../Edge';
 
 type ColorType = 'blue' | 'green' | 'purple' | 'orange' | 'teal';
 
-const colorConfig = {
+interface ControlPanelProps {
+  panelPosition?: 'left' | 'right';
+}
+
+type SelectedNodeInfo = { id: string; data: CustomNodeData } | null;
+type SelectedEdgeInfo = { id: string; source: string; target: string; data: CustomEdgeData } | null;
+
+const colorConfig: Record<ColorType, Record<string, string>> = {
   'blue': { 'bg': 'from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30', 'border': 'border-blue-100 dark:border-blue-900', 'icon': 'text-blue-600 dark:text-blue-400', 'focus': 'focus:ring-blue-500' },
   'green': { 'bg': 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30', 'border': 'border-green-100 dark:border-green-900', 'icon': 'text-green-600 dark:text-green-400', 'focus': 'focus:ring-green-500' },
   'purple': { 'bg': 'from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30', 'border': 'border-purple-100 dark:border-purple-900', 'icon': 'text-purple-600 dark:text-purple-400', 'focus': 'focus:ring-purple-500' },
@@ -15,28 +22,11 @@ const colorConfig = {
   'teal': { 'bg': 'from-teal-50 to-cyan-50 dark:from-teal-950/30 dark:to-cyan-950/30', 'border': 'border-teal-100 dark:border-teal-900', 'icon': 'text-teal-600 dark:text-teal-400', 'focus': 'focus:ring-teal-500' }
 };
 
-interface ControlPanelProps {
-  panelPosition?: 'left' | 'right';
-}
-
-const Section: React.FC<{
-  title: string;
-  color: ColorType;
-  children: React.ReactNode;
-}> = ({ title, color, children }) => {
-  const config = colorConfig[color];
-  return (
-    <div className={`rounded-xl p-4 border bg-gradient-to-br ${config.bg} ${config.border}`}>
-      <h3 className={`text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-3 flex items-center gap-2 ${config.icon}`}>
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
-};
-
-type SelectedNodeInfo = { id: string; data: CustomNodeData } | null;
-type SelectedEdgeInfo = { id: string; source: string; target: string; data: CustomEdgeData } | null;
+const shapeOptions = [
+  { 'value': 'circle', 'label': '圆形', 'icon': <Circle className="w-6 h-6" /> },
+  { 'value': 'square', 'label': '方形', 'icon': <Square className="w-6 h-6" /> },
+  { 'value': 'rectangle', 'label': '矩形', 'icon': <RectangleHorizontal className="w-6 h-6" /> }
+];
 
 const getSelectedNodeInfo = (nodes: Array<{ id: string; data: CustomNodeData; selected?: boolean }>): SelectedNodeInfo => {
   const node = nodes.find((n) => n.selected);
@@ -64,11 +54,23 @@ const compareSelectedInfo = <T extends SelectedNodeInfo | SelectedEdgeInfo>(a: T
   return a.id === b.id && JSON.stringify(a.data) === JSON.stringify(b.data);
 };
 
-const shapeOptions = [
-  { 'value': 'circle', 'label': '圆形', 'icon': <Circle className="w-6 h-6" /> },
-  { 'value': 'square', 'label': '方形', 'icon': <Square className="w-6 h-6" /> },
-  { 'value': 'rectangle', 'label': '矩形', 'icon': <RectangleHorizontal className="w-6 h-6" /> }
-];
+interface SectionProps {
+  title: string;
+  color: ColorType;
+  children: React.ReactNode;
+}
+
+const Section: React.FC<SectionProps> = ({ title, color, children }) => {
+  const config = colorConfig[color];
+  return (
+    <div className={`rounded-xl p-4 border bg-gradient-to-br ${config.bg} ${config.border}`}>
+      <h3 className={`text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-3 flex items-center gap-2 ${config.icon}`}>
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+};
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'right' }) => {
   const selectedNode = useStore(
@@ -79,7 +81,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
     (state) => getSelectedEdgeInfo(state.edges as Array<{ id: string; source: string; target: string; data: CustomEdgeData; selected?: boolean }>),
     compareSelectedInfo
   );
-
   const reactFlowInstance = useReactFlow();
 
   const [nodeColors, setNodeColors] = React.useState({
@@ -89,35 +90,58 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
     'titleBackgroundColor': '#4ECDC4',
     'titleTextColor': '#FFFFFF'
   });
-
   const [edgeColors, setEdgeColors] = React.useState({
     'stroke': '#3b82f6',
     'arrowColor': '#3b82f6',
     'labelBackgroundColor': '#3b82f6',
     'labelTextColor': '#FFFFFF'
   });
-
   const [isComposing, setIsComposing] = React.useState(false);
-  const [localNodeState, setLocalNodeState] = React.useState<{
-    title: string;
-    category: string;
-    content: string;
-    handleCount: string;
-  }>({
+  const [localNodeState, setLocalNodeState] = React.useState({
     'title': '',
     'category': '',
     'content': '',
     'handleCount': '0'
   });
-  const [localEdgeState, setLocalEdgeState] = React.useState<{
-    type: string;
-    strokeWidth: string;
-    curveType: string;
-  }>({
+  const [localEdgeState, setLocalEdgeState] = React.useState({
     'type': 'related',
     'strokeWidth': '2',
     'curveType': 'default'
   });
+
+  React.useEffect(() => {
+    if (selectedNode) {
+      setLocalNodeState({
+        'title': selectedNode.data.title || '',
+        'category': selectedNode.data.category || '',
+        'content': selectedNode.data.metadata?.content || '',
+        'handleCount': String(selectedNode.data.handleCount ?? 0)
+      });
+      setNodeColors({
+        'fill': selectedNode.data.style?.fill || '#ffffff',
+        'stroke': selectedNode.data.style?.stroke || '#4ECDC4',
+        'textColor': selectedNode.data.style?.textColor || '#666666',
+        'titleBackgroundColor': selectedNode.data.style?.titleBackgroundColor || '#4ECDC4',
+        'titleTextColor': selectedNode.data.style?.titleTextColor || '#FFFFFF'
+      });
+    }
+  }, [selectedNode]);
+
+  React.useEffect(() => {
+    if (selectedEdge) {
+      setLocalEdgeState({
+        'type': selectedEdge.data?.type || 'related',
+        'strokeWidth': String(selectedEdge.data?.style?.strokeWidth ?? 2),
+        'curveType': selectedEdge.data?.curveType || 'default'
+      });
+      setEdgeColors({
+        'stroke': selectedEdge.data?.style?.stroke || '#3b82f6',
+        'arrowColor': selectedEdge.data?.style?.arrowColor || '#3b82f6',
+        'labelBackgroundColor': selectedEdge.data?.style?.labelBackgroundColor || '#3b82f6',
+        'labelTextColor': selectedEdge.data?.style?.labelTextColor || '#FFFFFF'
+      });
+    }
+  }, [selectedEdge]);
 
   const clearSelection = () => {
     reactFlowInstance.setNodes((nodes) => nodes.map((node) => ({ ...node, 'selected': false })));
@@ -131,14 +155,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
     reactFlowInstance.setNodes((nodes) =>
       nodes.map((node) =>
         node.id === selectedNode.id
-          ? {
-            ...node,
-            'data': {
-              ...node.data,
-              ...updates,
-              'style': { ...(node.data.style || {}), ...(updates.style || {}) }
-            }
-          }
+          ? { ...node, 'data': { ...node.data, ...updates, 'style': { ...(node.data.style || {}), ...(updates.style || {}) } } }
           : node
       )
     );
@@ -151,15 +168,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
     reactFlowInstance.setEdges((edges) =>
       edges.map((edge) =>
         edge.id === selectedEdge.id
-          ? {
-            ...edge,
-            'data': {
-              ...edge.data,
-              ...updates,
-              'style': { ...(edge.data?.style || {}), ...(updates.style || {}) }
-            },
-            ...(markerEnd && { markerEnd })
-          }
+          ? { ...edge, 'data': { ...edge.data, ...updates, 'style': { ...(edge.data?.style || {}), ...(updates.style || {}) } }, ...(markerEnd && { markerEnd }) }
           : edge
       )
     );
@@ -206,9 +215,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
       return;
     }
     const { name, value } = e.target;
-
     setLocalNodeState((prev) => ({ ...prev, [name]: value }));
-
     if (!isComposing) {
       commitNodeChange(name, value);
     }
@@ -219,9 +226,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
       return;
     }
     const { name, value } = e.target;
-
     setLocalEdgeState((prev) => ({ ...prev, [name]: value }));
-
     if (!isComposing) {
       commitEdgeChange(name, value);
     }
@@ -236,47 +241,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
     const target = e.target as HTMLInputElement | HTMLTextAreaElement;
     const name = target.name;
     const value = target.value;
-
     if (selectedNode && ['title', 'category', 'content', 'handleCount'].includes(name)) {
       commitNodeChange(name, value);
     } else if (selectedEdge && ['type', 'strokeWidth', 'curveType'].includes(name)) {
       commitEdgeChange(name, value);
     }
   };
-
-  React.useEffect(() => {
-    if (selectedNode) {
-      setLocalNodeState({
-        'title': selectedNode.data.title || '',
-        'category': selectedNode.data.category || '',
-        'content': selectedNode.data.metadata?.content || '',
-        'handleCount': String(selectedNode.data.handleCount ?? 0)
-      });
-      setNodeColors({
-        'fill': selectedNode.data.style?.fill || '#ffffff',
-        'stroke': selectedNode.data.style?.stroke || '#4ECDC4',
-        'textColor': selectedNode.data.style?.textColor || '#666666',
-        'titleBackgroundColor': selectedNode.data.style?.titleBackgroundColor || '#4ECDC4',
-        'titleTextColor': selectedNode.data.style?.titleTextColor || '#FFFFFF'
-      });
-    }
-  }, [selectedNode]);
-
-  React.useEffect(() => {
-    if (selectedEdge) {
-      setLocalEdgeState({
-        'type': selectedEdge.data?.type || 'related',
-        'strokeWidth': String(selectedEdge.data?.style?.strokeWidth ?? 2),
-        'curveType': selectedEdge.data?.curveType || 'default'
-      });
-      setEdgeColors({
-        'stroke': selectedEdge.data?.style?.stroke || '#3b82f6',
-        'arrowColor': selectedEdge.data?.style?.arrowColor || '#3b82f6',
-        'labelBackgroundColor': selectedEdge.data?.style?.labelBackgroundColor || '#3b82f6',
-        'labelTextColor': selectedEdge.data?.style?.labelTextColor || '#FFFFFF'
-      });
-    }
-  }, [selectedEdge]);
 
   const handleNodeColorChange = (key: keyof typeof nodeColors, color: string) => {
     setNodeColors((prev) => ({ ...prev, [key]: color }));
@@ -295,7 +265,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
   const isNode = Boolean(selectedNode);
   const title = isNode ? '编辑节点' : '编辑连接';
   const subtitle = isNode ? '调整节点属性和连接点配置' : '修改连接样式和属性';
-
   const panelClass = `w-72 bg-white dark:bg-neutral-800 flex flex-col overflow-hidden h-full ${panelPosition === 'left' ? 'border-r border-neutral-200 dark:border-neutral-700 absolute left-0 top-0 z-10' : 'border-l border-neutral-200 dark:border-neutral-700 absolute right-0 top-0 z-10 panel-right'}`;
 
   const renderHeader = (headerTitle: string, headerSubtitle?: string) => (
@@ -319,20 +288,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
       </button>
     </div>
   );
-
-  if (!selectedNode && !selectedEdge) {
-    return (
-      <div className={panelClass}>
-        {renderHeader('编辑面板')}
-        <div className="flex-1 flex items-center justify-center text-neutral-500 dark:text-neutral-400">
-          <div className="text-center">
-            <MousePointer2 className="w-16 h-16 mx-auto mb-3 text-neutral-300 dark:text-neutral-600" />
-            <p className="text-sm">请选择一个节点或连接来编辑</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const inputField = ({ name, value, placeholder, type = 'text', min, max, step }: { name: string; value: string; placeholder: string; type?: 'text' | 'number'; min?: number; max?: number; step?: number }) => (
     <input
@@ -375,14 +330,27 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
     </div>
   );
 
+  if (!selectedNode && !selectedEdge) {
+    return (
+      <div className={panelClass}>
+        {renderHeader('编辑面板')}
+        <div className="flex-1 flex items-center justify-center text-neutral-500 dark:text-neutral-400">
+          <div className="text-center">
+            <MousePointer2 className="w-16 h-16 mx-auto mb-3 text-neutral-300 dark:text-neutral-600" />
+            <p className="text-sm">请选择一个节点或连接来编辑</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={panelClass}>
       {renderHeader(title, subtitle)}
-
       <div className="flex-1 overflow-y-auto p-4">
         {selectedNode && (
           <div className="space-y-6 p-1">
-            <Section title="节点基本信息" color="blue">
+            <Section title="节点信息" color="blue">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">节点标题</label>
@@ -434,7 +402,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
                     </button>
                   ))}
                 </div>
-
                 <div className="space-y-4 pt-2">
                   {colorPicker(nodeColors.fill, (color) => handleNodeColorChange('fill', color), '背景颜色')}
                   {colorPicker(nodeColors.stroke, (color) => handleNodeColorChange('stroke', color), '边框颜色')}
@@ -449,7 +416,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
 
         {selectedEdge && (
           <div className="space-y-6 p-1">
-            <Section title="连接基本信息" color="orange">
+            <Section title="连接信息" color="orange">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">连接类别</label>
@@ -499,7 +466,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
                     className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-200 dark:hover:border-purple-400 text-center bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
                   />
                 </div>
-
                 <div className="space-y-4 pt-2">
                   {colorPicker(edgeColors.stroke, (color) => handleEdgeColorChange('stroke', color), '连接颜色')}
                   {colorPicker(edgeColors.arrowColor, (color) => handleEdgeColorChange('arrowColor', color), '箭头颜色')}

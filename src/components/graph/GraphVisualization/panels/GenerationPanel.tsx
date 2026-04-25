@@ -5,12 +5,6 @@ import type { CustomNodeData } from '../Node';
 import type { CustomEdgeData } from '../Edge';
 import ELK from 'elkjs';
 
-const elk = new ELK();
-
-const INPUT_CLASS = 'w-full p-2 border border-neutral-200 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent text-neutral-800 dark:text-neutral-200 bg-white dark:bg-neutral-700';
-const SECTION_CLASS = 'bg-sky-50 dark:bg-sky-950/30 rounded-xl p-5 border border-sky-100 dark:border-sky-900 transition-shadow';
-const SECTION_TITLE_CLASS = 'text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800 dark:text-neutral-200';
-
 type GraphType = 'random' | 'cycle' | 'tree' | 'star';
 type CurveType = 'default' | 'smoothstep' | 'straight' | 'simplebezier';
 
@@ -48,6 +42,12 @@ interface GenerationPanelProps {
   onClose: () => void;
   isOpen: boolean;
 }
+
+const elk = new ELK();
+
+const INPUT_CLASS = 'w-full p-2 border border-neutral-200 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent text-neutral-800 dark:text-neutral-200 bg-white dark:bg-neutral-700';
+const SECTION_CLASS = 'bg-sky-50 dark:bg-sky-950/30 rounded-xl p-5 border border-sky-100 dark:border-sky-900 transition-shadow';
+const SECTION_TITLE_CLASS = 'text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800 dark:text-neutral-200';
 
 const DEFAULT_CONFIGS: Record<GraphType, GraphConfig> = {
   'random': { 'curveType': 'default', 'nodeCount': 50, 'edgeCount': 150 },
@@ -234,7 +234,15 @@ const generateGraph = (graphType: GraphType, config: GraphConfig) => {
   }
 };
 
-const NumberInput = ({ label, value, onChange, min, max }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number }) => (
+interface NumberInputProps {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+}
+
+const NumberInput: React.FC<NumberInputProps> = ({ label, value, onChange, min, max }) => (
   <label className="block">
     {label && <span className="text-xs text-neutral-600 dark:text-neutral-400 mb-1 block">{label}</span>}
     <input
@@ -248,7 +256,14 @@ const NumberInput = ({ label, value, onChange, min, max }: { label: string; valu
   </label>
 );
 
-const SelectInput = ({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) => (
+interface SelectInputProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}
+
+const SelectInput: React.FC<SelectInputProps> = ({ label, value, onChange, options }) => (
   <label className="block">
     {label && <span className="text-xs text-neutral-600 dark:text-neutral-400 mb-1 block">{label}</span>}
     <select className={INPUT_CLASS} value={value} onChange={(e) => onChange(e.target.value)}>
@@ -257,7 +272,13 @@ const SelectInput = ({ label, value, onChange, options }: { label: string; value
   </label>
 );
 
-const Section = ({ 'icon': Icon, title, children }: { 'icon': React.ElementType; title: string; children: React.ReactNode }) => (
+interface SectionProps {
+  icon: React.ElementType;
+  title: string;
+  children: React.ReactNode;
+}
+
+const Section: React.FC<SectionProps> = ({ 'icon': Icon, title, children }) => (
   <section className={SECTION_CLASS}>
     <h3 className={SECTION_TITLE_CLASS}>
       <Icon className="w-4 h-4 text-sky-400" />

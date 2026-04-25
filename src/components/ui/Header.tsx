@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Network, Calculator } from 'lucide-react';
+import { BookOpen, Network, Calculator, Layers } from 'lucide-react';
 import { CollaborationControls } from '../collaboration';
 
 export function Header () {
@@ -28,6 +28,13 @@ export function Header () {
               >
                 <Calculator className="w-4 h-4 text-purple-300" />
                 <span className="text-sm">分类</span>
+              </Link>
+              <Link
+                to="/gallerys"
+                className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 dark:text-neutral-300 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-200"
+              >
+                <Layers className="w-4 h-4 text-orange-300" />
+                <span className="text-sm">文章集</span>
               </Link>
               <Link
                 to="/articles"

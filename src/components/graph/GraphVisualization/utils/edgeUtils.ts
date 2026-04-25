@@ -1,6 +1,14 @@
 import { Position, type InternalNode } from '@xyflow/react';
 
-function getNodeGeometry (node: InternalNode) {
+interface NodeGeometry {
+  centerX: number;
+  centerY: number;
+  halfWidth: number;
+  halfHeight: number;
+  shape: string;
+}
+
+function getNodeGeometry (node: InternalNode): NodeGeometry {
   const position = node.internals?.positionAbsolute || { 'x': 0, 'y': 0 };
   const width = node.measured?.width || 100;
   const height = node.measured?.height || 100;
@@ -17,7 +25,7 @@ function getNodeGeometry (node: InternalNode) {
 }
 
 function calculateIntersection (
-  geometry: { 'centerX': number; 'centerY': number; 'halfWidth': number; 'halfHeight': number; 'shape': string },
+  geometry: NodeGeometry,
   targetX: number,
   targetY: number
 ): { 'x': number; 'y': number } {

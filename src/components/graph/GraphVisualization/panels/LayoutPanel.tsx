@@ -14,6 +14,11 @@ interface LayoutPanelProps {
   isOpen: boolean;
 }
 
+type FieldConfig =
+  | { key: string; label: string; type: 'number'; min?: number; max?: number; step?: string }
+  | { key: string; label: string; type: 'select'; options: ReadonlyArray<{ value: string; label: string }> }
+  | { key: string; label: string; type: 'checkbox'; description?: string };
+
 const INPUT_CLASSES = 'w-full p-2 border border-neutral-300 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200';
 const LABEL_CLASSES = 'block text-xs text-neutral-600 dark:text-neutral-400 mb-1';
 
@@ -66,11 +71,6 @@ const DEFAULT_OPTIONS = {
     'packingMode': 'SIMPLE'
   }
 };
-
-type FieldConfig =
-  | { key: string; label: string; type: 'number'; min?: number; max?: number; step?: string }
-  | { key: string; label: string; type: 'select'; options: ReadonlyArray<{ value: string; label: string }> }
-  | { key: string; label: string; type: 'checkbox'; description?: string };
 
 const ALGORITHM_CONFIGS = {
   'layered': {
@@ -205,6 +205,9 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose, isO
   const [isLayouting, setIsLayouting] = useState(false);
   const nodeCount = useStore((state) => state.nodes.length);
 
+  const config = ALGORITHM_CONFIGS[layoutOptions.algorithm];
+  const algorithmConfig = layoutOptions[layoutOptions.algorithm] as Record<string, unknown>;
+
   const executeLayout = async () => {
     const currentNodes = reactFlowInstance.getNodes() as Node<CustomNodeData>[];
     const currentEdges = reactFlowInstance.getEdges() as Edge<CustomEdgeData>[];
@@ -296,9 +299,6 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose, isO
       setIsLayouting(false);
     }
   };
-
-  const config = ALGORITHM_CONFIGS[layoutOptions.algorithm];
-  const algorithmConfig = layoutOptions[layoutOptions.algorithm] as Record<string, unknown>;
 
   const updateAlgorithmOption = (key: string, value: unknown) => {
     setLayoutOptions(prev => ({

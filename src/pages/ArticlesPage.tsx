@@ -275,7 +275,7 @@ function TagWithClick ({ tag, onTagClick }: TagClickHandlerProps): JSX.Element {
       className="inline-flex items-center px-2 py-0.5 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-full text-xs cursor-pointer hover:bg-sky-200 dark:hover:bg-sky-800/50 transition-colors"
     >
       <Tag className="w-2.5 h-2.5 mr-1" />
-      <span className="truncate max-w-[100px]">{tag}</span>
+      <span className="truncate max-w-[100px]" title={tag}>{tag}</span>
     </span>
   );
 }
@@ -525,7 +525,7 @@ const DenseArticleCard = ({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <h2 className="text-base font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors mb-1 truncate">
+          <h2 className="text-base font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors mb-1 truncate" title={article.title}>
             <HighlightedText html={highlightedTitle} />
             {hasContentMatches && (
               <span className="ml-2 text-xs font-normal text-sky-500 dark:text-sky-400">

@@ -8,9 +8,6 @@ build
 # Environment variables
 .env
 
-# Trae AI
-.trae/
-
 # Documentation
 docs/
 
@@ -22,7 +19,7 @@ src-tauri/
 skills-lock.json
 
 .vscode/
-
+.trae/
 scripts/
 
 # Raw data files (original data sources)

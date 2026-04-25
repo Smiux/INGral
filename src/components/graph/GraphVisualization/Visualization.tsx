@@ -49,6 +49,8 @@ interface ForceGraphLink {
   width: number;
 }
 
+type LeftPanelType = 'management' | 'importExport' | 'generation' | 'layout' | null;
+
 const nodeTypes = {
   'custom': Node
 } as const as NodeTypes;
@@ -58,8 +60,6 @@ const edgeTypes = {
 } as const as EdgeTypes;
 
 const SNAP_GRID: [number, number] = [16, 16];
-
-type LeftPanelType = 'management' | 'importExport' | 'generation' | 'layout' | null;
 
 const VisualizationContent: React.FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<NodeType<CustomNodeData>>([]);
@@ -79,6 +79,23 @@ const VisualizationContent: React.FC = () => {
     'width': window.innerWidth,
     'height': window.innerHeight - 64
   });
+
+  const nodeCount = useStore(
+    (state) => state.nodes.length,
+    (prev, next) => prev === next
+  );
+  const edgeCount = useStore(
+    (state) => state.edges.length,
+    (prev, next) => prev === next
+  );
+  const hasSelection = useStore(
+    (state) => {
+      const hasSelectedNode = state.nodes.some(node => node.selected);
+      const hasSelectedEdge = state.edges.some(edge => edge.selected);
+      return hasSelectedNode || hasSelectedEdge;
+    },
+    (prev, next) => prev === next
+  );
 
   const triggerSaveState = useCallback(() => {
     if (!isDraggingRef.current) {
@@ -105,23 +122,6 @@ const VisualizationContent: React.FC = () => {
       triggerSaveState();
     }
   }, [onEdgesChange, triggerSaveState]);
-
-  const nodeCount = useStore(
-    (state) => state.nodes.length,
-    (prev, next) => prev === next
-  );
-  const edgeCount = useStore(
-    (state) => state.edges.length,
-    (prev, next) => prev === next
-  );
-  const hasSelection = useStore(
-    (state) => {
-      const hasSelectedNode = state.nodes.some(node => node.selected);
-      const hasSelectedEdge = state.edges.some(edge => edge.selected);
-      return hasSelectedNode || hasSelectedEdge;
-    },
-    (prev, next) => prev === next
-  );
 
   useEffect(() => {
     if (viewMode !== 'reactflow') {

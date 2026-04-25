@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch, Users, Wifi, Loader2, RefreshCw } from 'lucide-react';
+import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch, Users, Wifi, Loader2, RefreshCw, Trash2 } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 import { useCollaboration, CollaborationPanel } from '../../collaboration';
 
@@ -25,22 +25,33 @@ interface ToolbarProps {
 
 interface ToolbarButtonProps {
   icon: React.ReactNode;
-  title: string;
+  label: string;
   isActive?: boolean;
   isDisabled?: boolean;
   onClick?: () => void;
   className?: string;
 }
 
+interface ToggleGroupProps {
+  label: string;
+  isCollapsed: boolean;
+  collapsedIcon: React.ReactNode;
+  expandedIcon: React.ReactNode;
+  onToggle: () => void;
+  isReactFlowOnly?: boolean;
+  viewMode?: string;
+  children: React.ReactNode;
+}
+
 const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo(({
   icon,
-  title,
+  label,
   isActive,
   isDisabled,
   onClick,
   className = ''
 }) => {
-  let buttonClass = 'flex items-center justify-center w-12 h-12 rounded-md transition-all ';
+  let buttonClass = 'flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-md transition-all min-w-[60px] ';
 
   if (isActive) {
     buttonClass += 'bg-sky-500 text-white';
@@ -55,23 +66,14 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo(({
       onClick={onClick}
       disabled={isDisabled}
       className={`${buttonClass} ${className}`}
-      title={title}
     >
       {icon}
+      <span className="text-xs whitespace-nowrap">{label}</span>
     </button>
   );
 });
 
-const ToggleGroup: React.FC<{
-  label: string;
-  isCollapsed: boolean;
-  collapsedIcon: React.ReactNode;
-  expandedIcon: React.ReactNode;
-  onToggle: () => void;
-  isReactFlowOnly?: boolean;
-  viewMode?: string;
-  children: React.ReactNode;
-}> = React.memo(({
+const ToggleGroup: React.FC<ToggleGroupProps> = React.memo(({
   label,
   isCollapsed,
   collapsedIcon,
@@ -89,7 +91,7 @@ const ToggleGroup: React.FC<{
     <div className="flex items-center gap-0.5 bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
       <ToolbarButton
         icon={isCollapsed ? collapsedIcon : expandedIcon}
-        title={label}
+        label={label}
         isActive={isCollapsed}
         onClick={onToggle}
       />
@@ -129,6 +131,18 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
   const toggleGroup = useCallback((group: 'edit' | 'tools' | 'view') => {
     setCollapsedGroups(prev => ({ ...prev, [group]: !prev[group] }));
   }, []);
+
+  const handleDeleteSelected = useCallback(() => {
+    const selectedNodes = reactFlowInstance.getNodes().filter(node => node.selected);
+    const selectedEdges = reactFlowInstance.getEdges().filter(edge => edge.selected);
+
+    if (selectedNodes.length > 0 || selectedEdges.length > 0) {
+      reactFlowInstance.deleteElements({
+        'nodes': selectedNodes,
+        'edges': selectedEdges
+      });
+    }
+  }, [reactFlowInstance]);
 
   const handleFitView = useCallback(() => {
     const nodes = reactFlowInstance.getNodes();
@@ -173,20 +187,25 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
           <div className="flex items-center gap-0.5">
             <ToolbarButton
               icon={<Undo size={16} />}
-              title="撤销 (Ctrl+Z)"
+              label="撤销"
               isDisabled={!canUndo}
               onClick={onUndo}
             />
             <ToolbarButton
               icon={<Redo size={16} />}
-              title="重做 (Ctrl+Y)"
+              label="重做"
               isDisabled={!canRedo}
               onClick={onRedo}
             />
             <ToolbarButton
               icon={<Plus size={16} />}
-              title="创建节点"
+              label="创建节点"
               onClick={onAddNode}
+            />
+            <ToolbarButton
+              icon={<Trash2 size={16} />}
+              label="删除"
+              onClick={handleDeleteSelected}
             />
           </div>
         </ToggleGroup>
@@ -203,25 +222,25 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
           <div className="flex items-center gap-0.5">
             <ToolbarButton
               icon={<Layout size={16} />}
-              title="布局管理"
+              label="布局"
               isActive={isLayoutPanelOpen}
               onClick={onToggleLayoutPanel}
             />
             <ToolbarButton
               icon={<Sparkles size={16} />}
-              title="图生成"
+              label="生成"
               isActive={isGenerationPanelOpen}
               onClick={onToggleGenerationPanel}
             />
             <ToolbarButton
               icon={<GitBranch size={16} />}
-              title="图管理"
+              label="管理"
               isActive={isManagementPanelOpen}
               onClick={onToggleManagementPanel}
             />
             <ToolbarButton
               icon={<Download size={16} />}
-              title="导入导出"
+              label="导入导出"
               isActive={isImportExportPanelOpen}
               onClick={onToggleImportExportPanel}
             />
@@ -240,33 +259,33 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
           <div className="flex items-center gap-0.5">
             <ToolbarButton
               icon={<Grid3x3 size={16} />}
-              title={snapToGrid ? '关闭网格对齐' : '开启网格对齐'}
+              label={snapToGrid ? '关闭网格' : '网格对齐'}
               isActive={snapToGrid}
               onClick={onToggleSnapToGrid}
             />
             <ToolbarButton
               icon={<ZoomIn size={16} />}
-              title="放大"
+              label="放大"
               onClick={() => reactFlowInstance.zoomIn()}
             />
             <ToolbarButton
               icon={<ZoomOut size={16} />}
-              title="缩小"
+              label="缩小"
               onClick={() => reactFlowInstance.zoomOut()}
             />
             <ToolbarButton
               icon={<ZoomIn size={16} className="rotate-45" />}
-              title="重置缩放"
+              label="重置"
               onClick={() => reactFlowInstance.zoomTo(1)}
             />
             <ToolbarButton
               icon={<Crosshair size={16} />}
-              title="中心对齐"
+              label="居中"
               onClick={handleFitView}
             />
             <ToolbarButton
               icon={<Maximize2 size={16} className="rotate-45" />}
-              title="全屏"
+              label="全屏"
               onClick={handleToggleFullscreen}
             />
           </div>
@@ -274,14 +293,14 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
 
         <div className="flex items-center gap-0.5 bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
           {[
-            { 'mode': 'reactflow', 'icon': <Home size={16} />, 'title': 'React Flow渲染' },
-            { 'mode': 'forcegraph2d', 'icon': <Network size={16} />, 'title': 'Force Graph 2D渲染' },
-            { 'mode': 'forcegraph3d', 'icon': <Box size={16} />, 'title': 'Force Graph 3D渲染' }
-          ].map(({ mode, icon, title }) => (
+            { 'mode': 'reactflow', 'icon': <Home size={16} />, 'label': '标准' },
+            { 'mode': 'forcegraph2d', 'icon': <Network size={16} />, 'label': '2D力导' },
+            { 'mode': 'forcegraph3d', 'icon': <Box size={16} />, 'label': '3D力导' }
+          ].map(({ mode, icon, label }) => (
             <ToolbarButton
               key={mode}
               icon={icon}
-              title={title}
+              label={label}
               isActive={viewMode === mode}
               onClick={() => onSetViewMode(mode as 'reactflow' | 'forcegraph2d' | 'forcegraph3d')}
             />
@@ -291,10 +310,10 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
         <div className="flex items-center bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
           <button
             onClick={() => setShowCollabPanel(true)}
-            className="flex items-center justify-center w-12 h-12 rounded-md transition-all hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400"
-            title="协作"
+            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-md transition-all min-w-[60px] hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400"
           >
             {getCollabStatusIcon()}
+            <span className="text-xs whitespace-nowrap">协作</span>
           </button>
         </div>
       </div>
