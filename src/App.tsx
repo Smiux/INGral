@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Header } from './components/ui/Header';
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
@@ -99,7 +99,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
 function useMetaTags (): void {
   const location = useLocation();
-  const params = useParams<{ slug?: string; galleryId?: string; graphId?: string; subject?: string }>();
 
   const updateMetaForRoute = useCallback(async () => {
     const path = location.pathname;
@@ -127,9 +126,29 @@ function useMetaTags (): void {
       return;
     }
 
+    if (path === '/articles/create') {
+      updateMetaTags({
+        'title': '创建文章',
+        'description': '文章编辑器',
+        'type': 'website'
+      });
+      return;
+    }
+
+    const articleEditMatch = path.match(/^\/articles\/([^/]+)\/edit$/);
+    if (articleEditMatch) {
+      updateMetaTags({
+        'title': '编辑文章',
+        'description': '文章编辑器',
+        'type': 'website'
+      });
+      return;
+    }
+
     const articleMatch = path.match(/^\/articles\/([^/]+)$/);
-    if (articleMatch && params.slug) {
-      const article = await getArticleBySlug(params.slug);
+    if (articleMatch && articleMatch[1]) {
+      const slug = articleMatch[1];
+      const article = await getArticleBySlug(slug);
       if (article) {
         const metaTags: MetaTags = {
           'title': article.title,
@@ -150,18 +169,19 @@ function useMetaTags (): void {
       return;
     }
 
-    if (path.startsWith('/articles/')) {
+    if (path === '/gallerys/create') {
       updateMetaTags({
-        'title': path.includes('/edit') ? '编辑文章' : '创建文章',
-        'description': '文章编辑器',
+        'title': '创建文章集',
+        'description': '创建新的文章集',
         'type': 'website'
       });
       return;
     }
 
     const galleryMatch = path.match(/^\/gallerys\/([^/]+)$/);
-    if (galleryMatch && params.galleryId && params.galleryId !== 'create') {
-      const gallery = await getGalleryById(params.galleryId);
+    if (galleryMatch && galleryMatch[1]) {
+      const galleryId = galleryMatch[1];
+      const gallery = await getGalleryById(galleryId);
       if (gallery) {
         updateMetaTags({
           'title': gallery.title,
@@ -178,20 +198,12 @@ function useMetaTags (): void {
       return;
     }
 
-    if (path.startsWith('/gallerys/')) {
-      updateMetaTags({
-        'title': '创建文章集',
-        'description': '创建新的文章集',
-        'type': 'website'
-      });
-      return;
-    }
-
     if (path.startsWith('/graphs/subject-visualization')) {
-      const subject = params.subject || '';
+      const subjectMatch = path.match(/^\/graphs\/subject-visualization\/(.+)$/);
+      const subject = subjectMatch ? subjectMatch[1] : '';
       updateMetaTags({
-        'title': subject ? `分类可视化 - ${subject}` : '分类可视化',
-        'description': '探索分类，发现分类关联',
+        'title': subject ? `主题可视化 - ${subject}` : '主题可视化',
+        'description': '探索知识图谱，发现主题关联',
         'type': 'website'
       });
       return;
@@ -199,15 +211,15 @@ function useMetaTags (): void {
 
     if (path.startsWith('/graphs/')) {
       updateMetaTags({
-        'title': path.includes('/create') ? '创建图' : '图',
-        'description': '图可视化工具',
+        'title': path.includes('/create') ? '创建图谱' : '知识图谱',
+        'description': '知识图谱可视化工具',
         'type': 'website'
       });
       return;
     }
 
     updateMetaTags(DEFAULT_META);
-  }, [location.pathname, params.slug, params.galleryId, params.subject]);
+  }, [location.pathname]);
 
   useEffect(() => {
     updateMetaForRoute();
@@ -237,25 +249,14 @@ function AppContent () {
             <Route path="/" element={<HomePage />} />
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/articles/:slug" element={<ArticleViewer />} />
-            <Route
-              path="/articles/create"
-              element={
-                <ArticleEditor />
-              }
-            />
-            <Route
-              path="/articles/:slug/edit"
-              element={
-                <ArticleEditor />
-              }
-            />
+            <Route path="/articles/create" element={<ArticleEditor />} />
+            <Route path="/articles/:slug/edit" element={<ArticleEditor />} />
             <Route path="/gallerys" element={<GallerysPage />} />
             <Route path="/gallerys/create" element={<GallerysEditPage />} />
             <Route path="/gallerys/:galleryId" element={<GallerysEditPage />} />
             <Route path="/graphs/create" element={<GraphVisualization />} />
             <Route path="/graphs/subject-visualization" element={<SubjectVisualization />} />
             <Route path="/graphs/subject-visualization/:subject" element={<SubjectVisualization />} />
-            <Route path="/graphs/:graphId" element={<GraphVisualization />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ErrorBoundary>

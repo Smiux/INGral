@@ -11,9 +11,6 @@ build
 # Documentation
 docs/
 
-# Tauri
-src-tauri/
-
 # Skills
 .agents/
 skills-lock.json
