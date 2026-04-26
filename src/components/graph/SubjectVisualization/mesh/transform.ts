@@ -40,13 +40,10 @@ const transformData = (): GraphData => {
 const getSubjectInfo = () => ({
   'key': 'mesh',
   'name': 'MeSH',
-  'rootName': 'MeSH',
-  'description': 'Medical Subject Headings 2026'
+  'rootName': 'MeSH'
 });
 
 const getUIConfig = (): SubjectUIConfig => ({
-  'showCodeField': true,
-  'codeFieldLabel': '分类',
   'tooltipFields': [
     { 'key': 'title', 'label': '名称', 'type': 'text' }
   ],

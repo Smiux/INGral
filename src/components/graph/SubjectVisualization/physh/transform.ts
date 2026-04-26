@@ -35,13 +35,10 @@ const transformData = (): GraphData => {
 const getSubjectInfo = () => ({
   'key': 'physh',
   'name': 'PhySH',
-  'rootName': 'PhySH',
-  'description': 'Physics Subject Headings'
+  'rootName': 'PhySH'
 });
 
 const getUIConfig = (): SubjectUIConfig => ({
-  'showCodeField': false,
-  'codeFieldLabel': '分类',
   'tooltipFields': [
     { 'key': 'title', 'label': '名称', 'type': 'text' }
   ],

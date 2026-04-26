@@ -16,13 +16,10 @@ const transformData = (): GraphData => {
 const getSubjectInfo = () => ({
   'key': 'msc2020',
   'name': 'MSC2020',
-  'rootName': 'MSC2020',
-  'description': 'Mathematics Subject Classification 2020'
+  'rootName': 'MSC2020'
 });
 
 const getUIConfig = (): SubjectUIConfig => ({
-  'showCodeField': true,
-  'codeFieldLabel': '分类代码',
   'tooltipFields': [
     { 'key': 'code', 'label': '代码', 'type': 'code' },
     { 'key': 'title', 'label': '名称', 'type': 'text' }

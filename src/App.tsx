@@ -50,11 +50,6 @@ function updateMetaTags (meta: MetaTags): void {
   if (meta.image) {
     setMetaTag('meta[property="og:image"]', meta.image);
     setMetaTag('meta[name="twitter:image"]', meta.image);
-  } else {
-    const ogImage = document.querySelector('meta[property="og:image"]') as HTMLMetaElement | null;
-    const twitterImage = document.querySelector('meta[name="twitter:image"]') as HTMLMetaElement | null;
-    ogImage?.remove();
-    twitterImage?.remove();
   }
 }
 
@@ -202,8 +197,8 @@ function useMetaTags (): void {
       const subjectMatch = path.match(/^\/graphs\/subject-visualization\/(.+)$/);
       const subject = subjectMatch ? subjectMatch[1] : '';
       updateMetaTags({
-        'title': subject ? `主题可视化 - ${subject}` : '主题可视化',
-        'description': '探索知识图谱，发现主题关联',
+        'title': subject ? `分类可视化 - ${subject}` : '分类可视化',
+        'description': '探索分类体系，发现分类关联',
         'type': 'website'
       });
       return;
@@ -211,8 +206,8 @@ function useMetaTags (): void {
 
     if (path.startsWith('/graphs/')) {
       updateMetaTags({
-        'title': path.includes('/create') ? '创建图谱' : '知识图谱',
-        'description': '知识图谱可视化工具',
+        'title': path.includes('/create') ? '创建图' : '图',
+        'description': '图可视化工具',
         'type': 'website'
       });
       return;

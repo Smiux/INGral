@@ -17,8 +17,7 @@ export function getAvailableSubjects (): SubjectInfo[] {
     result.push({
       'key': subjectKey,
       'name': info.name,
-      'rootName': info.rootName,
-      'description': info.description
+      'rootName': info.rootName
     });
   });
   return result;

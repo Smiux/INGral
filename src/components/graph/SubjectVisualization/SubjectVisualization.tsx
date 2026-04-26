@@ -249,8 +249,6 @@ export default function SubjectVisualization () {
 
   const uiConfig = useMemo((): SubjectUIConfig => {
     return transformer ? transformer.getUIConfig() : {
-      'showCodeField': true,
-      'codeFieldLabel': '代码',
       'tooltipFields': [],
       'panelFields': [],
       'levelLabels': {}

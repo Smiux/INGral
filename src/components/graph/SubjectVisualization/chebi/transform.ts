@@ -40,13 +40,10 @@ const transformData = (): GraphData => {
 const getSubjectInfo = () => ({
   'key': 'chebi',
   'name': 'ChEBI',
-  'rootName': 'ChEBI',
-  'description': 'Chemical Entities of Biological Interest'
+  'rootName': 'ChEBI'
 });
 
 const getUIConfig = (): SubjectUIConfig => ({
-  'showCodeField': true,
-  'codeFieldLabel': 'CHEBI ID',
   'tooltipFields': [
     { 'key': 'title', 'label': '名称', 'type': 'text' }
   ],

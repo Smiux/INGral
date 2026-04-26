@@ -23,6 +23,7 @@ import {
 import { FootnotePanel } from './panels/Footnote';
 import { TocItem, TableOfContentsPanel } from './panels/TableOfContents';
 import { useTocUtils } from './utils/ToC';
+import { ConfirmDialog } from '@/components/ui';
 
 interface EditorState {
   title: string;
@@ -866,40 +867,15 @@ export const ArticleEditor: React.FC = () => {
         </div>
       </div>
 
-      {showClearConfirm && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                  <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200">清除文章</h3>
-                  <p className="text-sm text-neutral-500">此操作不可恢复</p>
-                </div>
-              </div>
-              <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-                确定要清除所有文章内容吗？
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setShowClearConfirm(false)}
-                  className="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-lg transition-colors"
-                >
-                  取消
-                </button>
-                <button
-                  onClick={confirmClearArticle}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
-                >
-                  确认清除
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        title="清除文章"
+        message="确定要清除所有文章内容吗？此操作不可恢复。"
+        confirmText="确认清除"
+        cancelText="取消"
+        onConfirm={confirmClearArticle}
+        onCancel={() => setShowClearConfirm(false)}
+      />
 
       <CollaborationPanel isOpen={showCollabPanel} onClose={() => setShowCollabPanel(false)} />
     </div>

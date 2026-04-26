@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Square, Pencil, Circle, RectangleHorizontal, MousePointer2 } from 'lucide-react';
+import { X, Square, Pencil, Circle, RectangleHorizontal } from 'lucide-react';
 import { useStore, useReactFlow } from '@xyflow/react';
 
 import { CustomNodeData } from '../Node';
@@ -329,20 +329,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
       </div>
     </div>
   );
-
-  if (!selectedNode && !selectedEdge) {
-    return (
-      <div className={panelClass}>
-        {renderHeader('编辑面板')}
-        <div className="flex-1 flex items-center justify-center text-neutral-500 dark:text-neutral-400">
-          <div className="text-center">
-            <MousePointer2 className="w-16 h-16 mx-auto mb-3 text-neutral-300 dark:text-neutral-600" />
-            <p className="text-sm">请选择一个节点或连接来编辑</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className={panelClass}>

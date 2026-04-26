@@ -1,6 +1,5 @@
 export interface SubjectNode {
   id: string;
-  name: string;
   level: string;
   parentId?: string;
   color: string;
@@ -27,7 +26,6 @@ export interface SubjectInfo {
   key: string;
   name: string;
   rootName: string;
-  description?: string | undefined;
 }
 
 export interface SelectedNode {
@@ -39,8 +37,6 @@ export interface SelectedNode {
 }
 
 export interface NodeExtraInfo {
-  broader?: string[];
-  narrower?: string[];
   related?: string[];
   inFacet?: string[];
   usedByDiscipline?: string[];
@@ -62,8 +58,6 @@ export interface PanelField {
 }
 
 export interface SubjectUIConfig {
-  showCodeField: boolean;
-  codeFieldLabel: string;
   tooltipFields: TooltipField[];
   panelFields: PanelField[];
   levelLabels: Record<string, string>;

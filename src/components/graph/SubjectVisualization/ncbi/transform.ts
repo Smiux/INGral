@@ -89,13 +89,10 @@ const transformData = (): GraphData => {
 const getSubjectInfo = () => ({
   'key': 'ncbi',
   'name': 'NCBI Taxonomy',
-  'rootName': 'NCBI Taxonomy',
-  'description': 'NCBI 生物分类数据库'
+  'rootName': 'NCBI Taxonomy'
 });
 
 const getUIConfig = (): SubjectUIConfig => ({
-  'showCodeField': true,
-  'codeFieldLabel': 'Taxonomy ID',
   'tooltipFields': [
     { 'key': 'title', 'label': '名称', 'type': 'text' }
   ],
