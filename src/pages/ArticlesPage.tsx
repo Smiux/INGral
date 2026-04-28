@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Tag, Layout, List, AlignJustify, ChevronLeft, ChevronRight, X, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Tag, Layout, List, AlignJustify, ChevronLeft, ChevronRight, X, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   getArticlesPaginated,
   getAllArticles,
@@ -956,14 +956,6 @@ export function ArticlesPage (): JSX.Element {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <Link
-        to="/"
-        className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 hover:text-neutral-700 dark:hover:text-neutral-300 mb-8 transition-all duration-200"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        返回首页
-      </Link>
-
       <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
         <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">所有文章</h1>
         <div className="flex items-center gap-4">

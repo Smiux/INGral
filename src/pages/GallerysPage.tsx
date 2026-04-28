@@ -1,10 +1,18 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, AlertCircle } from 'lucide-react';
+import { Plus, Search, AlertCircle, Trash2, Eye, CalendarDays, GitBranch } from 'lucide-react';
 import { getAllGallerys, deleteGallery } from '@/services/galleryService';
-import { GalleryCard } from '@/components/gallerys';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import type { GalleryListItem } from '@/components/gallerys/gallery';
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('zh-CN', {
+    'year': 'numeric',
+    'month': 'long',
+    'day': 'numeric'
+  });
+};
 
 export function GallerysPage () {
   const [gallerys, setGallerys] = useState<GalleryListItem[]>([]);
@@ -43,8 +51,7 @@ export function GallerysPage () {
   };
 
   const filteredGallerys = gallerys.filter((gallery) =>
-    gallery.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    gallery.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    gallery.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderContent = () => {
@@ -52,16 +59,48 @@ export function GallerysPage () {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredGallerys.map((gallery) => (
-            <GalleryCard
+            <Link
               key={gallery.id}
-              gallery={gallery}
-              onDelete={(id) => {
-                const target = gallerys.find((g) => g.id === id);
-                if (target) {
-                  setDeleteTarget(target);
-                }
-              }}
-            />
+              to={`/gallerys/${gallery.id}`}
+              className="block bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-300 group overflow-hidden"
+            >
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-1">
+                    {gallery.title}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDeleteTarget(gallery);
+                      }}
+                      className="p-1.5 text-neutral-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors"
+                      title="删除"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 text-sm text-neutral-500 dark:text-neutral-400">
+                  <div className="flex items-center gap-1.5">
+                    <GitBranch className="w-4 h-4" />
+                    <span>{gallery.nodeCount} 个节点</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Eye className="w-4 h-4" />
+                    <span>{gallery.edgeCount} 条连接</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-xs text-neutral-400 dark:text-neutral-500 mt-3">
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  <span>更新于 {formatDate(gallery.updatedAt)}</span>
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
       );

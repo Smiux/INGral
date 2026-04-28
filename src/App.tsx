@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { GallerysPage } from './pages/GallerysPage';
 import { GallerysEditPage } from './pages/GallerysEditPage';
+import { GalleryExplorePage } from './pages/GalleryExplorePage';
 import SubjectVisualization from './components/graph/SubjectVisualization';
 import { ArticleViewer, ArticleEditor } from './components/articles';
 import GraphVisualization from './components/graph/GraphVisualization';
@@ -180,7 +181,7 @@ function useMetaTags (): void {
       if (gallery) {
         updateMetaTags({
           'title': gallery.title,
-          'description': gallery.description || `浏览合集：${gallery.title}`,
+          'description': `浏览合集：${gallery.title}`,
           'type': 'website'
         });
       } else {
@@ -230,6 +231,7 @@ function AppContent () {
 
   const showHeader = pathname === '/' ||
     pathname === '/articles' ||
+    (pathname.startsWith('/articles/') && pathname !== '/articles/create' && !pathname.endsWith('/edit')) ||
     pathname === '/gallerys';
 
   return (
@@ -249,6 +251,7 @@ function AppContent () {
             <Route path="/gallerys" element={<GallerysPage />} />
             <Route path="/gallerys/create" element={<GallerysEditPage />} />
             <Route path="/gallerys/:galleryId" element={<GallerysEditPage />} />
+            <Route path="/gallerys/:galleryId/explore" element={<GalleryExplorePage />} />
             <Route path="/graphs/create" element={<GraphVisualization />} />
             <Route path="/graphs/subject-visualization" element={<SubjectVisualization />} />
             <Route path="/graphs/subject-visualization/:subject" element={<SubjectVisualization />} />

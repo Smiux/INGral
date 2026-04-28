@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -18,18 +18,18 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import type { GraphData, ArticleNodeData, ArticleEdgeData } from '@/components/gallerys/gallery';
-import { ArticleNode } from './Node';
-import { ArticleEdge } from './Edge';
+import type { ArticleNodeData, ArticleEdgeData, ArticleNode, ArticleEdge } from '@/components/gallerys/gallery';
+import { ArticleNode as ArticleNodeComponent } from './Node';
+import { ArticleEdge as ArticleEdgeComponent } from './Edge';
 import { ConnectionLine } from './ConnectionLine';
 import { useUndoRedo } from '@/components/graph/GraphVisualization/utils/useUndoRedo';
 
 const nodeTypes = {
-  'articleNode': ArticleNode
+  'articleNode': ArticleNodeComponent
 } as const as NodeTypes;
 
 const edgeTypes = {
-  'articleEdge': ArticleEdge
+  'articleEdge': ArticleEdgeComponent
 } as const as EdgeTypes;
 
 const defaultEdgeOptions: DefaultEdgeOptions = {
@@ -37,8 +37,9 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
 };
 
 interface VisualizationContentProps {
-  initialData?: GraphData;
-  onSave: (data: GraphData) => Promise<void>;
+  initialNodes?: ArticleNode[];
+  initialEdges?: ArticleEdge[];
+  onSave: (nodes: ArticleNode[], edges: ArticleEdge[]) => Promise<void>;
   onNodeClick?: (nodeId: string, data: ArticleNodeData) => void;
   onEdgeClick?: (edgeId: string, data: ArticleEdgeData) => void;
   readOnly?: boolean;
@@ -53,12 +54,14 @@ interface VisualizationContentProps {
     redo: () => void;
     delete: () => void;
     save: () => void;
-    addNode: (node: GraphData['nodes'][0]) => void;
+    addNode: (node: ArticleNode) => void;
+    updateNode: (nodeId: string, data: Partial<ArticleNodeData>) => void;
   }) => void;
 }
 
 const VisualizationContent = ({
-  initialData,
+  initialNodes,
+  initialEdges,
   onSave,
   onNodeClick,
   onEdgeClick,
@@ -67,31 +70,34 @@ const VisualizationContent = ({
   onActionsReady
 }: VisualizationContentProps) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(
-    (initialData?.nodes || []).map(n => ({
+    (initialNodes || []).map(n => ({
       ...n,
       'type': 'articleNode'
     })) as Node[]
   );
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(
-    (initialData?.edges || []).map(e => ({
+    (initialEdges || []).map(e => ({
       ...e,
-      'type': 'articleEdge'
+      'type': 'articleEdge',
+      'markerEnd': e.markerEnd || {
+        'type': 'arrowclosed',
+        'color': '#4ECDC4'
+      }
     })) as Edge[]
   );
   const { undo, redo, canUndo, canRedo, saveState } = useUndoRedo();
   const [isSaving, setIsSaving] = useState(false);
-  const lastSavedDataRef = useRef<string>('');
   const isInitializedRef = useRef(false);
 
-  const hasSelection = useMemo(() => {
+  const hasSelection = useState(() => {
     return nodes.some(node => node.selected) || edges.some(edge => edge.selected);
-  }, [nodes, edges]);
+  })[0];
 
   useEffect(() => {
     onStateChange?.({ canUndo, canRedo, hasSelection, isSaving });
   }, [canUndo, canRedo, hasSelection, isSaving, onStateChange]);
 
-  const handleAddNode = useCallback((node: GraphData['nodes'][0]) => {
+  const handleAddNode = useCallback((node: ArticleNode) => {
     const newNode = {
       ...node,
       'type': 'articleNode'
@@ -100,19 +106,26 @@ const VisualizationContent = ({
   }, [setNodes]);
 
   useEffect(() => {
-    if (!isInitializedRef.current && initialData) {
-      setNodes(initialData.nodes.map(n => ({
-        ...n,
-        'type': 'articleNode'
-      })) as Node[]);
-      setEdges(initialData.edges.map(e => ({
-        ...e,
-        'type': 'articleEdge'
-      })) as Edge[]);
-      lastSavedDataRef.current = JSON.stringify(initialData);
+    if (!isInitializedRef.current) {
+      if (initialNodes && initialNodes.length > 0) {
+        setNodes(initialNodes.map(n => ({
+          ...n,
+          'type': 'articleNode'
+        })) as Node[]);
+      }
+      if (initialEdges && initialEdges.length > 0) {
+        setEdges(initialEdges.map(e => ({
+          ...e,
+          'type': 'articleEdge',
+          'markerEnd': e.markerEnd || {
+            'type': 'arrowclosed',
+            'color': '#4ECDC4'
+          }
+        })) as Edge[]);
+      }
       isInitializedRef.current = true;
     }
-  }, [initialData, setNodes, setEdges]);
+  }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   useEffect(() => {
     if (!readOnly && nodes.length > 0 || edges.length > 0) {
@@ -175,25 +188,27 @@ const VisualizationContent = ({
   const handleSave = useCallback(async () => {
     setIsSaving(true);
     try {
-      const graphData: GraphData = {
-        'nodes': nodes.map(n => ({
-          'id': n.id,
-          'type': n.type ? n.type : undefined,
-          'position': n.position,
-          'data': n.data as ArticleNodeData,
-          'selected': n.selected ? n.selected : undefined
-        })),
-        'edges': edges.map(e => ({
-          'id': e.id,
-          'source': e.source,
-          'target': e.target,
-          'type': e.type ? e.type : undefined,
-          'data': e.data ? (e.data as ArticleEdgeData) : undefined,
-          'selected': e.selected ? e.selected : undefined
-        }))
-      };
-      await onSave(graphData);
-      lastSavedDataRef.current = JSON.stringify(graphData);
+      const savedNodes: ArticleNode[] = nodes.map(n => ({
+        'id': n.id,
+        'type': n.type,
+        'position': n.position,
+        'data': n.data as ArticleNodeData,
+        ...(n.selected !== undefined && { 'selected': n.selected })
+      })) as ArticleNode[];
+
+      const savedEdges: ArticleEdge[] = edges.map(e => ({
+        'id': e.id,
+        'source': e.source,
+        'target': e.target,
+        'type': e.type,
+        'data': e.data as ArticleEdgeData,
+        'markerEnd': e.markerEnd,
+        ...(e.sourceHandle !== undefined && { 'sourceHandle': e.sourceHandle }),
+        ...(e.targetHandle !== undefined && { 'targetHandle': e.targetHandle }),
+        ...(e.selected !== undefined && { 'selected': e.selected })
+      })) as ArticleEdge[];
+
+      await onSave(savedNodes, savedEdges);
     } finally {
       setIsSaving(false);
     }
@@ -220,15 +235,31 @@ const VisualizationContent = ({
     setEdges((eds) => eds.filter((edge) => !edge.selected));
   }, [setNodes, setEdges]);
 
+  const handleUpdateNode = useCallback((nodeId: string, data: Partial<ArticleNodeData>) => {
+    setNodes((nds) => nds.map((node) => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          'data': {
+            ...node.data,
+            ...data
+          } as ArticleNodeData
+        };
+      }
+      return node;
+    }));
+  }, [setNodes]);
+
   useEffect(() => {
     onActionsReady?.({
       'undo': handleUndo,
       'redo': handleRedo,
       'delete': handleDelete,
       'save': handleSave,
-      'addNode': handleAddNode
+      'addNode': handleAddNode,
+      'updateNode': handleUpdateNode
     });
-  }, [handleUndo, handleRedo, handleDelete, handleSave, handleAddNode, onActionsReady]);
+  }, [handleUndo, handleRedo, handleDelete, handleSave, handleAddNode, handleUpdateNode, onActionsReady]);
 
   useEffect(() => {
     if (readOnly) {

@@ -1,9 +1,28 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import htmlPlugin from 'vite-plugin-html-config';
 import { resolve } from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    htmlPlugin({
+      title: 'IN Gral',
+      metas: [
+        { name: 'description', content: 'IN Gral - 记录一切' },
+        { property: 'og:title', content: 'IN Gral' },
+        { property: 'og:description', content: 'IN Gral - 记录一切' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://ingral.netlify.app/' },
+        { property: 'og:image', content: 'https://ingral.netlify.app/og-image.png' },
+        { property: 'og:site_name', content: 'IN Gral' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'IN Gral' },
+        { name: 'twitter:description', content: 'IN Gral - 记录一切' },
+        { name: 'twitter:image', content: 'https://ingral.netlify.app/og-image.png' }
+      ]
+    })
+  ],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src')

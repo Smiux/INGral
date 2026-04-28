@@ -18,6 +18,7 @@ skills-lock.json
 .vscode/
 .trae/
 scripts/
+.kilocode/
 
 # Raw data files (original data sources)
 public/data/raw/

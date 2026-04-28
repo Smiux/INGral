@@ -1,22 +1,37 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, Trash2, Edit3, Tag, Download } from 'lucide-react';
-import { getArticleBySlug, deleteArticle, type ArticleWithContent } from '../../services/articleService';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { TiptapEditor } from './core/TipTap';
-import { FootnotePanel } from './panels/Footnote';
-import { TocItem, TableOfContentsPanel } from './panels/TableOfContents';
-import { useTocUtils } from './utils/ToC';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, CalendarDays, Tag, Download } from 'lucide-react';
+import { getGalleryById } from '@/services/galleryService';
+import { getArticleBySlug } from '@/services/articleService';
+import { TiptapEditor } from '@/components/articles/core/TipTap';
+import { FootnotePanel } from '@/components/articles/panels/Footnote';
+import { TocItem, TableOfContentsPanel } from '@/components/articles/panels/TableOfContents';
+import { useTocUtils } from '@/components/articles/utils/ToC';
+import { ExplorationNavigator } from '@/components/gallerys';
 import type { Editor } from '@tiptap/react';
+import type { EmbeddedArticle, ArticleNode } from '@/components/gallerys/gallery';
 
-export function ArticleViewer () {
-  const { slug } = useParams<{ slug: string }>();
+interface ArticleData {
+  title: string;
+  content: string;
+  summary?: string | null;
+  tags?: string[] | null;
+  coverImage?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  isEmbedded: boolean;
+}
+
+export function GalleryExplorePage () {
+  const { galleryId } = useParams<{ galleryId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [article, setArticle] = useState<ArticleWithContent | null>(null);
+
+  const articleSlug = searchParams.get('article');
+  const embeddedArticleId = searchParams.get('embedded');
+
+  const [article, setArticle] = useState<ArticleData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [editor, setEditor] = useState<Editor | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
@@ -29,22 +44,63 @@ export function ArticleViewer () {
   }, [toggleCollapsed]);
 
   useEffect(() => {
-    if (!slug) {
-      return;
-    }
-
     const loadArticle = async () => {
+      if (!galleryId || (!articleSlug && !embeddedArticleId)) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
-        const data = await getArticleBySlug(slug);
-        setArticle(data);
+        const gallery = await getGalleryById(galleryId);
+        if (!gallery) {
+          setIsLoading(false);
+          return;
+        }
+
+        if (embeddedArticleId) {
+          const embeddedArticle = gallery.embeddedArticles.find(
+            (a: EmbeddedArticle) => a.id === embeddedArticleId
+          );
+          if (embeddedArticle) {
+            setArticle({
+              'title': embeddedArticle.title,
+              'content': embeddedArticle.content,
+              'summary': embeddedArticle.summary || null,
+              'tags': embeddedArticle.tags || null,
+              'coverImage': embeddedArticle.coverImage || null,
+              'createdAt': embeddedArticle.createdAt,
+              'updatedAt': embeddedArticle.updatedAt,
+              'isEmbedded': true
+            });
+          }
+        } else if (articleSlug) {
+          const node = gallery.nodes.find(
+            (n: ArticleNode) => n.data.articleSlug === articleSlug && !n.data.isEmbedded
+          );
+          if (node && !node.data.isEmbedded) {
+            const existingArticle = await getArticleBySlug(articleSlug);
+            if (existingArticle) {
+              setArticle({
+                'title': existingArticle.title,
+                'content': existingArticle.content || '',
+                'summary': existingArticle.summary,
+                'tags': existingArticle.tags,
+                'coverImage': existingArticle.cover_image,
+                'createdAt': existingArticle.created_at,
+                'updatedAt': existingArticle.updated_at,
+                'isEmbedded': false
+              });
+            }
+          }
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     loadArticle();
-  }, [slug]);
+  }, [galleryId, articleSlug, embeddedArticleId]);
 
   const handleEditorReady = useCallback((editorInstance: Editor) => {
     setEditor(editorInstance);
@@ -52,114 +108,6 @@ export function ArticleViewer () {
 
   const handleTableOfContentsChange = useCallback((items: TocItem[]) => {
     setTableOfContentsItems(items);
-  }, []);
-
-  useEffect(() => {
-    if (!editor || !contentRef.current) {
-      return;
-    }
-
-    const highlightSearchMatches = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const query = urlParams.get('q');
-      const matchIndex = parseInt(urlParams.get('match') || '0', 10);
-
-      if (!query) {
-        return;
-      }
-
-      const editorContainer = contentRef.current?.querySelector('.ProseMirror');
-      const targetContainer = editorContainer || contentRef.current;
-      if (!targetContainer) {
-        return;
-      }
-
-      const highlightRegex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-      const walker = document.createTreeWalker(
-        targetContainer,
-        NodeFilter.SHOW_TEXT,
-        null
-      );
-      const textNodes: Text[] = [];
-      while (walker.nextNode()) {
-        textNodes.push(walker.currentNode as Text);
-      }
-
-      let currentMatchIndex = 0;
-
-      textNodes.forEach((textNode) => {
-        if (!textNode.textContent?.match(highlightRegex)) {
-          return;
-        }
-        const parent2 = textNode.parentNode as HTMLElement | null;
-        if (!parent2 || parent2.tagName === 'MARK') {
-          return;
-        }
-        const fragment = document.createDocumentFragment();
-        let lastIndex = 0;
-        const text = textNode.textContent || '';
-        let match: RegExpExecArray | null;
-        const regex = new RegExp(highlightRegex.source, 'gi');
-
-        while ((match = regex.exec(text)) !== null) {
-          if (match.index > lastIndex) {
-            fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
-          }
-          const mark = document.createElement('mark');
-          mark.className = 'bg-yellow-200 dark:bg-yellow-600 text-inherit rounded px-0.5';
-          mark.textContent = match[0];
-          mark.setAttribute('data-match-index', currentMatchIndex.toString());
-          fragment.appendChild(mark);
-          currentMatchIndex += 1;
-          lastIndex = regex.lastIndex;
-        }
-        if (lastIndex < text.length) {
-          fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
-        }
-        parent2.replaceChild(fragment, textNode);
-      });
-
-      setTimeout(() => {
-        const marks = targetContainer.querySelectorAll('mark[data-match-index]');
-        const targetMark = marks?.[matchIndex];
-        if (targetMark) {
-          targetMark.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
-        }
-      }, 100);
-    };
-
-    highlightSearchMatches();
-  }, [editor]);
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      if (hash !== '#content-match') {
-        return;
-      }
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const matchIndex = parseInt(urlParams.get('match') || '0', 10);
-
-      setTimeout(() => {
-        const editorContainer = contentRef.current?.querySelector('.ProseMirror');
-        const targetContainer = editorContainer || contentRef.current;
-        if (!targetContainer) {
-          return;
-        }
-        const marks = targetContainer.querySelectorAll('mark[data-match-index]');
-        const targetMark = marks?.[matchIndex];
-        if (targetMark) {
-          targetMark.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
-        }
-      }, 100);
-    };
-
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
   }, []);
 
   const handleTocClick = useCallback((itemId: string) => {
@@ -172,33 +120,6 @@ export function ArticleViewer () {
       });
     }
   }, []);
-
-  const handleDelete = async () => {
-    if (!article || isDeleting) {
-      return;
-    }
-
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!article || isDeleting) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      const success = await deleteArticle(article.id);
-      if (success) {
-        navigate('/articles');
-      } else {
-        setShowDeleteDialog(false);
-        setShowErrorDialog(true);
-      }
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   const handleExportHtml = () => {
     if (!article) {
@@ -219,8 +140,8 @@ export function ArticleViewer () {
       });
     };
 
-    const exportCreatedDate = formatDateForExport(article.created_at);
-    const exportUpdatedDate = formatDateForExport(article.updated_at);
+    const exportCreatedDate = formatDateForExport(article.createdAt);
+    const exportUpdatedDate = formatDateForExport(article.updatedAt);
 
     const htmlContent = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -343,11 +264,11 @@ export function ArticleViewer () {
         <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">文章未找到</h1>
         <p className="text-neutral-600 dark:text-neutral-400 mb-8">您访问的文章不存在。</p>
         <Link
-          to="/"
+          to="/gallerys"
           className="inline-flex items-center gap-2 bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-sky-600 transition"
         >
           <ArrowLeft className="w-4 h-4" />
-          返回首页
+          返回文章集列表
         </Link>
       </div>
     );
@@ -362,20 +283,19 @@ export function ArticleViewer () {
       'month': 'long',
       'day': 'numeric',
       'hour': '2-digit',
-      'minute': '2-digit',
-      'second': '2-digit'
+      'minute': '2-digit'
     });
   };
 
-  const createdDate = formatDate(article.created_at);
-  const updatedDate = formatDate(article.updated_at);
+  const createdDate = formatDate(article.createdAt);
+  const updatedDate = formatDate(article.updatedAt);
 
   return (
     <article className="max-w-7xl mx-auto px-4 py-8">
-      {article.cover_image && (
+      {article.coverImage && (
         <div className="mb-6 rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-700">
           <img
-            src={article.cover_image}
+            src={article.coverImage}
             alt={article.title}
             className="w-full h-auto object-cover max-h-[70vh]"
           />
@@ -385,7 +305,7 @@ export function ArticleViewer () {
       <div className="mb-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <h1 className="text-3xl md:text-4xl font-bold text-neutral-800 dark:text-neutral-100 min-w-0">{article.title}</h1>
-          <div className="flex items-center gap-2 flex-shrink-0 print:hidden">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={handleExportHtml}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
@@ -394,19 +314,11 @@ export function ArticleViewer () {
               导出HTML
             </button>
             <button
-              onClick={() => navigate(`/articles/${article.slug}/edit`)}
+              onClick={() => navigate(`/gallerys/${galleryId}`)}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
             >
-              <Edit3 className="w-4 h-4" />
-              编辑文章
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Trash2 className="w-4 h-4" />
-              {isDeleting ? '删除中...' : '删除文章'}
+              <ArrowLeft className="w-4 h-4" />
+              返回文章集
             </button>
           </div>
         </div>
@@ -453,15 +365,15 @@ export function ArticleViewer () {
         getChildIds={getChildIds}
         isItemCollapsed={isItemCollapsed}
         shouldShowItem={shouldShowItem}
-        containerClassName="hidden xl:block fixed left-4 top-[11rem] w-48 z-10 print:hidden"
-        collapsedButtonClassName="hidden xl:block fixed left-4 top-[11rem] z-10 print:hidden"
+        containerClassName="hidden xl:block fixed left-4 top-[11rem] w-48 z-10"
+        collapsedButtonClassName="hidden xl:block fixed left-4 top-[11rem] z-10"
       />
 
       <FootnotePanel
         editor={editor}
         editable={false}
-        containerClassName="hidden xl:block fixed right-4 top-[11rem] w-48 z-10 print:hidden"
-        collapsedButtonClassName="hidden xl:block fixed right-4 top-[11rem] z-10 print:hidden"
+        containerClassName="hidden xl:block fixed right-4 top-[11rem] w-48 z-10"
+        collapsedButtonClassName="hidden xl:block fixed right-4 top-[11rem] z-10"
       />
 
       <div className="flex-1 min-w-0" ref={contentRef}>
@@ -477,27 +389,7 @@ export function ArticleViewer () {
         </main>
       </div>
 
-      <ConfirmDialog
-        isOpen={showDeleteDialog}
-        title="删除文章"
-        message="确定要删除这篇文章吗？此操作不可撤销，文章将被永久删除。"
-        confirmText="删除"
-        cancelText="取消"
-        onConfirm={confirmDelete}
-        onCancel={() => setShowDeleteDialog(false)}
-        isLoading={isDeleting}
-        className="print:hidden"
-      />
-
-      <ConfirmDialog
-        isOpen={showErrorDialog}
-        title="删除失败"
-        message="删除文章失败，请稍后重试。"
-        confirmText="确定"
-        onConfirm={() => setShowErrorDialog(false)}
-        onCancel={() => setShowErrorDialog(false)}
-        className="print:hidden"
-      />
+      <ExplorationNavigator />
     </article>
   );
 }

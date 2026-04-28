@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
-import { X, ExternalLink, Play } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { X, ExternalLink, Play, Edit } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { getArticleBySlug, type ArticleWithContent } from '@/services/articleService';
 import { TiptapEditor } from '@/components/articles/core/TipTap';
-import type { ArticleNodeData } from '@/components/gallerys/gallery';
+import type { ArticleNodeData, EmbeddedArticle } from '@/components/gallerys/gallery';
 
 interface ArticlePreviewPanelProps {
   isOpen: boolean;
   onClose: () => void;
   articleData: ArticleNodeData | null;
   galleryId: string;
-  onExplore: () => void;
   showExplore?: boolean;
+  onEdit?: (() => void) | undefined;
+  embeddedArticles?: EmbeddedArticle[];
 }
 
 const LoadingContent = () => (
@@ -39,15 +40,41 @@ export const ArticlePreviewPanel = ({
   isOpen,
   onClose,
   articleData,
-  onExplore,
-  showExplore = true
+  galleryId,
+  showExplore = true,
+  onEdit,
+  embeddedArticles = []
 }: ArticlePreviewPanelProps) => {
+  const navigate = useNavigate();
   const [article, setArticle] = useState<ArticleWithContent | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const loadArticle = async () => {
-      if (!isOpen || !articleData?.articleSlug) {
+      if (!isOpen || !articleData) {
+        setArticle(null);
+        return;
+      }
+
+      if (articleData.isEmbedded && articleData.embeddedArticleId) {
+        const embeddedArticle = embeddedArticles.find(a => a.id === articleData.embeddedArticleId);
+        if (embeddedArticle) {
+          setArticle({
+            'id': embeddedArticle.id,
+            'title': embeddedArticle.title,
+            'slug': embeddedArticle.id,
+            'content': embeddedArticle.content,
+            'summary': embeddedArticle.summary || null,
+            'cover_image': embeddedArticle.coverImage || null,
+            'tags': embeddedArticle.tags || null,
+            'created_at': embeddedArticle.createdAt,
+            'updated_at': embeddedArticle.updatedAt
+          });
+        }
+        return;
+      }
+
+      if (!articleData.articleSlug) {
         setArticle(null);
         return;
       }
@@ -62,7 +89,19 @@ export const ArticlePreviewPanel = ({
     };
 
     loadArticle();
-  }, [isOpen, articleData?.articleSlug]);
+  }, [isOpen, articleData, embeddedArticles]);
+
+  const handleExplore = () => {
+    if (!articleData) {
+      return;
+    }
+
+    if (articleData.isEmbedded && articleData.embeddedArticleId) {
+      navigate(`/gallerys/${galleryId}/explore?embedded=${articleData.embeddedArticleId}`);
+    } else if (articleData.articleSlug) {
+      navigate(`/gallerys/${galleryId}/explore?article=${articleData.articleSlug}`);
+    }
+  };
 
   if (!isOpen || !articleData) {
     return null;
@@ -106,9 +145,19 @@ export const ArticlePreviewPanel = ({
 
         <div className="sticky bottom-0 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 p-4">
           <div className="flex items-center gap-3">
+            {articleData.isEmbedded && onEdit && (
+              <button
+                onClick={onEdit}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                <span>编辑</span>
+              </button>
+            )}
+
             {showExplore && (
               <button
-                onClick={onExplore}
+                onClick={handleExplore}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
               >
                 <Play className="w-4 h-4" />
@@ -116,15 +165,17 @@ export const ArticlePreviewPanel = ({
               </button>
             )}
 
-            <Link
-              to={`/articles/${articleData.articleSlug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center justify-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors ${showExplore ? 'flex-1' : 'w-full'}`}
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>在新页面中查看</span>
-            </Link>
+            {!articleData.isEmbedded && (
+              <Link
+                to={`/articles/${articleData.articleSlug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center justify-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors ${showExplore ? 'flex-1' : 'w-full'}`}
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>在新页面中查看</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

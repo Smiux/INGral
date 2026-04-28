@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Info, Trash2, Plus, Save, Undo2, Redo2, Archive } from 'lucide-react';
+import { ArrowLeft, Info, Trash2, Plus, Save, Undo2, Redo2, Archive, FileText, FilePlus, ChevronDown } from 'lucide-react';
 import { getGalleryById, createGallery, updateGallery, deleteGallery } from '@/services/galleryService';
 import { Visualization, ArticleSelector, ArticlePreviewPanel, GalleryInfoPanel } from '@/components/gallerys';
+import { SimpleEditor } from '@/components/gallerys/SimpleEditor';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import type { GraphData, ArticleNodeData } from '@/components/gallerys/gallery';
+import type { ArticleNodeData, EmbeddedArticle, ArticleNode, ArticleEdge } from '@/components/gallerys/gallery';
 
 interface VisualizationState {
   canUndo: boolean;
@@ -18,7 +19,8 @@ interface VisualizationActions {
   redo: () => void;
   delete: () => void;
   save: () => void;
-  addNode: (node: GraphData['nodes'][0]) => void;
+  addNode: (node: ArticleNode) => void;
+  updateNode: (nodeId: string, data: Partial<ArticleNodeData>) => void;
 }
 
 export function GallerysEditPage () {
@@ -27,14 +29,19 @@ export function GallerysEditPage () {
   const isEditMode = Boolean(galleryId && galleryId !== 'create');
 
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [graphData, setGraphData] = useState<GraphData>({ 'nodes': [], 'edges': [] });
+  const [nodes, setNodes] = useState<ArticleNode[]>([]);
+  const [edges, setEdges] = useState<ArticleEdge[]>([]);
+  const [embeddedArticles, setEmbeddedArticles] = useState<EmbeddedArticle[]>([]);
   const [isLoading, setIsLoading] = useState(isEditMode);
   const [showArticleSelector, setShowArticleSelector] = useState(false);
   const [previewArticle, setPreviewArticle] = useState<ArticleNodeData | null>(null);
   const [showPreviewPanel, setShowPreviewPanel] = useState(false);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showSimpleEditor, setShowSimpleEditor] = useState(false);
+  const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
+  const [editingArticle, setEditingArticle] = useState<EmbeddedArticle | null>(null);
 
   const [vizState, setVizState] = useState<VisualizationState>({
     'canUndo': false,
@@ -51,8 +58,9 @@ export function GallerysEditPage () {
       const gallery = await getGalleryById(id);
       if (gallery) {
         setTitle(gallery.title);
-        setDescription(gallery.description || '');
-        setGraphData(gallery.graphData);
+        setNodes(gallery.nodes || []);
+        setEdges(gallery.edges || []);
+        setEmbeddedArticles(gallery.embeddedArticles || []);
       } else {
         navigate('/gallerys');
       }
@@ -67,7 +75,7 @@ export function GallerysEditPage () {
     }
   }, [galleryId, isEditMode, loadGallery]);
 
-  const handleSave = useCallback(async (data: GraphData) => {
+  const handleSave = useCallback(async (savedNodes: ArticleNode[], savedEdges: ArticleEdge[]) => {
     if (!title.trim()) {
       return;
     }
@@ -75,18 +83,20 @@ export function GallerysEditPage () {
     if (isEditMode && galleryId) {
       await updateGallery(galleryId, {
         title,
-        description,
-        'graphData': data
+        'nodes': savedNodes,
+        'edges': savedEdges,
+        embeddedArticles
       });
     } else {
       const newId = await createGallery({
         title,
-        description,
-        'graphData': data
+        'nodes': savedNodes,
+        'edges': savedEdges,
+        embeddedArticles
       });
       navigate(`/gallerys/${newId}/edit`, { 'replace': true });
     }
-  }, [title, description, isEditMode, galleryId, navigate]);
+  }, [title, isEditMode, galleryId, navigate, embeddedArticles]);
 
   const handleDelete = useCallback(async () => {
     if (!galleryId || !isEditMode) {
@@ -109,12 +119,12 @@ export function GallerysEditPage () {
     summary: string | null;
     tags: string[] | null;
   }) => {
-    const existingSlugs = graphData.nodes.map(n => n.data.articleSlug);
+    const existingSlugs = nodes.map(n => n.data.articleSlug);
     if (existingSlugs.includes(article.slug)) {
       return;
     }
 
-    const newNode: GraphData['nodes'][0] = {
+    const newNode: ArticleNode = {
       'id': article.slug,
       'type': 'articleNode',
       'position': {
@@ -126,18 +136,90 @@ export function GallerysEditPage () {
         'articleTitle': article.title,
         'articleSummary': article.summary ?? undefined,
         'coverImage': article.cover_image,
-        'tags': article.tags,
-        'handleCount': 4,
-        'shape': 'rectangle'
+        'tags': article.tags
       }
     };
 
     vizActionsRef.current?.addNode(newNode);
-    setGraphData((prev) => ({
-      ...prev,
-      'nodes': [...prev.nodes, newNode]
-    }));
-  }, [graphData.nodes]);
+    setShowAddMenu(false);
+  }, [nodes]);
+
+  const handleCreateEmbeddedArticle = useCallback((article: Omit<EmbeddedArticle, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const id = `embedded-${Date.now()}`;
+    const now = new Date().toISOString();
+    const newArticle: EmbeddedArticle = {
+      ...article,
+      id,
+      'createdAt': now,
+      'updatedAt': now
+    };
+
+    setEmbeddedArticles((prev) => [...prev, newArticle]);
+
+    const newNode: ArticleNode = {
+      id,
+      'type': 'articleNode',
+      'position': {
+        'x': Math.random() * 400 + 100,
+        'y': Math.random() * 400 + 100
+      },
+      'data': {
+        'articleSlug': id,
+        'articleTitle': article.title,
+        'articleSummary': article.summary,
+        'coverImage': article.coverImage,
+        'tags': article.tags,
+        'isEmbedded': true,
+        'embeddedArticleId': id
+      }
+    };
+
+    vizActionsRef.current?.addNode(newNode);
+    setShowSimpleEditor(false);
+  }, []);
+
+  const handleEditEmbeddedArticle = useCallback((article: Omit<EmbeddedArticle, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!editingArticle) {
+      return;
+    }
+
+    const now = new Date().toISOString();
+    setEmbeddedArticles((prev) => prev.map(a =>
+      a.id === editingArticle.id
+        ? { ...a, ...article, 'updatedAt': now }
+        : a
+    ));
+
+    vizActionsRef.current?.updateNode(editingArticle.id, {
+      'articleTitle': article.title,
+      'articleSummary': article.summary,
+      'coverImage': article.coverImage,
+      'tags': article.tags
+    });
+
+    setShowSimpleEditor(false);
+    setEditingArticle(null);
+  }, [editingArticle]);
+
+  const handleOpenCreateEditor = useCallback(() => {
+    setEditorMode('create');
+    setEditingArticle(null);
+    setShowSimpleEditor(true);
+    setShowAddMenu(false);
+  }, []);
+
+  const handleOpenEditEditor = useCallback(() => {
+    if (!previewArticle?.embeddedArticleId) {
+      return;
+    }
+    const article = embeddedArticles.find(a => a.id === previewArticle.embeddedArticleId);
+    if (article) {
+      setEditorMode('edit');
+      setEditingArticle(article);
+      setShowSimpleEditor(true);
+      setShowPreviewPanel(false);
+    }
+  }, [previewArticle, embeddedArticles]);
 
   const handleNodeClick = useCallback((_nodeId: string, data: ArticleNodeData) => {
     setPreviewArticle(data);
@@ -146,12 +228,6 @@ export function GallerysEditPage () {
 
   const handleEdgeClick = useCallback(() => {
   }, []);
-
-  const handleExplore = useCallback(() => {
-    if (previewArticle && galleryId) {
-      navigate(`/articles/${previewArticle.articleSlug}?galleryId=${galleryId}&explorationMode=true`);
-    }
-  }, [previewArticle, galleryId, navigate]);
 
   const handleBack = useCallback(() => {
     navigate('/gallerys');
@@ -187,13 +263,46 @@ export function GallerysEditPage () {
           </button>
 
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => setShowArticleSelector(true)}
-              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              <span className="text-xs">添加节点</span>
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowAddMenu(!showAddMenu)}
+                className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-1">
+                  <Plus className="w-5 h-5" />
+                  <ChevronDown className={`w-3 h-3 transition-transform ${showAddMenu ? 'rotate-180' : ''}`} />
+                </div>
+                <span className="text-xs">添加节点</span>
+              </button>
+
+              {showAddMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowAddMenu(false)}
+                  />
+                  <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg z-20 overflow-hidden">
+                    <button
+                      onClick={() => {
+                        setShowArticleSelector(true);
+                        setShowAddMenu(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>从已有文章选择</span>
+                    </button>
+                    <button
+                      onClick={handleOpenCreateEditor}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors border-t border-neutral-200 dark:border-neutral-700"
+                    >
+                      <FilePlus className="w-4 h-4" />
+                      <span>创建文章</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
 
             <button
               onClick={() => vizActionsRef.current?.delete()}
@@ -258,7 +367,8 @@ export function GallerysEditPage () {
 
       <div className="flex-1 relative">
         <Visualization
-          initialData={graphData}
+          initialNodes={nodes}
+          initialEdges={edges}
           onSave={handleSave}
           onNodeClick={handleNodeClick}
           onEdgeClick={handleEdgeClick}
@@ -271,7 +381,7 @@ export function GallerysEditPage () {
         isOpen={showArticleSelector}
         onClose={() => setShowArticleSelector(false)}
         onSelect={handleAddArticle}
-        excludeSlugs={graphData.nodes.map(n => n.data.articleSlug)}
+        excludeSlugs={nodes.map(n => n.data.articleSlug)}
       />
 
       <ArticlePreviewPanel
@@ -279,17 +389,18 @@ export function GallerysEditPage () {
         onClose={() => setShowPreviewPanel(false)}
         articleData={previewArticle}
         galleryId={galleryId || ''}
-        onExplore={handleExplore}
         showExplore={isEditMode}
+        onEdit={previewArticle?.isEmbedded ? handleOpenEditEditor : undefined}
+        embeddedArticles={embeddedArticles}
       />
 
       <GalleryInfoPanel
         isOpen={showInfoPanel}
         onClose={() => setShowInfoPanel(false)}
         title={title}
-        description={description}
         onTitleChange={setTitle}
-        onDescriptionChange={setDescription}
+        nodes={nodes}
+        edges={edges}
       />
 
       <ConfirmDialog
@@ -300,6 +411,17 @@ export function GallerysEditPage () {
         cancelText="取消"
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
+      />
+
+      <SimpleEditor
+        isOpen={showSimpleEditor}
+        onClose={() => {
+          setShowSimpleEditor(false);
+          setEditingArticle(null);
+        }}
+        onSave={editorMode === 'create' ? handleCreateEmbeddedArticle : handleEditEmbeddedArticle}
+        initialData={editingArticle}
+        mode={editorMode}
       />
     </div>
   );

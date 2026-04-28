@@ -2,9 +2,11 @@ import { turso } from './tursoClient';
 import type {
   Gallery,
   GalleryListItem,
-  GraphData,
   CreateGalleryParams,
-  UpdateGalleryParams
+  UpdateGalleryParams,
+  EmbeddedArticle,
+  ArticleNode,
+  ArticleEdge
 } from '@/components/gallerys/gallery';
 
 const TABLE_NAME = 'gallerys';
@@ -28,21 +30,22 @@ function parseGallery (row: Record<string, unknown>): Gallery {
   return {
     'id': row.id as string,
     'title': row.title as string,
-    'description': (row.description as string | null) ?? undefined,
-    'graphData': JSON.parse(row.graph_data as string) as GraphData,
+    'nodes': row.nodes ? JSON.parse(row.nodes as string) as ArticleNode[] : [],
+    'edges': row.edges ? JSON.parse(row.edges as string) as ArticleEdge[] : [],
+    'embeddedArticles': row.embedded_articles ? JSON.parse(row.embedded_articles as string) as EmbeddedArticle[] : [],
     'createdAt': row.created_at as string,
     'updatedAt': row.updated_at as string
   };
 }
 
 function parseGalleryListItem (row: Record<string, unknown>): GalleryListItem {
-  const graphData = JSON.parse(row.graph_data as string) as GraphData;
+  const nodes = row.nodes ? JSON.parse(row.nodes as string) as ArticleNode[] : [];
+  const edges = row.edges ? JSON.parse(row.edges as string) as ArticleEdge[] : [];
   return {
     'id': row.id as string,
     'title': row.title as string,
-    'description': (row.description as string | null) ?? undefined,
-    'nodeCount': graphData.nodes.length,
-    'edgeCount': graphData.edges.length,
+    'nodeCount': nodes.length,
+    'edgeCount': edges.length,
     'createdAt': row.created_at as string,
     'updatedAt': row.updated_at as string
   };
@@ -93,11 +96,13 @@ export async function getGalleryById (id: string): Promise<Gallery | null> {
 
 export async function createGallery (params: CreateGalleryParams): Promise<string> {
   const id = crypto.randomUUID();
-  const graphData = params.graphData || { 'nodes': [], 'edges': [] };
+  const nodes = params.nodes || [];
+  const edges = params.edges || [];
+  const embeddedArticles = params.embeddedArticles || [];
 
   await turso.execute({
-    'sql': `INSERT INTO ${TABLE_NAME} (id, title, description, graph_data) VALUES (?, ?, ?, ?)`,
-    'args': [id, params.title, params.description ?? null, JSON.stringify(graphData)]
+    'sql': `INSERT INTO ${TABLE_NAME} (id, title, nodes, edges, embedded_articles) VALUES (?, ?, ?, ?, ?)`,
+    'args': [id, params.title, JSON.stringify(nodes), JSON.stringify(edges), JSON.stringify(embeddedArticles)]
   });
 
   return id;
@@ -112,14 +117,19 @@ export async function updateGallery (id: string, params: UpdateGalleryParams): P
     args.push(params.title);
   }
 
-  if (params.description !== undefined) {
-    updates.push('description = ?');
-    args.push(params.description ?? null);
+  if (params.nodes !== undefined) {
+    updates.push('nodes = ?');
+    args.push(JSON.stringify(params.nodes));
   }
 
-  if (params.graphData !== undefined) {
-    updates.push('graph_data = ?');
-    args.push(JSON.stringify(params.graphData));
+  if (params.edges !== undefined) {
+    updates.push('edges = ?');
+    args.push(JSON.stringify(params.edges));
+  }
+
+  if (params.embeddedArticles !== undefined) {
+    updates.push('embedded_articles = ?');
+    args.push(JSON.stringify(params.embeddedArticles));
   }
 
   if (updates.length === 0) {
