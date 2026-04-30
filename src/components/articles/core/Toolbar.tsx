@@ -1,4 +1,4 @@
-import React, { useCallback, memo } from 'react';
+import React, { useCallback, memo, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import {
   Bold, Italic, Code, List, Heading1,
@@ -35,20 +35,29 @@ interface ToolbarButtonProps {
   label: string;
   onClick: () => void;
   showMenu?: boolean;
+  isActive?: boolean;
 }
 
-const ToolbarButton: React.FC<ToolbarButtonProps> = memo(({ icon, label, onClick, showMenu }) => (
+const ToolbarButton: React.FC<ToolbarButtonProps> = memo(({ icon, label, onClick, showMenu, isActive }) => (
   <button
     onClick={onClick}
-    className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16"
+    className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
+      isActive
+        ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
+        : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+    }`}
   >
     <div className="flex items-center gap-1">
       {icon}
       {showMenu !== undefined && (
-        <ChevronDown className={`w-4 h-4 text-neutral-600 dark:text-neutral-400 transition-transform duration-200 ${showMenu ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${
+          isActive ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+        } ${showMenu ? 'rotate-180' : ''}`} />
       )}
     </div>
-    <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">{label}</span>
+    <span className={`text-xs mt-1 ${
+      isActive ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+    }`}>{label}</span>
   </button>
 ));
 
@@ -145,11 +154,14 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
   onIframeClick,
   onFootnoteClick
 }) => {
+  const [key, setKey] = useState(0);
+
   const runEditorCommand = useCallback((command: (chain: ReturnType<Editor['chain']>) => void) => {
     if (!editor) {
       return;
     }
     command(editor.chain().focus());
+    setKey(prev => prev + 1);
   }, [editor]);
 
   const toggleHighlight = useCallback(() => {
@@ -158,24 +170,30 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
     }
     const hasHighlight = editor.getAttributes('textStyle').backgroundColor === '#ffff00';
     if (hasHighlight) {
-      runEditorCommand(c => c.unsetBackgroundColor().run());
+      editor.chain().focus()
+        .unsetBackgroundColor()
+        .run();
     } else {
-      runEditorCommand(c => c.setBackgroundColor('#ffff00').run());
+      editor.chain().focus()
+        .setBackgroundColor('#ffff00')
+        .run();
     }
-  }, [editor, runEditorCommand]);
+    setKey(prev => prev + 1);
+  }, [editor]);
 
   if (!editor) {
     return null;
   }
 
   return (
-    <div className="mb-2 p-2 bg-white dark:bg-neutral-800 rounded-t-lg border border-neutral-200 dark:border-neutral-700 border-b-0">
+    <div key={key} className="mb-2 p-2 bg-white dark:bg-neutral-800 rounded-t-lg border border-neutral-200 dark:border-neutral-700 border-b-0">
       <div className="flex flex-wrap items-center gap-1">
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<Heading1 size={16} className="text-neutral-600 dark:text-neutral-400" />}
+            icon={<Heading1 size={16} className={editor.isActive('heading') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'} />}
             label="标题"
             showMenu={activeMenu === 'heading'}
+            isActive={editor.isActive('heading')}
             onClick={() => setActiveMenu(activeMenu === 'heading' ? null : 'heading')}
           />
           <DropdownMenu isOpen={activeMenu === 'heading'}>
@@ -186,7 +204,11 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
                   runEditorCommand(c => c.toggleHeading({ 'level': level as 1 | 2 | 3 }).run());
                   setActiveMenu(null);
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                className={`block w-full text-left px-4 py-2 text-sm ${
+                  editor.isActive('heading', { level })
+                    ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
+                    : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                }`}
               >
                 {getHeadingLabel(level)}
               </button>
@@ -196,59 +218,132 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
 
         <span className="w-px h-12 bg-neutral-300 dark:bg-neutral-600 mx-1" />
 
-        <button onClick={() => runEditorCommand(c => c.toggleBold().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
-          <Bold size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
-          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">粗体</span>
+        <button
+          onClick={() => runEditorCommand(c => c.toggleBold().run())}
+          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
+            editor.isActive('bold') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <Bold size={16} className={editor.isActive('bold') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
+          <span className={`text-xs mt-1 ${
+            editor.isActive('bold') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+          }`}>粗体</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleItalic().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
-          <Italic size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
-          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">斜体</span>
+        <button
+          onClick={() => runEditorCommand(c => c.toggleItalic().run())}
+          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
+            editor.isActive('italic') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <Italic size={16} className={editor.isActive('italic') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
+          <span className={`text-xs mt-1 ${
+            editor.isActive('italic') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+          }`}>斜体</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleStrike().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
-          <Strikethrough size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
-          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">删除线</span>
+        <button
+          onClick={() => runEditorCommand(c => c.toggleStrike().run())}
+          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
+            editor.isActive('strike') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <Strikethrough size={16} className={editor.isActive('strike') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
+          <span className={`text-xs mt-1 ${
+            editor.isActive('strike') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+          }`}>删除线</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleUnderline().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
-          <UnderlineIcon size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
-          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">下划线</span>
+        <button
+          onClick={() => runEditorCommand(c => c.toggleUnderline().run())}
+          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
+            editor.isActive('underline') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <UnderlineIcon size={16} className={editor.isActive('underline') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
+          <span className={`text-xs mt-1 ${
+            editor.isActive('underline') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+          }`}>下划线</span>
         </button>
-        <button onClick={toggleHighlight} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
-          <Highlighter size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
-          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">高亮</span>
+        <button
+          onClick={toggleHighlight}
+          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
+            editor.getAttributes('textStyle').backgroundColor === '#ffff00' ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <Highlighter size={16} className={editor.getAttributes('textStyle').backgroundColor === '#ffff00' ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
+          <span className={`text-xs mt-1 ${
+            editor.getAttributes('textStyle').backgroundColor === '#ffff00' ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+          }`}>高亮</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleCode().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
-          <Code size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
-          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">行内代码</span>
+        <button
+          onClick={() => runEditorCommand(c => c.toggleCode().run())}
+          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
+            editor.isActive('code') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <Code size={16} className={editor.isActive('code') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
+          <span className={`text-xs mt-1 ${
+            editor.isActive('code') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+          }`}>行内代码</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleSubscript().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
-          <Subscript size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
-          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">下标</span>
+        <button
+          onClick={() => runEditorCommand(c => c.toggleSubscript().run())}
+          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
+            editor.isActive('subscript') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <Subscript size={16} className={editor.isActive('subscript') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
+          <span className={`text-xs mt-1 ${
+            editor.isActive('subscript') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+          }`}>下标</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleSuperscript().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200 w-16">
-          <Superscript size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
-          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">上标</span>
+        <button
+          onClick={() => runEditorCommand(c => c.toggleSuperscript().run())}
+          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
+            editor.isActive('superscript') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <Superscript size={16} className={editor.isActive('superscript') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
+          <span className={`text-xs mt-1 ${
+            editor.isActive('superscript') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+          }`}>上标</span>
         </button>
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<AlignLeft size={16} className="text-neutral-600 dark:text-neutral-400" />}
+            icon={<AlignLeft size={16} className={editor.isActive('textStyle', { 'textAlign': 'center' }) || editor.isActive('textStyle', { 'textAlign': 'right' }) || editor.isActive('textStyle', { 'textAlign': 'justify' }) ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'} />}
             label="对齐"
             showMenu={activeMenu === 'align'}
+            isActive={editor.isActive('textStyle', { 'textAlign': 'center' }) || editor.isActive('textStyle', { 'textAlign': 'right' }) || editor.isActive('textStyle', { 'textAlign': 'justify' })}
             onClick={() => setActiveMenu(activeMenu === 'align' ? null : 'align')}
           />
           <DropdownMenu isOpen={activeMenu === 'align'} width="w-32">
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('left').run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">左对齐</button>
+            }} className={`block w-full text-left px-4 py-2 text-sm ${
+              !editor.isActive('textStyle', { 'textAlign': 'center' }) && !editor.isActive('textStyle', { 'textAlign': 'right' }) && !editor.isActive('textStyle', { 'textAlign': 'justify' })
+                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
+                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+            }`}>左对齐</button>
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('center').run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">居中对齐</button>
+            }} className={`block w-full text-left px-4 py-2 text-sm ${
+              editor.isActive('textStyle', { 'textAlign': 'center' })
+                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
+                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+            }`}>居中对齐</button>
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('right').run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">右对齐</button>
+            }} className={`block w-full text-left px-4 py-2 text-sm ${
+              editor.isActive('textStyle', { 'textAlign': 'right' })
+                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
+                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+            }`}>右对齐</button>
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('justify').run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">两端对齐</button>
+            }} className={`block w-full text-left px-4 py-2 text-sm ${
+              editor.isActive('textStyle', { 'textAlign': 'justify' })
+                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
+                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+            }`}>两端对齐</button>
           </DropdownMenu>
         </div>
 
@@ -352,18 +447,27 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<List size={16} className="text-neutral-600 dark:text-neutral-400" />}
+            icon={<List size={16} className={editor.isActive('bulletList') || editor.isActive('orderedList') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'} />}
             label="列表"
             showMenu={activeMenu === 'list'}
+            isActive={editor.isActive('bulletList') || editor.isActive('orderedList')}
             onClick={() => setActiveMenu(activeMenu === 'list' ? null : 'list')}
           />
           <DropdownMenu isOpen={activeMenu === 'list'}>
             <button onClick={() => {
               runEditorCommand(c => c.toggleBulletList().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">无序列表</button>
+            }} className={`block w-full text-left px-4 py-2 text-sm ${
+              editor.isActive('bulletList')
+                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
+                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+            }`}>无序列表</button>
             <button onClick={() => {
               runEditorCommand(c => c.toggleOrderedList().run()); setActiveMenu(null);
-            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">有序列表</button>
+            }} className={`block w-full text-left px-4 py-2 text-sm ${
+              editor.isActive('orderedList')
+                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
+                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+            }`}>有序列表</button>
           </DropdownMenu>
         </div>
 
@@ -384,17 +488,31 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           </DropdownMenu>
         </div>
 
-        <button onClick={() => runEditorCommand(c => c.toggleBlockquote().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
-          <Quote size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
-          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">引用</span>
+        <button
+          onClick={() => runEditorCommand(c => c.toggleBlockquote().run())}
+          className={`flex flex-col items-center justify-center p-2 rounded transition-all w-16 ${
+            editor.isActive('blockquote') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <Quote size={16} className={editor.isActive('blockquote') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
+          <span className={`text-xs mt-1 ${
+            editor.isActive('blockquote') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+          }`}>引用</span>
         </button>
         <button onClick={() => runEditorCommand(c => c.setHorizontalRule().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
           <Minus size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
           <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">水平线</span>
         </button>
-        <button onClick={() => runEditorCommand(c => c.toggleCodeBlock().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
-          <CodeSquare size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
-          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">代码块</span>
+        <button
+          onClick={() => runEditorCommand(c => c.toggleCodeBlock().run())}
+          className={`flex flex-col items-center justify-center p-2 rounded transition-all w-16 ${
+            editor.isActive('codeBlock') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <CodeSquare size={16} className={editor.isActive('codeBlock') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
+          <span className={`text-xs mt-1 ${
+            editor.isActive('codeBlock') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
+          }`}>代码块</span>
         </button>
 
         <button onClick={() => runEditorCommand(c => c.insertCollapsible().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">

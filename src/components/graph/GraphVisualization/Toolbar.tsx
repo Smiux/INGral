@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch, Users, Wifi, Loader2, RefreshCw, Trash2 } from 'lucide-react';
+import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch, Trash2 } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
-import { useCollaboration, CollaborationPanel } from '../../collaboration';
 
 interface ToolbarProps {
   onAddNode: () => void;
@@ -125,8 +124,6 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
     'tools': false,
     'view': false
   });
-  const [showCollabPanel, setShowCollabPanel] = useState(false);
-  const { isConnected, isConnecting, connectionStatus } = useCollaboration();
 
   const toggleGroup = useCallback((group: 'edit' | 'tools' | 'view') => {
     setCollapsedGroups(prev => ({ ...prev, [group]: !prev[group] }));
@@ -160,19 +157,6 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
       document.documentElement.requestFullscreen();
     }
   }, []);
-
-  const getCollabStatusIcon = () => {
-    if (connectionStatus === 'reconnecting') {
-      return <RefreshCw size={16} className="animate-spin text-orange-500" />;
-    }
-    if (isConnecting) {
-      return <Loader2 size={16} className="animate-spin text-sky-400" />;
-    }
-    if (isConnected) {
-      return <Wifi size={16} className="text-green-500" />;
-    }
-    return <Users size={16} className="text-sky-400" />;
-  };
 
   return (
     <>
@@ -306,19 +290,7 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
             />
           ))}
         </div>
-
-        <div className="flex items-center bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
-          <button
-            onClick={() => setShowCollabPanel(true)}
-            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-md transition-all min-w-[60px] hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400"
-          >
-            {getCollabStatusIcon()}
-            <span className="text-xs whitespace-nowrap">协作</span>
-          </button>
-        </div>
       </div>
-
-      <CollaborationPanel isOpen={showCollabPanel} onClose={() => setShowCollabPanel(false)} />
     </>
   );
 });

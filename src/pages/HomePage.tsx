@@ -51,7 +51,7 @@ export function HomePage () {
   };
 
   return (
-    <div className="relative h-[calc(100vh-64px)] overflow-hidden">
+    <div className="relative h-screen overflow-hidden">
       <div
         ref={containerRef}
         className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"

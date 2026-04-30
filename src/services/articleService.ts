@@ -357,28 +357,6 @@ export async function updateArticle ({
   return article;
 }
 
-export async function updateArticleCover (articleId: string, coverImage: string | null): Promise<boolean> {
-  const result = await turso.execute({
-    'sql': `UPDATE ${TABLE_NAME} SET cover_image = ? WHERE id = ?`,
-    'args': [coverImage, articleId]
-  });
-
-  invalidateArticleCache();
-
-  return result.rowsAffected > 0;
-}
-
-export async function updateArticleSummary (articleId: string, summary: string | null): Promise<boolean> {
-  const result = await turso.execute({
-    'sql': `UPDATE ${TABLE_NAME} SET summary = ? WHERE id = ?`,
-    'args': [summary, articleId]
-  });
-
-  invalidateArticleCache();
-
-  return result.rowsAffected > 0;
-}
-
 export async function deleteArticle (articleId: string): Promise<boolean> {
   const result = await turso.execute({
     'sql': `DELETE FROM ${TABLE_NAME} WHERE id = ?`,
@@ -390,21 +368,3 @@ export async function deleteArticle (articleId: string): Promise<boolean> {
   return result.rowsAffected > 0;
 }
 
-export function getCoverImageUrl (coverImage: string | null | undefined): string | null {
-  if (!coverImage) {
-    return null;
-  }
-  if (coverImage.startsWith('data:')) {
-    return coverImage;
-  }
-  return coverImage;
-}
-
-export async function fileToBase64 (file: File | Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}

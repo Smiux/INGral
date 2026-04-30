@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { NavigatorTrigger } from '@/components/ui/Navigator';
 import { createArticle, getArticleBySlug, updateArticle } from '../../services/articleService';
 import { LatexEditor } from './managers/Latex';
 import { TiptapEditor, TiptapEditorRef, type CollaborationProvider } from './core/TipTap';
@@ -7,8 +8,7 @@ import { EditorToolbar } from './core/Toolbar';
 import { DraftManager } from './managers/Draft';
 import { CoverManager } from './managers/Cover';
 import {
-  useCollaboration,
-  CollaborationPanel
+  useCollaboration
 } from '../collaboration';
 import { useArticleMetadata } from '../collaboration/internal/useArticleMetadata';
 
@@ -17,7 +17,14 @@ import type { Editor } from '@tiptap/react';
 import {
   Save,
   MessageCircle,
-  FileText, FolderOpen, Image, ChevronDown, ChevronUp, Plus, X, Tag, Users, Wifi, Loader2, RefreshCw,
+  FileText,
+  FolderOpen,
+  Image,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  X,
+  Tag,
   Trash2
 } from 'lucide-react';
 import { FootnotePanel } from './panels/Footnote';
@@ -93,7 +100,6 @@ export const ArticleEditor: React.FC = () => {
 
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState('');
-  const [showCollabPanel, setShowCollabPanel] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const articleLoadedRef = useRef(false);
@@ -432,19 +438,6 @@ export const ArticleEditor: React.FC = () => {
     return undefined;
   }, [collaboration.isConnected, collaboration.doc, collaboration.provider, collaboration.userName, collaboration.userColor, collaboration.roomId, collaboration.articleMetadata]);
 
-  const getCollabStatusIcon = useCallback(() => {
-    if (collaboration.connectionStatus === 'reconnecting') {
-      return <RefreshCw size={16} className="mr-2 text-orange-500 animate-spin" />;
-    }
-    if (collaboration.isConnecting) {
-      return <Loader2 size={16} className="mr-2 text-sky-400 animate-spin" />;
-    }
-    if (collaboration.isConnected) {
-      return <Wifi size={16} className="mr-2 text-green-500" />;
-    }
-    return <Users size={16} className="mr-2 text-sky-400" />;
-  }, [collaboration.connectionStatus, collaboration.isConnecting, collaboration.isConnected]);
-
   return (
     <div className="min-h-screen">
       {isLoadingArticle && (
@@ -642,18 +635,9 @@ export const ArticleEditor: React.FC = () => {
       <header className="sticky top-0 left-0 right-0 z-50 bg-white dark:bg-neutral-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <button onClick={() => navigate('/')} className="flex items-center gap-2 p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
-              <span className="font-bold text-xl tracking-tight text-neutral-800 dark:text-neutral-200">IN Gral</span>
-            </button>
+            <NavigatorTrigger />
 
             <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setShowCollabPanel(true)}
-                className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
-              >
-                {getCollabStatusIcon()}
-                协作
-              </button>
               <button
                 onClick={handleOpenCoverManager}
                 className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
@@ -862,6 +846,10 @@ export const ArticleEditor: React.FC = () => {
               onTableOfContentsChange={handleTableOfContentsChange}
               onEditorReady={handleEditorReady}
               collaboration={collaborationConfig}
+              onLinkClick={handleLink}
+              onMathClick={handleMathClick}
+              onIframeClick={handleIframe}
+              onFootnoteClick={handleFootnoteClick}
             />
           </div>
         </div>
@@ -876,8 +864,6 @@ export const ArticleEditor: React.FC = () => {
         onConfirm={confirmClearArticle}
         onCancel={() => setShowClearConfirm(false)}
       />
-
-      <CollaborationPanel isOpen={showCollabPanel} onClose={() => setShowCollabPanel(false)} />
     </div>
   );
 };

@@ -10,7 +10,3 @@ export const useCollaboration = (): CollaborationContextValue => {
   }
   return context;
 };
-
-export const useCollaborationOptional = (): CollaborationContextValue | null => {
-  return useContext(CollaborationContext);
-};

@@ -54,7 +54,7 @@ export const GalleryInfoPanel = ({
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-neutral-500" />
             <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200">
-              文章集信息
+              地图信息
             </h2>
           </div>
           <button
@@ -74,7 +74,7 @@ export const GalleryInfoPanel = ({
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              placeholder="输入文章集标题"
+              placeholder="输入地图标题"
               className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200 placeholder-neutral-400"
             />
           </div>

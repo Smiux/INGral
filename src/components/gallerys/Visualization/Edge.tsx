@@ -17,6 +17,8 @@ const PATH_GENERATORS = {
   'default': getBezierPath
 } as const;
 
+const INTERACTION_WIDTH = 20;
+
 export const ArticleEdge = memo(({
   id,
   sourceX,
@@ -67,7 +69,7 @@ export const ArticleEdge = memo(({
 
   const handleLabelClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    setEditValue(edgeData?.relationshipType || '');
+    setEditValue(edgeData?.relationshipType ?? '');
     setIsEditing(true);
   }, [edgeData?.relationshipType]);
 
@@ -88,8 +90,17 @@ export const ArticleEdge = memo(({
     }
   }, [handleInputBlur]);
 
+  const shouldShowLabel = edgeData?.relationshipType !== '' || selected;
+
   return (
     <>
+      <path
+        className="react-flow__edge-interaction"
+        d={edgePath}
+        fill="none"
+        stroke="transparent"
+        strokeWidth={INTERACTION_WIDTH}
+      />
       <path
         id={id}
         d={edgePath}
@@ -117,24 +128,27 @@ export const ArticleEdge = memo(({
               onBlur={handleInputBlur}
               onKeyDown={handleInputKeyDown}
               autoFocus
+              placeholder="输入标签"
               className="px-2 py-1 text-xs font-medium rounded border-2 border-sky-500 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 focus:outline-none min-w-[60px]"
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
-            <div
-              className={`
-                px-2 py-1 rounded text-xs font-medium
-                bg-white dark:bg-neutral-800
-                border border-neutral-200 dark:border-neutral-700
-                pointer-events-auto cursor-pointer
-                hover:border-sky-300 dark:hover:border-sky-600
-                transition-colors
-                ${selected ? 'text-sky-600 dark:text-sky-400 border-sky-300 dark:border-sky-600' : 'text-neutral-600 dark:text-neutral-400'}
-              `}
-              onClick={handleLabelClick}
-            >
-              {edgeData?.relationshipType || '默认'}
-            </div>
+            shouldShowLabel && (
+              <div
+                className={`
+                  px-2 py-1 rounded text-xs font-medium
+                  bg-white dark:bg-neutral-800
+                  border border-neutral-200 dark:border-neutral-700
+                  pointer-events-auto cursor-pointer
+                  hover:border-sky-300 dark:hover:border-sky-600
+                  transition-colors
+                  ${selected ? 'text-sky-600 dark:text-sky-400 border-sky-300 dark:border-sky-600' : 'text-neutral-600 dark:text-neutral-400'}
+                `}
+                onClick={handleLabelClick}
+              >
+                {edgeData?.relationshipType || '默认'}
+              </div>
+            )
           )}
         </div>
       </EdgeLabelRenderer>

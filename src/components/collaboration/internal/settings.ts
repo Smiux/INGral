@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { getRandomColor } from '../types';
 
 const STORAGE_KEY_USER_ID = 'collaboration_user_id';
 const STORAGE_KEY_USER_NAME = 'collaboration_user_name';
@@ -19,6 +18,13 @@ function generateUserId (): string {
   return `${timestamp}-${randomPart}-${perfPart}`;
 }
 
+function generateRandomColor (): string {
+  const hue = Math.floor(Math.random() * 360);
+  const saturation = 65 + Math.floor(Math.random() * 20);
+  const lightness = 45 + Math.floor(Math.random() * 10);
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
 interface CollaborationSettings {
   userId: string;
   userName: string;
@@ -34,7 +40,7 @@ export function useCollaborationSettings () {
     return {
       'userId': savedUserId || generateUserId(),
       'userName': savedUserName || `用户${Math.floor(Math.random() * 10000)}`,
-      'userColor': savedUserColor || getRandomColor()
+      'userColor': savedUserColor || generateRandomColor()
     };
   });
 
@@ -52,22 +58,11 @@ export function useCollaborationSettings () {
     setSettings((prev) => ({ ...prev, 'userColor': color }));
   }, []);
 
-  const resetUserName = useCallback(() => {
-    const newName = `用户${Math.floor(Math.random() * 10000)}`;
-    setSettings((prev) => ({ ...prev, 'userName': newName }));
-  }, []);
-
-  const resetUserColor = useCallback(() => {
-    setSettings((prev) => ({ ...prev, 'userColor': getRandomColor() }));
-  }, []);
-
   return {
     'userId': settings.userId,
     'userName': settings.userName,
     'userColor': settings.userColor,
     setUserName,
-    setUserColor,
-    resetUserName,
-    resetUserColor
+    setUserColor
   };
 }

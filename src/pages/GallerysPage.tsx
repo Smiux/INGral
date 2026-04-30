@@ -111,7 +111,7 @@ export function GallerysPage () {
         <div className="text-center py-16">
           <AlertCircle className="w-16 h-16 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-neutral-600 dark:text-neutral-400 mb-2">
-            未找到匹配的文章集
+            未找到匹配的地图
           </h3>
           <p className="text-neutral-500 dark:text-neutral-500">
             尝试使用其他关键词搜索
@@ -126,14 +126,14 @@ export function GallerysPage () {
           <AlertCircle className="w-12 h-12 text-neutral-300 dark:text-neutral-600" />
         </div>
         <h3 className="text-xl font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-          暂无文章集
+          暂无地图
         </h3>
         <Link
           to="/gallerys/create"
           className="inline-flex items-center gap-2 bg-sky-50 dark:bg-sky-950/30 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 px-6 py-2 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-200 transform hover:scale-105 font-medium"
         >
           <Plus className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-          <span>创建文章集</span>
+          <span>创建地图</span>
         </Link>
       </div>
     );
@@ -149,15 +149,15 @@ export function GallerysPage () {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200 mb-2">
-              文章集
+              地图
             </h1>
             <p className="text-neutral-600 dark:text-neutral-400">
-              在这个没有灯塔的时代，当自己的测绘员
+              不会画画
             </p>
           </div>
 
@@ -166,7 +166,7 @@ export function GallerysPage () {
             className="flex items-center gap-2 bg-sky-50 dark:bg-sky-950/30 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 px-6 py-2 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-200 transform hover:scale-105 font-medium"
           >
             <Plus className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-            <span>创建文章集</span>
+            <span>创建地图</span>
           </Link>
         </div>
 
@@ -174,7 +174,7 @@ export function GallerysPage () {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
           <input
             type="text"
-            placeholder="搜索文章集..."
+            placeholder="搜索地图..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
@@ -186,8 +186,8 @@ export function GallerysPage () {
 
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}
-        title="删除文章集"
-        message={`确定要删除文章集"${deleteTarget?.title}"吗？此操作无法撤销。`}
+        title="删除地图"
+        message={`确定要删除地图"${deleteTarget?.title}"吗？此操作无法撤销。`}
         confirmText="删除"
         cancelText="取消"
         onConfirm={handleDelete}

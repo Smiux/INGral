@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -13,7 +13,6 @@ import {
   type Edge,
   type NodeTypes,
   type EdgeTypes,
-  type DefaultEdgeOptions,
   ConnectionMode
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -31,10 +30,6 @@ const nodeTypes = {
 const edgeTypes = {
   'articleEdge': ArticleEdgeComponent
 } as const as EdgeTypes;
-
-const defaultEdgeOptions: DefaultEdgeOptions = {
-  'interactionWidth': 30
-};
 
 interface VisualizationContentProps {
   initialNodes?: ArticleNode[];
@@ -56,6 +51,9 @@ interface VisualizationContentProps {
     save: () => void;
     addNode: (node: ArticleNode) => void;
     updateNode: (nodeId: string, data: Partial<ArticleNodeData>) => void;
+    getNodes: () => ArticleNode[];
+    getEdges: () => ArticleEdge[];
+    applyLayout: (nodes: ArticleNode[], edges: ArticleEdge[]) => void;
   }) => void;
 }
 
@@ -89,13 +87,37 @@ const VisualizationContent = ({
   const [isSaving, setIsSaving] = useState(false);
   const isInitializedRef = useRef(false);
 
-  const hasSelection = useState(() => {
+  const hasSelection = useMemo(() => {
     return nodes.some(node => node.selected) || edges.some(edge => edge.selected);
-  })[0];
+  }, [nodes, edges]);
 
   useEffect(() => {
     onStateChange?.({ canUndo, canRedo, hasSelection, isSaving });
   }, [canUndo, canRedo, hasSelection, isSaving, onStateChange]);
+
+  const getNodes = useCallback(() => {
+    return nodes.map(n => ({
+      'id': n.id,
+      'type': n.type,
+      'position': n.position,
+      'data': n.data as ArticleNodeData,
+      ...(n.selected !== undefined && { 'selected': n.selected })
+    })) as ArticleNode[];
+  }, [nodes]);
+
+  const getEdges = useCallback(() => {
+    return edges.map(e => ({
+      'id': e.id,
+      'source': e.source,
+      'target': e.target,
+      'type': e.type,
+      'data': e.data as ArticleEdgeData,
+      'markerEnd': e.markerEnd,
+      ...(e.sourceHandle !== undefined && { 'sourceHandle': e.sourceHandle }),
+      ...(e.targetHandle !== undefined && { 'targetHandle': e.targetHandle }),
+      ...(e.selected !== undefined && { 'selected': e.selected })
+    })) as ArticleEdge[];
+  }, [edges]);
 
   const handleAddNode = useCallback((node: ArticleNode) => {
     const newNode = {
@@ -127,25 +149,30 @@ const VisualizationContent = ({
     }
   }, [initialNodes, initialEdges, setNodes, setEdges]);
 
-  useEffect(() => {
-    if (!readOnly && nodes.length > 0 || edges.length > 0) {
-      saveState(nodes, edges);
-    }
-  }, [nodes, edges, saveState, readOnly]);
-
   const handleNodesChange = useCallback((changes: NodeChange<Node>[]) => {
     if (readOnly) {
       return;
     }
     onNodesChange(changes);
-  }, [onNodesChange, readOnly]);
+
+    const hasPositionChange = changes.some(change => change.type === 'position' && !change.dragging);
+    const hasAddRemove = changes.some(change => change.type === 'add' || change.type === 'remove');
+    if (hasPositionChange || hasAddRemove) {
+      saveState(nodes, edges);
+    }
+  }, [onNodesChange, readOnly, saveState, nodes, edges]);
 
   const handleEdgesChange = useCallback((changes: EdgeChange<Edge>[]) => {
     if (readOnly) {
       return;
     }
     onEdgesChange(changes);
-  }, [onEdgesChange, readOnly]);
+
+    const hasAddRemove = changes.some(change => change.type === 'add' || change.type === 'remove');
+    if (hasAddRemove) {
+      saveState(nodes, edges);
+    }
+  }, [onEdgesChange, readOnly, saveState, nodes, edges]);
 
   const onConnect = useCallback((connection: Connection) => {
     if (readOnly) {
@@ -162,8 +189,7 @@ const VisualizationContent = ({
       'id': `edge-${Date.now()}`,
       'type': 'articleEdge',
       'data': {
-        'relationshipType': '默认',
-        'type': 'articleEdge'
+        'relationshipType': '默认'
       },
       'markerEnd': {
         'type': 'arrowclosed',
@@ -250,6 +276,22 @@ const VisualizationContent = ({
     }));
   }, [setNodes]);
 
+  const applyLayout = useCallback((layoutedNodes: ArticleNode[], layoutedEdges: ArticleEdge[]) => {
+    saveState(nodes, edges);
+    setNodes(layoutedNodes.map(n => ({
+      ...n,
+      'type': 'articleNode'
+    })) as Node[]);
+    setEdges(layoutedEdges.map(e => ({
+      ...e,
+      'type': 'articleEdge',
+      'markerEnd': e.markerEnd || {
+        'type': 'arrowclosed',
+        'color': '#4ECDC4'
+      }
+    })) as Edge[]);
+  }, [nodes, edges, saveState, setNodes, setEdges]);
+
   useEffect(() => {
     onActionsReady?.({
       'undo': handleUndo,
@@ -257,9 +299,12 @@ const VisualizationContent = ({
       'delete': handleDelete,
       'save': handleSave,
       'addNode': handleAddNode,
-      'updateNode': handleUpdateNode
+      'updateNode': handleUpdateNode,
+      getNodes,
+      getEdges,
+      applyLayout
     });
-  }, [handleUndo, handleRedo, handleDelete, handleSave, handleAddNode, handleUpdateNode, onActionsReady]);
+  }, [handleUndo, handleRedo, handleDelete, handleSave, handleAddNode, handleUpdateNode, getNodes, getEdges, applyLayout, onActionsReady]);
 
   useEffect(() => {
     if (readOnly) {
@@ -315,7 +360,6 @@ const VisualizationContent = ({
         colorMode="system"
         connectionMode={ConnectionMode.Loose}
         connectOnClick={true}
-        defaultEdgeOptions={defaultEdgeOptions}
         proOptions={{ 'hideAttribution': true }}
       >
         <MiniMap

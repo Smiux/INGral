@@ -24,7 +24,6 @@ export interface EmbeddedArticle {
 
 export interface ArticleEdgeData {
   relationshipType?: string | undefined;
-  type?: string | undefined;
   curveType?: 'default' | 'straight' | 'smoothstep' | 'simplebezier' | undefined;
   [key: string]: unknown;
 }

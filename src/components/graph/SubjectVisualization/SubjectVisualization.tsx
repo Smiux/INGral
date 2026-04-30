@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { NavigatorTrigger } from '@/components/ui/Navigator';
 import { X, Hash, FileText, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Code, Layers, GitBranch, Link2, Folder, Settings, Info, Star, List, MessageSquare, Award, type LucideIcon } from 'lucide-react';
 import { getAvailableSubjects, getSubject } from './register';
 import type { SubjectNode, SelectedNode, SubjectUIConfig } from './types';
@@ -582,9 +583,7 @@ export default function SubjectVisualization () {
     <div className="w-full h-screen flex flex-col bg-neutral-900">
       <div className="bg-neutral-800 border-b border-neutral-700 flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <span className="font-bold text-lg text-neutral-100">IN Gral</span>
-          </Link>
+          <NavigatorTrigger dark />
           <div className="h-6 w-px bg-neutral-600" />
           <ScrollableButtonGroup
             items={availableSubjects.map((s) => ({ 'key': s.key, 'label': s.name }))}

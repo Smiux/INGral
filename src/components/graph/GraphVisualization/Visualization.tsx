@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { NavigatorTrigger } from '@/components/ui/Navigator';
 import {
   ReactFlow,
   Background,
@@ -350,9 +350,7 @@ const VisualizationContent: React.FC = () => {
 
       <div className="bg-white dark:bg-neutral-800 flex items-center justify-between gap-0 z-50">
         <div className="flex items-center gap-2 p-1">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity px-2">
-            <span className="font-bold text-sm tracking-tight text-neutral-800 dark:text-neutral-200">IN Gral</span>
-          </Link>
+          <NavigatorTrigger className="text-sm" />
           <div className="flex items-center gap-2 px-2 py-1 bg-white/50 dark:bg-neutral-700/50 rounded-full text-xs font-medium text-neutral-700 dark:text-neutral-300">
             <span className="flex items-center gap-1">
               <Database size={12} />

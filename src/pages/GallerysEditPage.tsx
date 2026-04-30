@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Info, Trash2, Plus, Save, Undo2, Redo2, Archive, FileText, FilePlus, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Info, Trash2, Plus, Save, Undo2, Redo2, Archive, FileText, FilePlus, ChevronDown, LayoutGrid } from 'lucide-react';
 import { getGalleryById, createGallery, updateGallery, deleteGallery } from '@/services/galleryService';
-import { Visualization, ArticleSelector, ArticlePreviewPanel, GalleryInfoPanel } from '@/components/gallerys';
+import { Visualization, ArticleSelector, ArticlePreviewPanel, GalleryInfoPanel, GalleryLayoutPanel } from '@/components/gallerys';
 import { SimpleEditor } from '@/components/gallerys/SimpleEditor';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import type { ArticleNodeData, EmbeddedArticle, ArticleNode, ArticleEdge } from '@/components/gallerys/gallery';
@@ -21,6 +21,9 @@ interface VisualizationActions {
   save: () => void;
   addNode: (node: ArticleNode) => void;
   updateNode: (nodeId: string, data: Partial<ArticleNodeData>) => void;
+  getNodes: () => ArticleNode[];
+  getEdges: () => ArticleEdge[];
+  applyLayout: (nodes: ArticleNode[], edges: ArticleEdge[]) => void;
 }
 
 export function GallerysEditPage () {
@@ -42,6 +45,9 @@ export function GallerysEditPage () {
   const [showSimpleEditor, setShowSimpleEditor] = useState(false);
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [editingArticle, setEditingArticle] = useState<EmbeddedArticle | null>(null);
+  const [excludeSlugs, setExcludeSlugs] = useState<string[]>([]);
+  const [infoPanelData, setInfoPanelData] = useState<{ nodes: ArticleNode[]; edges: ArticleEdge[] }>({ 'nodes': [], 'edges': [] });
+  const [showLayoutPanel, setShowLayoutPanel] = useState(false);
 
   const [vizState, setVizState] = useState<VisualizationState>({
     'canUndo': false,
@@ -119,8 +125,7 @@ export function GallerysEditPage () {
     summary: string | null;
     tags: string[] | null;
   }) => {
-    const existingSlugs = nodes.map(n => n.data.articleSlug);
-    if (existingSlugs.includes(article.slug)) {
+    if (excludeSlugs.includes(article.slug)) {
       return;
     }
 
@@ -141,8 +146,9 @@ export function GallerysEditPage () {
     };
 
     vizActionsRef.current?.addNode(newNode);
+    setExcludeSlugs(prev => [...prev, article.slug]);
     setShowAddMenu(false);
-  }, [nodes]);
+  }, [excludeSlugs]);
 
   const handleCreateEmbeddedArticle = useCallback((article: Omit<EmbeddedArticle, 'id' | 'createdAt' | 'updatedAt'>) => {
     const id = `embedded-${Date.now()}`;
@@ -284,6 +290,8 @@ export function GallerysEditPage () {
                   <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg z-20 overflow-hidden">
                     <button
                       onClick={() => {
+                        const currentNodes = vizActionsRef.current?.getNodes() || [];
+                        setExcludeSlugs(currentNodes.map(n => n.data.articleSlug));
                         setShowArticleSelector(true);
                         setShowAddMenu(false);
                       }}
@@ -332,6 +340,16 @@ export function GallerysEditPage () {
               <Redo2 className="w-5 h-5" />
               <span className="text-xs">重做</span>
             </button>
+
+            <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-700 mx-1" />
+
+            <button
+              onClick={() => setShowLayoutPanel(true)}
+              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+            >
+              <LayoutGrid className="w-5 h-5" />
+              <span className="text-xs">布局</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-1">
@@ -355,11 +373,17 @@ export function GallerysEditPage () {
             )}
 
             <button
-              onClick={() => setShowInfoPanel(true)}
+              onClick={() => {
+                setInfoPanelData({
+                  'nodes': vizActionsRef.current?.getNodes() || [],
+                  'edges': vizActionsRef.current?.getEdges() || []
+                });
+                setShowInfoPanel(true);
+              }}
               className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
             >
               <Info className="w-5 h-5" />
-              <span className="text-xs">文章集信息</span>
+              <span className="text-xs">地图信息</span>
             </button>
           </div>
         </div>
@@ -381,7 +405,7 @@ export function GallerysEditPage () {
         isOpen={showArticleSelector}
         onClose={() => setShowArticleSelector(false)}
         onSelect={handleAddArticle}
-        excludeSlugs={nodes.map(n => n.data.articleSlug)}
+        excludeSlugs={excludeSlugs}
       />
 
       <ArticlePreviewPanel
@@ -399,14 +423,24 @@ export function GallerysEditPage () {
         onClose={() => setShowInfoPanel(false)}
         title={title}
         onTitleChange={setTitle}
-        nodes={nodes}
-        edges={edges}
+        nodes={infoPanelData.nodes}
+        edges={infoPanelData.edges}
+      />
+
+      <GalleryLayoutPanel
+        isOpen={showLayoutPanel}
+        onClose={() => setShowLayoutPanel(false)}
+        onLayout={(layoutedNodes, layoutedEdges) => {
+          vizActionsRef.current?.applyLayout(layoutedNodes, layoutedEdges);
+        }}
+        nodes={vizActionsRef.current?.getNodes() || []}
+        edges={vizActionsRef.current?.getEdges() || []}
       />
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        title="删除文章集"
-        message={`确定要删除文章集"${title}"吗？此操作无法撤销。`}
+        title="删除地图"
+        message={`确定要删除地图"${title}"吗？此操作无法撤销。`}
         confirmText="删除"
         cancelText="取消"
         onConfirm={handleDelete}

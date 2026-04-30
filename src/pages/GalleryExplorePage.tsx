@@ -268,7 +268,7 @@ export function GalleryExplorePage () {
           className="inline-flex items-center gap-2 bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-sky-600 transition"
         >
           <ArrowLeft className="w-4 h-4" />
-          返回文章集列表
+          返回地图列表
         </Link>
       </div>
     );
@@ -318,7 +318,7 @@ export function GalleryExplorePage () {
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              返回文章集
+              返回地图
             </button>
           </div>
         </div>

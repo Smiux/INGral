@@ -47,20 +47,3 @@ export interface CollaborationContextValue {
   peerId: string | null;
   mediaPeerId: string | null;
 }
-
-export const COLLABORATOR_COLORS = [
-  '#ef4444',
-  '#f97316',
-  '#eab308',
-  '#22c55e',
-  '#14b8a6',
-  '#3b82f6',
-  '#8b5cf6',
-  '#ec4899',
-  '#f43f5e',
-  '#06b6d4'
-];
-
-export function getRandomColor (): string {
-  return COLLABORATOR_COLORS[Math.floor(Math.random() * COLLABORATOR_COLORS.length)]!;
-}

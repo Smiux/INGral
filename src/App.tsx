@@ -1,6 +1,7 @@
 import React, { ReactNode, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Header } from './components/ui/Header';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
+import { AliveScope, KeepAlive } from 'react-activation';
+import { NavigatorProvider, NavigatorTrigger, NavigatorSidebar, NavigatorCacheManager, useNavigator } from './components/ui';
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { GallerysPage } from './pages/GallerysPage';
@@ -9,7 +10,7 @@ import { GalleryExplorePage } from './pages/GalleryExplorePage';
 import SubjectVisualization from './components/graph/SubjectVisualization';
 import { ArticleViewer, ArticleEditor } from './components/articles';
 import GraphVisualization from './components/graph/GraphVisualization';
-import { CollaborationProvider, useCollaboration, Features } from './components/collaboration';
+import { CollaborationProvider, useCollaboration, CollaborationPanel, Features } from './components/collaboration';
 import { getArticleBySlug } from './services/articleService';
 import { getGalleryById } from './services/galleryService';
 
@@ -52,6 +53,78 @@ function updateMetaTags (meta: MetaTags): void {
     setMetaTag('meta[property="og:image"]', meta.image);
     setMetaTag('meta[name="twitter:image"]', meta.image);
   }
+}
+
+interface CachedRouteProps {
+  'cacheKey': string;
+  'children': ReactNode;
+}
+
+function CachedRoute ({ cacheKey, children }: CachedRouteProps) {
+  const { markTabAsLoaded, tabs } = useNavigator();
+
+  useEffect(() => {
+    const tab = tabs.find(t => t.path === cacheKey);
+    if (tab) {
+      markTabAsLoaded(tab.id);
+    }
+  }, [cacheKey, markTabAsLoaded, tabs]);
+
+  return (
+    <KeepAlive id={cacheKey} autoFreeze={false}>
+      <>{children}</>
+    </KeepAlive>
+  );
+}
+
+function CachedArticleViewer () {
+  const { slug } = useParams<{ 'slug': string }>();
+  const cacheKey = `/articles/${slug ?? ''}`;
+  return (
+    <CachedRoute cacheKey={cacheKey}>
+      <ArticleViewer />
+    </CachedRoute>
+  );
+}
+
+function CachedArticleEditor () {
+  const { slug } = useParams<{ 'slug': string }>();
+  const cacheKey = `/articles/${slug ?? ''}/edit`;
+  return (
+    <CachedRoute cacheKey={cacheKey}>
+      <ArticleEditor />
+    </CachedRoute>
+  );
+}
+
+function CachedGallerysEditPage () {
+  const { galleryId } = useParams<{ 'galleryId': string }>();
+  const cacheKey = `/gallerys/${galleryId ?? ''}`;
+  return (
+    <CachedRoute cacheKey={cacheKey}>
+      <GallerysEditPage />
+    </CachedRoute>
+  );
+}
+
+function CachedGalleryExplorePage () {
+  const { galleryId } = useParams<{ 'galleryId': string }>();
+  const cacheKey = `/gallerys/${galleryId ?? ''}/explore`;
+  return (
+    <CachedRoute cacheKey={cacheKey}>
+      <GalleryExplorePage />
+    </CachedRoute>
+  );
+}
+
+function CachedSubjectVisualization () {
+  const { subject } = useParams<{ 'subject': string }>();
+  const cacheKey = `/graphs/subject-visualization/${subject ?? ''}`;
+  return (
+    <CachedRoute cacheKey={cacheKey}>
+      <SubjectVisualization />
+    </CachedRoute>
+  );
 }
 
 interface ErrorBoundaryProps {
@@ -115,7 +188,7 @@ function useMetaTags (): void {
 
     if (path === '/gallerys') {
       updateMetaTags({
-        'title': '文章集列表',
+        'title': '地图列表',
         'description': '浏览所有文章合集，探索主题内容',
         'type': 'website'
       });
@@ -167,8 +240,8 @@ function useMetaTags (): void {
 
     if (path === '/gallerys/create') {
       updateMetaTags({
-        'title': '创建文章集',
-        'description': '创建新的文章集',
+        'title': '创建地图',
+        'description': '创建新的地图',
         'type': 'website'
       });
       return;
@@ -186,8 +259,8 @@ function useMetaTags (): void {
         });
       } else {
         updateMetaTags({
-          'title': '文章集未找到',
-          'description': '您访问的文章集不存在',
+          'title': '地图未找到',
+          'description': '您访问的地图不存在',
           'type': 'website'
         });
       }
@@ -226,39 +299,44 @@ function AppContent () {
   const location = useLocation();
   const { pathname } = location;
   const collaboration = useCollaboration();
+  const { isPanelOpen, setPanelOpen } = collaboration;
 
   useMetaTags();
 
-  const showHeader = pathname === '/' ||
+  const showNavigatorTrigger = pathname === '/' ||
     pathname === '/articles' ||
     (pathname.startsWith('/articles/') && pathname !== '/articles/create' && !pathname.endsWith('/edit')) ||
     pathname === '/gallerys';
 
   return (
     <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-neutral-900">
-      {showHeader && <Header />}
+      {showNavigatorTrigger && (
+        <div className="fixed top-4 left-4 z-30 print:hidden">
+          <NavigatorTrigger />
+        </div>
+      )}
 
-      <main
-        className={`flex-1 transition-all duration-300 ease-in-out ${!showHeader ? '' : 'p-4 sm:p-6 lg:p-8'}`}
-      >
+      <main className="flex-1">
         <ErrorBoundary>
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/articles" element={<ArticlesPage />} />
-            <Route path="/articles/:slug" element={<ArticleViewer />} />
-            <Route path="/articles/create" element={<ArticleEditor />} />
-            <Route path="/articles/:slug/edit" element={<ArticleEditor />} />
-            <Route path="/gallerys" element={<GallerysPage />} />
-            <Route path="/gallerys/create" element={<GallerysEditPage />} />
-            <Route path="/gallerys/:galleryId" element={<GallerysEditPage />} />
-            <Route path="/gallerys/:galleryId/explore" element={<GalleryExplorePage />} />
-            <Route path="/graphs/create" element={<GraphVisualization />} />
-            <Route path="/graphs/subject-visualization" element={<SubjectVisualization />} />
-            <Route path="/graphs/subject-visualization/:subject" element={<SubjectVisualization />} />
+            <Route path="/" element={<CachedRoute cacheKey="/"><HomePage /></CachedRoute>} />
+            <Route path="/articles" element={<CachedRoute cacheKey="/articles"><ArticlesPage /></CachedRoute>} />
+            <Route path="/articles/:slug" element={<CachedArticleViewer />} />
+            <Route path="/articles/create" element={<CachedRoute cacheKey="/articles/create"><ArticleEditor /></CachedRoute>} />
+            <Route path="/articles/:slug/edit" element={<CachedArticleEditor />} />
+            <Route path="/gallerys" element={<CachedRoute cacheKey="/gallerys"><GallerysPage /></CachedRoute>} />
+            <Route path="/gallerys/create" element={<CachedRoute cacheKey="/gallerys/create"><GallerysEditPage /></CachedRoute>} />
+            <Route path="/gallerys/:galleryId" element={<CachedGallerysEditPage />} />
+            <Route path="/gallerys/:galleryId/explore" element={<CachedGalleryExplorePage />} />
+            <Route path="/graphs/create" element={<CachedRoute cacheKey="/graphs/create"><GraphVisualization /></CachedRoute>} />
+            <Route path="/graphs/subject-visualization" element={<CachedRoute cacheKey="/graphs/subject-visualization"><SubjectVisualization /></CachedRoute>} />
+            <Route path="/graphs/subject-visualization/:subject" element={<CachedSubjectVisualization />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ErrorBoundary>
       </main>
+
+      <CollaborationPanel isOpen={isPanelOpen} onClose={() => setPanelOpen(false)} />
 
       {collaboration.isConnected && <Features className="print:hidden" />}
     </div>
@@ -268,9 +346,15 @@ function AppContent () {
 function App () {
   return (
     <BrowserRouter>
-      <CollaborationProvider>
-        <AppContent />
-      </CollaborationProvider>
+      <NavigatorProvider>
+        <CollaborationProvider>
+          <AliveScope>
+            <NavigatorCacheManager />
+            <NavigatorSidebar />
+            <AppContent />
+          </AliveScope>
+        </CollaborationProvider>
+      </NavigatorProvider>
     </BrowserRouter>
   );
 }

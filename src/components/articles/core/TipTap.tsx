@@ -26,6 +26,7 @@ import * as Y from 'yjs';
 import { IframeEmbed } from '../extensions/Iframe';
 import { CollapsibleNode } from '../extensions/Collapsible';
 import { FootnoteExtension } from '../extensions/Footnote';
+import { SlashCommand } from '../extensions/SlashCommand.tsx';
 
 const lowlight = createLowlight(all);
 
@@ -102,6 +103,10 @@ interface TiptapEditorProps {
   editable?: boolean;
   content?: string;
   collaboration?: CollaborationConfig | undefined;
+  onLinkClick?: () => void;
+  onMathClick?: (type: 'inline' | 'block') => void;
+  onIframeClick?: () => void;
+  onFootnoteClick?: () => void;
 }
 
 const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
@@ -111,7 +116,11 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   editorRef,
   editable = true,
   content,
-  collaboration
+  collaboration,
+  onLinkClick,
+  onMathClick,
+  onIframeClick,
+  onFootnoteClick
 }) => {
   const onTableOfContentsChangeRef = React.useRef(onTableOfContentsChange);
 
@@ -186,6 +195,13 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
       IframeEmbed,
       CollapsibleNode,
       FootnoteExtension,
+      ...(editable && onLinkClick && onMathClick && onIframeClick && onFootnoteClick ? [
+        SlashCommand.configure({
+          onLinkClick,
+          onMathClick,
+          onIframeClick
+        })
+      ] : []),
       ...(collaboration?.document ? [
         Collaboration.configure({
           'document': collaboration.document
@@ -201,7 +217,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         })
       ] : [])
     ];
-  }, [collaboration, editable, onTableOfContentsChange]);
+  }, [collaboration, editable, onTableOfContentsChange, onLinkClick, onMathClick, onIframeClick, onFootnoteClick]);
 
   const editor = useEditor({
     'immediatelyRender': true,

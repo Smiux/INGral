@@ -10,24 +10,6 @@ export interface MediaState {
   userColor: string;
 }
 
-export interface MediaSession {
-  localStream: MediaStream | null;
-  remoteStreams: Map<string, MediaState>;
-  type: MediaType | null;
-  isActive: boolean;
-}
-
-export interface AudioTrack {
-  id: string;
-  file: File;
-  fileUrl: string;
-  title: string;
-  artist: string;
-  album: string;
-  duration: number;
-  coverUrl: string | null;
-}
-
 type MediaUpdateCallback = (sessions: Map<string, MediaState>) => void;
 type LocalStreamCallback = (stream: MediaStream | null, type: MediaType | null) => void;
 
@@ -544,18 +526,6 @@ class MediaManager {
 
   private notifyMediaUpdate (): void {
     this.onMediaUpdate?.(this.remoteStreams);
-  }
-
-  setUserData (userName: string, userColor: string): void {
-    this.myUserData = { userName, userColor };
-  }
-
-  setAudioEnhancementConfig (config: Partial<AudioEnhancementConfig>): void {
-    this.audioConfig = { ...this.audioConfig, ...config };
-  }
-
-  getAudioEnhancementConfig (): AudioEnhancementConfig {
-    return { ...this.audioConfig };
   }
 
   callPeer (peerId: string, stream?: MediaStream, types?: MediaType[]): void {
