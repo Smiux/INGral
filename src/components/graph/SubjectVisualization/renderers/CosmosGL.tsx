@@ -101,6 +101,13 @@ export default function CosmosGLRenderer ({
   const graphRef = useRef<Graph | null>(null);
   const nodesRef = useRef<SubjectNode[]>([]);
   const initializedRef = useRef(false);
+  const settingsRef = useRef(settings);
+
+  const handleSimulationEnd = useCallback(() => {
+    if (graphRef.current && !settingsRef.current.simulationPaused) {
+      graphRef.current.start(0.5);
+    }
+  }, []);
 
   const handlePointClick = useCallback((pointIndex: number) => {
     const node = nodesRef.current[pointIndex];
@@ -156,6 +163,7 @@ export default function CosmosGLRenderer ({
       'simulationFriction': settings.simulationFriction,
       'simulationGravity': settings.simulationGravity,
       'simulationRepulsion': settings.simulationRepulsion,
+      'simulationDecay': 10000,
       'curvedLinks': settings.curvedLinks,
       'fitViewOnInit': true,
       'fitViewDelay': 500,
@@ -170,7 +178,8 @@ export default function CosmosGLRenderer ({
       'linkOpacity': settings.linkOpacity,
       'onPointClick': handlePointClick,
       'onPointMouseOver': handlePointMouseOver,
-      'onPointMouseOut': handlePointMouseOut
+      'onPointMouseOut': handlePointMouseOut,
+      'onSimulationEnd': handleSimulationEnd
     };
 
     if (!initializedRef.current) {
@@ -260,10 +269,10 @@ export default function CosmosGLRenderer ({
         initializedRef.current = false;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graphData]);
+  }, [graphData, settings, handlePointClick, handlePointMouseOver, handlePointMouseOut, handleSimulationEnd, handleContextMenu, backgroundColor]);
 
   useEffect(() => {
+    settingsRef.current = settings;
     if (graphRef.current && initializedRef.current) {
       graphRef.current.setConfig({
         'simulationFriction': settings.simulationFriction,

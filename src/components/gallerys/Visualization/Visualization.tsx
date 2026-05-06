@@ -355,7 +355,7 @@ const VisualizationContent = ({
         connectionLineComponent={ConnectionLine}
         fitView
         deleteKeyCode={null}
-        minZoom={0.1}
+        minZoom={0.01}
         maxZoom={10}
         colorMode="system"
         connectionMode={ConnectionMode.Loose}

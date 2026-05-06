@@ -892,8 +892,9 @@ function ConnectedPanelContent ({
     return {
       'id': c.id,
       'name': c.name,
+      'color': c.color,
       'peerId': other?.presence?.mediaPeerId ?? null,
-      'mediaType': other?.presence?.mediaType ?? null
+      'mediaTypes': other?.presence?.mediaTypes ?? []
     };
   });
 
@@ -1494,7 +1495,7 @@ export function CollaborationControls () {
     <>
       <button
         onClick={() => setPanelOpen(true)}
-        className="font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200"
+        className="font-medium flex items-center gap-3 px-3 py-2.5 rounded-lg focus:outline-none text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200"
       >
         {getStatusIcon()}
         <span className="text-sm">协作</span>

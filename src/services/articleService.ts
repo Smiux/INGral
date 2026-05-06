@@ -1,4 +1,5 @@
 import { turso } from './tursoClient';
+import { invalidateGalleryListCache } from './galleryService';
 
 export interface ArticleListItem {
   id: string;
@@ -51,9 +52,15 @@ interface CachedContent {
   updatedAt: string;
 }
 
+interface CachedTotal {
+  total: number;
+  updatedAt: string;
+}
+
 const articleCache = new Map<string, CachedArticle>();
 const listCache = new Map<string, CachedList>();
 const contentCache = new Map<string, CachedContent>();
+const totalCache: CachedTotal = { 'total': 0, 'updatedAt': '' };
 
 function generateSlug (): string {
   const timestamp = Date.now()
@@ -99,6 +106,21 @@ export function invalidateArticleCache (slug?: string): void {
     contentCache.clear();
     listCache.clear();
   }
+  totalCache.updatedAt = '';
+  invalidateGalleryListCache();
+}
+
+export async function getArticleById (articleId: string): Promise<ArticleWithContent | null> {
+  const result = await turso.execute({
+    'sql': `SELECT * FROM ${TABLE_NAME} WHERE id = ?`,
+    'args': [articleId]
+  });
+
+  if (result.rows.length === 0 || !result.rows[0]) {
+    return null;
+  }
+
+  return parseArticleWithContent(result.rows[0] as Record<string, unknown>);
 }
 
 export async function getArticleBySlug (slug: string): Promise<ArticleWithContent | null> {
@@ -193,10 +215,21 @@ export async function getArticlesPaginated (
     };
   }
 
+  let total = totalCache.total;
+  if (totalCache.updatedAt !== currentMaxUpdatedAt) {
+    const countResult = await turso.execute({
+      'sql': `SELECT COUNT(*) as total FROM ${TABLE_NAME}`,
+      'args': []
+    });
+    total = (countResult.rows[0]?.total as number) || 0;
+    totalCache.total = total;
+    totalCache.updatedAt = currentMaxUpdatedAt;
+  }
+
   const offset = (page - 1) * pageSize;
 
   const result = await turso.execute({
-    'sql': `SELECT id, title, slug, created_at, updated_at, cover_image, summary, tags, COUNT(*) OVER() as total_count
+    'sql': `SELECT id, title, slug, created_at, updated_at, cover_image, summary, tags
             FROM ${TABLE_NAME}
             ORDER BY updated_at DESC
             LIMIT ? OFFSET ?`,
@@ -213,7 +246,6 @@ export async function getArticlesPaginated (
     };
   }
 
-  const total = (result.rows[0]?.total_count as number | undefined) || 0;
   const articles = result.rows.map(row => parseArticleListItem(row as Record<string, unknown>));
 
   listCache.set(cacheKey, { articles, total, 'updatedAt': currentMaxUpdatedAt });
@@ -235,45 +267,23 @@ export async function getArticlesContentBatch (articleIds: string[]): Promise<Ma
   }
 
   const placeholders = articleIds.map(() => '?').join(',');
-  const updatedAtResult = await turso.execute({
-    'sql': `SELECT id, updated_at FROM ${TABLE_NAME} WHERE id IN (${placeholders})`,
-    'args': articleIds
-  });
-
-  const updatedAtMap = new Map<string, string>();
-  updatedAtResult.rows.forEach(row => {
-    updatedAtMap.set(row.id as string, row.updated_at as string);
-  });
-
-  const uncachedIds: string[] = [];
-
-  articleIds.forEach(id => {
-    const cached = contentCache.get(id);
-    const currentUpdatedAt = updatedAtMap.get(id);
-
-    if (cached && currentUpdatedAt && cached.updatedAt === currentUpdatedAt) {
-      contentMap.set(id, cached.content);
-    } else {
-      uncachedIds.push(id);
-    }
-  });
-
-  if (uncachedIds.length === 0) {
-    return contentMap;
-  }
-
-  const uncachedPlaceholders = uncachedIds.map(() => '?').join(',');
   const result = await turso.execute({
-    'sql': `SELECT id, content FROM ${TABLE_NAME} WHERE id IN (${uncachedPlaceholders})`,
-    'args': uncachedIds
+    'sql': `SELECT id, content, updated_at FROM ${TABLE_NAME} WHERE id IN (${placeholders})`,
+    'args': articleIds
   });
 
   result.rows.forEach(row => {
     const id = row.id as string;
     const content = (row.content as string) || '';
-    const updatedAt = updatedAtMap.get(id) || '';
-    contentMap.set(id, content);
-    contentCache.set(id, { content, updatedAt });
+    const updatedAt = row.updated_at as string;
+    const cached = contentCache.get(id);
+
+    if (cached && cached.updatedAt === updatedAt) {
+      contentMap.set(id, cached.content);
+    } else {
+      contentMap.set(id, content);
+      contentCache.set(id, { content, updatedAt });
+    }
   });
 
   return contentMap;

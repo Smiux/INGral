@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, AlertCircle, Trash2, Eye, CalendarDays, GitBranch } from 'lucide-react';
+import { Plus, Search, AlertCircle, Trash2, Eye, CalendarDays, GitBranch, FileText } from 'lucide-react';
 import { getAllGallerys, deleteGallery } from '@/services/galleryService';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import type { GalleryListItem } from '@/components/gallerys/gallery';
@@ -92,6 +92,10 @@ export function GallerysPage () {
                   <div className="flex items-center gap-1.5">
                     <Eye className="w-4 h-4" />
                     <span>{gallery.edgeCount} 条连接</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <FileText className="w-4 h-4" />
+                    <span>{gallery.wordCount.toLocaleString()} 字</span>
                   </div>
                 </div>
 

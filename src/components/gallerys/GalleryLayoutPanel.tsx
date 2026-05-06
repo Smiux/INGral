@@ -1,16 +1,24 @@
 import { useState, useCallback } from 'react';
-import { X, LayoutGrid, GitBranch, Circle, RefreshCw } from 'lucide-react';
+import { X, LayoutGrid, GitBranch, Circle, RefreshCw, Zap } from 'lucide-react';
 import ELK from 'elkjs';
 import type { ArticleNode, ArticleEdge } from './gallery';
 
-type LayoutAlgorithm = 'layered' | 'mrtree' | 'radial';
+type LayoutAlgorithm = 'layered' | 'mrtree' | 'radial' | 'force' | 'stress';
 
-interface LayoutParams {
+type LayoutParams = {
   nodeSpacing: number;
   edgeEdgeSpacing: number;
   edgeNodeSpacing: number;
   rankSpacing: number;
-}
+  iterations: number;
+  forceModel: 'EADES' | 'FRUCHTERMAN_REINGOLD';
+  repulsion: number;
+  temperature: number;
+  desiredEdgeLength: number;
+  epsilon: number;
+  dimension: 'XY' | 'X' | 'Y';
+  iterationLimit: number;
+};
 
 interface GalleryLayoutPanelProps {
   isOpen: boolean;
@@ -38,6 +46,18 @@ const ALGORITHM_CONFIG = {
     'label': '辐射布局',
     'icon': Circle,
     'description': '以中心向外辐射排列节点'
+  },
+  'force': {
+    'id': 'org.eclipse.elk.force',
+    'label': '力导向布局',
+    'icon': Zap,
+    'description': '基于物理模拟的布局'
+  },
+  'stress': {
+    'id': 'org.eclipse.elk.stress',
+    'label': '应力布局',
+    'icon': RefreshCw,
+    'description': '基于应力最小化的布局'
   }
 } as const;
 
@@ -45,7 +65,15 @@ const DEFAULT_PARAMS: LayoutParams = {
   'nodeSpacing': 80,
   'edgeEdgeSpacing': 20,
   'edgeNodeSpacing': 20,
-  'rankSpacing': 120
+  'rankSpacing': 120,
+  'iterations': 300,
+  'forceModel': 'FRUCHTERMAN_REINGOLD',
+  'repulsion': 5,
+  'temperature': 0.001,
+  'desiredEdgeLength': 100,
+  'epsilon': 0.0001,
+  'dimension': 'XY',
+  'iterationLimit': 1000000
 };
 
 const elk = new ELK();
@@ -61,7 +89,7 @@ export const GalleryLayoutPanel = ({
   const [params, setParams] = useState<LayoutParams>(DEFAULT_PARAMS);
   const [isLayouting, setIsLayouting] = useState(false);
 
-  const updateParam = useCallback((key: keyof LayoutParams, value: number) => {
+  const updateParam = useCallback(<K extends keyof LayoutParams>(key: K, value: LayoutParams[K]) => {
     setParams(prev => ({ ...prev, [key]: value }));
   }, []);
 
@@ -81,18 +109,35 @@ export const GalleryLayoutPanel = ({
         'elk.spacing.edgeNode': params.edgeNodeSpacing.toString()
       };
 
-      const algorithmOptions: Record<string, string> = algorithm === 'layered'
-        ? {
+      const algorithmOptionsMap: Record<LayoutAlgorithm, Record<string, string>> = {
+        'layered': {
           'elk.direction': 'DOWN',
           'elk.layered.spacing.nodeNodeBetweenLayers': params.rankSpacing.toString()
-        }
-        : {
+        },
+        'mrtree': {
           'elk.direction': 'DOWN'
-        };
+        },
+        'radial': {
+          'elk.direction': 'DOWN'
+        },
+        'force': {
+          'org.eclipse.elk.force.iterations': params.iterations.toString(),
+          'org.eclipse.elk.force.model': params.forceModel,
+          'org.eclipse.elk.force.spacing.nodeNode': params.nodeSpacing.toString(),
+          'org.eclipse.elk.force.repulsion': params.repulsion.toString(),
+          'org.eclipse.elk.force.temperature': params.temperature.toString()
+        },
+        'stress': {
+          'org.eclipse.elk.stress.desiredEdgeLength': params.desiredEdgeLength.toString(),
+          'org.eclipse.elk.stress.epsilon': params.epsilon.toString(),
+          'org.eclipse.elk.stress.dimension': params.dimension,
+          'org.eclipse.elk.stress.iterationLimit': params.iterationLimit.toString()
+        }
+      };
 
       const elkGraph = {
         'id': 'root',
-        'layoutOptions': { ...baseOptions, ...algorithmOptions },
+        'layoutOptions': { ...baseOptions, ...algorithmOptionsMap[algorithm] },
         'children': nodes.map(node => ({
           'id': node.id,
           'width': 200,
@@ -188,7 +233,7 @@ export const GalleryLayoutPanel = ({
 
           <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
             <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
-              布局参数
+              基本参数
             </h3>
             <div className="space-y-4">
               <div>
@@ -232,8 +277,15 @@ export const GalleryLayoutPanel = ({
                   onChange={e => updateParam('edgeNodeSpacing', parseInt(e.target.value, 10) || 0)}
                 />
               </div>
+            </div>
+          </div>
 
-              {algorithm === 'layered' && (
+          {algorithm === 'layered' && (
+            <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
+              <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+                层次布局参数
+              </h3>
+              <div className="space-y-4">
                 <div>
                   <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
                     层级间距
@@ -247,9 +299,147 @@ export const GalleryLayoutPanel = ({
                     onChange={e => updateParam('rankSpacing', parseInt(e.target.value, 10) || 0)}
                   />
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {algorithm === 'force' && (
+            <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
+              <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+                力导向布局参数
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                    迭代次数
+                  </label>
+                  <input
+                    type="number"
+                    min={50}
+                    max={1000}
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    value={params.iterations}
+                    onChange={e => updateParam('iterations', parseInt(e.target.value, 10) || 0)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                    力模型
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    value={params.forceModel}
+                    onChange={e => updateParam('forceModel', e.target.value as 'EADES' | 'FRUCHTERMAN_REINGOLD')}
+                  >
+                    <option value="EADES">Eades模型</option>
+                    <option value="FRUCHTERMAN_REINGOLD">Fruchterman-Reingold模型</option>
+                  </select>
+                </div>
+
+                {params.forceModel === 'EADES' && (
+                  <div>
+                    <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                      排斥力
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      step="0.5"
+                      className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                      value={params.repulsion}
+                      onChange={e => updateParam('repulsion', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                )}
+
+                {params.forceModel === 'FRUCHTERMAN_REINGOLD' && (
+                  <div>
+                    <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                      温度
+                    </label>
+                    <input
+                      type="number"
+                      min={0.0001}
+                      max={0.1}
+                      step="0.0001"
+                      className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                      value={params.temperature}
+                      onChange={e => updateParam('temperature', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {algorithm === 'stress' && (
+            <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
+              <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+                应力布局参数
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                    期望连接长度
+                  </label>
+                  <input
+                    type="number"
+                    min={50}
+                    max={300}
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    value={params.desiredEdgeLength}
+                    onChange={e => updateParam('desiredEdgeLength', parseInt(e.target.value, 10) || 0)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                    应力阈值
+                  </label>
+                  <input
+                    type="number"
+                    min={0.00001}
+                    max={0.01}
+                    step="0.0001"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    value={params.epsilon}
+                    onChange={e => updateParam('epsilon', parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                    布局维度
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    value={params.dimension}
+                    onChange={e => updateParam('dimension', e.target.value as 'XY' | 'X' | 'Y')}
+                  >
+                    <option value="XY">XY轴</option>
+                    <option value="X">X轴</option>
+                    <option value="Y">Y轴</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                    迭代限制
+                  </label>
+                  <input
+                    type="number"
+                    min={1000}
+                    max={10000000}
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    value={params.iterationLimit}
+                    onChange={e => updateParam('iterationLimit', parseInt(e.target.value, 10) || 0)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-4 border-t border-neutral-200 dark:border-neutral-700">

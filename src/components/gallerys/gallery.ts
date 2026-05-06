@@ -46,6 +46,7 @@ export interface GalleryListItem {
   title: string;
   nodeCount: number;
   edgeCount: number;
+  wordCount: number;
   createdAt: string;
   updatedAt: string;
 }

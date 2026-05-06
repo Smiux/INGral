@@ -87,7 +87,6 @@ const getCommandItems = (
       'description': '引用块',
       'icon': <Quote size={18} className="text-neutral-600 dark:text-neutral-400" />,
       'category': 'block',
-      'isActive': (editor: Editor) => editor.isActive('blockquote'),
       'action': (editor: Editor) => editor.chain().focus()
         .toggleBlockquote()
         .run()
@@ -98,7 +97,6 @@ const getCommandItems = (
       'description': '代码块',
       'icon': <CodeSquare size={18} className="text-neutral-600 dark:text-neutral-400" />,
       'category': 'block',
-      'isActive': (editor: Editor) => editor.isActive('codeBlock'),
       'action': (editor: Editor) => editor.chain().focus()
         .toggleCodeBlock()
         .run()

@@ -26,6 +26,7 @@ import * as Y from 'yjs';
 import { IframeEmbed } from '../extensions/Iframe';
 import { CollapsibleNode } from '../extensions/Collapsible';
 import { FootnoteExtension } from '../extensions/Footnote';
+import { ConnectionPointDecoration } from '../extensions/ConnectionPointDecoration';
 import { SlashCommand } from '../extensions/SlashCommand.tsx';
 
 const lowlight = createLowlight(all);
@@ -195,6 +196,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
       IframeEmbed,
       CollapsibleNode,
       FootnoteExtension,
+      ConnectionPointDecoration,
       ...(editable && onLinkClick && onMathClick && onIframeClick && onFootnoteClick ? [
         SlashCommand.configure({
           onLinkClick,

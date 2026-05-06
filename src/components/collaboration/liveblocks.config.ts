@@ -3,6 +3,8 @@ import { createRoomContext, shallow } from '@liveblocks/react';
 
 export { LiveList, LiveObject };
 
+export type MediaType = 'video' | 'screen' | 'audio-call' | 'audio-share';
+
 export type Presence = {
   cursor: { x: number; y: number } | null;
   currentPath: string | null;
@@ -12,7 +14,7 @@ export type Presence = {
   peerId: string | null;
   joinedAt: number;
   mediaPeerId: string | null;
-  mediaType: 'video' | 'screen' | 'audio-call' | 'audio-share' | null;
+  mediaTypes: MediaType[];
 };
 
 export type MessageAttachmentType = 'image' | 'audio';

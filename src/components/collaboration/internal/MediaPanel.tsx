@@ -18,13 +18,14 @@ import {
   Volume2,
   VolumeX,
   Trash2,
-  SkipForward
+  SkipForward,
+  Grid3x3
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { mediaManager, type MediaType, type MediaState, type AudioShareResult } from './MediaManager';
 import { Avatar } from './Avatar';
 import parseAudioMetadata from 'parse-audio-metadata';
-import { useStorage, useMutation, type AudioTrackData, LiveObject } from '../liveblocks.config';
+import { useStorage, useMutation, useUpdateMyPresence, type AudioTrackData, LiveObject } from '../liveblocks.config';
 
 function formatTime (seconds: number): string {
   if (!isFinite(seconds) || seconds < 0) {
@@ -86,13 +87,21 @@ async function parseTrackMetadata (file: File, userId: string, userName: string)
   };
 }
 
+interface StreamEntry {
+  id: string;
+  isLocal: boolean;
+  state: MediaState;
+}
+
 function VideoItem ({
   mediaState,
   isLocal,
   userId,
   userName,
   userColor,
-  isMuted
+  isMuted,
+  isFocused,
+  onClick
 }: {
   mediaState: MediaState;
   isLocal?: boolean;
@@ -100,6 +109,8 @@ function VideoItem ({
   userName?: string;
   userColor?: string;
   isMuted?: boolean;
+  isFocused?: boolean;
+  onClick?: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -114,7 +125,10 @@ function VideoItem ({
   const displayUserColor = isLocal ? userColor : mediaState.userColor;
 
   return (
-    <div className="w-full h-full relative">
+    <div
+      className={`w-full h-full relative cursor-pointer ${isFocused ? 'ring-2 ring-sky-500' : ''}`}
+      onClick={onClick}
+    >
       <video
         ref={videoRef}
         autoPlay
@@ -122,20 +136,20 @@ function VideoItem ({
         muted={isLocal}
         className="w-full h-full object-contain"
       />
-      <div className="absolute bottom-2 left-2 flex items-center gap-2 px-2 py-1 bg-black/50 rounded-full">
-        <Avatar userId={displayUserId!} size={16} color={displayUserColor!} />
-        <span className="text-white text-xs">
+      <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1.5 px-1.5 py-0.5 bg-black/60 rounded-full">
+        <Avatar userId={displayUserId!} size={14} color={displayUserColor!} />
+        <span className="text-white text-[11px] leading-tight">
           {displayUserName}
           {isLocal && ' (你)'}
         </span>
-        <span className="text-xs text-neutral-300 px-1.5 py-0.5 bg-neutral-700 rounded">
+        <span className="text-[10px] text-neutral-300 px-1 py-px bg-neutral-700/80 rounded">
           {mediaState.type === 'video' && '视频'}
           {mediaState.type === 'screen' && '屏幕'}
         </span>
       </div>
       {isLocal && isMuted && (
-        <div className="absolute top-2 right-2 p-1.5 bg-red-500/80 rounded-full">
-          <MicOff size={12} className="text-white" />
+        <div className="absolute top-1.5 right-1.5 p-1 bg-red-500/80 rounded-full">
+          <MicOff size={10} className="text-white" />
         </div>
       )}
     </div>
@@ -143,35 +157,15 @@ function VideoItem ({
 }
 
 function VideoGrid ({
-  localVideoStreams,
-  remoteVideoStreams,
-  userId,
-  userName,
-  userColor,
-  isMuted
+  streams,
+  focusedId,
+  onFocus
 }: {
-  localVideoStreams: Array<{ type: MediaType; stream: MediaStream }>;
-  remoteVideoStreams: Array<[string, MediaState]>;
-  userId: string;
-  userName: string;
-  userColor: string;
-  isMuted: boolean;
+  streams: StreamEntry[];
+  focusedId: string | null;
+  onFocus: (id: string | null) => void;
 }) {
-  const allStreams: Array<{ id: string; isLocal: boolean; state: MediaState }> = [];
-
-  localVideoStreams.forEach(({ type, stream }) => {
-    allStreams.push({
-      'id': `local-${type}`,
-      'isLocal': true,
-      'state': { type, stream, 'peerId': userId, userName, userColor }
-    });
-  });
-
-  remoteVideoStreams.forEach(([id, state]) => {
-    allStreams.push({ id, 'isLocal': false, state });
-  });
-
-  if (allStreams.length === 0) {
+  if (streams.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center text-neutral-400">
         <div className="text-center">
@@ -183,23 +177,82 @@ function VideoGrid ({
     );
   }
 
-  const gridCols = allStreams.length <= 2 ? 1 : 2;
-  const gridRows = allStreams.length <= 2 ? allStreams.length : Math.ceil(allStreams.length / 2);
+  if (focusedId) {
+    const focusedStream = streams.find((s) => s.id === focusedId);
+    const otherStreams = streams.filter((s) => s.id !== focusedId);
+
+    if (!focusedStream) {
+      onFocus(null);
+      return null;
+    }
+
+    return (
+      <div className="w-full h-full flex flex-col min-h-0">
+        <div className="flex-1 min-h-0 relative bg-neutral-800 rounded">
+          <VideoItem
+            mediaState={focusedStream.state}
+            isLocal={focusedStream.isLocal}
+            userId={focusedStream.state.peerId}
+            userName={focusedStream.state.userName}
+            userColor={focusedStream.state.userColor}
+            isFocused
+            onClick={() => onFocus(null)}
+          />
+        </div>
+        {otherStreams.length > 0 && (
+          <div className="flex-shrink-0 flex gap-1 p-1 overflow-x-auto" style={{ 'maxHeight': '100px' }}>
+            {otherStreams.map((stream) => (
+              <div
+                key={stream.id}
+                className="flex-shrink-0 bg-neutral-800 rounded cursor-pointer hover:ring-2 hover:ring-sky-400 transition-all"
+                style={{ 'width': '130px', 'height': '98px' }}
+              >
+                <VideoItem
+                  mediaState={stream.state}
+                  isLocal={stream.isLocal}
+                  userId={stream.state.peerId}
+                  userName={stream.state.userName}
+                  userColor={stream.state.userColor}
+                  onClick={() => onFocus(stream.id)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const count = streams.length;
+  let cols: number;
+  if (count === 1) {
+    cols = 1;
+  } else if (count <= 4) {
+    cols = 2;
+  } else if (count <= 9) {
+    cols = 3;
+  } else {
+    cols = 4;
+  }
+  const rows = Math.ceil(count / cols);
 
   return (
-    <div className="w-full h-full grid gap-1 p-1" style={{
-      'gridTemplateColumns': `repeat(${gridCols}, 1fr)`,
-      'gridTemplateRows': `repeat(${gridRows}, 1fr)`
-    }}>
-      {allStreams.map((stream) => (
-        <div key={stream.id} className="w-full h-full bg-neutral-800 rounded">
+    <div
+      className="w-full h-full grid gap-1 p-1"
+      style={{
+        'gridTemplateColumns': `repeat(${cols}, 1fr)`,
+        'gridTemplateRows': `repeat(${rows}, 1fr)`
+      }}
+    >
+      {streams.map((stream) => (
+        <div key={stream.id} className="w-full h-full bg-neutral-800 rounded cursor-pointer hover:ring-2 hover:ring-sky-400 transition-all">
           <VideoItem
             mediaState={stream.state}
             isLocal={stream.isLocal}
-            userId={userId}
-            userName={userName}
-            userColor={userColor}
-            isMuted={isMuted}
+            userId={stream.state.peerId}
+            userName={stream.state.userName}
+            userColor={stream.state.userColor}
+            onClick={() => onFocus(stream.id)}
           />
         </div>
       ))}
@@ -213,7 +266,7 @@ interface MediaPanelProps {
   userId: string;
   userName: string;
   userColor: string;
-  collaborators: Array<{ id: string; name: string; peerId: string | null; mediaType: MediaType | null }>;
+  collaborators: Array<{ id: string; name: string; color: string; peerId: string | null; mediaTypes: MediaType[] }>;
   isInline?: boolean;
 }
 
@@ -231,6 +284,7 @@ export function MediaPanel ({
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [focusedStreamId, setFocusedStreamId] = useState<string | null>(null);
 
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
@@ -245,7 +299,9 @@ export function MediaPanel ({
   const containerRef = useRef<HTMLDivElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const playTrackRef = useRef<((trackId: string, index: number) => Promise<void>) | null>(null);
+  const previousPeerIdsRef = useRef<Set<string>>(new Set());
 
+  const updateMyPresence = useUpdateMyPresence();
   const audioPlaylist = useStorage((root) => root.audioPlaylist);
   const audioPlaybackState = useStorage((root) => root.audioPlaybackState);
 
@@ -341,14 +397,28 @@ export function MediaPanel ({
   }, []);
 
   useEffect(() => {
-    if (localStreams.size > 0) {
-      collaborators.forEach((collaborator) => {
-        if (collaborator.peerId) {
-          mediaManager.callPeer(collaborator.peerId);
-        }
-      });
-    }
-  }, [collaborators, localStreams]);
+    const currentPeerIds = new Set<string>();
+
+    collaborators.forEach((c) => {
+      if (c.peerId) {
+        currentPeerIds.add(c.peerId);
+        mediaManager.addKnownPeer(c.peerId, c.name, c.color);
+      }
+    });
+
+    previousPeerIdsRef.current.forEach((peerId) => {
+      if (!currentPeerIds.has(peerId)) {
+        mediaManager.removeKnownPeer(peerId);
+      }
+    });
+
+    previousPeerIdsRef.current = currentPeerIds;
+  }, [collaborators]);
+
+  useEffect(() => {
+    const types = mediaManager.getActiveMediaTypes();
+    updateMyPresence({ 'mediaTypes': types });
+  }, [localStreams, updateMyPresence]);
 
   const toggleFullscreen = useCallback(() => {
     if (!containerRef.current) {
@@ -368,8 +438,8 @@ export function MediaPanel ({
     try {
       await mediaManager.startVideo();
       setIsVideoOff(false);
-    } catch (error) {
-      console.error('Failed to start video:', error);
+    } catch {
+      // 视频启动失败
     }
   }, []);
 
@@ -380,8 +450,8 @@ export function MediaPanel ({
   const startAudioCall = useCallback(async () => {
     try {
       await mediaManager.startAudioCall();
-    } catch (error) {
-      console.error('Failed to start audio call:', error);
+    } catch {
+      // 语音启动失败
     }
   }, []);
 
@@ -392,8 +462,8 @@ export function MediaPanel ({
   const startScreenShare = useCallback(async () => {
     try {
       await mediaManager.startScreenShare();
-    } catch (error) {
-      console.error('Failed to start screen share:', error);
+    } catch {
+      // 屏幕共享启动失败
     }
   }, []);
 
@@ -446,8 +516,8 @@ export function MediaPanel ({
       addToPlaylist(trackData);
       setAudioUrl('');
       setShowUrlInput(false);
-    } catch (error) {
-      console.error('添加音频URL失败:', error);
+    } catch {
+      // 添加音频URL失败
     }
   }, [audioUrl, userId, userName, addToPlaylist]);
 
@@ -579,8 +649,8 @@ export function MediaPanel ({
           removeFromPlaylist(index);
         }
       };
-    } catch (error) {
-      console.error('Failed to start audio share:', error);
+    } catch {
+      // 音频共享启动失败
     }
   }, [updatePlaybackState, updateTrackDuration, audioPlaylist, removeFromPlaylist, audioPlaybackState?.autoPlayNext]);
 
@@ -694,6 +764,10 @@ export function MediaPanel ({
   const currentTrackIndex = audioPlaybackState?.currentTrackIndex ?? 0;
   const currentTrack = audioPlaylist?.[currentTrackIndex];
 
+  const handleFocusStream = useCallback((id: string | null) => {
+    setFocusedStreamId(id);
+  }, []);
+
   if (!isOpen) {
     return null;
   }
@@ -707,6 +781,20 @@ export function MediaPanel ({
   const remoteVideoStreams = Array.from(remoteStreams.entries())
     .filter(([, state]) => state.type === 'video' || state.type === 'screen');
 
+  const allVideoStreams: StreamEntry[] = [];
+
+  localVideoStreams.forEach(({ type, stream }) => {
+    allVideoStreams.push({
+      'id': `local-${type}`,
+      'isLocal': true,
+      'state': { type, stream, 'peerId': userId, userName, userColor }
+    });
+  });
+
+  remoteVideoStreams.forEach(([id, state]) => {
+    allVideoStreams.push({ id, 'isLocal': false, state });
+  });
+
   const audioCallStreamsByUser = new Map<string, Array<{ id: string; state: MediaState }>>();
   remoteStreams.forEach((state, id) => {
     if (state.type === 'audio-call') {
@@ -718,32 +806,41 @@ export function MediaPanel ({
 
   const content = (
     <>
-      <div className="flex-1 flex flex-col">
-        <div className="flex-1 relative bg-neutral-900">
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 min-h-0 relative bg-neutral-900">
           <VideoGrid
-            localVideoStreams={localVideoStreams}
-            remoteVideoStreams={remoteVideoStreams}
-            userId={userId}
-            userName={userName}
-            userColor={userColor}
-            isMuted={isMuted}
+            streams={allVideoStreams}
+            focusedId={focusedStreamId}
+            onFocus={handleFocusStream}
           />
 
-          {hasVideo && !isInline && (
-            <button
-              onClick={toggleFullscreen}
-              className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-lg transition-colors text-white"
-            >
-              {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-            </button>
+          {(hasVideo || hasScreenShare) && !isInline && (
+            <div className="absolute top-3 right-3 flex gap-1.5">
+              {allVideoStreams.length > 1 && (
+                <button
+                  onClick={() => setFocusedStreamId(null)}
+                  className="p-1.5 bg-black/50 hover:bg-black/70 rounded-lg transition-colors text-white"
+                  title="网格视图"
+                >
+                  <Grid3x3 size={16} />
+                </button>
+              )}
+              <button
+                onClick={toggleFullscreen}
+                className="p-1.5 bg-black/50 hover:bg-black/70 rounded-lg transition-colors text-white"
+                title={isFullscreen ? '退出全屏' : '全屏'}
+              >
+                {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              </button>
+            </div>
           )}
         </div>
 
-        <div className="p-3 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
-          <div className="flex items-center justify-center gap-4">
+        <div className="flex-shrink-0 p-2.5 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+          <div className="flex items-center justify-center gap-3">
             <button
               onClick={hasVideo ? stopVideo : startVideo}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition-colors ${
                 hasVideo
                   ? 'bg-green-500 text-white hover:bg-green-600'
                   : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
@@ -754,7 +851,7 @@ export function MediaPanel ({
             </button>
             <button
               onClick={hasAudioCall ? stopAudioCall : startAudioCall}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition-colors ${
                 hasAudioCall
                   ? 'bg-green-500 text-white hover:bg-green-600'
                   : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
@@ -765,7 +862,7 @@ export function MediaPanel ({
             </button>
             <button
               onClick={hasScreenShare ? stopScreenShare : startScreenShare}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition-colors ${
                 hasScreenShare
                   ? 'bg-green-500 text-white hover:bg-green-600'
                   : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
@@ -776,7 +873,7 @@ export function MediaPanel ({
             </button>
             <button
               onClick={() => setShowAudioPanel(true)}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition-colors ${
                 hasAudioShare
                   ? 'bg-orange-500 text-white hover:bg-orange-600'
                   : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
@@ -788,72 +885,70 @@ export function MediaPanel ({
           </div>
 
           {(hasVideo || hasAudioCall) && (
-            <div className="flex items-center justify-center gap-3 mt-2">
+            <div className="flex items-center justify-center gap-2 mt-2">
               <button
                 onClick={toggleMute}
-                className={`p-2 rounded-full transition-colors ${
+                className={`p-1.5 rounded-full transition-colors ${
                   isMuted
                     ? 'bg-red-500 text-white hover:bg-red-600'
                     : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
                 }`}
                 title={isMuted ? '取消静音' : '静音'}
               >
-                {isMuted ? <MicOff size={16} /> : <Mic size={16} />}
+                {isMuted ? <MicOff size={14} /> : <Mic size={14} />}
               </button>
               {hasVideo && (
                 <button
                   onClick={toggleVideo}
-                  className={`p-2 rounded-full transition-colors ${
+                  className={`p-1.5 rounded-full transition-colors ${
                     isVideoOff
                       ? 'bg-red-500 text-white hover:bg-red-600'
                       : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
                   }`}
                   title={isVideoOff ? '开启视频' : '关闭视频'}
                 >
-                  {isVideoOff ? <VideoOff size={16} /> : <Video size={16} />}
+                  {isVideoOff ? <VideoOff size={14} /> : <Video size={14} />}
                 </button>
               )}
             </div>
           )}
 
-          <div className="px-4 pt-3 pb-2 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 mt-2">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Users size={14} className="text-neutral-500" />
-                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+          <div className="px-3 pt-2 pb-1 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 mt-2">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <Users size={12} className="text-neutral-500" />
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
                   {collaborators.length + 1} 位参与者
                 </span>
               </div>
 
               <div className="flex items-center gap-1 overflow-x-auto">
                 <div className="relative">
-                  <Avatar userId={userId} size={20} color={userColor} />
+                  <Avatar userId={userId} size={18} color={userColor} />
                   {localStreams.size > 0 && (
-                    <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-neutral-800" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full border border-white dark:border-neutral-800" />
                   )}
                 </div>
                 {collaborators.map((collaborator) => (
                   <div key={collaborator.id} className="relative">
-                    <Avatar userId={collaborator.id} size={20} />
-                    {Array.from(remoteStreams.values()).some(
-                      (s) => s.peerId === collaborator.peerId
-                    ) && (
-                      <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-neutral-800" />
+                    <Avatar userId={collaborator.id} size={18} />
+                    {collaborator.mediaTypes.length > 0 && (
+                      <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full border border-white dark:border-neutral-800" />
                     )}
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center gap-2 border-l border-neutral-200 dark:border-neutral-700 pl-4">
+              <div className="flex items-center gap-1.5 border-l border-neutral-200 dark:border-neutral-700 pl-3">
                 {remoteVideoStreams.length > 0 && (
                   <>
-                    <span className="text-xs text-neutral-500 dark:text-neutral-400">视频:</span>
+                    <span className="text-[11px] text-neutral-500 dark:text-neutral-400">视频:</span>
                     {remoteVideoStreams.map(([id, state]) => (
                       <div
                         key={id}
-                        className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300"
+                        className="flex items-center gap-1 px-1.5 py-px rounded text-[11px] bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300"
                       >
-                        <Avatar userId={state.peerId} size={14} color={state.userColor} />
+                        <Avatar userId={state.peerId} size={12} color={state.userColor} />
                         {state.userName}
                         <span className="text-[10px] text-neutral-400">
                           {state.type === 'video' ? '视' : '屏'}
@@ -865,7 +960,7 @@ export function MediaPanel ({
 
                 {audioCallStreamsByUser.size > 0 && (
                   <>
-                    <span className="text-xs text-neutral-500 dark:text-neutral-400">语音:</span>
+                    <span className="text-[11px] text-neutral-500 dark:text-neutral-400">语音:</span>
                     {Array.from(audioCallStreamsByUser.entries()).map(([peerId, streams]) => {
                       const state = streams[0]?.state;
                       if (!state) {
@@ -874,9 +969,9 @@ export function MediaPanel ({
                       return (
                         <div
                           key={peerId}
-                          className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300"
+                          className="flex items-center gap-1 px-1.5 py-px rounded text-[11px] bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300"
                         >
-                          <Avatar userId={peerId} size={14} color={state.userColor} />
+                          <Avatar userId={peerId} size={12} color={state.userColor} />
                           {state.userName}
                           <Mic size={10} className="text-green-500" />
                         </div>
@@ -1194,7 +1289,7 @@ export function MediaPanel ({
             <X size={18} />
           </button>
         </div>
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-hidden min-h-0">
           {content}
         </div>
       </motion.div>

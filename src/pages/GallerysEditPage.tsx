@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Info, Trash2, Plus, Save, Undo2, Redo2, Archive, FileText, FilePlus, ChevronDown, LayoutGrid } from 'lucide-react';
+import { Info, Trash2, Plus, Save, Undo2, Redo2, Archive, FileText, FilePlus, ChevronDown, LayoutGrid } from 'lucide-react';
 import { getGalleryById, createGallery, updateGallery, deleteGallery } from '@/services/galleryService';
 import { Visualization, ArticleSelector, ArticlePreviewPanel, GalleryInfoPanel, GalleryLayoutPanel } from '@/components/gallerys';
 import { SimpleEditor } from '@/components/gallerys/SimpleEditor';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { NavigatorTrigger } from '@/components/ui/Navigator';
 import type { ArticleNodeData, EmbeddedArticle, ArticleNode, ArticleEdge } from '@/components/gallerys/gallery';
 
 interface VisualizationState {
@@ -235,10 +236,6 @@ export function GallerysEditPage () {
   const handleEdgeClick = useCallback(() => {
   }, []);
 
-  const handleBack = useCallback(() => {
-    navigate('/gallerys');
-  }, [navigate]);
-
   const handleStateChange = useCallback((state: VisualizationState) => {
     setVizState(state);
   }, []);
@@ -260,13 +257,7 @@ export function GallerysEditPage () {
     <div className="h-screen flex flex-col bg-neutral-50 dark:bg-neutral-900">
       <div className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-4 py-2">
         <div className="flex items-center justify-between">
-          <button
-            onClick={handleBack}
-            className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-xs">返回</span>
-          </button>
+          <NavigatorTrigger />
 
           <div className="flex items-center gap-1">
             <div className="relative">
@@ -368,7 +359,7 @@ export function GallerysEditPage () {
                 className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
               >
                 <Archive className="w-5 h-5" />
-                <span className="text-xs">删除合集</span>
+                <span className="text-xs">删除地图</span>
               </button>
             )}
 

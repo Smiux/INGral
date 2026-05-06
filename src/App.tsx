@@ -117,16 +117,6 @@ function CachedGalleryExplorePage () {
   );
 }
 
-function CachedSubjectVisualization () {
-  const { subject } = useParams<{ 'subject': string }>();
-  const cacheKey = `/graphs/subject-visualization/${subject ?? ''}`;
-  return (
-    <CachedRoute cacheKey={cacheKey}>
-      <SubjectVisualization />
-    </CachedRoute>
-  );
-}
-
 interface ErrorBoundaryProps {
   children: ReactNode;
 }
@@ -189,7 +179,7 @@ function useMetaTags (): void {
     if (path === '/gallerys') {
       updateMetaTags({
         'title': '地图列表',
-        'description': '浏览所有文章合集，探索主题内容',
+        'description': '浏览所有地图，探索主题内容',
         'type': 'website'
       });
       return;
@@ -254,7 +244,7 @@ function useMetaTags (): void {
       if (gallery) {
         updateMetaTags({
           'title': gallery.title,
-          'description': `浏览合集：${gallery.title}`,
+          'description': `浏览地图：${gallery.title}`,
           'type': 'website'
         });
       } else {
@@ -329,8 +319,8 @@ function AppContent () {
             <Route path="/gallerys/:galleryId" element={<CachedGallerysEditPage />} />
             <Route path="/gallerys/:galleryId/explore" element={<CachedGalleryExplorePage />} />
             <Route path="/graphs/create" element={<CachedRoute cacheKey="/graphs/create"><GraphVisualization /></CachedRoute>} />
-            <Route path="/graphs/subject-visualization" element={<CachedRoute cacheKey="/graphs/subject-visualization"><SubjectVisualization /></CachedRoute>} />
-            <Route path="/graphs/subject-visualization/:subject" element={<CachedSubjectVisualization />} />
+            <Route path="/graphs/subject-visualization" element={<SubjectVisualization />} />
+            <Route path="/graphs/subject-visualization/:subject" element={<SubjectVisualization />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ErrorBoundary>

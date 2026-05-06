@@ -35,7 +35,8 @@ type NavigatorAction =
   | { 'type': 'REORDER_TABS'; 'fromIndex': number; 'toIndex': number }
   | { 'type': 'CLEAR_HISTORY' }
   | { 'type': 'MARK_TAB_LOADED'; 'id': string }
-  | { 'type': 'UPDATE_TAB_TITLE'; 'id': string; 'title': string };
+  | { 'type': 'UPDATE_TAB_TITLE'; 'id': string; 'title': string }
+  | { 'type': 'UPDATE_HISTORY_TITLE'; 'path': string; 'title': string };
 
 interface NavigatorContextType {
   'isOpen': boolean;
@@ -52,6 +53,7 @@ interface NavigatorContextType {
   'loadedTabs': Set<string>;
   'markTabAsLoaded': (id: string) => void;
   'updateTabTitle': (id: string, title: string) => void;
+  'updateHistoryTitle': (path: string, title: string) => void;
   'state': NavigatorState;
   'dispatch': Dispatch<NavigatorAction>;
   'navigate': NavigateFunction;

@@ -190,10 +190,9 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
       <div className="flex flex-wrap items-center gap-1">
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<Heading1 size={16} className={editor.isActive('heading') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'} />}
+            icon={<Heading1 size={16} className="text-neutral-600 dark:text-neutral-400" />}
             label="标题"
             showMenu={activeMenu === 'heading'}
-            isActive={editor.isActive('heading')}
             onClick={() => setActiveMenu(activeMenu === 'heading' ? null : 'heading')}
           />
           <DropdownMenu isOpen={activeMenu === 'heading'}>
@@ -204,11 +203,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
                   runEditorCommand(c => c.toggleHeading({ 'level': level as 1 | 2 | 3 }).run());
                   setActiveMenu(null);
                 }}
-                className={`block w-full text-left px-4 py-2 text-sm ${
-                  editor.isActive('heading', { level })
-                    ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
-                    : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
-                }`}
+                className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
               >
                 {getHeadingLabel(level)}
               </button>
@@ -309,41 +304,24 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
 
         <div className="relative menu-container">
           <ToolbarButton
-            icon={<AlignLeft size={16} className={editor.isActive('textStyle', { 'textAlign': 'center' }) || editor.isActive('textStyle', { 'textAlign': 'right' }) || editor.isActive('textStyle', { 'textAlign': 'justify' }) ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'} />}
+            icon={<AlignLeft size={16} className="text-neutral-600 dark:text-neutral-400" />}
             label="对齐"
             showMenu={activeMenu === 'align'}
-            isActive={editor.isActive('textStyle', { 'textAlign': 'center' }) || editor.isActive('textStyle', { 'textAlign': 'right' }) || editor.isActive('textStyle', { 'textAlign': 'justify' })}
             onClick={() => setActiveMenu(activeMenu === 'align' ? null : 'align')}
           />
           <DropdownMenu isOpen={activeMenu === 'align'} width="w-32">
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('left').run()); setActiveMenu(null);
-            }} className={`block w-full text-left px-4 py-2 text-sm ${
-              !editor.isActive('textStyle', { 'textAlign': 'center' }) && !editor.isActive('textStyle', { 'textAlign': 'right' }) && !editor.isActive('textStyle', { 'textAlign': 'justify' })
-                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
-                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
-            }`}>左对齐</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">左对齐</button>
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('center').run()); setActiveMenu(null);
-            }} className={`block w-full text-left px-4 py-2 text-sm ${
-              editor.isActive('textStyle', { 'textAlign': 'center' })
-                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
-                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
-            }`}>居中对齐</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">居中对齐</button>
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('right').run()); setActiveMenu(null);
-            }} className={`block w-full text-left px-4 py-2 text-sm ${
-              editor.isActive('textStyle', { 'textAlign': 'right' })
-                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
-                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
-            }`}>右对齐</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">右对齐</button>
             <button onClick={() => {
               runEditorCommand(c => c.setTextAlign('justify').run()); setActiveMenu(null);
-            }} className={`block w-full text-left px-4 py-2 text-sm ${
-              editor.isActive('textStyle', { 'textAlign': 'justify' })
-                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
-                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
-            }`}>两端对齐</button>
+            }} className="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">两端对齐</button>
           </DropdownMenu>
         </div>
 
@@ -490,14 +468,10 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
 
         <button
           onClick={() => runEditorCommand(c => c.toggleBlockquote().run())}
-          className={`flex flex-col items-center justify-center p-2 rounded transition-all w-16 ${
-            editor.isActive('blockquote') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
-          }`}
+          className="flex flex-col items-center justify-center p-2 rounded transition-all w-16 hover:bg-neutral-100 dark:hover:bg-neutral-700"
         >
-          <Quote size={16} className={editor.isActive('blockquote') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
-          <span className={`text-xs mt-1 ${
-            editor.isActive('blockquote') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
-          }`}>引用</span>
+          <Quote size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">引用</span>
         </button>
         <button onClick={() => runEditorCommand(c => c.setHorizontalRule().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">
           <Minus size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
@@ -505,14 +479,10 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
         </button>
         <button
           onClick={() => runEditorCommand(c => c.toggleCodeBlock().run())}
-          className={`flex flex-col items-center justify-center p-2 rounded transition-all w-16 ${
-            editor.isActive('codeBlock') ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
-          }`}
+          className="flex flex-col items-center justify-center p-2 rounded transition-all w-16 hover:bg-neutral-100 dark:hover:bg-neutral-700"
         >
-          <CodeSquare size={16} className={editor.isActive('codeBlock') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-neutral-600 dark:text-neutral-400 mx-auto'} />
-          <span className={`text-xs mt-1 ${
-            editor.isActive('codeBlock') ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-600 dark:text-neutral-400'
-          }`}>代码块</span>
+          <CodeSquare size={16} className="text-neutral-600 dark:text-neutral-400 mx-auto" />
+          <span className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">代码块</span>
         </button>
 
         <button onClick={() => runEditorCommand(c => c.insertCollapsible().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all w-16">

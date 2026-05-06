@@ -116,14 +116,13 @@ function navigatorReducer (state: NavigatorState, action: NavigatorAction): Navi
       const pathname = action.pathname;
       const info = getTabInfo(pathname);
 
-      const filteredHistory = state.history.filter(h => h.path !== pathname);
       const newHistoryEntry: HistoryEntry = {
         'path': pathname,
         'title': info.title,
         'icon': info.icon,
         'visitedAt': Date.now()
       };
-      const newHistory = [newHistoryEntry, ...filteredHistory]
+      const newHistory = [newHistoryEntry, ...state.history]
         .slice(0, MAX_HISTORY);
 
       const existingTab = state.tabs.find(t => t.path === pathname);
@@ -228,6 +227,12 @@ function navigatorReducer (state: NavigatorState, action: NavigatorAction): Navi
       );
       return { ...state, 'tabs': newTabs };
     }
+    case 'UPDATE_HISTORY_TITLE': {
+      const newHistory = state.history.map(entry =>
+        entry.path === action.path ? { ...entry, 'title': action.title } : entry
+      );
+      return { ...state, 'history': newHistory };
+    }
     default:
       return state;
   }
@@ -290,12 +295,17 @@ export function NavigatorProvider ({ children }: { children: ReactNode }) {
     dispatch({ 'type': 'UPDATE_TAB_TITLE', id, title });
   }, []);
 
+  const updateHistoryTitle = useCallback((path: string, title: string) => {
+    dispatch({ 'type': 'UPDATE_HISTORY_TITLE', path, title });
+  }, []);
+
   const fetchAndUpdateTitle = useCallback(async (tabId: string, pathname: string) => {
     const articleMatch = pathname.match(/^\/articles\/([^/]+)$/);
     if (articleMatch && articleMatch[1]) {
       const article = await getArticleBySlug(articleMatch[1]);
       if (article) {
         updateTabTitle(tabId, article.title);
+        updateHistoryTitle(pathname, article.title);
       }
       return;
     }
@@ -305,6 +315,7 @@ export function NavigatorProvider ({ children }: { children: ReactNode }) {
       const article = await getArticleBySlug(articleEditMatch[1]);
       if (article) {
         updateTabTitle(tabId, `编辑: ${article.title}`);
+        updateHistoryTitle(pathname, `编辑: ${article.title}`);
       }
       return;
     }
@@ -314,6 +325,7 @@ export function NavigatorProvider ({ children }: { children: ReactNode }) {
       const gallery = await getGalleryById(galleryMatch[1]);
       if (gallery) {
         updateTabTitle(tabId, gallery.title);
+        updateHistoryTitle(pathname, gallery.title);
       }
       return;
     }
@@ -323,9 +335,10 @@ export function NavigatorProvider ({ children }: { children: ReactNode }) {
       const gallery = await getGalleryById(galleryExploreMatch[1]);
       if (gallery) {
         updateTabTitle(tabId, `探索: ${gallery.title}`);
+        updateHistoryTitle(pathname, `探索: ${gallery.title}`);
       }
     }
-  }, [updateTabTitle]);
+  }, [updateTabTitle, updateHistoryTitle]);
 
   useEffect(() => {
     if (!state.activeTabId) {
@@ -372,10 +385,11 @@ export function NavigatorProvider ({ children }: { children: ReactNode }) {
     clearHistory,
     'loadedTabs': state.loadedTabs,
     markTabAsLoaded,
-    updateTabTitle
+    updateTabTitle,
+    updateHistoryTitle
   }), [
     state, setIsOpen, toggleSidebar, closeTab, closeOtherTabs, closeAllTabs,
-    reorderTabs, clearHistory, markTabAsLoaded, updateTabTitle, dispatch, navigate
+    reorderTabs, clearHistory, markTabAsLoaded, updateTabTitle, updateHistoryTitle, dispatch, navigate
   ]);
 
   return (
@@ -488,7 +502,7 @@ function CollaborationButton () {
   return (
     <button
       onClick={() => setPanelOpen(true)}
-      className="w-full font-medium flex items-center gap-1.5 px-4 py-2 rounded-lg focus:outline-none text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200"
+      className="w-full font-medium flex items-center gap-3 px-3 py-2.5 rounded-lg focus:outline-none text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200"
     >
       {getStatusIcon()}
       <span className="text-sm">协作</span>
@@ -506,6 +520,13 @@ function NavigationSection () {
   const { setIsOpen } = useNavigator();
 
   const navItems = [
+    {
+      'icon': <Home className="w-4 h-4 text-neutral-300" />,
+      'label': '首页',
+      'path': '/',
+      'hoverBg': 'hover:bg-neutral-100 dark:hover:bg-neutral-700/50',
+      'hoverText': 'hover:text-neutral-700 dark:hover:text-neutral-200'
+    },
     {
       'icon': <Network className="w-4 h-4 text-sky-300" />,
       'label': '图',
@@ -571,18 +592,19 @@ function HistorySection () {
     setIsOpen(false);
   };
 
-  const [now] = useState(() => Date.now());
   const groups = useMemo(() => {
-    const oneDayMs = 86400000;
     const today: HistoryEntry[] = [];
     const yesterday: HistoryEntry[] = [];
     const earlier: HistoryEntry[] = [];
 
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const yesterdayStart = todayStart - 86400000;
+
     history.forEach(entry => {
-      const diff = now - entry.visitedAt;
-      if (diff < oneDayMs) {
+      if (entry.visitedAt >= todayStart) {
         today.push(entry);
-      } else if (diff < oneDayMs * 2) {
+      } else if (entry.visitedAt >= yesterdayStart) {
         yesterday.push(entry);
       } else {
         earlier.push(entry);
@@ -600,7 +622,7 @@ function HistorySection () {
       result.push({ 'label': '更早', 'entries': earlier });
     }
     return result;
-  }, [history, now]);
+  }, [history]);
 
   if (history.length === 0) {
     return (
@@ -611,7 +633,7 @@ function HistorySection () {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-h-[40vh] overflow-y-auto">
       {groups.map(group => (
         <div key={group.label}>
           <div className="text-xs font-medium text-neutral-400 dark:text-neutral-500 mb-2 px-1">
@@ -627,7 +649,9 @@ function HistorySection () {
                 {getTabIcon(entry.icon)}
                 <span className="truncate flex-1 text-left">{entry.title}</span>
                 <span className="text-xs text-neutral-400 dark:text-neutral-500 shrink-0">
-                  {new Date(entry.visitedAt).toLocaleTimeString('zh-CN', {
+                  {new Date(entry.visitedAt).toLocaleString('zh-CN', {
+                    'month': 'numeric',
+                    'day': 'numeric',
                     'hour': '2-digit',
                     'minute': '2-digit'
                   })}
@@ -808,7 +832,7 @@ export function NavigatorSidebar () {
             animate={{ 'opacity': 1 }}
             exit={{ 'opacity': 0 }}
             transition={{ 'duration': 0.2 }}
-            className="fixed inset-0 bg-black/30 z-40"
+            className="fixed inset-0 bg-black/30 z-[90]"
             onClick={() => setIsOpen(false)}
           />
           <motion.div
@@ -816,7 +840,7 @@ export function NavigatorSidebar () {
             animate={{ 'x': 0 }}
             exit={{ 'x': -320 }}
             transition={{ 'type': 'spring', 'damping': 25, 'stiffness': 300 }}
-            className="fixed left-0 top-0 bottom-0 w-80 bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 z-50 flex flex-col shadow-xl print:hidden"
+            className="fixed left-0 top-0 bottom-0 w-80 bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 z-[100] flex flex-col shadow-xl print:hidden"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-700/50">
               <span className="font-bold text-lg tracking-tight text-neutral-800 dark:text-neutral-200">

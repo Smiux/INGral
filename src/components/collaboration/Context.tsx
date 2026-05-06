@@ -365,7 +365,7 @@ export function CollaborationProvider ({ children }: CollaborationProviderProps)
         'peerId': null,
         'joinedAt': Date.now(),
         'mediaPeerId': null,
-        'mediaType': null
+        'mediaTypes': []
       }}
       initialStorage={{
         'channels': new LiveList([new LiveObject({
