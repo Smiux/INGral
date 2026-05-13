@@ -1,7 +1,25 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { NavigatorTrigger } from '@/components/ui/Navigator';
-import { X, Hash, FileText, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Code, Layers, GitBranch, Link2, Folder, Settings, Info, Star, List, MessageSquare, Award, type LucideIcon } from 'lucide-react';
+import {
+  X,
+  Hash,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  Code,
+  Layers,
+  GitBranch,
+  Link2,
+  Folder,
+  Settings,
+  Info,
+  Star,
+  List,
+  MessageSquare,
+  Award,
+  type LucideIcon
+} from 'lucide-react';
 import { getAvailableSubjects, getSubject } from './register';
 import type { SubjectNode, SelectedNode, SubjectUIConfig } from './types';
 import {
@@ -19,6 +37,7 @@ import {
   DEFAULT_COSMOS_GL_SETTINGS,
   DEFAULT_DECK_GL_SETTINGS
 } from './renderers';
+import { SlidingCardSelector, type SlidingCardOption } from '@/components/ui/SlidingCardSelector';
 import './msc2020';
 import './physh';
 import './mesh';
@@ -50,154 +69,6 @@ const formatIdToName = (id: string, getIdName?: (id: string) => string): string 
   return parts[parts.length - 1] || id;
 };
 
-interface ScrollableButtonGroupProps<T extends string> {
-  items: Array<{ key: T; label: string; description?: string }>;
-  selectedKey: T;
-  onSelect: (key: T) => void;
-  maxVisible?: number;
-  size?: 'sm' | 'md';
-  activeColor?: string;
-}
-
-function ScrollableButtonGroup<T extends string> ({
-  items,
-  selectedKey,
-  onSelect,
-  maxVisible = 3,
-  size = 'md',
-  activeColor = 'bg-sky-600'
-}: ScrollableButtonGroupProps<T>) {
-  const [startIndex, setStartIndex] = useState(0);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-
-  const needsScroll = items.length > maxVisible;
-
-  const clampedStartIndex = useMemo(() => {
-    return Math.min(startIndex, Math.max(0, items.length - maxVisible));
-  }, [startIndex, items, maxVisible]);
-
-  const canScrollLeft = clampedStartIndex > 0;
-  const canScrollRight = clampedStartIndex + maxVisible < items.length;
-
-  useLayoutEffect(() => {
-    if (!trackRef.current) {
-      return;
-    }
-    const buttons = Array.from(trackRef.current.children) as HTMLElement[];
-    if (buttons.length === 0) {
-      return;
-    }
-    const gap = 8;
-
-    let newOffset = 0;
-    for (let i = 0; i < clampedStartIndex; i += 1) {
-      const btn = buttons[i];
-      if (btn) {
-        newOffset += btn.offsetWidth + gap;
-      }
-    }
-    trackRef.current.style.transform = `translateX(-${newOffset}px)`;
-
-    let vpWidth = 0;
-    const end = Math.min(clampedStartIndex + maxVisible, buttons.length);
-    for (let i = clampedStartIndex; i < end; i += 1) {
-      const btn = buttons[i];
-      if (btn) {
-        if (i > clampedStartIndex) {
-          vpWidth += gap;
-        }
-        vpWidth += btn.offsetWidth;
-      }
-    }
-    if (viewportRef.current) {
-      viewportRef.current.style.width = `${vpWidth}px`;
-    }
-  }, [clampedStartIndex, maxVisible, items]);
-
-  const handleScrollLeft = () => {
-    if (canScrollLeft) {
-      setStartIndex(clampedStartIndex - 1);
-    }
-  };
-
-  const handleScrollRight = () => {
-    if (canScrollRight) {
-      setStartIndex(clampedStartIndex + 1);
-    }
-  };
-
-  const handleSelect = (key: T) => {
-    onSelect(key);
-    const selectedIndex = items.findIndex((item) => item.key === key);
-    if (selectedIndex < 0) {
-      return;
-    }
-    if (selectedIndex < clampedStartIndex) {
-      setStartIndex(selectedIndex);
-    } else if (selectedIndex >= clampedStartIndex + maxVisible) {
-      setStartIndex(Math.min(selectedIndex, items.length - maxVisible));
-    }
-  };
-
-  const buttonClass = size === 'sm'
-    ? 'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap shrink-0'
-    : 'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0';
-
-  return (
-    <div className="flex items-center">
-      <button
-        onClick={handleScrollLeft}
-        className={`shrink-0 p-1 rounded-lg transition-all duration-300 ease-in-out ${
-          canScrollLeft && needsScroll
-            ? 'opacity-100 bg-neutral-700 text-neutral-300 hover:bg-neutral-600 mr-1 w-7'
-            : 'opacity-0 pointer-events-none w-0 mr-0 overflow-hidden p-0'
-        }`}
-      >
-        <ChevronLeft className="w-4 h-4" />
-      </button>
-      <div
-        ref={viewportRef}
-        className="overflow-hidden"
-      >
-        <div
-          ref={trackRef}
-          className="flex items-center gap-2"
-          style={{
-            'transform': 'translateX(0px)',
-            'transition': 'transform 300ms ease-in-out'
-          }}
-        >
-          {items.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => handleSelect(item.key)}
-              className={`${buttonClass} ${
-                selectedKey === item.key
-                  ? `${activeColor} text-white`
-                  : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
-              }`}
-              title={item.description}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <button
-        onClick={handleScrollRight}
-        className={`shrink-0 p-1 rounded-lg transition-all duration-300 ease-in-out ${
-          canScrollRight && needsScroll
-            ? 'opacity-100 bg-neutral-700 text-neutral-300 hover:bg-neutral-600 ml-1 w-7'
-            : 'opacity-0 pointer-events-none w-0 ml-0 overflow-hidden p-0'
-        }`}
-      >
-        <ChevronRight className="w-4 h-4" />
-      </button>
-    </div>
-  );
-}
-
 export default function SubjectVisualization () {
   const { subject } = useParams<{ subject?: string }>();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -216,10 +87,20 @@ export default function SubjectVisualization () {
   const [forceGraphSettings, setForceGraphSettings] = useState<ForceGraphSettings>(DEFAULT_FORCE_GRAPH_SETTINGS);
   const [cosmosGLSettings, setCosmosGLSettings] = useState<CosmosGLSettings>(DEFAULT_COSMOS_GL_SETTINGS);
   const [deckGLSettings, setDeckGLSettings] = useState<DeckGLSettings>(DEFAULT_DECK_GL_SETTINGS);
+  const [isDarkMode, setIsDarkMode] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const availableSubjects = useMemo(() => getAvailableSubjects(), []);
 
   const transformer = useMemo(() => getSubject(currentSubject), [currentSubject]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsDarkMode(e.matches);
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   useEffect(() => {
     const loadDataAsync = async () => {
@@ -349,7 +230,7 @@ export default function SubjectVisualization () {
       'onNodeHover': handleNodeHover,
       'onNodeClick': handleNodeClick,
       'onNodeRightClick': handleNodeRightClick,
-      'backgroundColor': '#171717'
+      'backgroundColor': isDarkMode ? '#0f172a' : '#f8fafc'
     };
 
     switch (currentRenderer) {
@@ -372,7 +253,7 @@ export default function SubjectVisualization () {
 
     return (
       <div
-        className="fixed z-50 px-3 py-2 bg-neutral-800 border border-neutral-600 rounded-lg shadow-xl pointer-events-none max-w-xs"
+        className="fixed z-50 px-3 py-2 bg-slate-50/95 dark:bg-slate-800/95 border border-slate-200/60 dark:border-slate-700/60 rounded pointer-events-none max-w-xs"
         style={{
           'left': tooltipPosition.x + 15,
           'top': tooltipPosition.y + 15
@@ -387,14 +268,14 @@ export default function SubjectVisualization () {
             const value = hoveredNode.originalData[field.key];
             if (field.type === 'code') {
               return (
-                <span key={field.key} className="font-mono text-sm text-sky-400">
+                <span key={field.key} className="font-mono text-sm text-sky-600 dark:text-sky-400">
                   {typeof value === 'string' ? formatIdToName(value, transformer?.getIdName) : ''}
                 </span>
               );
             }
             if (field.type === 'text') {
               return (
-                <span key={field.key} className="text-sm text-neutral-200">
+                <span key={field.key} className="text-sm text-slate-600 dark:text-slate-300">
                   {typeof value === 'string' ? (
                     <span dangerouslySetInnerHTML={{ '__html': value }} />
                   ) : ''}
@@ -428,11 +309,11 @@ export default function SubjectVisualization () {
       return (
         <div key={field.key}>
           <div className="flex items-center gap-2 mb-2">
-            {IconComponent && <IconComponent className="w-4 h-4 text-amber-400" />}
-            <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">{field.label}</span>
+            {IconComponent && <IconComponent className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />}
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{field.label}</span>
           </div>
-          <div className="bg-neutral-900 rounded-lg p-3">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-sky-900/50 text-sky-300 border border-sky-700">
+          <div className="bg-slate-100/80 dark:bg-slate-800/80 rounded p-3">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-sky-100/80 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-700/60">
               {field.key === 'level' ? getLevelLabel(value as string) : String(value)}
             </span>
           </div>
@@ -444,11 +325,11 @@ export default function SubjectVisualization () {
       return (
         <div key={field.key}>
           <div className="flex items-center gap-2 mb-2">
-            {IconComponent && <IconComponent className="w-4 h-4 text-sky-400" />}
-            <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">{field.label}</span>
+            {IconComponent && <IconComponent className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{field.label}</span>
           </div>
-          <div className="bg-neutral-900 rounded-lg p-3">
-            <code className="text-lg font-mono text-sky-400 break-all">
+          <div className="bg-slate-100/80 dark:bg-slate-800/80 rounded p-3">
+            <code className="text-lg font-mono text-sky-600 dark:text-sky-400 break-all">
               {typeof value === 'string' ? formatIdToName(value, transformer?.getIdName) : String(value)}
             </code>
           </div>
@@ -460,12 +341,12 @@ export default function SubjectVisualization () {
       return (
         <div key={field.key}>
           <div className="flex items-center gap-2 mb-2">
-            {IconComponent && <IconComponent className="w-4 h-4 text-green-400" />}
-            <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">{field.label}</span>
+            {IconComponent && <IconComponent className="w-4 h-4 text-green-500 dark:text-green-400" />}
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{field.label}</span>
           </div>
-          <div className="bg-neutral-900 rounded-lg p-3">
+          <div className="bg-slate-100/80 dark:bg-slate-800/80 rounded p-3">
             <p
-              className="text-neutral-200 html-content"
+              className="text-slate-600 dark:text-slate-300 html-content"
               dangerouslySetInnerHTML={{ '__html': String(value) }}
             />
           </div>
@@ -481,12 +362,12 @@ export default function SubjectVisualization () {
       return (
         <div key={field.key}>
           <div className="flex items-center gap-2 mb-2">
-            {IconComponent && <IconComponent className="w-4 h-4 text-purple-400" />}
-            <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">{field.label}</span>
-            <span className="text-xs text-neutral-500">({value.length})</span>
+            {IconComponent && <IconComponent className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />}
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{field.label}</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">({value.length})</span>
           </div>
-          <div className="bg-neutral-900 rounded-lg p-3">
-            <ul className="text-xs text-neutral-300 space-y-1">
+          <div className="bg-slate-100/80 dark:bg-slate-800/80 rounded p-3">
+            <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
               {displayItems.map((id, i) => (
                 <li key={i} className="truncate">{formatIdToName(id, transformer?.getIdName)}</li>
               ))}
@@ -494,7 +375,7 @@ export default function SubjectVisualization () {
             {hasMore && (
               <button
                 onClick={() => toggleListExpand(field.key)}
-                className="mt-2 w-full flex items-center justify-center gap-1 text-xs text-sky-400 hover:text-sky-300 transition-colors py-1"
+                className="mt-2 w-full flex items-center justify-center gap-1 text-xs text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 transition-colors py-1"
               >
                 {isExpanded ? (
                   <>
@@ -550,14 +431,14 @@ export default function SubjectVisualization () {
     };
 
     return (
-      <div className="fixed right-0 top-0 h-full w-96 bg-neutral-800 border-l border-neutral-700 shadow-2xl z-50 flex flex-col animate-slide-in-right">
-        <div className="flex items-center justify-between p-4 border-b border-neutral-700">
-          <h2 className="text-lg font-medium text-neutral-100">节点详情</h2>
+      <div className="fixed right-0 top-0 h-full w-96 bg-slate-100/40 dark:bg-slate-900/90 backdrop-blur-sm border-l border-slate-200/60 dark:border-slate-700/60 z-50 flex flex-col animate-slide-in-right">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200/60 dark:border-slate-700/60">
+          <h2 className="text-lg font-medium text-slate-600 dark:text-slate-300">节点详情</h2>
           <button
             onClick={handleClosePanel}
-            className="p-1 hover:bg-neutral-700 rounded-lg transition-colors"
+            className="p-1 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 rounded transition-colors"
           >
-            <X className="w-5 h-5 text-neutral-400" />
+            <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
           </button>
         </div>
 
@@ -567,10 +448,10 @@ export default function SubjectVisualization () {
           </div>
         </div>
 
-        <div className="p-4 border-t border-neutral-700">
+        <div className="p-4 border-t border-slate-200/60 dark:border-slate-700/60">
           <button
             onClick={handleClosePanel}
-            className="w-full py-2 px-4 bg-neutral-700 hover:bg-neutral-600 text-neutral-200 rounded-lg transition-colors text-sm font-medium"
+            className="w-full py-2 px-4 bg-slate-200/60 dark:bg-slate-700/60 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-600 dark:text-slate-300 rounded transition-colors text-sm font-medium"
           >
             关闭面板
           </button>
@@ -580,19 +461,29 @@ export default function SubjectVisualization () {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col bg-neutral-900">
-      <div className="bg-neutral-800 border-b border-neutral-700 flex items-center justify-between px-4 py-2">
+    <div className="w-full h-screen flex flex-col">
+      <div className="h-14 bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between px-4">
         <div className="flex items-center gap-4">
-          <NavigatorTrigger dark />
-          <div className="h-6 w-px bg-neutral-600" />
-          <ScrollableButtonGroup
-            items={availableSubjects.map((s) => ({ 'key': s.key, 'label': s.name }))}
-            selectedKey={currentSubject}
-            onSelect={handleSubjectChange}
-            maxVisible={3}
-            size="md"
-            activeColor="bg-sky-600"
-          />
+          <NavigatorTrigger/>
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
+
+          {(() => {
+            const subjectOptions: SlidingCardOption[] = availableSubjects.map(s => ({
+              'value': s.key,
+              'label': s.name
+            }));
+
+            return (
+              <SlidingCardSelector
+                options={subjectOptions}
+                value={currentSubject}
+                onChange={handleSubjectChange}
+                color="sky"
+                height={64}
+                showIcon={false}
+              />
+            );
+          })()}
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -600,10 +491,10 @@ export default function SubjectVisualization () {
               <button
                 key={config.type}
                 onClick={() => setCurrentRenderer(config.type)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                   currentRenderer === config.type
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
+                    ? 'bg-indigo-100/80 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400'
+                    : 'bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-700/80'
                 }`}
                 title={config.description}
               >
@@ -611,19 +502,19 @@ export default function SubjectVisualization () {
               </button>
             ))}
           </div>
-          <div className="h-6 w-px bg-neutral-600" />
-          <div className="flex items-center gap-2 text-sm text-neutral-400">
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
+          <div className="flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500">
             <span>节点: {graphData.nodes.length}</span>
-            <span className="text-neutral-600">|</span>
+            <span className="text-slate-300 dark:text-slate-600">|</span>
             <span>连接: {graphData.links.length}</span>
           </div>
-          <div className="h-6 w-px bg-neutral-600" />
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className={`p-2 rounded-lg transition-colors ${
+            className={`p-2 rounded transition-colors ${
               showSettings
-                ? 'bg-sky-600 text-white'
-                : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
+                ? 'bg-slate-200/60 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300'
+                : 'bg-slate-100/50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 hover:bg-slate-200/80 dark:hover:bg-slate-700/80'
             }`}
             title="渲染器设置"
           >
@@ -638,20 +529,20 @@ export default function SubjectVisualization () {
         onMouseMove={handleMouseMove}
       >
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-neutral-900 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-50 dark:bg-slate-900 z-10">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400 mx-auto mb-4" />
-              <p className="text-neutral-400">正在加载数据...</p>
+              <p className="text-slate-400 dark:text-slate-500">正在加载数据...</p>
             </div>
           </div>
         )}
         {loadError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-neutral-900 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-50 dark:bg-slate-900 z-10">
             <div className="text-center">
               <p className="text-red-400 mb-4">{loadError}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-500"
+                className="px-4 py-2 bg-slate-200/60 dark:bg-slate-700/60 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-600 dark:text-slate-300 rounded transition-colors text-sm font-medium"
               >
                 重新加载
               </button>
@@ -662,9 +553,9 @@ export default function SubjectVisualization () {
 
         {renderTooltip()}
 
-        <div className="absolute bottom-4 left-4 bg-neutral-800/90 backdrop-blur-sm border border-neutral-700 rounded-lg p-4 max-w-xs">
-          <h3 className="text-sm font-medium text-neutral-200 mb-3">操作说明</h3>
-          <ul className="text-xs text-neutral-400 space-y-2">
+        <div className="absolute bottom-4 left-4 bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 rounded p-4 max-w-xs">
+          <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-3">操作说明</h3>
+          <ul className="text-xs text-slate-400 dark:text-slate-500 space-y-2">
             <li className="flex items-center gap-2">
               <span className="text-sky-400">→</span>
               <span>左键拖拽节点：移动节点位置</span>
@@ -688,9 +579,9 @@ export default function SubjectVisualization () {
           </ul>
         </div>
 
-        <div className="absolute top-4 left-4 bg-neutral-800/90 backdrop-blur-sm border border-neutral-700 rounded-lg p-3">
-          <h3 className="text-xs font-medium text-neutral-300 mb-2">颜色图例</h3>
-          <div className="space-y-1 text-xs text-neutral-400">
+        <div className="absolute top-4 left-4 bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 rounded p-3">
+          <h3 className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">颜色图例</h3>
+          <div className="space-y-1 text-xs text-slate-400 dark:text-slate-500">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded-full bg-white" />
               <span>根节点: {subjectInfo?.rootName}</span>

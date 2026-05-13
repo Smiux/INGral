@@ -104,7 +104,7 @@ function Cursor ({
         />
       </svg>
       <div
-        className="absolute top-3 left-4 px-2 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap shadow-lg"
+        className="absolute top-3 left-4 px-2 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap"
         style={{ 'backgroundColor': userColor }}
       >
         {userName}

@@ -71,7 +71,7 @@ function CachedRoute ({ cacheKey, children }: CachedRouteProps) {
   }, [cacheKey, markTabAsLoaded, tabs]);
 
   return (
-    <KeepAlive id={cacheKey} autoFreeze={false}>
+    <KeepAlive id={cacheKey} name={cacheKey} autoFreeze={false}>
       <>{children}</>
     </KeepAlive>
   );
@@ -139,12 +139,12 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   override render () {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 bg-neutral-50 dark:bg-neutral-800">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 bg-slate-50 dark:bg-slate-900">
           <h2 className="text-2xl font-bold text-red-600 mb-4">加载失败</h2>
-          <p className="text-neutral-700 dark:text-neutral-300 mb-6">很抱歉，页面加载时出现了错误。</p>
+          <p className="text-slate-700 dark:text-slate-300 mb-6">很抱歉，页面加载时出现了错误。</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-sky-600 text-white rounded hover:bg-sky-700 transition-colors"
           >
             重新加载
           </button>
@@ -299,7 +299,7 @@ function AppContent () {
     pathname === '/gallerys';
 
   return (
-    <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-neutral-900">
+    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900">
       {showNavigatorTrigger && (
         <div className="fixed top-4 left-4 z-30 print:hidden">
           <NavigatorTrigger />

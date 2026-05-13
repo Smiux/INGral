@@ -15,12 +15,15 @@ function getNodeGeometry (node: InternalNode): NodeGeometry {
   const halfWidth = width / 2;
   const halfHeight = height / 2;
 
+  const dataShape = (node.data as { 'shape'?: string })?.shape;
+  const defaultShape = node.type === 'articleNode' ? 'rectangle' : 'circle';
+
   return {
     'centerX': position.x + halfWidth,
     'centerY': position.y + halfHeight,
     halfWidth,
     halfHeight,
-    'shape': (node.data as { 'shape'?: string })?.shape || 'circle'
+    'shape': dataShape || defaultShape
   };
 }
 

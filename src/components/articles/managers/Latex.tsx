@@ -90,16 +90,16 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
       <div
         ref={modalRef}
-        className="bg-white dark:bg-neutral-800 rounded-lg w-full max-w-3xl max-h-[70vh] overflow-hidden flex flex-col"
+        className="bg-slate-50 dark:bg-slate-800 rounded w-full max-w-3xl max-h-[70vh] overflow-hidden flex flex-col"
       >
-        <div className="flex justify-between items-center p-4 border-b border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900">
-          <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200">LaTeX公式编辑器</h2>
+        <div className="flex justify-between items-center p-4 border-b border-slate-200/60 dark:border-slate-700/60 bg-slate-50/90 dark:bg-slate-900/90">
+          <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-300">LaTeX公式编辑器</h2>
           <button
             onClick={handleClose}
-            className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -109,10 +109,10 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
           <div className="grid grid-cols-1 gap-4">
             <div>
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">公式编辑</h3>
+                <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">公式编辑</h3>
                 <button
                   onClick={handleClear}
-                  className="px-3 py-1 text-xs bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+                  className="px-3 py-1 text-xs bg-slate-100/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/80 transition-colors"
                 >
                   清除
                 </button>
@@ -133,18 +133,18 @@ export function LatexEditor ({ isOpen, onClose, onInsert, initialFormula = '' }:
           </div>
 
         </div>
-        <div className="p-4 border-t border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 flex justify-end items-center">
+        <div className="p-4 border-t border-slate-200/60 dark:border-slate-700/60 bg-slate-50/90 dark:bg-slate-900/90 flex justify-end items-center">
           <div className="flex space-x-2">
             <button
               onClick={handleCopy}
-              className="px-4 py-2 border border-blue-500 dark:border-blue-400 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors flex items-center"
+              className="px-4 py-2 border border-sky-500 dark:border-sky-400 rounded bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors flex items-center"
             >
               <Copy className="w-4 h-4 mr-1" />
               复制公式
             </button>
             <button
               onClick={handleInsert}
-              className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center"
+              className="px-4 py-2 bg-sky-600 dark:bg-sky-500 text-white rounded hover:bg-sky-700 dark:hover:bg-sky-600 transition-colors flex items-center"
             >
               <Save className="w-4 h-4 mr-1" />
               插入公式

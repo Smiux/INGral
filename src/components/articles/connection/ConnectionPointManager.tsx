@@ -328,13 +328,7 @@ export function ConnectionPointManager ({
         return;
       }
 
-      const pointId = marker.getAttribute('data-connection-point-id');
-      if (!pointId) {
-        return;
-      }
-
       e.preventDefault();
-      removePoint(pointId);
     };
 
     const handleDblclick = (e: MouseEvent) => {
@@ -423,7 +417,7 @@ export function ConnectionPointManager ({
   const addButton = selection && addButtonPosition && (
     <button
       onClick={handleAddPoint}
-      className="absolute z-50 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 text-white text-xs font-medium rounded-full shadow-md hover:bg-indigo-600 hover:shadow-lg active:scale-95 transition-all cursor-pointer"
+      className="absolute z-50 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 text-white text-xs font-medium rounded-full hover:bg-indigo-600 active:scale-95 transition-all cursor-pointer"
       style={{
         'left': `${addButtonPosition.left}px`,
         'top': `${addButtonPosition.top}px`,
@@ -437,7 +431,7 @@ export function ConnectionPointManager ({
 
   const connectingMessageEl = state.isConnecting && positions.connectingMessage && (
     <div
-      className="absolute z-50 flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-xl shadow-md"
+      className="absolute z-50 flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-xl"
       style={{
         'left': `${positions.connectingMessage.left}px`,
         'top': `${positions.connectingMessage.top}px`,
@@ -447,7 +441,7 @@ export function ConnectionPointManager ({
       <span>选择要连接的连接点</span>
       <button
         onClick={handleCancelConnecting}
-        className="px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs transition-colors"
+        className="px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded text-xs transition-colors"
       >
         取消
       </button>
@@ -456,7 +450,7 @@ export function ConnectionPointManager ({
 
   const toolbarEl = state.selectedPointId && !state.isConnecting && positions.toolbar && (
     <div
-      className={`absolute z-50 flex items-center gap-1.5 px-2 py-1.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-sm rounded-xl shadow-md ${TOOLBAR_CLASS}`}
+      className={`absolute z-50 flex items-center gap-1.5 px-2 py-1.5 text-sm rounded-xl ${TOOLBAR_CLASS}`}
       style={{
         'left': `${positions.toolbar.left}px`,
         'top': `${positions.toolbar.top}px`,
@@ -465,7 +459,7 @@ export function ConnectionPointManager ({
     >
       <button
         onClick={() => setConnecting(true)}
-        className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+        className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
       >
         <Link2 className="w-3.5 h-3.5" />
         连接
@@ -475,7 +469,7 @@ export function ConnectionPointManager ({
           removePoint(state.selectedPointId!);
           selectPoint(null);
         }}
-        className="flex items-center gap-1 px-2.5 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+        className="flex items-center gap-1 px-2.5 py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
       >
         <X className="w-3.5 h-3.5" />
         删除
@@ -485,7 +479,7 @@ export function ConnectionPointManager ({
 
   const tooltipEl = hoveredPoint && tooltipPosition && (
     <div
-      className="fixed z-[60] max-w-[300px] px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-700 dark:text-neutral-300 rounded-lg shadow-lg whitespace-pre-wrap break-words"
+      className="fixed z-[60] max-w-[300px] px-3 py-2 bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-300 rounded whitespace-pre-wrap break-words"
       style={{
         'left': tooltipPosition.left,
         'top': tooltipPosition.top,
@@ -496,13 +490,17 @@ export function ConnectionPointManager ({
     </div>
   );
 
-  return createPortal(
+  return (
     <>
-      {addButton}
-      {connectingMessageEl}
-      {toolbarEl}
-      {tooltipEl}
-    </>,
-    editorDom
+      {createPortal(
+        <>
+          {addButton}
+          {connectingMessageEl}
+          {toolbarEl}
+        </>,
+        editorDom
+      )}
+      {createPortal(tooltipEl, document.body)}
+    </>
   );
 }

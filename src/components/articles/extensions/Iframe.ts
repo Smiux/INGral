@@ -84,7 +84,7 @@ export const IframeEmbed = Node.create<IframeEmbedOptions>({
           'data-iframe-embed': '',
           'frameborder': '0',
           'allowfullscreen': 'true',
-          'class': 'rounded-lg max-w-full'
+          'class': 'rounded max-w-full'
         })
       ]
     ];

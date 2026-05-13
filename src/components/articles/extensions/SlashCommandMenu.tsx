@@ -92,7 +92,7 @@ const CommandMenuInner: React.FC<CommandMenuProps> = ({
 
   if (filteredItems.length === 0) {
     return (
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg p-3 text-sm text-neutral-500 dark:text-neutral-400">
+      <div className="bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded p-3 text-sm text-slate-500 dark:text-slate-400">
         没有找到匹配的命令
       </div>
     );
@@ -101,20 +101,20 @@ const CommandMenuInner: React.FC<CommandMenuProps> = ({
   return (
     <div
       ref={menuRef}
-      className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg max-h-80 w-72 overflow-y-auto"
+      className="bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded max-h-80 w-72 overflow-y-auto"
     >
       <div className="p-2">
         {filteredItems.map((item, index) => {
           const isItemActive = item.isActive ? item.isActive(editor) : false;
 
-          let buttonClass = 'w-full flex items-center gap-3 px-3 py-2 text-left rounded-md transition-colors ';
+          let buttonClass = 'w-full flex items-center gap-3 px-3 py-2 text-left rounded transition-colors ';
 
           if (index === selectedIndex) {
-            buttonClass += 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400';
+            buttonClass += 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400';
           } else if (isItemActive) {
-            buttonClass += 'bg-sky-50/50 dark:bg-sky-900/10 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/20';
+            buttonClass += 'bg-sky-100/40 dark:bg-sky-500/8 text-sky-600 dark:text-sky-400 hover:bg-sky-100/80 dark:hover:bg-sky-500/15';
           } else {
-            buttonClass += 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700';
+            buttonClass += 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40';
           }
 
           return (
@@ -131,7 +131,7 @@ const CommandMenuInner: React.FC<CommandMenuProps> = ({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium">{item.label}</div>
-                <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
                   {item.description}
                 </div>
               </div>

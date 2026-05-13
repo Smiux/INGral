@@ -1,24 +1,35 @@
-# Dependencies
+# 依赖目录
 node_modules
 
-# Production
+# 构建输出目录
 dist
 build
 
-# Environment variables
+# 环境变量文件
 .env
 
-# Documentation
+# 文档目录
 docs/
 
-# Skills
+# AI 代理相关文件
+agents.md
 .agents/
+
+# 技能锁定文件
 skills-lock.json
 
+# IDE 和编辑器配置
 .vscode/
 .trae/
-scripts/
-.kilocode/
+.cursor/
+.codebuddy/
 
-# Raw data files (original data sources)
+# 脚本目录
+scripts/
+
+# AI 工具配置目录
+.kilocode/
+.superpowers/
+
+# 原始数据目录
 public/data/raw/

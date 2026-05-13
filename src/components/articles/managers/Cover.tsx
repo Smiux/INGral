@@ -253,38 +253,38 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6 relative z-10 w-full max-w-2xl max-h-[90vh] overflow-auto">
+      <div className="absolute inset-0 bg-slate-900/50" onClick={onClose} />
+      <div className="bg-slate-50 dark:bg-slate-800 rounded border border-slate-200/60 dark:border-slate-700/60 p-6 relative z-10 w-full max-w-2xl max-h-[90vh] overflow-auto">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             <ImageIcon className="w-5 h-5 text-sky-500" />
             文章封面管理
           </h3>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
+            className="p-1 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 rounded transition-colors"
           >
-            <X className="w-5 h-5 text-neutral-500" />
+            <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
         {!imageSrc ? (
           <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            className={`border-2 border-dashed rounded p-8 text-center transition-colors ${
               isDragging
                 ? 'border-sky-400 bg-sky-50 dark:bg-sky-900/20'
-                : 'border-neutral-300 dark:border-neutral-600 hover:border-sky-400 dark:hover:border-sky-500'
+                : 'border-slate-300/80 dark:border-slate-600/80 hover:border-sky-400 dark:hover:border-sky-500'
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
           >
-            <Upload className="w-12 h-12 mx-auto mb-4 text-neutral-400" />
-            <p className="text-neutral-600 dark:text-neutral-300 mb-2">
+            <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+            <p className="text-slate-500 dark:text-slate-400 mb-2">
               点击或拖拽图片到此处上传
             </p>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               支持 JPEG、PNG、WebP、GIF 格式
             </p>
             <input
@@ -299,7 +299,7 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
           <div className="space-y-4">
             <div
               ref={containerRef}
-              className="relative bg-neutral-100 dark:bg-neutral-700 rounded-lg overflow-hidden"
+              className="relative bg-slate-100/40 dark:bg-slate-800/40 rounded overflow-hidden"
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
@@ -315,7 +315,7 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
 
               {isCropping && (
                 <>
-                  <div className="absolute inset-0 bg-black/50" />
+                  <div className="absolute inset-0 bg-slate-900/50" />
                   <div
                     className="absolute border-2 border-sky-400 bg-transparent cursor-move"
                     style={{
@@ -350,7 +350,7 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="text-sm text-neutral-500 dark:text-neutral-400">
+              <div className="text-sm text-slate-500 dark:text-slate-400">
                 {isCropping ? '拖动裁剪框调整位置和大小' : '封面已设置'}
               </div>
               <div className="flex gap-2">
@@ -358,14 +358,14 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
                   <>
                     <button
                       onClick={handleReset}
-                      className="inline-flex items-center px-3 py-2 text-sm text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+                      className="inline-flex items-center px-3 py-2 text-sm text-slate-500 dark:text-slate-400 bg-slate-100/40 dark:bg-slate-800/40 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/80 transition-colors"
                     >
                       <RotateCcw className="w-4 h-4 mr-1" />
                       重置
                     </button>
                     <button
                       onClick={handleCropConfirm}
-                      className="inline-flex items-center px-3 py-2 text-sm text-white bg-sky-500 rounded-md hover:bg-sky-600 transition-colors"
+                      className="inline-flex items-center px-3 py-2 text-sm text-white bg-sky-500 rounded hover:bg-sky-600 transition-colors"
                     >
                       <Check className="w-4 h-4 mr-1" />
                       确认裁剪
@@ -375,21 +375,21 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
                   <>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="inline-flex items-center px-3 py-2 text-sm text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+                      className="inline-flex items-center px-3 py-2 text-sm text-slate-500 dark:text-slate-400 bg-slate-100/40 dark:bg-slate-800/40 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/80 transition-colors"
                     >
                       <Upload className="w-4 h-4 mr-1" />
                       更换图片
                     </button>
                     <button
                       onClick={handleStartRecrop}
-                      className="inline-flex items-center px-3 py-2 text-sm text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+                      className="inline-flex items-center px-3 py-2 text-sm text-slate-500 dark:text-slate-400 bg-slate-100/40 dark:bg-slate-800/40 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/80 transition-colors"
                     >
                       <Crop className="w-4 h-4 mr-1" />
                       重新裁剪
                     </button>
                     <button
                       onClick={handleRemoveCover}
-                      className="inline-flex items-center px-3 py-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                      className="inline-flex items-center px-3 py-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                     >
                       <X className="w-4 h-4 mr-1" />
                       移除封面
@@ -409,10 +409,10 @@ export const CoverManager: React.FC<CoverManagerProps> = ({
           </div>
         )}
 
-        <div className="mt-6 pt-4 border-t border-neutral-200 dark:border-neutral-700 flex justify-end">
+        <div className="mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-700/60 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-md transition-colors"
+            className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 bg-slate-100/40 dark:bg-slate-800/40 hover:bg-slate-200/50 dark:hover:bg-slate-800/80 rounded transition-colors"
           >
             关闭
           </button>

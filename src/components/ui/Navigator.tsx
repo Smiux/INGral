@@ -7,14 +7,18 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useAliveController } from 'react-activation';
 import {
   Network, Calculator, Layers, BookOpen, Home, X, GripVertical,
-  Clock, Compass, Users, Wifi, RefreshCw, Loader2
+  Clock, Compass, Users, Wifi, RefreshCw, Loader2, Palette, Check
 } from 'lucide-react';
 import { useCollaboration } from '../collaboration';
 import {
   NavigatorContext,
-  type Tab, type HistoryEntry, type NavigatorState, type NavigatorAction
+  type Tab,
+  type HistoryEntry,
+  type NavigatorState,
+  type NavigatorAction
 } from './NavigatorContext';
 import { useNavigator } from './useNavigator';
+import { useGrayTheme, type GrayThemeName } from './useGrayTheme';
 import { getArticleBySlug } from '@/services/articleService';
 import { getGalleryById } from '@/services/galleryService';
 
@@ -425,23 +429,19 @@ export function NavigatorCacheManager () {
   }, [state.tabs, state.activeTabId, navigate, aliveController, dispatch]);
 
   const closeOtherTabs = useCallback((id: string) => {
-    state.tabs.forEach(tab => {
-      if (tab.id !== id && state.loadedTabs.has(tab.id)) {
-        aliveController.drop(tab.path);
-      }
-    });
+    const keepTab = state.tabs.find(t => t.id === id);
+    aliveController.clear();
     dispatch({ 'type': 'CLOSE_OTHER_TABS', id });
-  }, [state.tabs, state.loadedTabs, aliveController, dispatch]);
+    if (keepTab && keepTab.id === state.activeTabId) {
+      navigate(keepTab.path);
+    }
+  }, [state.tabs, state.activeTabId, aliveController, dispatch, navigate]);
 
   const closeAllTabs = useCallback(() => {
-    state.tabs.forEach(tab => {
-      if (state.loadedTabs.has(tab.id)) {
-        aliveController.drop(tab.path);
-      }
-    });
+    aliveController.clear();
     dispatch({ 'type': 'CLOSE_ALL_TABS' });
     navigate('/');
-  }, [state.tabs, state.loadedTabs, aliveController, dispatch, navigate]);
+  }, [aliveController, dispatch, navigate]);
 
   useEffect(() => {
     const handler = (e: CustomEvent) => {
@@ -474,8 +474,8 @@ export function NavigatorTrigger ({ dark = false, className = '' }: NavigatorTri
   return (
     <button
       onClick={toggleSidebar}
-      className={`flex items-center gap-2 hover:opacity-80 transition-opacity px-2 py-1 rounded-lg focus:outline-none ${
-        dark ? 'text-neutral-100' : 'text-neutral-800 dark:text-neutral-200'
+      className={`flex items-center gap-2 hover:opacity-80 transition-opacity px-2 py-1 rounded focus:outline-none ${
+        dark ? 'text-slate-100' : 'text-slate-800 dark:text-slate-200'
       } ${className}`}
     >
       <span className="font-bold tracking-tight">IN Gral</span>
@@ -496,13 +496,13 @@ function CollaborationButton () {
     if (isConnected) {
       return <Wifi size={16} className="text-green-500" />;
     }
-    return <Users size={16} className="text-sky-400" />;
+    return <Users size={16} className="text-cyan-400" />;
   };
 
   return (
     <button
       onClick={() => setPanelOpen(true)}
-      className="w-full font-medium flex items-center gap-3 px-3 py-2.5 rounded-lg focus:outline-none text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all duration-200"
+      className="w-full font-medium flex items-center gap-3 px-3 py-2.5 rounded focus:outline-none text-slate-500 dark:text-slate-400 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-100/80 dark:hover:bg-sky-900/30 transition-all duration-200"
     >
       {getStatusIcon()}
       <span className="text-sm">协作</span>
@@ -521,39 +521,39 @@ function NavigationSection () {
 
   const navItems = [
     {
-      'icon': <Home className="w-4 h-4 text-neutral-300" />,
+      'icon': <Home className="w-4 h-4 text-slate-400" />,
       'label': '首页',
       'path': '/',
-      'hoverBg': 'hover:bg-neutral-100 dark:hover:bg-neutral-700/50',
-      'hoverText': 'hover:text-neutral-700 dark:hover:text-neutral-200'
+      'hoverBg': 'hover:bg-slate-100/80 dark:hover:bg-slate-800/80',
+      'hoverText': 'hover:text-slate-700 dark:hover:text-slate-200'
     },
     {
-      'icon': <Network className="w-4 h-4 text-sky-300" />,
+      'icon': <Network className="w-4 h-4 text-sky-400" />,
       'label': '图',
       'path': '/graphs/create',
-      'hoverBg': 'hover:bg-sky-50 dark:hover:bg-sky-900/20',
+      'hoverBg': 'hover:bg-sky-100/80 dark:hover:bg-sky-900/30',
       'hoverText': 'hover:text-sky-500 dark:hover:text-sky-400'
     },
     {
-      'icon': <Calculator className="w-4 h-4 text-purple-300" />,
+      'icon': <Calculator className="w-4 h-4 text-indigo-400" />,
       'label': '分类',
       'path': '/graphs/subject-visualization',
-      'hoverBg': 'hover:bg-purple-50 dark:hover:bg-purple-900/20',
-      'hoverText': 'hover:text-purple-500 dark:hover:text-purple-400'
+      'hoverBg': 'hover:bg-indigo-100/80 dark:hover:bg-indigo-900/30',
+      'hoverText': 'hover:text-indigo-500 dark:hover:text-indigo-400'
     },
     {
-      'icon': <Layers className="w-4 h-4 text-orange-300" />,
+      'icon': <Layers className="w-4 h-4 text-emerald-400" />,
       'label': '地图',
       'path': '/gallerys',
-      'hoverBg': 'hover:bg-orange-50 dark:hover:bg-orange-900/20',
-      'hoverText': 'hover:text-orange-500 dark:hover:text-orange-400'
+      'hoverBg': 'hover:bg-emerald-100/80 dark:hover:bg-emerald-900/30',
+      'hoverText': 'hover:text-emerald-500 dark:hover:text-emerald-400'
     },
     {
-      'icon': <BookOpen className="w-4 h-4 text-green-300" />,
+      'icon': <BookOpen className="w-4 h-4 text-teal-400" />,
       'label': '文章',
       'path': '/articles',
-      'hoverBg': 'hover:bg-green-50 dark:hover:bg-green-900/20',
-      'hoverText': 'hover:text-green-500 dark:hover:text-green-400'
+      'hoverBg': 'hover:bg-teal-100/80 dark:hover:bg-teal-900/30',
+      'hoverText': 'hover:text-teal-500 dark:hover:text-teal-400'
     }
   ];
 
@@ -568,7 +568,7 @@ function NavigationSection () {
         <button
           key={item.label}
           onClick={() => handleNavigate(item.path)}
-          className={`w-full font-medium flex items-center gap-3 px-3 py-2.5 rounded-lg focus:outline-none text-neutral-600 dark:text-neutral-300 ${
+          className={`w-full font-medium flex items-center gap-3 px-3 py-2.5 rounded focus:outline-none text-slate-500 dark:text-slate-400 ${
             item.hoverBg
           } ${item.hoverText} transition-all duration-200`}
         >
@@ -626,7 +626,7 @@ function HistorySection () {
 
   if (history.length === 0) {
     return (
-      <div className="text-center py-8 text-neutral-400 dark:text-neutral-500 text-sm">
+      <div className="text-center py-8 text-slate-400 dark:text-slate-500 text-sm">
         暂无浏览记录
       </div>
     );
@@ -636,7 +636,7 @@ function HistorySection () {
     <div className="space-y-4 max-h-[40vh] overflow-y-auto">
       {groups.map(group => (
         <div key={group.label}>
-          <div className="text-xs font-medium text-neutral-400 dark:text-neutral-500 mb-2 px-1">
+          <div className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-2 px-1">
             {group.label}
           </div>
           <div className="space-y-0.5">
@@ -644,11 +644,11 @@ function HistorySection () {
               <button
                 key={`${entry.path}-${entry.visitedAt}`}
                 onClick={() => handleNavigate(entry.path)}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors text-sm"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-colors text-sm"
               >
                 {getTabIcon(entry.icon)}
                 <span className="truncate flex-1 text-left">{entry.title}</span>
-                <span className="text-xs text-neutral-400 dark:text-neutral-500 shrink-0">
+                <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
                   {new Date(entry.visitedAt).toLocaleString('zh-CN', {
                     'month': 'numeric',
                     'day': 'numeric',
@@ -663,7 +663,7 @@ function HistorySection () {
       ))}
       <button
         onClick={clearHistory}
-        className="w-full text-center text-xs text-neutral-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400 py-2 transition-colors"
+        className="w-full text-center text-xs text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 py-2 transition-colors"
       >
         清除浏览记录
       </button>
@@ -710,21 +710,21 @@ function TabItem ({
         onDrop(e, index);
       }}
       onDragEnd={onDragEnd}
-      className={`group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-all duration-150 ${
+      className={`group flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-all duration-150 ${
         isActive
-          ? 'bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300'
-          : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700/50'
+          ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400'
+          : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
       } ${isDragOver ? 'ring-2 ring-sky-400 ring-offset-1' : ''} ${
         !isLoaded ? 'opacity-50' : ''
       }`}
       onClick={onActivate}
     >
-      <GripVertical className="w-3 h-3 text-neutral-300 dark:text-neutral-600 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <GripVertical className="w-3 h-3 text-slate-400 dark:text-slate-600 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
       <span className="shrink-0">{getTabIcon(tab.icon, 'w-3.5 h-3.5')}</span>
       <span className="text-sm truncate flex-1">{tab.title}</span>
       <button
         onClick={onClose}
-        className="shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all"
+        className="shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all"
       >
         <X className="w-3 h-3" />
       </button>
@@ -767,7 +767,7 @@ function TabsSection () {
 
   if (tabs.length === 0) {
     return (
-      <div className="text-center py-6 text-neutral-400 dark:text-neutral-500 text-sm">
+      <div className="text-center py-6 text-slate-400 dark:text-slate-500 text-sm">
         暂无打开的标签页
       </div>
     );
@@ -794,7 +794,7 @@ function TabsSection () {
         />
       ))}
       {tabs.length > 1 && (
-        <div className="flex items-center gap-2 pt-2 border-t border-neutral-100 dark:border-neutral-700/50">
+        <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
           <button
             onClick={() => {
               const activeTab = tabs.find(t => t.id === activeTabId);
@@ -802,19 +802,91 @@ function TabsSection () {
                 closeOtherTabs(activeTab.id);
               }
             }}
-            className="text-xs text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+            className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
           >
             关闭其他
           </button>
-          <span className="text-neutral-300 dark:text-neutral-600">·</span>
+          <span className="text-slate-300 dark:text-slate-600">·</span>
           <button
             onClick={closeAllTabs}
-            className="text-xs text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+            className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
           >
             关闭全部
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+const GRAY_THEME_ORDER: GrayThemeName[] = [
+  'slate', 'neutral', 'gray', 'zinc', 'stone',
+  'mauve', 'olive', 'mist', 'taupe'
+];
+
+function GrayThemeSelector () {
+  const { theme, setTheme, labels } = useGrayTheme();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="p-1.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-colors"
+      >
+        <Palette className="w-4 h-4" />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ 'opacity': 0, 'scale': 0.95, 'y': -4 }}
+            animate={{ 'opacity': 1, 'scale': 1, 'y': 0 }}
+            exit={{ 'opacity': 0, 'scale': 0.95, 'y': -4 }}
+            transition={{ 'duration': 0.15 }}
+            className="absolute right-0 top-full mt-1 w-52 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded z-[200] overflow-hidden"
+          >
+            <div className="p-1.5">
+              {GRAY_THEME_ORDER.map(name => (
+                <button
+                  key={name}
+                  onClick={() => {
+                    setTheme(name);
+                    setOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-sm transition-colors ${
+                    theme === name
+                      ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-700/60'
+                  }`}
+                >
+                  <span
+                    className="w-3.5 h-3.5 rounded-full border border-slate-300/50 dark:border-slate-600/50 shrink-0"
+                    style={{ 'backgroundColor': `var(--color-slate-${theme === name ? 500 : 400})` }}
+                  />
+                  <span className="flex-1 text-left">{labels[name]}</span>
+                  {theme === name && <Check className="w-3.5 h-3.5 shrink-0" />}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -832,37 +904,40 @@ export function NavigatorSidebar () {
             animate={{ 'opacity': 1 }}
             exit={{ 'opacity': 0 }}
             transition={{ 'duration': 0.2 }}
-            className="fixed inset-0 bg-black/30 z-[90]"
+            className="fixed inset-0 bg-slate-900/30 z-[90]"
             onClick={() => setIsOpen(false)}
           />
           <motion.div
-            initial={{ 'x': -320 }}
+            initial={{ 'x': '-100%' }}
             animate={{ 'x': 0 }}
-            exit={{ 'x': -320 }}
+            exit={{ 'x': '-100%' }}
             transition={{ 'type': 'spring', 'damping': 25, 'stiffness': 300 }}
-            className="fixed left-0 top-0 bottom-0 w-80 bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 z-[100] flex flex-col shadow-xl print:hidden"
+            className="fixed left-0 top-0 bottom-0 w-[80vw] sm:w-[60vw] md:w-[40vw] lg:w-[30vw] xl:w-[25vw] max-w-[28rem] min-w-[12rem] bg-slate-50 dark:bg-slate-800 border-r border-slate-200/60 dark:border-slate-700/60 z-[100] flex flex-col"
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-700/50">
-              <span className="font-bold text-lg tracking-tight text-neutral-800 dark:text-neutral-200">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-slate-700/60">
+              <span className="font-bold text-lg tracking-tight text-slate-700 dark:text-slate-300">
                 IN Gral
               </span>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <GrayThemeSelector />
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">
               <div className="p-3">
-                <div className="flex items-center gap-1 p-1 bg-neutral-100 dark:bg-neutral-700/50 rounded-lg mb-3">
+                <div className="flex items-center gap-1 p-1 bg-slate-100/50 dark:bg-slate-800/50 rounded mb-3">
                   <button
                     onClick={() => setActiveSection('nav')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-all duration-200 ${
                       activeSection === 'nav'
-                        ? 'bg-white dark:bg-neutral-600 text-neutral-800 dark:text-neutral-100 shadow-sm'
-                        : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
+                        ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                     }`}
                   >
                     <Compass className="w-3.5 h-3.5" />
@@ -870,10 +945,10 @@ export function NavigatorSidebar () {
                   </button>
                   <button
                     onClick={() => setActiveSection('history')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-all duration-200 ${
                       activeSection === 'history'
-                        ? 'bg-white dark:bg-neutral-600 text-neutral-800 dark:text-neutral-100 shadow-sm'
-                        : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
+                        ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                     }`}
                   >
                     <Clock className="w-3.5 h-3.5" />
@@ -884,9 +959,9 @@ export function NavigatorSidebar () {
                 {activeSection === 'nav' ? <NavigationSection /> : <HistorySection />}
               </div>
 
-              <div className="border-t border-neutral-100 dark:border-neutral-700/50 p-3">
+              <div className="border-t border-slate-200/60 dark:border-slate-700/60 p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">
+                  <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                     标签页
                   </span>
                 </div>

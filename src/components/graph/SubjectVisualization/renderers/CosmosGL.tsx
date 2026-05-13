@@ -160,22 +160,22 @@ export default function CosmosGLRenderer ({
       'spaceSize': SPACE_SIZE,
       backgroundColor,
       'pointDefaultColor': '#60A5FA',
-      'simulationFriction': settings.simulationFriction,
-      'simulationGravity': settings.simulationGravity,
-      'simulationRepulsion': settings.simulationRepulsion,
+      'simulationFriction': settingsRef.current.simulationFriction,
+      'simulationGravity': settingsRef.current.simulationGravity,
+      'simulationRepulsion': settingsRef.current.simulationRepulsion,
       'simulationDecay': 10000,
-      'curvedLinks': settings.curvedLinks,
+      'curvedLinks': settingsRef.current.curvedLinks,
       'fitViewOnInit': true,
       'fitViewDelay': 500,
       'fitViewPadding': 0.2,
       'enableDrag': true,
       'enableZoom': true,
-      'linkDefaultArrows': settings.linkDefaultArrows,
+      'linkDefaultArrows': settingsRef.current.linkDefaultArrows,
       'linkArrowsSizeScale': 0.8,
-      'pointSizeScale': settings.pointSizeScale,
-      'linkWidthScale': settings.linkWidthScale,
-      'pointOpacity': settings.pointOpacity,
-      'linkOpacity': settings.linkOpacity,
+      'pointSizeScale': settingsRef.current.pointSizeScale,
+      'linkWidthScale': settingsRef.current.linkWidthScale,
+      'pointOpacity': settingsRef.current.pointOpacity,
+      'linkOpacity': settingsRef.current.linkOpacity,
       'onPointClick': handlePointClick,
       'onPointMouseOver': handlePointMouseOver,
       'onPointMouseOut': handlePointMouseOut,
@@ -233,7 +233,7 @@ export default function CosmosGLRenderer ({
       graphRef.current.setLinks(links);
       graphRef.current.render();
 
-      if (settings.simulationPaused) {
+      if (settingsRef.current.simulationPaused) {
         graphRef.current.pause();
       }
 
@@ -243,18 +243,6 @@ export default function CosmosGLRenderer ({
       }
 
       initializedRef.current = true;
-    } else if (graphRef.current) {
-      graphRef.current.setConfig({
-        'simulationFriction': settings.simulationFriction,
-        'simulationGravity': settings.simulationGravity,
-        'simulationRepulsion': settings.simulationRepulsion,
-        'curvedLinks': settings.curvedLinks,
-        'linkDefaultArrows': settings.linkDefaultArrows,
-        'pointSizeScale': settings.pointSizeScale,
-        'linkWidthScale': settings.linkWidthScale,
-        'pointOpacity': settings.pointOpacity,
-        'linkOpacity': settings.linkOpacity
-      });
     }
 
     const currentContainer = containerRef.current;
@@ -269,7 +257,7 @@ export default function CosmosGLRenderer ({
         initializedRef.current = false;
       }
     };
-  }, [graphData, settings, handlePointClick, handlePointMouseOver, handlePointMouseOut, handleSimulationEnd, handleContextMenu, backgroundColor]);
+  }, [graphData, handlePointClick, handlePointMouseOver, handlePointMouseOut, handleSimulationEnd, handleContextMenu, backgroundColor]);
 
   useEffect(() => {
     settingsRef.current = settings;

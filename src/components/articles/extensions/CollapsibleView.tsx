@@ -57,15 +57,15 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
 
   return (
     <NodeViewWrapper
-      className="collapsible-node-wrapper my-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 overflow-hidden"
+      className="collapsible-node-wrapper my-4 rounded border border-slate-200/60 dark:border-slate-700/60 bg-slate-50/90 dark:bg-slate-900/90 overflow-hidden"
       data-open={isOpen}
     >
       <div
-        className="collapsible-header flex items-center gap-2 px-4 py-3 cursor-pointer select-none bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors"
+        className="collapsible-header flex items-center gap-2 px-4 py-3 cursor-pointer select-none bg-slate-50/90 dark:bg-slate-900/90 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
         onClick={handleToggle}
         contentEditable={false}
       >
-        <span className="flex-shrink-0 text-neutral-500 dark:text-neutral-400 transition-transform duration-200">
+        <span className="flex-shrink-0 text-slate-500 dark:text-slate-400 transition-transform duration-200">
           {isOpen ? (
             <ChevronDown size={18} strokeWidth={2} />
           ) : (
@@ -82,14 +82,14 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
             onKeyDown={handleTitleKeyDown}
             onClick={(e) => e.stopPropagation()}
             placeholder={DEFAULT_TITLE}
-            className="flex-1 px-2 py-1 text-sm font-medium bg-white dark:bg-neutral-700 border border-sky-400 rounded outline-none text-neutral-800 dark:text-neutral-200 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
+            className="flex-1 px-2 py-1 text-sm font-medium bg-slate-200/50 dark:bg-slate-800/80 border border-sky-400 rounded outline-none text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
         ) : (
           <span
             className={`flex-1 text-sm font-medium transition-colors ${
               isDefaultTitle
-                ? 'text-neutral-400 dark:text-neutral-500 italic'
-                : 'text-neutral-800 dark:text-neutral-200 hover:text-sky-600 dark:hover:text-sky-400'
+                ? 'text-slate-400 dark:text-slate-500 italic'
+                : 'text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400'
             }`}
             onClick={handleTitleClick}
           >
@@ -103,10 +103,10 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
           isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="collapsible-content px-4 py-3 border-t border-neutral-200 dark:border-neutral-700 relative">
+        <div className="collapsible-content px-4 py-3 border-t border-slate-200/60 dark:border-slate-700/60 relative">
           <NodeViewContent
             as="div"
-            className="collapsible-body-content min-h-[1.5em] empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-400 empty:before:dark:text-neutral-500 empty:before:pointer-events-none"
+            className="collapsible-body-content min-h-[1.5em] empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 empty:before:dark:text-slate-500 empty:before:pointer-events-none"
             data-placeholder="输入内容..."
           />
         </div>

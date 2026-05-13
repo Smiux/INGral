@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { NavigatorTrigger } from '@/components/ui/Navigator';
 import {
   ReactFlow,
@@ -6,8 +7,6 @@ import {
   BackgroundVariant,
   MiniMap,
   ReactFlowProvider,
-  Connection,
-  addEdge,
   useNodesState,
   useEdgesState,
   useReactFlow,
@@ -25,8 +24,8 @@ import ForceGraph2D from 'react-force-graph-2d';
 import ForceGraph3D from 'react-force-graph-3d';
 import '@xyflow/react/dist/style.css';
 import Toolbar from './Toolbar';
-import ConnectionLine from './ConnectionLine';
 import { useUndoRedo } from './utils/useUndoRedo';
+import { useRightClickConnect } from './utils/useRightClickConnect';
 import Node, { CustomNodeData } from './Node';
 import Edge, { CustomEdgeData } from './Edge';
 import ControlPanel from './panels/ControlPanel';
@@ -34,6 +33,7 @@ import ManagementPanel from './panels/ManagementPanel';
 import { ImportExportPanel } from './panels/ImportExportPanel';
 import GenerationPanel from './panels/GenerationPanel';
 import LayoutPanel from './panels/LayoutPanel';
+import AnalysisPanel from './panels/AnalysisPanel';
 
 interface ForceGraphNode {
   id: string;
@@ -49,7 +49,7 @@ interface ForceGraphLink {
   width: number;
 }
 
-type LeftPanelType = 'management' | 'importExport' | 'generation' | 'layout' | null;
+type LeftPanelType = 'management' | 'importExport' | 'generation' | 'layout' | 'analysis' | null;
 
 const nodeTypes = {
   'custom': Node
@@ -58,8 +58,6 @@ const nodeTypes = {
 const edgeTypes = {
   'floating': Edge
 } as const as EdgeTypes;
-
-const SNAP_GRID: [number, number] = [16, 16];
 
 const VisualizationContent: React.FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<NodeType<CustomNodeData>>([]);
@@ -72,12 +70,41 @@ const VisualizationContent: React.FC = () => {
   const isDraggingRef = useRef(false);
 
   const [activeLeftPanel, setActiveLeftPanel] = useState<LeftPanelType>(null);
-  const [closingPanel, setClosingPanel] = useState<LeftPanelType>(null);
   const [snapToGrid, setSnapToGrid] = useState(false);
+  const [showOnlySelected, setShowOnlySelected] = useState(false);
   const [viewMode, setViewMode] = useState<'reactflow' | 'forcegraph2d' | 'forcegraph3d'>('reactflow');
   const [canvasDimensions, setCanvasDimensions] = useState({
     'width': window.innerWidth,
     'height': window.innerHeight - 64
+  });
+
+  const nodeLookup = useStore((state) => state.nodeLookup);
+  const transform = useStore((state) => state.transform);
+
+  const { handleCanvasMouseDown, renderConnectionLine } = useRightClickConnect({
+    reactFlowInstance,
+    edges,
+    'setEdges': setEdges as React.Dispatch<React.SetStateAction<EdgeType[]>>,
+    nodeLookup,
+    transform,
+    'lineColor': '#3b82f6',
+    'createEdge': (sourceId, targetId) => ({
+      'id': `edge-${sourceId}-${targetId}-${Date.now()}`,
+      'source': sourceId,
+      'target': targetId,
+      'sourceHandle': 'source',
+      'targetHandle': 'target',
+      'type': 'floating',
+      'data': {
+        'type': 'related',
+        'curveType': 'default',
+        'style': {}
+      },
+      'markerEnd': {
+        'type': 'arrowclosed' as const,
+        'color': '#3b82f6'
+      }
+    })
   });
 
   const nodeCount = useStore(
@@ -96,6 +123,28 @@ const VisualizationContent: React.FC = () => {
     },
     (prev, next) => prev === next
   );
+
+  const selectedNodeIds = useMemo(() => {
+    if (!showOnlySelected) {
+      return null;
+    }
+    const selected = nodes.filter(n => n.selected).map(n => n.id);
+    return selected.length > 0 ? new Set(selected) : null;
+  }, [showOnlySelected, nodes]);
+
+  const displayedNodes = useMemo(() => {
+    if (!selectedNodeIds) {
+      return nodes;
+    }
+    return nodes.filter(n => selectedNodeIds.has(n.id));
+  }, [nodes, selectedNodeIds]);
+
+  const displayedEdges = useMemo(() => {
+    if (!selectedNodeIds) {
+      return edges;
+    }
+    return edges.filter(e => selectedNodeIds.has(e.source) && selectedNodeIds.has(e.target));
+  }, [edges, selectedNodeIds]);
 
   const triggerSaveState = useCallback(() => {
     if (!isDraggingRef.current) {
@@ -148,20 +197,20 @@ const VisualizationContent: React.FC = () => {
       return null;
     }
     return {
-      'nodes': nodes.map(node => ({
+      'nodes': displayedNodes.map(node => ({
         'id': node.id,
         'name': node.data.title || '未命名节点',
         'val': 5,
         'color': node.data.style?.stroke || '#3b82f6'
       })),
-      'links': edges.map(edge => ({
+      'links': displayedEdges.map(edge => ({
         'source': edge.source,
         'target': edge.target,
         'color': edge.data?.style?.stroke || '#3b82f6',
         'width': edge.data?.style?.strokeWidth || 2
       }))
     };
-  }, [viewMode, nodes, edges]);
+  }, [viewMode, displayedNodes, displayedEdges]);
 
   const handleUndo = useCallback(() => {
     const { 'nodes': undoNodes, 'edges': undoEdges } = undo();
@@ -184,23 +233,6 @@ const VisualizationContent: React.FC = () => {
     setEdges(layoutedEdges);
     reactFlowInstance.fitView({ 'duration': 500 });
   }, [setNodes, setEdges, reactFlowInstance]);
-
-  const onConnect = useCallback((params: Connection) => {
-    const customEdge = {
-      ...params,
-      'type': 'floating',
-      'data': {
-        'type': 'related',
-        'curveType': 'default',
-        'style': {}
-      },
-      'markerEnd': {
-        'type': 'arrowclosed',
-        'color': '#3b82f6'
-      }
-    };
-    setEdges((eds) => addEdge(customEdge, eds));
-  }, [setEdges]);
 
   const handleImportComplete = useCallback((importedNodes: NodeType<CustomNodeData>[], importedEdges: EdgeType<CustomEdgeData>[]) => {
     setNodes(importedNodes);
@@ -252,7 +284,6 @@ const VisualizationContent: React.FC = () => {
         'data': {
           'title': `新节点${newNodeNumber}`,
           'category': '默认',
-          'handleCount': 4,
           'style': {},
           'metadata': {
             'content': ''
@@ -272,27 +303,12 @@ const VisualizationContent: React.FC = () => {
   const closeLeftPanel = useCallback((panel: LeftPanelType) => {
     if (activeLeftPanel === panel) {
       setActiveLeftPanel(null);
-      setClosingPanel(panel);
-      setTimeout(() => {
-        setClosingPanel(null);
-      }, 280);
     }
   }, [activeLeftPanel]);
 
   const toggleLeftPanel = useCallback((panel: Exclude<LeftPanelType, null>) => {
-    if (activeLeftPanel === panel) {
-      closeLeftPanel(panel);
-    } else if (activeLeftPanel !== null) {
-      setActiveLeftPanel(null);
-      setClosingPanel(activeLeftPanel);
-      setTimeout(() => {
-        setActiveLeftPanel(panel);
-        setClosingPanel(null);
-      }, 280);
-    } else {
-      setActiveLeftPanel(panel);
-    }
-  }, [activeLeftPanel, closeLeftPanel]);
+    setActiveLeftPanel((prev) => (prev === panel ? null : panel));
+  }, []);
 
   const toggleManagementPanel = useCallback(() => {
     toggleLeftPanel('management');
@@ -310,12 +326,17 @@ const VisualizationContent: React.FC = () => {
     toggleLeftPanel('layout');
   }, [toggleLeftPanel]);
 
+  const toggleAnalysisPanel = useCallback(() => {
+    toggleLeftPanel('analysis');
+  }, [toggleLeftPanel]);
+
   const toggleSnapToGrid = useCallback(() => {
     setSnapToGrid(prev => !prev);
   }, []);
 
-  const defaultViewport = { 'x': 0, 'y': 0, 'zoom': 1 };
-  const connectionLineStyle = { 'stroke': '#3b82f6', 'strokeWidth': 2, 'animation': 'none' };
+  const toggleShowOnlySelected = useCallback(() => {
+    setShowOnlySelected(prev => !prev);
+  }, []);
 
   return (
     <div className="w-full h-screen flex flex-col">
@@ -348,15 +369,15 @@ const VisualizationContent: React.FC = () => {
         }
       `}</style>
 
-      <div className="bg-white dark:bg-neutral-800 flex items-center justify-between gap-0 z-50">
+      <div className="bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-between gap-0 z-50">
         <div className="flex items-center gap-2 p-1">
           <NavigatorTrigger className="text-sm" />
-          <div className="flex items-center gap-2 px-2 py-1 bg-white/50 dark:bg-neutral-700/50 rounded-full text-xs font-medium text-neutral-700 dark:text-neutral-300">
+          <div className="flex items-center gap-2 px-2 py-1 text-xs text-slate-400 dark:text-slate-500">
             <span className="flex items-center gap-1">
               <Database size={12} />
               节点: {nodeCount}
             </span>
-            <span className="h-3 w-px bg-neutral-400 dark:bg-neutral-500"></span>
+            <span className="h-3 w-px bg-slate-200 dark:bg-slate-700"></span>
             <span className="flex items-center gap-1">
               <GitBranch size={12} />
               连接: {edgeCount}
@@ -374,8 +395,13 @@ const VisualizationContent: React.FC = () => {
           onToggleGenerationPanel={toggleGenerationPanel}
           isLayoutPanelOpen={activeLeftPanel === 'layout'}
           onToggleLayoutPanel={toggleLayoutPanel}
+          isAnalysisPanelOpen={activeLeftPanel === 'analysis'}
+          onToggleAnalysisPanel={toggleAnalysisPanel}
           snapToGrid={snapToGrid}
           onToggleSnapToGrid={toggleSnapToGrid}
+          showOnlySelected={showOnlySelected}
+          onToggleShowOnlySelected={toggleShowOnlySelected}
+          hasSelection={hasSelection}
           viewMode={viewMode}
           onSetViewMode={setViewMode}
           canUndo={canUndo}
@@ -385,54 +411,51 @@ const VisualizationContent: React.FC = () => {
         />
       </div>
 
-      <div ref={canvasWrapperRef} className="flex-1 w-full bg-neutral-50 dark:bg-neutral-900 relative">
+      <div ref={canvasWrapperRef} className="flex-1 w-full bg-slate-50 dark:bg-slate-900 relative overflow-hidden">
         {viewMode === 'reactflow' && (
-          <div ref={reactFlowWrapper} className="w-full h-full">
+          <div
+            ref={reactFlowWrapper}
+            className="w-full h-full"
+            onMouseDown={handleCanvasMouseDown}
+            onContextMenu={(e) => e.preventDefault()}
+          >
             <ReactFlow
-              nodes={nodes}
-              edges={edges}
+              nodes={displayedNodes}
+              edges={displayedEdges}
               onNodesChange={handleNodesChange}
               onEdgesChange={handleEdgesChange}
-              onConnect={onConnect}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               fitView
               panOnDrag
               zoomOnScroll
               zoomOnPinch
-              panOnScroll={false}
               zoomOnDoubleClick
               minZoom={0.01}
               maxZoom={10}
-              defaultViewport={defaultViewport}
               style={{ 'width': '100%', 'height': '100%' }}
-              nodesConnectable
               connectionMode={ConnectionMode.Loose}
               proOptions={{ 'hideAttribution': true }}
-              deleteKeyCode={['Delete', 'Backspace']}
-              multiSelectionKeyCode={['Shift', 'Control']}
-              selectionOnDrag
-              connectionLineStyle={connectionLineStyle}
-              connectionLineComponent={ConnectionLine}
               snapToGrid={snapToGrid}
-              snapGrid={SNAP_GRID}
-              colorMode={'system'}
+              snapGrid={[16, 16]}
             >
               <Background
                 variant={snapToGrid ? BackgroundVariant.Lines : BackgroundVariant.Dots}
-                gap={snapToGrid ? SNAP_GRID[0] : 16}
-                size={snapToGrid ? 1 : 1}
-                color="#ccc"
+                gap={16}
+                size={1}
+                color="var(--color-slate-300)"
+                bgColor="var(--background-color, var(--color-slate-50))"
               />
               <MiniMap
                 nodeColor={() => '#3b82f6'}
                 zoomable
                 pannable
-                style={{ 'backgroundColor': 'var(--minimap-bg, #fff)', 'border': '1px solid var(--minimap-border, #ccc)' }}
-                maskColor="var(--minimap-mask, rgba(255, 255, 255, 0.6))"
+                style={{ 'backgroundColor': 'var(--minimap-bg, var(--color-slate-50))', 'border': '1px solid var(--minimap-border, var(--color-slate-200))' }}
+                maskColor="var(--minimap-mask, var(--color-slate-100))"
                 position="bottom-right"
               />
             </ReactFlow>
+            {renderConnectionLine()}
           </div>
         )}
         {viewMode === 'forcegraph2d' && forceGraphData && (
@@ -446,7 +469,7 @@ const VisualizationContent: React.FC = () => {
             linkDirectionalParticles={2}
             linkDirectionalParticleWidth={4}
             linkDirectionalParticleColor="#6b7280"
-            backgroundColor="transparent"
+            backgroundColor="var(--background-color, var(--color-slate-50))"
             width={canvasDimensions.width}
             height={canvasDimensions.height}
           />
@@ -461,40 +484,52 @@ const VisualizationContent: React.FC = () => {
             linkWidth={(link: ForceGraphLink) => link.width}
             linkDirectionalArrowLength={6}
             linkDirectionalArrowRelPos={1}
-            backgroundColor="#f5f5f5"
+            backgroundColor="var(--background-color, var(--color-slate-50))"
             width={canvasDimensions.width}
             height={canvasDimensions.height}
           />
         )}
-        {hasSelection && <ControlPanel panelPosition="right" />}
-        {(activeLeftPanel === 'management' || closingPanel === 'management') && (
-          <ManagementPanel
-            onAddNode={createNewNode}
-            onClose={() => closeLeftPanel('management')}
-            isOpen={activeLeftPanel === 'management'}
-          />
-        )}
-        {(activeLeftPanel === 'importExport' || closingPanel === 'importExport') && (
-          <ImportExportPanel
-            onImportComplete={handleImportComplete}
-            onClose={() => closeLeftPanel('importExport')}
-            isOpen={activeLeftPanel === 'importExport'}
-          />
-        )}
-        {(activeLeftPanel === 'generation' || closingPanel === 'generation') && (
-          <GenerationPanel
-            onGenerate={handleGenerateGraph}
-            onClose={() => closeLeftPanel('generation')}
-            isOpen={activeLeftPanel === 'generation'}
-          />
-        )}
-        {(activeLeftPanel === 'layout' || closingPanel === 'layout') && (
-          <LayoutPanel
-            onLayout={handleLayout}
-            onClose={() => closeLeftPanel('layout')}
-            isOpen={activeLeftPanel === 'layout'}
-          />
-        )}
+        <AnimatePresence>
+          {hasSelection && (
+            <ControlPanel panelPosition="right" />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {activeLeftPanel === 'management' && (
+            <ManagementPanel
+              key="management"
+              onAddNode={createNewNode}
+              onClose={() => closeLeftPanel('management')}
+            />
+          )}
+          {activeLeftPanel === 'importExport' && (
+            <ImportExportPanel
+              key="importExport"
+              onImportComplete={handleImportComplete}
+              onClose={() => closeLeftPanel('importExport')}
+            />
+          )}
+          {activeLeftPanel === 'generation' && (
+            <GenerationPanel
+              key="generation"
+              onGenerate={handleGenerateGraph}
+              onClose={() => closeLeftPanel('generation')}
+            />
+          )}
+          {activeLeftPanel === 'layout' && (
+            <LayoutPanel
+              key="layout"
+              onLayout={handleLayout}
+              onClose={() => closeLeftPanel('layout')}
+            />
+          )}
+          {activeLeftPanel === 'analysis' && (
+            <AnalysisPanel
+              key="analysis"
+              onClose={() => closeLeftPanel('analysis')}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

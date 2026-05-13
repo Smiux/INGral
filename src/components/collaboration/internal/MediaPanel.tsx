@@ -10,7 +10,6 @@ import {
   MicOff,
   Maximize2,
   Minimize2,
-  Users,
   X,
   Play,
   Pause as PauseIcon,
@@ -19,7 +18,8 @@ import {
   VolumeX,
   Trash2,
   SkipForward,
-  Grid3x3
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { mediaManager, type MediaType, type MediaState, type AudioShareResult } from './MediaManager';
@@ -54,7 +54,7 @@ async function parseTrackMetadata (file: File, userId: string, userName: string)
       });
     }
   } catch {
-    // 忽略元数据解析失败，继续处理
+    // 忽略元数据解析失败
   }
 
   let duration = 0;
@@ -71,7 +71,7 @@ async function parseTrackMetadata (file: File, userId: string, userName: string)
       audio.src = URL.createObjectURL(file);
     });
   } catch {
-    // 忽略时长获取失败，继续处理
+    // 忽略时长获取失败
   }
 
   return {
@@ -87,146 +87,83 @@ async function parseTrackMetadata (file: File, userId: string, userName: string)
   };
 }
 
-interface StreamEntry {
+interface Participant {
   id: string;
+  name: string;
+  color: string;
   isLocal: boolean;
-  state: MediaState;
+  micMuted: boolean;
+  mediaTypes: MediaType[];
 }
 
-function VideoItem ({
-  mediaState,
-  isLocal,
-  userId,
-  userName,
-  userColor,
-  isMuted,
-  isFocused,
-  onClick
-}: {
-  mediaState: MediaState;
-  isLocal?: boolean;
-  userId?: string;
-  userName?: string;
-  userColor?: string;
-  isMuted?: boolean;
-  isFocused?: boolean;
-  onClick?: () => void;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+interface VideoStreamEntry {
+  id: string;
+  participantId: string;
+  type: 'video' | 'screen';
+  stream: MediaStream;
+  isLocal: boolean;
+  userName: string;
+  userColor: string;
+}
 
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.srcObject = mediaState.stream;
-    }
-  }, [mediaState.stream]);
-
-  const displayUserId = isLocal ? userId : mediaState.peerId;
-  const displayUserName = isLocal ? userName : mediaState.userName;
-  const displayUserColor = isLocal ? userColor : mediaState.userColor;
-
-  return (
-    <div
-      className={`w-full h-full relative cursor-pointer ${isFocused ? 'ring-2 ring-sky-500' : ''}`}
-      onClick={onClick}
-    >
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted={isLocal}
-        className="w-full h-full object-contain"
-      />
-      <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1.5 px-1.5 py-0.5 bg-black/60 rounded-full">
-        <Avatar userId={displayUserId!} size={14} color={displayUserColor!} />
-        <span className="text-white text-[11px] leading-tight">
-          {displayUserName}
-          {isLocal && ' (你)'}
-        </span>
-        <span className="text-[10px] text-neutral-300 px-1 py-px bg-neutral-700/80 rounded">
-          {mediaState.type === 'video' && '视频'}
-          {mediaState.type === 'screen' && '屏幕'}
-        </span>
+function MicIndicator ({ muted, hasAudio = true, size = 12 }: { muted: boolean; hasAudio?: boolean; size?: number }) {
+  if (!hasAudio) {
+    return (
+      <div className="p-0.5 bg-slate-500/80 rounded-full">
+        <Mic size={size} className="text-white" />
       </div>
-      {isLocal && isMuted && (
-        <div className="absolute top-1.5 right-1.5 p-1 bg-red-500/80 rounded-full">
-          <MicOff size={10} className="text-white" />
-        </div>
-      )}
+    );
+  }
+  if (muted) {
+    return (
+      <div className="p-0.5 bg-red-500/80 rounded-full">
+        <MicOff size={size} className="text-white" />
+      </div>
+    );
+  }
+  return (
+    <div className="p-0.5 bg-green-500/80 rounded-full">
+      <Mic size={size} className="text-white" />
     </div>
   );
 }
 
-function VideoGrid ({
-  streams,
-  focusedId,
-  onFocus
+function ParticipantAvatarTile ({
+  participant,
+  size = 'large'
 }: {
-  streams: StreamEntry[];
-  focusedId: string | null;
-  onFocus: (id: string | null) => void;
+  participant: Participant;
+  size?: 'large' | 'small';
 }) {
-  if (streams.length === 0) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-neutral-400">
-        <div className="text-center">
-          <Video size={48} className="mx-auto mb-4 opacity-50" />
-          <p className="text-lg">开始视频通话或共享屏幕</p>
-          <p className="text-sm mt-2">选择下方的媒体类型开始</p>
+  const isLarge = size === 'large';
+  const avatarSize = isLarge ? 64 : 28;
+  const nameSize = isLarge ? 'text-sm' : 'text-[10px]';
+
+  return (
+    <div className="flex flex-col items-center gap-1.5 select-none">
+      <div className="relative">
+        <Avatar userId={participant.id} size={avatarSize} color={participant.color} />
+        <div className="absolute -bottom-0.5 -left-0.5">
+          <MicIndicator muted={participant.micMuted} hasAudio={participant.mediaTypes.includes('audio-call')} size={isLarge ? 12 : 9} />
         </div>
       </div>
-    );
-  }
-
-  if (focusedId) {
-    const focusedStream = streams.find((s) => s.id === focusedId);
-    const otherStreams = streams.filter((s) => s.id !== focusedId);
-
-    if (!focusedStream) {
-      onFocus(null);
-      return null;
-    }
-
-    return (
-      <div className="w-full h-full flex flex-col min-h-0">
-        <div className="flex-1 min-h-0 relative bg-neutral-800 rounded">
-          <VideoItem
-            mediaState={focusedStream.state}
-            isLocal={focusedStream.isLocal}
-            userId={focusedStream.state.peerId}
-            userName={focusedStream.state.userName}
-            userColor={focusedStream.state.userColor}
-            isFocused
-            onClick={() => onFocus(null)}
-          />
-        </div>
-        {otherStreams.length > 0 && (
-          <div className="flex-shrink-0 flex gap-1 p-1 overflow-x-auto" style={{ 'maxHeight': '100px' }}>
-            {otherStreams.map((stream) => (
-              <div
-                key={stream.id}
-                className="flex-shrink-0 bg-neutral-800 rounded cursor-pointer hover:ring-2 hover:ring-sky-400 transition-all"
-                style={{ 'width': '130px', 'height': '98px' }}
-              >
-                <VideoItem
-                  mediaState={stream.state}
-                  isLocal={stream.isLocal}
-                  userId={stream.state.peerId}
-                  userName={stream.state.userName}
-                  userColor={stream.state.userColor}
-                  onClick={() => onFocus(stream.id)}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="text-center">
+        <span className={`${nameSize} text-slate-400 truncate block max-w-[80px]`}>
+          {participant.name}
+          {participant.isLocal && ' (你)'}
+        </span>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  const count = streams.length;
+function ParticipantGrid ({ participants }: { participants: Participant[] }) {
+  const count = participants.length;
   let cols: number;
   if (count === 1) {
     cols = 1;
+  } else if (count <= 2) {
+    cols = 2;
   } else if (count <= 4) {
     cols = 2;
   } else if (count <= 9) {
@@ -234,28 +171,162 @@ function VideoGrid ({
   } else {
     cols = 4;
   }
-  const rows = Math.ceil(count / cols);
 
   return (
     <div
-      className="w-full h-full grid gap-1 p-1"
-      style={{
-        'gridTemplateColumns': `repeat(${cols}, 1fr)`,
-        'gridTemplateRows': `repeat(${rows}, 1fr)`
-      }}
+      className="w-full h-full grid gap-4 p-4 place-items-center"
+      style={{ 'gridTemplateColumns': `repeat(${cols}, 1fr)` }}
     >
-      {streams.map((stream) => (
-        <div key={stream.id} className="w-full h-full bg-neutral-800 rounded cursor-pointer hover:ring-2 hover:ring-sky-400 transition-all">
-          <VideoItem
-            mediaState={stream.state}
-            isLocal={stream.isLocal}
-            userId={stream.state.peerId}
-            userName={stream.state.userName}
-            userColor={stream.state.userColor}
-            onClick={() => onFocus(stream.id)}
-          />
-        </div>
+      {participants.map((p) => (
+        <ParticipantAvatarTile key={p.id} participant={p} size="large" />
       ))}
+    </div>
+  );
+}
+
+function VideoDisplay ({
+  streams,
+  currentIdx,
+  onPrev,
+  onNext
+}: {
+  streams: VideoStreamEntry[];
+  currentIdx: number;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const current = streams[currentIdx];
+
+  useEffect(() => {
+    if (videoRef.current && current) {
+      videoRef.current.srcObject = current.stream;
+    }
+  }, [current]);
+
+  if (!current) {
+    return null;
+  }
+
+  const hasMultiple = streams.length > 1;
+
+  return (
+    <div className="w-full h-full relative bg-black rounded overflow-hidden">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted={current.isLocal}
+        className="w-full h-full object-contain"
+      />
+
+      <div className="absolute bottom-2 left-2 flex items-center gap-1.5 px-2 py-1 bg-slate-900/40 dark:bg-black/60 rounded-full">
+        <Avatar userId={current.participantId} size={16} color={current.userColor} />
+        <span className="text-white text-xs">
+          {current.userName}
+          {current.isLocal && ' (你)'}
+        </span>
+        <span className="text-[10px] text-slate-400 px-1 py-px bg-slate-800/80 rounded">
+          {current.type === 'video' ? '视频' : '屏幕'}
+        </span>
+      </div>
+
+      {hasMultiple && (
+        <>
+          <button
+            onClick={onPrev}
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-slate-900/30 dark:bg-black/50 hover:bg-slate-900/50 dark:hover:bg-black/70 rounded-full transition-colors text-white"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            onClick={onNext}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-slate-900/30 dark:bg-black/50 hover:bg-slate-900/50 dark:hover:bg-black/70 rounded-full transition-colors text-white"
+          >
+            <ChevronRight size={20} />
+          </button>
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-slate-900/30 dark:bg-black/50 rounded-full text-white text-xs">
+            {currentIdx + 1} / {streams.length}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ParticipantStrip ({ participants }: { participants: Participant[] }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    const el = scrollRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScroll);
+    }
+    return () => {
+      if (el) {
+        el.removeEventListener('scroll', checkScroll);
+      }
+    };
+  }, [checkScroll, participants]);
+
+  useEffect(() => {
+    checkScroll();
+  }, [participants, checkScroll]);
+
+  const scroll = useCallback((direction: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    const itemWidth = 76;
+    const scrollAmount = itemWidth * 4;
+    el.scrollBy({
+      'left': direction === 'left' ? -scrollAmount : scrollAmount,
+      'behavior': 'smooth'
+    });
+  }, []);
+
+  return (
+    <div className="relative flex-shrink-0" style={{ 'height': '88px' }}>
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll('left')}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-slate-900/40 dark:bg-black/60 hover:bg-slate-900/60 dark:hover:bg-black/80 rounded-full text-white transition-colors"
+        >
+          <ChevronLeft size={14} />
+        </button>
+      )}
+      <div
+        ref={scrollRef}
+        className="flex items-center gap-3 px-3 h-full overflow-x-auto scrollbar-none"
+        style={{ 'scrollbarWidth': 'none' }}
+      >
+        {participants.map((p) => (
+          <div key={p.id} className="flex-shrink-0" style={{ 'width': '76px' }}>
+            <ParticipantAvatarTile participant={p} size="small" />
+          </div>
+        ))}
+      </div>
+      {canScrollRight && (
+        <button
+          onClick={() => scroll('right')}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-slate-900/40 dark:bg-black/60 hover:bg-slate-900/60 dark:hover:bg-black/80 rounded-full text-white transition-colors"
+        >
+          <ChevronRight size={14} />
+        </button>
+      )}
     </div>
   );
 }
@@ -266,7 +337,7 @@ interface MediaPanelProps {
   userId: string;
   userName: string;
   userColor: string;
-  collaborators: Array<{ id: string; name: string; color: string; peerId: string | null; mediaTypes: MediaType[] }>;
+  collaborators: Array<{ id: string; name: string; color: string; peerId: string | null; mediaTypes: MediaType[]; micMuted: boolean }>;
   isInline?: boolean;
 }
 
@@ -281,10 +352,8 @@ export function MediaPanel ({
 }: MediaPanelProps) {
   const [localStreams, setLocalStreams] = useState<Map<MediaType, MediaStream>>(new Map());
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaState>>(new Map());
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [focusedStreamId, setFocusedStreamId] = useState<string | null>(null);
+  const [videoStreamIdx, setVideoStreamIdx] = useState(0);
 
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
@@ -415,9 +484,14 @@ export function MediaPanel ({
     previousPeerIdsRef.current = currentPeerIds;
   }, [collaborators]);
 
+  const hasVideo = localStreams.has('video');
+  const hasAudioCall = localStreams.has('audio-call');
+  const hasScreenShare = localStreams.has('screen');
+  const hasAudioShare = localStreams.has('audio-share');
+
   useEffect(() => {
     const types = mediaManager.getActiveMediaTypes();
-    updateMyPresence({ 'mediaTypes': types });
+    updateMyPresence({ 'mediaTypes': types, 'micMuted': false });
   }, [localStreams, updateMyPresence]);
 
   const toggleFullscreen = useCallback(() => {
@@ -434,42 +508,41 @@ export function MediaPanel ({
     }
   }, []);
 
-  const startVideo = useCallback(async () => {
-    try {
-      await mediaManager.startVideo();
-      setIsVideoOff(false);
-    } catch {
-      // 视频启动失败
+  const toggleVideo = useCallback(async () => {
+    if (hasVideo) {
+      mediaManager.stopLocalStream('video');
+    } else {
+      try {
+        await mediaManager.startVideo();
+      } catch {
+        // 视频启动失败
+      }
     }
-  }, []);
+  }, [hasVideo]);
 
-  const stopVideo = useCallback(() => {
-    mediaManager.stopLocalStream('video');
-  }, []);
-
-  const startAudioCall = useCallback(async () => {
-    try {
-      await mediaManager.startAudioCall();
-    } catch {
-      // 语音启动失败
+  const toggleAudioCall = useCallback(async () => {
+    if (hasAudioCall) {
+      mediaManager.stopLocalStream('audio-call');
+    } else {
+      try {
+        await mediaManager.startAudioCall();
+      } catch {
+        // 语音启动失败
+      }
     }
-  }, []);
+  }, [hasAudioCall]);
 
-  const stopAudioCall = useCallback(() => {
-    mediaManager.stopLocalStream('audio-call');
-  }, []);
-
-  const startScreenShare = useCallback(async () => {
-    try {
-      await mediaManager.startScreenShare();
-    } catch {
-      // 屏幕共享启动失败
+  const toggleScreenShare = useCallback(async () => {
+    if (hasScreenShare) {
+      mediaManager.stopLocalStream('screen');
+    } else {
+      try {
+        await mediaManager.startScreenShare();
+      } catch {
+        // 屏幕共享启动失败
+      }
     }
-  }, []);
-
-  const stopScreenShare = useCallback(() => {
-    mediaManager.stopLocalStream('screen');
-  }, []);
+  }, [hasScreenShare]);
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -525,38 +598,6 @@ export function MediaPanel ({
     audioFilesRef.current.delete(trackId);
     removeFromPlaylist(index);
   }, [removeFromPlaylist]);
-
-  const toggleMute = useCallback(() => {
-    const videoStream = localStreams.get('video');
-    const audioCallStream = localStreams.get('audio-call');
-
-    if (videoStream) {
-      const audioTrack = videoStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-      }
-    }
-
-    if (audioCallStream) {
-      const audioTrack = audioCallStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-      }
-    }
-
-    setIsMuted(!isMuted);
-  }, [localStreams, isMuted]);
-
-  const toggleVideo = useCallback(() => {
-    const videoStream = localStreams.get('video');
-    if (videoStream) {
-      const videoTrack = videoStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoOff(!videoTrack.enabled);
-      }
-    }
-  }, [localStreams]);
 
   const togglePlayPause = useCallback(() => {
     if (!audioPlaybackState) {
@@ -667,8 +708,6 @@ export function MediaPanel ({
     });
   }, [audioPlaybackState, updatePlaybackState]);
 
-  const hasAudioShare = localStreams.has('audio-share');
-
   const playNext = useCallback(() => {
     if (!audioPlaybackState || !audioPlaylist) {
       return;
@@ -757,16 +796,83 @@ export function MediaPanel ({
     });
   }, [collaborators, audioPlaybackState?.currentTrackIndex, audioPlaylist, removeFromPlaylist]);
 
-  const hasVideo = localStreams.has('video');
-  const hasAudioCall = localStreams.has('audio-call');
-  const hasScreenShare = localStreams.has('screen');
-
   const currentTrackIndex = audioPlaybackState?.currentTrackIndex ?? 0;
   const currentTrack = audioPlaylist?.[currentTrackIndex];
 
-  const handleFocusStream = useCallback((id: string | null) => {
-    setFocusedStreamId(id);
-  }, []);
+  const allParticipants: Participant[] = [
+    {
+      'id': userId,
+      'name': userName,
+      'color': userColor,
+      'isLocal': true,
+      'micMuted': false,
+      'mediaTypes': Array.from(localStreams.keys())
+    },
+    ...collaborators.map((c) => ({
+      'id': c.id,
+      'name': c.name,
+      'color': c.color,
+      'isLocal': false,
+      'micMuted': c.micMuted,
+      'mediaTypes': c.mediaTypes
+    }))
+  ];
+
+  const videoStreams: VideoStreamEntry[] = [];
+
+  const localVideoStream = localStreams.get('video');
+  if (localVideoStream) {
+    videoStreams.push({
+      'id': 'local-video',
+      'participantId': userId,
+      'type': 'video',
+      'stream': localVideoStream,
+      'isLocal': true,
+      userName,
+      userColor
+    });
+  }
+
+  const localScreenStream = localStreams.get('screen');
+  if (localScreenStream) {
+    videoStreams.push({
+      'id': 'local-screen',
+      'participantId': userId,
+      'type': 'screen',
+      'stream': localScreenStream,
+      'isLocal': true,
+      userName,
+      userColor
+    });
+  }
+
+  remoteStreams.forEach((state, key) => {
+    if (state.type === 'video' || state.type === 'screen') {
+      videoStreams.push({
+        'id': key,
+        'participantId': state.peerId,
+        'type': state.type,
+        'stream': state.stream,
+        'isLocal': false,
+        'userName': state.userName,
+        'userColor': state.userColor
+      });
+    }
+  });
+
+  const hasVideoStreams = videoStreams.length > 0;
+
+  const safeVideoIdx = videoStreamIdx >= videoStreams.length
+    ? Math.max(0, videoStreams.length - 1)
+    : videoStreamIdx;
+
+  const handlePrevVideo = useCallback(() => {
+    setVideoStreamIdx((prev) => (prev - 1 + videoStreams.length) % videoStreams.length);
+  }, [videoStreams.length]);
+
+  const handleNextVideo = useCallback(() => {
+    setVideoStreamIdx((prev) => (prev + 1) % videoStreams.length);
+  }, [videoStreams.length]);
 
   if (!isOpen) {
     return null;
@@ -774,61 +880,31 @@ export function MediaPanel ({
 
   const playlistArray = audioPlaylist ? Array.from(audioPlaylist) : [];
 
-  const localVideoStreams = Array.from(localStreams.entries())
-    .filter(([type]) => type === 'video' || type === 'screen')
-    .map(([type, stream]) => ({ type, stream }));
-
-  const remoteVideoStreams = Array.from(remoteStreams.entries())
-    .filter(([, state]) => state.type === 'video' || state.type === 'screen');
-
-  const allVideoStreams: StreamEntry[] = [];
-
-  localVideoStreams.forEach(({ type, stream }) => {
-    allVideoStreams.push({
-      'id': `local-${type}`,
-      'isLocal': true,
-      'state': { type, stream, 'peerId': userId, userName, userColor }
-    });
-  });
-
-  remoteVideoStreams.forEach(([id, state]) => {
-    allVideoStreams.push({ id, 'isLocal': false, state });
-  });
-
-  const audioCallStreamsByUser = new Map<string, Array<{ id: string; state: MediaState }>>();
-  remoteStreams.forEach((state, id) => {
-    if (state.type === 'audio-call') {
-      const userStreams = audioCallStreamsByUser.get(state.peerId) || [];
-      userStreams.push({ id, state });
-      audioCallStreamsByUser.set(state.peerId, userStreams);
-    }
-  });
-
   const content = (
     <>
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex-1 min-h-0 relative bg-neutral-900">
-          <VideoGrid
-            streams={allVideoStreams}
-            focusedId={focusedStreamId}
-            onFocus={handleFocusStream}
-          />
+        <div className="flex-1 min-h-0 relative bg-slate-100 dark:bg-slate-900 rounded overflow-hidden">
+          {hasVideoStreams ? (
+            <div className="w-full h-full flex flex-col">
+              <div className="flex-1 min-h-0">
+                <VideoDisplay
+                  streams={videoStreams}
+                  currentIdx={safeVideoIdx}
+                  onPrev={handlePrevVideo}
+                  onNext={handleNextVideo}
+                />
+              </div>
+              <ParticipantStrip participants={allParticipants} />
+            </div>
+          ) : (
+            <ParticipantGrid participants={allParticipants} />
+          )}
 
-          {(hasVideo || hasScreenShare) && !isInline && (
-            <div className="absolute top-3 right-3 flex gap-1.5">
-              {allVideoStreams.length > 1 && (
-                <button
-                  onClick={() => setFocusedStreamId(null)}
-                  className="p-1.5 bg-black/50 hover:bg-black/70 rounded-lg transition-colors text-white"
-                  title="网格视图"
-                >
-                  <Grid3x3 size={16} />
-                </button>
-              )}
+          {!isInline && (
+            <div className="absolute top-2 right-2">
               <button
                 onClick={toggleFullscreen}
-                className="p-1.5 bg-black/50 hover:bg-black/70 rounded-lg transition-colors text-white"
-                title={isFullscreen ? '退出全屏' : '全屏'}
+                className="p-1.5 bg-slate-900/30 dark:bg-black/50 hover:bg-slate-900/50 dark:hover:bg-black/70 rounded-full transition-colors text-white"
               >
                 {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
               </button>
@@ -836,151 +912,52 @@ export function MediaPanel ({
           )}
         </div>
 
-        <div className="flex-shrink-0 p-2.5 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
-          <div className="flex items-center justify-center gap-3">
+        <div className="flex-shrink-0 px-3 py-2 border-t border-slate-200/60 dark:border-slate-700/50 bg-slate-50/90 dark:bg-slate-800/90">
+          <div className="flex items-center justify-center gap-2">
             <button
-              onClick={hasVideo ? stopVideo : startVideo}
-              className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition-colors ${
+              onClick={toggleVideo}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded transition-colors ${
                 hasVideo
                   ? 'bg-green-500 text-white hover:bg-green-600'
-                  : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
+                  : 'bg-slate-100/40 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700'
               }`}
             >
-              {hasVideo ? <VideoOff size={18} /> : <Video size={18} />}
-              <span className="text-xs">视频</span>
+              {hasVideo ? <VideoOff size={16} /> : <Video size={16} />}
+              <span className="text-[10px]">视频</span>
             </button>
             <button
-              onClick={hasAudioCall ? stopAudioCall : startAudioCall}
-              className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition-colors ${
+              onClick={toggleAudioCall}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded transition-colors ${
                 hasAudioCall
                   ? 'bg-green-500 text-white hover:bg-green-600'
-                  : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
+                  : 'bg-slate-100/40 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700'
               }`}
             >
-              {hasAudioCall ? <MicOff size={18} /> : <Mic size={18} />}
-              <span className="text-xs">语音</span>
+              {hasAudioCall ? <MicOff size={16} /> : <Mic size={16} />}
+              <span className="text-[10px]">语音</span>
             </button>
             <button
-              onClick={hasScreenShare ? stopScreenShare : startScreenShare}
-              className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition-colors ${
+              onClick={toggleScreenShare}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded transition-colors ${
                 hasScreenShare
                   ? 'bg-green-500 text-white hover:bg-green-600'
-                  : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
+                  : 'bg-slate-100/40 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700'
               }`}
             >
-              {hasScreenShare ? <MonitorOff size={18} /> : <Monitor size={18} />}
-              <span className="text-xs">共享</span>
+              {hasScreenShare ? <MonitorOff size={16} /> : <Monitor size={16} />}
+              <span className="text-[10px]">共享</span>
             </button>
             <button
               onClick={() => setShowAudioPanel(true)}
-              className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition-colors ${
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded transition-colors ${
                 hasAudioShare
                   ? 'bg-orange-500 text-white hover:bg-orange-600'
-                  : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
+                  : 'bg-slate-100/40 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700'
               }`}
             >
-              {hasAudioShare ? <Music2 size={18} /> : <Music size={18} />}
-              <span className="text-xs">音频</span>
+              {hasAudioShare ? <Music2 size={16} /> : <Music size={16} />}
+              <span className="text-[10px]">音频</span>
             </button>
-          </div>
-
-          {(hasVideo || hasAudioCall) && (
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <button
-                onClick={toggleMute}
-                className={`p-1.5 rounded-full transition-colors ${
-                  isMuted
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
-                }`}
-                title={isMuted ? '取消静音' : '静音'}
-              >
-                {isMuted ? <MicOff size={14} /> : <Mic size={14} />}
-              </button>
-              {hasVideo && (
-                <button
-                  onClick={toggleVideo}
-                  className={`p-1.5 rounded-full transition-colors ${
-                    isVideoOff
-                      ? 'bg-red-500 text-white hover:bg-red-600'
-                      : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-600'
-                  }`}
-                  title={isVideoOff ? '开启视频' : '关闭视频'}
-                >
-                  {isVideoOff ? <VideoOff size={14} /> : <Video size={14} />}
-                </button>
-              )}
-            </div>
-          )}
-
-          <div className="px-3 pt-2 pb-1 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 mt-2">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
-                <Users size={12} className="text-neutral-500" />
-                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                  {collaborators.length + 1} 位参与者
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1 overflow-x-auto">
-                <div className="relative">
-                  <Avatar userId={userId} size={18} color={userColor} />
-                  {localStreams.size > 0 && (
-                    <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full border border-white dark:border-neutral-800" />
-                  )}
-                </div>
-                {collaborators.map((collaborator) => (
-                  <div key={collaborator.id} className="relative">
-                    <Avatar userId={collaborator.id} size={18} />
-                    {collaborator.mediaTypes.length > 0 && (
-                      <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full border border-white dark:border-neutral-800" />
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-1.5 border-l border-neutral-200 dark:border-neutral-700 pl-3">
-                {remoteVideoStreams.length > 0 && (
-                  <>
-                    <span className="text-[11px] text-neutral-500 dark:text-neutral-400">视频:</span>
-                    {remoteVideoStreams.map(([id, state]) => (
-                      <div
-                        key={id}
-                        className="flex items-center gap-1 px-1.5 py-px rounded text-[11px] bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300"
-                      >
-                        <Avatar userId={state.peerId} size={12} color={state.userColor} />
-                        {state.userName}
-                        <span className="text-[10px] text-neutral-400">
-                          {state.type === 'video' ? '视' : '屏'}
-                        </span>
-                      </div>
-                    ))}
-                  </>
-                )}
-
-                {audioCallStreamsByUser.size > 0 && (
-                  <>
-                    <span className="text-[11px] text-neutral-500 dark:text-neutral-400">语音:</span>
-                    {Array.from(audioCallStreamsByUser.entries()).map(([peerId, streams]) => {
-                      const state = streams[0]?.state;
-                      if (!state) {
-                        return null;
-                      }
-                      return (
-                        <div
-                          key={peerId}
-                          className="flex items-center gap-1 px-1.5 py-px rounded text-[11px] bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300"
-                        >
-                          <Avatar userId={peerId} size={12} color={state.userColor} />
-                          {state.userName}
-                          <Mic size={10} className="text-green-500" />
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -990,24 +967,24 @@ export function MediaPanel ({
           initial={{ 'opacity': 0 }}
           animate={{ 'opacity': 1 }}
           exit={{ 'opacity': 0 }}
-          className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 dark:bg-black/70"
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/30 dark:bg-black/50"
           onClick={() => setShowAudioPanel(false)}
         >
           <motion.div
             initial={{ 'scale': 0.95, 'opacity': 0 }}
             animate={{ 'scale': 1, 'opacity': 1 }}
             exit={{ 'scale': 0.95, 'opacity': 0 }}
-            className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden"
+            className="bg-slate-50 dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-slate-700/60">
               <div className="flex items-center gap-3">
                 <Music size={20} className="text-orange-500" />
-                <h3 className="font-semibold text-neutral-900 dark:text-white">音频共享</h3>
+                <h3 className="font-semibold text-slate-700 dark:text-slate-300">音频共享</h3>
               </div>
               <button
                 onClick={() => setShowAudioPanel(false)}
-                className="p-1.5 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+                className="p-1.5 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/80 transition-colors text-slate-500"
               >
                 <X size={18} />
               </button>
@@ -1015,15 +992,11 @@ export function MediaPanel ({
 
             <div className="flex flex-col h-[600px]">
               {currentTrack && (
-                <div className="p-4 border-b border-neutral-200 dark:border-neutral-700">
+                <div className="p-4 border-b border-slate-200/60 dark:border-slate-700/60">
                   <div className="flex items-stretch gap-4">
-                    <div className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-700">
+                    <div className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-slate-100/40 dark:bg-slate-800/40">
                       {currentTrack.coverUrl ? (
-                        <img
-                          src={currentTrack.coverUrl}
-                          alt={currentTrack.title}
-                          className="w-full h-full"
-                        />
+                        <img src={currentTrack.coverUrl} alt={currentTrack.title} className="w-full h-full" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-400 to-sky-600">
                           <Music size={32} className="text-white" />
@@ -1040,35 +1013,31 @@ export function MediaPanel ({
 
                     <div className="flex-1 flex flex-col justify-center">
                       <div className="mb-2.5">
-                        <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 truncate leading-tight" title={currentTrack.title}>
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate leading-tight">
                           {currentTrack.title}
                         </p>
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5" title={`${currentTrack.artist}${currentTrack.album ? ` · ${currentTrack.album}` : ''}`}>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                           {currentTrack.artist}
-                          {currentTrack.album && <span className="text-neutral-400 dark:text-neutral-500"> · {currentTrack.album}</span>}
+                          {currentTrack.album && <span className="text-slate-400"> · {currentTrack.album}</span>}
                         </p>
                       </div>
 
                       <div className="flex items-center gap-3">
                         <button
                           onClick={togglePlayPause}
-                          className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-sky-50 dark:bg-sky-900/30 text-sky-500 hover:text-sky-600 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors"
+                          className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-sky-50 dark:bg-sky-900/30 text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors"
                         >
-                          {(audioPlaybackState?.isPlaying ?? false) ? (
-                            <PauseIcon size={18} strokeWidth={2.5} />
-                          ) : (
-                            <Play size={18} className="ml-0.5" strokeWidth={2.5} />
-                          )}
+                          {(audioPlaybackState?.isPlaying ?? false) ? <PauseIcon size={18} strokeWidth={2.5} /> : <Play size={18} className="ml-0.5" strokeWidth={2.5} />}
                         </button>
                         <button
                           onClick={playNext}
-                          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                         >
                           <SkipForward size={16} />
                         </button>
 
                         <div className="flex-1 flex items-center gap-2">
-                          <span className="flex-shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500 font-mono tabular-nums min-w-[60px] text-right">
+                          <span className="flex-shrink-0 text-[11px] text-slate-400 font-mono tabular-nums min-w-[50px] text-right">
                             {formatTime(audioPlaybackState?.currentTime ?? 0)}
                           </span>
                           <input
@@ -1077,10 +1046,10 @@ export function MediaPanel ({
                             max={currentTrack?.duration || duration || 100}
                             value={audioPlaybackState?.currentTime ?? 0}
                             onChange={handleSeek}
-                            className="flex-1 h-1.5 bg-neutral-200 dark:bg-neutral-600 rounded-lg appearance-none cursor-pointer"
+                            className="flex-1 h-1.5 bg-slate-200/50 dark:bg-slate-800/80 rounded appearance-none cursor-pointer"
                             disabled={!currentTrack}
                           />
-                          <span className="flex-shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500 font-mono tabular-nums min-w-[60px]">
+                          <span className="flex-shrink-0 text-[11px] text-slate-400 font-mono tabular-nums min-w-[50px]">
                             {formatTime(currentTrack?.duration || duration || 0)}
                           </span>
                         </div>
@@ -1088,7 +1057,7 @@ export function MediaPanel ({
                         <div className="flex-shrink-0 flex items-center gap-1">
                           <button
                             onClick={() => adjustVolume(volume > 0 ? 0 : 1)}
-                            className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                           >
                             {volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
                           </button>
@@ -1110,20 +1079,20 @@ export function MediaPanel ({
 
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium text-neutral-900 dark:text-white">
+                  <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     播放列表 ({playlistArray.length})
                   </h4>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => audioInputRef.current?.click()}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-sky-500 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded transition-colors"
                     >
                       <Upload size={14} />
                       上传
                     </button>
                     <button
                       onClick={() => setShowUrlInput(true)}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-sky-500 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded transition-colors"
                     >
                       <Music size={14} />
                       URL
@@ -1140,27 +1109,22 @@ export function MediaPanel ({
                 </div>
 
                 {showUrlInput && (
-                  <div className="mb-3 p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+                  <div className="mb-3 p-3 bg-slate-50 dark:bg-slate-800/90 rounded">
                     <div className="flex items-center gap-2">
                       <input
                         type="url"
                         value={audioUrl}
                         onChange={(e) => setAudioUrl(e.target.value)}
                         placeholder="输入音频URL..."
-                        className="flex-1 px-3 py-1.5 text-sm bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        className="flex-1 px-3 py-1.5 text-sm bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500"
                       />
-                      <button
-                        onClick={handleUrlSubmit}
-                        className="px-3 py-1.5 text-sm bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
-                      >
-                        添加
-                      </button>
+                      <button onClick={handleUrlSubmit} className="px-3 py-1.5 text-sm bg-sky-500 text-white rounded hover:bg-sky-600 transition-colors">添加</button>
                       <button
                         onClick={() => {
                           setShowUrlInput(false);
                           setAudioUrl('');
                         }}
-                        className="px-3 py-1.5 text-sm bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors"
+                        className="px-3 py-1.5 text-sm bg-slate-200/50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors"
                       >
                         取消
                       </button>
@@ -1169,29 +1133,25 @@ export function MediaPanel ({
                 )}
 
                 {playlistArray.length === 0 ? (
-                  <div className="text-center py-8 text-neutral-400">
+                  <div className="text-center py-8 text-slate-400">
                     <Music size={32} className="mx-auto mb-2 opacity-50" />
                     <p className="text-sm">播放列表为空</p>
-                    <p className="text-xs mt-1">点击"添加"按钮上传音频文件</p>
+                    <p className="text-xs mt-1">点击"上传"按钮添加音频文件</p>
                   </div>
                 ) : (
                   <div className="space-y-1">
                     {playlistArray.map((track, index) => (
                       <div
                         key={track.id}
-                        className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${
+                        className={`flex items-center gap-2 p-2 rounded transition-colors ${
                           index === currentTrackIndex
                             ? 'bg-orange-50 dark:bg-orange-500/10'
-                            : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                            : 'hover:bg-slate-100/40 dark:hover:bg-slate-800/40'
                         }`}
                       >
-                        <div className="flex-shrink-0 w-10 h-10 rounded overflow-hidden bg-neutral-100 dark:bg-neutral-700">
+                        <div className="flex-shrink-0 w-10 h-10 rounded overflow-hidden bg-slate-100/40 dark:bg-slate-800/40">
                           {track.coverUrl ? (
-                            <img
-                              src={track.coverUrl}
-                              alt={track.title}
-                              className="w-full h-full"
-                            />
+                            <img src={track.coverUrl} alt={track.title} className="w-full h-full" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-400 to-sky-600">
                               <Music size={16} className="text-white" />
@@ -1199,20 +1159,18 @@ export function MediaPanel ({
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate" title={track.title}>
-                            {track.title}
-                          </p>
-                          <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate" title={`${track.artist}${track.addedByName ? ` · ${track.addedByName}` : ''}`}>
+                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{track.title}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                             {track.artist}
-                            {track.addedByName && <span className="text-neutral-400 dark:text-neutral-500"> · {track.addedByName}</span>}
+                            {track.addedByName && <span className="text-slate-400"> · {track.addedByName}</span>}
                           </p>
                         </div>
-                        <span className="text-xs text-neutral-400 dark:text-neutral-500 font-mono tabular-nums flex-shrink-0">
+                        <span className="text-xs text-slate-400 font-mono tabular-nums flex-shrink-0">
                           {track.duration > 0 ? formatTime(track.duration) : '--:--'}
                         </span>
                         <button
                           onClick={() => removeTrack(index, track.id)}
-                          className="p-1.5 rounded text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
+                          className="p-1.5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -1222,15 +1180,13 @@ export function MediaPanel ({
                 )}
               </div>
 
-              <div className="px-4 py-3 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+              <div className="px-4 py-3 border-t border-slate-200/60 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/90">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-neutral-600 dark:text-neutral-300">自动连播</span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">自动连播</span>
                   <button
                     onClick={toggleAutoPlayNext}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      (audioPlaybackState?.autoPlayNext ?? false)
-                        ? 'bg-orange-500'
-                        : 'bg-neutral-300 dark:bg-neutral-600'
+                      (audioPlaybackState?.autoPlayNext ?? false) ? 'bg-orange-500' : 'bg-slate-300 dark:bg-slate-600'
                     }`}
                   >
                     <span
@@ -1250,7 +1206,7 @@ export function MediaPanel ({
 
   if (isInline) {
     return (
-      <div className="flex h-full bg-white dark:bg-neutral-900 rounded-xl overflow-hidden">
+      <div className="flex h-full bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden">
         {content}
       </div>
     );
@@ -1261,7 +1217,7 @@ export function MediaPanel ({
       initial={{ 'opacity': 0 }}
       animate={{ 'opacity': 1 }}
       exit={{ 'opacity': 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 dark:bg-black/70"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 dark:bg-black/50"
       onClick={onClose}
     >
       <motion.div
@@ -1269,24 +1225,22 @@ export function MediaPanel ({
         animate={{ 'scale': 1, 'opacity': 1 }}
         exit={{ 'scale': 0.95, 'opacity': 0 }}
         ref={containerRef}
-        className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl w-full max-w-6xl mx-4 overflow-hidden max-h-[90vh] flex flex-col"
+        className="bg-slate-50 dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-5xl mx-4 overflow-hidden max-h-[85vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200/60 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
-            <Video size={20} className="text-sky-500" />
-            <h3 className="font-semibold text-neutral-900 dark:text-white">媒体中心</h3>
+            <Video size={18} className="text-sky-500" />
+            <h3 className="font-semibold text-slate-700 dark:text-white text-sm">媒体中心</h3>
             {localStreams.size > 0 && (
-              <span className="px-2 py-0.5 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-full text-xs font-medium">
-                进行中
-              </span>
+              <span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full text-xs font-medium">进行中</span>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+            className="p-1.5 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/80 transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-white"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
         <div className="flex flex-1 overflow-hidden min-h-0">

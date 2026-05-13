@@ -311,7 +311,7 @@ export function ArticleConnectionLines ({
   return (
     <svg
       ref={svgRef}
-      className="absolute top-0 left-0 z-10"
+      className="absolute top-0 left-0 z-10 print:hidden"
       style={{
         'width': '100%',
         'height': contentHeight > 0 ? `${contentHeight}px` : '100%',
@@ -560,7 +560,7 @@ export function CrossArticleConnectionLines ({
   return (
     <svg
       ref={svgRef}
-      className="absolute z-10"
+      className="absolute z-10 print:hidden"
       style={{
         'left': `${transform.x}px`,
         'top': `${transform.y}px`,

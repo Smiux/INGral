@@ -30,7 +30,7 @@ const getCommandItems = (
       'id': 'heading1',
       'label': '一级标题',
       'description': '大标题',
-      'icon': <Heading1 size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <Heading1 size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'block',
       'isActive': (editor: Editor) => editor.isActive('heading', { 'level': 1 }),
       'action': (editor: Editor) => editor.chain().focus()
@@ -41,7 +41,7 @@ const getCommandItems = (
       'id': 'heading2',
       'label': '二级标题',
       'description': '中等标题',
-      'icon': <Heading2 size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <Heading2 size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'block',
       'isActive': (editor: Editor) => editor.isActive('heading', { 'level': 2 }),
       'action': (editor: Editor) => editor.chain().focus()
@@ -52,7 +52,7 @@ const getCommandItems = (
       'id': 'heading3',
       'label': '三级标题',
       'description': '小标题',
-      'icon': <Heading3 size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <Heading3 size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'block',
       'isActive': (editor: Editor) => editor.isActive('heading', { 'level': 3 }),
       'action': (editor: Editor) => editor.chain().focus()
@@ -63,7 +63,7 @@ const getCommandItems = (
       'id': 'bulletList',
       'label': '无序列表',
       'description': '无序列表',
-      'icon': <List size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <List size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'block',
       'isActive': (editor: Editor) => editor.isActive('bulletList'),
       'action': (editor: Editor) => editor.chain().focus()
@@ -74,7 +74,7 @@ const getCommandItems = (
       'id': 'orderedList',
       'label': '有序列表',
       'description': '有序列表',
-      'icon': <ListOrdered size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <ListOrdered size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'block',
       'isActive': (editor: Editor) => editor.isActive('orderedList'),
       'action': (editor: Editor) => editor.chain().focus()
@@ -85,7 +85,7 @@ const getCommandItems = (
       'id': 'blockquote',
       'label': '引用',
       'description': '引用块',
-      'icon': <Quote size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <Quote size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'block',
       'action': (editor: Editor) => editor.chain().focus()
         .toggleBlockquote()
@@ -95,7 +95,7 @@ const getCommandItems = (
       'id': 'codeBlock',
       'label': '代码块',
       'description': '代码块',
-      'icon': <CodeSquare size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <CodeSquare size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'block',
       'action': (editor: Editor) => editor.chain().focus()
         .toggleCodeBlock()
@@ -105,7 +105,7 @@ const getCommandItems = (
       'id': 'horizontalRule',
       'label': '水平线',
       'description': '水平分割线',
-      'icon': <Minus size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <Minus size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'block',
       'action': (editor: Editor) => editor.chain().focus()
         .setHorizontalRule()
@@ -115,7 +115,7 @@ const getCommandItems = (
       'id': 'table',
       'label': '表格',
       'description': '插入表格',
-      'icon': <Table size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <Table size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'insert',
       'action': (editor: Editor) => editor.chain().focus()
         .insertTable({ 'rows': 3, 'cols': 3, 'withHeaderRow': true })
@@ -125,7 +125,7 @@ const getCommandItems = (
       'id': 'link',
       'label': '链接',
       'description': '插入链接',
-      'icon': <Link size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <Link size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'insert',
       'action': () => onLinkClick()
     },
@@ -133,7 +133,7 @@ const getCommandItems = (
       'id': 'inlineMath',
       'label': '行内公式',
       'description': '行内数学公式',
-      'icon': <FunctionSquare size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <FunctionSquare size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'insert',
       'action': () => onMathClick('inline')
     },
@@ -141,7 +141,7 @@ const getCommandItems = (
       'id': 'blockMath',
       'label': '公式块',
       'description': '数学公式块',
-      'icon': <FunctionSquare size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <FunctionSquare size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'insert',
       'action': () => onMathClick('block')
     },
@@ -149,7 +149,7 @@ const getCommandItems = (
       'id': 'collapsible',
       'label': '折叠块',
       'description': '可折叠内容块',
-      'icon': <ChevronRightSquare size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <ChevronRightSquare size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'block',
       'action': (editor: Editor) => editor.chain().focus()
         .insertCollapsible()
@@ -159,7 +159,7 @@ const getCommandItems = (
       'id': 'iframe',
       'label': '嵌入',
       'description': '嵌入外部内容',
-      'icon': <CodeXml size={18} className="text-neutral-600 dark:text-neutral-400" />,
+      'icon': <CodeXml size={18} className="text-slate-600 dark:text-slate-400" />,
       'category': 'insert',
       'action': () => onIframeClick()
     }
@@ -218,7 +218,8 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
                 'showOnCreate': true,
                 'interactive': true,
                 'trigger': 'manual',
-                'placement': 'bottom-start'
+                'placement': 'bottom-start',
+                'theme': 'slash-command'
               });
             },
 

@@ -123,15 +123,15 @@ const ArticlePagePreview = memo(function ArticlePagePreview ({
 
   return (
     <div
-      className="group relative bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-default"
+      className="group relative bg-slate-50/90 dark:bg-slate-900/90 rounded border border-slate-200/60 dark:border-slate-700/60 overflow-hidden cursor-default"
     >
       <div
-        className="flex items-center justify-between px-3 py-2 bg-neutral-50 dark:bg-neutral-700 border-b border-neutral-200 dark:border-neutral-600 cursor-grab active:cursor-grabbing select-none"
+        className="flex items-center justify-between px-3 py-2 bg-slate-200/60 dark:bg-slate-800/60 border-b border-slate-200/60 dark:border-slate-700/60 cursor-grab active:cursor-grabbing select-none"
         onMouseDown={onDragHandleMouseDown}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <GripVertical className="w-4 h-4 text-neutral-400 flex-shrink-0" />
-          <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 truncate">{article.title}</span>
+          <GripVertical className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{article.title}</span>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
@@ -153,7 +153,7 @@ const ArticlePagePreview = memo(function ArticlePagePreview ({
 
       <div
         ref={scrollContainerRef}
-        className="overflow-y-auto relative"
+        className="overflow-y-auto relative bg-slate-100 dark:bg-slate-800"
         data-article-scroll="true"
         style={{ 'height': `${ARTICLE_VIEW_HEIGHT}px` }}
       >
@@ -164,7 +164,7 @@ const ArticlePagePreview = memo(function ArticlePagePreview ({
             renderCrossArticle={false}
           />
           {article.cover_image && (
-            <div className="mb-6 rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-700">
+            <div className="mb-6 rounded overflow-hidden bg-slate-100/80 dark:bg-slate-800/80">
               <img
                 src={article.cover_image}
                 alt={article.title}
@@ -174,14 +174,14 @@ const ArticlePagePreview = memo(function ArticlePagePreview ({
           )}
 
           <div className="mb-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-neutral-800 dark:text-neutral-100 min-w-0">{article.title}</h1>
-            <div className="flex flex-wrap gap-6 text-sm text-neutral-600 dark:text-neutral-400 mt-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-700 dark:text-slate-300 min-w-0">{article.title}</h1>
+            <div className="flex flex-wrap gap-6 text-sm text-slate-500 dark:text-slate-400 mt-4">
               <div className="flex items-center gap-1">
-                <CalendarDays className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                <CalendarDays className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                 创建于 {formatDate(article.created_at)}
               </div>
               <div className="flex items-center gap-1">
-                <CalendarDays className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                <CalendarDays className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                 更新于 {formatDate(article.updated_at)}
               </div>
             </div>
@@ -204,7 +204,7 @@ const ArticlePagePreview = memo(function ArticlePagePreview ({
 
           {article.summary && (
             <blockquote className="mb-6 pl-4 border-l-4 border-sky-400 bg-sky-50 dark:bg-sky-900/20 py-3 pr-4 rounded-r-lg">
-              <p className="text-neutral-700 dark:text-neutral-300 italic m-0">
+              <p className="text-slate-700 dark:text-slate-300 italic m-0">
                 {article.summary}
               </p>
             </blockquote>
@@ -570,14 +570,14 @@ function MultiViewerInner ({
 
   if (articles.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] text-neutral-500 dark:text-neutral-400">
+      <div className="flex items-center justify-center min-h-[60vh] text-slate-500 dark:text-slate-400">
         <p>暂无文章，请添加文章</p>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-[calc(100vh-3.5rem)] bg-neutral-100 dark:bg-neutral-900 overflow-hidden">
+    <div className="relative w-full h-[calc(100vh-3.5rem)] overflow-hidden">
       <div
         ref={viewportRef}
         className={`w-full h-full ${cursorClass}`}
@@ -631,11 +631,11 @@ function MultiViewerInner ({
         zoomRef={zoomRef}
       />
 
-      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg p-1">
+      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 rounded p-1">
         <button
           onClick={handleZoomOut}
           disabled={zoomAtBounds.atMin}
-          className="p-1.5 text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8" />
@@ -645,14 +645,14 @@ function MultiViewerInner ({
         </button>
         <button
           onClick={handleFitView}
-          className="px-2 py-1 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 rounded transition-colors min-w-[3.5rem] text-center"
+          className="px-2 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 rounded transition-colors min-w-[3.5rem] text-center"
         >
           {zoomDisplay}%
         </button>
         <button
           onClick={handleZoomIn}
           disabled={zoomAtBounds.atMax}
-          className="p-1.5 text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8" />

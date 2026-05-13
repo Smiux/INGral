@@ -44,11 +44,12 @@ export default function ForceGraph2DRenderer ({
       ctx.font = `${fontSize}px Sans-Serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#ffffff';
+      const textColor = backgroundColor === '#f8fafc' ? '#171717' : '#ffffff';
+      ctx.fillStyle = textColor;
       const label = node.title.length > 20 ? node.title.substring(0, 20) + '...' : node.title;
       ctx.fillText(label, node.x ?? 0, (node.y ?? 0) + size + fontSize);
     }
-  }, []);
+  }, [backgroundColor]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dagModeProp: any = settings.dagMode;

@@ -4,7 +4,6 @@ import { Handle, Position, type NodeProps } from '@xyflow/react';
 export interface CustomNodeData {
   'title'?: string;
   'category'?: string;
-  'handleCount'?: number;
   'shape'?: 'circle' | 'square' | 'rectangle';
   'style'?: {
     'fill'?: string;
@@ -20,146 +19,17 @@ export interface CustomNodeData {
   [key: string]: unknown;
 }
 
-interface HandleConfig {
-  id: string;
-  handleCount: number;
-  shape: string;
-  nodeWidth: number;
-  nodeHeight: number;
-}
-
-const HANDLE_STYLE: React.CSSProperties = {
-  'background': '#4ECDC4',
-  'borderColor': '#26A69A',
-  'width': 6,
-  'height': 6,
-  'borderRadius': '50%',
-  'borderWidth': 1,
-  'zIndex': 10,
-  'cursor': 'pointer',
+const HIDDEN_HANDLE_STYLE: React.CSSProperties = {
+  'opacity': 0,
+  'pointerEvents': 'none',
+  'width': 1,
+  'height': 1,
+  'minWidth': 0,
+  'minHeight': 0,
   'position': 'absolute',
-  'transform': 'none'
+  'border': 'none',
+  'background': 'transparent'
 };
-
-function generateHandles (config: HandleConfig) {
-  const { id, handleCount, shape, nodeWidth, nodeHeight } = config;
-  if (handleCount <= 0) {
-    return (
-      <Handle
-        key={`${id}-virtual-handle`}
-        id={`${id}-virtual-handle`}
-        type="source"
-        position={Position.Right}
-        style={{ 'display': 'none', 'pointerEvents': 'none', 'width': 0, 'height': 0 }}
-        isConnectable={false}
-      />
-    );
-  }
-
-  if (shape === 'circle') {
-    const radius = nodeWidth / 2;
-    const angleIncrement = (2 * Math.PI) / handleCount;
-
-    return Array.from({ 'length': handleCount }, (_, i) => {
-      const angle = i * angleIncrement;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      const normalizedAngle = angle % (2 * Math.PI);
-
-      let position: Position;
-      if (normalizedAngle < Math.PI / 4 || normalizedAngle >= 7 * Math.PI / 4) {
-        position = Position.Right;
-      } else if (normalizedAngle < 3 * Math.PI / 4) {
-        position = Position.Bottom;
-      } else if (normalizedAngle < 5 * Math.PI / 4) {
-        position = Position.Left;
-      } else {
-        position = Position.Top;
-      }
-
-      return (
-        <Handle
-          key={`${id}-handle-${i}`}
-          id={`${id}-handle-${i}`}
-          type="source"
-          position={position}
-          style={{
-            ...HANDLE_STYLE,
-            'left': `calc(50% + ${x}px - 3px)`,
-            'top': `calc(50% + ${y}px - 3px)`
-          }}
-          isConnectable
-        />
-      );
-    });
-  }
-
-  const sides = [
-    { 'position': Position.Top, 'length': nodeWidth },
-    { 'position': Position.Right, 'length': nodeHeight },
-    { 'position': Position.Bottom, 'length': nodeWidth },
-    { 'position': Position.Left, 'length': nodeHeight }
-  ];
-
-  const handlesPerSide = Math.floor(handleCount / 4);
-  const remainingHandles = handleCount % 4;
-
-  const handles: React.ReactElement[] = [];
-  let handleIndex = 0;
-
-  sides.forEach((side, sideIndex) => {
-    const count = handlesPerSide + (sideIndex < remainingHandles ? 1 : 0);
-    if (count <= 0) {
-      return;
-    }
-
-    const margin = 10;
-    const spacing = (side.length - margin * 2) / (count + 1);
-
-    for (let i = 0; i < count; i += 1) {
-      const offset = margin + spacing * (i + 1);
-      let x = 0;
-      let y = 0;
-
-      switch (side.position) {
-        case Position.Top:
-          x = offset - nodeWidth / 2;
-          y = -nodeHeight / 2;
-          break;
-        case Position.Right:
-          x = nodeWidth / 2;
-          y = offset - nodeHeight / 2;
-          break;
-        case Position.Bottom:
-          x = offset - nodeWidth / 2;
-          y = nodeHeight / 2;
-          break;
-        case Position.Left:
-          x = -nodeWidth / 2;
-          y = offset - nodeHeight / 2;
-          break;
-      }
-
-      handles.push(
-        <Handle
-          key={`${id}-handle-${handleIndex}`}
-          id={`${id}-handle-${handleIndex}`}
-          type="source"
-          position={side.position}
-          style={{
-            ...HANDLE_STYLE,
-            'left': `calc(50% + ${x}px - 3px)`,
-            'top': `calc(50% + ${y}px - 3px)`
-          }}
-          isConnectable
-        />
-      );
-      handleIndex += 1;
-    }
-  });
-
-  return handles;
-}
 
 export const Node = (props: NodeProps) => {
   const { id, data, selected } = props;
@@ -212,6 +82,18 @@ export const Node = (props: NodeProps) => {
           'height': nodeHeight
         }}
       >
+        <Handle
+          type="source"
+          id="source"
+          position={Position.Right}
+          style={HIDDEN_HANDLE_STYLE}
+        />
+        <Handle
+          type="target"
+          id="target"
+          position={Position.Left}
+          style={HIDDEN_HANDLE_STYLE}
+        />
         <div
           style={{
             'position': 'absolute',
@@ -285,7 +167,6 @@ export const Node = (props: NodeProps) => {
             </div>
           )}
         </div>
-        {generateHandles({ id, 'handleCount': nodeData.handleCount || 0, shape, nodeWidth, nodeHeight })}
       </div>
     </>
   );

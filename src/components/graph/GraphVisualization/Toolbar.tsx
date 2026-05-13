@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch, Trash2 } from 'lucide-react';
+import { Undo, Redo, Plus, Layout, Grid3x3, Sparkles, ZoomIn, ZoomOut, Maximize2, Download, ChevronDown, Edit3, Layers, View, Network, Home, Crosshair, Box, GitBranch, Trash2, Eye, BarChart3 } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 
 interface ToolbarProps {
@@ -12,8 +12,13 @@ interface ToolbarProps {
   onToggleGenerationPanel: () => void;
   isLayoutPanelOpen: boolean;
   onToggleLayoutPanel: () => void;
+  isAnalysisPanelOpen: boolean;
+  onToggleAnalysisPanel: () => void;
   snapToGrid: boolean;
   onToggleSnapToGrid: () => void;
+  showOnlySelected: boolean;
+  onToggleShowOnlySelected: () => void;
+  hasSelection: boolean;
   viewMode: 'reactflow' | 'forcegraph2d' | 'forcegraph3d';
   onSetViewMode: (mode: 'reactflow' | 'forcegraph2d' | 'forcegraph3d') => void;
   canUndo: boolean;
@@ -50,14 +55,14 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo(({
   onClick,
   className = ''
 }) => {
-  let buttonClass = 'flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-md transition-all min-w-[60px] ';
+  let buttonClass = 'flex flex-col items-center justify-center gap-1 px-3 py-2 rounded transition-all duration-200 min-w-[60px] ';
 
   if (isActive) {
-    buttonClass += 'bg-sky-500 text-white';
+    buttonClass += 'bg-sky-100/80 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400';
   } else if (isDisabled) {
-    buttonClass += 'text-neutral-300 dark:text-neutral-600 cursor-not-allowed';
+    buttonClass += 'text-slate-300 dark:text-slate-600 cursor-not-allowed';
   } else {
-    buttonClass += 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400';
+    buttonClass += 'hover:bg-slate-100/80 dark:hover:bg-slate-800/80 text-slate-500 dark:text-slate-400';
   }
 
   return (
@@ -67,7 +72,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo(({
       className={`${buttonClass} ${className}`}
     >
       {icon}
-      <span className="text-xs whitespace-nowrap">{label}</span>
+      <span className="text-[11px] whitespace-nowrap">{label}</span>
     </button>
   );
 });
@@ -87,7 +92,7 @@ const ToggleGroup: React.FC<ToggleGroupProps> = React.memo(({
   }
 
   return (
-    <div className="flex items-center gap-0.5 bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
+    <div className="flex items-center gap-0.5 bg-slate-100/50 dark:bg-slate-800/50 rounded p-0.5">
       <ToolbarButton
         icon={isCollapsed ? collapsedIcon : expandedIcon}
         label={label}
@@ -109,8 +114,13 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
   onToggleGenerationPanel,
   isLayoutPanelOpen,
   onToggleLayoutPanel,
+  isAnalysisPanelOpen,
+  onToggleAnalysisPanel,
   snapToGrid,
   onToggleSnapToGrid,
+  showOnlySelected,
+  onToggleShowOnlySelected,
+  hasSelection,
   viewMode,
   onSetViewMode,
   canUndo,
@@ -228,6 +238,12 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
               isActive={isImportExportPanelOpen}
               onClick={onToggleImportExportPanel}
             />
+            <ToolbarButton
+              icon={<BarChart3 size={16} />}
+              label="分析"
+              isActive={isAnalysisPanelOpen}
+              onClick={onToggleAnalysisPanel}
+            />
           </div>
         </ToggleGroup>
 
@@ -246,6 +262,13 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
               label={snapToGrid ? '关闭网格' : '网格对齐'}
               isActive={snapToGrid}
               onClick={onToggleSnapToGrid}
+            />
+            <ToolbarButton
+              icon={<Eye size={16} />}
+              label={showOnlySelected ? '显示全部' : '只看所选'}
+              isActive={showOnlySelected}
+              isDisabled={!hasSelection}
+              onClick={onToggleShowOnlySelected}
             />
             <ToolbarButton
               icon={<ZoomIn size={16} />}
@@ -275,7 +298,7 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
           </div>
         </ToggleGroup>
 
-        <div className="flex items-center gap-0.5 bg-white/90 dark:bg-neutral-800/90 rounded-lg p-0.5 backdrop-blur-sm">
+        <div className="flex items-center gap-0.5 bg-slate-100/50 dark:bg-slate-800/50 rounded p-0.5">
           {[
             { 'mode': 'reactflow', 'icon': <Home size={16} />, 'label': '标准' },
             { 'mode': 'forcegraph2d', 'icon': <Network size={16} />, 'label': '2D力导' },

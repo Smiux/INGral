@@ -12,7 +12,7 @@ interface ConnectionPointMeta {
 
 function createMarkerWidget (pointId: string, color: string): HTMLElement {
   const marker = document.createElement('span');
-  marker.className = 'connection-point-marker';
+  marker.className = 'connection-point-marker print:hidden';
   marker.setAttribute('data-connection-point-id', pointId);
   marker.style.cssText = `
     display: inline-block;
@@ -25,7 +25,6 @@ function createMarkerWidget (pointId: string, color: string): HTMLElement {
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     pointer-events: auto;
     user-select: none;
     -webkit-user-select: none;
@@ -49,6 +48,7 @@ function createMarkerWidget (pointId: string, color: string): HTMLElement {
 
 function createStartMarkWidget (pointId: string, color: string): HTMLElement {
   const mark = document.createElement('span');
+  mark.className = 'print:hidden';
   mark.setAttribute('data-start-mark', pointId);
   mark.style.cssText = `
     display: inline-block;
@@ -66,6 +66,7 @@ function createStartMarkWidget (pointId: string, color: string): HTMLElement {
 
 function createEndMarkWidget (pointId: string, color: string): HTMLElement {
   const mark = document.createElement('span');
+  mark.className = 'print:hidden';
   mark.setAttribute('data-end-mark', pointId);
   mark.style.cssText = `
     display: inline-block;

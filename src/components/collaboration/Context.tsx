@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import * as Y from 'yjs';
 import { getYjsProviderForRoom, type LiveblocksYjsProvider } from '@liveblocks/yjs';
-import { RoomProvider, useRoom, useUpdateMyPresence, useOthers, useStatus, LiveList, LiveObject, type Storage } from './liveblocks.config';
+import { RoomProvider, useRoom, useUpdateMyPresence, useOthers, useStatus, useLostConnectionListener, LiveList, LiveObject, type Storage } from './liveblocks.config';
 import {
   CollaborationContextValue,
   Collaborator,
@@ -65,6 +65,17 @@ function CollaborationRoomInner ({
   const retryCountRef = useRef(0);
   const maxRetriesRef = useRef(5);
 
+  useLostConnectionListener((event) => {
+    if (event === 'restored') {
+      if (peerId) {
+        updateMyPresence({ peerId });
+      }
+      if (mediaPeerId) {
+        updateMyPresence({ mediaPeerId });
+      }
+    }
+  });
+
   useEffect(() => {
     let mounted = true;
     let retryTimeout: NodeJS.Timeout | null = null;
@@ -81,20 +92,16 @@ function CollaborationRoomInner ({
           retryCountRef.current = 0;
           updateMyPresence({ 'peerId': id });
         }
-      } catch (error) {
+      } catch {
         if (!mounted) {
           return;
         }
 
-        console.error('Failed to initialize WebRTC:', error);
         retryCountRef.current += 1;
 
         if (retryCountRef.current < maxRetriesRef.current) {
           const delay = Math.min(1000 * Math.pow(2, retryCountRef.current - 1), 10000);
-          console.log(`Retrying WebRTC initialization in ${delay}ms (attempt ${retryCountRef.current}/${maxRetriesRef.current})`);
           retryTimeout = setTimeout(initWebRTC, delay);
-        } else {
-          console.error('Max WebRTC initialization retries reached');
         }
       }
     };
@@ -130,8 +137,8 @@ function CollaborationRoomInner ({
           setMediaPeerId(id);
           updateMyPresence({ 'mediaPeerId': id });
         }
-      } catch (error) {
-        console.error('Failed to initialize MediaManager:', error);
+      } catch {
+        // MediaManager 初始化失败
       }
     };
 
@@ -365,7 +372,8 @@ export function CollaborationProvider ({ children }: CollaborationProviderProps)
         'peerId': null,
         'joinedAt': Date.now(),
         'mediaPeerId': null,
-        'mediaTypes': []
+        'mediaTypes': [],
+        'micMuted': true
       }}
       initialStorage={{
         'channels': new LiveList([new LiveObject({

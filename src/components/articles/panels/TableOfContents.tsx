@@ -39,7 +39,7 @@ export const TocItemComponent: React.FC<TocItemProps> = memo(({
       style={{ 'paddingLeft': `${(item.level - 1) * 12}px` }}
     >
       <div
-        className={`cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-600 dark:hover:text-neutral-300' : 'text-neutral-700 dark:text-neutral-200'}`}
+        className={`cursor-pointer px-3 py-2.5 rounded transition-all duration-250 ease-in-out hover:translate-x-1 ${item.isScrolledOver ? 'text-slate-400 dark:text-slate-500 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 hover:text-slate-600 dark:hover:text-slate-300' : 'text-slate-700 dark:text-slate-300'}`}
         onClick={onClick}
       >
         <div className="flex items-center gap-2 min-h-[26px]">
@@ -49,7 +49,7 @@ export const TocItemComponent: React.FC<TocItemProps> = memo(({
                 e.stopPropagation();
                 onToggleCollapse();
               }}
-              className="flex-shrink-0 p-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors"
+              className="flex-shrink-0 p-0.5 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/80 transition-colors"
             >
               {hasChildren && isCollapsed && <ChevronRight className="w-3 h-3 transition-transform duration-200" />}
               {hasChildren && !isCollapsed && <ChevronDown className="w-3 h-3 transition-transform duration-200" />}
@@ -107,7 +107,7 @@ export const TableOfContentsPanel: React.FC<TableOfContentsPanelProps> = memo(({
       <div className={collapsedButtonClassName}>
         <button
           onClick={handleTogglePanelCollapsed}
-          className="flex items-center gap-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-sm px-2 py-1.5 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+          className="flex items-center gap-1 bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
         >
           {position === 'left'
             ? <ChevronRight className="w-4 h-4 text-sky-400" />
@@ -121,20 +121,20 @@ export const TableOfContentsPanel: React.FC<TableOfContentsPanelProps> = memo(({
 
   return (
     <div className={containerClassName}>
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden shadow-sm">
-        <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
+      <div className="bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded overflow-hidden">
+        <div className="p-3 border-b border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+          <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             <ListTree className="w-4 h-4 text-sky-400" />
             目录
           </h3>
           <button
             onClick={handleTogglePanelCollapsed}
-            className="p-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            className="p-0.5 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
             title="收起"
           >
             {position === 'left'
-              ? <ChevronLeft className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
-              : <ChevronRight className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+              ? <ChevronLeft className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+              : <ChevronRight className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             }
           </button>
         </div>
@@ -157,4 +157,3 @@ export const TableOfContentsPanel: React.FC<TableOfContentsPanelProps> = memo(({
 });
 
 TableOfContentsPanel.displayName = 'TableOfContentsPanel';
-

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useContext } from 'react';
 import { createPortal } from 'react-dom';
-import { Pencil, ArrowRight, ArrowLeft, X } from 'lucide-react';
+import { Pencil, ArrowRight, ArrowLeft, Trash2 } from 'lucide-react';
 import {
   ConnectionContext,
   type ExtendedConnectionContextValue,
@@ -54,7 +54,7 @@ export function ConnectionInteraction ({
   onJumpToArticle,
   onJumpToPoint
 }: ConnectionInteractionProps) {
-  const { state, updateConnectionLabel } = useContext(ConnectionContext) as ExtendedConnectionContextValue;
+  const { state, updateConnectionLabel, removeConnection } = useContext(ConnectionContext) as ExtendedConnectionContextValue;
   const [hoveredConnection, setHoveredConnection] = useState<string | null>(null);
   const [hoverPosition, setHoverPosition] = useState<MenuPosition | null>(null);
   const [menuConnection, setMenuConnection] = useState<string | null>(null);
@@ -215,7 +215,7 @@ export function ConnectionInteraction ({
 
   const labelTooltip = hoveredConn && hoverPosition && hoveredConn.conn.label && !jumpMenuConnection && !menuConnection && !editingLabel && (
     <div
-      className="fixed z-50 px-2 py-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-700 dark:text-neutral-300 rounded shadow-md pointer-events-none max-w-[200px] truncate"
+      className="fixed z-50 px-2 py-1 bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-300 rounded pointer-events-none max-w-[200px] truncate"
       style={{ 'left': hoverPosition.left, 'top': hoverPosition.top - 30, 'transform': 'translateX(-50%)' }}
     >
       {hoveredConn.conn.label}
@@ -225,36 +225,40 @@ export function ConnectionInteraction ({
   const editMenu = menuConn && menuPosition && (
     <div
       data-connection-menu
-      className="fixed z-50 flex items-center gap-1 px-2 py-1.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md"
+      className="fixed z-50 flex items-center gap-1 px-2 py-1.5 rounded"
       style={{ 'left': menuPosition.left, 'top': menuPosition.top, 'transform': 'translate(-50%, -100%)' }}
     >
       <button
         onClick={() => handleEditLabel(menuConnection!)}
-        className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors text-xs"
+        className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors text-xs"
       >
         <Pencil className="w-3 h-3" />
         编辑标签
       </button>
       <button
-        onClick={() => setMenuConnection(null)}
-        className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+        onClick={() => {
+          removeConnection(menuConnection!);
+          setMenuConnection(null);
+        }}
+        className="flex items-center gap-1 px-2.5 py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-xs"
       >
-        <X className="w-3.5 h-3.5" />
+        <Trash2 className="w-3 h-3" />
+        移除
       </button>
     </div>
   );
 
   const editLabelInput = editingLabel && (
     <div
-      className="fixed z-50 inset-0 flex items-center justify-center bg-black/20"
+      className="fixed z-50 inset-0 flex items-center justify-center bg-slate-900/20"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           handleCancelEdit();
         }
       }}
     >
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-4 w-80" data-connection-menu>
-        <h3 className="text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-3">编辑连接标签</h3>
+      <div className="bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 rounded-xl p-4 w-80" data-connection-menu>
+        <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">编辑连接标签</h3>
         <input
           ref={labelInputRef}
           type="text"
@@ -267,19 +271,19 @@ export function ConnectionInteraction ({
               handleCancelEdit();
             }
           }}
-          className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full px-3 py-2 text-sm border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-200/50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="输入标签..."
         />
         <div className="flex justify-end gap-2 mt-3">
           <button
             onClick={handleCancelEdit}
-            className="px-3 py-1.5 text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 rounded transition-colors"
           >
             取消
           </button>
           <button
             onClick={handleSaveLabel}
-            className="px-3 py-1.5 text-sm bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+            className="px-3 py-1.5 text-sm bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
           >
             保存
           </button>
@@ -319,17 +323,17 @@ export function ConnectionInteraction ({
 
     if (internal) {
       buttons.push({ 'direction': 'target', 'label': '跳转到目标', 'className': 'bg-indigo-500 hover:bg-indigo-600', 'icon': ArrowRight });
-      buttons.push({ 'direction': 'source', 'label': '跳转到源头', 'className': 'bg-violet-500 hover:bg-violet-600', 'icon': ArrowLeft });
+      buttons.push({ 'direction': 'source', 'label': '跳转到源头', 'className': 'bg-blue-500 hover:bg-blue-600', 'icon': ArrowLeft });
     } else if (outgoing && targetPoint) {
       buttons.push({ 'direction': 'target', 'label': '跳转到目标', 'className': 'bg-indigo-500 hover:bg-indigo-600', 'icon': ArrowRight });
     } else if (incoming && sourcePoint) {
-      buttons.push({ 'direction': 'source', 'label': '跳转到源头', 'className': 'bg-violet-500 hover:bg-violet-600', 'icon': ArrowLeft });
+      buttons.push({ 'direction': 'source', 'label': '跳转到源头', 'className': 'bg-blue-500 hover:bg-blue-600', 'icon': ArrowLeft });
     } else {
       if (targetPoint) {
         buttons.push({ 'direction': 'target', 'label': '跳转到目标', 'className': 'bg-indigo-500 hover:bg-indigo-600', 'icon': ArrowRight });
       }
       if (sourcePoint) {
-        buttons.push({ 'direction': 'source', 'label': '跳转到源头', 'className': 'bg-violet-500 hover:bg-violet-600', 'icon': ArrowLeft });
+        buttons.push({ 'direction': 'source', 'label': '跳转到源头', 'className': 'bg-blue-500 hover:bg-blue-600', 'icon': ArrowLeft });
       }
     }
 
@@ -339,25 +343,19 @@ export function ConnectionInteraction ({
   const jumpMenu = jumpConn && jumpMenuPosition && (
     <div
       data-jump-menu
-      className="fixed z-50 flex items-center gap-1 px-2 py-1.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md"
+      className="fixed z-50 flex items-center gap-1 px-2 py-1.5 rounded"
       style={{ 'left': jumpMenuPosition.left, 'top': jumpMenuPosition.top, 'transform': 'translate(-50%, -100%)' }}
     >
       {getJumpButtons(jumpConn.conn, jumpConn.sourcePoint, jumpConn.targetPoint).map(btn => (
         <button
           key={btn.direction}
           onClick={() => handleJump(jumpMenuConnection!, btn.direction)}
-          className={`flex items-center gap-1 px-2.5 py-1.5 text-white rounded-lg transition-colors text-xs ${btn.className}`}
+          className={`flex items-center gap-1 px-2.5 py-1.5 text-white rounded transition-colors text-xs ${btn.className}`}
         >
           <btn.icon className="w-3 h-3" />
           {btn.label}
         </button>
       ))}
-      <button
-        onClick={() => setJumpMenuConnection(null)}
-        className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
-      >
-        <X className="w-3.5 h-3.5" />
-      </button>
     </div>
   );
 

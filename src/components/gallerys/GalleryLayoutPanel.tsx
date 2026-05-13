@@ -177,26 +177,26 @@ export const GalleryLayoutPanel = ({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/20 z-40"
+        className="fixed inset-0 bg-slate-900/20 z-40"
         onClick={onClose}
       />
 
-      <div className="fixed right-0 top-0 bottom-0 w-80 bg-white dark:bg-neutral-800 shadow-xl z-50 overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
-          <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200">
+      <div className="fixed right-0 top-0 bottom-0 w-80 bg-slate-50/90 dark:bg-slate-900/90 z-50 overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200/60 dark:border-slate-700/60">
+          <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-300">
             布局设置
           </h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded"
+            className="p-1 hover:bg-slate-100/40 dark:hover:bg-slate-700/60 rounded"
           >
-            <X className="w-5 h-5 text-neutral-400" />
+            <X className="w-5 h-5 text-slate-400" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
               布局算法
             </h3>
             <div className="space-y-2">
@@ -210,18 +210,18 @@ export const GalleryLayoutPanel = ({
                     key={key}
                     onClick={() => setAlgorithm(key)}
                     className={`
-                      w-full flex items-center gap-3 p-3 rounded-lg border transition-colors
+                      w-full flex items-center gap-3 p-3 rounded border transition-colors
                       ${isSelected
                     ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/30'
-                    : 'border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700'}
+                    : 'border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-100/40 dark:hover:bg-slate-700/60'}
                     `}
                   >
-                    <Icon className={`w-5 h-5 ${isSelected ? 'text-sky-500' : 'text-neutral-400'}`} />
+                    <Icon className={`w-5 h-5 ${isSelected ? 'text-sky-500' : 'text-slate-400'}`} />
                     <div className="text-left">
-                      <div className={`text-sm font-medium ${isSelected ? 'text-sky-600 dark:text-sky-400' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                      <div className={`text-sm font-medium ${isSelected ? 'text-sky-600 dark:text-sky-400' : 'text-slate-700 dark:text-slate-300'}`}>
                         {config.label}
                       </div>
-                      <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
                         {config.description}
                       </div>
                     </div>
@@ -231,48 +231,48 @@ export const GalleryLayoutPanel = ({
             </div>
           </div>
 
-          <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+          <div className="border-t border-slate-200/60 dark:border-slate-700/60 pt-4">
+            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
               基本参数
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                   节点间距
                 </label>
                 <input
                   type="number"
                   min={20}
                   max={200}
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                  className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                   value={params.nodeSpacing}
                   onChange={e => updateParam('nodeSpacing', parseInt(e.target.value, 10) || 0)}
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                   连接间间距
                 </label>
                 <input
                   type="number"
                   min={5}
                   max={100}
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                  className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                   value={params.edgeEdgeSpacing}
                   onChange={e => updateParam('edgeEdgeSpacing', parseInt(e.target.value, 10) || 0)}
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                   节点连接间间距
                 </label>
                 <input
                   type="number"
                   min={5}
                   max={100}
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                  className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                   value={params.edgeNodeSpacing}
                   onChange={e => updateParam('edgeNodeSpacing', parseInt(e.target.value, 10) || 0)}
                 />
@@ -281,20 +281,20 @@ export const GalleryLayoutPanel = ({
           </div>
 
           {algorithm === 'layered' && (
-            <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
-              <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+            <div className="border-t border-slate-200/60 dark:border-slate-700/60 pt-4">
+              <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                 层次布局参数
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                     层级间距
                   </label>
                   <input
                     type="number"
                     min={50}
                     max={300}
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.rankSpacing}
                     onChange={e => updateParam('rankSpacing', parseInt(e.target.value, 10) || 0)}
                   />
@@ -304,31 +304,31 @@ export const GalleryLayoutPanel = ({
           )}
 
           {algorithm === 'force' && (
-            <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
-              <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+            <div className="border-t border-slate-200/60 dark:border-slate-700/60 pt-4">
+              <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                 力导向布局参数
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                     迭代次数
                   </label>
                   <input
                     type="number"
                     min={50}
                     max={1000}
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.iterations}
                     onChange={e => updateParam('iterations', parseInt(e.target.value, 10) || 0)}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                     力模型
                   </label>
                   <select
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.forceModel}
                     onChange={e => updateParam('forceModel', e.target.value as 'EADES' | 'FRUCHTERMAN_REINGOLD')}
                   >
@@ -339,7 +339,7 @@ export const GalleryLayoutPanel = ({
 
                 {params.forceModel === 'EADES' && (
                   <div>
-                    <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                    <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                       排斥力
                     </label>
                     <input
@@ -347,7 +347,7 @@ export const GalleryLayoutPanel = ({
                       min={1}
                       max={20}
                       step="0.5"
-                      className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                      className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                       value={params.repulsion}
                       onChange={e => updateParam('repulsion', parseFloat(e.target.value) || 0)}
                     />
@@ -356,7 +356,7 @@ export const GalleryLayoutPanel = ({
 
                 {params.forceModel === 'FRUCHTERMAN_REINGOLD' && (
                   <div>
-                    <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                    <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                       温度
                     </label>
                     <input
@@ -364,7 +364,7 @@ export const GalleryLayoutPanel = ({
                       min={0.0001}
                       max={0.1}
                       step="0.0001"
-                      className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                      className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                       value={params.temperature}
                       onChange={e => updateParam('temperature', parseFloat(e.target.value) || 0)}
                     />
@@ -375,27 +375,27 @@ export const GalleryLayoutPanel = ({
           )}
 
           {algorithm === 'stress' && (
-            <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
-              <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+            <div className="border-t border-slate-200/60 dark:border-slate-700/60 pt-4">
+              <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                 应力布局参数
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                     期望连接长度
                   </label>
                   <input
                     type="number"
                     min={50}
                     max={300}
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.desiredEdgeLength}
                     onChange={e => updateParam('desiredEdgeLength', parseInt(e.target.value, 10) || 0)}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                     应力阈值
                   </label>
                   <input
@@ -403,18 +403,18 @@ export const GalleryLayoutPanel = ({
                     min={0.00001}
                     max={0.01}
                     step="0.0001"
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.epsilon}
                     onChange={e => updateParam('epsilon', parseFloat(e.target.value) || 0)}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                     布局维度
                   </label>
                   <select
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.dimension}
                     onChange={e => updateParam('dimension', e.target.value as 'XY' | 'X' | 'Y')}
                   >
@@ -425,14 +425,14 @@ export const GalleryLayoutPanel = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                     迭代限制
                   </label>
                   <input
                     type="number"
                     min={1000}
                     max={10000000}
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+                    className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.iterationLimit}
                     onChange={e => updateParam('iterationLimit', parseInt(e.target.value, 10) || 0)}
                   />
@@ -442,14 +442,14 @@ export const GalleryLayoutPanel = ({
           )}
         </div>
 
-        <div className="p-4 border-t border-neutral-200 dark:border-neutral-700">
+        <div className="p-4 border-t border-slate-200/60 dark:border-slate-700/60">
           <button
             onClick={executeLayout}
             disabled={isLayouting || nodes.length === 0}
             className={`
-              w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors
+              w-full flex items-center justify-center gap-2 px-4 py-2 rounded font-medium transition-colors
               ${isLayouting || nodes.length === 0
-      ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 cursor-not-allowed'
+      ? 'bg-slate-200/50 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed'
       : 'bg-sky-500 text-white hover:bg-sky-600'}
             `}
           >

@@ -602,7 +602,7 @@ export function ArticleViewer () {
       if (hasData) {
         return 'bg-indigo-500 hover:bg-indigo-600 text-white';
       }
-      return 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 dark:text-neutral-500 cursor-not-allowed';
+      return 'bg-slate-200/50 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed';
     };
 
     const getButtonText = () => {
@@ -619,7 +619,7 @@ export function ArticleViewer () {
       <button
         onClick={handleSave}
         disabled={isSaving || !hasData}
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all ${getButtonStyle()}`}
+        className={`flex items-center gap-2 px-3 py-1.5 rounded font-medium text-sm transition-all ${getButtonStyle()}`}
       >
         <Save className={`w-4 h-4 ${isSaving ? 'animate-pulse' : ''}`} />
         {getButtonText()}
@@ -638,11 +638,11 @@ export function ArticleViewer () {
   if (!article) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">文章未找到</h1>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-8">您访问的文章不存在。</p>
+        <h1 className="text-3xl font-bold text-slate-700 dark:text-slate-300 mb-4">文章未找到</h1>
+        <p className="text-slate-500 dark:text-slate-400 mb-8">您访问的文章不存在。</p>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-sky-600 transition"
+          className="inline-flex items-center gap-2 bg-sky-500 text-white px-6 py-2 rounded hover:bg-sky-600 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           返回首页
@@ -671,27 +671,27 @@ export function ArticleViewer () {
   if (viewMode === 'grid' && isMultiMode) {
     return (
       <ConnectionProvider articleIds={articleIds}>
-        <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
-          <div className="sticky top-0 z-20 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-4 py-2 print:hidden">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+          <div className="sticky top-0 z-20 bg-slate-100/90 dark:bg-slate-800/90 border-b border-slate-200/60 dark:border-slate-700/60 px-4 py-2 print:hidden">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleToggleViewMode}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
                 >
                   <FileText className="w-4 h-4" />
                   单篇查看
                 </button>
                 <button
                   onClick={() => setShowArticleSelector(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   添加文章
                 </button>
                 <SaveButton />
               </div>
-              <span className="text-sm text-neutral-500 dark:text-neutral-400">
+              <span className="text-sm text-slate-500 dark:text-slate-400">
                 {multiArticles.length} 篇文章
               </span>
             </div>
@@ -702,14 +702,6 @@ export function ArticleViewer () {
             onRemoveArticle={handleRemoveArticle}
             onSelectArticle={handleSelectArticle}
             onJumpToArticle={handleJumpToArticleWithPath}
-          />
-
-          <JumpPathBar
-            path={jumpPath}
-            currentArticleId={currentArticle?.id ?? article?.id ?? ''}
-            onJumpToArticle={handlePathJump}
-            onJumpToPoint={handleJumpToPoint}
-            onClear={handleClearPath}
           />
 
           <ArticleSelector
@@ -747,16 +739,16 @@ export function ArticleViewer () {
           <div className="w-1/2 min-w-0 flex-shrink-0">
             <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 truncate">{sideArticle.article.title}</h2>
+                <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-300 truncate">{sideArticle.article.title}</h2>
                 <button
                   onClick={handleCloseSideArticle}
-                  className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="min-w-0" ref={sideContentRef}>
-                <main className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 relative">
+                <main className="bg-slate-100/90 dark:bg-slate-800/90 rounded border border-slate-200/60 dark:border-slate-700/60 relative">
                   <ArticleConnectionLines
                     articleId={sideArticle.article.id}
                     scrollContainerRef={sideContentRef}
@@ -788,7 +780,7 @@ export function ArticleViewer () {
         <div className={sideArticle ? 'w-1/2 min-w-0 flex-shrink-0' : ''}>
           <article>
             {displayArticle.cover_image && (
-              <div className="mb-6 rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-700">
+              <div className="mb-6 rounded overflow-hidden bg-slate-100/40 dark:bg-slate-800/40">
                 <img
                   src={displayArticle.cover_image}
                   alt={displayArticle.title}
@@ -799,20 +791,20 @@ export function ArticleViewer () {
 
             <div className="mb-6">
               <div className="flex items-center justify-between gap-4 flex-wrap">
-                <h1 className="text-3xl md:text-4xl font-bold text-neutral-800 dark:text-neutral-100 min-w-0">{displayArticle.title}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-700 dark:text-slate-300 min-w-0">{displayArticle.title}</h1>
                 <div className="flex items-center gap-2 flex-shrink-0 print:hidden">
                   {isMultiMode && (
                     <>
                       <button
                         onClick={handleToggleViewMode}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
                       >
                         <LayoutGrid className="w-4 h-4" />
                     总览
                       </button>
                       <button
                         onClick={() => setShowArticleSelector(true)}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
                       >
                         <Plus className="w-4 h-4" />
                     添加
@@ -822,7 +814,7 @@ export function ArticleViewer () {
                   {!isMultiMode && (
                     <button
                       onClick={() => setShowArticleSelector(true)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors"
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
                     >
                       <LayoutGrid className="w-4 h-4" />
                   多篇查看
@@ -830,14 +822,14 @@ export function ArticleViewer () {
                   )}
                   <button
                     onClick={handleExportHtml}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
                   >
                     <Download className="w-4 h-4" />
                 导出HTML
                   </button>
                   <button
                     onClick={() => navigate(`/articles/${displayArticle.slug}/edit`)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
                   >
                     <Edit3 className="w-4 h-4" />
                 编辑文章
@@ -845,20 +837,20 @@ export function ArticleViewer () {
                   <button
                     onClick={handleDelete}
                     disabled={isDeleting}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Trash2 className="w-4 h-4" />
                     {isDeleting ? '删除中...' : '删除文章'}
                   </button>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-6 text-sm text-neutral-600 dark:text-neutral-400 mt-4">
+              <div className="flex flex-wrap gap-6 text-sm text-slate-500 dark:text-slate-400 mt-4">
                 <div className="flex items-center gap-1">
-                  <CalendarDays className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                  <CalendarDays className="w-4 h-4 text-slate-400 dark:text-slate-500" />
               创建于 {createdDate}
                 </div>
                 <div className="flex items-center gap-1">
-                  <CalendarDays className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                  <CalendarDays className="w-4 h-4 text-slate-400 dark:text-slate-500" />
               更新于 {updatedDate}
                 </div>
               </div>
@@ -881,7 +873,7 @@ export function ArticleViewer () {
 
             {displayArticle.summary && (
               <blockquote className="mb-6 pl-4 border-l-4 border-sky-400 bg-sky-50 dark:bg-sky-900/20 py-3 pr-4 rounded-r-lg">
-                <p className="text-neutral-700 dark:text-neutral-300 italic m-0">
+                <p className="text-slate-700 dark:text-slate-300 italic m-0">
                   {displayArticle.summary}
                 </p>
               </blockquote>
@@ -907,7 +899,7 @@ export function ArticleViewer () {
             />
 
             <div className="flex-1 min-w-0" ref={contentRef}>
-              <main className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 relative">
+              <main className="bg-slate-100/90 dark:bg-slate-800/90 rounded border border-slate-200/60 dark:border-slate-700/60 relative">
                 <ArticleConnectionLines
                   articleId={displayArticle.id}
                   scrollContainerRef={contentRef}
@@ -937,16 +929,16 @@ export function ArticleViewer () {
           <div className="w-1/2 min-w-0 flex-shrink-0">
             <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 truncate">{sideArticle.article.title}</h2>
+                <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-300 truncate">{sideArticle.article.title}</h2>
                 <button
                   onClick={handleCloseSideArticle}
-                  className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="min-w-0" ref={sideContentRef}>
-                <main className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 relative">
+                <main className="bg-slate-100/90 dark:bg-slate-800/90 rounded border border-slate-200/60 dark:border-slate-700/60 relative">
                   <ArticleConnectionLines
                     articleId={sideArticle.article.id}
                     scrollContainerRef={sideContentRef}
@@ -976,26 +968,26 @@ export function ArticleViewer () {
       </div>
 
       {isMultiMode && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-lg px-3 py-1.5 print:hidden">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 rounded-full px-3 py-1.5 print:hidden">
           <button
             onClick={handlePrevArticle}
-            className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-sky-500 dark:hover:text-sky-400 rounded-full hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm font-medium text-neutral-600 dark:text-neutral-300 min-w-[4rem] text-center">
+          <span className="text-sm font-medium text-slate-500 dark:text-slate-400 min-w-[4rem] text-center">
             {currentIndex + 1} / {multiArticles.length}
           </span>
           <button
             onClick={handleNextArticle}
-            className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-sky-500 dark:hover:text-sky-400 rounded-full hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
-          <div className="w-px h-5 bg-neutral-200 dark:bg-neutral-600 mx-1" />
+          <div className="w-px h-5 bg-slate-200/60 dark:bg-slate-700/60 mx-1" />
           <button
             onClick={handleToggleViewMode}
-            className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-violet-500 dark:hover:text-violet-400 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-full hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
             title="查看所有文章"
           >
             <LayoutGrid className="w-5 h-5" />

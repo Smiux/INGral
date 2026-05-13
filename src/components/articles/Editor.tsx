@@ -441,37 +441,37 @@ export const ArticleEditor: React.FC = () => {
   return (
     <div className="min-h-screen">
       {isLoadingArticle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400" />
         </div>
       )}
 
       {showLinkDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowLinkDialog(false)} />
-          <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 relative z-10 min-w-[400px] max-w-md">
-            <h3 className="text-lg font-semibold mb-4 text-neutral-800 dark:text-neutral-200">添加链接</h3>
+          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setShowLinkDialog(false)} />
+          <div className="bg-slate-50/90 dark:bg-slate-900/90 rounded border border-slate-200/60 dark:border-slate-700/60 p-4 relative z-10 min-w-[400px] max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-slate-700 dark:text-slate-300">添加链接</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">链接地址</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">链接地址</label>
                 <input
                   type="text"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://example.com"
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                 />
               </div>
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setShowLinkDialog(false)}
-                  className="px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-md transition-colors"
+                  className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 bg-slate-200/50 dark:bg-slate-800/80 hover:bg-slate-300/80 dark:hover:bg-slate-700/80 rounded transition-colors"
                 >
                   取消
                 </button>
                 <button
                   onClick={handleLinkSubmit}
-                  className="px-4 py-2 text-sm text-white bg-sky-500 hover:bg-sky-600 rounded-md transition-colors"
+                  className="px-4 py-2 text-sm text-white bg-sky-500 hover:bg-sky-600 rounded transition-colors"
                 >
                   确定
                 </button>
@@ -483,30 +483,30 @@ export const ArticleEditor: React.FC = () => {
 
       {showIframeDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowIframeDialog(false)} />
-          <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 relative z-10 min-w-[450px] max-w-lg">
-            <h3 className="text-lg font-semibold mb-4 text-neutral-800 dark:text-neutral-200">嵌入内容</h3>
+          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setShowIframeDialog(false)} />
+          <div className="bg-slate-50/90 dark:bg-slate-900/90 rounded border border-slate-200/60 dark:border-slate-700/60 p-4 relative z-10 min-w-[450px] max-w-lg">
+            <h3 className="text-lg font-semibold mb-4 text-slate-700 dark:text-slate-300">嵌入内容</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">嵌入地址</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">嵌入地址</label>
                 <input
                   type="text"
                   value={iframeSrc}
                   onChange={(e) => setIframeSrc(e.target.value)}
                   placeholder="https://www.youtube.com/embed/..."
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                 />
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">支持 YouTube、Bilibili 等视频平台的嵌入链接</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">支持 YouTube、Bilibili 等视频平台的嵌入链接</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">比例预设</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">比例预设</label>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setIframeWidthInput('640'); setIframeHeightInput('360');
                     }}
-                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    className="px-3 py-1.5 text-xs rounded border border-slate-300/80 dark:border-slate-600/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     16:9 小
                   </button>
@@ -515,7 +515,7 @@ export const ArticleEditor: React.FC = () => {
                     onClick={() => {
                       setIframeWidthInput('854'); setIframeHeightInput('480');
                     }}
-                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    className="px-3 py-1.5 text-xs rounded border border-slate-300/80 dark:border-slate-600/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     16:9 中
                   </button>
@@ -524,7 +524,7 @@ export const ArticleEditor: React.FC = () => {
                     onClick={() => {
                       setIframeWidthInput('1280'); setIframeHeightInput('720');
                     }}
-                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    className="px-3 py-1.5 text-xs rounded border border-slate-300/80 dark:border-slate-600/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     16:9 大
                   </button>
@@ -533,7 +533,7 @@ export const ArticleEditor: React.FC = () => {
                     onClick={() => {
                       setIframeWidthInput('640'); setIframeHeightInput('480');
                     }}
-                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    className="px-3 py-1.5 text-xs rounded border border-slate-300/80 dark:border-slate-600/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     4:3
                   </button>
@@ -542,7 +542,7 @@ export const ArticleEditor: React.FC = () => {
                     onClick={() => {
                       setIframeWidthInput('500'); setIframeHeightInput('500');
                     }}
-                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    className="px-3 py-1.5 text-xs rounded border border-slate-300/80 dark:border-slate-600/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     1:1
                   </button>
@@ -551,7 +551,7 @@ export const ArticleEditor: React.FC = () => {
                     onClick={() => {
                       setIframeWidthInput('640'); setIframeHeightInput('274');
                     }}
-                    className="px-3 py-1.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    className="px-3 py-1.5 text-xs rounded border border-slate-300/80 dark:border-slate-600/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     21:9
                   </button>
@@ -559,7 +559,7 @@ export const ArticleEditor: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">宽度</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">宽度</label>
                   <input
                     type="number"
                     value={iframeWidthInput}
@@ -571,11 +571,11 @@ export const ArticleEditor: React.FC = () => {
                     }}
                     min={200}
                     max={1920}
-                    className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">高度</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">高度</label>
                   <input
                     type="number"
                     value={iframeHeightInput}
@@ -587,21 +587,21 @@ export const ArticleEditor: React.FC = () => {
                     }}
                     min={150}
                     max={1080}
-                    className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                   />
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setShowIframeDialog(false)}
-                  className="px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-md transition-colors"
+                  className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 bg-slate-200/50 dark:bg-slate-800/80 hover:bg-slate-300/80 dark:hover:bg-slate-700/80 rounded transition-colors"
                 >
                   取消
                 </button>
                 <button
                   onClick={handleIframeSubmit}
                   disabled={!iframeSrc.trim()}
-                  className="px-4 py-2 text-sm text-white bg-sky-500 hover:bg-sky-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm text-white bg-sky-500 hover:bg-sky-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   确定
                 </button>
@@ -632,7 +632,7 @@ export const ArticleEditor: React.FC = () => {
         onInsert={handleInsertMath}
       />
 
-      <header className="sticky top-0 left-0 right-0 z-50 bg-white dark:bg-neutral-900">
+      <header className="sticky top-0 left-0 right-0 z-50 bg-slate-50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <NavigatorTrigger />
@@ -640,28 +640,28 @@ export const ArticleEditor: React.FC = () => {
             <div className="flex items-center space-x-3">
               <button
                 onClick={handleOpenCoverManager}
-                className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
+                className="inline-flex items-center px-3 py-2 border border-slate-200/60 dark:border-slate-700/60 text-sm font-medium rounded text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100/80 dark:hover:bg-sky-500/15 hover:border-sky-400 dark:hover:border-sky-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
               >
-                <Image size={16} className="mr-2 text-neutral-600 dark:text-neutral-400" />
+                <Image size={16} className="mr-2 text-slate-500 dark:text-slate-400" />
                 封面
               </button>
               <button
                 onClick={handleOpenDraftManager}
-                className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
+                className="inline-flex items-center px-3 py-2 border border-slate-200/60 dark:border-slate-700/60 text-sm font-medium rounded text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100/80 dark:hover:bg-sky-500/15 hover:border-sky-400 dark:hover:border-sky-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
               >
-                <FolderOpen size={16} className="mr-2 text-neutral-600 dark:text-neutral-400" />
+                <FolderOpen size={16} className="mr-2 text-slate-500 dark:text-slate-400" />
                 草稿
               </button>
               <button
                 onClick={handleSaveDraft}
-                className="inline-flex items-center px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
+                className="inline-flex items-center px-3 py-2 border border-slate-200/60 dark:border-slate-700/60 text-sm font-medium rounded text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100/80 dark:hover:bg-sky-500/15 hover:border-sky-400 dark:hover:border-sky-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
               >
-                <FileText size={16} className="mr-2 text-neutral-600 dark:text-neutral-400" />
+                <FileText size={16} className="mr-2 text-slate-500 dark:text-slate-400" />
                 保存草稿
               </button>
               <button
                 onClick={handleClearArticle}
-                className="inline-flex items-center px-3 py-2 border border-red-200 dark:border-red-800 text-sm font-medium rounded-md text-red-600 dark:text-red-400 bg-white dark:bg-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition-all duration-200"
+                className="inline-flex items-center px-3 py-2 border border-red-200 dark:border-red-800 text-sm font-medium rounded text-red-600 dark:text-red-400 bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition-all duration-200"
               >
                 <Trash2 size={16} className="mr-2" />
                 清除
@@ -669,7 +669,7 @@ export const ArticleEditor: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={state.isSaving}
-                className="inline-flex items-center px-4 py-2 border border-neutral-200 dark:border-neutral-700 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:text-sky-600 dark:hover:text-sky-400 hover:border-sky-200 dark:hover:border-sky-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-4 py-2 border border-slate-200/60 dark:border-slate-700/60 text-sm font-medium rounded text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100/80 dark:hover:bg-sky-500/15 hover:text-sky-600 dark:hover:text-sky-400 hover:border-sky-400 dark:hover:border-sky-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {state.isSaving ? (
                   <>
@@ -678,7 +678,7 @@ export const ArticleEditor: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <Save size={16} className="mr-2 text-neutral-600 dark:text-neutral-400" />
+                    <Save size={16} className="mr-2 text-slate-500 dark:text-slate-400" />
                     {isEditing ? '更新文章' : '发布文章'}
                   </>
                 )}
@@ -697,7 +697,7 @@ export const ArticleEditor: React.FC = () => {
           getChildIds={getChildIds}
           isItemCollapsed={isItemCollapsed}
           shouldShowItem={shouldShowItem}
-          containerClassName="sticky top-20 w-48 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg z-20 ml-4 flex flex-col float-left mb-4"
+          containerClassName="sticky top-20 w-48 bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded z-20 ml-4 flex flex-col float-left mb-4"
           collapsedButtonClassName="sticky top-20 z-20 ml-4"
         />
 
@@ -710,18 +710,18 @@ export const ArticleEditor: React.FC = () => {
               placeholder="请输入文章标题..."
               value={state.title}
               onChange={handleTitleChange}
-              className="w-full text-4xl font-bold text-neutral-800 dark:text-neutral-200 bg-transparent border-none outline-none placeholder-neutral-400 dark:placeholder-neutral-500 focus:ring-0"
+              className="w-full text-4xl font-bold text-slate-700 dark:text-slate-300 bg-transparent outline-none placeholder-slate-400 dark:placeholder-slate-500 focus:ring-0"
               autoFocus
             />
 
-            <div className="flex flex-wrap items-center gap-6 mt-4 text-sm text-neutral-600 dark:text-neutral-400">
+            <div className="flex flex-wrap items-center gap-6 mt-4 text-sm text-slate-500 dark:text-slate-400">
               <div className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
-                <span className="text-sm text-neutral-600 dark:text-neutral-400">{characterCount} 个字符</span>
+                <MessageCircle className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+                <span className="text-sm text-slate-500 dark:text-slate-400">{characterCount} 个字符</span>
               </div>
               <button
                 onClick={() => setShowSummaryInput(!showSummaryInput)}
-                className="flex items-center gap-1 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+                className="flex items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
               >
                 <span>文章简介</span>
                 {showSummaryInput ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -733,7 +733,7 @@ export const ArticleEditor: React.FC = () => {
                     setTagInput('');
                   }
                 }}
-                className="flex items-center gap-1 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+                className="flex items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
               >
                 <Tag className="w-4 h-4" />
                 <span>添加标签</span>
@@ -746,8 +746,8 @@ export const ArticleEditor: React.FC = () => {
                 showSummaryInput ? 'max-h-40 opacity-100 mt-4' : 'max-h-0 opacity-0'
               }`}
             >
-              <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+              <div className="bg-slate-100/40 dark:bg-slate-800/40 rounded p-4 border border-slate-200/60 dark:border-slate-700/60">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   文章简介
                 </label>
                 <textarea
@@ -757,9 +757,9 @@ export const ArticleEditor: React.FC = () => {
                   }}
                   placeholder="输入文章简介..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-none text-sm"
+                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-none text-sm"
                 />
-                <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 text-right">
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-right">
                   {articleMetadata.summary.length}
                 </div>
               </div>
@@ -772,14 +772,14 @@ export const ArticleEditor: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <div className="flex-1 relative">
-                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
                     placeholder="输入标签后按 Enter 确认..."
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={handleAddTag}
-                    className="w-full pl-10 pr-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:border-sky-400"
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-400"
                     autoFocus
                   />
                 </div>
@@ -788,7 +788,7 @@ export const ArticleEditor: React.FC = () => {
                     setShowTagInput(false);
                     setTagInput('');
                   }}
-                  className="px-4 py-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+                  className="px-4 py-2 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -816,12 +816,12 @@ export const ArticleEditor: React.FC = () => {
             )}
           </div>
 
-          <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
+          <div className="bg-slate-50/90 dark:bg-slate-900/90">
             <div
               ref={toolbarRef}
               className={`transition-all duration-300 ${
                 isToolbarSticky
-                  ? 'sticky top-[64px] z-40 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700'
+                  ? 'sticky top-[64px] z-40 bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200/60 dark:border-slate-700/60'
                   : ''
               }`}
             >

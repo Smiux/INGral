@@ -49,7 +49,7 @@ const CustomCodeBlock = CodeBlockLowlight.extend({
   'renderHTML': () => {
     return [
       'pre',
-      { 'class': 'rounded-lg overflow-hidden relative' },
+      { 'class': 'rounded overflow-hidden relative' },
       ['code', { 'class': 'hljs' }, 0]
     ];
   }
@@ -254,7 +254,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
 
   return (
     <div className={editable
-      ? 'bg-white dark:bg-neutral-800 rounded-b-lg border border-neutral-200 dark:border-neutral-700'
+      ? 'bg-slate-100/90 dark:bg-slate-800/90 rounded-b border border-slate-200/60 dark:border-slate-700/60'
       : ''
     }>
       {editable && (
@@ -269,7 +269,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
             }]
           }}
         >
-          <div className="flex items-center justify-center w-5 h-5 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 cursor-move transition-colors">
+          <div className="flex items-center justify-center w-5 h-5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-move transition-colors">
             <GripVertical size={16} />
           </div>
         </DragHandleReact>

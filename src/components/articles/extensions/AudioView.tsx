@@ -154,8 +154,8 @@ export const AudioView: React.FC<NodeViewProps> = ({ node }) => {
       className="audio-node-wrapper my-6 mx-auto"
       contentEditable={false}
     >
-      <div className="group flex items-stretch w-full max-w-[600px] rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-        <div className="relative flex-shrink-0 w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center bg-neutral-100dark:bg-neutral-700">
+      <div className="group flex items-stretch w-full max-w-[600px] rounded-xl border border-slate-200/60 dark:border-slate-700/60 bg-slate-50/90 dark:bg-slate-900/90 overflow-hidden duration-200">
+        <div className="relative flex-shrink-0 w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center bg-slate-100/40 dark:bg-slate-800/40">
           {coverUrl ? (
             <img
               src={coverUrl}
@@ -169,13 +169,13 @@ export const AudioView: React.FC<NodeViewProps> = ({ node }) => {
           )}
           <button
             onClick={togglePlay}
-            className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className="absolute inset-0 flex items-center justify-center bg-slate-900/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           >
-            <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 rounded-full bg-slate-50/90 flex items-center justify-center">
               {isPlaying ? (
-                <Pause size={18} className="text-neutral-800" strokeWidth={2.5} />
+                <Pause size={18} className="text-slate-700" strokeWidth={2.5} />
               ) : (
-                <Play size={18} className="text-neutral-800 ml-0.5" strokeWidth={2.5} />
+                <Play size={18} className="text-slate-700 ml-0.5" strokeWidth={2.5} />
               )}
             </div>
           </button>
@@ -190,12 +190,12 @@ export const AudioView: React.FC<NodeViewProps> = ({ node }) => {
 
         <div className="flex-1 min-w-0 flex flex-col justify-center py-3 px-4">
           <div className="mb-2.5">
-            <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 truncate leading-tight">
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate leading-tight">
               {displayTitle}
             </p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
               {displayArtist}
-              {displayAlbum && <span className="text-neutral-400 dark:text-neutral-500"> · {displayAlbum}</span>}
+              {displayAlbum && <span className="text-slate-400 dark:text-slate-500"> · {displayAlbum}</span>}
             </p>
           </div>
 
@@ -214,17 +214,17 @@ export const AudioView: React.FC<NodeViewProps> = ({ node }) => {
             <div className="flex-1 flex items-center gap-2">
               <div
                 ref={progressRef}
-                className="flex-1 h-1.5 bg-neutral-200 dark:bg-neutral-600 rounded-full cursor-pointer group/progress overflow-hidden"
+                className="flex-1 h-1.5 bg-slate-200/50 dark:bg-slate-800/80 rounded-full cursor-pointer group/progress overflow-hidden"
                 onClick={handleProgressClick}
               >
                 <div
                   className="h-full bg-sky-500 rounded-full relative"
                   style={{ 'width': `${progress}%` }}
                 >
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-sky-500 rounded-full shadow-sm opacity-0 group-hover/progress:opacity-100 transition-opacity" />
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-sky-500 rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity" />
                 </div>
               </div>
-              <span className="flex-shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500 font-mono tabular-nums min-w-[60px] text-right">
+              <span className="flex-shrink-0 text-[11px] text-slate-400 dark:text-slate-500 font-mono tabular-nums min-w-[60px] text-right">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
             </div>
@@ -232,7 +232,7 @@ export const AudioView: React.FC<NodeViewProps> = ({ node }) => {
             <div className="flex-shrink-0 flex items-center gap-1">
               <button
                 onClick={toggleMute}
-                className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-500 dark:hover:text-slate-300 transition-colors"
               >
                 {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
               </button>

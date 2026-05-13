@@ -37,8 +37,8 @@ interface SliderProps {
 const Slider = ({ label, value, min, max, step, onChange, description, displayValue }: SliderProps) => (
   <div className="space-y-1">
     <div className="flex justify-between items-center">
-      <label className="text-xs text-neutral-300">{label}</label>
-      <span className="text-xs text-neutral-500 font-mono">{displayValue ?? value.toFixed(step < 1 ? 2 : 0)}</span>
+      <label className="text-xs text-slate-700 dark:text-slate-300">{label}</label>
+      <span className="text-xs text-slate-500 dark:text-slate-500 font-mono">{displayValue ?? value.toFixed(step < 1 ? 2 : 0)}</span>
     </div>
     <input
       type="range"
@@ -47,9 +47,9 @@ const Slider = ({ label, value, min, max, step, onChange, description, displayVa
       step={step}
       value={value}
       onChange={(e) => onChange(parseFloat(e.target.value))}
-      className="w-full h-1.5 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
+      className="w-full h-1.5 bg-slate-200/60 dark:bg-slate-700/60 rounded appearance-none cursor-pointer accent-sky-500"
     />
-    {description && <p className="text-[10px] text-neutral-500">{description}</p>}
+    {description && <p className="text-[10px] text-slate-400 dark:text-slate-500">{description}</p>}
   </div>
 );
 
@@ -63,19 +63,20 @@ interface ToggleProps {
 const Toggle = ({ label, checked, onChange, description }: ToggleProps) => (
   <div className="flex items-center justify-between">
     <div>
-      <label className="text-xs text-neutral-300">{label}</label>
-      {description && <p className="text-[10px] text-neutral-500">{description}</p>}
+      <label className="text-xs text-slate-700 dark:text-slate-300">{label}</label>
+      {description && <p className="text-[10px] text-slate-400 dark:text-slate-500">{description}</p>}
     </div>
     <button
       onClick={() => onChange(!checked)}
       className={`relative w-10 h-5 rounded-full transition-colors ${
-        checked ? 'bg-sky-600' : 'bg-neutral-600'
+        checked ? 'bg-sky-100/80 dark:bg-sky-500/15' : 'bg-slate-200/60 dark:bg-slate-700/60'
       }`}
     >
       <span
-        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-slate-50 transition-transform ${
           checked ? 'translate-x-5' : 'translate-x-0'
-        }`}
+        } ${checked ? '' : 'bg-slate-400'}`}
+        style={{ 'backgroundColor': checked ? '#38bdf8' : undefined }}
       />
     </button>
   </div>
@@ -90,11 +91,11 @@ interface SelectProps {
 
 const Select = ({ label, value, options, onChange }: SelectProps) => (
   <div className="space-y-1">
-    <label className="text-xs text-neutral-300">{label}</label>
+    <label className="text-xs text-slate-700 dark:text-slate-300">{label}</label>
     <select
       value={value === null ? 'null' : value}
       onChange={(e) => onChange(e.target.value === 'null' ? null : e.target.value as DagMode)}
-      className="w-full bg-neutral-700 border border-neutral-600 rounded-lg px-2 py-1.5 text-xs text-neutral-200 focus:outline-none focus:border-sky-500"
+      className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 rounded px-2 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-sky-400"
     >
       {options.map((option) => (
         <option key={option.value === null ? 'null' : option.value} value={option.value === null ? 'null' : option.value}>
@@ -121,7 +122,7 @@ const ForceGraphSettingsPanel = ({
 }) => (
   <div className="space-y-4">
     <div className="space-y-3">
-      <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wider border-b border-neutral-700 pb-2">
+      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
         树形布局
       </h4>
       <Select
@@ -142,7 +143,7 @@ const ForceGraphSettingsPanel = ({
     </div>
 
     <div className="space-y-3">
-      <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wider border-b border-neutral-700 pb-2">
+      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
         力导向模拟
       </h4>
       <Slider
@@ -176,7 +177,7 @@ const ForceGraphSettingsPanel = ({
     </div>
 
     <div className="space-y-3">
-      <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wider border-b border-neutral-700 pb-2">
+      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
         视觉效果
       </h4>
       <Slider
@@ -224,7 +225,7 @@ const CosmosGLSettingsPanel = ({
 }) => (
   <div className="space-y-4">
     <div className="space-y-3">
-      <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wider border-b border-neutral-700 pb-2">
+      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
         力导向模拟
       </h4>
       <Toggle
@@ -263,7 +264,7 @@ const CosmosGLSettingsPanel = ({
     </div>
 
     <div className="space-y-3">
-      <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wider border-b border-neutral-700 pb-2">
+      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
         连接样式
       </h4>
       <Toggle
@@ -297,7 +298,7 @@ const CosmosGLSettingsPanel = ({
     </div>
 
     <div className="space-y-3">
-      <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wider border-b border-neutral-700 pb-2">
+      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
         节点样式
       </h4>
       <Slider
@@ -329,7 +330,7 @@ const DeckGLSettingsPanel = ({
 }) => (
   <div className="space-y-4">
     <div className="space-y-3">
-      <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wider border-b border-neutral-700 pb-2">
+      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
         辐射布局
       </h4>
       <Slider
@@ -353,7 +354,7 @@ const DeckGLSettingsPanel = ({
     </div>
 
     <div className="space-y-3">
-      <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wider border-b border-neutral-700 pb-2">
+      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
         节点样式
       </h4>
       <Slider
@@ -383,7 +384,7 @@ const DeckGLSettingsPanel = ({
     </div>
 
     <div className="space-y-3">
-      <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wider border-b border-neutral-700 pb-2">
+      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
         连接样式
       </h4>
       <Slider
@@ -438,17 +439,17 @@ export default function RendererSettingsPanel ({
   const hasSettings = isForceGraph || isCosmosGL || isDeckGL;
 
   return (
-    <div className="fixed right-0 top-16 h-[calc(100vh-64px)] w-80 bg-neutral-800 border-l border-neutral-700 shadow-2xl z-40 flex flex-col animate-slide-in-right">
-      <div className="flex items-center justify-between p-4 border-b border-neutral-700">
+    <div className="fixed right-0 top-14 h-[calc(100vh-56px)] w-80 bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur-sm border-l border-slate-200/60 dark:border-slate-700/60 z-40 flex flex-col animate-slide-in-right">
+      <div className="flex items-center justify-between p-4 border-b border-slate-200/60 dark:border-slate-700/60">
         <div className="flex items-center gap-2">
-          <Settings className="w-4 h-4 text-neutral-400" />
-          <h2 className="text-sm font-medium text-neutral-100">渲染器设置</h2>
+          <Settings className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+          <h2 className="text-sm font-medium text-slate-600 dark:text-slate-300">渲染器设置</h2>
         </div>
         <button
           onClick={onClose}
-          className="p-1 hover:bg-neutral-700 rounded-lg transition-colors"
+          className="p-1 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 rounded transition-colors"
         >
-          <X className="w-4 h-4 text-neutral-400" />
+          <X className="w-4 h-4 text-slate-500 dark:text-slate-400" />
         </button>
       </div>
 
@@ -472,17 +473,17 @@ export default function RendererSettingsPanel ({
           />
         )}
         {!hasSettings && (
-          <div className="text-center text-neutral-500 text-sm py-8">
+          <div className="text-center text-slate-400 dark:text-slate-500 text-sm py-8">
             当前渲染器暂无可配置参数
           </div>
         )}
       </div>
 
       {hasSettings && (
-        <div className="p-4 border-t border-neutral-700">
+        <div className="p-4 border-t border-slate-200/60 dark:border-slate-700/60">
           <button
             onClick={handleReset}
-            className="w-full py-2 px-4 bg-neutral-700 hover:bg-neutral-600 text-neutral-200 rounded-lg transition-colors text-sm font-medium"
+            className="w-full py-2 px-4 bg-slate-200/60 dark:bg-slate-700/60 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-600 dark:text-slate-300 rounded transition-colors text-sm font-medium"
           >
             重置为默认值
           </button>

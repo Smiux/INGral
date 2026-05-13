@@ -88,7 +88,7 @@ function ToastCard ({ notification, onDismiss }: ToastCardProps) {
       transition={{ 'type': 'spring', 'stiffness': 300, 'damping': 25 }}
       className="pointer-events-auto relative"
     >
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-2xl overflow-hidden">
+      <div className="bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded-xl overflow-hidden">
         <div className="flex items-start gap-3 p-4">
           <Avatar
             userId={notification.userId}
@@ -96,22 +96,22 @@ function ToastCard ({ notification, onDismiss }: ToastCardProps) {
             color={notification.userColor}
           />
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-neutral-900 dark:text-white">
+            <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
               {notification.userName}
             </div>
-            <div className="text-xs text-neutral-500 dark:text-neutral-400">
+            <div className="text-xs text-slate-500 dark:text-slate-400">
               {getMessage()}
             </div>
           </div>
           <button
             onClick={handleDismiss}
-            className="flex-shrink-0 p-1 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors text-neutral-400 hover:text-neutral-600 dark:hover:text-white"
+            className="flex-shrink-0 p-1 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 rounded transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
           >
             <X size={16} />
           </button>
         </div>
 
-        <div className="h-1 bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
+        <div className="h-1 bg-slate-200/50 dark:bg-slate-800/80 overflow-hidden">
           <motion.div
             className="h-full"
             initial={{ 'width': '100%' }}

@@ -35,13 +35,17 @@ const DEFAULT_AUDIO_CONFIG: AudioEnhancementConfig = {
   'compressor': true
 };
 
-const MAX_RECONNECT_RETRIES = 3;
-const RECONNECT_BASE_DELAY = 1000;
+const MAX_CALL_RETRIES = 3;
+const CALL_RECONNECT_BASE_DELAY = 1000;
+const PEER_RECONNECT_DELAY = 2000;
+const ICE_DISCONNECTED_TIMEOUT = 10000;
 
 class MediaManager {
   private peer: Peer | null = null;
 
   private myPeerId: string | null = null;
+
+  private isDestroyed = false;
 
   private outgoingCalls: Map<string, MediaConnection> = new Map();
 
@@ -53,9 +57,13 @@ class MediaManager {
 
   private knownPeers: Map<string, { userName: string; userColor: string }> = new Map();
 
-  private reconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+  private callReconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
-  private retryCounts: Map<string, number> = new Map();
+  private callRetryCounts: Map<string, number> = new Map();
+
+  private iceDisconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+
+  private peerReconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   private onMediaUpdate: MediaUpdateCallback | null = null;
 
@@ -98,27 +106,126 @@ class MediaManager {
     return iceServers;
   }
 
-  async initialize (userName: string, userColor: string): Promise<string> {
-    this.myUserData = { userName, userColor };
-
-    if (this.peer && this.myPeerId) {
-      return this.myPeerId;
+  private setupPeerListeners (): void {
+    if (!this.peer) {
+      return;
     }
 
+    this.peer.on('call', (call) => {
+      this.handleIncomingCall(call);
+    });
+
+    this.peer.on('error', (err) => {
+      if (err.type === 'peer-unavailable') {
+        return;
+      }
+      if (err.type === 'unavailable-id') {
+        return;
+      }
+    });
+
+    this.peer.on('disconnected', () => {
+      if (this.isDestroyed) {
+        return;
+      }
+      this.schedulePeerReconnect();
+    });
+
+    this.peer.on('close', () => {
+      if (this.isDestroyed) {
+        return;
+      }
+      this.cleanupAllConnections();
+      this.schedulePeerReconnect();
+    });
+  }
+
+  private schedulePeerReconnect (): void {
+    if (this.isDestroyed || !this.myPeerId) {
+      return;
+    }
+
+    if (this.peerReconnectTimer) {
+      return;
+    }
+
+    this.peerReconnectTimer = setTimeout(() => {
+      this.peerReconnectTimer = null;
+      if (this.isDestroyed) {
+        return;
+      }
+
+      if (this.peer && !this.peer.destroyed) {
+        if (!this.peer.open) {
+          try {
+            this.peer.reconnect();
+          } catch {
+            this.reinitializePeer();
+          }
+        }
+      } else {
+        this.reinitializePeer();
+      }
+    }, PEER_RECONNECT_DELAY);
+  }
+
+  private async reinitializePeer (): Promise<void> {
+    if (this.isDestroyed || !this.myUserData) {
+      return;
+    }
+
+    this.cleanupAllConnections();
+
+    try {
+      const id = await this.createPeer(this.myPeerId);
+      if (!this.isDestroyed) {
+        this.myPeerId = id;
+        this.setupPeerListeners();
+        this.establishAllCalls();
+        this.onLocalStreamUpdate?.(null, null);
+      }
+    } catch {
+      if (!this.isDestroyed) {
+        this.schedulePeerReconnect();
+      }
+    }
+  }
+
+  private cleanupAllConnections (): void {
+    this.outgoingCalls.forEach((call) => call.close());
+    this.outgoingCalls.clear();
+
+    this.incomingCalls.forEach((call) => call.close());
+    this.incomingCalls.clear();
+
+    this.remoteStreams.clear();
+
+    this.callReconnectTimers.forEach((timer) => clearTimeout(timer));
+    this.callReconnectTimers.clear();
+    this.callRetryCounts.clear();
+
+    this.iceDisconnectTimers.forEach((timer) => clearTimeout(timer));
+    this.iceDisconnectTimers.clear();
+
+    this.notifyMediaUpdate();
+  }
+
+  private async createPeer (preferredId?: string | null): Promise<string> {
     return new Promise((resolve, reject) => {
       const iceServers = this.getIceServers();
-
-      this.peer = new Peer({
+      const peerOptions = {
         'debug': 0,
         'config': { iceServers }
-      });
+      };
+
+      this.peer = preferredId
+        ? new Peer(preferredId, peerOptions)
+        : new Peer(peerOptions);
 
       const openTimeout = setTimeout(() => {
-        if (!this.myPeerId) {
-          this.peer?.destroy();
-          this.peer = null;
-          reject(new Error('MediaManager initialization timeout'));
-        }
+        this.peer?.destroy();
+        this.peer = null;
+        reject(new Error('Peer creation timeout'));
       }, 15000);
 
       this.peer.on('open', (id) => {
@@ -127,22 +234,88 @@ class MediaManager {
         resolve(id);
       });
 
-      this.peer.on('call', (call) => {
-        this.handleIncomingCall(call);
-      });
-
       this.peer.on('error', (err) => {
         clearTimeout(openTimeout);
-        if (err.type === 'peer-unavailable') {
+        if (err.type === 'peer-unavailable' || err.type === 'unavailable-id') {
           return;
         }
         reject(err);
       });
-
-      this.peer.on('disconnected', () => {
-        this.peer?.reconnect();
-      });
     });
+  }
+
+  async initialize (userName: string, userColor: string): Promise<string> {
+    this.myUserData = { userName, userColor };
+    this.isDestroyed = false;
+
+    if (this.peer && this.myPeerId && this.peer.open) {
+      return this.myPeerId;
+    }
+
+    if (this.peer) {
+      this.peer.destroy();
+      this.peer = null;
+    }
+
+    const id = await this.createPeer();
+    this.setupPeerListeners();
+    return id;
+  }
+
+  private monitorIceState (call: MediaConnection, connectionKey: string): void {
+    const pc = call.peerConnection;
+    if (!pc) {
+      return;
+    }
+
+    pc.oniceconnectionstatechange = () => {
+      const state = pc.iceConnectionState;
+
+      if (state === 'failed') {
+        this.closeCallByRef(connectionKey, call);
+        const parts = connectionKey.split('-');
+        const type = parts.pop() as MediaType;
+        const peerId = parts.join('-');
+        this.scheduleCallReconnect(peerId, type);
+      } else if (state === 'disconnected') {
+        const existingTimer = this.iceDisconnectTimers.get(connectionKey);
+        if (existingTimer) {
+          clearTimeout(existingTimer);
+        }
+
+        const timer = setTimeout(() => {
+          this.iceDisconnectTimers.delete(connectionKey);
+          if (pc.iceConnectionState === 'disconnected') {
+            this.closeCallByRef(connectionKey, call);
+            const parts = connectionKey.split('-');
+            const type = parts.pop() as MediaType;
+            const peerId = parts.join('-');
+            this.scheduleCallReconnect(peerId, type);
+          }
+        }, ICE_DISCONNECTED_TIMEOUT);
+
+        this.iceDisconnectTimers.set(connectionKey, timer);
+      } else if (state === 'connected' || state === 'completed') {
+        const existingTimer = this.iceDisconnectTimers.get(connectionKey);
+        if (existingTimer) {
+          clearTimeout(existingTimer);
+          this.iceDisconnectTimers.delete(connectionKey);
+        }
+      }
+    };
+  }
+
+  private closeCallByRef (connectionKey: string, call: MediaConnection): void {
+    if (this.outgoingCalls.get(connectionKey) === call) {
+      this.outgoingCalls.delete(connectionKey);
+      this.remoteStreams.delete(connectionKey);
+      this.notifyMediaUpdate();
+    }
+    if (this.incomingCalls.get(connectionKey) === call) {
+      this.incomingCalls.delete(connectionKey);
+      this.remoteStreams.delete(connectionKey);
+      this.notifyMediaUpdate();
+    }
   }
 
   private handleIncomingCall (call: MediaConnection): void {
@@ -157,13 +330,15 @@ class MediaManager {
     const connectionKey = this.getConnectionKey(call.peer, type);
 
     this.knownPeers.set(call.peer, { userName, userColor });
-    this.retryCounts.delete(connectionKey);
+    this.callRetryCounts.delete(connectionKey);
 
     const existingIncoming = this.incomingCalls.get(connectionKey);
     if (existingIncoming) {
       existingIncoming.close();
     }
     this.incomingCalls.set(connectionKey, call);
+
+    this.monitorIceState(call, connectionKey);
 
     call.on('stream', (remoteStream) => {
       if (remoteStream.getTracks().length > 0) {
@@ -202,41 +377,41 @@ class MediaManager {
     }
   }
 
-  private scheduleReconnect (peerId: string, type: MediaType): void {
+  private scheduleCallReconnect (peerId: string, type: MediaType): void {
     if (!this.localStreams.has(type) || !this.knownPeers.has(peerId)) {
       return;
     }
 
     const connectionKey = this.getConnectionKey(peerId, type);
-    const currentRetries = this.retryCounts.get(connectionKey) ?? 0;
+    const currentRetries = this.callRetryCounts.get(connectionKey) ?? 0;
 
-    if (currentRetries >= MAX_RECONNECT_RETRIES) {
+    if (currentRetries >= MAX_CALL_RETRIES) {
       return;
     }
 
-    this.cancelReconnect(connectionKey);
-    const delay = Math.min(RECONNECT_BASE_DELAY * Math.pow(2, currentRetries), 10000);
-    this.retryCounts.set(connectionKey, currentRetries + 1);
+    this.cancelCallReconnect(connectionKey);
+    const delay = Math.min(CALL_RECONNECT_BASE_DELAY * Math.pow(2, currentRetries), 10000);
+    this.callRetryCounts.set(connectionKey, currentRetries + 1);
 
     const timer = setTimeout(() => {
-      this.reconnectTimers.delete(connectionKey);
+      this.callReconnectTimers.delete(connectionKey);
       this.callPeerForType(peerId, type);
     }, delay);
 
-    this.reconnectTimers.set(connectionKey, timer);
+    this.callReconnectTimers.set(connectionKey, timer);
   }
 
-  private cancelReconnect (connectionKey: string): void {
-    const timer = this.reconnectTimers.get(connectionKey);
+  private cancelCallReconnect (connectionKey: string): void {
+    const timer = this.callReconnectTimers.get(connectionKey);
     if (timer) {
       clearTimeout(timer);
-      this.reconnectTimers.delete(connectionKey);
+      this.callReconnectTimers.delete(connectionKey);
     }
-    this.retryCounts.delete(connectionKey);
+    this.callRetryCounts.delete(connectionKey);
   }
 
   private callPeerForType (peerId: string, type: MediaType): void {
-    if (!this.peer || !this.myUserData || !this.myPeerId || !peerId) {
+    if (!this.peer || !this.myUserData || !this.myPeerId || !peerId || !this.peer.open) {
       return;
     }
 
@@ -249,49 +424,64 @@ class MediaManager {
 
     const existingCall = this.outgoingCalls.get(connectionKey);
     if (existingCall) {
-      this.cancelReconnect(connectionKey);
+      this.cancelCallReconnect(connectionKey);
       existingCall.close();
       this.outgoingCalls.delete(connectionKey);
     }
 
-    const call = this.peer.call(peerId, stream, {
-      'metadata': {
-        type,
-        'userName': this.myUserData.userName,
-        'userColor': this.myUserData.userColor
-      }
-    });
-
-    this.outgoingCalls.set(connectionKey, call);
-    this.retryCounts.delete(connectionKey);
-
-    call.on('stream', (remoteStream) => {
-      if (remoteStream.getTracks().length > 0) {
-        const peerData = this.knownPeers.get(peerId);
-        this.remoteStreams.set(connectionKey, {
+    try {
+      const call = this.peer.call(peerId, stream, {
+        'metadata': {
           type,
-          'stream': remoteStream,
-          peerId,
-          'userName': peerData?.userName ?? 'Unknown',
-          'userColor': peerData?.userColor ?? '#888888'
-        });
-        this.notifyMediaUpdate();
-      }
-    });
+          'userName': this.myUserData.userName,
+          'userColor': this.myUserData.userColor
+        }
+      });
 
-    call.on('close', () => {
-      if (this.outgoingCalls.get(connectionKey) === call) {
-        this.outgoingCalls.delete(connectionKey);
-        this.scheduleReconnect(peerId, type);
+      if (!call) {
+        this.scheduleCallReconnect(peerId, type);
+        return;
       }
-    });
 
-    call.on('error', () => {
-      if (this.outgoingCalls.get(connectionKey) === call) {
-        this.outgoingCalls.delete(connectionKey);
-        this.scheduleReconnect(peerId, type);
-      }
-    });
+      this.outgoingCalls.set(connectionKey, call);
+      this.callRetryCounts.delete(connectionKey);
+
+      this.monitorIceState(call, connectionKey);
+
+      call.on('stream', (remoteStream) => {
+        if (remoteStream.getTracks().length > 0) {
+          const peerData = this.knownPeers.get(peerId);
+          this.remoteStreams.set(connectionKey, {
+            type,
+            'stream': remoteStream,
+            peerId,
+            'userName': peerData?.userName ?? 'Unknown',
+            'userColor': peerData?.userColor ?? '#888888'
+          });
+          this.notifyMediaUpdate();
+        }
+      });
+
+      call.on('close', () => {
+        if (this.outgoingCalls.get(connectionKey) === call) {
+          this.outgoingCalls.delete(connectionKey);
+          this.remoteStreams.delete(connectionKey);
+          this.notifyMediaUpdate();
+          this.scheduleCallReconnect(peerId, type);
+        }
+      });
+
+      call.on('error', () => {
+        if (this.outgoingCalls.get(connectionKey) === call) {
+          this.outgoingCalls.delete(connectionKey);
+          this.remoteStreams.delete(connectionKey);
+          this.notifyMediaUpdate();
+          this.scheduleCallReconnect(peerId, type);
+        }
+      });
+    } catch {
+      this.scheduleCallReconnect(peerId, type);
+    }
   }
 
   private updateConnectionsForType (type: MediaType): void {
@@ -299,12 +489,21 @@ class MediaManager {
       const keysToRemove: string[] = [];
       this.outgoingCalls.forEach((call, key) => {
         if (key.endsWith(`-${type}`)) {
-          this.cancelReconnect(key);
+          this.cancelCallReconnect(key);
           call.close();
           keysToRemove.push(key);
         }
       });
       keysToRemove.forEach((key) => this.outgoingCalls.delete(key));
+
+      const remoteKeysToRemove: string[] = [];
+      this.remoteStreams.forEach((_, key) => {
+        if (key.endsWith(`-${type}`)) {
+          remoteKeysToRemove.push(key);
+        }
+      });
+      remoteKeysToRemove.forEach((key) => this.remoteStreams.delete(key));
+      this.notifyMediaUpdate();
       return;
     }
 
@@ -313,8 +512,21 @@ class MediaManager {
     });
   }
 
+  private establishAllCalls (): void {
+    this.localStreams.forEach((_stream, type) => {
+      this.knownPeers.forEach((_data, peerId) => {
+        this.callPeerForType(peerId, type);
+      });
+    });
+  }
+
   addKnownPeer (peerId: string, userName: string, userColor: string): void {
     if (!peerId || peerId === this.myPeerId) {
+      return;
+    }
+
+    const existing = this.knownPeers.get(peerId);
+    if (existing && existing.userName === userName && existing.userColor === userColor) {
       return;
     }
 
@@ -335,7 +547,7 @@ class MediaManager {
     const outgoingKeysToRemove: string[] = [];
     this.outgoingCalls.forEach((call, key) => {
       if (key.startsWith(`${peerId}-`)) {
-        this.cancelReconnect(key);
+        this.cancelCallReconnect(key);
         call.close();
         outgoingKeysToRemove.push(key);
       }
@@ -362,7 +574,7 @@ class MediaManager {
     this.notifyMediaUpdate();
   }
 
-  private async enhanceAudioStream (stream: MediaStream, type: MediaType): Promise<MediaStream> {
+  private async enhanceAudioStream (stream: MediaStream): Promise<MediaStream> {
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length === 0) {
       return stream;
@@ -370,7 +582,7 @@ class MediaManager {
 
     try {
       const audioContext = new AudioContext();
-      this.audioContexts.set(type, audioContext);
+      this.audioContexts.set('audio-call', audioContext);
 
       const source = audioContext.createMediaStreamSource(stream);
 
@@ -399,13 +611,7 @@ class MediaManager {
       const destination = audioContext.createMediaStreamDestination();
       lastNode.connect(destination);
 
-      const processedStream = destination.stream;
-
-      stream.getVideoTracks().forEach((track) => {
-        processedStream.addTrack(track);
-      });
-
-      return processedStream;
+      return destination.stream;
     } catch {
       return stream;
     }
@@ -422,17 +628,11 @@ class MediaManager {
   async startVideo (): Promise<MediaStream> {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        'video': { 'width': 1280, 'height': 720 },
-        'audio': {
-          'echoCancellation': this.audioConfig.echoCancellation,
-          'noiseSuppression': this.audioConfig.noiseSuppression,
-          'autoGainControl': this.audioConfig.autoGainControl
-        }
+        'video': { 'width': 1280, 'height': 720 }
       });
 
-      const enhancedStream = await this.enhanceAudioStream(stream, 'video');
-      await this.setLocalStream(enhancedStream, 'video');
-      return enhancedStream;
+      this.setLocalStream(stream, 'video');
+      return stream;
     } catch (error) {
       throw new Error(`无法访问摄像头: ${error instanceof Error ? error.message : '未知错误'}`);
     }
@@ -448,8 +648,8 @@ class MediaManager {
         }
       });
 
-      const enhancedStream = await this.enhanceAudioStream(stream, 'audio-call');
-      await this.setLocalStream(enhancedStream, 'audio-call');
+      const enhancedStream = await this.enhanceAudioStream(stream);
+      this.setLocalStream(enhancedStream, 'audio-call');
       return enhancedStream;
     } catch (error) {
       throw new Error(`无法访问麦克风: ${error instanceof Error ? error.message : '未知错误'}`);
@@ -470,7 +670,7 @@ class MediaManager {
         };
       }
 
-      await this.setLocalStream(stream, 'screen');
+      this.setLocalStream(stream, 'screen');
       return stream;
     } catch (error) {
       throw new Error(`无法共享屏幕: ${error instanceof Error ? error.message : '未知错误'}`);
@@ -532,14 +732,14 @@ class MediaManager {
         cleanup: () => void;
       }).cleanup = cleanup;
 
-      await this.setLocalStream(stream, 'audio-share');
+      this.setLocalStream(stream, 'audio-share');
       return { stream, audioElement, audioContext };
     } catch (error) {
       throw new Error(`无法共享音频: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
 
-  private async setLocalStream (stream: MediaStream, type: MediaType): Promise<void> {
+  private setLocalStream (stream: MediaStream, type: MediaType): void {
     const existingStream = this.localStreams.get(type);
     if (existingStream) {
       this.stopLocalStreamTracks(type);
@@ -604,9 +804,12 @@ class MediaManager {
 
       this.remoteStreams.clear();
 
-      this.reconnectTimers.forEach((timer) => clearTimeout(timer));
-      this.reconnectTimers.clear();
-      this.retryCounts.clear();
+      this.callReconnectTimers.forEach((timer) => clearTimeout(timer));
+      this.callReconnectTimers.clear();
+      this.callRetryCounts.clear();
+
+      this.iceDisconnectTimers.forEach((timer) => clearTimeout(timer));
+      this.iceDisconnectTimers.clear();
     }
     this.notifyMediaUpdate();
   }
@@ -632,6 +835,13 @@ class MediaManager {
   }
 
   disconnect (): void {
+    this.isDestroyed = true;
+
+    if (this.peerReconnectTimer) {
+      clearTimeout(this.peerReconnectTimer);
+      this.peerReconnectTimer = null;
+    }
+
     this.stopLocalStream();
     this.knownPeers.clear();
 

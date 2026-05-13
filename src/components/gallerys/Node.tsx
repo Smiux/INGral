@@ -3,12 +3,24 @@ import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ArticleNodeData } from '@/components/gallerys/gallery';
 
 const DEFAULT_STYLE = {
-  'fill': '#ffffff',
+  'fill': '#f8fafc',
   'stroke': '#4ECDC4',
   'strokeWidth': 2,
-  'textColor': '#666666',
+  'textColor': '#64748b',
   'titleBackgroundColor': '#4ECDC4',
   'titleTextColor': '#FFFFFF'
+};
+
+const HIDDEN_HANDLE_STYLE: React.CSSProperties = {
+  'opacity': 0,
+  'pointerEvents': 'none',
+  'width': 1,
+  'height': 1,
+  'minWidth': 0,
+  'minHeight': 0,
+  'position': 'absolute',
+  'border': 'none',
+  'background': 'transparent'
 };
 
 export const ArticleNode = memo(({ data, selected }: NodeProps) => {
@@ -23,8 +35,8 @@ export const ArticleNode = memo(({ data, selected }: NodeProps) => {
   return (
     <div
       className={`
-        relative bg-white dark:bg-neutral-800
-        border-2 rounded-lg shadow-md
+        relative bg-slate-50/90 dark:bg-slate-900/90
+        border-2 rounded
         transition-all duration-200
         ${selected ? 'ring-2 ring-sky-500 ring-offset-2' : ''}
       `}
@@ -37,7 +49,7 @@ export const ArticleNode = memo(({ data, selected }: NodeProps) => {
     >
       {selected && (
         <div
-          className="absolute -inset-1 rounded-lg opacity-20 blur-sm"
+          className="absolute -inset-1 rounded opacity-20 blur-sm"
           style={{ 'backgroundColor': DEFAULT_STYLE.stroke }}
         />
       )}
@@ -93,32 +105,16 @@ export const ArticleNode = memo(({ data, selected }: NodeProps) => {
       </div>
 
       <Handle
-        id="top"
         type="source"
-        position={Position.Top}
-        className="!w-3 !h-3 !bg-sky-500 !border-2 !border-white"
-        style={{ 'top': -2 }}
-      />
-      <Handle
-        id="right"
-        type="source"
+        id="source"
         position={Position.Right}
-        className="!w-3 !h-3 !bg-sky-500 !border-2 !border-white"
-        style={{ 'right': -2 }}
+        style={HIDDEN_HANDLE_STYLE}
       />
       <Handle
-        id="bottom"
-        type="source"
-        position={Position.Bottom}
-        className="!w-3 !h-3 !bg-sky-500 !border-2 !border-white"
-        style={{ 'bottom': -2 }}
-      />
-      <Handle
-        id="left"
-        type="source"
+        type="target"
+        id="target"
         position={Position.Left}
-        className="!w-3 !h-3 !bg-sky-500 !border-2 !border-white"
-        style={{ 'left': -2 }}
+        style={HIDDEN_HANDLE_STYLE}
       />
     </div>
   );

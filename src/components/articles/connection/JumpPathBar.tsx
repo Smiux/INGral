@@ -155,13 +155,13 @@ export function JumpPathBar ({ path, currentArticleId, onJumpToArticle, onJumpTo
         'transform': 'translateX(-50%)'
       }}
     >
-      <div className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg max-w-[280px] text-xs text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap break-words">
+      <div className="px-3 py-2 bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 rounded max-w-[280px] text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words">
         <div className="flex items-center gap-1.5 mb-1">
           <span
             className="w-2 h-2 rounded-full flex-shrink-0"
             style={{ 'background': hoveredStep.pointColor }}
           />
-          <span className="font-medium text-neutral-800 dark:text-neutral-200">{hoveredStep.articleTitle}</span>
+          <span className="font-medium text-slate-700 dark:text-slate-300">{hoveredStep.articleTitle}</span>
         </div>
         {hoveredStep.selectedText && <div>{hoveredStep.selectedText}</div>}
       </div>
@@ -177,7 +177,7 @@ export function JumpPathBar ({ path, currentArticleId, onJumpToArticle, onJumpTo
         'transform': 'translateX(-50%)'
       }}
     >
-      <div className="px-2 py-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md text-xs text-neutral-600 dark:text-neutral-400 max-w-[160px] truncate">
+      <div className="px-2 py-1 bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 rounded text-xs text-slate-500 dark:text-slate-400 max-w-[160px] truncate">
         {hoveredConnStep.connectionLabel || '连接'}
       </div>
     </div>
@@ -185,10 +185,10 @@ export function JumpPathBar ({ path, currentArticleId, onJumpToArticle, onJumpTo
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 print:hidden">
-      <div className="bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm border-t border-neutral-200 dark:border-neutral-700">
+      <div className="bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-t border-slate-200/60 dark:border-slate-700/60">
         <div className="max-w-7xl mx-auto px-4 py-2">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400 flex-shrink-0">
+            <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
               <span>跳转路径</span>
             </div>
 
@@ -209,11 +209,11 @@ export function JumpPathBar ({ path, currentArticleId, onJumpToArticle, onJumpTo
                         onMouseEnter={(e) => handleConnEnter(index, e)}
                         onMouseLeave={handleConnLeave}
                       >
-                        <ChevronRight className="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500" />
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                       </div>
                     )}
                     {!hasConnection && index > 0 && (
-                      <ChevronRight className="w-3.5 h-3.5 text-neutral-300 dark:text-neutral-600 mx-1" />
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 mx-1" />
                     )}
 
                     <button
@@ -221,11 +221,11 @@ export function JumpPathBar ({ path, currentArticleId, onJumpToArticle, onJumpTo
                       onMouseEnter={(e) => handleStepEnter(index, e)}
                       onMouseLeave={handleStepLeave}
                       className={`
-                        flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium
+                        flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium
                         transition-all duration-150 max-w-[180px]
                         ${isCurrent
-                    ? 'bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 ring-1 ring-neutral-300 dark:ring-neutral-600'
-                    : 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300'
+                    ? 'bg-sky-100/80 dark:bg-sky-500/15 text-slate-700 dark:text-slate-300 ring-1 ring-sky-400 dark:ring-sky-500'
+                    : 'hover:bg-slate-100/40 dark:hover:bg-slate-800/40 text-slate-500 dark:text-slate-400'
                   }
                       `}
                     >
@@ -242,7 +242,7 @@ export function JumpPathBar ({ path, currentArticleId, onJumpToArticle, onJumpTo
 
             <button
               onClick={onClear}
-              className="flex-shrink-0 p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+              className="flex-shrink-0 p-1 text-slate-400 hover:text-slate-500 dark:hover:text-slate-400 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
               title="清除路径"
             >
               <X className="w-3.5 h-3.5" />

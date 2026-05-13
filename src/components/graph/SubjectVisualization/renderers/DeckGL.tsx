@@ -166,45 +166,49 @@ export default function DeckGLRenderer ({
     }
   }, [onNodeRightClick]);
 
-  const layers = useMemo(() => [
-    new LineLayer<LinkData>({
-      'id': 'links-layer',
-      'data': linkData,
-      'getSourcePosition': (d: LinkData) => d.source,
-      'getTargetPosition': (d: LinkData) => d.target,
-      'getColor': (d: LinkData) => d.color,
-      'getWidth': settings.linkWidth,
-      'widthMinPixels': 1,
-      'widthMaxPixels': 10,
-      'opacity': settings.linkOpacity,
-      'pickable': false
-    }),
-    new ScatterplotLayer<NodeData>({
-      'id': 'nodes-layer',
-      'data': nodeData,
-      'getPosition': (d: NodeData) => d.position,
-      'getRadius': (d: NodeData) => d.size,
-      'getFillColor': (d: NodeData) => {
-        const alpha = Math.round(settings.nodeOpacity * 255);
-        return [d.color[0], d.color[1], d.color[2], alpha] as [number, number, number, number];
-      },
-      'radiusMinPixels': 2,
-      'radiusMaxPixels': 50,
-      'radiusScale': 1,
-      'pickable': true,
-      'stroked': true,
-      'getLineColor': [255, 255, 255, 150],
-      'getLineWidth': settings.nodeStrokeWidth,
-      'lineWidthMinPixels': 1,
-      'lineWidthMaxPixels': 3,
-      'onClick': handleNodeClick,
-      'onHover': handleNodeHover,
-      'updateTriggers': {
-        'getFillColor': [nodeData, settings.nodeOpacity],
-        'getRadius': [nodeData, settings.nodeSize]
-      }
-    })
-  ], [linkData, nodeData, handleNodeClick, handleNodeHover, settings]);
+  const layers = useMemo(() => {
+    const lineColor = backgroundColor === '#f8fafc' ? [0, 0, 0, 150] as [number, number, number, number] : [255, 255, 255, 150] as [number, number, number, number];
+
+    return [
+      new LineLayer<LinkData>({
+        'id': 'links-layer',
+        'data': linkData,
+        'getSourcePosition': (d: LinkData) => d.source,
+        'getTargetPosition': (d: LinkData) => d.target,
+        'getColor': (d: LinkData) => d.color,
+        'getWidth': settings.linkWidth,
+        'widthMinPixels': 1,
+        'widthMaxPixels': 10,
+        'opacity': settings.linkOpacity,
+        'pickable': false
+      }),
+      new ScatterplotLayer<NodeData>({
+        'id': 'nodes-layer',
+        'data': nodeData,
+        'getPosition': (d: NodeData) => d.position,
+        'getRadius': (d: NodeData) => d.size,
+        'getFillColor': (d: NodeData) => {
+          const alpha = Math.round(settings.nodeOpacity * 255);
+          return [d.color[0], d.color[1], d.color[2], alpha] as [number, number, number, number];
+        },
+        'radiusMinPixels': 2,
+        'radiusMaxPixels': 50,
+        'radiusScale': 1,
+        'pickable': true,
+        'stroked': true,
+        'getLineColor': lineColor,
+        'getLineWidth': settings.nodeStrokeWidth,
+        'lineWidthMinPixels': 1,
+        'lineWidthMaxPixels': 3,
+        'onClick': handleNodeClick,
+        'onHover': handleNodeHover,
+        'updateTriggers': {
+          'getFillColor': [nodeData, settings.nodeOpacity],
+          'getRadius': [nodeData, settings.nodeSize]
+        }
+      })
+    ];
+  }, [linkData, nodeData, handleNodeClick, handleNodeHover, settings, backgroundColor]);
 
   const views = useMemo(() => new OrthographicView({
     'controller': {

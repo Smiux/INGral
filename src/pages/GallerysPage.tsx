@@ -62,11 +62,11 @@ export function GallerysPage () {
             <Link
               key={gallery.id}
               to={`/gallerys/${gallery.id}`}
-              className="block bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-300 group overflow-hidden"
+              className="block bg-slate-100/80 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-300 group overflow-hidden transform hover:-translate-y-1"
             >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-1">
+                  <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors line-clamp-1">
                     {gallery.title}
                   </h3>
                   <div className="flex items-center gap-2">
@@ -76,7 +76,7 @@ export function GallerysPage () {
                         e.stopPropagation();
                         setDeleteTarget(gallery);
                       }}
-                      className="p-1.5 text-neutral-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50/80 dark:hover:bg-red-950/30 rounded transition-colors"
                       title="删除"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -84,7 +84,7 @@ export function GallerysPage () {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-neutral-500 dark:text-neutral-400">
+                <div className="flex items-center gap-4 text-sm text-slate-400 dark:text-slate-500">
                   <div className="flex items-center gap-1.5">
                     <GitBranch className="w-4 h-4" />
                     <span>{gallery.nodeCount} 个节点</span>
@@ -99,7 +99,7 @@ export function GallerysPage () {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs text-neutral-400 dark:text-neutral-500 mt-3">
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mt-3">
                   <CalendarDays className="w-3.5 h-3.5" />
                   <span>更新于 {formatDate(gallery.updatedAt)}</span>
                 </div>
@@ -113,11 +113,11 @@ export function GallerysPage () {
     if (searchQuery) {
       return (
         <div className="text-center py-16">
-          <AlertCircle className="w-16 h-16 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-neutral-600 dark:text-neutral-400 mb-2">
+          <AlertCircle className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-slate-500 dark:text-slate-400 mb-2">
             未找到匹配的地图
           </h3>
-          <p className="text-neutral-500 dark:text-neutral-500">
+          <p className="text-slate-400 dark:text-slate-500">
             尝试使用其他关键词搜索
           </p>
         </div>
@@ -126,17 +126,17 @@ export function GallerysPage () {
 
     return (
       <div className="text-center py-16">
-        <div className="w-24 h-24 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-6">
-          <AlertCircle className="w-12 h-12 text-neutral-300 dark:text-neutral-600" />
+        <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+          <AlertCircle className="w-12 h-12 text-slate-300 dark:text-slate-600" />
         </div>
-        <h3 className="text-xl font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <h3 className="text-xl font-medium text-slate-600 dark:text-slate-300 mb-2">
           暂无地图
         </h3>
         <Link
           to="/gallerys/create"
-          className="inline-flex items-center gap-2 bg-sky-50 dark:bg-sky-950/30 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 px-6 py-2 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-200 transform hover:scale-105 font-medium"
+          className="inline-flex items-center gap-2 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 px-6 py-2 rounded hover:bg-sky-100/80 hover:border-sky-300 hover:text-sky-600 dark:hover:bg-sky-900/30 dark:hover:border-sky-700 dark:hover:text-sky-400 transition-all duration-200 font-medium text-slate-500 dark:text-slate-400"
         >
-          <Plus className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+          <Plus className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400" />
           <span>创建地图</span>
         </Link>
       </div>
@@ -147,41 +147,38 @@ export function GallerysPage () {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mb-4" />
-        <p className="text-neutral-600 dark:text-neutral-400">加载中...</p>
+        <p className="text-slate-500 dark:text-slate-400">加载中...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200 mb-2">
+            <h1 className="text-3xl font-bold text-slate-700 dark:text-slate-300 mb-2">
               地图
             </h1>
-            <p className="text-neutral-600 dark:text-neutral-400">
-              不会画画
-            </p>
           </div>
 
           <Link
             to="/gallerys/create"
-            className="flex items-center gap-2 bg-sky-50 dark:bg-sky-950/30 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 px-6 py-2 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 hover:border-sky-200 dark:hover:border-sky-700 transition-all duration-200 transform hover:scale-105 font-medium"
+            className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 px-6 py-2 rounded hover:bg-sky-100/80 hover:border-sky-300 hover:text-sky-600 dark:hover:bg-sky-900/30 dark:hover:border-sky-700 dark:hover:text-sky-400 transition-all duration-200 font-medium text-slate-500 dark:text-slate-400"
           >
-            <Plus className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            <Plus className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400" />
             <span>创建地图</span>
           </Link>
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
             type="text"
             placeholder="搜索地图..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-neutral-800 dark:text-neutral-200"
+            className="w-full pl-10 pr-4 py-3 bg-slate-200/50 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-800 text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
           />
         </div>
       </div>

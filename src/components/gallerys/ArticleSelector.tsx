@@ -190,7 +190,7 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
             transition-colors duration-150
             ${index === selectedIndex
               ? 'bg-sky-50 dark:bg-sky-950/30'
-              : 'hover:bg-neutral-50 dark:hover:bg-neutral-700'
+              : 'hover:bg-slate-100/40 dark:hover:bg-slate-700/60'
             }
           `}
             >
@@ -201,19 +201,19 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
                   className="w-16 h-12 object-cover rounded"
                 />
               ) : (
-                <div className="w-16 h-12 bg-neutral-100 dark:bg-neutral-700 rounded flex items-center justify-center">
-                  <span className="text-lg font-bold text-neutral-300 dark:text-neutral-600">
+                <div className="w-16 h-12 bg-slate-100/40 dark:bg-slate-800/80 rounded flex items-center justify-center">
+                  <span className="text-lg font-bold text-slate-300 dark:text-slate-600">
                     {article.title.charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-neutral-800 dark:text-neutral-200 truncate" title={article.title}>
+                <h3 className="font-medium text-slate-700 dark:text-slate-300 truncate" title={article.title}>
                   {article.title}
                 </h3>
                 {article.summary && (
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400 line-clamp-1 mt-1">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1 mt-1">
                     {article.summary}
                   </p>
                 )}
@@ -243,11 +243,11 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
           {isLoadingMore && (
             <div className="flex items-center justify-center py-4">
               <Loader2 className="w-5 h-5 animate-spin text-sky-500" />
-              <span className="ml-2 text-sm text-neutral-500">加载更多...</span>
+              <span className="ml-2 text-sm text-slate-500">加载更多...</span>
             </div>
           )}
           {!hasMore && articles.length > 0 && !query.trim() && (
-            <div className="text-center py-4 text-sm text-neutral-400">
+            <div className="text-center py-4 text-sm text-slate-400">
               已加载全部文章
             </div>
           )}
@@ -257,25 +257,25 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
 
     if (query.trim()) {
       return (
-        <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">
+        <div className="text-center py-12 text-slate-500 dark:text-slate-400">
           未找到匹配的文章
         </div>
       );
     }
 
     return (
-      <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">
+      <div className="text-center py-12 text-slate-500 dark:text-slate-400">
         暂无文章
       </div>
     );
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-2xl bg-white dark:bg-neutral-800 rounded-lg shadow-xl overflow-hidden">
-        <div className="p-4 border-b border-neutral-200 dark:border-neutral-700">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
+      <div className="w-full max-w-2xl bg-slate-50/90 dark:bg-slate-900/90 rounded overflow-hidden">
+        <div className="p-4 border-b border-slate-200/60 dark:border-slate-700/60">
           <div className="flex items-center gap-3">
-            <Search className="w-5 h-5 text-neutral-400" />
+            <Search className="w-5 h-5 text-slate-400" />
             <input
               ref={inputRef}
               type="text"
@@ -283,13 +283,13 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="搜索文章标题..."
-              className="flex-1 bg-transparent border-none outline-none text-neutral-800 dark:text-neutral-200 placeholder-neutral-400"
+              className="flex-1 bg-transparent border-none outline-none text-slate-700 dark:text-slate-300 placeholder-slate-400"
             />
             <button
               onClick={onClose}
-              className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded"
+              className="p-1 hover:bg-slate-100/40 dark:hover:bg-slate-700/60 rounded"
             >
-              <X className="w-5 h-5 text-neutral-400" />
+              <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>
         </div>

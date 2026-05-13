@@ -1,26 +1,43 @@
 import React, { useState } from 'react';
 import { Node, Edge, useReactFlow, useStore } from '@xyflow/react';
-import { Layout, Settings, X, Zap, RefreshCw } from 'lucide-react';
+import {
+  Layout, X, RefreshCw,
+  Layers, Share2, Minimize2, GitBranch, Target, Square,
+  ArrowDown, ArrowUp, ArrowRight, ArrowLeft
+} from 'lucide-react';
 import type { CustomNodeData } from '../Node';
 import type { CustomEdgeData } from '../Edge';
 import ELK, { ElkNode } from 'elkjs';
+import { SlidingCardSelector, type SlidingCardOption } from '@/components/ui/SlidingCardSelector';
+import {
+  PANEL_CONTAINER_CLASS,
+  PANEL_HEADER_CLASS,
+  PANEL_TITLE_CLASS,
+  PANEL_CONTENT_CLASS,
+  PANEL_CLOSE_BTN_CLASS,
+  getInputClass,
+  LABEL_CLASS,
+  getButtonClasses,
+  getSectionClasses,
+  BUTTON_DISABLED_CLASS,
+  type HoverColorType,
+  PANEL_MOTION_VARIANTS_LEFT,
+  PANEL_MOTION_TRANSITION
+} from './panelStyles';
+import { motion } from 'framer-motion';
 
 type LayoutAlgorithm = 'layered' | 'force' | 'stress' | 'mrtree' | 'radial' | 'box';
 type LayoutDirection = 'DOWN' | 'RIGHT' | 'UP' | 'LEFT';
 
 interface LayoutPanelProps {
-  onLayout: (nodes: Node<CustomNodeData>[], edges: Edge<CustomEdgeData>[]) => void;
+  onLayout: (_nodes: Node<CustomNodeData>[], _edges: Edge<CustomEdgeData>[]) => void;
   onClose: () => void;
-  isOpen: boolean;
 }
 
 type FieldConfig =
   | { key: string; label: string; type: 'number'; min?: number; max?: number; step?: string }
   | { key: string; label: string; type: 'select'; options: ReadonlyArray<{ value: string; label: string }> }
   | { key: string; label: string; type: 'checkbox'; description?: string };
-
-const INPUT_CLASSES = 'w-full p-2 border border-neutral-300 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200';
-const LABEL_CLASSES = 'block text-xs text-neutral-600 dark:text-neutral-400 mb-1';
 
 const ALGORITHM_ID_MAP = {
   'layered': 'org.eclipse.elk.layered',
@@ -72,12 +89,10 @@ const DEFAULT_OPTIONS = {
   }
 };
 
-const ALGORITHM_CONFIGS = {
+const ALGORITHM_CONFIGS: Record<LayoutAlgorithm, { title: string; fields: FieldConfig[]; color: HoverColorType }> = {
   'layered': {
-    'title': '层次布局 (Layered) 参数',
-    'bgColor': 'bg-blue-50 dark:bg-blue-950/30',
-    'borderColor': 'border-blue-100 dark:border-blue-900',
-    'titleColor': 'text-blue-800 dark:text-blue-300',
+    'title': '层次布局参数',
+    'color': 'sky',
     'fields': [
       { 'key': 'rankSpacing', 'label': '层级间距', 'type': 'number' as const },
       { 'key': 'crossingMinimization', 'label': '交叉最小化', 'type': 'select' as const, 'options': [
@@ -106,10 +121,8 @@ const ALGORITHM_CONFIGS = {
     ]
   },
   'force': {
-    'title': '力导向布局 (Force) 参数',
-    'bgColor': 'bg-green-50 dark:bg-green-950/30',
-    'borderColor': 'border-green-100 dark:border-green-900',
-    'titleColor': 'text-green-800 dark:text-green-300',
+    'title': '力导向布局参数',
+    'color': 'cyan',
     'fields': [
       { 'key': 'iterations', 'label': '迭代次数', 'type': 'number' as const },
       { 'key': 'forceModel', 'label': '力模型', 'type': 'select' as const, 'options': [
@@ -121,10 +134,8 @@ const ALGORITHM_CONFIGS = {
     ]
   },
   'mrtree': {
-    'title': '树布局 (Mr.Tree) 参数',
-    'bgColor': 'bg-purple-50 dark:bg-purple-950/30',
-    'borderColor': 'border-purple-100 dark:border-purple-900',
-    'titleColor': 'text-purple-800 dark:text-purple-300',
+    'title': '树布局参数',
+    'color': 'lime',
     'fields': [
       { 'key': 'weighting', 'label': '节点加权', 'type': 'select' as const, 'options': [
         { 'value': 'MODEL_ORDER', 'label': '模型顺序' },
@@ -138,10 +149,8 @@ const ALGORITHM_CONFIGS = {
     ]
   },
   'radial': {
-    'title': '辐射状布局 (Radial) 参数',
-    'bgColor': 'bg-orange-50 dark:bg-orange-950/30',
-    'borderColor': 'border-orange-100 dark:border-orange-900',
-    'titleColor': 'text-orange-800 dark:text-orange-300',
+    'title': '辐射状布局参数',
+    'color': 'blue',
     'fields': [
       { 'key': 'compaction', 'label': '压缩策略', 'type': 'select' as const, 'options': [
         { 'value': 'NONE', 'label': '无' },
@@ -152,10 +161,8 @@ const ALGORITHM_CONFIGS = {
     ]
   },
   'stress': {
-    'title': '应力布局 (Stress) 参数',
-    'bgColor': 'bg-pink-50 dark:bg-pink-950/30',
-    'borderColor': 'border-pink-100 dark:border-pink-900',
-    'titleColor': 'text-pink-800 dark:text-pink-300',
+    'title': '应力布局参数',
+    'color': 'teal',
     'fields': [
       { 'key': 'desiredEdgeLength', 'label': '期望连接长度', 'type': 'number' as const },
       { 'key': 'epsilon', 'label': '应力阈值', 'type': 'number' as const, 'step': '0.0001' },
@@ -168,10 +175,8 @@ const ALGORITHM_CONFIGS = {
     ]
   },
   'box': {
-    'title': '盒布局 (Box) 参数',
-    'bgColor': 'bg-sky-50 dark:bg-sky-950/30',
-    'borderColor': 'border-sky-100 dark:border-sky-900',
-    'titleColor': 'text-sky-600 dark:text-sky-400',
+    'title': '盒布局参数',
+    'color': 'emerald',
     'fields': [
       { 'key': 'packingMode', 'label': '打包模式', 'type': 'select' as const, 'options': [
         { 'value': 'SIMPLE', 'label': '简单' },
@@ -179,27 +184,27 @@ const ALGORITHM_CONFIGS = {
       ]}
     ]
   }
-} as const;
+};
 
 const ALGORITHM_OPTIONS = [
-  { 'value': 'layered', 'label': '层次布局' },
-  { 'value': 'force', 'label': '力导向布局' },
-  { 'value': 'stress', 'label': '应力布局' },
-  { 'value': 'mrtree', 'label': '树布局' },
-  { 'value': 'radial', 'label': '辐射状布局' },
-  { 'value': 'box', 'label': '盒布局' }
+  { 'value': 'layered', 'label': '层次布局', 'icon': Layers },
+  { 'value': 'force', 'label': '力导向布局', 'icon': Share2 },
+  { 'value': 'stress', 'label': '应力布局', 'icon': Minimize2 },
+  { 'value': 'mrtree', 'label': '树布局', 'icon': GitBranch },
+  { 'value': 'radial', 'label': '辐射状布局', 'icon': Target },
+  { 'value': 'box', 'label': '盒布局', 'icon': Square }
 ] as const;
 
 const DIRECTION_OPTIONS = [
-  { 'value': 'DOWN', 'label': '从上到下' },
-  { 'value': 'RIGHT', 'label': '从左到右' },
-  { 'value': 'UP', 'label': '从下到上' },
-  { 'value': 'LEFT', 'label': '从右到左' }
+  { 'value': 'DOWN', 'label': '从上到下', 'icon': ArrowDown },
+  { 'value': 'UP', 'label': '从下到上', 'icon': ArrowUp },
+  { 'value': 'RIGHT', 'label': '从左到右', 'icon': ArrowRight },
+  { 'value': 'LEFT', 'label': '从右到左', 'icon': ArrowLeft }
 ] as const;
 
 const elk = new ELK();
 
-export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose, isOpen }) => {
+export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose }) => {
   const reactFlowInstance = useReactFlow();
   const [layoutOptions, setLayoutOptions] = useState(DEFAULT_OPTIONS);
   const [isLayouting, setIsLayouting] = useState(false);
@@ -207,6 +212,14 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose, isO
 
   const config = ALGORITHM_CONFIGS[layoutOptions.algorithm];
   const algorithmConfig = layoutOptions[layoutOptions.algorithm] as Record<string, unknown>;
+
+  const hasDirection = ['layered', 'mrtree', 'radial'].includes(layoutOptions.algorithm);
+
+  const algorithmOptions: SlidingCardOption[] = ALGORITHM_OPTIONS.map(opt => ({
+    'value': opt.value,
+    'label': opt.label,
+    'icon': opt.icon
+  }));
 
   const executeLayout = async () => {
     const currentNodes = reactFlowInstance.getNodes() as Node<CustomNodeData>[];
@@ -307,15 +320,15 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose, isO
     }));
   };
 
-  const renderField = (field: FieldConfig) => {
+  const renderField = (field: FieldConfig, color: HoverColorType) => {
     const fieldValue = algorithmConfig[field.key];
 
     if (field.type === 'select') {
       return (
         <div key={field.key}>
-          <label className={LABEL_CLASSES}>{field.label}</label>
+          <label className={LABEL_CLASS}>{field.label}</label>
           <select
-            className={INPUT_CLASSES}
+            className={getInputClass(color)}
             value={fieldValue as string}
             onChange={(e) => updateAlgorithmOption(field.key, e.target.value)}
           >
@@ -330,15 +343,15 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose, isO
     if (field.type === 'checkbox') {
       return (
         <div key={field.key}>
-          <label className={LABEL_CLASSES}>{field.label}</label>
-          <label className="flex items-center gap-2 p-2 border border-neutral-300 dark:border-neutral-600 rounded-md cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700 bg-white dark:bg-neutral-800">
+          <label className={LABEL_CLASS}>{field.label}</label>
+          <label className="flex items-center gap-2 p-2 border border-slate-200/60 dark:border-slate-700/60 rounded cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/60 bg-slate-200/50 dark:bg-slate-800/80">
             <input
               type="checkbox"
               checked={fieldValue as boolean}
               onChange={(e) => updateAlgorithmOption(field.key, e.target.checked)}
-              className="rounded border-neutral-300 dark:border-neutral-600 text-blue-600 focus:ring-2 focus:ring-blue-500"
+              className={`rounded border-slate-300 dark:border-slate-600 text-${color}-600 focus:ring-2 focus:ring-${color}-500`}
             />
-            <span className="text-xs text-neutral-600 dark:text-neutral-400">{field.description || field.label}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{field.description || field.label}</span>
           </label>
         </div>
       );
@@ -346,13 +359,13 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose, isO
 
     return (
       <div key={field.key}>
-        <label className={LABEL_CLASSES}>{field.label}</label>
+        <label className={LABEL_CLASS}>{field.label}</label>
         <input
           type="number"
           min={field.min}
           max={field.max}
           step={field.step}
-          className={INPUT_CLASSES}
+          className={getInputClass(color)}
           value={fieldValue as number}
           onChange={(e) => updateAlgorithmOption(field.key, parseFloat(e.target.value))}
         />
@@ -361,130 +374,128 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose, isO
   };
 
   return (
-    <div className={`panel-container ${isOpen ? 'panel-open' : 'panel-closing'}`}>
-      <div className="panel-header">
-        <div className="panel-title">
-          <Layout className="w-5 h-5 text-sky-400" />
+    <motion.div
+      className={PANEL_CONTAINER_CLASS}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={PANEL_MOTION_VARIANTS_LEFT}
+      transition={PANEL_MOTION_TRANSITION}
+    >
+      <header className={PANEL_HEADER_CLASS}>
+        <div className={PANEL_TITLE_CLASS}>
+          <Layout className="w-4 h-4 text-slate-400 dark:text-slate-500" />
           布局管理
         </div>
-        <button
-          onClick={onClose}
-          className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400 transition-colors flex-shrink-0"
-          title="关闭面板"
-        >
-          <X className="h-5 w-5" />
+        <button onClick={onClose} className={PANEL_CLOSE_BTN_CLASS}>
+          <X size={16} />
         </button>
-      </div>
+      </header>
 
-      <div className="panel-content space-y-6">
-        <div className="rounded-xl p-5 border border-sky-100 dark:border-sky-900 bg-sky-50 dark:bg-sky-950/30">
-          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
-            <Zap className="w-4 h-4 text-sky-400" />
-            布局算法
-          </h3>
+      <div className={`${PANEL_CONTENT_CLASS} space-y-6`}>
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-slate-400 dark:text-slate-500">布局算法</h3>
 
-          <div className="space-y-3">
-            <div>
-              <label className={LABEL_CLASSES}>选择算法</label>
-              <select
-                className={INPUT_CLASSES}
-                value={layoutOptions.algorithm}
-                onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'algorithm': e.target.value as LayoutAlgorithm }))}
-              >
-                {ALGORITHM_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-
-            {['layered', 'mrtree', 'radial'].includes(layoutOptions.algorithm) && (
-              <div>
-                <label className={LABEL_CLASSES}>布局方向</label>
-                <select
-                  className={INPUT_CLASSES}
-                  value={layoutOptions.direction}
-                  onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'direction': e.target.value as LayoutDirection }))}
-                >
-                  {DIRECTION_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
+          <SlidingCardSelector
+            options={algorithmOptions}
+            value={layoutOptions.algorithm}
+            onChange={(value) => setLayoutOptions(prev => ({ ...prev, 'algorithm': value as LayoutAlgorithm }))}
+            color={config.color}
+          />
         </div>
 
-        <div className="rounded-xl p-5 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
-            <Settings className="w-4 h-4 text-sky-400" />
-            布局参数
-          </h3>
+        {hasDirection && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-slate-400 dark:text-slate-500">布局方向</h3>
 
-          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-4 gap-2">
+              {DIRECTION_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setLayoutOptions(prev => ({ ...prev, 'direction': opt.value as LayoutDirection }))}
+                  className={`flex flex-col items-center gap-1 p-2.5 rounded transition-all ${
+                    layoutOptions.direction === opt.value
+                      ? 'border-2 border-sky-400 bg-sky-50/60 dark:bg-sky-900/20'
+                      : 'border border-slate-200/40 dark:border-slate-700/40 hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
+                  }`}
+                >
+                  <opt.icon className={`w-4 h-4 ${layoutOptions.direction === opt.value ? 'text-sky-500' : 'text-slate-400'}`} />
+                  <span className={`text-xs ${layoutOptions.direction === opt.value ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    {opt.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <section className={getSectionClasses('indigo').container}>
+          <h3 className={getSectionClasses('indigo').title}>通用参数</h3>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={LABEL_CLASSES}>节点间距</label>
+              <label className={LABEL_CLASS}>节点间距</label>
               <input
                 type="number"
-                className={INPUT_CLASSES}
+                className={getInputClass('indigo')}
                 value={layoutOptions.nodeSpacing}
                 onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'nodeSpacing': parseFloat(e.target.value) }))}
               />
             </div>
             <div>
-              <label className={LABEL_CLASSES}>连接间间距</label>
+              <label className={LABEL_CLASS}>连接间间距</label>
               <input
                 type="number"
-                className={INPUT_CLASSES}
+                className={getInputClass('indigo')}
                 value={layoutOptions.edgeEdgeSpacing}
                 onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'edgeEdgeSpacing': parseFloat(e.target.value) }))}
               />
             </div>
             <div>
-              <label className={LABEL_CLASSES}>连接节点间间距</label>
+              <label className={LABEL_CLASS}>连接节点间间距</label>
               <input
                 type="number"
-                className={INPUT_CLASSES}
+                className={getInputClass('indigo')}
                 value={layoutOptions.edgeNodeSpacing}
                 onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'edgeNodeSpacing': parseFloat(e.target.value) }))}
               />
             </div>
             <div>
-              <label className={LABEL_CLASSES}>随机种子</label>
+              <label className={LABEL_CLASS}>随机种子</label>
               <input
                 type="number"
-                className={INPUT_CLASSES}
+                className={getInputClass('indigo')}
                 value={layoutOptions.randomSeed}
                 onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'randomSeed': parseFloat(e.target.value) }))}
               />
             </div>
           </div>
+        </section>
 
-          {config && (
-            <div className={`${config.bgColor} rounded-lg p-4 border ${config.borderColor}`}>
-              <h4 className={`text-xs font-semibold ${config.titleColor} mb-3`}>{config.title}</h4>
-              <div className="grid grid-cols-2 gap-4">
-                {config.fields.map(renderField)}
-              </div>
-            </div>
-          )}
-        </div>
+        <section className={getSectionClasses(config.color).container}>
+          <h3 className={getSectionClasses(config.color).title}>{config.title}</h3>
+
+          <div className="grid grid-cols-2 gap-4">
+            {config.fields.map(field => renderField(field, config.color))}
+          </div>
+        </section>
 
         <button
           onClick={executeLayout}
           disabled={isLayouting || nodeCount === 0}
-          className={`w-full py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${isLayouting || nodeCount === 0 ? 'bg-neutral-300 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 cursor-not-allowed' : 'bg-sky-600 text-white hover:bg-sky-700'}`}
+          className={`w-full py-3 px-4 bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 ${getButtonClasses('secondary', 'sky')} ${isLayouting || nodeCount === 0 ? BUTTON_DISABLED_CLASS : ''}`}
         >
-          <RefreshCw className={`w-5 h-5 ${isLayouting ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${isLayouting ? 'animate-spin' : ''}`} />
           {isLayouting ? '布局中...' : '应用布局'}
         </button>
 
         {nodeCount === 0 && (
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center p-3 rounded-lg border border-neutral-100 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+          <p className="text-xs text-slate-400/70 dark:text-slate-500/70 text-center py-2">
             请先添加节点再执行布局
           </p>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

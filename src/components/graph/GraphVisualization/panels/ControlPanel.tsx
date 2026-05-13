@@ -1,11 +1,19 @@
 import React from 'react';
 import { X, Square, Pencil, Circle, RectangleHorizontal } from 'lucide-react';
 import { useStore, useReactFlow } from '@xyflow/react';
-
+import { motion } from 'framer-motion';
 import { CustomNodeData } from '../Node';
 import { CustomEdgeData } from '../Edge';
-
-type ColorType = 'blue' | 'green' | 'purple' | 'orange' | 'teal';
+import {
+  type HoverColorType,
+  PANEL_CONTAINER_RIGHT_CLASS,
+  getSectionClasses,
+  INPUT_CLASS,
+  LABEL_CLASS,
+  PANEL_CLOSE_BTN_CLASS,
+  PANEL_MOTION_VARIANTS_RIGHT,
+  PANEL_MOTION_TRANSITION
+} from './panelStyles';
 
 interface ControlPanelProps {
   panelPosition?: 'left' | 'right';
@@ -13,14 +21,6 @@ interface ControlPanelProps {
 
 type SelectedNodeInfo = { id: string; data: CustomNodeData } | null;
 type SelectedEdgeInfo = { id: string; source: string; target: string; data: CustomEdgeData } | null;
-
-const colorConfig: Record<ColorType, Record<string, string>> = {
-  'blue': { 'bg': 'from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30', 'border': 'border-blue-100 dark:border-blue-900', 'icon': 'text-blue-600 dark:text-blue-400', 'focus': 'focus:ring-blue-500' },
-  'green': { 'bg': 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30', 'border': 'border-green-100 dark:border-green-900', 'icon': 'text-green-600 dark:text-green-400', 'focus': 'focus:ring-green-500' },
-  'purple': { 'bg': 'from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30', 'border': 'border-purple-100 dark:border-purple-900', 'icon': 'text-purple-600 dark:text-purple-400', 'focus': 'focus:ring-purple-500' },
-  'orange': { 'bg': 'from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30', 'border': 'border-orange-100 dark:border-orange-900', 'icon': 'text-orange-600 dark:text-orange-400', 'focus': 'focus:ring-orange-500' },
-  'teal': { 'bg': 'from-teal-50 to-cyan-50 dark:from-teal-950/30 dark:to-cyan-950/30', 'border': 'border-teal-100 dark:border-teal-900', 'icon': 'text-teal-600 dark:text-teal-400', 'focus': 'focus:ring-teal-500' }
-};
 
 const shapeOptions = [
   { 'value': 'circle', 'label': '圆形', 'icon': <Circle className="w-6 h-6" /> },
@@ -56,15 +56,15 @@ const compareSelectedInfo = <T extends SelectedNodeInfo | SelectedEdgeInfo>(a: T
 
 interface SectionProps {
   title: string;
-  color: ColorType;
+  hoverColor: HoverColorType;
   children: React.ReactNode;
 }
 
-const Section: React.FC<SectionProps> = ({ title, color, children }) => {
-  const config = colorConfig[color];
+const Section: React.FC<SectionProps> = ({ title, hoverColor, children }) => {
+  const classes = getSectionClasses(hoverColor);
   return (
-    <div className={`rounded-xl p-4 border bg-gradient-to-br ${config.bg} ${config.border}`}>
-      <h3 className={`text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-3 flex items-center gap-2 ${config.icon}`}>
+    <div className={classes.container}>
+      <h3 className={classes.title}>
         {title}
       </h3>
       {children}
@@ -84,9 +84,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
   const reactFlowInstance = useReactFlow();
 
   const [nodeColors, setNodeColors] = React.useState({
-    'fill': '#ffffff',
+    'fill': '#fff',
     'stroke': '#4ECDC4',
-    'textColor': '#666666',
+    'textColor': '#666',
     'titleBackgroundColor': '#4ECDC4',
     'titleTextColor': '#FFFFFF'
   });
@@ -94,14 +94,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
     'stroke': '#3b82f6',
     'arrowColor': '#3b82f6',
     'labelBackgroundColor': '#3b82f6',
-    'labelTextColor': '#FFFFFF'
+    'labelTextColor': '#ffffff'
   });
   const [isComposing, setIsComposing] = React.useState(false);
   const [localNodeState, setLocalNodeState] = React.useState({
     'title': '',
     'category': '',
-    'content': '',
-    'handleCount': '0'
+    'content': ''
   });
   const [localEdgeState, setLocalEdgeState] = React.useState({
     'type': 'related',
@@ -114,8 +113,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
       setLocalNodeState({
         'title': selectedNode.data.title || '',
         'category': selectedNode.data.category || '',
-        'content': selectedNode.data.metadata?.content || '',
-        'handleCount': String(selectedNode.data.handleCount ?? 0)
+        'content': selectedNode.data.metadata?.content || ''
       });
       setNodeColors({
         'fill': selectedNode.data.style?.fill || '#ffffff',
@@ -138,7 +136,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
         'stroke': selectedEdge.data?.style?.stroke || '#3b82f6',
         'arrowColor': selectedEdge.data?.style?.arrowColor || '#3b82f6',
         'labelBackgroundColor': selectedEdge.data?.style?.labelBackgroundColor || '#3b82f6',
-        'labelTextColor': selectedEdge.data?.style?.labelTextColor || '#FFFFFF'
+        'labelTextColor': selectedEdge.data?.style?.labelTextColor || '#ffffff'
       });
     }
   }, [selectedEdge]);
@@ -179,11 +177,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
       return;
     }
     switch (name) {
-      case 'handleCount': {
-        const numValue = parseInt(value, 10);
-        updateNode({ 'handleCount': Math.max(0, isNaN(numValue) ? 0 : numValue) });
-        break;
-      }
       case 'content':
         updateNode({ 'metadata': { ...(selectedNode.data.metadata || {}), 'content': value } });
         break;
@@ -241,7 +234,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
     const target = e.target as HTMLInputElement | HTMLTextAreaElement;
     const name = target.name;
     const value = target.value;
-    if (selectedNode && ['title', 'category', 'content', 'handleCount'].includes(name)) {
+    if (selectedNode && ['title', 'category', 'content'].includes(name)) {
       commitNodeChange(name, value);
     } else if (selectedEdge && ['type', 'strokeWidth', 'curveType'].includes(name)) {
       commitEdgeChange(name, value);
@@ -264,90 +257,94 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
 
   const isNode = Boolean(selectedNode);
   const title = isNode ? '编辑节点' : '编辑连接';
-  const subtitle = isNode ? '调整节点属性和连接点配置' : '修改连接样式和属性';
-  const panelClass = `w-72 bg-white dark:bg-neutral-800 flex flex-col overflow-hidden h-full ${panelPosition === 'left' ? 'border-r border-neutral-200 dark:border-neutral-700 absolute left-0 top-0 z-10' : 'border-l border-neutral-200 dark:border-neutral-700 absolute right-0 top-0 z-10 panel-right'}`;
 
-  const renderHeader = (headerTitle: string, headerSubtitle?: string) => (
-    <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
+  const panelClass = `${PANEL_CONTAINER_RIGHT_CLASS} ${panelPosition === 'left' ? 'border-l-0 border-r border-slate-200/60 dark:border-slate-700/60 left-0' : 'right-0'}`;
+
+  const renderHeader = (headerTitle: string) => (
+    <div className="flex items-center justify-between p-4 border-b border-slate-200/60 dark:border-slate-700/60">
       <div>
-        <h2 className="text-lg font-semibold flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
-          <Pencil className="w-5 h-5" style={{ 'color': '#3b82f6' }} />
+        <h2 className="text-base font-medium flex items-center gap-2 text-slate-500 dark:text-slate-400">
+          <Pencil className="w-4 h-4 text-slate-400 dark:text-slate-500" />
           {headerTitle}
         </h2>
-        {headerSubtitle && (
-          <p className="text-sm mt-1 text-neutral-600 dark:text-neutral-400">
-            {headerSubtitle}
-          </p>
-        )}
       </div>
       <button
         onClick={clearSelection}
-        className="p-1 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-neutral-600 dark:text-neutral-400"
+        className={PANEL_CLOSE_BTN_CLASS}
       >
-        <X size={20} />
+        <X size={16} />
       </button>
     </div>
   );
 
-  const inputField = ({ name, value, placeholder, type = 'text', min, max, step }: { name: string; value: string; placeholder: string; type?: 'text' | 'number'; min?: number; max?: number; step?: number }) => (
-    <input
-      name={name}
-      type={type}
-      min={min}
-      max={max}
-      step={step}
-      value={value}
-      onChange={handleNodeChange}
-      onCompositionStart={handleCompositionStart}
-      onCompositionEnd={handleCompositionEnd}
-      placeholder={placeholder}
-      className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200 dark:hover:border-blue-400 bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
-    />
-  );
-
   const colorPicker = (color: string, onColorChange: (color: string) => void, label: string) => (
-    <div className="space-y-2">
-      <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide flex items-center gap-2">
+    <div className="space-y-1.5">
+      <label className={LABEL_CLASS}>
         {label}
       </label>
-      <div className="flex items-center gap-3 h-10 rounded-lg border border-neutral-300 dark:border-neutral-600 overflow-hidden bg-white dark:bg-neutral-700">
-        <div className="relative w-8 h-8 ml-1 flex-shrink-0">
+      <div className="flex items-center gap-2 h-9 rounded border border-slate-200/60 dark:border-slate-700/60 bg-slate-200/50 dark:bg-slate-800/80">
+        <div className="relative w-7 h-7 ml-1 flex-shrink-0">
           <input
             type="color"
             value={color}
             onChange={(e) => onColorChange(e.target.value)}
-            className="w-8 h-8 rounded cursor-pointer border border-neutral-300 dark:border-neutral-600 bg-transparent opacity-0 absolute inset-0"
+            className="w-7 h-7 rounded cursor-pointer border border-slate-200 dark:border-slate-600 bg-transparent opacity-0 absolute inset-0"
           />
-          <div className="w-8 h-8 rounded border border-neutral-300 dark:border-neutral-600" style={{ 'backgroundColor': color }} />
+          <div className="w-7 h-7 rounded border border-slate-200 dark:border-slate-600" style={{ 'backgroundColor': color }} />
         </div>
         <input
           type="text"
           value={color}
           onChange={(e) => onColorChange(e.target.value)}
-          className="flex-1 text-sm px-2 py-0 bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-0 focus:outline-none h-full"
+          className="flex-1 text-xs px-2 py-0 bg-transparent text-slate-400 dark:text-slate-500 border-0 focus:outline-none h-full font-mono"
         />
       </div>
     </div>
   );
 
   return (
-    <div className={panelClass}>
-      {renderHeader(title, subtitle)}
-      <div className="flex-1 overflow-y-auto p-4">
+    <motion.div
+      className={panelClass}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={PANEL_MOTION_VARIANTS_RIGHT}
+      transition={PANEL_MOTION_TRANSITION}
+    >
+      {renderHeader(title)}
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {selectedNode && (
-          <div className="space-y-6 p-1">
-            <Section title="节点信息" color="blue">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">节点标题</label>
-                  {inputField({ 'name': 'title', 'value': localNodeState.title, 'placeholder': '输入节点标题' })}
+          <>
+            <Section title="节点信息" hoverColor="sky">
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className={LABEL_CLASS}>节点标题</label>
+                  <input
+                    name="title"
+                    type="text"
+                    value={localNodeState.title}
+                    onChange={handleNodeChange}
+                    onCompositionStart={handleCompositionStart}
+                    onCompositionEnd={handleCompositionEnd}
+                    placeholder="输入节点标题"
+                    className={INPUT_CLASS}
+                  />
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">节点类别</label>
-                  {inputField({ 'name': 'category', 'value': localNodeState.category, 'placeholder': '输入节点类别' })}
+                <div className="space-y-1.5">
+                  <label className={LABEL_CLASS}>节点类别</label>
+                  <input
+                    name="category"
+                    type="text"
+                    value={localNodeState.category}
+                    onChange={handleNodeChange}
+                    onCompositionStart={handleCompositionStart}
+                    onCompositionEnd={handleCompositionEnd}
+                    placeholder="输入节点类别"
+                    className={INPUT_CLASS}
+                  />
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">节点内容</label>
+                <div className="space-y-1.5">
+                  <label className={LABEL_CLASS}>节点内容</label>
                   <textarea
                     name="content"
                     value={localNodeState.content}
@@ -355,40 +352,34 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
                     onCompositionStart={handleCompositionStart}
                     onCompositionEnd={handleCompositionEnd}
                     placeholder="输入节点内容"
-                    rows={4}
-                    className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-200 dark:hover:border-blue-400 resize-y bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
+                    rows={3}
+                    className={`${INPUT_CLASS} resize-none`}
                   />
                 </div>
               </div>
             </Section>
 
-            <Section title="连接点配置" color="green">
+            <Section title="节点外观" hoverColor="teal">
               <div className="space-y-3">
-                <div className="space-y-2">
-                  <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">连接点数量</label>
-                  {inputField({ 'name': 'handleCount', 'value': localNodeState.handleCount, 'placeholder': '', 'type': 'number', 'min': 0 })}
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 italic">连接点会均匀分布在节点外围</p>
-                </div>
-              </div>
-            </Section>
-
-            <Section title="节点外观" color="purple">
-              <div className="space-y-3">
-                <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">节点形状</label>
-                <div className="grid grid-cols-3 gap-3">
+                <label className={LABEL_CLASS}>节点形状</label>
+                <div className="grid grid-cols-3 gap-2">
                   {shapeOptions.map(({ value, label, icon }) => (
                     <button
                       key={value}
                       type="button"
                       onClick={() => updateNode({ 'shape': value as 'circle' | 'square' | 'rectangle' })}
-                      className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${selectedNode.data.shape === value ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' : 'border-neutral-200 dark:border-neutral-600 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20'}`}
+                      className={`p-2.5 rounded border transition-all duration-200 flex flex-col items-center gap-1.5 ${
+                        selectedNode.data.shape === value
+                          ? 'border-slate-400 dark:border-slate-500 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                          : 'border-slate-200/60 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500'
+                      }`}
                     >
                       {icon}
-                      <span className="text-xs font-medium">{label}</span>
+                      <span className="text-xs">{label}</span>
                     </button>
                   ))}
                 </div>
-                <div className="space-y-4 pt-2">
+                <div className="space-y-2 pt-1">
                   {colorPicker(nodeColors.fill, (color) => handleNodeColorChange('fill', color), '背景颜色')}
                   {colorPicker(nodeColors.stroke, (color) => handleNodeColorChange('stroke', color), '边框颜色')}
                   {colorPicker(nodeColors.textColor, (color) => handleNodeColorChange('textColor', color), '文字颜色')}
@@ -397,15 +388,15 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
                 </div>
               </div>
             </Section>
-          </div>
+          </>
         )}
 
         {selectedEdge && (
-          <div className="space-y-6 p-1">
-            <Section title="连接信息" color="orange">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">连接类别</label>
+          <>
+            <Section title="连接信息" hoverColor="blue">
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className={LABEL_CLASS}>连接类别</label>
                   <input
                     name="type"
                     type="text"
@@ -414,21 +405,21 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
                     onCompositionStart={handleCompositionStart}
                     onCompositionEnd={handleCompositionEnd}
                     placeholder="输入连接类别"
-                    className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 hover:border-orange-200 dark:hover:border-orange-400 bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
+                    className={INPUT_CLASS}
                   />
                 </div>
               </div>
             </Section>
 
-            <Section title="连接线样式" color="teal">
+            <Section title="连接线样式" hoverColor="emerald">
               <div className="space-y-3">
-                <div className="space-y-2">
-                  <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">连接线样式</label>
+                <div className="space-y-1.5">
+                  <label className={LABEL_CLASS}>连接线样式</label>
                   <select
                     name="curveType"
                     value={localEdgeState.curveType}
                     onChange={handleEdgeChange}
-                    className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 hover:border-teal-200 dark:hover:border-teal-400 bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
+                    className={INPUT_CLASS}
                   >
                     <option value="default">Bezier曲线</option>
                     <option value="straight">直线</option>
@@ -439,20 +430,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
               </div>
             </Section>
 
-            <Section title="连接外观" color="purple">
+            <Section title="连接外观" hoverColor="teal">
               <div className="space-y-3">
-                <div className="space-y-2">
-                  <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">连接宽度</label>
+                <div className="space-y-1.5">
+                  <label className={LABEL_CLASS}>连接宽度</label>
                   <input
                     name="strokeWidth"
                     type="number"
                     min={0}
                     value={localEdgeState.strokeWidth}
                     onChange={handleEdgeChange}
-                    className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-200 dark:hover:border-purple-400 text-center bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
+                    className={`${INPUT_CLASS} text-center`}
                   />
                 </div>
-                <div className="space-y-4 pt-2">
+                <div className="space-y-2 pt-1">
                   {colorPicker(edgeColors.stroke, (color) => handleEdgeColorChange('stroke', color), '连接颜色')}
                   {colorPicker(edgeColors.arrowColor, (color) => handleEdgeColorChange('arrowColor', color), '箭头颜色')}
                   {colorPicker(edgeColors.labelBackgroundColor, (color) => handleEdgeColorChange('labelBackgroundColor', color), '标签背景色')}
@@ -460,10 +451,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ panelPosition = 'rig
                 </div>
               </div>
             </Section>
-          </div>
+          </>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

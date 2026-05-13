@@ -15,6 +15,7 @@ export type Presence = {
   joinedAt: number;
   mediaPeerId: string | null;
   mediaTypes: MediaType[];
+  micMuted: boolean;
 };
 
 export type MessageAttachmentType = 'image' | 'audio';
@@ -106,7 +107,8 @@ export type Storage = {
 
 const client = createClient({
   'publicApiKey': (import.meta.env.VITE_LIVEBLOCKS_PUBLIC_KEY as string) || '',
-  'throttle': 16
+  'throttle': 16,
+  'backgroundKeepAliveTimeout': 30_000
 });
 
 export const {
@@ -122,7 +124,9 @@ export const {
   useStatus,
   useStorage,
   useMutation,
-  useUser
+  useUser,
+  useLostConnectionListener,
+  useErrorListener
 } = createRoomContext<Presence, Storage>(client);
 
 export { shallow };

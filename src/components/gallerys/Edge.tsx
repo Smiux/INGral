@@ -6,9 +6,11 @@ import {
   getStraightPath,
   getSimpleBezierPath,
   type EdgeProps,
+  useInternalNode,
   useReactFlow
 } from '@xyflow/react';
 import type { ArticleEdgeData } from '@/components/gallerys/gallery';
+import { getEdgeParams } from '@/components/graph/GraphVisualization/utils/edgeUtils';
 
 const PATH_GENERATORS = {
   'straight': getStraightPath,
@@ -21,12 +23,8 @@ const INTERACTION_WIDTH = 20;
 
 export const ArticleEdge = memo(({
   id,
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  sourcePosition,
-  targetPosition,
+  source,
+  target,
   data,
   selected,
   style,
@@ -38,24 +36,8 @@ export const ArticleEdge = memo(({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
 
-  const getPath = PATH_GENERATORS[curveType] || getBezierPath;
-  const [edgePath, labelX, labelY] = getPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition
-  });
-
-  const stroke = selected ? '#0ea5e9' : '#4ECDC4';
-  const strokeWidth = selected ? 3 : 2;
-
-  const edgeStyle = {
-    stroke,
-    strokeWidth,
-    ...style
-  };
+  const sourceNode = useInternalNode(source);
+  const targetNode = useInternalNode(target);
 
   const updateEdgeLabel = useCallback((value: string) => {
     const edges = reactFlowInstance.getEdges();
@@ -89,6 +71,31 @@ export const ArticleEdge = memo(({
       setIsEditing(false);
     }
   }, [handleInputBlur]);
+
+  if (!sourceNode || !targetNode) {
+    return null;
+  }
+
+  const getPath = PATH_GENERATORS[curveType] || getBezierPath;
+  const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(sourceNode, targetNode);
+
+  const [edgePath, labelX, labelY] = getPath({
+    'sourceX': sx,
+    'sourceY': sy,
+    'sourcePosition': sourcePos,
+    'targetX': tx,
+    'targetY': ty,
+    'targetPosition': targetPos
+  });
+
+  const stroke = selected ? '#0ea5e9' : '#4ECDC4';
+  const strokeWidth = selected ? 3 : 2;
+
+  const edgeStyle = {
+    stroke,
+    strokeWidth,
+    ...style
+  };
 
   const shouldShowLabel = edgeData?.relationshipType !== '' || selected;
 
@@ -129,7 +136,7 @@ export const ArticleEdge = memo(({
               onKeyDown={handleInputKeyDown}
               autoFocus
               placeholder="输入标签"
-              className="px-2 py-1 text-xs font-medium rounded border-2 border-sky-500 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 focus:outline-none min-w-[60px]"
+              className="px-2 py-1 text-xs font-medium rounded border-2 border-sky-500 bg-slate-200/50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none min-w-[60px]"
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
@@ -137,12 +144,12 @@ export const ArticleEdge = memo(({
               <div
                 className={`
                   px-2 py-1 rounded text-xs font-medium
-                  bg-white dark:bg-neutral-800
-                  border border-neutral-200 dark:border-neutral-700
+                  bg-slate-50/90 dark:bg-slate-900/90
+                  border border-slate-200/60 dark:border-slate-700/60
                   pointer-events-auto cursor-pointer
-                  hover:border-sky-300 dark:hover:border-sky-600
+                  hover:border-slate-300/80 dark:hover:border-slate-600/80
                   transition-colors
-                  ${selected ? 'text-sky-600 dark:text-sky-400 border-sky-300 dark:border-sky-600' : 'text-neutral-600 dark:text-neutral-400'}
+                  ${selected ? 'text-sky-600 dark:text-sky-400 border-sky-300 dark:border-sky-600' : 'text-slate-500 dark:text-slate-400'}
                 `}
                 onClick={handleLabelClick}
               >

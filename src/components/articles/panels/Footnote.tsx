@@ -171,7 +171,7 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
       <div className={collapsedButtonClassName}>
         <button
           onClick={() => setIsCollapsed(false)}
-          className="flex items-center gap-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-sm px-2 py-1.5 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+          className="flex items-center gap-1 bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
         >
           {position === 'left'
             ? <ChevronRight className="w-4 h-4 text-sky-400" />
@@ -189,20 +189,20 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
 
   return (
     <aside className={containerClassName}>
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden shadow-sm">
-        <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
+      <div className="bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded overflow-hidden">
+        <div className="p-3 border-b border-slate-200/60 dark:border-slate-700/60 flex-shrink-0 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-sky-400" />
             注释
           </h3>
           <button
             onClick={() => setIsCollapsed(true)}
-            className="p-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            className="p-0.5 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
             title="收起"
           >
             {position === 'left'
-              ? <ChevronLeft className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
-              : <ChevronRight className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+              ? <ChevronLeft className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+              : <ChevronRight className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             }
           </button>
         </div>
@@ -236,7 +236,7 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
                         onKeyDown={handleKeyDown}
                         onBlur={handleBlur}
                         autoFocus
-                        className="w-full px-2 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-y min-h-[60px]"
+                        className="w-full px-2 py-1.5 text-sm border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-100/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-y min-h-[60px]"
                         placeholder="输入注释内容..."
                       />
                       <div className="flex gap-2 mt-2">
@@ -248,7 +248,7 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-2 py-1 text-xs text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded transition-colors"
+                          className="px-2 py-1 text-xs text-slate-700 dark:text-slate-300 bg-slate-100/40 dark:bg-slate-800/40 hover:bg-slate-200/50 dark:hover:bg-slate-800/80 rounded transition-colors"
                         >
                           取消
                         </button>
@@ -259,18 +259,18 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
                       {editable ? (
                         <div
                           onClick={() => handleStartEdit(item)}
-                          className="w-full text-left cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 rounded p-0.5 -m-0.5"
+                          className="w-full text-left cursor-pointer hover:bg-slate-100/40 dark:hover:bg-slate-800/40 rounded p-0.5 -m-0.5"
                         >
-                          <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed break-words" style={{ 'whiteSpace': 'pre-wrap', 'wordBreak': 'break-word', 'overflowWrap': 'break-word' }}>
+                          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed break-words" style={{ 'whiteSpace': 'pre-wrap', 'wordBreak': 'break-word', 'overflowWrap': 'break-word' }}>
                             {item.content || (
-                              <span className="text-neutral-400 dark:text-neutral-500 italic">
+                              <span className="text-slate-400 dark:text-slate-500 italic">
                                 点击编辑
                               </span>
                             )}
                           </p>
                         </div>
                       ) : (
-                        <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed break-words" style={{ 'whiteSpace': 'pre-wrap', 'wordBreak': 'break-word', 'overflowWrap': 'break-word' }}>
+                        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed break-words" style={{ 'whiteSpace': 'pre-wrap', 'wordBreak': 'break-word', 'overflowWrap': 'break-word' }}>
                           {item.content}
                         </p>
                       )}

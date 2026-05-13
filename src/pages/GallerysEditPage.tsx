@@ -1,40 +1,47 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Info, Trash2, Plus, Save, Undo2, Redo2, Archive, FileText, FilePlus, ChevronDown, LayoutGrid } from 'lucide-react';
+import {
+  ReactFlow,
+  MiniMap,
+  ReactFlowProvider,
+  useNodesState,
+  useEdgesState,
+  useReactFlow,
+  useStore,
+  type Node,
+  type Edge,
+  type NodeTypes,
+  type EdgeTypes,
+  ConnectionMode,
+  NodeChange,
+  EdgeChange
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { Info, Trash2, Plus, Save, Undo2, Redo2, Archive, FileText, FilePlus, ChevronDown, LayoutGrid, Eye } from 'lucide-react';
 import { getGalleryById, createGallery, updateGallery, deleteGallery } from '@/services/galleryService';
-import { Visualization, ArticleSelector, ArticlePreviewPanel, GalleryInfoPanel, GalleryLayoutPanel } from '@/components/gallerys';
-import { SimpleEditor } from '@/components/gallerys/SimpleEditor';
+import { ArticleSelector, ArticlePreviewPanel, GalleryInfoPanel, GalleryLayoutPanel, SimpleEditor } from '@/components/gallerys';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { NavigatorTrigger } from '@/components/ui/Navigator';
+import { ArticleNode as ArticleNodeComponent } from '@/components/gallerys/Node';
+import { ArticleEdge as ArticleEdgeComponent } from '@/components/gallerys/Edge';
+import { useUndoRedo } from '@/components/graph/GraphVisualization/utils/useUndoRedo';
+import { useRightClickConnect } from '@/components/graph/GraphVisualization/utils/useRightClickConnect';
 import type { ArticleNodeData, EmbeddedArticle, ArticleNode, ArticleEdge } from '@/components/gallerys/gallery';
 
-interface VisualizationState {
-  canUndo: boolean;
-  canRedo: boolean;
-  hasSelection: boolean;
-  isSaving: boolean;
-}
+const nodeTypes = {
+  'articleNode': ArticleNodeComponent
+} as const as NodeTypes;
 
-interface VisualizationActions {
-  undo: () => void;
-  redo: () => void;
-  delete: () => void;
-  save: () => void;
-  addNode: (node: ArticleNode) => void;
-  updateNode: (nodeId: string, data: Partial<ArticleNodeData>) => void;
-  getNodes: () => ArticleNode[];
-  getEdges: () => ArticleEdge[];
-  applyLayout: (nodes: ArticleNode[], edges: ArticleEdge[]) => void;
-}
+const edgeTypes = {
+  'articleEdge': ArticleEdgeComponent
+} as const as EdgeTypes;
 
-export function GallerysEditPage () {
+const GallerysEditContent = () => {
   const { galleryId } = useParams<{ galleryId: string }>();
   const navigate = useNavigate();
   const isEditMode = Boolean(galleryId && galleryId !== 'create');
 
   const [title, setTitle] = useState('');
-  const [nodes, setNodes] = useState<ArticleNode[]>([]);
-  const [edges, setEdges] = useState<ArticleEdge[]>([]);
   const [embeddedArticles, setEmbeddedArticles] = useState<EmbeddedArticle[]>([]);
   const [isLoading, setIsLoading] = useState(isEditMode);
   const [showArticleSelector, setShowArticleSelector] = useState(false);
@@ -47,17 +54,76 @@ export function GallerysEditPage () {
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [editingArticle, setEditingArticle] = useState<EmbeddedArticle | null>(null);
   const [excludeSlugs, setExcludeSlugs] = useState<string[]>([]);
-  const [infoPanelData, setInfoPanelData] = useState<{ nodes: ArticleNode[]; edges: ArticleEdge[] }>({ 'nodes': [], 'edges': [] });
   const [showLayoutPanel, setShowLayoutPanel] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showOnlySelected, setShowOnlySelected] = useState(false);
 
-  const [vizState, setVizState] = useState<VisualizationState>({
-    'canUndo': false,
-    'canRedo': false,
-    'hasSelection': false,
-    'isSaving': false
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+
+  const { undo, redo, canUndo, canRedo, saveState } = useUndoRedo();
+  const isDraggingRef = useRef(false);
+  const lastSavedStateRef = useRef<string>('');
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+
+  const reactFlowInstance = useReactFlow();
+  const nodeLookup = useStore((state) => state.nodeLookup);
+  const transform = useStore((state) => state.transform);
+
+  const { handleCanvasMouseDown, renderConnectionLine } = useRightClickConnect({
+    reactFlowInstance,
+    edges,
+    'setEdges': setEdges as React.Dispatch<React.SetStateAction<Edge[]>>,
+    nodeLookup,
+    transform,
+    'lineColor': '#0ea5e9',
+    'createEdge': (sourceId, targetId) => ({
+      'id': `edge-${sourceId}-${targetId}-${Date.now()}`,
+      'source': sourceId,
+      'target': targetId,
+      'sourceHandle': 'source',
+      'targetHandle': 'target',
+      'type': 'articleEdge',
+      'data': {
+        'relationshipType': '默认'
+      },
+      'markerEnd': {
+        'type': 'arrowclosed',
+        'color': '#4ECDC4'
+      }
+    })
   });
 
-  const vizActionsRef = useRef<VisualizationActions | null>(null);
+  const hasSelection = useStore(
+    (state) => {
+      const hasSelectedNode = state.nodes.some(node => node.selected);
+      const hasSelectedEdge = state.edges.some(edge => edge.selected);
+      return hasSelectedNode || hasSelectedEdge;
+    },
+    (prev, next) => prev === next
+  );
+
+  const selectedNodeIds = useMemo(() => {
+    if (!showOnlySelected) {
+      return null;
+    }
+    const selected = nodes.filter(n => n.selected).map(n => n.id);
+    return selected.length > 0 ? new Set(selected) : null;
+  }, [showOnlySelected, nodes]);
+
+  const displayedNodes = useMemo(() => {
+    if (!selectedNodeIds) {
+      return nodes;
+    }
+    return nodes.filter(n => selectedNodeIds.has(n.id));
+  }, [nodes, selectedNodeIds]);
+
+  const displayedEdges = useMemo(() => {
+    if (!selectedNodeIds) {
+      return edges;
+    }
+    return edges.filter(e => selectedNodeIds.has(e.source) && selectedNodeIds.has(e.target));
+  }, [edges, selectedNodeIds]);
 
   const loadGallery = useCallback(async (id: string) => {
     setIsLoading(true);
@@ -65,16 +131,31 @@ export function GallerysEditPage () {
       const gallery = await getGalleryById(id);
       if (gallery) {
         setTitle(gallery.title);
-        setNodes(gallery.nodes || []);
-        setEdges(gallery.edges || []);
+        const initialNodes = (gallery.nodes || []).map(n => ({
+          ...n,
+          'type': 'articleNode'
+        })) as Node[];
+        const initialEdges = (gallery.edges || []).map(e => ({
+          ...e,
+          'type': 'articleEdge',
+          'sourceHandle': e.sourceHandle ?? 'source',
+          'targetHandle': e.targetHandle ?? 'target',
+          'markerEnd': e.markerEnd || {
+            'type': 'arrowclosed',
+            'color': '#4ECDC4'
+          }
+        })) as Edge[];
+        setNodes(initialNodes);
+        setEdges(initialEdges);
         setEmbeddedArticles(gallery.embeddedArticles || []);
+        setExcludeSlugs(initialNodes.map(n => (n.data as ArticleNodeData).articleSlug));
       } else {
         navigate('/gallerys');
       }
     } finally {
       setIsLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, setNodes, setEdges]);
 
   useEffect(() => {
     if (isEditMode && galleryId) {
@@ -82,28 +163,53 @@ export function GallerysEditPage () {
     }
   }, [galleryId, isEditMode, loadGallery]);
 
-  const handleSave = useCallback(async (savedNodes: ArticleNode[], savedEdges: ArticleEdge[]) => {
+  const handleSave = useCallback(async () => {
     if (!title.trim()) {
       return;
     }
 
-    if (isEditMode && galleryId) {
-      await updateGallery(galleryId, {
-        title,
-        'nodes': savedNodes,
-        'edges': savedEdges,
-        embeddedArticles
-      });
-    } else {
-      const newId = await createGallery({
-        title,
-        'nodes': savedNodes,
-        'edges': savedEdges,
-        embeddedArticles
-      });
-      navigate(`/gallerys/${newId}/edit`, { 'replace': true });
+    setIsSaving(true);
+    try {
+      const savedNodes: ArticleNode[] = nodes.map(n => ({
+        'id': n.id,
+        'type': n.type,
+        'position': n.position,
+        'data': n.data as ArticleNodeData,
+        ...(n.selected !== undefined && { 'selected': n.selected })
+      }));
+
+      const savedEdges: ArticleEdge[] = edges.map(e => ({
+        'id': e.id,
+        'source': e.source,
+        'target': e.target,
+        'type': e.type,
+        'sourceHandle': e.sourceHandle ?? 'source',
+        'targetHandle': e.targetHandle ?? 'target',
+        'data': e.data || { 'relationshipType': '默认' },
+        'markerEnd': e.markerEnd || { 'type': 'arrowclosed', 'color': '#4ECDC4' },
+        ...(e.selected !== undefined && { 'selected': e.selected })
+      }));
+
+      if (isEditMode && galleryId) {
+        await updateGallery(galleryId, {
+          title,
+          'nodes': savedNodes,
+          'edges': savedEdges,
+          embeddedArticles
+        });
+      } else {
+        const newId = await createGallery({
+          title,
+          'nodes': savedNodes,
+          'edges': savedEdges,
+          embeddedArticles
+        });
+        navigate(`/gallerys/${newId}/edit`, { 'replace': true });
+      }
+    } finally {
+      setIsSaving(false);
     }
-  }, [title, isEditMode, galleryId, navigate, embeddedArticles]);
+  }, [title, nodes, edges, embeddedArticles, isEditMode, galleryId, navigate]);
 
   const handleDelete = useCallback(async () => {
     if (!galleryId || !isEditMode) {
@@ -130,7 +236,7 @@ export function GallerysEditPage () {
       return;
     }
 
-    const newNode: ArticleNode = {
+    const newNode: Node = {
       'id': article.slug,
       'type': 'articleNode',
       'position': {
@@ -146,10 +252,10 @@ export function GallerysEditPage () {
       }
     };
 
-    vizActionsRef.current?.addNode(newNode);
+    setNodes((nds) => [...nds, newNode]);
     setExcludeSlugs(prev => [...prev, article.slug]);
     setShowAddMenu(false);
-  }, [excludeSlugs]);
+  }, [excludeSlugs, setNodes]);
 
   const handleCreateEmbeddedArticle = useCallback((article: Omit<EmbeddedArticle, 'id' | 'createdAt' | 'updatedAt'>) => {
     const id = `embedded-${Date.now()}`;
@@ -163,7 +269,7 @@ export function GallerysEditPage () {
 
     setEmbeddedArticles((prev) => [...prev, newArticle]);
 
-    const newNode: ArticleNode = {
+    const newNode: Node = {
       id,
       'type': 'articleNode',
       'position': {
@@ -181,9 +287,9 @@ export function GallerysEditPage () {
       }
     };
 
-    vizActionsRef.current?.addNode(newNode);
+    setNodes((nds) => [...nds, newNode]);
     setShowSimpleEditor(false);
-  }, []);
+  }, [setNodes]);
 
   const handleEditEmbeddedArticle = useCallback((article: Omit<EmbeddedArticle, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!editingArticle) {
@@ -197,16 +303,25 @@ export function GallerysEditPage () {
         : a
     ));
 
-    vizActionsRef.current?.updateNode(editingArticle.id, {
-      'articleTitle': article.title,
-      'articleSummary': article.summary,
-      'coverImage': article.coverImage,
-      'tags': article.tags
-    });
+    setNodes((nds) => nds.map((node) => {
+      if (node.id === editingArticle.id) {
+        return {
+          ...node,
+          'data': {
+            ...node.data,
+            'articleTitle': article.title,
+            'articleSummary': article.summary,
+            'coverImage': article.coverImage,
+            'tags': article.tags
+          } as ArticleNodeData
+        };
+      }
+      return node;
+    }));
 
     setShowSimpleEditor(false);
     setEditingArticle(null);
-  }, [editingArticle]);
+  }, [editingArticle, setNodes]);
 
   const handleOpenCreateEditor = useCallback(() => {
     setEditorMode('create');
@@ -228,34 +343,88 @@ export function GallerysEditPage () {
     }
   }, [previewArticle, embeddedArticles]);
 
-  const handleNodeClick = useCallback((_nodeId: string, data: ArticleNodeData) => {
-    setPreviewArticle(data);
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    setPreviewArticle(node.data as ArticleNodeData);
     setShowPreviewPanel(true);
   }, []);
 
-  const handleEdgeClick = useCallback(() => {
-  }, []);
+  const triggerSaveState = useCallback(() => {
+    if (!isDraggingRef.current) {
+      const stateKey = JSON.stringify({
+        'nodes': nodes.map(n => ({ 'id': n.id, 'position': n.position })),
+        'edges': edges.map(e => ({ 'id': e.id, 'source': e.source, 'target': e.target }))
+      });
+      if (lastSavedStateRef.current !== stateKey) {
+        lastSavedStateRef.current = stateKey;
+        saveState(nodes, edges);
+      }
+    }
+  }, [nodes, edges, saveState]);
 
-  const handleStateChange = useCallback((state: VisualizationState) => {
-    setVizState(state);
-  }, []);
+  const handleNodesChange = useCallback((changes: NodeChange[]) => {
+    onNodesChange(changes);
+    const isDragging = changes.some(change => change.type === 'position' && change.dragging);
+    isDraggingRef.current = isDragging;
+    if (!isDragging) {
+      triggerSaveState();
+    }
+  }, [onNodesChange, triggerSaveState]);
 
-  const handleActionsReady = useCallback((actions: VisualizationActions) => {
-    vizActionsRef.current = actions;
-  }, []);
+  const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
+    onEdgesChange(changes);
+    if (!isDraggingRef.current) {
+      triggerSaveState();
+    }
+  }, [onEdgesChange, triggerSaveState]);
+
+  const handleUndo = useCallback(() => {
+    const state = undo();
+    if (state.nodes.length > 0 || state.edges.length > 0) {
+      setNodes(state.nodes.map(n => ({ ...n, 'type': 'articleNode' })));
+      setEdges(state.edges.map(e => ({ ...e, 'type': 'articleEdge' })));
+    }
+  }, [undo, setNodes, setEdges]);
+
+  const handleRedo = useCallback(() => {
+    const state = redo();
+    if (state.nodes.length > 0 || state.edges.length > 0) {
+      setNodes(state.nodes.map(n => ({ ...n, 'type': 'articleNode' })));
+      setEdges(state.edges.map(e => ({ ...e, 'type': 'articleEdge' })));
+    }
+  }, [redo, setNodes, setEdges]);
+
+  const applyLayout = useCallback((layoutedNodes: ArticleNode[], layoutedEdges: ArticleEdge[]) => {
+    isDraggingRef.current = false;
+    lastSavedStateRef.current = '';
+    triggerSaveState();
+    setNodes(layoutedNodes.map(n => ({
+      ...n,
+      'type': 'articleNode'
+    })) as Node[]);
+    setEdges(layoutedEdges.map(e => ({
+      ...e,
+      'type': 'articleEdge',
+      'sourceHandle': e.sourceHandle ?? 'source',
+      'targetHandle': e.targetHandle ?? 'target',
+      'markerEnd': e.markerEnd || {
+        'type': 'arrowclosed',
+        'color': '#4ECDC4'
+      }
+    })) as Edge[]);
+  }, [triggerSaveState, setNodes, setEdges]);
 
   if (isLoading) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+      <div className="h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mb-4" />
-        <p className="text-neutral-600 dark:text-neutral-400">加载中...</p>
+        <p className="text-slate-500 dark:text-slate-400">加载中...</p>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-neutral-50 dark:bg-neutral-900">
-      <div className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-4 py-2">
+    <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
+      <div className="bg-slate-100/90 dark:bg-slate-800/90 border-b border-slate-200/60 dark:border-slate-700/60 px-4 py-2">
         <div className="flex items-center justify-between">
           <NavigatorTrigger />
 
@@ -263,7 +432,7 @@ export function GallerysEditPage () {
             <div className="relative">
               <button
                 onClick={() => setShowAddMenu(!showAddMenu)}
-                className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:bg-sky-100/80 dark:hover:bg-sky-900/30 rounded transition-colors"
               >
                 <div className="flex items-center gap-1">
                   <Plus className="w-5 h-5" />
@@ -278,22 +447,21 @@ export function GallerysEditPage () {
                     className="fixed inset-0 z-10"
                     onClick={() => setShowAddMenu(false)}
                   />
-                  <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg z-20 overflow-hidden">
+                  <div className="absolute left-0 mt-1 w-48 bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded z-20 overflow-hidden">
                     <button
                       onClick={() => {
-                        const currentNodes = vizActionsRef.current?.getNodes() || [];
-                        setExcludeSlugs(currentNodes.map(n => n.data.articleSlug));
+                        setExcludeSlugs(nodes.map(n => (n.data as ArticleNodeData).articleSlug));
                         setShowArticleSelector(true);
                         setShowAddMenu(false);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-colors"
                     >
                       <FileText className="w-4 h-4" />
                       <span>从已有文章选择</span>
                     </button>
                     <button
                       onClick={handleOpenCreateEditor}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors border-t border-neutral-200 dark:border-neutral-700"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-colors border-t border-slate-200/60 dark:border-slate-700/60"
                     >
                       <FilePlus className="w-4 h-4" />
                       <span>创建文章</span>
@@ -304,59 +472,75 @@ export function GallerysEditPage () {
             </div>
 
             <button
-              onClick={() => vizActionsRef.current?.delete()}
-              disabled={!vizState.hasSelection}
-              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={() => {
+                setNodes((nds) => nds.filter((node) => !node.selected));
+                setEdges((eds) => eds.filter((edge) => !edge.selected));
+              }}
+              disabled={!hasSelection}
+              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:bg-red-50/80 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Trash2 className="w-5 h-5" />
               <span className="text-xs">删除所选</span>
             </button>
 
-            <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-700 mx-1" />
+            <div className="w-px h-8 bg-slate-200/60 dark:bg-slate-700/60 mx-1" />
 
             <button
-              onClick={() => vizActionsRef.current?.undo()}
-              disabled={!vizState.canUndo}
-              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={handleUndo}
+              disabled={!canUndo}
+              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-slate-500 dark:text-slate-400 hover:bg-sky-100/80 dark:hover:bg-sky-900/30 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Undo2 className="w-5 h-5" />
               <span className="text-xs">撤销</span>
             </button>
 
             <button
-              onClick={() => vizActionsRef.current?.redo()}
-              disabled={!vizState.canRedo}
-              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={handleRedo}
+              disabled={!canRedo}
+              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-slate-500 dark:text-slate-400 hover:bg-sky-100/80 dark:hover:bg-sky-900/30 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Redo2 className="w-5 h-5" />
               <span className="text-xs">重做</span>
             </button>
 
-            <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-700 mx-1" />
+            <div className="w-px h-8 bg-slate-200/60 dark:bg-slate-700/60 mx-1" />
 
             <button
               onClick={() => setShowLayoutPanel(true)}
-              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/30 rounded transition-colors"
             >
               <LayoutGrid className="w-5 h-5" />
               <span className="text-xs">布局</span>
+            </button>
+
+            <button
+              onClick={() => setShowOnlySelected(prev => !prev)}
+              disabled={!hasSelection}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded transition-colors ${
+                showOnlySelected
+                  ? 'bg-sky-100/80 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-sky-100/80 dark:hover:bg-sky-900/30'
+              } disabled:opacity-40 disabled:cursor-not-allowed`}
+            >
+              <Eye className="w-5 h-5" />
+              <span className="text-xs">{showOnlySelected ? '显示全部' : '只看所选'}</span>
             </button>
           </div>
 
           <div className="flex items-center gap-1">
             <button
-              onClick={() => vizActionsRef.current?.save()}
-              disabled={vizState.isSaving}
-              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-600 dark:hover:text-green-400 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Save className="w-5 h-5" />
-              <span className="text-xs">{vizState.isSaving ? '保存中' : '保存'}</span>
+              <span className="text-xs">{isSaving ? '保存中' : '保存'}</span>
             </button>
 
             {isEditMode && (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
+                className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:bg-red-50/80 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 rounded transition-colors"
               >
                 <Archive className="w-5 h-5" />
                 <span className="text-xs">删除地图</span>
@@ -364,14 +548,8 @@ export function GallerysEditPage () {
             )}
 
             <button
-              onClick={() => {
-                setInfoPanelData({
-                  'nodes': vizActionsRef.current?.getNodes() || [],
-                  'edges': vizActionsRef.current?.getEdges() || []
-                });
-                setShowInfoPanel(true);
-              }}
-              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+              onClick={() => setShowInfoPanel(true)}
+              className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded transition-colors"
             >
               <Info className="w-5 h-5" />
               <span className="text-xs">地图信息</span>
@@ -381,15 +559,38 @@ export function GallerysEditPage () {
       </div>
 
       <div className="flex-1 relative">
-        <Visualization
-          initialNodes={nodes}
-          initialEdges={edges}
-          onSave={handleSave}
-          onNodeClick={handleNodeClick}
-          onEdgeClick={handleEdgeClick}
-          onStateChange={handleStateChange}
-          onActionsReady={handleActionsReady}
-        />
+        <div
+          ref={reactFlowWrapper}
+          className="w-full h-full"
+          onMouseDown={handleCanvasMouseDown}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <ReactFlow
+            nodes={displayedNodes}
+            edges={displayedEdges}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={handleEdgesChange}
+            onNodeClick={handleNodeClick}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            fitView
+            minZoom={0.01}
+            maxZoom={10}
+            colorMode="system"
+            connectionMode={ConnectionMode.Loose}
+            panOnDrag
+            proOptions={{ 'hideAttribution': true }}
+          >
+            <MiniMap
+              nodeColor={(node) => {
+                return node.selected ? '#0ea5e9' : '#4ECDC4';
+              }}
+              maskColor="rgba(0, 0, 0, 0.1)"
+              className="!bg-slate-50 dark:!bg-slate-900 !border-slate-200/60 dark:!border-slate-700/60"
+            />
+          </ReactFlow>
+          {renderConnectionLine()}
+        </div>
       </div>
 
       <ArticleSelector
@@ -414,18 +615,16 @@ export function GallerysEditPage () {
         onClose={() => setShowInfoPanel(false)}
         title={title}
         onTitleChange={setTitle}
-        nodes={infoPanelData.nodes}
-        edges={infoPanelData.edges}
+        nodes={nodes as ArticleNode[]}
+        edges={edges as ArticleEdge[]}
       />
 
       <GalleryLayoutPanel
         isOpen={showLayoutPanel}
         onClose={() => setShowLayoutPanel(false)}
-        onLayout={(layoutedNodes, layoutedEdges) => {
-          vizActionsRef.current?.applyLayout(layoutedNodes, layoutedEdges);
-        }}
-        nodes={vizActionsRef.current?.getNodes() || []}
-        edges={vizActionsRef.current?.getEdges() || []}
+        onLayout={applyLayout}
+        nodes={nodes as ArticleNode[]}
+        edges={edges as ArticleEdge[]}
       />
 
       <ConfirmDialog
@@ -450,4 +649,14 @@ export function GallerysEditPage () {
       />
     </div>
   );
-}
+};
+
+export const GallerysEditPage = (props: Record<string, unknown>) => {
+  return (
+    <ReactFlowProvider>
+      <GallerysEditContent {...props} />
+    </ReactFlowProvider>
+  );
+};
+
+export default GallerysEditPage;
