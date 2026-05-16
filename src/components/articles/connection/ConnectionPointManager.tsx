@@ -404,7 +404,7 @@ export function ConnectionPointManager ({
     selectPoint(null);
   }, [setConnecting, selectPoint]);
 
-  if (!editorDom) {
+  if (!editorDom || !editorDom.isConnected) {
     return null;
   }
 

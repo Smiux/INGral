@@ -107,7 +107,7 @@ export const TableOfContentsPanel: React.FC<TableOfContentsPanelProps> = memo(({
       <div className={collapsedButtonClassName}>
         <button
           onClick={handleTogglePanelCollapsed}
-          className="flex items-center gap-1 bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
+          className="flex items-center gap-1 bg-slate-100/60 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 rounded px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
           {position === 'left'
             ? <ChevronRight className="w-4 h-4 text-sky-400" />
@@ -121,7 +121,7 @@ export const TableOfContentsPanel: React.FC<TableOfContentsPanelProps> = memo(({
 
   return (
     <div className={containerClassName}>
-      <div className="bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded overflow-hidden">
+      <div className="bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded overflow-hidden">
         <div className="p-3 border-b border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
           <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             <ListTree className="w-4 h-4 text-sky-400" />
@@ -129,7 +129,7 @@ export const TableOfContentsPanel: React.FC<TableOfContentsPanelProps> = memo(({
           </h3>
           <button
             onClick={handleTogglePanelCollapsed}
-            className="p-0.5 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
+            className="p-0.5 rounded hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
             title="收起"
           >
             {position === 'left'

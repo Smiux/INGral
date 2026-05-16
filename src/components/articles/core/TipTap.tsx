@@ -253,10 +253,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   }
 
   return (
-    <div className={editable
-      ? 'bg-slate-100/90 dark:bg-slate-800/90 rounded-b border border-slate-200/60 dark:border-slate-700/60'
-      : ''
-    }>
+    <div>
       {editable && (
         <DragHandleReact
           editor={editor}

@@ -24,16 +24,178 @@ interface ArticleConnectionLinesProps {
   editorRef?: React.RefObject<{ getEditor: () => import('@tiptap/react').Editor | null } | null>;
   renderedArticleIds?: string[] | undefined;
   renderCrossArticle?: boolean;
+  virtualPointDirection?: 'left' | 'right' | undefined;
 }
 
 const EXTERNAL_POINT_OFFSET = 500;
+const HIT_EXCLUDE_RADIUS = 14;
+
+function buildHitExcludeClipPath (
+  defs: SVGDefsElement,
+  usedPointPositions: Map<string, PointPosition>,
+  id: string
+): string {
+  const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+  clipPath.setAttribute('id', id);
+
+  let d = 'M -99999,-99999 L 299999,-99999 L 299999,299999 L -99999,299999 Z';
+  const r = HIT_EXCLUDE_RADIUS;
+  for (const [, pos] of usedPointPositions) {
+    d += ` M ${pos.x},${pos.y} m ${-r},0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 ${-r * 2},0`;
+  }
+  const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  pathEl.setAttribute('d', d);
+  pathEl.setAttribute('fill-rule', 'evenodd');
+  clipPath.appendChild(pathEl);
+  defs.appendChild(clipPath);
+
+  return `url(#${id})`;
+}
+
+function collectUsedPoints (
+  connections: readonly { sourcePointId: string; targetPointId: string }[],
+  pointPositions: Map<string, PointPosition>
+): Map<string, PointPosition> {
+  const used = new Map<string, PointPosition>();
+  for (const conn of connections) {
+    const src = pointPositions.get(conn.sourcePointId);
+    const tgt = pointPositions.get(conn.targetPointId);
+    if (src && !used.has(conn.sourcePointId)) {
+      used.set(conn.sourcePointId, src);
+    }
+    if (tgt && !used.has(conn.targetPointId)) {
+      used.set(conn.targetPointId, tgt);
+    }
+  }
+  return used;
+}
+
+interface RenderSingleConnOpts {
+  defs: SVGDefsElement;
+  sourcePos: PointPosition;
+  targetPos: PointPosition;
+  sourceColor: string;
+  connectionId: string;
+  markerPrefix: string;
+  hitAreaTarget: SVGElement;
+  visiblePathTarget: SVGElement;
+}
+
+function renderSingleConnection (opts: RenderSingleConnOpts) {
+  const { defs, sourcePos, targetPos, sourceColor, connectionId, markerPrefix, hitAreaTarget, visiblePathTarget } = opts;
+  const markerId = `${markerPrefix}-${connectionId}`;
+  const arrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+  arrowMarker.setAttribute('id', markerId);
+  arrowMarker.setAttribute('markerWidth', '8');
+  arrowMarker.setAttribute('markerHeight', '6');
+  arrowMarker.setAttribute('refX', '7');
+  arrowMarker.setAttribute('refY', '3');
+  arrowMarker.setAttribute('orient', 'auto');
+  const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  polygon.setAttribute('points', '0 0, 8 3, 0 6');
+  polygon.setAttribute('fill', sourceColor);
+  arrowMarker.appendChild(polygon);
+  defs.appendChild(arrowMarker);
+
+  const midX = (sourcePos.x + targetPos.x) / 2;
+  const midY = (sourcePos.y + targetPos.y) / 2;
+  const dx = targetPos.x - sourcePos.x;
+  const dy = targetPos.y - sourcePos.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const curvature = Math.min(dist * 0.15, 40);
+  const controlX = midX - dy * curvature / dist;
+  const controlY = midY + dx * curvature / dist;
+
+  const d = `M ${sourcePos.x} ${sourcePos.y} Q ${controlX} ${controlY} ${targetPos.x} ${targetPos.y}`;
+
+  const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  hitArea.setAttribute('d', d);
+  hitArea.setAttribute('fill', 'none');
+  hitArea.setAttribute('stroke', 'transparent');
+  hitArea.setAttribute('stroke-width', '12');
+  hitArea.setAttribute('data-connection-id', connectionId);
+  hitArea.setAttribute('pointer-events', 'stroke');
+  hitArea.style.cursor = 'pointer';
+  hitAreaTarget.appendChild(hitArea);
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', d);
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', sourceColor);
+  path.setAttribute('stroke-width', '1.5');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('marker-end', `url(#${markerId})`);
+  path.setAttribute('pointer-events', 'none');
+  visiblePathTarget.appendChild(path);
+}
+
+interface RenderConnectionsOptions {
+  markerPrefix: string;
+  hitAreaParent: SVGElement;
+  visiblePathParent: SVGElement;
+  hitExcludeClipUrl?: string | undefined;
+  defs: SVGDefsElement;
+}
+
+function renderConnections (
+  connections: readonly { sourcePointId: string; targetPointId: string; id: string }[],
+  pointPositions: Map<string, PointPosition>,
+  pointColors: Map<string, string>,
+  opts: RenderConnectionsOptions
+) {
+  if (opts.hitExcludeClipUrl) {
+    const hitGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    hitGroup.setAttribute('clip-path', opts.hitExcludeClipUrl);
+
+    for (const conn of connections) {
+      const sourcePos = pointPositions.get(conn.sourcePointId);
+      const targetPos = pointPositions.get(conn.targetPointId);
+      const sourceColor = pointColors.get(conn.sourcePointId) || '#6366f1';
+      if (sourcePos && targetPos) {
+        renderSingleConnection({
+          'defs': opts.defs,
+          sourcePos,
+          targetPos,
+          sourceColor,
+          'connectionId': conn.id,
+          'markerPrefix': opts.markerPrefix,
+          'hitAreaTarget': hitGroup,
+          'visiblePathTarget': opts.visiblePathParent
+        });
+      }
+    }
+
+    if (hitGroup.childNodes.length > 0) {
+      opts.hitAreaParent.insertBefore(hitGroup, opts.hitAreaParent.firstChild);
+    }
+  } else {
+    for (const conn of connections) {
+      const sourcePos = pointPositions.get(conn.sourcePointId);
+      const targetPos = pointPositions.get(conn.targetPointId);
+      const sourceColor = pointColors.get(conn.sourcePointId) || '#6366f1';
+      if (sourcePos && targetPos) {
+        renderSingleConnection({
+          'defs': opts.defs,
+          sourcePos,
+          targetPos,
+          sourceColor,
+          'connectionId': conn.id,
+          'markerPrefix': opts.markerPrefix,
+          'hitAreaTarget': opts.hitAreaParent,
+          'visiblePathTarget': opts.visiblePathParent
+        });
+      }
+    }
+  }
+}
 
 export function ArticleConnectionLines ({
   articleId,
   scrollContainerRef,
   editorRef,
   renderedArticleIds,
-  renderCrossArticle = true
+  renderCrossArticle = true,
+  virtualPointDirection
 }: ArticleConnectionLinesProps) {
   const { state } = useContext(ConnectionContext) as ExtendedConnectionContextValue;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -194,9 +356,16 @@ export function ArticleConnectionLines ({
           }
         } else {
           const estimatedY = Math.max(20, Math.min(estimateVirtualY(externalPoint), contentElement.scrollHeight - 20));
-          const externalX = isOutgoing
-            ? contentElement.offsetWidth + EXTERNAL_POINT_OFFSET
-            : -EXTERNAL_POINT_OFFSET;
+          let externalX: number;
+          if (virtualPointDirection) {
+            externalX = virtualPointDirection === 'right'
+              ? contentElement.offsetWidth + EXTERNAL_POINT_OFFSET
+              : -EXTERNAL_POINT_OFFSET;
+          } else {
+            externalX = isOutgoing
+              ? contentElement.offsetWidth + EXTERNAL_POINT_OFFSET
+              : -EXTERNAL_POINT_OFFSET;
+          }
 
           pointPositions.set(externalPointId, { 'x': externalX, 'y': estimatedY });
           pointColors.set(externalPointId, externalPoint.color);
@@ -207,69 +376,28 @@ export function ArticleConnectionLines ({
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     svg.appendChild(defs);
 
-    for (const connection of allConnections) {
-      const sourcePos = pointPositions.get(connection.sourcePointId);
-      const targetPos = pointPositions.get(connection.targetPointId);
-      const sourceColor = pointColors.get(connection.sourcePointId) || '#6366f1';
+    const usedPointPositions = collectUsedPoints(allConnections, pointPositions);
+    const hitExcludeClipUrl = usedPointPositions.size > 0
+      ? buildHitExcludeClipPath(defs, usedPointPositions, 'hit-exclude-clip')
+      : undefined;
 
-      if (sourcePos && targetPos) {
-        const markerId = `arrowhead-${connection.id}`;
-        const arrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-        arrowMarker.setAttribute('id', markerId);
-        arrowMarker.setAttribute('markerWidth', '8');
-        arrowMarker.setAttribute('markerHeight', '6');
-        arrowMarker.setAttribute('refX', '7');
-        arrowMarker.setAttribute('refY', '3');
-        arrowMarker.setAttribute('orient', 'auto');
-        const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-        polygon.setAttribute('points', '0 0, 8 3, 0 6');
-        polygon.setAttribute('fill', sourceColor);
-        arrowMarker.appendChild(polygon);
-        defs.appendChild(arrowMarker);
-
-        const midX = (sourcePos.x + targetPos.x) / 2;
-        const midY = (sourcePos.y + targetPos.y) / 2;
-        const dx = targetPos.x - sourcePos.x;
-        const dy = targetPos.y - sourcePos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const curvature = Math.min(dist * 0.15, 40);
-        const controlX = midX - dy * curvature / dist;
-        const controlY = midY + dx * curvature / dist;
-
-        const d = `M ${sourcePos.x} ${sourcePos.y} Q ${controlX} ${controlY} ${targetPos.x} ${targetPos.y}`;
-
-        const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        hitArea.setAttribute('d', d);
-        hitArea.setAttribute('fill', 'none');
-        hitArea.setAttribute('stroke', 'transparent');
-        hitArea.setAttribute('stroke-width', '12');
-        hitArea.setAttribute('data-connection-id', connection.id);
-        hitArea.setAttribute('pointer-events', 'stroke');
-        hitArea.style.cursor = 'pointer';
-        try {
-          const pathLength = hitArea.getTotalLength();
-          const gap = 40;
-          if (pathLength > gap * 2) {
-            const middle = pathLength - gap * 2;
-            hitArea.setAttribute('stroke-dasharray', `0 ${gap} ${middle} ${gap}`);
-          }
-        } catch {
-          // ignore
-        }
-        svg.appendChild(hitArea);
-
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', d);
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', sourceColor);
-        path.setAttribute('stroke-width', '1.5');
-        path.setAttribute('stroke-linecap', 'round');
-        path.setAttribute('marker-end', `url(#${markerId})`);
-        path.setAttribute('pointer-events', 'none');
-        svg.appendChild(path);
+    renderConnections(
+      allConnections,
+      pointPositions,
+      pointColors,
+      {
+        'markerPrefix': 'arrowhead',
+        'hitAreaParent': svg,
+        'visiblePathParent': svg,
+        hitExcludeClipUrl,
+        defs
       }
-    }
-  }, [internalConnections, crossArticleConnections, articlePoints, scrollContainerRef, articlePointIds, state.points, getElementOffset, editorRef, renderedArticleIds, renderCrossArticle]);
+    );
+  }, [
+    internalConnections, crossArticleConnections, articlePoints, scrollContainerRef,
+    articlePointIds, state.points, getElementOffset, editorRef, renderedArticleIds,
+    renderCrossArticle, virtualPointDirection
+  ]);
 
   const scheduleUpdate = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
@@ -460,71 +588,26 @@ export function CrossArticleConnectionLines ({
     defs.appendChild(clipPath);
     svg.appendChild(defs);
 
+    const usedPointPositions = collectUsedPoints(crossArticleConnections, pointPositions);
+    const hitExcludeClipUrl = usedPointPositions.size > 0
+      ? buildHitExcludeClipPath(defs, usedPointPositions, 'hit-exclude-clip-cross')
+      : undefined;
+
     const linesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     linesGroup.setAttribute('clip-path', `url(#${clipPathId})`);
 
-    for (const connection of crossArticleConnections) {
-      const sourcePos = pointPositions.get(connection.sourcePointId);
-      const targetPos = pointPositions.get(connection.targetPointId);
-      const sourceColor = pointColors.get(connection.sourcePointId) || '#6366f1';
-
-      if (sourcePos && targetPos) {
-        const markerId = `arrowhead-cross-${connection.id}`;
-        const arrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-        arrowMarker.setAttribute('id', markerId);
-        arrowMarker.setAttribute('markerWidth', '8');
-        arrowMarker.setAttribute('markerHeight', '6');
-        arrowMarker.setAttribute('refX', '7');
-        arrowMarker.setAttribute('refY', '3');
-        arrowMarker.setAttribute('orient', 'auto');
-        const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-        polygon.setAttribute('points', '0 0, 8 3, 0 6');
-        polygon.setAttribute('fill', sourceColor);
-        arrowMarker.appendChild(polygon);
-        defs.appendChild(arrowMarker);
-
-        const midX = (sourcePos.x + targetPos.x) / 2;
-        const midY = (sourcePos.y + targetPos.y) / 2;
-        const dx = targetPos.x - sourcePos.x;
-        const dy = targetPos.y - sourcePos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const curvature = Math.min(dist * 0.15, 40);
-        const controlX = midX - dy * curvature / dist;
-        const controlY = midY + dx * curvature / dist;
-
-        const d = `M ${sourcePos.x} ${sourcePos.y} Q ${controlX} ${controlY} ${targetPos.x} ${targetPos.y}`;
-
-        const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        hitArea.setAttribute('d', d);
-        hitArea.setAttribute('fill', 'none');
-        hitArea.setAttribute('stroke', 'transparent');
-        hitArea.setAttribute('stroke-width', '12');
-        hitArea.setAttribute('data-connection-id', connection.id);
-        hitArea.setAttribute('pointer-events', 'stroke');
-        hitArea.style.cursor = 'pointer';
-        try {
-          const pathLength = hitArea.getTotalLength();
-          const gap = 40;
-          if (pathLength > gap * 2) {
-            const middle = pathLength - gap * 2;
-            hitArea.setAttribute('stroke-dasharray', `0 ${gap} ${middle} ${gap}`);
-          }
-        } catch {
-          // ignore
-        }
-        linesGroup.appendChild(hitArea);
-
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', d);
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', sourceColor);
-        path.setAttribute('stroke-width', '1.5');
-        path.setAttribute('stroke-linecap', 'round');
-        path.setAttribute('marker-end', `url(#${markerId})`);
-        path.setAttribute('pointer-events', 'none');
-        linesGroup.appendChild(path);
+    renderConnections(
+      crossArticleConnections,
+      pointPositions,
+      pointColors,
+      {
+        'markerPrefix': 'arrowhead-cross',
+        'hitAreaParent': linesGroup,
+        'visiblePathParent': linesGroup,
+        hitExcludeClipUrl,
+        defs
       }
-    }
+    );
 
     svg.appendChild(linesGroup);
   }, [crossArticleConnections, viewportRef, canvasRef, getPointCanvasPosition, panRef, zoomRef, getArticleRects, state.points]);
@@ -544,7 +627,7 @@ export function CrossArticleConnectionLines ({
     };
 
     window.addEventListener('scroll', handleScroll, true);
-    const intervalId = setInterval(scheduleUpdate, 100);
+    const intervalId = setInterval(scheduleUpdate, 10);
 
     return () => {
       window.removeEventListener('scroll', handleScroll, true);

@@ -61,7 +61,7 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
       data-open={isOpen}
     >
       <div
-        className="collapsible-header flex items-center gap-2 px-4 py-3 cursor-pointer select-none bg-slate-50/90 dark:bg-slate-900/90 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
+        className="collapsible-header flex items-center gap-2 px-4 py-3 cursor-pointer select-none bg-slate-200/50 dark:bg-slate-700/50 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-colors"
         onClick={handleToggle}
         contentEditable={false}
       >
@@ -82,7 +82,7 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
             onKeyDown={handleTitleKeyDown}
             onClick={(e) => e.stopPropagation()}
             placeholder={DEFAULT_TITLE}
-            className="flex-1 px-2 py-1 text-sm font-medium bg-slate-200/50 dark:bg-slate-800/80 border border-sky-400 rounded outline-none text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="flex-1 px-2 py-1 text-sm font-medium bg-slate-200 dark:bg-slate-700 border border-sky-400 rounded outline-none text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
         ) : (
           <span
@@ -103,7 +103,7 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
           isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="collapsible-content px-4 py-3 border-t border-slate-200/60 dark:border-slate-700/60 relative">
+        <div className="collapsible-content px-4 py-3 bg-slate-200 dark:bg-slate-700 border-t border-slate-200/60 dark:border-slate-700/60 relative">
           <NodeViewContent
             as="div"
             className="collapsible-body-content min-h-[1.5em] empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 empty:before:dark:text-slate-500 empty:before:pointer-events-none"

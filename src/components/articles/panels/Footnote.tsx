@@ -171,7 +171,7 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
       <div className={collapsedButtonClassName}>
         <button
           onClick={() => setIsCollapsed(false)}
-          className="flex items-center gap-1 bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
+          className="flex items-center gap-1 bg-slate-100/60 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 rounded px-2 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
           {position === 'left'
             ? <ChevronRight className="w-4 h-4 text-sky-400" />
@@ -189,7 +189,7 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
 
   return (
     <aside className={containerClassName}>
-      <div className="bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded overflow-hidden">
+      <div className="bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded overflow-hidden">
         <div className="p-3 border-b border-slate-200/60 dark:border-slate-700/60 flex-shrink-0 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-sky-400" />
@@ -197,7 +197,7 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
           </h3>
           <button
             onClick={() => setIsCollapsed(true)}
-            className="p-0.5 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
+            className="p-0.5 rounded hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
             title="收起"
           >
             {position === 'left'
@@ -236,7 +236,7 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
                         onKeyDown={handleKeyDown}
                         onBlur={handleBlur}
                         autoFocus
-                        className="w-full px-2 py-1.5 text-sm border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-100/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-y min-h-[60px]"
+                        className="w-full px-2 py-1.5 text-sm border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-200/60 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-y min-h-[60px]"
                         placeholder="输入注释内容..."
                       />
                       <div className="flex gap-2 mt-2">

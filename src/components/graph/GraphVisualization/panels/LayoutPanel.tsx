@@ -8,7 +8,7 @@ import {
 import type { CustomNodeData } from '../Node';
 import type { CustomEdgeData } from '../Edge';
 import ELK, { ElkNode } from 'elkjs';
-import { SlidingCardSelector, type SlidingCardOption } from '@/components/ui/SlidingCardSelector';
+import { SlidingCardSelector, type SlidingCardOption } from '@/components/ui/generic/SlidingCardSelector';
 import {
   PANEL_CONTAINER_CLASS,
   PANEL_HEADER_CLASS,

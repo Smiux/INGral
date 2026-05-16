@@ -12,15 +12,15 @@ import {
   type ArticleWithContent,
   type ArticleListItem
 } from '../../services/articleService';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { ConfirmDialog } from '../ui/generic/ConfirmDialog';
 import { TiptapEditor } from './core/TipTap';
 import { FootnotePanel } from './panels/Footnote';
 import { TocItem, TableOfContentsPanel } from './panels/TableOfContents';
 import { useTocUtils } from './utils/ToC';
-import { MultiViewer } from './MultiViewer';
+import { MultiViewer, type MultiViewerHandle } from './MultiViewer';
 import { ArticleSelector } from './ArticleSelector';
 import { ConnectionProvider, ArticleConnectionLines, ConnectionPointManager, ConnectionInteraction, JumpPathBar } from './connection';
-import { ConnectionContext, type ExtendedConnectionContextValue, buildPathStep, type PathStep } from './connection/types';
+import { ConnectionContext, type ExtendedConnectionContextValue, type JumpGraph, addJumpToGraph } from './connection/types';
 import type { Editor } from '@tiptap/react';
 
 type ViewMode = 'single' | 'grid';
@@ -53,7 +53,8 @@ export function ArticleViewer () {
   const [sideArticle, setSideArticle] = useState<SideArticle | null>(null);
   const sideEditorRef = useRef<{ getEditor:() => Editor | null } | null>(null);
   const sideContentRef = useRef<HTMLDivElement>(null);
-  const [jumpPath, setJumpPath] = useState<PathStep[]>([]);
+  const [jumpGraph, setJumpGraph] = useState<JumpGraph>({ 'nodes': [], 'edges': [] });
+  const multiViewerRef = useRef<MultiViewerHandle>(null);
 
   const isMultiMode = multiArticles.length > 1;
 
@@ -439,126 +440,6 @@ export function ArticleViewer () {
     setViewMode(prev => prev === 'single' ? 'grid' : 'single');
   }, []);
 
-  const handleJumpToArticle = useCallback(async (targetArticleId: string, pointId: string, direction: 'source' | 'target') => {
-    const displayArticle2 = currentArticle || article;
-    if (!displayArticle2) {
-      return;
-    }
-
-    if (targetArticleId === displayArticle2.id) {
-      const marker = document.querySelector(`[data-connection-point-id="${pointId}"]`) as HTMLElement;
-      if (marker) {
-        marker.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
-      }
-      return;
-    }
-
-    if (sideArticle && targetArticleId === sideArticle.article.id) {
-      const marker = document.querySelector(`[data-connection-point-id="${pointId}"]`) as HTMLElement;
-      if (marker) {
-        marker.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
-      }
-      return;
-    }
-
-    const targetArticle = await getArticleById(targetArticleId);
-    if (!targetArticle) {
-      return;
-    }
-
-    if (sideArticle && targetArticleId !== displayArticle2.id) {
-      setArticle(sideArticle.article);
-      setMultiArticles([sideArticle.article]);
-      setCurrentIndex(0);
-    }
-
-    setSideArticle({
-      'article': targetArticle,
-      'position': direction === 'target' ? 'right' : 'left',
-      pointId
-    });
-  }, [currentArticle, article, sideArticle]);
-
-  const handleJumpToArticleWithPath = useCallback(async (targetArticleId: string, pointId: string, direction: 'source' | 'target', connectionId?: string) => {
-    const displayArticle2 = currentArticle || article;
-    if (!displayArticle2) {
-      return;
-    }
-
-    if (targetArticleId === displayArticle2.id) {
-      const marker = document.querySelector(`[data-connection-point-id="${pointId}"]`) as HTMLElement;
-      if (marker) {
-        marker.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
-      }
-      return;
-    }
-
-    const existingIndex = jumpPath.findIndex(s => s.articleId === targetArticleId && s.pointId === pointId);
-    if (existingIndex >= 0) {
-      setJumpPath(prev => prev.slice(0, existingIndex + 1));
-    } else {
-      let sourcePointId = '';
-      let connLabel = '';
-
-      if (connectionId) {
-        const connectionCtx = (window as unknown as Record<string, unknown>).__connCtx as ExtendedConnectionContextValue | undefined;
-        if (connectionCtx) {
-          const conn = connectionCtx.state.connections.get(connectionId);
-          if (conn) {
-            sourcePointId = direction === 'target' ? conn.sourcePointId : conn.targetPointId;
-            connLabel = conn.label;
-          }
-        }
-      }
-
-      const sourceStep = jumpPath.length > 0
-        ? null
-        : buildPathStep({
-          'articleId': displayArticle2.id,
-          'articleTitle': displayArticle2.title,
-          'pointId': sourcePointId,
-          connectionId
-        });
-
-      const targetStep = buildPathStep({
-        'articleId': targetArticleId,
-        'articleTitle': '',
-        pointId,
-        connectionId,
-        'connectionLabel': connLabel || undefined
-      });
-
-      setJumpPath(prev => {
-        const base = sourceStep ? [sourceStep, ...prev] : [...prev];
-        return [...base, targetStep];
-      });
-    }
-
-    if (sideArticle && targetArticleId !== displayArticle2.id) {
-      setArticle(sideArticle.article);
-      setMultiArticles([sideArticle.article]);
-      setCurrentIndex(0);
-    }
-
-    const targetArticle = await getArticleById(targetArticleId);
-    if (!targetArticle) {
-      return;
-    }
-
-    setSideArticle({
-      'article': targetArticle,
-      'position': direction === 'target' ? 'right' : 'left',
-      pointId
-    });
-
-    setJumpPath(prev => prev.map((step, i) => {
-      if (i === prev.length - 1 && step.articleTitle === '') {
-        return { ...step, 'articleTitle': targetArticle.title };
-      }
-      return step;
-    }));
-  }, [currentArticle, article, sideArticle, jumpPath]);
-
   const handleJumpToPoint = useCallback((pointId: string) => {
     const marker = document.querySelector(`[data-connection-point-id="${pointId}"]`) as HTMLElement;
     if (marker) {
@@ -566,12 +447,184 @@ export function ArticleViewer () {
     }
   }, []);
 
-  const handlePathJump = useCallback(async (targetArticleId: string, pointId: string, direction: 'source' | 'target') => {
-    await handleJumpToArticle(targetArticleId, pointId, direction);
-  }, [handleJumpToArticle]);
+  const handleJumpToArticleWithPath = useCallback(async (targetArticleId: string, pointId: string, _direction: 'source' | 'target', connectionId?: string) => {
+    const displayArticle2 = currentArticle || article;
+    if (!displayArticle2) {
+      return;
+    }
+
+    if (targetArticleId === displayArticle2.id) {
+      handleJumpToPoint(pointId);
+      return;
+    }
+
+    if (viewMode !== 'grid' && sideArticle && targetArticleId === sideArticle.article.id) {
+      setTimeout(() => {
+        handleJumpToPoint(pointId);
+      }, 100);
+      return;
+    }
+
+    let connLabel = '';
+    let srcPointId: string | undefined;
+    let srcPointText: string | undefined;
+    let srcPointColor: string | undefined;
+    let tgtPointId: string | undefined;
+    let tgtPointText: string | undefined;
+    let tgtPointColor: string | undefined;
+
+    if (connectionId) {
+      const connectionCtx = (window as unknown as Record<string, unknown>).__connCtx as ExtendedConnectionContextValue | undefined;
+      if (connectionCtx) {
+        const conn = connectionCtx.state.connections.get(connectionId);
+        if (conn) {
+          connLabel = conn.label;
+          const srcPoint = connectionCtx.state.points.get(conn.sourcePointId);
+          const tgtPoint = connectionCtx.state.points.get(conn.targetPointId);
+          if (_direction === 'target') {
+            srcPointId = conn.sourcePointId;
+            srcPointText = srcPoint?.selectedText;
+            srcPointColor = srcPoint?.color;
+            tgtPointId = conn.targetPointId;
+            tgtPointText = tgtPoint?.selectedText;
+            tgtPointColor = tgtPoint?.color;
+          } else {
+            srcPointId = conn.targetPointId;
+            srcPointText = tgtPoint?.selectedText;
+            srcPointColor = tgtPoint?.color;
+            tgtPointId = conn.sourcePointId;
+            tgtPointText = srcPoint?.selectedText;
+            tgtPointColor = srcPoint?.color;
+          }
+        }
+      }
+    }
+
+    const targetArticle = await getArticleById(targetArticleId);
+    if (!targetArticle) {
+      return;
+    }
+
+    setJumpGraph(prev => addJumpToGraph({
+      'graph': prev,
+      'sourceArticleId': displayArticle2.id,
+      targetArticleId,
+      'sourceArticleTitle': displayArticle2.title,
+      'targetArticleTitle': targetArticle.title,
+      connectionId,
+      'connectionLabel': connLabel || undefined,
+      'sourcePointId': srcPointId,
+      'sourcePointText': srcPointText,
+      'sourcePointColor': srcPointColor,
+      'targetPointId': tgtPointId,
+      'targetPointText': tgtPointText,
+      'targetPointColor': tgtPointColor
+    }));
+
+    if (viewMode === 'grid') {
+      const exists = multiArticles.some(a => a.id === targetArticleId);
+      if (!exists) {
+        setMultiArticles(prev => [...prev, targetArticle]);
+      }
+      setTimeout(() => {
+        multiViewerRef.current?.focusArticle(targetArticleId, pointId);
+      }, exists ? 0 : 100);
+      return;
+    }
+
+    if (sideArticle) {
+      setArticle(sideArticle.article);
+      setMultiArticles([sideArticle.article]);
+      setCurrentIndex(0);
+    }
+
+    setSideArticle({
+      'article': targetArticle,
+      'position': 'right',
+      pointId
+    });
+  }, [currentArticle, article, sideArticle, handleJumpToPoint, viewMode, multiArticles]);
+
+  const handlePathJump = useCallback(async (targetArticleId: string, pointId: string) => {
+    const displayArticle2 = currentArticle || article;
+    if (!displayArticle2) {
+      return;
+    }
+
+    if (targetArticleId === displayArticle2.id) {
+      return;
+    }
+
+    const targetArticle = await getArticleById(targetArticleId);
+    if (!targetArticle) {
+      return;
+    }
+
+    if (viewMode === 'grid') {
+      const exists = multiArticles.some(a => a.id === targetArticleId);
+      if (!exists) {
+        setMultiArticles(prev => [...prev, targetArticle]);
+      }
+      setTimeout(() => {
+        multiViewerRef.current?.focusArticle(targetArticleId, pointId);
+      }, exists ? 0 : 100);
+      return;
+    }
+
+    if (sideArticle) {
+      setArticle(sideArticle.article);
+      setMultiArticles([sideArticle.article]);
+      setCurrentIndex(0);
+    }
+
+    setSideArticle({
+      'article': targetArticle,
+      'position': 'right',
+      pointId
+    });
+  }, [currentArticle, article, sideArticle, viewMode, multiArticles]);
+
+  const handleNodeNavigate = useCallback(async (articleId: string) => {
+    const displayArticle2 = currentArticle || article;
+    if (!displayArticle2 || articleId === displayArticle2.id) {
+      return;
+    }
+
+    if (viewMode !== 'grid' && sideArticle && articleId === sideArticle.article.id) {
+      return;
+    }
+
+    const targetArticle = await getArticleById(articleId);
+    if (!targetArticle) {
+      return;
+    }
+
+    if (viewMode === 'grid') {
+      const exists = multiArticles.some(a => a.id === articleId);
+      if (!exists) {
+        setMultiArticles(prev => [...prev, targetArticle]);
+      }
+      setTimeout(() => {
+        multiViewerRef.current?.focusArticle(articleId);
+      }, exists ? 0 : 100);
+      return;
+    }
+
+    if (sideArticle) {
+      setArticle(sideArticle.article);
+      setMultiArticles([sideArticle.article]);
+      setCurrentIndex(0);
+    }
+
+    setSideArticle({
+      'article': targetArticle,
+      'position': 'right',
+      'pointId': ''
+    });
+  }, [currentArticle, article, sideArticle, viewMode, multiArticles]);
 
   const handleClearPath = useCallback(() => {
-    setJumpPath([]);
+    setJumpGraph({ 'nodes': [], 'edges': [] });
   }, []);
 
   const handleCloseSideArticle = useCallback(() => {
@@ -698,10 +751,10 @@ export function ArticleViewer () {
           </div>
 
           <MultiViewer
+            ref={multiViewerRef}
             articles={multiArticles}
             onRemoveArticle={handleRemoveArticle}
             onSelectArticle={handleSelectArticle}
-            onJumpToArticle={handleJumpToArticleWithPath}
           />
 
           <ArticleSelector
@@ -726,6 +779,13 @@ export function ArticleViewer () {
     ? multiArticles.map(a => a.id)
     : [displayArticle.id, ...(sideArticle ? [sideArticle.article.id] : [])];
 
+  let mainVirtualDirection: 'left' | 'right' | undefined;
+  if (sideArticle) {
+    mainVirtualDirection = sideArticle.position === 'left' ? 'right' : 'left';
+  } else {
+    mainVirtualDirection = undefined;
+  }
+
   return (
     <ConnectionProvider articleIds={singleArticleIds}>
       <ConnectionInteraction
@@ -748,13 +808,14 @@ export function ArticleViewer () {
                 </button>
               </div>
               <div className="min-w-0" ref={sideContentRef}>
-                <main className="bg-slate-100/90 dark:bg-slate-800/90 rounded border border-slate-200/60 dark:border-slate-700/60 relative">
+                <main className="bg-slate-100 dark:bg-slate-800 relative">
                   <ArticleConnectionLines
                     articleId={sideArticle.article.id}
                     scrollContainerRef={sideContentRef}
                     editorRef={sideEditorRef}
                     renderedArticleIds={[displayArticle.id, sideArticle.article.id]}
-                    renderCrossArticle={false}
+                    renderCrossArticle={true}
+                    virtualPointDirection="left"
                   />
                   <ConnectionPointManager
                     articleId={sideArticle.article.id}
@@ -777,7 +838,7 @@ export function ArticleViewer () {
           </div>
         )}
 
-        <div className={sideArticle ? 'w-1/2 min-w-0 flex-shrink-0' : ''}>
+        <div className={`${sideArticle ? 'w-1/2 flex-shrink-0' : 'flex-1'} min-w-0`}>
           <article>
             {displayArticle.cover_image && (
               <div className="mb-6 rounded overflow-hidden bg-slate-100/40 dark:bg-slate-800/40">
@@ -899,12 +960,13 @@ export function ArticleViewer () {
             />
 
             <div className="flex-1 min-w-0" ref={contentRef}>
-              <main className="bg-slate-100/90 dark:bg-slate-800/90 rounded border border-slate-200/60 dark:border-slate-700/60 relative">
+              <main className="bg-slate-100 dark:bg-slate-800 relative">
                 <ArticleConnectionLines
                   articleId={displayArticle.id}
                   scrollContainerRef={contentRef}
                   editorRef={editorRef}
                   renderedArticleIds={sideArticle ? [displayArticle.id, sideArticle.article.id] : undefined}
+                  virtualPointDirection={mainVirtualDirection}
                 />
                 <ConnectionPointManager
                   articleId={displayArticle.id}
@@ -938,12 +1000,13 @@ export function ArticleViewer () {
                 </button>
               </div>
               <div className="min-w-0" ref={sideContentRef}>
-                <main className="bg-slate-100/90 dark:bg-slate-800/90 rounded border border-slate-200/60 dark:border-slate-700/60 relative">
+                <main className="bg-slate-100 dark:bg-slate-800 relative">
                   <ArticleConnectionLines
                     articleId={sideArticle.article.id}
                     scrollContainerRef={sideContentRef}
                     editorRef={sideEditorRef}
-                    renderCrossArticle={false}
+                    renderCrossArticle={true}
+                    virtualPointDirection="right"
                   />
                   <ConnectionPointManager
                     articleId={sideArticle.article.id}
@@ -996,10 +1059,10 @@ export function ArticleViewer () {
       )}
 
       <JumpPathBar
-        path={jumpPath}
+        graph={jumpGraph}
         currentArticleId={displayArticle.id}
-        onJumpToArticle={handlePathJump}
-        onJumpToPoint={handleJumpToPoint}
+        onNodeClick={handleNodeNavigate}
+        onEdgeClick={handlePathJump}
         onClear={handleClearPath}
       />
 

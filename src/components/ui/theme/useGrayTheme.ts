@@ -1,6 +1,8 @@
 import { useContext } from 'react';
 import { GrayThemeContext, type GrayThemeName } from './GrayThemeContext';
 
+export { type GrayThemeName };
+
 export interface GrayThemeContextValue {
   'theme': GrayThemeName;
   'setTheme': (name: GrayThemeName) => void;
@@ -14,5 +16,3 @@ export function useGrayTheme (): GrayThemeContextValue {
   }
   return context;
 }
-
-export type { GrayThemeName };

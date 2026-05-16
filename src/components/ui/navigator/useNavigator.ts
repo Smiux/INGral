@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { NavigatorContext, type NavigatorContextType } from './NavigatorContext';
+import { NavigatorContext, type NavigatorContextType } from '../navigator/NavigatorContext';
 
 export function useNavigator (): NavigatorContextType {
   const ctx = useContext(NavigatorContext);

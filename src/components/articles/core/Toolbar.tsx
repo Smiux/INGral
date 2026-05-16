@@ -186,7 +186,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
   }
 
   return (
-    <div key={key} className="p-2 bg-slate-200/50 dark:bg-slate-700/50 rounded-t border border-slate-200/60 dark:border-slate-700/60 border-b-0">
+    <div key={key} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-t">
       <div className="flex flex-wrap items-center gap-1">
         <div className="relative menu-container">
           <ToolbarButton

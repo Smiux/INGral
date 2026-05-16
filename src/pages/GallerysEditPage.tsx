@@ -12,21 +12,40 @@ import {
   type Edge,
   type NodeTypes,
   type EdgeTypes,
-  ConnectionMode,
   NodeChange,
   EdgeChange
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Info, Trash2, Plus, Save, Undo2, Redo2, Archive, FileText, FilePlus, ChevronDown, LayoutGrid, Eye } from 'lucide-react';
 import { getGalleryById, createGallery, updateGallery, deleteGallery } from '@/services/galleryService';
+import { getArticleBySlug } from '@/services/articleService';
 import { ArticleSelector, ArticlePreviewPanel, GalleryInfoPanel, GalleryLayoutPanel, SimpleEditor } from '@/components/gallerys';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { NavigatorTrigger } from '@/components/ui/Navigator';
+import { ConfirmDialog } from '@/components/ui/generic/ConfirmDialog';
+import { NavigatorTrigger } from '@/components/ui/navigator/Navigator';
 import { ArticleNode as ArticleNodeComponent } from '@/components/gallerys/Node';
 import { ArticleEdge as ArticleEdgeComponent } from '@/components/gallerys/Edge';
 import { useUndoRedo } from '@/components/graph/GraphVisualization/utils/useUndoRedo';
 import { useRightClickConnect } from '@/components/graph/GraphVisualization/utils/useRightClickConnect';
 import type { ArticleNodeData, EmbeddedArticle, ArticleNode, ArticleEdge } from '@/components/gallerys/gallery';
+
+function countWords (text: string): number {
+  let plainText = text;
+
+  plainText = plainText.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+  plainText = plainText.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+  plainText = plainText.replace(/<[^>]+>/g, ' ');
+  plainText = plainText.replace(/&nbsp;/g, ' ');
+  plainText = plainText.replace(/&lt;/g, '<');
+  plainText = plainText.replace(/&gt;/g, '>');
+  plainText = plainText.replace(/&amp;/g, '&');
+  plainText = plainText.replace(/&quot;/g, '"');
+  plainText = plainText.replace(/&#\d+;/g, ' ');
+  plainText = plainText.replace(/&[a-zA-Z]+;/g, ' ');
+
+  const chineseChars = (plainText.match(/[\u4e00-\u9fa5]/gu) || []).length;
+  const englishWords = (plainText.match(/[a-zA-Z]+/g) || []).length;
+  return chineseChars + englishWords;
+}
 
 const nodeTypes = {
   'articleNode': ArticleNodeComponent
@@ -57,6 +76,7 @@ const GallerysEditContent = () => {
   const [showLayoutPanel, setShowLayoutPanel] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showOnlySelected, setShowOnlySelected] = useState(false);
+  const [articleWordCountMap, setArticleWordCountMap] = useState<Record<string, number>>({});
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -149,6 +169,25 @@ const GallerysEditContent = () => {
         setEdges(initialEdges);
         setEmbeddedArticles(gallery.embeddedArticles || []);
         setExcludeSlugs(initialNodes.map(n => (n.data as ArticleNodeData).articleSlug));
+
+        const existingSlugs = initialNodes
+          .filter(n => !(n.data as ArticleNodeData).isEmbedded)
+          .map(n => (n.data as ArticleNodeData).articleSlug);
+
+        if (existingSlugs.length > 0) {
+          const wordCountMap: Record<string, number> = {};
+          await Promise.all(existingSlugs.map(async slug => {
+            try {
+              const articleData = await getArticleBySlug(slug);
+              if (articleData?.content) {
+                wordCountMap[slug] = countWords(articleData.content);
+              }
+            } catch {
+              // 忽略错误
+            }
+          }));
+          setArticleWordCountMap(wordCountMap);
+        }
       } else {
         navigate('/gallerys');
       }
@@ -190,26 +229,38 @@ const GallerysEditContent = () => {
         ...(e.selected !== undefined && { 'selected': e.selected })
       }));
 
+      let totalWordCount = 0;
+      embeddedArticles.forEach(article => {
+        totalWordCount += countWords(article.content || '');
+      });
+      savedNodes.forEach(node => {
+        if (node.data?.articleSlug && !node.data?.isEmbedded) {
+          totalWordCount += articleWordCountMap[node.data.articleSlug] || 0;
+        }
+      });
+
       if (isEditMode && galleryId) {
         await updateGallery(galleryId, {
           title,
           'nodes': savedNodes,
           'edges': savedEdges,
-          embeddedArticles
+          embeddedArticles,
+          totalWordCount
         });
       } else {
         const newId = await createGallery({
           title,
           'nodes': savedNodes,
           'edges': savedEdges,
-          embeddedArticles
+          embeddedArticles,
+          totalWordCount
         });
         navigate(`/gallerys/${newId}/edit`, { 'replace': true });
       }
     } finally {
       setIsSaving(false);
     }
-  }, [title, nodes, edges, embeddedArticles, isEditMode, galleryId, navigate]);
+  }, [title, nodes, edges, embeddedArticles, articleWordCountMap, isEditMode, galleryId, navigate]);
 
   const handleDelete = useCallback(async () => {
     if (!galleryId || !isEditMode) {
@@ -255,6 +306,15 @@ const GallerysEditContent = () => {
     setNodes((nds) => [...nds, newNode]);
     setExcludeSlugs(prev => [...prev, article.slug]);
     setShowAddMenu(false);
+
+    getArticleBySlug(article.slug).then((articleData) => {
+      if (articleData?.content) {
+        setArticleWordCountMap(prev => ({
+          ...prev,
+          [article.slug]: countWords(articleData.content)
+        }));
+      }
+    });
   }, [excludeSlugs, setNodes]);
 
   const handleCreateEmbeddedArticle = useCallback((article: Omit<EmbeddedArticle, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -576,8 +636,6 @@ const GallerysEditContent = () => {
             fitView
             minZoom={0.01}
             maxZoom={10}
-            colorMode="system"
-            connectionMode={ConnectionMode.Loose}
             panOnDrag
             proOptions={{ 'hideAttribution': true }}
           >

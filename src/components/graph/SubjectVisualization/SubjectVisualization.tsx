@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { NavigatorTrigger } from '@/components/ui/Navigator';
+import { NavigatorTrigger } from '@/components/ui/navigator/Navigator';
 import {
   X,
   Hash,
@@ -37,7 +37,7 @@ import {
   DEFAULT_COSMOS_GL_SETTINGS,
   DEFAULT_DECK_GL_SETTINGS
 } from './renderers';
-import { SlidingCardSelector, type SlidingCardOption } from '@/components/ui/SlidingCardSelector';
+import { SlidingCardSelector, type SlidingCardOption } from '@/components/ui/generic/SlidingCardSelector';
 import './msc2020';
 import './physh';
 import './mesh';

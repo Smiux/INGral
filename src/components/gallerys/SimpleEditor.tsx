@@ -192,7 +192,7 @@ const SimpleEditorInner: React.FC<SimpleEditorProps> = ({
       />
 
       <div className="fixed right-0 top-0 bottom-0 w-[800px] bg-slate-50 dark:bg-slate-900 z-50 overflow-hidden flex flex-col">
-        <div className="sticky top-0 bg-slate-50 dark:bg-slate-900 border-b border-slate-200/60 dark:border-slate-700/60 p-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-slate-100 dark:bg-slate-800 border-b border-slate-200/60 dark:border-slate-700/60 p-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-300">
             {mode === 'create' ? '创建文章' : '编辑文章'}
           </h2>
@@ -214,7 +214,7 @@ const SimpleEditorInner: React.FC<SimpleEditorProps> = ({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-10">
           <div className="mb-4 border border-slate-200/60 dark:border-slate-700/60 rounded overflow-hidden">
             <button
               onClick={() => setTitleExpanded(!titleExpanded)}
@@ -227,7 +227,6 @@ const SimpleEditorInner: React.FC<SimpleEditorProps> = ({
                   <span className="text-sm text-slate-500 dark:text-slate-400 truncate max-w-[300px]">{title}</span>
                 )}
               </div>
-              {!title.trim() && <span className="text-xs text-red-500">必填</span>}
             </button>
             {titleExpanded && (
               <div className="p-4 border-t border-slate-200/60 dark:border-slate-700/60">
@@ -370,7 +369,7 @@ const SimpleEditorInner: React.FC<SimpleEditorProps> = ({
             )}
           </div>
 
-          <div className="bg-slate-50 dark:bg-slate-900 rounded border border-slate-200/60 dark:border-slate-700/60">
+          <div className="bg-slate-100 dark:bg-slate-800">
             <EditorToolbar
               editor={editor}
               activeMenu={activeMenu}

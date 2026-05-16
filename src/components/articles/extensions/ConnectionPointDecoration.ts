@@ -111,16 +111,6 @@ function buildDecorations (doc: ProseMirrorNode, points: ConnectionPoint[]): Dec
             'key': `end-mark-${point.id}`
           })
         );
-
-        decorations.push(
-          Decoration.inline(from, to, {
-            'class': 'connection-point-highlight',
-            'data-highlight-for': point.id,
-            'style': `background: ${color}15; pointer-events: none;`
-          }, {
-            'key': `highlight-${point.id}`
-          })
-        );
       } catch {
         // ignore invalid positions
       }

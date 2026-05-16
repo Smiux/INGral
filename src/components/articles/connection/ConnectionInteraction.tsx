@@ -182,16 +182,21 @@ export function ConnectionInteraction ({
       return;
     }
 
-    const pointId = direction === 'source' ? conn.sourcePointId : conn.targetPointId;
-    const point = state.points.get(pointId);
-    if (!point) {
+    const sourcePoint = state.points.get(conn.sourcePointId);
+    const targetPoint = state.points.get(conn.targetPointId);
+    if (!sourcePoint || !targetPoint) {
       return;
     }
 
-    if (onJumpToArticle) {
-      onJumpToArticle(point.articleId, pointId, direction, connId);
-    } else if (onJumpToPoint) {
-      onJumpToPoint(pointId);
+    const isSameArticle = sourcePoint.articleId === targetPoint.articleId;
+
+    if (isSameArticle) {
+      const pointId = direction === 'source' ? conn.sourcePointId : conn.targetPointId;
+      onJumpToPoint?.(pointId);
+    } else {
+      const targetPointId = direction === 'source' ? conn.sourcePointId : conn.targetPointId;
+      const targetArticleId = direction === 'source' ? sourcePoint.articleId : targetPoint.articleId;
+      onJumpToArticle?.(targetArticleId, targetPointId, direction, connId);
     }
 
     setJumpMenuConnection(null);

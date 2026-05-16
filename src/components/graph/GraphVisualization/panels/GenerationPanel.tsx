@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import type { CustomNodeData } from '../Node';
 import type { CustomEdgeData } from '../Edge';
 import ELK from 'elkjs';
-import { SlidingCardSelector } from '@/components/ui/SlidingCardSelector';
+import { SlidingCardSelector } from '@/components/ui/generic/SlidingCardSelector';
 import Graph from 'graphology';
 import { erdosRenyi, clusters as generateClusters } from 'graphology-generators/random';
 import { caveman, connectedCaveman } from 'graphology-generators/community';
@@ -174,7 +174,7 @@ const DEFAULT_CONFIGS: Record<GraphType, GraphConfig> = {
   'connectedCaveman': { 'graphType': 'connectedCaveman', 'curveType': 'default', 'cliques': 4, 'cliqueSize': 5 }
 };
 
-type LayoutMode = 'elk' | 'circular';
+type LayoutMode = 'elk';
 
 interface LayoutConfig {
   mode: LayoutMode;
@@ -184,10 +184,10 @@ interface LayoutConfig {
 
 const LAYOUT_CONFIGS: Record<GraphType, LayoutConfig> = {
   'random': { 'mode': 'elk', 'algorithm': 'org.eclipse.elk.random', 'options': { 'elk.spacing.nodeNode': '30' } },
-  'cycle': { 'mode': 'circular' },
+  'cycle': { 'mode': 'elk', 'algorithm': 'org.eclipse.elk.stress', 'options': { 'elk.stress.dimension': 'XY' } },
   'tree': { 'mode': 'elk', 'algorithm': 'org.eclipse.elk.mrtree', 'options': { 'elk.spacing.nodeNode': '100', 'elk.direction': 'DOWN' } },
   'star': { 'mode': 'elk', 'algorithm': 'org.eclipse.elk.radial', 'options': { 'elk.spacing.nodeNode': '50' } },
-  'complete': { 'mode': 'circular' },
+  'complete': { 'mode': 'elk', 'algorithm': 'org.eclipse.elk.stress', 'options': { 'elk.stress.dimension': 'XY' } },
   'grid': { 'mode': 'elk', 'algorithm': 'org.eclipse.elk.stress', 'options': { 'elk.stress.desiredEdgeLength': '400', 'elk.stress.dimension': 'XY' } },
   'completeBipartite': { 'mode': 'elk', 'algorithm': 'org.eclipse.elk.layered', 'options': { 'elk.spacing.nodeNode': '80', 'elk.direction': 'RIGHT', 'elk.layered.spacing.nodeNodeBetweenLayers': '120' } },
   'circularLadder': { 'mode': 'elk', 'algorithm': 'org.eclipse.elk.stress', 'options': { 'elk.stress.desiredEdgeLength': '350', 'elk.stress.dimension': 'XY' } },
@@ -202,20 +202,6 @@ const LAYOUT_CONFIGS: Record<GraphType, LayoutConfig> = {
 const NODE_WIDTH = 150;
 const NODE_HEIGHT = 50;
 
-const applyCircularLayout = (nodes: Node<CustomNodeData>[], centerX = 600, centerY = 400): Node<CustomNodeData>[] => {
-  const count = nodes.length;
-  if (count === 0) {
-    return nodes;
-  }
-  const minGap = Math.max(NODE_WIDTH * 0.8, NODE_HEIGHT * 2);
-  const circumference = count * (NODE_WIDTH + minGap);
-  const radius = Math.max(circumference / (2 * Math.PI), 100);
-  return nodes.map((node, i) => {
-    const angle = (Math.PI / 2) - (i / count) * Math.PI * 2;
-    return { ...node, 'position': { 'x': Math.cos(angle) * radius + centerX, 'y': Math.sin(angle) * radius + centerY } };
-  });
-};
-
 const layoutGraph = async (
   nodes: Node<CustomNodeData>[],
   edges: Edge<CustomEdgeData>[],
@@ -226,22 +212,30 @@ const layoutGraph = async (
     return nodes;
   }
 
-  if (cfg.mode === 'circular') {
-    return applyCircularLayout(nodes);
-  }
-
   const layoutOptions: Record<string, string> = {
     'elk.algorithm': cfg.algorithm!,
     'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
     ...cfg.options
   };
 
+  if (cfg.algorithm === 'org.eclipse.elk.stress' && !layoutOptions['elk.stress.desiredEdgeLength']) {
+    layoutOptions['elk.stress.desiredEdgeLength'] = String(180 + nodes.length * 3);
+  }
+
   try {
+    const layoutEdges = graphType === 'complete'
+      ? nodes.map((node, i) => ({
+        'id': `cycle-${i}`,
+        'sources': [node.id],
+        'targets': [nodes[(i + 1) % nodes.length]?.id ?? node.id]
+      }))
+      : edges.map(edge => ({ 'id': edge.id, 'sources': [edge.source], 'targets': [edge.target] }));
+
     const layoutedGraph = await elk.layout({
       'id': 'root',
       layoutOptions,
       'children': nodes.map(node => ({ 'id': node.id, 'width': NODE_WIDTH, 'height': NODE_HEIGHT })),
-      'edges': edges.map(edge => ({ 'id': edge.id, 'sources': [edge.source], 'targets': [edge.target] }))
+      'edges': layoutEdges
     });
 
     if (!layoutedGraph.children) {

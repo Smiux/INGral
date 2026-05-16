@@ -37,6 +37,7 @@ export interface Gallery {
   nodes: ArticleNode[];
   edges: ArticleEdge[];
   embeddedArticles: EmbeddedArticle[];
+  totalWordCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -56,6 +57,7 @@ export interface CreateGalleryParams {
   nodes?: ArticleNode[];
   edges?: ArticleEdge[];
   embeddedArticles?: EmbeddedArticle[];
+  totalWordCount?: number;
 }
 
 export interface UpdateGalleryParams {
@@ -63,4 +65,5 @@ export interface UpdateGalleryParams {
   nodes?: ArticleNode[];
   edges?: ArticleEdge[];
   embeddedArticles?: EmbeddedArticle[];
+  totalWordCount?: number;
 }

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { NavigatorTrigger } from '@/components/ui/Navigator';
+import { NavigatorTrigger } from '@/components/ui/navigator/Navigator';
 import {
   ReactFlow,
   Background,
@@ -15,7 +15,6 @@ import {
   type Edge as EdgeType,
   type NodeTypes,
   type EdgeTypes,
-  ConnectionMode,
   NodeChange,
   EdgeChange
 } from '@xyflow/react';
@@ -434,7 +433,6 @@ const VisualizationContent: React.FC = () => {
               minZoom={0.01}
               maxZoom={10}
               style={{ 'width': '100%', 'height': '100%' }}
-              connectionMode={ConnectionMode.Loose}
               proOptions={{ 'hideAttribution': true }}
               snapToGrid={snapToGrid}
               snapGrid={[16, 16]}
@@ -469,7 +467,7 @@ const VisualizationContent: React.FC = () => {
             linkDirectionalParticles={2}
             linkDirectionalParticleWidth={4}
             linkDirectionalParticleColor="#6b7280"
-            backgroundColor="var(--background-color, var(--color-slate-50))"
+            backgroundColor="transparent"
             width={canvasDimensions.width}
             height={canvasDimensions.height}
           />
@@ -484,7 +482,6 @@ const VisualizationContent: React.FC = () => {
             linkWidth={(link: ForceGraphLink) => link.width}
             linkDirectionalArrowLength={6}
             linkDirectionalArrowRelPos={1}
-            backgroundColor="var(--background-color, var(--color-slate-50))"
             width={canvasDimensions.width}
             height={canvasDimensions.height}
           />

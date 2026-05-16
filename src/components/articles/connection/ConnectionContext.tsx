@@ -114,6 +114,8 @@ export function ConnectionProvider ({ children, articleIds }: ConnectionProvider
   const [state, dispatch] = useReducer(connectionReducer, initialState);
   const [isLoading, setIsLoading] = useState(false);
   const loadedArticleIdsRef = useRef<Set<string>>(new Set());
+  const articleIdsRef = useRef(articleIds);
+  articleIdsRef.current = articleIds;
 
   useEffect(() => {
     if (!articleIds || articleIds.length === 0) {
@@ -255,6 +257,11 @@ export function ConnectionProvider ({ children, articleIds }: ConnectionProvider
 
   const save = useCallback(async (): Promise<boolean> => {
     try {
+      const ids = articleIdsRef.current;
+      if (!ids || ids.length === 0) {
+        return false;
+      }
+
       const points: ConnectionPointData[] = Array.from(state.points.values()).map(p => ({
         'id': p.id,
         'articleId': p.articleId,
@@ -273,7 +280,7 @@ export function ConnectionProvider ({ children, articleIds }: ConnectionProvider
         'createdAt': c.createdAt
       }));
 
-      await saveConnectionData({ points, connections });
+      await saveConnectionData({ points, connections, 'articleIds': ids });
       return true;
     } catch {
       return false;

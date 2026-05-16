@@ -1,5 +1,4 @@
 import { turso } from './tursoClient';
-import { invalidateGalleryListCache } from './galleryService';
 
 export interface ArticleListItem {
   id: string;
@@ -96,21 +95,37 @@ function parseArticleWithContent (row: Record<string, unknown>): ArticleWithCont
   };
 }
 
-export function invalidateArticleCache (slug?: string): void {
-  if (slug) {
-    articleCache.delete(slug);
-    contentCache.delete(slug);
-    listCache.clear();
-  } else {
-    articleCache.clear();
-    contentCache.clear();
-    listCache.clear();
-  }
+function invalidateArticleCacheBySlug (slug: string): void {
+  articleCache.delete(slug);
+}
+
+function invalidateContentCacheById (id: string): void {
+  contentCache.delete(id);
+}
+
+function invalidateListCache (): void {
+  listCache.clear();
   totalCache.updatedAt = '';
-  invalidateGalleryListCache();
 }
 
 export async function getArticleById (articleId: string): Promise<ArticleWithContent | null> {
+  const updatedAtResult = await turso.execute({
+    'sql': `SELECT slug, updated_at FROM ${TABLE_NAME} WHERE id = ?`,
+    'args': [articleId]
+  });
+
+  if (updatedAtResult.rows.length === 0) {
+    return null;
+  }
+
+  const slug = updatedAtResult.rows[0]?.slug as string;
+  const currentUpdatedAt = updatedAtResult.rows[0]?.updated_at as string;
+  const cached = articleCache.get(slug);
+
+  if (cached && cached.updatedAt === currentUpdatedAt) {
+    return cached.article;
+  }
+
   const result = await turso.execute({
     'sql': `SELECT * FROM ${TABLE_NAME} WHERE id = ?`,
     'args': [articleId]
@@ -120,7 +135,12 @@ export async function getArticleById (articleId: string): Promise<ArticleWithCon
     return null;
   }
 
-  return parseArticleWithContent(result.rows[0] as Record<string, unknown>);
+  const article = parseArticleWithContent(result.rows[0] as Record<string, unknown>);
+
+  articleCache.set(slug, { article, 'updatedAt': currentUpdatedAt });
+  contentCache.set(article.id, { 'content': article.content, 'updatedAt': currentUpdatedAt });
+
+  return article;
 }
 
 export async function getArticleBySlug (slug: string): Promise<ArticleWithContent | null> {
@@ -307,7 +327,7 @@ export async function createArticle ({
     'args': [id, title, slug, content, coverImage || null, summary || null, tagsJson, now, now]
   });
 
-  invalidateArticleCache();
+  invalidateListCache();
 
   return {
     id,
@@ -361,8 +381,9 @@ export async function updateArticle ({
 
   const article = parseArticleWithContent(result.rows[0] as Record<string, unknown>);
 
-  articleCache.delete(article.slug);
-  invalidateArticleCache(article.slug);
+  invalidateArticleCacheBySlug(article.slug);
+  invalidateContentCacheById(article.id);
+  invalidateListCache();
 
   return article;
 }
@@ -373,7 +394,7 @@ export async function deleteArticle (articleId: string): Promise<boolean> {
     'args': [articleId]
   });
 
-  invalidateArticleCache();
+  invalidateListCache();
 
   return result.rowsAffected > 0;
 }

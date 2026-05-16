@@ -1,5 +1,5 @@
-import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { memo, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Background,
   BackgroundVariant,
@@ -18,7 +18,6 @@ import {
 import '@xyflow/react/dist/style.css';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Signpost, Compass } from 'lucide-react';
-import { getGalleryById } from '@/services/galleryService';
 import type { ArticleEdge, ArticleNode, ArticleNodeData } from '@/components/gallerys/gallery';
 
 type ExploreRole = 'current' | 'incoming' | 'outgoing' | 'both';
@@ -467,80 +466,30 @@ function ExplorationDockTitleBar ({
 
 interface ExplorationGraphPanelProps {
   collapsed: boolean;
-  onToggleCollapsed: () => void;
   onSwitchToBeacon: () => void;
   onDockTitlePointerEnter: () => void;
   onDockRegionPointerLeave: () => void;
+  nodes: ArticleNode[];
+  edges: ArticleEdge[];
+  currentNode: ArticleNode;
+  galleryId: string;
 }
 
 export const ExplorationGraphPanel = ({
   collapsed,
   onSwitchToBeacon,
   onDockTitlePointerEnter,
-  onDockRegionPointerLeave
+  onDockRegionPointerLeave,
+  nodes,
+  edges,
+  currentNode,
+  galleryId
 }: ExplorationGraphPanelProps) => {
-  const { galleryId } = useParams<{ galleryId: string }>();
-  const [searchParams] = useSearchParams();
-  const articleSlug = searchParams.get('article');
-  const embeddedArticleId = searchParams.get('embedded');
+  const built = useMemo(() => buildNeighborhoodGraph(nodes, edges, currentNode), [nodes, edges, currentNode]);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [flowNodes, setFlowNodes] = useState<Node<ExploreArticleNodeData>[]>([]);
-  const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
-  const [contentSize, setContentSize] = useState({ 'w': 720, 'h': 400 });
+  const hasNeighbors = built.flowNodes.length > 1;
 
-  useEffect(() => {
-    const load = async () => {
-      if (!galleryId || (!articleSlug && !embeddedArticleId)) {
-        setIsLoading(false);
-        setFlowNodes([]);
-        setFlowEdges([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const gallery = await getGalleryById(galleryId);
-        if (!gallery) {
-          setFlowNodes([]);
-          setFlowEdges([]);
-          return;
-        }
-
-        const currentNode = gallery.nodes.find((n: ArticleNode) => {
-          if (embeddedArticleId) {
-            return n.data.embeddedArticleId === embeddedArticleId;
-          }
-          return n.data.articleSlug === articleSlug && !n.data.isEmbedded;
-        });
-
-        if (!currentNode) {
-          setFlowNodes([]);
-          setFlowEdges([]);
-          return;
-        }
-
-        const built = buildNeighborhoodGraph(
-          gallery.nodes,
-          gallery.edges,
-          currentNode
-        );
-        setFlowNodes(built.flowNodes);
-        setFlowEdges(built.flowEdges);
-        setContentSize({ 'w': built.contentWidth, 'h': built.contentHeight });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    load();
-  }, [galleryId, articleSlug, embeddedArticleId]);
-
-  const hasNeighbors = useMemo(() => {
-    return flowNodes.length > 1;
-  }, [flowNodes.length]);
-
-  if (!galleryId || (!articleSlug && !embeddedArticleId)) {
+  if (!hasNeighbors) {
     return null;
   }
 
@@ -554,40 +503,6 @@ export const ExplorationGraphPanel = ({
       <Signpost className="h-4 w-4" />
     </button>
   );
-
-  if (isLoading) {
-    return (
-      <div
-        className="w-full shrink-0 border-b border-slate-200/60 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-900"
-        onPointerLeave={onDockRegionPointerLeave}
-      >
-        <ExplorationDockTitleBar
-          modeSwitch={modeSwitch}
-          onTitlePointerEnter={onDockTitlePointerEnter}
-        />
-        <AnimatePresence initial={false}>
-          {!collapsed && (
-            <motion.div
-              key="exploration-dock-body"
-              initial={{ 'height': 0, 'opacity': 0 }}
-              animate={{ 'height': 'auto', 'opacity': 1 }}
-              exit={{ 'height': 0, 'opacity': 0 }}
-              transition={dockBodyTransition}
-              style={{ 'overflow': 'hidden' }}
-            >
-              <div className="flex justify-center py-10">
-                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-sky-500" />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  }
-
-  if (!hasNeighbors) {
-    return null;
-  }
 
   return (
     <div
@@ -618,11 +533,11 @@ export const ExplorationGraphPanel = ({
                 <div className="h-[min(48vh,420px)] w-full min-h-[280px] overflow-hidden rounded border border-slate-200/60 dark:border-slate-700/60">
                   <ReactFlowProvider>
                     <ExploreGraphInner
-                      flowNodes={flowNodes}
-                      flowEdges={flowEdges}
+                      flowNodes={built.flowNodes}
+                      flowEdges={built.flowEdges}
                       galleryId={galleryId}
-                      contentWidth={contentSize.w}
-                      contentHeight={contentSize.h}
+                      contentWidth={built.contentWidth}
+                      contentHeight={built.contentHeight}
                     />
                   </ReactFlowProvider>
                 </div>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo, memo } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo, memo, useImperativeHandle, forwardRef } from 'react';
 import { X, GripVertical, CalendarDays, Tag, Maximize2 } from 'lucide-react';
 import { TiptapEditor, type TiptapEditorRef } from './core/TipTap';
 import type { ArticleWithContent } from '../../services/articleService';
@@ -8,6 +8,10 @@ interface ArticlePosition {
   articleId: string;
   x: number;
   y: number;
+}
+
+export interface MultiViewerHandle {
+  focusArticle: (articleId: string, pointId?: string) => void;
 }
 
 interface MultiViewerProps {
@@ -231,12 +235,11 @@ const ArticlePagePreview = memo(function ArticlePagePreview ({
   );
 });
 
-function MultiViewerInner ({
+const MultiViewerInner = forwardRef<MultiViewerHandle, MultiViewerProps>(function MultiViewerInner ({
   articles,
   onRemoveArticle,
-  onSelectArticle,
-  onJumpToArticle
-}: MultiViewerProps) {
+  onSelectArticle
+}, ref) {
   const [zoomDisplay, setZoomDisplay] = useState(60);
   const [zoomAtBounds, setZoomAtBounds] = useState<{ atMin: boolean; atMax: boolean }>({ 'atMin': false, 'atMax': false });
   const [assignedPositions, setAssignedPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
@@ -568,6 +571,44 @@ function MultiViewerInner ({
     return map;
   }, [articlePositions]);
 
+  useImperativeHandle(ref, () => ({
+    'focusArticle': (articleId: string, pointId?: string) => {
+      const pos = positionMap.get(articleId);
+      if (!pos || !viewportRef.current) {
+        return;
+      }
+
+      const rect = viewportRef.current.getBoundingClientRect();
+      const zoom = zoomRef.current;
+
+      const articleCenterX = pos.x + ARTICLE_WIDTH / 2;
+      const articleCenterY = pos.y + ARTICLE_VIEW_HEIGHT / 2;
+
+      panRef.current = {
+        'x': rect.width / 2 - articleCenterX * zoom,
+        'y': rect.height / 2 - articleCenterY * zoom
+      };
+      applyTransform();
+
+      if (pointId) {
+        setTimeout(() => {
+          const articleEl = canvasRef.current?.querySelector(`[data-article-id="${articleId}"]`);
+          if (!articleEl) {
+            return;
+          }
+          const scrollContainer = articleEl.querySelector('[data-article-scroll="true"]') as HTMLElement | null;
+          if (!scrollContainer) {
+            return;
+          }
+          const marker = scrollContainer.querySelector(`[data-connection-point-id="${pointId}"]`) as HTMLElement | null;
+          if (marker) {
+            marker.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
+          }
+        }, 300);
+      }
+    }
+  }), [positionMap, applyTransform]);
+
   if (articles.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] text-slate-500 dark:text-slate-400">
@@ -621,7 +662,7 @@ function MultiViewerInner ({
       </div>
 
       <ConnectionInteraction
-        onJumpToArticle={onJumpToArticle}
+        interactive={false}
       />
 
       <CrossArticleConnectionLines
@@ -664,8 +705,8 @@ function MultiViewerInner ({
       </div>
     </div>
   );
-}
+});
 
-export function MultiViewer (props: MultiViewerProps) {
-  return <MultiViewerInner {...props} />;
-}
+export const MultiViewer = forwardRef<MultiViewerHandle, MultiViewerProps>(function MultiViewer (props, ref) {
+  return <MultiViewerInner {...props} ref={ref} />;
+});

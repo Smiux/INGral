@@ -9,7 +9,7 @@ import { TocItem, TableOfContentsPanel } from '@/components/articles/panels/Tabl
 import { useTocUtils } from '@/components/articles/utils/ToC';
 import { ExplorationGraphPanel, ExplorationNavigator } from '@/components/gallerys';
 import type { Editor } from '@tiptap/react';
-import type { EmbeddedArticle, ArticleNode } from '@/components/gallerys/gallery';
+import type { Gallery, EmbeddedArticle, ArticleNode } from '@/components/gallerys/gallery';
 
 type ExplorePresentation = 'beacon' | 'graph';
 
@@ -42,6 +42,8 @@ export function GalleryExplorePage () {
   const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
   const [explorePresentation, setExplorePresentation] = useState<ExplorePresentation>('beacon');
   const [exploreDockCollapsed, setExploreDockCollapsed] = useState(false);
+  const [gallery, setGallery] = useState<Gallery | null>(null);
+  const [currentNode, setCurrentNode] = useState<ArticleNode | null>(null);
   const dockLeaveTimerRef = useRef<number | null>(null);
 
   const { toggleCollapsed, getChildIds, isItemCollapsed, shouldShowItem } = useTocUtils();
@@ -59,14 +61,24 @@ export function GalleryExplorePage () {
 
       setIsLoading(true);
       try {
-        const gallery = await getGalleryById(galleryId);
-        if (!gallery) {
+        const fetchedGallery = await getGalleryById(galleryId);
+        if (!fetchedGallery) {
           setIsLoading(false);
           return;
         }
 
+        setGallery(fetchedGallery);
+
+        const foundNode = fetchedGallery.nodes.find((n: ArticleNode) => {
+          if (embeddedArticleId) {
+            return n.data.embeddedArticleId === embeddedArticleId;
+          }
+          return n.data.articleSlug === articleSlug && !n.data.isEmbedded;
+        }) ?? null;
+        setCurrentNode(foundNode);
+
         if (embeddedArticleId) {
-          const embeddedArticle = gallery.embeddedArticles.find(
+          const embeddedArticle = fetchedGallery.embeddedArticles.find(
             (a: EmbeddedArticle) => a.id === embeddedArticleId
           );
           if (embeddedArticle) {
@@ -82,10 +94,7 @@ export function GalleryExplorePage () {
             });
           }
         } else if (articleSlug) {
-          const node = gallery.nodes.find(
-            (n: ArticleNode) => n.data.articleSlug === articleSlug && !n.data.isEmbedded
-          );
-          if (node && !node.data.isEmbedded) {
+          if (foundNode && !foundNode.data.isEmbedded) {
             const existingArticle = await getArticleBySlug(articleSlug);
             if (existingArticle) {
               setArticle({
@@ -151,11 +160,6 @@ export function GalleryExplorePage () {
     clearDockLeaveTimer();
     setExplorePresentation('beacon');
     setExploreDockCollapsed(false);
-  }, [clearDockLeaveTimer]);
-
-  const handleToggleExploreDockCollapsed = useCallback(() => {
-    clearDockLeaveTimer();
-    setExploreDockCollapsed((c) => !c);
   }, [clearDockLeaveTimer]);
 
   const handleEditorReady = useCallback((editorInstance: Editor) => {
@@ -450,7 +454,7 @@ export function GalleryExplorePage () {
             />
 
             <div className="min-w-0">
-              <main className="bg-slate-100 dark:bg-slate-800 rounded border border-slate-200/60 dark:border-slate-700/60">
+              <main>
                 {article.content && (
                   <TiptapEditor
                     editable={false}
@@ -465,22 +469,28 @@ export function GalleryExplorePage () {
         </div>
 
         <div className="shrink-0 flex flex-col border-t border-slate-200/60 dark:border-slate-700/60">
-          {explorePresentation === 'graph' && (
+          {explorePresentation === 'graph' && gallery && currentNode && (
             <ExplorationGraphPanel
               collapsed={exploreDockCollapsed}
-              onToggleCollapsed={handleToggleExploreDockCollapsed}
               onSwitchToBeacon={handleSwitchToBeacon}
               onDockTitlePointerEnter={handleDockTitlePointerEnter}
               onDockRegionPointerLeave={handleDockRegionPointerLeave}
+              nodes={gallery.nodes}
+              edges={gallery.edges}
+              currentNode={currentNode}
+              galleryId={gallery.id}
             />
           )}
-          {explorePresentation === 'beacon' && (
+          {explorePresentation === 'beacon' && gallery && currentNode && (
             <ExplorationNavigator
               collapsed={exploreDockCollapsed}
-              onToggleCollapsed={handleToggleExploreDockCollapsed}
               onSwitchToGraph={handleSwitchToGraph}
               onDockTitlePointerEnter={handleDockTitlePointerEnter}
               onDockRegionPointerLeave={handleDockRegionPointerLeave}
+              nodes={gallery.nodes}
+              edges={gallery.edges}
+              currentNode={currentNode}
+              galleryId={gallery.id}
             />
           )}
         </div>

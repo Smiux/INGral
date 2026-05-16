@@ -9,7 +9,7 @@ import {
   Network, Calculator, Layers, BookOpen, Home, X, GripVertical,
   Clock, Compass, Users, Wifi, RefreshCw, Loader2, Palette, Check
 } from 'lucide-react';
-import { useCollaboration } from '../collaboration';
+import { useCollaboration } from '../../collaboration';
 import {
   NavigatorContext,
   type Tab,
@@ -18,7 +18,7 @@ import {
   type NavigatorAction
 } from './NavigatorContext';
 import { useNavigator } from './useNavigator';
-import { useGrayTheme, type GrayThemeName } from './useGrayTheme';
+import { useGrayTheme, type GrayThemeName } from '../theme/useGrayTheme';
 import { getArticleBySlug } from '@/services/articleService';
 import { getGalleryById } from '@/services/galleryService';
 

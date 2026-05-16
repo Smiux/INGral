@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, AlertCircle, Trash2, Eye, CalendarDays, GitBranch, FileText } from 'lucide-react';
 import { getAllGallerys, deleteGallery } from '@/services/galleryService';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@/components/ui/generic/ConfirmDialog';
 import type { GalleryListItem } from '@/components/gallerys/gallery';
 
 const formatDate = (dateString: string) => {

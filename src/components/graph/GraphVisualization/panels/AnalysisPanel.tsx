@@ -1,12 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { AnalysisHelp } from './AnalysisHelp';
-import { useStore } from '@xyflow/react';
+import { useStore, useReactFlow } from '@xyflow/react';
 import Graph from 'graphology';
 import { degreeCentrality } from 'graphology-metrics/centrality/degree';
 import betweennessCentrality from 'graphology-metrics/centrality/betweenness';
 import edgeBetweennessCentrality from 'graphology-metrics/centrality/edge-betweenness';
 import closenessCentrality from 'graphology-metrics/centrality/closeness';
-import eigenvectorCentrality from 'graphology-metrics/centrality/eigenvector';
 import pagerank from 'graphology-metrics/centrality/pagerank';
 import { density } from 'graphology-metrics/graph/density';
 import modularity from 'graphology-metrics/graph/modularity';
@@ -24,7 +23,6 @@ import {
 } from 'graphology-components';
 import { hasCycle, topologicalSort, topologicalGenerations } from 'graphology-dag';
 import louvain from 'graphology-communities-louvain';
-import hits from 'graphology-metrics/centrality/hits';
 import { coreNumber } from 'graphology-cores';
 import type { CustomNodeData } from '../Node';
 import {
@@ -41,9 +39,9 @@ import {
   ChevronDown,
   ArrowRightLeft,
   TrendingUp,
-  ArrowUpDown,
   GitMerge,
-  HelpCircle
+  HelpCircle,
+  Highlighter
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
@@ -63,7 +61,7 @@ import {
   PANEL_CONTENT_CLASS,
   type HoverColorType
 } from './panelStyles';
-import { SlidingCardSelector } from '@/components/ui/SlidingCardSelector';
+import { SlidingCardSelector } from '@/components/ui/generic/SlidingCardSelector';
 
 const ARROW = '\u2192';
 
@@ -75,13 +73,12 @@ type AnalysisTab = 'overview' | 'centrality' | 'path' | 'connectivity' | 'advanc
 
 type PathType = 'shortest' | 'longest' | 'globalLongest' | 'allSimple' | 'singleSource';
 
-type CentralityType = 'degree' | 'betweenness' | 'edgeBetweenness' | 'closeness' | 'eigenvector' | 'pagerank' | 'hits';
+type CentralityType = 'degree' | 'betweenness' | 'edgeBetweenness' | 'closeness' | 'pagerank';
 
 interface CentralityResult {
   nodeId: string;
   value: number;
   title: string;
-  hub?: number;
   edgeId?: string;
   sourceTitle?: string;
   targetTitle?: string;
@@ -255,26 +252,12 @@ const computeGlobalLongestPaths = (graph: Graph): GlobalLongestResult | null => 
 };
 
 const buildCentralityResult = (
-  scores: Record<string, number> | { authorities: Record<string, number>; hubs: Record<string, number> },
+  scores: Record<string, number>,
   type: CentralityType,
   graph: Graph
 ): CentralityResult[] => {
-  if (type === 'hits') {
-    const hitsResult = scores as unknown as { authorities: Record<string, number>; hubs: Record<string, number> };
-    return Object.entries(hitsResult.authorities)
-      .map(([nodeId, authority]) => {
-        const hubVal = hitsResult.hubs[nodeId];
-        return {
-          nodeId,
-          'value': authority,
-          'title': graph.getNodeAttribute(nodeId, 'title') as string || nodeId,
-          ...(hubVal !== undefined ? { 'hub': hubVal } : {})
-        };
-      })
-      .sort((a, b) => b.value - a.value);
-  }
   if (type === 'edgeBetweenness') {
-    return Object.entries(scores as Record<string, number>)
+    return Object.entries(scores)
       .map(([edgeKey, value]) => {
         const source = graph.source(edgeKey);
         const target = graph.target(edgeKey);
@@ -289,7 +272,7 @@ const buildCentralityResult = (
       })
       .sort((a, b) => b.value - a.value);
   }
-  return Object.entries(scores as Record<string, number>)
+  return Object.entries(scores)
     .map(([nodeId, value]) => ({
       nodeId,
       value,
@@ -310,9 +293,7 @@ const CENTRALITY_OPTIONS = [
   { 'value': 'betweenness', 'label': '介数中心性', 'icon': GitBranch },
   { 'value': 'edgeBetweenness', 'label': '连接介数中心性', 'icon': ArrowRightLeft },
   { 'value': 'closeness', 'label': '接近中心性', 'icon': Target },
-  { 'value': 'eigenvector', 'label': '特征向量中心性', 'icon': Sparkles },
-  { 'value': 'pagerank', 'label': 'PageRank', 'icon': TrendingUp },
-  { 'value': 'hits', 'label': 'HITS算法', 'icon': ArrowUpDown }
+  { 'value': 'pagerank', 'label': 'PageRank', 'icon': TrendingUp }
 ];
 
 const PATH_OPTIONS = [
@@ -324,6 +305,8 @@ const PATH_OPTIONS = [
 ];
 
 export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
+  const reactFlowInstance = useReactFlow();
+
   const rawNodes = useStore<Array<{ id: string; data: CustomNodeData }>>(
     (state) => state.nodes.map((n) => ({ 'id': n.id, 'data': n.data })),
     (a, b) =>
@@ -349,11 +332,14 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
   const [globalLongestResult, setGlobalLongestResult] = useState<GlobalLongestResult | null>(null);
   const [allSimpleResult, setAllSimpleResult] = useState<AllSimplePathsResult | null>(null);
   const [singleSourceResult, setSingleSourceResult] = useState<SingleSourceResult | null>(null);
+  const [selectedPathIndex, setSelectedPathIndex] = useState<number | null>(null);
 
   const [selectedCentralityType, setSelectedCentralityType] = useState<CentralityType>('degree');
   const [centralityResults, setCentralityResults] = useState<CentralityResult[] | null>(null);
 
   const [showCommunityDetail, setShowCommunityDetail] = useState(false);
+  const [selectedCommunityId, setSelectedCommunityId] = useState<string | null>(null);
+  const [selectedTopoLevel, setSelectedTopoLevel] = useState<number | null>(null);
 
   const graph = useMemo(() => buildGraph(rawNodes, rawEdges), [rawNodes, rawEdges]);
 
@@ -419,7 +405,7 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
     }
     setIsComputing(true);
     setTimeout(() => {
-      let scores: Record<string, number> | { authorities: Record<string, number>; hubs: Record<string, number> } | Record<string, number> | undefined;
+      let scores: Record<string, number> | undefined;
       switch (selectedCentralityType) {
         case 'degree':
           scores = degreeCentrality(graph); break;
@@ -429,12 +415,8 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
           scores = edgeBetweennessCentrality(graph); break;
         case 'closeness':
           scores = closenessCentrality(graph); break;
-        case 'eigenvector':
-          scores = eigenvectorCentrality(graph); break;
         case 'pagerank':
           scores = pagerank(graph); break;
-        case 'hits':
-          scores = hits(graph); break;
       }
       if (!scores) {
         setCentralityResults([]);
@@ -456,6 +438,7 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
         setPathResult(null);
         setAllSimpleResult(null);
         setSingleSourceResult(null);
+        setSelectedPathIndex(null);
         setIsComputing(false);
       }, 0);
       return;
@@ -486,6 +469,7 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
         setPathResult(null);
         setGlobalLongestResult(null);
         setSingleSourceResult(null);
+        setSelectedPathIndex(null);
         setIsComputing(false);
       }, 0);
       return;
@@ -515,6 +499,7 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
         setPathResult(null);
         setGlobalLongestResult(null);
         setAllSimpleResult(null);
+        setSelectedPathIndex(null);
         setIsComputing(false);
       }, 0);
       return;
@@ -550,9 +535,66 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
       setGlobalLongestResult(null);
       setAllSimpleResult(null);
       setSingleSourceResult(null);
+      setSelectedPathIndex(null);
       setIsComputing(false);
     }, 0);
   }, [graph, pathSource, pathTarget, pathType]);
+
+  const getSelectedPath = useCallback((): string[] | null => {
+    if (selectedPathIndex === null) {
+      return null;
+    }
+    if (pathResult && !globalLongestResult && !allSimpleResult && !singleSourceResult) {
+      return selectedPathIndex === 0 && pathResult.distance >= 0 && pathResult.distance !== Infinity ? pathResult.path : null;
+    }
+    if (globalLongestResult) {
+      const rp = globalLongestResult.paths[selectedPathIndex];
+      return rp ? rp.path : null;
+    }
+    if (allSimpleResult) {
+      const rp = allSimpleResult.paths[selectedPathIndex];
+      return rp ? rp.path : null;
+    }
+    return null;
+  }, [selectedPathIndex, pathResult, globalLongestResult, allSimpleResult, singleSourceResult]);
+
+  const handleHighlightPath = useCallback(() => {
+    const path = getSelectedPath();
+    if (!path || path.length === 0) {
+      return;
+    }
+
+    const nodeIds = new Set(path);
+    const edgeIds = new Set<string>();
+    for (let i = 0; i < path.length - 1; i += 1) {
+      const src = path[i];
+      const tgt = path[i + 1];
+      if (src && tgt) {
+        const matchingEdge = rawEdges.find(
+          (e) => e.source === src && e.target === tgt
+        );
+        if (matchingEdge) {
+          edgeIds.add(matchingEdge.id);
+        }
+      }
+    }
+
+    reactFlowInstance.setNodes((nds) =>
+      nds.map((n) => ({ ...n, 'selected': nodeIds.has(n.id) }))
+    );
+    reactFlowInstance.setEdges((eds) =>
+      eds.map((e) => ({ ...e, 'selected': edgeIds.has(e.id) }))
+    );
+  }, [getSelectedPath, reactFlowInstance, rawEdges]);
+
+  const handleSelectNodes = useCallback((nodeIds: Set<string>) => {
+    reactFlowInstance.setNodes((nds) =>
+      nds.map((n) => ({ ...n, 'selected': nodeIds.has(n.id) }))
+    );
+    reactFlowInstance.setEdges((eds) =>
+      eds.map((e) => ({ ...e, 'selected': false }))
+    );
+  }, [reactFlowInstance]);
 
   const communities = useMemo(() => {
     if (graph.order === 0) {
@@ -579,6 +621,36 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
     });
     return groups;
   }, [communities]);
+
+  const handleSelectCommunity = useCallback((commId: string) => {
+    if (!communityGroups) {
+      return;
+    }
+    const newId = selectedCommunityId === commId ? null : commId;
+    setSelectedCommunityId(newId);
+    setSelectedTopoLevel(null);
+    if (newId === null) {
+      reactFlowInstance.setNodes((nds) =>
+        nds.map((n) => ({ ...n, 'selected': false }))
+      );
+    } else {
+      const nodeIds = new Set(communityGroups[Number(commId)] || []);
+      handleSelectNodes(nodeIds);
+    }
+  }, [communityGroups, selectedCommunityId, reactFlowInstance, handleSelectNodes]);
+
+  const handleSelectTopoLevel = useCallback((level: number, genNodes: string[]) => {
+    const newLevel = selectedTopoLevel === level ? null : level;
+    setSelectedTopoLevel(newLevel);
+    setSelectedCommunityId(null);
+    if (newLevel === null) {
+      reactFlowInstance.setNodes((nds) =>
+        nds.map((n) => ({ ...n, 'selected': false }))
+      );
+    } else {
+      handleSelectNodes(new Set(genNodes));
+    }
+  }, [selectedTopoLevel, reactFlowInstance, handleSelectNodes]);
 
   const modularityScore = useMemo(() => {
     if (!communities) {
@@ -818,14 +890,7 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
                           <span className="text-sm truncate font-medium">{r.title}</span>
                         )}
                       </div>
-                      {selectedCentralityType === 'hits' && r.hub !== undefined ? (
-                        <div className="flex items-center gap-3 ml-2 flex-shrink-0">
-                          <span className="text-xs font-mono text-amber-500">A:{r.value.toFixed(4)}</span>
-                          <span className="text-xs font-mono text-blue-500">H:{r.hub.toFixed(4)}</span>
-                        </div>
-                      ) : (
-                        <span className="text-sm font-mono text-teal-500 ml-2 flex-shrink-0">{r.value.toFixed(4)}</span>
-                      )}
+                      <span className="text-sm font-mono text-teal-500 ml-2 flex-shrink-0">{r.value.toFixed(4)}</span>
                     </div>
                   ))}
                 </div>
@@ -847,6 +912,7 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
                   setGlobalLongestResult(null);
                   setAllSimpleResult(null);
                   setSingleSourceResult(null);
+                  setSelectedPathIndex(null);
                 }}
                 color="blue"
               />
@@ -925,6 +991,17 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
               {isComputing ? '查找中...' : '查找路径'}
             </button>
 
+            {pathType !== 'singleSource' && (
+              <button
+                onClick={handleHighlightPath}
+                disabled={selectedPathIndex === null || getSelectedPath() === null}
+                className={`w-full py-2 px-4 rounded font-medium text-sm flex items-center justify-center gap-2 ${selectedPathIndex !== null && getSelectedPath() !== null ? 'bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200/80 dark:hover:bg-amber-800/40' : 'bg-slate-100/60 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 cursor-not-allowed'}`}
+              >
+                <Highlighter size={14} />
+                高亮路径
+              </button>
+            )}
+
             {globalLongestResult && (
               <section className={getSectionClasses('teal').container}>
                 <h3 className={getSectionClasses('teal').title}>全局最长路径 (距离: {globalLongestResult.maxDistance})</h3>
@@ -933,7 +1010,11 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
                 </p>
                 <div className="space-y-2 max-h-52 overflow-y-auto">
                   {globalLongestResult.paths.slice(0, 5).map((rp, idx) => (
-                    <div key={idx} className="p-2 rounded bg-slate-50/60 dark:bg-slate-800/60 space-y-1.5">
+                    <div
+                      key={idx}
+                      onClick={() => setSelectedPathIndex(selectedPathIndex === idx ? null : idx)}
+                      className={`p-2 rounded space-y-1.5 cursor-pointer transition-colors ${selectedPathIndex === idx ? 'bg-blue-100/60 dark:bg-blue-900/30' : 'bg-slate-50/60 dark:bg-slate-800/60 hover:bg-slate-100/80 dark:hover:bg-slate-700/40'}`}
+                    >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-teal-600">
                           {rp.startTitle} {ARROW} {rp.endTitle}
@@ -966,7 +1047,11 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     {allSimpleResult.paths.slice(0, 20).map((rp, idx) => (
-                      <div key={idx} className="p-2 rounded bg-slate-50/60 dark:bg-slate-800/60 space-y-1.5">
+                      <div
+                        key={idx}
+                        onClick={() => setSelectedPathIndex(selectedPathIndex === idx ? null : idx)}
+                        className={`p-2 rounded space-y-1.5 cursor-pointer transition-colors ${selectedPathIndex === idx ? 'bg-blue-100/60 dark:bg-blue-900/30' : 'bg-slate-50/60 dark:bg-slate-800/60 hover:bg-slate-100/80 dark:hover:bg-slate-700/40'}`}
+                      >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-medium text-teal-600">
                             路径 {idx + 1}
@@ -1063,7 +1148,10 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
                   <p className="text-sm text-slate-400">两节点之间不存在路径</p>
                 )}
                 {pathResult.distance >= 0 && pathResult.distance !== Infinity && (
-                  <>
+                  <div
+                    onClick={() => setSelectedPathIndex(selectedPathIndex === 0 ? null : 0)}
+                    className={`cursor-pointer rounded p-2 transition-colors ${selectedPathIndex === 0 ? 'bg-blue-100/60 dark:bg-blue-900/30' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}
+                  >
                     <p className="text-sm mb-2">
                       距离: <span className="font-mono font-bold text-teal-600">{pathResult.distance}</span> 步
                     </p>
@@ -1079,7 +1167,7 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
                         </React.Fragment>
                       ))}
                     </div>
-                  </>
+                  </div>
                 )}
               </section>
             )}
@@ -1216,7 +1304,11 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
                   {showCommunityDetail && (
                     <div className="space-y-2 max-h-52 overflow-y-auto mt-2">
                       {Object.entries(communityGroups).map(([commId, nodeIds]) => (
-                        <div key={commId} className="p-2 rounded bg-slate-100/40 dark:bg-slate-800/40">
+                        <div
+                          key={commId}
+                          onClick={() => handleSelectCommunity(commId)}
+                          className={`p-2 rounded cursor-pointer transition-colors ${selectedCommunityId === commId ? 'bg-indigo-100/60 dark:bg-indigo-900/30' : 'bg-slate-100/40 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-700/40'}`}
+                        >
                           <div className="flex justify-between items-center mb-1">
                             <span className="text-xs font-medium text-slate-600">社区 {String(Number(commId) + 1)}</span>
                             <span className="text-xs text-slate-400">{nodeIds.length} 节点</span>
@@ -1282,7 +1374,11 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
                           {topologicalGenerations(graph)
                             .slice(0, 15)
                             .map((gen, i) => (
-                              <div key={i} className="p-2 rounded bg-emerald-50/60 dark:bg-emerald-900/10">
+                              <div
+                                key={i}
+                                onClick={() => handleSelectTopoLevel(i, gen)}
+                                className={`p-2 rounded cursor-pointer transition-colors ${selectedTopoLevel === i ? 'bg-emerald-100/60 dark:bg-emerald-900/30' : 'bg-emerald-50/60 dark:bg-emerald-900/10 hover:bg-emerald-100/40 dark:hover:bg-emerald-800/20'}`}
+                              >
                                 <div className="flex items-center justify-between mb-1">
                                   <span className="text-xs font-medium text-emerald-600">层级 {i + 1}</span>
                                   <span className="text-xs text-slate-400">{gen.length} 节点</span>

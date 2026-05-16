@@ -33,10 +33,9 @@ export function invalidateGalleryCache (id?: string): void {
   } else {
     galleryCache.clear();
   }
-  galleryListCache.maxUpdatedAt = '';
 }
 
-export function invalidateGalleryListCache (): void {
+function invalidateGalleryListCache (): void {
   galleryListCache.maxUpdatedAt = '';
 }
 
@@ -47,46 +46,22 @@ function parseGallery (row: Record<string, unknown>): Gallery {
     'nodes': row.nodes ? JSON.parse(row.nodes as string) as ArticleNode[] : [],
     'edges': row.edges ? JSON.parse(row.edges as string) as ArticleEdge[] : [],
     'embeddedArticles': row.embedded_articles ? JSON.parse(row.embedded_articles as string) as EmbeddedArticle[] : [],
+    'totalWordCount': (row.word_count as number) || 0,
     'createdAt': row.created_at as string,
     'updatedAt': row.updated_at as string
   };
 }
 
-function countWords (text: string): number {
-  let plainText = text;
-
-  plainText = plainText.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-  plainText = plainText.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
-  plainText = plainText.replace(/<[^>]+>/g, ' ');
-  plainText = plainText.replace(/&nbsp;/g, ' ');
-  plainText = plainText.replace(/&lt;/g, '<');
-  plainText = plainText.replace(/&gt;/g, '>');
-  plainText = plainText.replace(/&amp;/g, '&');
-  plainText = plainText.replace(/&quot;/g, '"');
-  plainText = plainText.replace(/&#\d+;/g, ' ');
-  plainText = plainText.replace(/&[a-zA-Z]+;/g, ' ');
-
-  const chineseChars = (plainText.match(/[\u4e00-\u9fa5]/gu) || []).length;
-  const englishWords = (plainText.match(/[a-zA-Z]+/g) || []).length;
-  return chineseChars + englishWords;
-}
-
 function parseGalleryListItem (row: Record<string, unknown>): GalleryListItem {
   const nodes = row.nodes ? JSON.parse(row.nodes as string) as ArticleNode[] : [];
   const edges = row.edges ? JSON.parse(row.edges as string) as ArticleEdge[] : [];
-  const embeddedArticles = row.embedded_articles ? JSON.parse(row.embedded_articles as string) as EmbeddedArticle[] : [];
-
-  let wordCount = 0;
-  embeddedArticles.forEach(article => {
-    wordCount += countWords(article.content || '');
-  });
 
   return {
     'id': row.id as string,
     'title': row.title as string,
     'nodeCount': nodes.length,
     'edgeCount': edges.length,
-    wordCount,
+    'wordCount': (row.word_count as number) || 0,
     'createdAt': row.created_at as string,
     'updatedAt': row.updated_at as string
   };
@@ -105,51 +80,11 @@ export async function getAllGallerys (): Promise<GalleryListItem[]> {
   }
 
   const result = await turso.execute({
-    'sql': `SELECT id, title, nodes, edges, embedded_articles, created_at, updated_at FROM ${TABLE_NAME} ORDER BY updated_at DESC`,
+    'sql': `SELECT id, title, nodes, edges, word_count, created_at, updated_at FROM ${TABLE_NAME} ORDER BY updated_at DESC`,
     'args': []
   });
 
   const galleryItems = result.rows.map(parseGalleryListItem);
-
-  const allSlugs: string[] = [];
-  result.rows.forEach(row => {
-    const nodes = row.nodes ? JSON.parse(row.nodes as string) as ArticleNode[] : [];
-    nodes.forEach(node => {
-      if (node.data?.articleSlug && !node.data?.isEmbedded) {
-        allSlugs.push(node.data.articleSlug);
-      }
-    });
-  });
-
-  if (allSlugs.length > 0) {
-    const placeholders = allSlugs.map(() => '?').join(',');
-    const articlesResult = await turso.execute({
-      'sql': `SELECT slug, content FROM articles WHERE slug IN (${placeholders})`,
-      'args': allSlugs
-    });
-
-    const contentMap = new Map<string, string>();
-    articlesResult.rows.forEach(row => {
-      contentMap.set(row.slug as string, (row.content as string) || '');
-    });
-
-    result.rows.forEach((row, index) => {
-      const nodes = row.nodes ? JSON.parse(row.nodes as string) as ArticleNode[] : [];
-      let additionalWordCount = 0;
-      nodes.forEach(node => {
-        if (node.data?.articleSlug && !node.data?.isEmbedded) {
-          const content = contentMap.get(node.data.articleSlug);
-          if (content) {
-            additionalWordCount += countWords(content);
-          }
-        }
-      });
-      const item = galleryItems[index];
-      if (item) {
-        item.wordCount += additionalWordCount;
-      }
-    });
-  }
 
   galleryListCache.gallerys = galleryItems;
   galleryListCache.maxUpdatedAt = currentMaxUpdatedAt;
@@ -195,10 +130,11 @@ export async function createGallery (params: CreateGalleryParams): Promise<strin
   const nodes = params.nodes || [];
   const edges = params.edges || [];
   const embeddedArticles = params.embeddedArticles || [];
+  const totalWordCount = params.totalWordCount || 0;
 
   await turso.execute({
-    'sql': `INSERT INTO ${TABLE_NAME} (id, title, nodes, edges, embedded_articles) VALUES (?, ?, ?, ?, ?)`,
-    'args': [id, params.title, JSON.stringify(nodes), JSON.stringify(edges), JSON.stringify(embeddedArticles)]
+    'sql': `INSERT INTO ${TABLE_NAME} (id, title, nodes, edges, embedded_articles, word_count) VALUES (?, ?, ?, ?, ?, ?)`,
+    'args': [id, params.title, JSON.stringify(nodes), JSON.stringify(edges), JSON.stringify(embeddedArticles), totalWordCount]
   });
 
   return id;
@@ -206,7 +142,7 @@ export async function createGallery (params: CreateGalleryParams): Promise<strin
 
 export async function updateGallery (id: string, params: UpdateGalleryParams): Promise<void> {
   const updates: string[] = [];
-  const args: (string | null)[] = [];
+  const args: (string | number | null)[] = [];
 
   if (params.title !== undefined) {
     updates.push('title = ?');
@@ -228,6 +164,11 @@ export async function updateGallery (id: string, params: UpdateGalleryParams): P
     args.push(JSON.stringify(params.embeddedArticles));
   }
 
+  if (params.totalWordCount !== undefined) {
+    updates.push('word_count = ?');
+    args.push(params.totalWordCount);
+  }
+
   if (updates.length === 0) {
     return;
   }
@@ -241,6 +182,7 @@ export async function updateGallery (id: string, params: UpdateGalleryParams): P
   });
 
   invalidateGalleryCache(id);
+  invalidateGalleryListCache();
 }
 
 export async function deleteGallery (id: string): Promise<void> {

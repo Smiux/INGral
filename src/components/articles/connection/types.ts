@@ -77,39 +77,80 @@ export interface ExtendedConnectionContextValue extends ConnectionContextValue {
 
 export const ConnectionContext = createContext<ExtendedConnectionContextValue | null>(null);
 
-export interface PathStep {
+export interface JumpNode {
   articleId: string;
   articleTitle: string;
-  pointId: string;
-  pointColor: string;
-  selectedText: string;
-  connectionId?: string;
-  connectionLabel?: string;
 }
 
-interface BuildPathStepOptions {
-  articleId: string;
-  articleTitle: string;
-  pointId: string;
-  point?: ConnectionPoint;
+export interface JumpEdge {
+  sourceArticleId: string;
+  targetArticleId: string;
   connectionId?: string | undefined;
   connectionLabel?: string | undefined;
+  sourcePointId?: string | undefined;
+  sourcePointText?: string | undefined;
+  sourcePointColor?: string | undefined;
+  targetPointId?: string | undefined;
+  targetPointText?: string | undefined;
+  targetPointColor?: string | undefined;
 }
 
-export function buildPathStep (options: BuildPathStepOptions): PathStep {
-  const { articleId, articleTitle, pointId, point, connectionId, connectionLabel } = options;
-  const step: PathStep = {
-    articleId,
-    articleTitle,
-    pointId,
-    'pointColor': point?.color ?? '#6366f1',
-    'selectedText': point?.selectedText ?? ''
-  };
-  if (connectionId !== undefined) {
-    step.connectionId = connectionId;
+export interface JumpGraph {
+  nodes: JumpNode[];
+  edges: JumpEdge[];
+}
+
+interface AddJumpParams {
+  graph: JumpGraph;
+  sourceArticleId: string;
+  targetArticleId: string;
+  sourceArticleTitle: string;
+  targetArticleTitle: string;
+  connectionId?: string | undefined;
+  connectionLabel?: string | undefined;
+  sourcePointId?: string | undefined;
+  sourcePointText?: string | undefined;
+  sourcePointColor?: string | undefined;
+  targetPointId?: string | undefined;
+  targetPointText?: string | undefined;
+  targetPointColor?: string | undefined;
+}
+
+export function addJumpToGraph (params: AddJumpParams): JumpGraph {
+  const {
+    graph, sourceArticleId, targetArticleId,
+    sourceArticleTitle, targetArticleTitle,
+    connectionId, connectionLabel,
+    sourcePointId, sourcePointText, sourcePointColor,
+    targetPointId, targetPointText, targetPointColor
+  } = params;
+  const nodes = [...graph.nodes];
+  const edges = [...graph.edges];
+
+  if (!nodes.some(n => n.articleId === sourceArticleId)) {
+    nodes.push({ 'articleId': sourceArticleId, 'articleTitle': sourceArticleTitle });
   }
-  if (connectionLabel !== undefined) {
-    step.connectionLabel = connectionLabel;
+  if (!nodes.some(n => n.articleId === targetArticleId)) {
+    nodes.push({ 'articleId': targetArticleId, 'articleTitle': targetArticleTitle });
   }
-  return step;
+
+  const edgeExists = edges.some(e => {
+    if (connectionId !== undefined && e.connectionId !== undefined) {
+      return e.connectionId === connectionId &&
+        e.sourceArticleId === sourceArticleId &&
+        e.targetArticleId === targetArticleId;
+    }
+    return e.sourceArticleId === sourceArticleId &&
+      e.targetArticleId === targetArticleId &&
+      e.connectionId === connectionId;
+  });
+  if (!edgeExists) {
+    edges.push({
+      sourceArticleId, targetArticleId, connectionId, connectionLabel,
+      sourcePointId, sourcePointText, sourcePointColor,
+      targetPointId, targetPointText, targetPointColor
+    });
+  }
+
+  return { nodes, edges };
 }

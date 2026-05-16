@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { NavigatorTrigger } from '@/components/ui/Navigator';
+import { NavigatorTrigger } from '@/components/ui/navigator/Navigator';
 import { createArticle, getArticleBySlug, updateArticle } from '../../services/articleService';
 import { LatexEditor } from './managers/Latex';
 import { TiptapEditor, TiptapEditorRef, type CollaborationProvider } from './core/TipTap';
@@ -459,7 +459,7 @@ export const ArticleEditor: React.FC = () => {
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://example.com"
-                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                 />
               </div>
               <div className="flex gap-2 justify-end">
@@ -494,7 +494,7 @@ export const ArticleEditor: React.FC = () => {
                   value={iframeSrc}
                   onChange={(e) => setIframeSrc(e.target.value)}
                   placeholder="https://www.youtube.com/embed/..."
-                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">支持 YouTube、Bilibili 等视频平台的嵌入链接</p>
               </div>
@@ -571,7 +571,7 @@ export const ArticleEditor: React.FC = () => {
                     }}
                     min={200}
                     max={1920}
-                    className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -587,7 +587,7 @@ export const ArticleEditor: React.FC = () => {
                     }}
                     min={150}
                     max={1080}
-                    className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -697,11 +697,16 @@ export const ArticleEditor: React.FC = () => {
           getChildIds={getChildIds}
           isItemCollapsed={isItemCollapsed}
           shouldShowItem={shouldShowItem}
-          containerClassName="sticky top-20 w-48 bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 rounded z-20 ml-4 flex flex-col float-left mb-4"
-          collapsedButtonClassName="sticky top-20 z-20 ml-4"
+          containerClassName="fixed left-4 top-20 w-48 z-20"
+          collapsedButtonClassName="fixed left-4 top-20 z-20"
         />
 
-        <FootnotePanel editor={editor} editable={true} />
+        <FootnotePanel
+          editor={editor}
+          editable={true}
+          containerClassName="fixed right-4 top-20 w-48 z-20"
+          collapsedButtonClassName="fixed right-4 top-20 z-20"
+        />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
@@ -746,10 +751,7 @@ export const ArticleEditor: React.FC = () => {
                 showSummaryInput ? 'max-h-40 opacity-100 mt-4' : 'max-h-0 opacity-0'
               }`}
             >
-              <div className="bg-slate-100/40 dark:bg-slate-800/40 rounded p-4 border border-slate-200/60 dark:border-slate-700/60">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  文章简介
-                </label>
+              <div>
                 <textarea
                   value={articleMetadata.summary}
                   onChange={(e) => {
@@ -757,7 +759,7 @@ export const ArticleEditor: React.FC = () => {
                   }}
                   placeholder="输入文章简介..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent resize-none text-sm"
+                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-400 transition-all transition-300 resize-none text-sm"
                 />
                 <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-right">
                   {articleMetadata.summary.length}
@@ -816,12 +818,12 @@ export const ArticleEditor: React.FC = () => {
             )}
           </div>
 
-          <div className="bg-slate-50/90 dark:bg-slate-900/90">
+          <div className='bg-slate-100/30 dark:bg-slate-800/30'>
             <div
               ref={toolbarRef}
               className={`transition-all duration-300 ${
                 isToolbarSticky
-                  ? 'sticky top-[64px] z-40 bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200/60 dark:border-slate-700/60'
+                  ? 'sticky top-[64px] z-40 bg-slate-100 dark:bg-slate-800 border-b border-slate-200/60 dark:border-slate-700/60'
                   : ''
               }`}
             >
