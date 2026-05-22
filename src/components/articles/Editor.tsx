@@ -65,6 +65,8 @@ export const ArticleEditor: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [fontColor, setFontColor] = useState('#000000');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+  const [quoteBgColor, setQuoteBgColor] = useState('#f1f5f9');
+  const [quoteBorderColor, setQuoteBorderColor] = useState('#64748b');
 
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
@@ -164,7 +166,11 @@ export const ArticleEditor: React.FC = () => {
             setCoverImage(article.cover_image);
             articleMetadataActions.setCoverImage(article.cover_image);
           }
-          editor.commands.setContent(article.content);
+          editor.commands.setContent(article.content, {
+            'parseOptions': {
+              'preserveWhitespace': 'full'
+            }
+          });
         }
       } finally {
         setIsLoadingArticle(false);
@@ -818,7 +824,7 @@ export const ArticleEditor: React.FC = () => {
             )}
           </div>
 
-          <div className='bg-slate-100/30 dark:bg-slate-800/30'>
+          <div className='bg-white dark:bg-slate-800/60'>
             <div
               ref={toolbarRef}
               className={`transition-all duration-300 ${
@@ -835,6 +841,10 @@ export const ArticleEditor: React.FC = () => {
                 setFontColor={setFontColor}
                 backgroundColor={backgroundColor}
                 setBackgroundColor={setBackgroundColor}
+                quoteBgColor={quoteBgColor}
+                setQuoteBgColor={setQuoteBgColor}
+                quoteBorderColor={quoteBorderColor}
+                setQuoteBorderColor={setQuoteBorderColor}
                 onLinkClick={handleLink}
                 onMathClick={handleMathClick}
                 onIframeClick={handleIframe}

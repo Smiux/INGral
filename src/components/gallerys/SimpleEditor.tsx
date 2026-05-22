@@ -63,6 +63,8 @@ const SimpleEditorInner: React.FC<SimpleEditorProps> = ({
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [fontColor, setFontColor] = useState('#000000');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+  const [quoteBgColor, setQuoteBgColor] = useState('#f1f5f9');
+  const [quoteBorderColor, setQuoteBorderColor] = useState('#64748b');
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [showIframeDialog, setShowIframeDialog] = useState(false);
@@ -369,7 +371,7 @@ const SimpleEditorInner: React.FC<SimpleEditorProps> = ({
             )}
           </div>
 
-          <div className="bg-slate-100 dark:bg-slate-800">
+          <div className="bg-white dark:bg-slate-800">
             <EditorToolbar
               editor={editor}
               activeMenu={activeMenu}
@@ -378,6 +380,10 @@ const SimpleEditorInner: React.FC<SimpleEditorProps> = ({
               setFontColor={setFontColor}
               backgroundColor={backgroundColor}
               setBackgroundColor={setBackgroundColor}
+              quoteBgColor={quoteBgColor}
+              setQuoteBgColor={setQuoteBgColor}
+              quoteBorderColor={quoteBorderColor}
+              setQuoteBorderColor={setQuoteBorderColor}
               onLinkClick={handleLink}
               onMathClick={handleMathClick}
               onIframeClick={handleIframe}

@@ -154,7 +154,7 @@ export const AudioView: React.FC<NodeViewProps> = ({ node }) => {
       className="audio-node-wrapper my-6 mx-auto"
       contentEditable={false}
     >
-      <div className="group flex items-stretch w-full max-w-[600px] rounded-xl border border-slate-200/60 dark:border-slate-700/60 bg-slate-50/90 dark:bg-slate-900/90 overflow-hidden duration-200">
+      <div className="group flex items-stretch w-full max-w-[600px] rounded border border-slate-200/60 dark:border-slate-700/60 bg-slate-100 dark:bg-slate-800 overflow-hidden duration-200">
         <div className="relative flex-shrink-0 w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center bg-slate-100/40 dark:bg-slate-800/40">
           {coverUrl ? (
             <img
@@ -169,7 +169,7 @@ export const AudioView: React.FC<NodeViewProps> = ({ node }) => {
           )}
           <button
             onClick={togglePlay}
-            className="absolute inset-0 flex items-center justify-center bg-slate-900/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className="absolute inset-0 flex items-center justify-center bg-slate-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           >
             <div className="w-12 h-12 rounded-full bg-slate-50/90 flex items-center justify-center">
               {isPlaying ? (
@@ -181,9 +181,9 @@ export const AudioView: React.FC<NodeViewProps> = ({ node }) => {
           </button>
           {isPlaying && (
             <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 items-end">
-              <span className="flex w-0.5 h-3 bg-white/80 rounded-full animate-bounce" style={{ 'animationDelay': '0ms' }} />
-              <span className="flex w-0.5 h-4 bg-white/80 rounded-full animate-bounce" style={{ 'animationDelay': '150ms' }} />
-              <span className="flex w-0.5 h-2.5 bg-white/80 rounded-full animate-bounce" style={{ 'animationDelay': '300ms' }} />
+              <span className="flex w-0.5 h-3 bg-slate-300/80 rounded-full animate-bounce" style={{ 'animationDelay': '0ms' }} />
+              <span className="flex w-0.5 h-4 bg-slate-300/80 rounded-full animate-bounce" style={{ 'animationDelay': '150ms' }} />
+              <span className="flex w-0.5 h-2.5 bg-slate-300/80 rounded-full animate-bounce" style={{ 'animationDelay': '300ms' }} />
             </div>
           )}
         </div>

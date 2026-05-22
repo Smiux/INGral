@@ -319,12 +319,12 @@ function exploreNodeRoleClass (role: ExploreRole): string {
     return 'cursor-default border-sky-500 bg-sky-100/90 text-sky-900 ring-2 ring-sky-400/80 dark:bg-sky-950/40 dark:text-sky-100 dark:ring-sky-500/50';
   }
   if (role === 'incoming') {
-    return 'cursor-pointer border-amber-500 bg-amber-50/90 text-amber-950 dark:bg-amber-950/30 dark:text-amber-100';
+    return 'cursor-pointer border-blue-500 bg-blue-50/90 text-blue-950 dark:bg-blue-950/30 dark:text-blue-100';
   }
   if (role === 'outgoing') {
     return 'cursor-pointer border-sky-400 bg-sky-50/90 text-sky-900 dark:bg-sky-900/40 dark:text-sky-100';
   }
-  return 'cursor-pointer border-violet-500 bg-violet-50/90 text-violet-950 dark:bg-violet-950/35 dark:text-violet-100';
+  return 'cursor-pointer border-teal-500 bg-teal-50/90 text-teal-950 dark:bg-teal-950/35 dark:text-teal-100';
 }
 
 const ExploreArticleNode = memo((props: NodeProps<Node<ExploreArticleNodeData>>) => {
@@ -435,7 +435,7 @@ function ExploreGraphInner ({
         proOptions={{ 'hideAttribution': true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={16} size={1} className="!bg-slate-100/80 dark:!bg-slate-900/80" />
-        <Controls showInteractive={false} className="!bg-slate-50/95 dark:!bg-slate-800/95 !border-slate-200/60 dark:!border-slate-600/60 !shadow-sm" />
+        <Controls showInteractive={false} className="!bg-slate-50/95 dark:!bg-slate-800/95 !border-slate-200/60 dark:!border-slate-600/60" />
       </ReactFlow>
     </div>
   );

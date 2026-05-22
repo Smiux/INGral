@@ -3,11 +3,13 @@ import { Node, Edge, useReactFlow, useStore } from '@xyflow/react';
 import {
   Layout, X, RefreshCw,
   Layers, Share2, Minimize2, GitBranch, Target, Square,
-  ArrowDown, ArrowUp, ArrowRight, ArrowLeft
+  ArrowDown, ArrowUp, ArrowRight, ArrowLeft, Orbit
 } from 'lucide-react';
 import type { CustomNodeData } from '../Node';
 import type { CustomEdgeData } from '../Edge';
 import ELK, { ElkNode } from 'elkjs';
+import Graph from 'graphology';
+import forceAtlas2 from 'graphology-layout-forceatlas2';
 import { SlidingCardSelector, type SlidingCardOption } from '@/components/ui/generic/SlidingCardSelector';
 import {
   PANEL_CONTAINER_CLASS,
@@ -26,7 +28,7 @@ import {
 } from './panelStyles';
 import { motion } from 'framer-motion';
 
-type LayoutAlgorithm = 'layered' | 'force' | 'stress' | 'mrtree' | 'radial' | 'box';
+type LayoutAlgorithm = 'layered' | 'force' | 'stress' | 'mrtree' | 'radial' | 'box' | 'forceatlas2';
 type LayoutDirection = 'DOWN' | 'RIGHT' | 'UP' | 'LEFT';
 
 interface LayoutPanelProps {
@@ -86,6 +88,19 @@ const DEFAULT_OPTIONS = {
   },
   'box': {
     'packingMode': 'SIMPLE'
+  },
+  'forceatlas2': {
+    'iterations': 100,
+    'gravity': 1,
+    'scalingRatio': 1,
+    'barnesHutOptimize': false,
+    'barnesHutTheta': 0.5,
+    'linLogMode': false,
+    'strongGravityMode': false,
+    'outboundAttractionDistribution': false,
+    'slowDown': 1,
+    'edgeWeightInfluence': 1,
+    'adjustSizes': false
   }
 };
 
@@ -183,6 +198,23 @@ const ALGORITHM_CONFIGS: Record<LayoutAlgorithm, { title: string; fields: FieldC
         { 'value': 'GROUP_MIXED', 'label': '分组混合' }
       ]}
     ]
+  },
+  'forceatlas2': {
+    'title': 'ForceAtlas2 参数',
+    'color': 'indigo',
+    'fields': [
+      { 'key': 'iterations', 'label': '迭代次数', 'type': 'number' as const, 'min': 1 },
+      { 'key': 'gravity', 'label': '重力强度', 'type': 'number' as const, 'step': '0.1' },
+      { 'key': 'scalingRatio', 'label': '缩放比率', 'type': 'number' as const, 'step': '0.1' },
+      { 'key': 'barnesHutOptimize', 'label': 'Barnes-Hut 优化', 'type': 'checkbox' as const, 'description': '大图 O(n·log(n)) 近似计算' },
+      { 'key': 'barnesHutTheta', 'label': 'Barnes-Hut Theta', 'type': 'number' as const, 'step': '0.1' },
+      { 'key': 'linLogMode', 'label': 'LinLog 模式', 'type': 'checkbox' as const, 'description': '对数吸引力，社区更紧凑' },
+      { 'key': 'strongGravityMode', 'label': '强重力模式', 'type': 'checkbox' as const, 'description': '距离无关的强重力' },
+      { 'key': 'outboundAttractionDistribution', 'label': '抑制枢纽', 'type': 'checkbox' as const, 'description': '枢纽节点吸引力分散' },
+      { 'key': 'slowDown', 'label': '减速因子', 'type': 'number' as const, 'step': '0.1' },
+      { 'key': 'edgeWeightInfluence', 'label': '连接权重影响', 'type': 'number' as const, 'step': '0.1' },
+      { 'key': 'adjustSizes', 'label': '考虑节点大小', 'type': 'checkbox' as const, 'description': '防重叠' }
+    ]
   }
 };
 
@@ -192,7 +224,8 @@ const ALGORITHM_OPTIONS = [
   { 'value': 'stress', 'label': '应力布局', 'icon': Minimize2 },
   { 'value': 'mrtree', 'label': '树布局', 'icon': GitBranch },
   { 'value': 'radial', 'label': '辐射状布局', 'icon': Target },
-  { 'value': 'box', 'label': '盒布局', 'icon': Square }
+  { 'value': 'box', 'label': '盒布局', 'icon': Square },
+  { 'value': 'forceatlas2', 'label': 'ForceAtlas2', 'icon': Orbit }
 ] as const;
 
 const DIRECTION_OPTIONS = [
@@ -214,6 +247,7 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose }) =
   const algorithmConfig = layoutOptions[layoutOptions.algorithm] as Record<string, unknown>;
 
   const hasDirection = ['layered', 'mrtree', 'radial'].includes(layoutOptions.algorithm);
+  const isElkAlgorithm = layoutOptions.algorithm !== 'forceatlas2';
 
   const algorithmOptions: SlidingCardOption[] = ALGORITHM_OPTIONS.map(opt => ({
     'value': opt.value,
@@ -232,6 +266,60 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose }) =
     setIsLayouting(true);
 
     try {
+      if (layoutOptions.algorithm === 'forceatlas2') {
+        const fa2Opts = layoutOptions.forceatlas2;
+        const graph = new Graph({ 'type': 'directed' });
+        currentNodes.forEach((node) => {
+          graph.addNode(node.id, {
+            'x': node.position.x,
+            'y': node.position.y
+          });
+        });
+        currentEdges.forEach((edge) => {
+          if (graph.hasNode(edge.source) && graph.hasNode(edge.target) && !graph.hasEdge(edge.source, edge.target)) {
+            graph.addEdge(edge.source, edge.target);
+          }
+        });
+
+        const hasZeroPositions = currentNodes.every(
+          (n) => n.position.x === 0 && n.position.y === 0
+        );
+        if (hasZeroPositions) {
+          graph.forEachNode((node) => {
+            graph.setNodeAttribute(node, 'x', Math.random() * 100);
+            graph.setNodeAttribute(node, 'y', Math.random() * 100);
+          });
+        }
+
+        const settings = forceAtlas2.inferSettings(graph);
+        settings.gravity = fa2Opts.gravity;
+        settings.scalingRatio = fa2Opts.scalingRatio;
+        settings.barnesHutOptimize = fa2Opts.barnesHutOptimize;
+        settings.barnesHutTheta = fa2Opts.barnesHutTheta;
+        settings.linLogMode = fa2Opts.linLogMode;
+        settings.strongGravityMode = fa2Opts.strongGravityMode;
+        settings.outboundAttractionDistribution = fa2Opts.outboundAttractionDistribution;
+        settings.slowDown = fa2Opts.slowDown;
+        settings.edgeWeightInfluence = fa2Opts.edgeWeightInfluence;
+        settings.adjustSizes = fa2Opts.adjustSizes;
+
+        forceAtlas2.assign(graph, {
+          'iterations': fa2Opts.iterations,
+          settings
+        });
+
+        const updatedNodes = currentNodes.map((node) => ({
+          ...node,
+          'position': {
+            'x': graph.getNodeAttribute(node.id, 'x') as number,
+            'y': graph.getNodeAttribute(node.id, 'y') as number
+          }
+        }));
+
+        onLayout(updatedNodes, currentEdges);
+        return;
+      }
+
       const baseOptions: Record<string, string> = {
         'elk.algorithm': ALGORITHM_ID_MAP[layoutOptions.algorithm],
         'elk.randomSeed': layoutOptions.randomSeed.toString(),
@@ -241,7 +329,7 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose }) =
         'elk.spacing.edgeNode': layoutOptions.edgeNodeSpacing.toString()
       };
 
-      const algorithmOptionsMap: Record<LayoutAlgorithm, Record<string, string>> = {
+      const algorithmOptionsMap: Record<string, Record<string, string>> = {
         'layered': {
           'elk.direction': layoutOptions.direction,
           'elk.layered.spacing.baseValue': layoutOptions.nodeSpacing.toString(),
@@ -429,48 +517,50 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose }) =
           </div>
         )}
 
-        <section className={getSectionClasses('indigo').container}>
-          <h3 className={getSectionClasses('indigo').title}>通用参数</h3>
+        {isElkAlgorithm && (
+          <section className={getSectionClasses('indigo').container}>
+            <h3 className={getSectionClasses('indigo').title}>通用参数</h3>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={LABEL_CLASS}>节点间距</label>
-              <input
-                type="number"
-                className={getInputClass('indigo')}
-                value={layoutOptions.nodeSpacing}
-                onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'nodeSpacing': parseFloat(e.target.value) }))}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={LABEL_CLASS}>节点间距</label>
+                <input
+                  type="number"
+                  className={getInputClass('indigo')}
+                  value={layoutOptions.nodeSpacing}
+                  onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'nodeSpacing': parseFloat(e.target.value) }))}
+                />
+              </div>
+              <div>
+                <label className={LABEL_CLASS}>连接间间距</label>
+                <input
+                  type="number"
+                  className={getInputClass('indigo')}
+                  value={layoutOptions.edgeEdgeSpacing}
+                  onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'edgeEdgeSpacing': parseFloat(e.target.value) }))}
+                />
+              </div>
+              <div>
+                <label className={LABEL_CLASS}>连接节点间间距</label>
+                <input
+                  type="number"
+                  className={getInputClass('indigo')}
+                  value={layoutOptions.edgeNodeSpacing}
+                  onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'edgeNodeSpacing': parseFloat(e.target.value) }))}
+                />
+              </div>
+              <div>
+                <label className={LABEL_CLASS}>随机种子</label>
+                <input
+                  type="number"
+                  className={getInputClass('indigo')}
+                  value={layoutOptions.randomSeed}
+                  onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'randomSeed': parseFloat(e.target.value) }))}
+                />
+              </div>
             </div>
-            <div>
-              <label className={LABEL_CLASS}>连接间间距</label>
-              <input
-                type="number"
-                className={getInputClass('indigo')}
-                value={layoutOptions.edgeEdgeSpacing}
-                onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'edgeEdgeSpacing': parseFloat(e.target.value) }))}
-              />
-            </div>
-            <div>
-              <label className={LABEL_CLASS}>连接节点间间距</label>
-              <input
-                type="number"
-                className={getInputClass('indigo')}
-                value={layoutOptions.edgeNodeSpacing}
-                onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'edgeNodeSpacing': parseFloat(e.target.value) }))}
-              />
-            </div>
-            <div>
-              <label className={LABEL_CLASS}>随机种子</label>
-              <input
-                type="number"
-                className={getInputClass('indigo')}
-                value={layoutOptions.randomSeed}
-                onChange={(e) => setLayoutOptions(prev => ({ ...prev, 'randomSeed': parseFloat(e.target.value) }))}
-              />
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <section className={getSectionClasses(config.color).container}>
           <h3 className={getSectionClasses(config.color).title}>{config.title}</h3>

@@ -441,7 +441,7 @@ export function ConnectionPointManager ({
       <span>选择要连接的连接点</span>
       <button
         onClick={handleCancelConnecting}
-        className="px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded text-xs transition-colors"
+        className="px-2.5 py-1 bg-slate-50/20 hover:bg-slate-50/30 rounded text-xs transition-colors"
       >
         取消
       </button>

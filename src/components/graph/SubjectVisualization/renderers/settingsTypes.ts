@@ -17,8 +17,6 @@ export interface CosmosGLSettings {
   simulationFriction: number;
   simulationGravity: number;
   simulationRepulsion: number;
-  curvedLinks: boolean;
-  linkDefaultArrows: boolean;
   pointSizeScale: number;
   linkWidthScale: number;
   pointOpacity: number;
@@ -52,8 +50,6 @@ export const DEFAULT_COSMOS_GL_SETTINGS: CosmosGLSettings = {
   'simulationFriction': 0.2,
   'simulationGravity': 0.1,
   'simulationRepulsion': 0.8,
-  'curvedLinks': false,
-  'linkDefaultArrows': true,
   'pointSizeScale': 1,
   'linkWidthScale': 1,
   'pointOpacity': 1,

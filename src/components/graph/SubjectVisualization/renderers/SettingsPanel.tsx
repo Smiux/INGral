@@ -267,18 +267,6 @@ const CosmosGLSettingsPanel = ({
       <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
         连接样式
       </h4>
-      <Toggle
-        label="曲线连接"
-        checked={settings.curvedLinks}
-        onChange={(checked) => onChange({ ...settings, 'curvedLinks': checked })}
-        description="连接显示为曲线"
-      />
-      <Toggle
-        label="显示箭头"
-        checked={settings.linkDefaultArrows}
-        onChange={(checked) => onChange({ ...settings, 'linkDefaultArrows': checked })}
-        description="在连接上显示方向箭头"
-      />
       <Slider
         label="连接宽度缩放"
         value={settings.linkWidthScale}

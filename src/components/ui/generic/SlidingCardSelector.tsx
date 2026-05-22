@@ -8,7 +8,7 @@ export interface SlidingCardOption<T extends string = string> {
   icon?: LucideIcon;
 }
 
-type CardColor = 'sky' | 'emerald' | 'indigo' | 'cyan' | 'lime' | 'blue' | 'teal' | 'green' | 'red' | 'amber';
+type CardColor = 'sky' | 'emerald' | 'indigo' | 'cyan' | 'lime' | 'blue' | 'teal' | 'green';
 
 interface SlidingCardSelectorProps<T extends string = string> {
   options: SlidingCardOption<T>[];
@@ -181,44 +181,6 @@ const COLOR_CONFIGS: Record<CardColor, {
       'darkText': 'dark:text-teal-400',
       'iconText': 'text-teal-500',
       'darkIconText': 'dark:text-teal-400'
-    },
-    'side': {
-      'border': 'border-slate-200/40',
-      'hoverBg': 'hover:bg-slate-100/60',
-      'darkHoverBg': 'dark:hover:bg-slate-800/60',
-      'text': 'text-slate-500',
-      'darkText': 'dark:text-slate-400',
-      'iconText': 'text-slate-400'
-    }
-  },
-  'red': {
-    'active': {
-      'border': 'border-red-400',
-      'bg': 'bg-red-50/60',
-      'darkBg': 'dark:bg-red-900/20',
-      'text': 'text-red-600',
-      'darkText': 'dark:text-red-400',
-      'iconText': 'text-red-500',
-      'darkIconText': 'dark:text-red-400'
-    },
-    'side': {
-      'border': 'border-slate-200/40',
-      'hoverBg': 'hover:bg-slate-100/60',
-      'darkHoverBg': 'dark:hover:bg-slate-800/60',
-      'text': 'text-slate-500',
-      'darkText': 'dark:text-slate-400',
-      'iconText': 'text-slate-400'
-    }
-  },
-  'amber': {
-    'active': {
-      'border': 'border-amber-400',
-      'bg': 'bg-amber-50/60',
-      'darkBg': 'dark:bg-amber-900/20',
-      'text': 'text-amber-600',
-      'darkText': 'dark:text-amber-400',
-      'iconText': 'text-amber-500',
-      'darkIconText': 'dark:text-amber-400'
     },
     'side': {
       'border': 'border-slate-200/40',

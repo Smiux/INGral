@@ -808,7 +808,7 @@ export function ArticleViewer () {
                 </button>
               </div>
               <div className="min-w-0" ref={sideContentRef}>
-                <main className="bg-slate-100 dark:bg-slate-800 relative">
+                <main className="bg-white dark:bg-slate-800 relative">
                   <ArticleConnectionLines
                     articleId={sideArticle.article.id}
                     scrollContainerRef={sideContentRef}
@@ -960,7 +960,7 @@ export function ArticleViewer () {
             />
 
             <div className="flex-1 min-w-0" ref={contentRef}>
-              <main className="bg-slate-100 dark:bg-slate-800 relative">
+              <main className="bg-white dark:bg-slate-800 relative">
                 <ArticleConnectionLines
                   articleId={displayArticle.id}
                   scrollContainerRef={contentRef}
@@ -1000,7 +1000,7 @@ export function ArticleViewer () {
                 </button>
               </div>
               <div className="min-w-0" ref={sideContentRef}>
-                <main className="bg-slate-100 dark:bg-slate-800 relative">
+                <main className="bg-white dark:bg-slate-800 relative">
                   <ArticleConnectionLines
                     articleId={sideArticle.article.id}
                     scrollContainerRef={sideContentRef}

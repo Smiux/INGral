@@ -8,6 +8,7 @@ import { GallerysPage } from './pages/GallerysPage';
 import { GallerysEditPage } from './pages/GallerysEditPage';
 import { GalleryExplorePage } from './pages/GalleryExplorePage';
 import SubjectVisualization from './components/graph/SubjectVisualization';
+import MathGallery from './components/math/MathGallery';
 import { ArticleViewer, ArticleEditor } from './components/articles';
 import GraphVisualization from './components/graph/GraphVisualization';
 import { CollaborationProvider, useCollaboration, CollaborationPanel, Features } from './components/collaboration';
@@ -237,6 +238,15 @@ function useMetaTags (): void {
       return;
     }
 
+    if (path === '/gallerys/mathgallery') {
+      updateMetaTags({
+        'title': '数学地图',
+        'description': 'Mathlib 知识图谱可视化',
+        'type': 'website'
+      });
+      return;
+    }
+
     const galleryMatch = path.match(/^\/gallerys\/([^/]+)$/);
     if (galleryMatch && galleryMatch[1]) {
       const galleryId = galleryMatch[1];
@@ -296,7 +306,7 @@ function AppContent () {
   const showNavigatorTrigger = pathname === '/' ||
     pathname === '/articles' ||
     (pathname.startsWith('/articles/') && pathname !== '/articles/create' && !pathname.endsWith('/edit')) ||
-    pathname === '/gallerys';
+    pathname === '/gallerys' || pathname === '/gallerys/mathgallery';
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -318,6 +328,7 @@ function AppContent () {
             <Route path="/gallerys/create" element={<CachedRoute cacheKey="/gallerys/create"><GallerysEditPage /></CachedRoute>} />
             <Route path="/gallerys/:galleryId" element={<CachedGallerysEditPage />} />
             <Route path="/gallerys/:galleryId/explore" element={<CachedGalleryExplorePage />} />
+            <Route path="/gallerys/mathgallery" element={<MathGallery />} />
             <Route path="/graphs/create" element={<CachedRoute cacheKey="/graphs/create"><GraphVisualization /></CachedRoute>} />
             <Route path="/graphs/subject-visualization" element={<SubjectVisualization />} />
             <Route path="/graphs/subject-visualization/:subject" element={<SubjectVisualization />} />

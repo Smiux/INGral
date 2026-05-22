@@ -27,6 +27,15 @@ const galleryListCache: CachedGalleryList = {
   'maxUpdatedAt': ''
 };
 
+interface CachedPaginatedList {
+  gallerys: GalleryListItem[];
+  total: number;
+  updatedAt: string;
+}
+
+const paginatedListCache = new Map<string, CachedPaginatedList>();
+const galleryTotalCache = { 'total': 0, 'updatedAt': '' };
+
 export function invalidateGalleryCache (id?: string): void {
   if (id) {
     galleryCache.delete(id);
@@ -37,6 +46,8 @@ export function invalidateGalleryCache (id?: string): void {
 
 function invalidateGalleryListCache (): void {
   galleryListCache.maxUpdatedAt = '';
+  paginatedListCache.clear();
+  galleryTotalCache.updatedAt = '';
 }
 
 function parseGallery (row: Record<string, unknown>): Gallery {
@@ -90,6 +101,76 @@ export async function getAllGallerys (): Promise<GalleryListItem[]> {
   galleryListCache.maxUpdatedAt = currentMaxUpdatedAt;
 
   return galleryItems;
+}
+
+export interface PaginatedGallerys {
+  gallerys: GalleryListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export async function getGallerysPaginated (page: number = 1, pageSize: number = 20): Promise<PaginatedGallerys> {
+  const maxUpdatedAtResult = await turso.execute({
+    'sql': `SELECT MAX(updated_at) as max_updated_at FROM ${TABLE_NAME}`,
+    'args': []
+  });
+
+  const currentMaxUpdatedAt = (maxUpdatedAtResult.rows[0]?.max_updated_at as string) || '';
+
+  const cacheKey = `page_${page}_${pageSize}`;
+  const cached = paginatedListCache.get(cacheKey);
+
+  if (cached && cached.updatedAt === currentMaxUpdatedAt) {
+    return {
+      'gallerys': cached.gallerys,
+      'total': cached.total,
+      page,
+      pageSize,
+      'totalPages': Math.ceil(cached.total / pageSize)
+    };
+  }
+
+  let total = galleryTotalCache.total;
+  if (galleryTotalCache.updatedAt !== currentMaxUpdatedAt) {
+    const countResult = await turso.execute({
+      'sql': `SELECT COUNT(*) as total FROM ${TABLE_NAME}`,
+      'args': []
+    });
+    total = (countResult.rows[0]?.total as number) || 0;
+    galleryTotalCache.total = total;
+    galleryTotalCache.updatedAt = currentMaxUpdatedAt;
+  }
+
+  const offset = (page - 1) * pageSize;
+
+  const result = await turso.execute({
+    'sql': `SELECT id, title, nodes, edges, word_count, created_at, updated_at FROM ${TABLE_NAME} ORDER BY updated_at DESC LIMIT ? OFFSET ?`,
+    'args': [pageSize, offset]
+  });
+
+  if (result.rows.length === 0) {
+    return {
+      'gallerys': [],
+      'total': 0,
+      page,
+      pageSize,
+      'totalPages': 0
+    };
+  }
+
+  const galleryItems = result.rows.map(parseGalleryListItem);
+
+  paginatedListCache.set(cacheKey, { 'gallerys': galleryItems, total, 'updatedAt': currentMaxUpdatedAt });
+
+  return {
+    'gallerys': galleryItems,
+    total,
+    page,
+    pageSize,
+    'totalPages': Math.ceil(total / pageSize)
+  };
 }
 
 export async function getGalleryById (id: string): Promise<Gallery | null> {

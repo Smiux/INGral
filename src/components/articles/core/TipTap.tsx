@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { Blockquote as BlockquoteNode } from '@tiptap/extension-blockquote';
 import Image from '@tiptap/extension-image';
 import { Audio } from '../extensions/Audio';
 import FileHandler from '@tiptap/extension-file-handler';
@@ -28,6 +29,7 @@ import { CollapsibleNode } from '../extensions/Collapsible';
 import { FootnoteExtension } from '../extensions/Footnote';
 import { ConnectionPointDecoration } from '../extensions/ConnectionPointDecoration';
 import { SlashCommand } from '../extensions/SlashCommand.tsx';
+import { TabIndent } from '../extensions/TabIndent';
 
 const lowlight = createLowlight(all);
 
@@ -52,6 +54,40 @@ const CustomCodeBlock = CodeBlockLowlight.extend({
       { 'class': 'rounded overflow-hidden relative' },
       ['code', { 'class': 'hljs' }, 0]
     ];
+  }
+});
+
+const CustomBlockquote = BlockquoteNode.extend({
+  addAttributes () {
+    return {
+      ...this.parent?.(),
+      'backgroundColor': {
+        'default': null,
+        'parseHTML': (element: HTMLElement) => element.style.backgroundColor || element.getAttribute('data-bg-color'),
+        'renderHTML': (attributes: Record<string, unknown>) => {
+          if (!attributes.backgroundColor) {
+            return {};
+          }
+          return {
+            'data-bg-color': attributes.backgroundColor,
+            'style': `background-color: ${attributes.backgroundColor}`
+          };
+        }
+      },
+      'borderColor': {
+        'default': null,
+        'parseHTML': (element: HTMLElement) => element.style.borderLeftColor || element.getAttribute('data-border-color'),
+        'renderHTML': (attributes: Record<string, unknown>) => {
+          if (!attributes.borderColor) {
+            return {};
+          }
+          return {
+            'data-border-color': attributes.borderColor,
+            'style': `border-left-color: ${attributes.borderColor}; border-left-width: 4px; border-left-style: solid;`
+          };
+        }
+      }
+    };
   }
 });
 
@@ -145,9 +181,12 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
     return [
       StarterKit.configure({
         'codeBlock': false,
+        'blockquote': false,
         'link': { 'openOnClick': false },
         ...(collaboration?.provider ? { 'undoRedo': false } : {})
       }),
+      TabIndent,
+      CustomBlockquote,
       TextStyleKit.configure({
         'backgroundColor': { 'types': ['textStyle'] },
         'color': { 'types': ['textStyle'] },
@@ -226,6 +265,9 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
     editable,
     ...(content ? { content } : {}),
     extensions,
+    'parseOptions': {
+      'preserveWhitespace': 'full'
+    },
     'onUpdate': ({ 'editor': editorInstance }) => {
       onCharacterCountChange?.(editorInstance.storage.characterCount.characters());
     },
@@ -262,7 +304,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
             'strategy': 'absolute',
             'middleware': [{
               'name': 'offset',
-              'fn': ({ x, y }) => ({ 'x': x - 20, y })
+              'fn': ({ x, y }: { x: number; y: number }) => ({ 'x': x - 20, y })
             }]
           }}
         >

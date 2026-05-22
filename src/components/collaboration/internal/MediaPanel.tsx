@@ -974,7 +974,7 @@ export function MediaPanel ({
             initial={{ 'scale': 0.95, 'opacity': 0 }}
             animate={{ 'scale': 1, 'opacity': 1 }}
             exit={{ 'scale': 0.95, 'opacity': 0 }}
-            className="bg-slate-50 dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden"
+            className="bg-slate-50 dark:bg-slate-900 rounded-xl w-full max-w-2xl mx-4 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-slate-700/60">
@@ -1004,9 +1004,9 @@ export function MediaPanel ({
                       )}
                       {(audioPlaybackState?.isPlaying ?? false) && (
                         <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 items-end">
-                          <span className="flex w-0.5 h-3 bg-white/80 rounded-full animate-bounce" style={{ 'animationDelay': '0ms' }} />
-                          <span className="flex w-0.5 h-4 bg-white/80 rounded-full animate-bounce" style={{ 'animationDelay': '150ms' }} />
-                          <span className="flex w-0.5 h-2.5 bg-white/80 rounded-full animate-bounce" style={{ 'animationDelay': '300ms' }} />
+                          <span className="flex w-0.5 h-3 bg-slate-50/80 rounded-full animate-bounce" style={{ 'animationDelay': '0ms' }} />
+                          <span className="flex w-0.5 h-4 bg-slate-50/80 rounded-full animate-bounce" style={{ 'animationDelay': '150ms' }} />
+                          <span className="flex w-0.5 h-2.5 bg-slate-50/80 rounded-full animate-bounce" style={{ 'animationDelay': '300ms' }} />
                         </div>
                       )}
                     </div>
@@ -1116,7 +1116,7 @@ export function MediaPanel ({
                         value={audioUrl}
                         onChange={(e) => setAudioUrl(e.target.value)}
                         placeholder="输入音频URL..."
-                        className="flex-1 px-3 py-1.5 text-sm bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        className="flex-1 px-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500"
                       />
                       <button onClick={handleUrlSubmit} className="px-3 py-1.5 text-sm bg-sky-500 text-white rounded hover:bg-sky-600 transition-colors">添加</button>
                       <button
@@ -1190,7 +1190,7 @@ export function MediaPanel ({
                     }`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      className={`inline-block h-4 w-4 transform rounded-full bg-slate-50 transition-transform ${
                         (audioPlaybackState?.autoPlayNext ?? false) ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
@@ -1225,7 +1225,7 @@ export function MediaPanel ({
         animate={{ 'scale': 1, 'opacity': 1 }}
         exit={{ 'scale': 0.95, 'opacity': 0 }}
         ref={containerRef}
-        className="bg-slate-50 dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-5xl mx-4 overflow-hidden max-h-[85vh] flex flex-col"
+        className="bg-slate-50 dark:bg-slate-900 rounded-xl w-full max-w-5xl mx-4 overflow-hidden max-h-[85vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200/60 dark:border-slate-700/50">

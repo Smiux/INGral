@@ -122,6 +122,10 @@ interface EditorToolbarProps {
   setFontColor: (color: string) => void;
   backgroundColor: string;
   setBackgroundColor: (color: string) => void;
+  quoteBgColor: string;
+  setQuoteBgColor: (color: string) => void;
+  quoteBorderColor: string;
+  setQuoteBorderColor: (color: string) => void;
   onLinkClick: () => void;
   onMathClick: (type: 'inline' | 'block') => void;
   onIframeClick: () => void;
@@ -149,6 +153,10 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
   setFontColor,
   backgroundColor,
   setBackgroundColor,
+  quoteBgColor,
+  setQuoteBgColor,
+  quoteBorderColor,
+  setQuoteBorderColor,
   onLinkClick,
   onMathClick,
   onIframeClick,
@@ -162,6 +170,13 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
     }
     command(editor.chain().focus());
     setKey(prev => prev + 1);
+  }, [editor]);
+
+  const runEditorCommandSilent = useCallback((command: (chain: ReturnType<Editor['chain']>) => void) => {
+    if (!editor) {
+      return;
+    }
+    command(editor.chain().focus());
   }, [editor]);
 
   const toggleHighlight = useCallback(() => {
@@ -186,7 +201,7 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
   }
 
   return (
-    <div key={key} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-t">
+    <div key={key} className="p-2 bg-slate-100/60 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 rounded-t">
       <div className="flex flex-wrap items-center gap-1">
         <div className="relative menu-container">
           <ToolbarButton
@@ -346,10 +361,10 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           </button>
           <div className={`absolute left-0 mt-1 w-[280px] bg-slate-50/90 dark:bg-slate-900/90 rounded py-4 px-3 z-10 transition-all duration-200 border border-slate-200/60 dark:border-slate-700/60 ${activeMenu === 'color' ? 'opacity-100 visible' : 'opacity-0 invisible'}`} style={{ 'top': '100%' }}>
             <ColorPicker color={fontColor} onChange={(color) => {
-              setFontColor(color); runEditorCommand(c => c.setColor(color).run());
+              setFontColor(color); runEditorCommandSilent(c => c.setColor(color).run());
             }} label="字体颜色" />
             <ColorPicker color={backgroundColor} onChange={(color) => {
-              setBackgroundColor(color); runEditorCommand(c => c.setBackgroundColor(color).run());
+              setBackgroundColor(color); runEditorCommandSilent(c => c.setBackgroundColor(color).run());
             }} label="背景颜色" />
             <div className="border-t border-slate-200/60 dark:border-slate-700/60 my-3" />
             <div className="flex gap-2">
@@ -473,6 +488,49 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           <Quote size={16} className="text-slate-500 dark:text-slate-400 mx-auto" />
           <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">引用</span>
         </button>
+
+        <div className="relative menu-container">
+          <button
+            onClick={() => {
+              if (editor && editor.isActive('blockquote')) {
+                const attrs = editor.getAttributes('blockquote');
+                setQuoteBgColor(attrs.backgroundColor || '#f1f5f9');
+                setQuoteBorderColor(attrs.borderColor || '#64748b');
+              }
+              setActiveMenu(activeMenu === 'quoteStyle' ? null : 'quoteStyle');
+            }}
+            className={`flex flex-col items-center justify-center p-2 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-all w-16 ${activeMenu === 'quoteStyle' ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400' : ''}`}
+            disabled={!editor?.isActive('blockquote')}
+          >
+            <div className="flex items-center gap-1">
+              <Palette className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+              <ChevronDown className={`w-3 h-3 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${activeMenu === 'quoteStyle' ? 'rotate-180' : ''}`} />
+            </div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">引用样式</span>
+          </button>
+          <div className={`absolute left-0 mt-1 w-[280px] bg-slate-50/90 dark:bg-slate-900/90 rounded py-4 px-3 z-10 transition-all duration-200 border border-slate-200/60 dark:border-slate-700/60 ${activeMenu === 'quoteStyle' ? 'opacity-100 visible' : 'opacity-0 invisible'}`} style={{ 'top': '100%' }}>
+            <ColorPicker color={quoteBgColor} onChange={(color) => {
+              setQuoteBgColor(color);
+              runEditorCommandSilent(c => c.updateAttributes('blockquote', { 'backgroundColor': color }).run());
+            }} label="背景颜色" />
+            <ColorPicker color={quoteBorderColor} onChange={(color) => {
+              setQuoteBorderColor(color);
+              runEditorCommandSilent(c => c.updateAttributes('blockquote', { 'borderColor': color }).run());
+            }} label="边框颜色" />
+            <div className="border-t border-slate-200/60 dark:border-slate-700/60 my-3" />
+            <div className="flex gap-2">
+              <button onClick={() => {
+                setQuoteBgColor('#f1f5f9');
+                runEditorCommand(c => c.updateAttributes('blockquote', { 'backgroundColor': null }).run());
+              }} className="flex-1 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 rounded">清除背景</button>
+              <button onClick={() => {
+                setQuoteBorderColor('#64748b');
+                runEditorCommand(c => c.updateAttributes('blockquote', { 'borderColor': null }).run());
+              }} className="flex-1 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 rounded">清除边框</button>
+            </div>
+          </div>
+        </div>
+
         <button onClick={() => runEditorCommand(c => c.setHorizontalRule().run())} className="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-all w-16">
           <Minus size={16} className="text-slate-500 dark:text-slate-400 mx-auto" />
           <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">水平线</span>

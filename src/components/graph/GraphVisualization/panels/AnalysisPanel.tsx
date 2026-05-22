@@ -786,7 +786,7 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ onClose }) => {
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowHelp(true)}
-            className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
+            className="p-1.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
           >
             <HelpCircle size={16} />
           </button>
