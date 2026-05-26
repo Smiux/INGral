@@ -16,17 +16,11 @@ export interface MathEdge {
 
 export interface NodeData {
   id: string;
-  type: NodeType;
-  module: string;
-  branch: string;
   declType: string;
   docString: string | null;
-  moduleDoc: string;
   directDeps: string[];
   indirectDeps: string[];
-  specialDeps: string[];
   extendsClasses: string[];
-  sameModule: string[];
   goalState: string | null;
   proofTactic: string | null;
   sourceCode: string;

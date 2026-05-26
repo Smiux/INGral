@@ -16,6 +16,6 @@ export const DEFAULT_COSMOS_GL_SETTINGS: CosmosGLSettings = {
   'simulationRepulsion': 0.5,
   'pointSizeScale': 1.0,
   'linkWidthScale': 0.5,
-  'pointOpacity': 0.9,
-  'linkOpacity': 0.2
+  'pointOpacity': 1.0,
+  'linkOpacity': 1.0
 };

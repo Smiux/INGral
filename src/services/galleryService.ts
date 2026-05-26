@@ -275,6 +275,29 @@ export async function deleteGallery (id: string): Promise<void> {
   invalidateGalleryCache(id);
 }
 
+export async function searchGallerysByTitle (query: string, page: number = 1, pageSize: number = 12): Promise<PaginatedGallerys> {
+  const result = await turso.execute({
+    'sql': `SELECT id, title, nodes, edges, word_count, created_at, updated_at FROM ${TABLE_NAME} WHERE title LIKE ? ORDER BY updated_at DESC LIMIT ? OFFSET ?`,
+    'args': [`%${query}%`, pageSize, (page - 1) * pageSize]
+  });
+
+  const countResult = await turso.execute({
+    'sql': `SELECT COUNT(*) as total FROM ${TABLE_NAME} WHERE title LIKE ?`,
+    'args': [`%${query}%`]
+  });
+
+  const total = (countResult.rows[0]?.total as number) || 0;
+  const galleryItems = result.rows.map(parseGalleryListItem);
+
+  return {
+    'gallerys': galleryItems,
+    total,
+    page,
+    pageSize,
+    'totalPages': Math.ceil(total / pageSize)
+  };
+}
+
 export async function searchArticlesByTitle (query: string): Promise<Array<{
   id: string;
   title: string;

@@ -9,10 +9,12 @@ import { type MathNode, type MathEdge, type NodeData, type MathMetadata, type No
 const DATA_BASE = '/data/mathlib';
 
 const nodeDataCache = new Map<string, NodeData>();
+const moduleDocsCache = new Map<string, string>();
 
 let metadataPromise: Promise<MathMetadata> | null = null;
 let nodesPromise: Promise<MathNode[]> | null = null;
 let edgesPromise: Promise<MathEdge[]> | null = null;
+let moduleDocsPromise: Promise<Map<string, string>> | null = null;
 
 async function loadMetadata (): Promise<MathMetadata> {
   if (metadataPromise) {
@@ -64,6 +66,24 @@ async function loadEdges (): Promise<MathEdge[]> {
   return edgesPromise;
 }
 
+async function loadModuleDocs (): Promise<Map<string, string>> {
+  if (moduleDocsPromise) {
+    return moduleDocsPromise;
+  }
+  moduleDocsPromise = (async () => {
+    if (moduleDocsCache.size > 0) {
+      return moduleDocsCache;
+    }
+    const res = await fetch(`${DATA_BASE}/module_docs.json`);
+    const data = (await res.json()) as Record<string, string>;
+    for (const [mod, doc] of Object.entries(data)) {
+      moduleDocsCache.set(mod, doc);
+    }
+    return moduleDocsCache;
+  })();
+  return moduleDocsPromise;
+}
+
 async function loadNodeData (nodeId: string, modulePath: string): Promise<NodeData | null> {
   if (nodeDataCache.has(nodeId)) {
     return nodeDataCache.get(nodeId)!;
@@ -89,7 +109,9 @@ export default function MathGallery () {
   const [nodes, setNodes] = useState<MathNode[]>([]);
   const [edges, setEdges] = useState<MathEdge[]>([]);
   const [hoveredNode, setHoveredNode] = useState<MathNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<MathNode | null>(null);
   const [selectedNodeData, setSelectedNodeData] = useState<NodeData | null>(null);
+  const [selectedModuleDoc, setSelectedModuleDoc] = useState<string | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showEdges, setShowEdges] = useState(true);
@@ -177,11 +199,11 @@ export default function MathGallery () {
   }, []);
 
   const handleNodeRightClick = useCallback(async (node: MathNode) => {
-    const data = await loadNodeData(node.id, node.module);
-    if (data) {
-      setSelectedNodeData(data);
-      setIsPanelOpen(true);
-    }
+    const [data, modDocs] = await Promise.all([loadNodeData(node.id, node.module), loadModuleDocs()]);
+    setSelectedNode(node);
+    setSelectedNodeData(data);
+    setSelectedModuleDoc(modDocs.get(node.module) ?? null);
+    setIsPanelOpen(true);
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -195,11 +217,12 @@ export default function MathGallery () {
     const modulePath = nodeModuleMapRef.current.get(nodeId) ?? nodeId.split('.')
       .slice(0, -1)
       .join('.');
-    const data = await loadNodeData(nodeId, modulePath);
-    if (data) {
-      setSelectedNodeData(data);
-    }
-  }, []);
+    const [data, modDocs] = await Promise.all([loadNodeData(nodeId, modulePath), loadModuleDocs()]);
+    const node = nodes.find(n => n.id === nodeId) ?? null;
+    setSelectedNode(node);
+    setSelectedNodeData(data);
+    setSelectedModuleDoc(modDocs.get(modulePath) ?? null);
+  }, [nodes]);
 
   if (isLoading) {
     return (
@@ -344,7 +367,9 @@ export default function MathGallery () {
       />
 
       <MathArticlePanel
+        node={selectedNode}
         nodeData={selectedNodeData}
+        moduleDoc={selectedModuleDoc}
         isOpen={isPanelOpen}
         onClose={handleClosePanel}
         onNavigate={handleNavigate}

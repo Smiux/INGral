@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, AlertCircle, Trash2, Eye, CalendarDays, GitBranch, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getGallerysPaginated, getAllGallerys, deleteGallery } from '@/services/galleryService';
+import { getGallerysPaginated, searchGallerysByTitle, deleteGallery } from '@/services/galleryService';
 import { ConfirmDialog } from '@/components/ui/generic/ConfirmDialog';
 import type { GalleryListItem } from '@/components/gallerys/gallery';
 
@@ -18,15 +18,16 @@ const formatDate = (dateString: string) => {
 
 export function GallerysPage () {
   const [gallerys, setGallerys] = useState<GalleryListItem[]>([]);
-  const [allGallerysForSearch, setAllGallerysForSearch] = useState<GalleryListItem[]>([]);
+  const [searchResults, setSearchResults] = useState<GalleryListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingAll, setIsLoadingAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<GalleryListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalGallerys, setTotalGallerys] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [searchTotalPages, setSearchTotalPages] = useState(0);
   const [jumpPageInput, setJumpPageInput] = useState('');
 
   const loadGallerys = useCallback(async (page: number) => {
@@ -41,46 +42,31 @@ export function GallerysPage () {
     }
   }, []);
 
-  const loadAllGallerysForSearch = useCallback(async () => {
-    if (allGallerysForSearch.length > 0) {
-      return;
-    }
-
-    setIsLoadingAll(true);
+  const loadSearchResults = useCallback(async (query: string, page: number) => {
+    setIsLoading(true);
     try {
-      const all = await getAllGallerys();
-      setAllGallerysForSearch(all);
+      const result = await searchGallerysByTitle(query, page, GALLERYS_PER_PAGE);
+      setSearchResults(result.gallerys);
+      setSearchTotal(result.total);
+      setSearchTotalPages(result.totalPages);
     } finally {
-      setIsLoadingAll(false);
+      setIsLoading(false);
     }
-  }, [allGallerysForSearch.length]);
-
-  useEffect(() => {
-    loadGallerys(currentPage);
-  }, [currentPage, loadGallerys]);
+  }, []);
 
   useEffect(() => {
     if (searchQuery.trim()) {
-      loadAllGallerysForSearch();
+      loadSearchResults(searchQuery.trim(), currentPage);
+    } else {
+      loadGallerys(currentPage);
     }
-  }, [searchQuery, loadAllGallerysForSearch]);
+  }, [currentPage, searchQuery, loadGallerys, loadSearchResults]);
 
   const isSearchMode = searchQuery.trim().length > 0;
 
-  const searchResults = allGallerysForSearch.filter((gallery) =>
-    gallery.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const displayTotalPages = isSearchMode
-    ? Math.ceil(searchResults.length / GALLERYS_PER_PAGE)
-    : totalPages;
-
-  const startIndex = (currentPage - 1) * GALLERYS_PER_PAGE;
-  const endIndex = startIndex + GALLERYS_PER_PAGE;
-
-  const displayedGallerys = isSearchMode
-    ? searchResults.slice(startIndex, endIndex)
-    : gallerys;
+  const displayTotalPages = isSearchMode ? searchTotalPages : totalPages;
+  const displayedGallerys = isSearchMode ? searchResults : gallerys;
+  const displayCount = isSearchMode ? searchTotal : totalGallerys;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -96,7 +82,7 @@ export function GallerysPage () {
     try {
       await deleteGallery(deleteTarget.id);
       setGallerys((prev) => prev.filter((g) => g.id !== deleteTarget.id));
-      setAllGallerysForSearch((prev) => prev.filter((g) => g.id !== deleteTarget.id));
+      setSearchResults((prev) => prev.filter((g) => g.id !== deleteTarget.id));
       setDeleteTarget(null);
     } finally {
       setIsDeleting(false);
@@ -135,15 +121,13 @@ export function GallerysPage () {
       pageNumbers.push(i);
     }
 
-    const displayCount = isSearchMode ? searchResults.length : totalGallerys;
+    const startIndex = (currentPage - 1) * GALLERYS_PER_PAGE;
+    const endIndex = startIndex + GALLERYS_PER_PAGE;
 
     return (
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-slate-200/60 dark:border-slate-700/60">
         <div className="text-sm text-slate-400 dark:text-slate-500">
           显示 {startIndex + 1}-{Math.min(endIndex, displayCount)} 条，共 {displayCount} 条
-          {isLoadingAll && (
-            <span className="ml-2 text-sky-500">(正在加载所有地图进行搜索...)</span>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -230,13 +214,11 @@ export function GallerysPage () {
   };
 
   const renderContent = () => {
-    if (isLoading || isLoadingAll) {
+    if (isLoading) {
       return (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mb-4" />
-          <p className="text-slate-500 dark:text-slate-400">
-            {isLoadingAll ? '正在加载所有地图进行搜索...' : '加载中...'}
-          </p>
+          <p className="text-slate-500 dark:text-slate-400">加载中...</p>
         </div>
       );
     }
@@ -332,7 +314,7 @@ export function GallerysPage () {
     );
   };
 
-  if (isLoading && currentPage === 1 && gallerys.length === 0) {
+  if (isLoading && currentPage === 1 && gallerys.length === 0 && !isSearchMode) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mb-4" />

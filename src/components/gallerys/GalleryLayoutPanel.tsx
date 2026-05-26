@@ -62,15 +62,15 @@ const ALGORITHM_CONFIG = {
 } as const;
 
 const DEFAULT_PARAMS: LayoutParams = {
-  'nodeSpacing': 80,
-  'edgeEdgeSpacing': 20,
-  'edgeNodeSpacing': 20,
-  'rankSpacing': 120,
+  'nodeSpacing': 300,
+  'edgeEdgeSpacing': 100,
+  'edgeNodeSpacing': 100,
+  'rankSpacing': 300,
   'iterations': 300,
   'forceModel': 'FRUCHTERMAN_REINGOLD',
   'repulsion': 5,
   'temperature': 0.001,
-  'desiredEdgeLength': 100,
+  'desiredEdgeLength': 500,
   'epsilon': 0.0001,
   'dimension': 'XY',
   'iterationLimit': 1000000
@@ -242,8 +242,6 @@ export const GalleryLayoutPanel = ({
                 </label>
                 <input
                   type="number"
-                  min={20}
-                  max={200}
                   className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                   value={params.nodeSpacing}
                   onChange={e => updateParam('nodeSpacing', parseInt(e.target.value, 10) || 0)}
@@ -256,8 +254,6 @@ export const GalleryLayoutPanel = ({
                 </label>
                 <input
                   type="number"
-                  min={5}
-                  max={100}
                   className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                   value={params.edgeEdgeSpacing}
                   onChange={e => updateParam('edgeEdgeSpacing', parseInt(e.target.value, 10) || 0)}
@@ -270,8 +266,6 @@ export const GalleryLayoutPanel = ({
                 </label>
                 <input
                   type="number"
-                  min={5}
-                  max={100}
                   className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                   value={params.edgeNodeSpacing}
                   onChange={e => updateParam('edgeNodeSpacing', parseInt(e.target.value, 10) || 0)}
@@ -292,8 +286,6 @@ export const GalleryLayoutPanel = ({
                   </label>
                   <input
                     type="number"
-                    min={50}
-                    max={300}
                     className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.rankSpacing}
                     onChange={e => updateParam('rankSpacing', parseInt(e.target.value, 10) || 0)}
@@ -315,8 +307,6 @@ export const GalleryLayoutPanel = ({
                   </label>
                   <input
                     type="number"
-                    min={50}
-                    max={1000}
                     className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.iterations}
                     onChange={e => updateParam('iterations', parseInt(e.target.value, 10) || 0)}
@@ -344,8 +334,6 @@ export const GalleryLayoutPanel = ({
                     </label>
                     <input
                       type="number"
-                      min={1}
-                      max={20}
                       step="0.5"
                       className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                       value={params.repulsion}
@@ -361,8 +349,6 @@ export const GalleryLayoutPanel = ({
                     </label>
                     <input
                       type="number"
-                      min={0.0001}
-                      max={0.1}
                       step="0.0001"
                       className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                       value={params.temperature}
@@ -386,8 +372,6 @@ export const GalleryLayoutPanel = ({
                   </label>
                   <input
                     type="number"
-                    min={50}
-                    max={300}
                     className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.desiredEdgeLength}
                     onChange={e => updateParam('desiredEdgeLength', parseInt(e.target.value, 10) || 0)}
@@ -400,8 +384,6 @@ export const GalleryLayoutPanel = ({
                   </label>
                   <input
                     type="number"
-                    min={0.00001}
-                    max={0.01}
                     step="0.0001"
                     className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.epsilon}
@@ -430,8 +412,6 @@ export const GalleryLayoutPanel = ({
                   </label>
                   <input
                     type="number"
-                    min={1000}
-                    max={10000000}
                     className="w-full px-3 py-2 bg-slate-200/50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-300"
                     value={params.iterationLimit}
                     onChange={e => updateParam('iterationLimit', parseInt(e.target.value, 10) || 0)}

@@ -1,10 +1,74 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { X, BookOpen, Code, GitBranch, Layers, FileCode, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { type NodeData, NODE_TYPE_LABELS } from './types';
+import { marked } from 'marked';
+import katex from 'katex';
+import { type MathNode, type NodeData, NODE_TYPE_LABELS } from './types';
+
+const inlineMathExt = {
+  'name': 'inlineMath',
+  'level': 'inline' as const,
+  'start' (src: string) {
+    return src.indexOf('$');
+  },
+  'tokenizer' (src: string) {
+    const match = src.match(/^\$([^$\n]+?)\$/);
+    if (match) {
+      return { 'type': 'inlineMath', 'raw': match[0], 'text': match[1]!.trim() };
+    }
+    return undefined;
+  },
+  'renderer' (token: { 'text': string }) {
+    try {
+      return katex.renderToString(token.text, { 'throwOnError': false, 'displayMode': false });
+    } catch {
+      return `<code class="katex-error">${token.text}</code>`;
+    }
+  }
+};
+
+const blockMathExt = {
+  'name': 'blockMath',
+  'level': 'block' as const,
+  'start' (src: string) {
+    return src.indexOf('$$');
+  },
+  'tokenizer' (src: string) {
+    const match = src.match(/^\$\$([^$]+?)\$\$/);
+    if (match) {
+      return { 'type': 'blockMath', 'raw': match[0], 'text': match[1]!.trim() };
+    }
+    return undefined;
+  },
+  'renderer' (token: { 'text': string }) {
+    try {
+      return `<div class="katex-display">${katex.renderToString(token.text, { 'throwOnError': false, 'displayMode': true })}</div>`;
+    } catch {
+      return `<pre><code class="katex-error">${token.text}</code></pre>`;
+    }
+  }
+};
+
+marked.use({ 'extensions': [blockMathExt, inlineMathExt] });
+
+function renderMarkdown (md: string): string {
+  return marked.parse(md, { 'async': false }) as string;
+}
+
+function MarkdownRenderer ({ content, className }: { content: string; className?: string }) {
+  const html = useMemo(() => renderMarkdown(content), [content]);
+  return (
+    <div
+      className={`prose prose-xs prose-slate dark:prose-invert max-w-none [&_.katex-display]:my-2 [&_.katex-display]:overflow-x-auto [&_.katex]:text-inherit ${className ?? ''}`}
+      dangerouslySetInnerHTML={{ '__html': html }}
+    />
+  );
+}
 
 interface MathArticlePanelProps {
+  node: MathNode | null;
   nodeData: NodeData | null;
+  moduleDoc: string | null;
   isOpen: boolean;
   onClose: () => void;
   onNavigate: (nodeId: string) => void;
@@ -64,12 +128,12 @@ function DepList ({ deps, onNavigate, initialLimit = 30 }: { deps: string[]; onN
   );
 }
 
-function ExpandableText ({ text }: { text: string }) {
+function ExpandableMarkdown ({ content }: { content: string }) {
   const [expanded, setExpanded] = useState(false);
   return (
     <div>
-      <div className={`text-xs leading-relaxed text-slate-500 dark:text-slate-400 whitespace-pre-wrap ${expanded ? '' : 'line-clamp-8'}`}>
-        {text}
+      <div className={expanded ? '' : 'line-clamp-8'}>
+        <MarkdownRenderer content={content} className="text-xs leading-relaxed text-slate-500 dark:text-slate-400" />
       </div>
       <button
         onClick={() => setExpanded(!expanded)}
@@ -81,10 +145,14 @@ function ExpandableText ({ text }: { text: string }) {
   );
 }
 
-export default function MathArticlePanel ({ nodeData, isOpen, onClose, onNavigate }: MathArticlePanelProps) {
+export default function MathArticlePanel ({ node, nodeData, moduleDoc, isOpen, onClose, onNavigate }: MathArticlePanelProps) {
+  const directDeps = nodeData?.directDeps ?? [];
+  const indirectDeps = nodeData?.indirectDeps ?? [];
+  const extendsClasses = nodeData?.extendsClasses ?? [];
+
   return (
     <AnimatePresence>
-      {isOpen && nodeData && (
+      {isOpen && node && (
         <motion.div
           initial={{ 'x': 384, 'opacity': 0 }}
           animate={{ 'x': 0, 'opacity': 1 }}
@@ -95,10 +163,10 @@ export default function MathArticlePanel ({ nodeData, isOpen, onClose, onNavigat
           <div className="flex items-center justify-between p-3 border-b border-slate-200/60 dark:border-slate-700/60">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                {NODE_TYPE_LABELS[nodeData.type]}
+                {NODE_TYPE_LABELS[node.type]}
               </span>
-              <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate font-mono" title={nodeData.id}>
-                {nodeData.id.split('.').pop()}
+              <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate font-mono" title={node.id}>
+                {node.id.split('.').pop()}
               </h2>
             </div>
             <button
@@ -110,79 +178,67 @@ export default function MathArticlePanel ({ nodeData, isOpen, onClose, onNavigat
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1">
-            <div className="text-xs text-slate-300 dark:text-slate-600 font-mono mb-3 break-all">{nodeData.id}</div>
+            <div className="text-xs text-slate-300 dark:text-slate-600 font-mono mb-3 break-all">{node.id}</div>
 
-            {nodeData.declType && (
+            {nodeData?.declType && (
               <Section icon={Code} title="类型签名">
                 <CodeBlock content={nodeData.declType} />
               </Section>
             )}
 
-            {nodeData.docString && (
+            {nodeData?.docString && (
               <Section icon={BookOpen} title="文档">
-                <div className="text-xs leading-relaxed text-slate-500 dark:text-slate-400 whitespace-pre-wrap">{nodeData.docString}</div>
+                <MarkdownRenderer content={nodeData.docString} className="text-xs leading-relaxed text-slate-500 dark:text-slate-400" />
               </Section>
             )}
 
-            {nodeData.moduleDoc && (
+            {moduleDoc && (
               <Section icon={BookOpen} title="模块文档">
-                <ExpandableText text={nodeData.moduleDoc} />
+                <ExpandableMarkdown content={moduleDoc} />
               </Section>
             )}
 
-            {nodeData.type === 'Theorem' && nodeData.goalState && (
+            {node.type === 'Theorem' && nodeData?.goalState && (
               <Section icon={Lightbulb} title="证明目标">
                 <CodeBlock content={nodeData.goalState} />
               </Section>
             )}
 
-            {nodeData.type === 'Theorem' && nodeData.proofTactic && (
+            {node.type === 'Theorem' && nodeData?.proofTactic && (
               <Section icon={FileCode} title="证明策略">
                 <CodeBlock content={nodeData.proofTactic} />
               </Section>
             )}
 
-            {nodeData.directDeps.length > 0 && (
+            {directDeps.length > 0 && (
               <Section icon={GitBranch} title="直接依赖">
-                <DepList deps={nodeData.directDeps} onNavigate={onNavigate} />
+                <DepList deps={directDeps} onNavigate={onNavigate} />
               </Section>
             )}
 
-            {nodeData.indirectDeps.length > 0 && (
+            {indirectDeps.length > 0 && (
               <Section icon={GitBranch} title="间接依赖">
-                <DepList deps={nodeData.indirectDeps} onNavigate={onNavigate} />
+                <DepList deps={indirectDeps} onNavigate={onNavigate} />
               </Section>
             )}
 
-            {nodeData.specialDeps.length > 0 && (
-              <Section icon={GitBranch} title="特殊依赖">
-                <DepList deps={nodeData.specialDeps} onNavigate={onNavigate} />
-              </Section>
-            )}
-
-            {nodeData.extendsClasses.length > 0 && (
+            {extendsClasses.length > 0 && (
               <Section icon={Layers} title="继承">
-                <DepList deps={nodeData.extendsClasses} onNavigate={onNavigate} />
+                <DepList deps={extendsClasses} onNavigate={onNavigate} />
               </Section>
             )}
 
-            {nodeData.sameModule.length > 0 && (
-              <Section icon={Layers} title="同模块声明">
-                <DepList deps={nodeData.sameModule} onNavigate={onNavigate} />
-              </Section>
-            )}
-
-            {nodeData.sourceCode && (
+            {nodeData?.sourceCode && (
               <Section icon={Code} title="源码">
-                <CodeBlock content={nodeData.sourceCode} />
+                <CodeBlock content={nodeData.sourceCode!} />
               </Section>
             )}
           </div>
 
           <div className="p-2 border-t border-slate-200/60 dark:border-slate-700/60 text-[10px] text-slate-300 dark:text-slate-600 flex gap-3">
-            <span>模块: {nodeData.module.split('.').slice(-2)
+            <span>模块: {node.module.split('.').slice(-2)
               .join('.')}</span>
-            <span>分支: {nodeData.branch}</span>
+            <span>分支: {node.branch}</span>
           </div>
         </motion.div>
       )}

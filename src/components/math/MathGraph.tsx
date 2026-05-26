@@ -97,15 +97,62 @@ function computeInitialPositions (nodes: MathNode[]): Float32Array {
     branchRadii.set(branch, Math.max(baseRadius, 200));
   });
 
+  const moduleIndices = new Map<string, number[]>();
   nodes.forEach((node, index) => {
-    const branchAngle = branchAngles.get(node.branch) ?? 0;
-    const branchRadius = branchRadii.get(node.branch) ?? 500;
-    const spread = Math.min(branchRadius * 0.6, 800);
-    const localAngle = branchAngle + (Math.random() - 0.5) * (spread / branchRadius);
-    const localRadius = branchRadius * (0.3 + Math.random() * 0.7);
+    const list = moduleIndices.get(node.module) ?? [];
+    list.push(index);
+    moduleIndices.set(node.module, list);
+  });
 
-    positions[index * 2] = centerX + Math.cos(localAngle) * localRadius;
-    positions[index * 2 + 1] = centerY + Math.sin(localAngle) * localRadius;
+  const MODULE_CLUSTER_RADIUS = 10;
+
+  const branchModuleSeeds = new Map<string, Map<string, { x: number; y: number }>>();
+
+  sortedBranches.forEach(([branch, branchNodeIndices]) => {
+    const branchAngle = branchAngles.get(branch) ?? 0;
+    const branchRadius = branchRadii.get(branch) ?? 500;
+    const spread = Math.min(branchRadius * 0.6, 800);
+
+    const branchModules = new Map<string, number[]>();
+    for (const idx of branchNodeIndices) {
+      const mod = nodes[idx]!.module;
+      const list = branchModules.get(mod) ?? [];
+      list.push(idx);
+      branchModules.set(mod, list);
+    }
+
+    const seedPositions = new Map<string, { x: number; y: number }>();
+    const sortedModules = [...branchModules.entries()]
+      .sort((a, b) => b[1].length - a[1].length);
+
+    for (const [mod, modIndices] of sortedModules) {
+      const seedIndex = modIndices[0]!;
+      const localAngle = branchAngle + (Math.random() - 0.5) * (spread / branchRadius);
+      const localRadius = branchRadius * (0.3 + Math.random() * 0.7);
+      const x = centerX + Math.cos(localAngle) * localRadius;
+      const y = centerY + Math.sin(localAngle) * localRadius;
+      positions[seedIndex * 2] = x;
+      positions[seedIndex * 2 + 1] = y;
+      seedPositions.set(mod, { x, y });
+    }
+
+    branchModuleSeeds.set(branch, seedPositions);
+  });
+
+  nodes.forEach((node, index) => {
+    if (positions[index * 2] !== 0 || positions[index * 2 + 1] !== 0) {
+      return;
+    }
+
+    const seed = branchModuleSeeds.get(node.branch)?.get(node.module);
+    if (!seed) {
+      return;
+    }
+
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.random() * MODULE_CLUSTER_RADIUS;
+    positions[index * 2] = seed.x + Math.cos(angle) * dist;
+    positions[index * 2 + 1] = seed.y + Math.sin(angle) * dist;
   });
 
   return positions;

@@ -90,17 +90,13 @@ const DEFAULT_OPTIONS = {
     'packingMode': 'SIMPLE'
   },
   'forceatlas2': {
-    'iterations': 100,
+    'iterations': 300,
     'gravity': 1,
-    'scalingRatio': 1,
+    'scalingRatio': 100,
     'barnesHutOptimize': false,
     'barnesHutTheta': 0.5,
     'linLogMode': false,
-    'strongGravityMode': false,
-    'outboundAttractionDistribution': false,
-    'slowDown': 1,
-    'edgeWeightInfluence': 1,
-    'adjustSizes': false
+    'strongGravityMode': false
   }
 };
 
@@ -209,11 +205,7 @@ const ALGORITHM_CONFIGS: Record<LayoutAlgorithm, { title: string; fields: FieldC
       { 'key': 'barnesHutOptimize', 'label': 'Barnes-Hut 优化', 'type': 'checkbox' as const, 'description': '大图 O(n·log(n)) 近似计算' },
       { 'key': 'barnesHutTheta', 'label': 'Barnes-Hut Theta', 'type': 'number' as const, 'step': '0.1' },
       { 'key': 'linLogMode', 'label': 'LinLog 模式', 'type': 'checkbox' as const, 'description': '对数吸引力，社区更紧凑' },
-      { 'key': 'strongGravityMode', 'label': '强重力模式', 'type': 'checkbox' as const, 'description': '距离无关的强重力' },
-      { 'key': 'outboundAttractionDistribution', 'label': '抑制枢纽', 'type': 'checkbox' as const, 'description': '枢纽节点吸引力分散' },
-      { 'key': 'slowDown', 'label': '减速因子', 'type': 'number' as const, 'step': '0.1' },
-      { 'key': 'edgeWeightInfluence', 'label': '连接权重影响', 'type': 'number' as const, 'step': '0.1' },
-      { 'key': 'adjustSizes', 'label': '考虑节点大小', 'type': 'checkbox' as const, 'description': '防重叠' }
+      { 'key': 'strongGravityMode', 'label': '强重力模式', 'type': 'checkbox' as const, 'description': '距离无关的强重力' }
     ]
   }
 };
@@ -298,10 +290,6 @@ export const LayoutPanel: React.FC<LayoutPanelProps> = ({ onLayout, onClose }) =
         settings.barnesHutTheta = fa2Opts.barnesHutTheta;
         settings.linLogMode = fa2Opts.linLogMode;
         settings.strongGravityMode = fa2Opts.strongGravityMode;
-        settings.outboundAttractionDistribution = fa2Opts.outboundAttractionDistribution;
-        settings.slowDown = fa2Opts.slowDown;
-        settings.edgeWeightInfluence = fa2Opts.edgeWeightInfluence;
-        settings.adjustSizes = fa2Opts.adjustSizes;
 
         forceAtlas2.assign(graph, {
           'iterations': fa2Opts.iterations,
