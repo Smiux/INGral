@@ -110,7 +110,7 @@ export const FootnotePanel: React.FC<FootnotePanelProps> = ({ editor, editable =
     if (targetPos !== null) {
       const coords = editor.view.coordsAtPos(targetPos);
       window.scrollTo({
-        'top': coords.top - 120,
+        'top': coords.top + window.scrollY - 240,
         'behavior': 'smooth'
       });
     }

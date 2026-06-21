@@ -27,7 +27,6 @@ import * as Y from 'yjs';
 import { IframeEmbed } from '../extensions/Iframe';
 import { CollapsibleNode } from '../extensions/Collapsible';
 import { FootnoteExtension } from '../extensions/Footnote';
-import { ConnectionPointDecoration } from '../extensions/ConnectionPointDecoration';
 import { SlashCommand } from '../extensions/SlashCommand.tsx';
 import { TabIndent } from '../extensions/TabIndent';
 
@@ -235,7 +234,6 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
       IframeEmbed,
       CollapsibleNode,
       FootnoteExtension,
-      ConnectionPointDecoration,
       ...(editable && onLinkClick && onMathClick && onIframeClick && onFootnoteClick ? [
         SlashCommand.configure({
           onLinkClick,
@@ -261,7 +259,6 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   }, [collaboration, editable, onTableOfContentsChange, onLinkClick, onMathClick, onIframeClick, onFootnoteClick]);
 
   const editor = useEditor({
-    'immediatelyRender': true,
     editable,
     ...(content ? { content } : {}),
     extensions,

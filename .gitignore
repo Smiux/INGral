@@ -10,6 +10,7 @@ build
 
 # 文档目录
 docs/
+src/brainstorm/content/
 
 # AI 代理相关文件
 agents.md
@@ -19,19 +20,11 @@ skills-lock.json
 # IDE 和编辑器配置
 .vscode/
 .trae/
-.cursor/
-.codebuddy/
-.lingma/
 
 # 脚本目录
 scripts/
 
-# AI 工具配置目录
-.kilocode/
-.superpowers/
-
 # 原始数据目录
 public/data/raw/
-
-# 数据库相关
-schema.sql
+public/data/mathlib/
+pdf/

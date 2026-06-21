@@ -11,11 +11,11 @@ export interface CosmosGLSettings {
 
 export const DEFAULT_COSMOS_GL_SETTINGS: CosmosGLSettings = {
   'simulationPaused': true,
-  'simulationFriction': 0.7,
+  'simulationFriction': 0.5,
   'simulationGravity': 0.3,
   'simulationRepulsion': 0.5,
   'pointSizeScale': 1.0,
-  'linkWidthScale': 0.5,
+  'linkWidthScale': 1.0,
   'pointOpacity': 1.0,
   'linkOpacity': 1.0
 };

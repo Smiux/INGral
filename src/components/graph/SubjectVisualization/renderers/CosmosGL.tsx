@@ -163,7 +163,7 @@ export default function CosmosGLRenderer ({
       'simulationFriction': settingsRef.current.simulationFriction,
       'simulationGravity': settingsRef.current.simulationGravity,
       'simulationRepulsion': settingsRef.current.simulationRepulsion,
-      'simulationDecay': 10000,
+      'simulationDecay': 1000000,
       'fitViewOnInit': true,
       'fitViewDelay': 500,
       'fitViewPadding': 0.2,

@@ -101,6 +101,7 @@ button:disabled {
 
   & ul,
   & ol {
+    margin-top: 1rem;
     margin-bottom: 1rem;
     margin-left: 1.5rem;
     list-style-position: outside;

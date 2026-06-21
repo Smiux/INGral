@@ -1,20 +1,21 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { Graph } from '@cosmos.gl/graph';
-import { type MathNode, type MathEdge, type MathMetadata, NODE_TYPE_SHAPES } from './types';
+import { type KnowledgeNode, type KnowledgeLink, type GraphMetadata, NODE_TYPE_SHAPES } from './types';
 import { type CosmosGLSettings } from './settings';
 
 interface MathGraphProps {
-  nodes: MathNode[];
-  edges: MathEdge[];
-  metadata: MathMetadata;
+  nodes: KnowledgeNode[];
+  links: KnowledgeLink[];
+  metadata: GraphMetadata;
   width: number;
   height: number;
   settings: CosmosGLSettings;
   showEdges: boolean;
   backgroundColor: string;
-  onNodeHover: (node: MathNode | null) => void;
-  onNodeRightClick: (node: MathNode) => void;
-  onNodeClick: (node: MathNode, event: MouseEvent) => void;
+  onNodeHover: (node: KnowledgeNode | null) => void;
+  onNodeRightClick: (node: KnowledgeNode) => void;
+  onNodeClick: (node: KnowledgeNode, event: MouseEvent) => void;
+  onLinkRightClick: (sourceId: string, targetId: string) => void;
 }
 
 const SPACE_SIZE = 8192;
@@ -62,97 +63,122 @@ const hslToRgb = (hsl: string): [number, number, number] => {
   return [r, g, b];
 };
 
-const getBranchColor = (branch: string, metadata: MathMetadata): string => {
-  return metadata.branches[branch]?.color ?? 'hsl(0,0%,50%)';
-};
+const DOMAIN_COLORS: string[] = [
+  'hsl(210, 70%, 55%)',
+  'hsl(160, 60%, 45%)',
+  'hsl(280, 50%, 55%)',
+  'hsl(350, 65%, 55%)',
+  'hsl(40, 80%, 50%)',
+  'hsl(190, 65%, 50%)',
+  'hsl(10, 70%, 55%)',
+  'hsl(120, 40%, 50%)',
+  'hsl(300, 45%, 55%)',
+  'hsl(0, 0%, 50%)'
+];
+
+const DOMAIN_ANGLE_OFFSETS: Record<string, number> = {};
+
+function getDomainColor (domain: string): string {
+  let index = 0;
+  for (const d of Object.keys(DOMAIN_ANGLE_OFFSETS).sort()) {
+    if (d === domain) {
+      break;
+    }
+    index += 1;
+  }
+  if (index >= DOMAIN_COLORS.length - 1) {
+    index = DOMAIN_COLORS.length - 1;
+  }
+  return DOMAIN_COLORS[index] ?? 'hsl(0,0%,50%)';
+}
 
 const getNodeSize = (degree: number): number => {
   return 5 + Math.log2(1 + degree) * 1.5;
 };
 
-function computeInitialPositions (nodes: MathNode[]): Float32Array {
+function computeInitialPositions (nodes: KnowledgeNode[]): Float32Array {
   const positions = new Float32Array(nodes.length * 2);
   const centerX = SPACE_SIZE / 2;
   const centerY = SPACE_SIZE / 2;
 
-  const branchGroups = new Map<string, number[]>();
+  const domainGroups = new Map<string, number[]>();
   nodes.forEach((node, index) => {
-    if (!branchGroups.has(node.branch)) {
-      branchGroups.set(node.branch, []);
+    if (!domainGroups.has(node.domain)) {
+      domainGroups.set(node.domain, []);
     }
-    branchGroups.get(node.branch)!.push(index);
+    domainGroups.get(node.domain)!.push(index);
   });
 
-  const sortedBranches = [...branchGroups.entries()]
+  const sortedDomains = [...domainGroups.entries()]
     .sort((a, b) => b[1].length - a[1].length);
 
-  const branchAngles = new Map<string, number>();
-  const branchRadii = new Map<string, number>();
+  const domainAngles = new Map<string, number>();
+  const domainRadii = new Map<string, number>();
   const goldenAngle = Math.PI * (3 - Math.sqrt(5));
 
-  sortedBranches.forEach(([branch, indices], i) => {
+  sortedDomains.forEach(([domain, indices], i) => {
+    DOMAIN_ANGLE_OFFSETS[domain] = i;
     const angle = i * goldenAngle;
     const baseRadius = Math.sqrt(indices.length / nodes.length) * SPACE_SIZE * 0.35;
-    branchAngles.set(branch, angle);
-    branchRadii.set(branch, Math.max(baseRadius, 200));
+    domainAngles.set(domain, angle);
+    domainRadii.set(domain, Math.max(baseRadius, 200));
   });
 
-  const moduleIndices = new Map<string, number[]>();
+  const tagGroups = new Map<string, number[]>();
   nodes.forEach((node, index) => {
-    const list = moduleIndices.get(node.module) ?? [];
-    list.push(index);
-    moduleIndices.set(node.module, list);
+    for (const tag of node.tags) {
+      if (!tagGroups.has(tag)) {
+        tagGroups.set(tag, []);
+      }
+      tagGroups.get(tag)!.push(index);
+    }
   });
 
-  const MODULE_CLUSTER_RADIUS = 10;
+  const TAG_CLUSTER_RADIUS = 10;
 
-  const branchModuleSeeds = new Map<string, Map<string, { x: number; y: number }>>();
+  sortedDomains.forEach(([domain, domainNodeIndices]) => {
+    const domainAngle = domainAngles.get(domain) ?? 0;
+    const domainRadius = domainRadii.get(domain) ?? 500;
+    const spread = Math.min(domainRadius * 0.6, 800);
 
-  sortedBranches.forEach(([branch, branchNodeIndices]) => {
-    const branchAngle = branchAngles.get(branch) ?? 0;
-    const branchRadius = branchRadii.get(branch) ?? 500;
-    const spread = Math.min(branchRadius * 0.6, 800);
-
-    const branchModules = new Map<string, number[]>();
-    for (const idx of branchNodeIndices) {
-      const mod = nodes[idx]!.module;
-      const list = branchModules.get(mod) ?? [];
-      list.push(idx);
-      branchModules.set(mod, list);
+    const domainTags = new Map<string, number[]>();
+    for (const idx of domainNodeIndices) {
+      for (const tag of nodes[idx]!.tags) {
+        const list = domainTags.get(tag) ?? [];
+        list.push(idx);
+        domainTags.set(tag, list);
+      }
     }
 
     const seedPositions = new Map<string, { x: number; y: number }>();
-    const sortedModules = [...branchModules.entries()]
+    const sortedTags = [...domainTags.entries()]
       .sort((a, b) => b[1].length - a[1].length);
 
-    for (const [mod, modIndices] of sortedModules) {
-      const seedIndex = modIndices[0]!;
-      const localAngle = branchAngle + (Math.random() - 0.5) * (spread / branchRadius);
-      const localRadius = branchRadius * (0.3 + Math.random() * 0.7);
+    for (const [tag, tagIndices] of sortedTags) {
+      const seedIndex = tagIndices[0]!;
+      const localAngle = domainAngle + (Math.random() - 0.5) * (spread / domainRadius);
+      const localRadius = domainRadius * (0.3 + Math.random() * 0.7);
       const x = centerX + Math.cos(localAngle) * localRadius;
       const y = centerY + Math.sin(localAngle) * localRadius;
       positions[seedIndex * 2] = x;
       positions[seedIndex * 2 + 1] = y;
-      seedPositions.set(mod, { x, y });
+      seedPositions.set(tag, { x, y });
     }
 
-    branchModuleSeeds.set(branch, seedPositions);
-  });
-
-  nodes.forEach((node, index) => {
-    if (positions[index * 2] !== 0 || positions[index * 2 + 1] !== 0) {
-      return;
-    }
-
-    const seed = branchModuleSeeds.get(node.branch)?.get(node.module);
-    if (!seed) {
-      return;
-    }
-
-    const angle = Math.random() * Math.PI * 2;
-    const dist = Math.random() * MODULE_CLUSTER_RADIUS;
-    positions[index * 2] = seed.x + Math.cos(angle) * dist;
-    positions[index * 2 + 1] = seed.y + Math.sin(angle) * dist;
+    nodes.forEach((node, index) => {
+      if (positions[index * 2] !== 0 || positions[index * 2 + 1] !== 0) {
+        return;
+      }
+      const firstTag = node.tags[0];
+      const seed = firstTag ? seedPositions.get(firstTag) : undefined;
+      if (!seed) {
+        return;
+      }
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.random() * TAG_CLUSTER_RADIUS;
+      positions[index * 2] = seed.x + Math.cos(angle) * dist;
+      positions[index * 2 + 1] = seed.y + Math.sin(angle) * dist;
+    });
   });
 
   return positions;
@@ -160,14 +186,14 @@ function computeInitialPositions (nodes: MathNode[]): Float32Array {
 
 function findNodeAtPosition (
   graph: Graph,
-  nodes: MathNode[],
+  nodes: KnowledgeNode[],
   screenX: number,
   screenY: number
-): MathNode | null {
+): KnowledgeNode | null {
   const spacePos = graph.screenToSpacePosition([screenX, screenY]);
   const positions = graph.getPointPositions();
 
-  let closestNode: MathNode | null = null;
+  let closestNode: KnowledgeNode | null = null;
   let closestDist = Infinity;
 
   for (let i = 0; i < positions.length; i += 2) {
@@ -190,7 +216,7 @@ function findNodeAtPosition (
 
 export default function MathGraph ({
   nodes,
-  edges,
+  links,
   metadata,
   width,
   height,
@@ -199,17 +225,21 @@ export default function MathGraph ({
   backgroundColor,
   onNodeHover,
   onNodeRightClick,
-  onNodeClick
+  onNodeClick,
+  onLinkRightClick
 }: MathGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<Graph | null>(null);
-  const nodesRef = useRef<MathNode[]>([]);
+  const nodesRef = useRef<KnowledgeNode[]>([]);
   const edgesRef = useRef<Float32Array>(new Float32Array(0));
   const linkColorsRef = useRef<Float32Array>(new Float32Array(0));
   const initializedRef = useRef(false);
   const settingsRef = useRef(settings);
   const showEdgesRef = useRef(showEdges);
   const onNodeRightClickRef = useRef(onNodeRightClick);
+  const onLinkRightClickRef = useRef(onLinkRightClick);
+  const hoveredLinkIndexRef = useRef<number | undefined>(undefined);
+  const validLinksRef = useRef<{ sourceId: string; targetId: string }[]>([]);
 
   useEffect(() => {
     settingsRef.current = settings;
@@ -231,6 +261,10 @@ export default function MathGraph ({
   useEffect(() => {
     onNodeRightClickRef.current = onNodeRightClick;
   }, [onNodeRightClick]);
+
+  useEffect(() => {
+    onLinkRightClickRef.current = onLinkRightClick;
+  }, [onLinkRightClick]);
 
   const handlePointClick = useCallback(
     (pointIndex: number) => {
@@ -275,7 +309,7 @@ export default function MathGraph ({
         'simulationFriction': settingsRef.current.simulationFriction,
         'simulationGravity': settingsRef.current.simulationGravity,
         'simulationRepulsion': settingsRef.current.simulationRepulsion,
-        'simulationDecay': 10000,
+        'simulationDecay': 1000000,
         'fitViewOnInit': true,
         'fitViewDelay': 500,
         'fitViewPadding': 0.2,
@@ -289,7 +323,13 @@ export default function MathGraph ({
         'linkOpacity': settingsRef.current.linkOpacity,
         'onPointClick': handlePointClick,
         'onPointMouseOver': handlePointMouseOver,
-        'onPointMouseOut': handlePointMouseOut
+        'onPointMouseOut': handlePointMouseOut,
+        'onLinkMouseOver': (linkIndex: number) => {
+          hoveredLinkIndexRef.current = linkIndex;
+        },
+        'onLinkMouseOut': () => {
+          hoveredLinkIndexRef.current = undefined;
+        }
       };
 
       graphRef.current = new Graph(containerRef.current, initConfig);
@@ -301,7 +341,7 @@ export default function MathGraph ({
       const pointShapes = new Float32Array(numPoints);
 
       nodes.forEach((node, index) => {
-        const [r, g, b] = hslToRgb(getBranchColor(node.branch, metadata));
+        const [r, g, b] = hslToRgb(getDomainColor(node.domain));
         pointColors[index * 4] = r;
         pointColors[index * 4 + 1] = g;
         pointColors[index * 4 + 2] = b;
@@ -314,28 +354,32 @@ export default function MathGraph ({
       const nodeIdToIndex = new Map<string, number>();
       nodes.forEach((node, index) => nodeIdToIndex.set(node.id, index));
 
-      const links = new Float32Array(edges.length * 2);
-      const linkColors = new Float32Array(edges.length * 4);
+      const linksF32 = new Float32Array(links.length * 2);
+      const linkColors = new Float32Array(links.length * 4);
+      const validLinksList: { sourceId: string; targetId: string }[] = [];
       let validLinks = 0;
-      edges.forEach((edge) => {
-        const sourceIndex = nodeIdToIndex.get(edge.source);
-        const targetIndex = nodeIdToIndex.get(edge.target);
+      links.forEach((link) => {
+        const sourceIndex = nodeIdToIndex.get(link.source);
+        const targetIndex = nodeIdToIndex.get(link.target);
         if (sourceIndex !== undefined && targetIndex !== undefined) {
           const sourceNode = nodes[sourceIndex];
-          links[validLinks * 2] = sourceIndex;
-          links[validLinks * 2 + 1] = targetIndex;
+          linksF32[validLinks * 2] = sourceIndex;
+          linksF32[validLinks * 2 + 1] = targetIndex;
           if (sourceNode) {
-            const [r, g, b] = hslToRgb(getBranchColor(sourceNode.branch, metadata));
+            const [r, g, b] = hslToRgb(getDomainColor(sourceNode.domain));
             linkColors[validLinks * 4] = r;
             linkColors[validLinks * 4 + 1] = g;
             linkColors[validLinks * 4 + 2] = b;
           }
           linkColors[validLinks * 4 + 3] = 0.35;
+          validLinksList.push({ 'sourceId': link.source, 'targetId': link.target });
           validLinks += 1;
         }
       });
 
-      edgesRef.current = links.slice(0, validLinks * 2);
+      validLinksRef.current = validLinksList;
+
+      edgesRef.current = linksF32.slice(0, validLinks * 2);
       linkColorsRef.current = linkColors.slice(0, validLinks * 4);
 
       graphRef.current.setPointPositions(pointPositions);
@@ -343,7 +387,7 @@ export default function MathGraph ({
       graphRef.current.setPointSizes(pointSizes);
       graphRef.current.setPointShapes(pointShapes);
       if (showEdgesRef.current && validLinks > 0) {
-        graphRef.current.setLinks(links.slice(0, validLinks * 2));
+        graphRef.current.setLinks(linksF32.slice(0, validLinks * 2));
         graphRef.current.setLinkColors(linkColors.slice(0, validLinks * 4));
       }
       graphRef.current.render();
@@ -363,6 +407,18 @@ export default function MathGraph ({
           const rect = canvas.getBoundingClientRect();
           const x = event.clientX - rect.left;
           const y = event.clientY - rect.top;
+
+          // Check link right-click first
+          const hoveredLinkIdx = hoveredLinkIndexRef.current;
+          if (hoveredLinkIdx !== undefined) {
+            const linkInfo = validLinksRef.current[hoveredLinkIdx];
+            if (linkInfo) {
+              onLinkRightClickRef.current(linkInfo.sourceId, linkInfo.targetId);
+              return;
+            }
+          }
+
+          // Fall back to node right-click
           const node = findNodeAtPosition(graphRef.current, nodesRef.current, x, y);
           if (node) {
             onNodeRightClickRef.current(node);
@@ -390,7 +446,7 @@ export default function MathGraph ({
         initializedRef.current = false;
       }
     };
-  }, [nodes, edges, metadata, backgroundColor, handlePointClick, handlePointMouseOver, handlePointMouseOut]);
+  }, [nodes, links, metadata, backgroundColor, handlePointClick, handlePointMouseOver, handlePointMouseOut]);
 
   useEffect(() => {
     if (graphRef.current && initializedRef.current) {

@@ -4,16 +4,13 @@ import { AliveScope, KeepAlive } from 'react-activation';
 import { NavigatorProvider, NavigatorTrigger, NavigatorSidebar, NavigatorCacheManager, useNavigator } from './components/ui';
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
-import { GallerysPage } from './pages/GallerysPage';
-import { GallerysEditPage } from './pages/GallerysEditPage';
-import { GalleryExplorePage } from './pages/GalleryExplorePage';
 import SubjectVisualization from './components/graph/SubjectVisualization';
 import MathGallery from './components/math/MathGallery';
 import { ArticleViewer, ArticleEditor } from './components/articles';
 import GraphVisualization from './components/graph/GraphVisualization';
+import { BrainstormPage } from './brainstorm/BrainstormPage';
 import { CollaborationProvider, useCollaboration, CollaborationPanel, Features } from './components/collaboration';
 import { getArticleBySlug } from './services/articleService';
-import { getGalleryById } from './services/galleryService';
 
 interface MetaTags {
   title: string;
@@ -98,26 +95,6 @@ function CachedArticleEditor () {
   );
 }
 
-function CachedGallerysEditPage () {
-  const { galleryId } = useParams<{ 'galleryId': string }>();
-  const cacheKey = `/gallerys/${galleryId ?? ''}`;
-  return (
-    <CachedRoute cacheKey={cacheKey}>
-      <GallerysEditPage />
-    </CachedRoute>
-  );
-}
-
-function CachedGalleryExplorePage () {
-  const { galleryId } = useParams<{ 'galleryId': string }>();
-  const cacheKey = `/gallerys/${galleryId ?? ''}/explore`;
-  return (
-    <CachedRoute cacheKey={cacheKey}>
-      <GalleryExplorePage />
-    </CachedRoute>
-  );
-}
-
 interface ErrorBoundaryProps {
   children: ReactNode;
 }
@@ -177,15 +154,6 @@ function useMetaTags (): void {
       return;
     }
 
-    if (path === '/gallerys') {
-      updateMetaTags({
-        'title': '地图列表',
-        'description': '浏览所有地图，探索主题内容',
-        'type': 'website'
-      });
-      return;
-    }
-
     if (path === '/articles/create') {
       updateMetaTags({
         'title': '创建文章',
@@ -229,41 +197,12 @@ function useMetaTags (): void {
       return;
     }
 
-    if (path === '/gallerys/create') {
-      updateMetaTags({
-        'title': '创建地图',
-        'description': '创建新的地图',
-        'type': 'website'
-      });
-      return;
-    }
-
-    if (path === '/gallerys/mathgallery') {
+    if (path === '/mathgallery') {
       updateMetaTags({
         'title': '数学地图',
         'description': 'Mathlib 知识图谱可视化',
         'type': 'website'
       });
-      return;
-    }
-
-    const galleryMatch = path.match(/^\/gallerys\/([^/]+)$/);
-    if (galleryMatch && galleryMatch[1]) {
-      const galleryId = galleryMatch[1];
-      const gallery = await getGalleryById(galleryId);
-      if (gallery) {
-        updateMetaTags({
-          'title': gallery.title,
-          'description': `浏览地图：${gallery.title}`,
-          'type': 'website'
-        });
-      } else {
-        updateMetaTags({
-          'title': '地图未找到',
-          'description': '您访问的地图不存在',
-          'type': 'website'
-        });
-      }
       return;
     }
 
@@ -306,7 +245,7 @@ function AppContent () {
   const showNavigatorTrigger = pathname === '/' ||
     pathname === '/articles' ||
     (pathname.startsWith('/articles/') && pathname !== '/articles/create' && !pathname.endsWith('/edit')) ||
-    pathname === '/gallerys' || pathname === '/gallerys/mathgallery';
+    pathname === '/mathgallery';
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -324,14 +263,11 @@ function AppContent () {
             <Route path="/articles/:slug" element={<CachedArticleViewer />} />
             <Route path="/articles/create" element={<CachedRoute cacheKey="/articles/create"><ArticleEditor /></CachedRoute>} />
             <Route path="/articles/:slug/edit" element={<CachedArticleEditor />} />
-            <Route path="/gallerys" element={<CachedRoute cacheKey="/gallerys"><GallerysPage /></CachedRoute>} />
-            <Route path="/gallerys/create" element={<CachedRoute cacheKey="/gallerys/create"><GallerysEditPage /></CachedRoute>} />
-            <Route path="/gallerys/:galleryId" element={<CachedGallerysEditPage />} />
-            <Route path="/gallerys/:galleryId/explore" element={<CachedGalleryExplorePage />} />
-            <Route path="/gallerys/mathgallery" element={<MathGallery />} />
+            <Route path="/mathgallery" element={<MathGallery />} />
             <Route path="/graphs/create" element={<CachedRoute cacheKey="/graphs/create"><GraphVisualization /></CachedRoute>} />
             <Route path="/graphs/subject-visualization" element={<SubjectVisualization />} />
             <Route path="/graphs/subject-visualization/:subject" element={<SubjectVisualization />} />
+            <Route path="/brainstorm" element={<BrainstormPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ErrorBoundary>

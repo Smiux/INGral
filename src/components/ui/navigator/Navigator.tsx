@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAliveController } from 'react-activation';
 import {
-  Network, Calculator, Layers, BookOpen, Home, X, GripVertical,
+  Network, Calculator, BookOpen, Home, X, GripVertical,
   Clock, Compass, Users, Wifi, RefreshCw, Loader2, Palette, Check, Sigma
 } from 'lucide-react';
 import { useCollaboration } from '../../collaboration';
@@ -20,7 +20,7 @@ import {
 import { useNavigator } from './useNavigator';
 import { useGrayTheme, type GrayThemeName } from '../theme/useGrayTheme';
 import { getArticleBySlug } from '@/services/articleService';
-import { getGalleryById } from '@/services/galleryService';
+
 
 const MAX_TABS = 20;
 const MAX_HISTORY = 50;
@@ -36,11 +36,8 @@ function getTabInfo (pathname: string): { 'title': string; 'icon': string } {
   if (pathname === '/articles') {
     return { 'title': '文章列表', 'icon': 'article' };
   }
-  if (pathname === '/gallerys/mathgallery') {
+  if (pathname === '/mathgallery') {
     return { 'title': '数学地图', 'icon': 'math' };
-  }
-  if (pathname === '/gallerys') {
-    return { 'title': '地图列表', 'icon': 'gallery' };
   }
   if (pathname === '/graphs/create') {
     return { 'title': '图编辑器', 'icon': 'graph' };
@@ -64,12 +61,6 @@ function getTabInfo (pathname: string): { 'title': string; 'icon': string } {
   if (pathname.match(/^\/articles\/[^/]+$/)) {
     return { 'title': '文章', 'icon': 'article' };
   }
-  if (pathname.match(/^\/gallerys\/[^/]+\/explore$/)) {
-    return { 'title': '地图探索', 'icon': 'gallery' };
-  }
-  if (pathname.match(/^\/gallerys\/[^/]+$/)) {
-    return { 'title': '地图编辑', 'icon': 'gallery' };
-  }
   return { 'title': '页面', 'icon': 'default' };
 }
 
@@ -79,7 +70,6 @@ function getTabIcon (icon: string, className?: string) {
     case 'home': return <Home className={cn} />;
     case 'graph': return <Network className={cn} />;
     case 'subject': return <Calculator className={cn} />;
-    case 'gallery': return <Layers className={cn} />;
     case 'math': return <Sigma className={cn} />;
     case 'article': return <BookOpen className={cn} />;
     default: return <Compass className={cn} />;
@@ -327,25 +317,6 @@ export function NavigatorProvider ({ children }: { children: ReactNode }) {
       }
       return;
     }
-
-    const galleryMatch = pathname.match(/^\/gallerys\/([^/]+)$/);
-    if (galleryMatch && galleryMatch[1]) {
-      const gallery = await getGalleryById(galleryMatch[1]);
-      if (gallery) {
-        updateTabTitle(tabId, gallery.title);
-        updateHistoryTitle(pathname, gallery.title);
-      }
-      return;
-    }
-
-    const galleryExploreMatch = pathname.match(/^\/gallerys\/([^/]+)\/explore$/);
-    if (galleryExploreMatch && galleryExploreMatch[1]) {
-      const gallery = await getGalleryById(galleryExploreMatch[1]);
-      if (gallery) {
-        updateTabTitle(tabId, `探索: ${gallery.title}`);
-        updateHistoryTitle(pathname, `探索: ${gallery.title}`);
-      }
-    }
   }, [updateTabTitle, updateHistoryTitle]);
 
   useEffect(() => {
@@ -546,16 +517,9 @@ function NavigationSection () {
       'hoverText': 'hover:text-indigo-500 dark:hover:text-indigo-400'
     },
     {
-      'icon': <Layers className="w-4 h-4 text-emerald-400" />,
-      'label': '地图',
-      'path': '/gallerys',
-      'hoverBg': 'hover:bg-emerald-100/80 dark:hover:bg-emerald-900/30',
-      'hoverText': 'hover:text-emerald-500 dark:hover:text-emerald-400'
-    },
-    {
       'icon': <Sigma className="w-4 h-4 text-blue-400" />,
       'label': '数学地图',
-      'path': '/gallerys/mathgallery',
+      'path': '/mathgallery',
       'hoverBg': 'hover:bg-blue-100/80 dark:hover:bg-blue-900/30',
       'hoverText': 'hover:text-blue-500 dark:hover:text-blue-400'
     },

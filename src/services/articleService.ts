@@ -399,3 +399,20 @@ export async function deleteArticle (articleId: string): Promise<boolean> {
   return result.rowsAffected > 0;
 }
 
+export async function searchArticlesByTitle (query: string): Promise<ArticleListItem[]> {
+  if (!query.trim()) {
+    return [];
+  }
+
+  const result = await turso.execute({
+    'sql': `SELECT id, title, slug, created_at, updated_at, cover_image, summary, tags
+            FROM ${TABLE_NAME}
+            WHERE title LIKE ?
+            ORDER BY updated_at DESC
+            LIMIT 50`,
+    'args': [`%${query}%`]
+  });
+
+  return result.rows.map(row => parseArticleListItem(row as Record<string, unknown>));
+}
+

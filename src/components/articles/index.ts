@@ -1,6 +1,5 @@
 export { ArticleEditor } from './Editor';
 export { ArticleViewer } from './Viewer';
-export { MultiViewer } from './MultiViewer';
 export { ArticleSelector } from './ArticleSelector';
 export { DraftManager } from './managers/Draft';
 export { CoverManager } from './managers/Cover';

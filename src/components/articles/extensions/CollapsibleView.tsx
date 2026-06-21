@@ -4,9 +4,20 @@ import { ChevronRight, ChevronDown } from 'lucide-react';
 
 const DEFAULT_TITLE = '折叠标题';
 
+const getTitleClassName = (isDefaultTitle: boolean, isEditable: boolean) => {
+  if (isDefaultTitle) {
+    return 'text-slate-400 dark:text-slate-500 italic';
+  }
+  if (isEditable) {
+    return 'text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400';
+  }
+  return 'text-slate-700 dark:text-slate-300';
+};
+
 export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
   node,
-  updateAttributes
+  updateAttributes,
+  editor
 }) => {
   const isOpen = node.attrs.open ?? false;
   const title = node.attrs.title ?? DEFAULT_TITLE;
@@ -15,6 +26,7 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   const isDefaultTitle = title === DEFAULT_TITLE || !title;
+  const isEditable = editor.isEditable;
 
   useEffect(() => {
     setEditTitle(title);
@@ -27,14 +39,24 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
     }
   }, [isEditingTitle]);
 
+  useEffect(() => {
+    if (!isEditable && isEditingTitle) {
+      setIsEditingTitle(false);
+      setEditTitle(title);
+    }
+  }, [isEditable, isEditingTitle, title]);
+
   const handleToggle = useCallback(() => {
     updateAttributes({ 'open': !isOpen });
   }, [isOpen, updateAttributes]);
 
   const handleTitleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isEditable) {
+      return;
+    }
     setIsEditingTitle(true);
-  }, []);
+  }, [isEditable]);
 
   const handleTitleBlur = useCallback(() => {
     setIsEditingTitle(false);
@@ -57,11 +79,11 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
 
   return (
     <NodeViewWrapper
-      className="collapsible-node-wrapper my-4 rounded border border-slate-200/60 dark:border-slate-700/60 bg-slate-50/90 dark:bg-slate-900/90 overflow-hidden"
+      className="collapsible-node-wrapper my-4 rounded border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 overflow-hidden"
       data-open={isOpen}
     >
       <div
-        className="collapsible-header flex items-center gap-2 px-4 py-3 cursor-pointer select-none bg-slate-200/50 dark:bg-slate-700/50 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-colors"
+        className="collapsible-header flex items-center gap-2 px-4 py-3 cursor-pointer select-none bg-slate-100/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         onClick={handleToggle}
         contentEditable={false}
       >
@@ -72,7 +94,7 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
             <ChevronRight size={18} strokeWidth={2} />
           )}
         </span>
-        {isEditingTitle ? (
+        {isEditingTitle && isEditable ? (
           <input
             ref={titleInputRef}
             type="text"
@@ -82,15 +104,11 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
             onKeyDown={handleTitleKeyDown}
             onClick={(e) => e.stopPropagation()}
             placeholder={DEFAULT_TITLE}
-            className="flex-1 px-2 py-1 text-sm font-medium bg-slate-200 dark:bg-slate-700 border border-sky-400 rounded outline-none text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="flex-1 px-2 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-800 border border-sky-400 rounded outline-none text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
         ) : (
           <span
-            className={`flex-1 text-sm font-medium transition-colors ${
-              isDefaultTitle
-                ? 'text-slate-400 dark:text-slate-500 italic'
-                : 'text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400'
-            }`}
+            className={`flex-1 text-sm font-medium transition-colors ${getTitleClassName(isDefaultTitle, isEditable)}`}
             onClick={handleTitleClick}
           >
             {title || DEFAULT_TITLE}
@@ -103,7 +121,7 @@ export const CollapsibleNodeView: React.FC<NodeViewProps> = ({
           isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="collapsible-content px-4 py-3 bg-slate-200 dark:bg-slate-700 border-t border-slate-200/60 dark:border-slate-700/60 relative">
+        <div className="collapsible-content px-4 py-3 bg-slate-200/50 dark:bg-slate-700/50 relative">
           <NodeViewContent
             as="div"
             className="collapsible-body-content min-h-[1.5em] empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 empty:before:dark:text-slate-500 empty:before:pointer-events-none"

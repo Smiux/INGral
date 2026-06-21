@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Tag, Layout, List, AlignJustify, ChevronLeft, ChevronRight, X, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Tag, Layout, List, AlignJustify, ChevronLeft, ChevronRight, X, Search } from 'lucide-react';
 import {
   getArticlesPaginated,
   getAllArticles,
@@ -596,7 +596,6 @@ export function ArticlesPage (): JSX.Element {
   const [totalPages, setTotalPages] = useState(0);
   const [jumpPageInput, setJumpPageInput] = useState('');
   const [tagSearchQuery, setTagSearchQuery] = useState('');
-  const [showAllTags, setShowAllTags] = useState(false);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [allTags, setAllTags] = useState<string[]>([]);
 
@@ -665,7 +664,7 @@ export function ArticlesPage (): JSX.Element {
     return allTags.filter((tag) => tag.toLowerCase().includes(lowerQuery));
   }, [allTags, tagSearchQuery]);
 
-  const displayTags = showAllTags ? filteredTags : filteredTags.slice(0, 10);
+  const displayTags = filteredTags.slice(0, 20);
 
   const loadContentForSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
@@ -1003,7 +1002,7 @@ export function ArticlesPage (): JSX.Element {
       <div className="mb-6">
         <input
           type="text"
-          placeholder="搜索文章标题、简介、内容或标签..."
+          placeholder="在所有内容中搜索..."
           value={searchQuery}
           onChange={handleSearchChange}
           className="w-full px-4 py-2.5 border border-slate-200/60 dark:border-slate-700/60 rounded bg-slate-200/50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-800 focus:border-sky-300 dark:focus:border-sky-600 transition-all duration-200"
@@ -1024,24 +1023,8 @@ export function ArticlesPage (): JSX.Element {
                 </button>
               )}
             </div>
-            {allTags.length > 10 && (
-              <button
-                onClick={() => setShowAllTags(!showAllTags)}
-                className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 flex items-center gap-1"
-              >
-                {showAllTags ? (
-                  <>
-                    收起 <ChevronUp className="w-3 h-3" />
-                  </>
-                ) : (
-                  <>
-                    展开全部 ({allTags.length}) <ChevronDown className="w-3 h-3" />
-                  </>
-                )}
-              </button>
-            )}
           </div>
-          {allTags.length > 10 && (
+          {allTags.length > 20 && (
             <div className="mb-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -1080,6 +1063,11 @@ export function ArticlesPage (): JSX.Element {
             {filteredTags.length === 0 && tagSearchQuery && (
               <span className="text-xs text-slate-400 dark:text-slate-500">
                 没有匹配的标签
+              </span>
+            )}
+            {filteredTags.length > 20 && !tagSearchQuery && (
+              <span className="text-xs text-slate-400 dark:text-slate-500 px-2 self-center">
+                ......还有{filteredTags.length - 20}个
               </span>
             )}
           </div>

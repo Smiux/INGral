@@ -11,7 +11,10 @@
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint",
-    "check:fix": "npm run typecheck && npm run lint:fix"
+    "check:fix": "npm run typecheck && npm run lint:fix",
+    "knowledge:validate": "node scripts/validate-knowledge.mjs",
+    "knowledge:lint": "node scripts/lint-knowledge.mjs",
+    "knowledge:build": "node scripts/build-knowledge-manifest.mjs"
   },
   "config": {
     "commitizen": {
@@ -68,7 +71,7 @@
     "graphology-shortest-path": "^2.1.0",
     "graphology-simple-path": "^0.2.0",
     "highlight.js": "^11.11.1",
-    "katex": "^0.16.28",
+    "katex": "^0.16.47",
     "lowlight": "^3.3.0",
     "lucide-react": "^0.563.0",
     "marked": "^18.0.4",

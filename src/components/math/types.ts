@@ -1,56 +1,64 @@
-export type NodeType = 'Theorem' | 'Definition' | 'Instance' | 'Class' | 'Inductive' | 'Constructor';
-
-export interface MathNode {
+export interface KnowledgeObject {
   id: string;
-  name: string;
-  type: NodeType;
-  branch: string;
-  module: string;
-  degree: number;
+  type: 'definition' | 'theorem';
+  name: Record<string, string[]>;
+  description: Record<string, string[]>;
+  extension?: {
+    tags?: string[];
+    notation?: string[];
+    notes?: Record<string, string>[];
+    examples?: Record<string, string>[];
+    sources?: string[];
+  };
 }
 
-export interface MathEdge {
+export interface KnowledgeConnection {
+  from: string;
+  to: string;
+  description: Record<string, string[]>;
+  extension?: Record<string, unknown[]>;
+}
+
+export interface KnowledgeManifest {
+  objects: KnowledgeObject[];
+  connections: KnowledgeConnection[];
+}
+
+export interface KnowledgeNode {
+  id: string;
+  name: string;
+  type: 'definition' | 'theorem';
+  domain: string;
+  tags: string[];
+  degree: number;
+  description: string;
+}
+
+export interface KnowledgeLink {
   source: string;
   target: string;
 }
 
-export interface NodeData {
-  id: string;
-  declType: string;
-  docString: string | null;
-  directDeps: string[];
-  indirectDeps: string[];
-  extendsClasses: string[];
-  goalState: string | null;
-  proofTactic: string | null;
-  sourceCode: string;
-}
-
-export interface MathMetadata {
+export interface GraphMetadata {
   totalNodes: number;
-  totalEdges: number;
-  branches: Record<string, { color: string; count: number }>;
+  totalLinks: number;
+  domains: Record<string, { count: number }>;
   nodeTypes: Record<string, number>;
-  nodesChunks: number;
-  edgesChunks: number;
-  nodesdataChunks: number;
-  moduleChunkMap: Record<string, number>;
 }
 
-export const NODE_TYPE_SHAPES: Record<NodeType, number> = {
-  'Theorem': 0,
-  'Definition': 1,
-  'Inductive': 2,
-  'Instance': 3,
-  'Constructor': 4,
-  'Class': 6
+export const NODE_TYPE_SHAPES: Record<string, number> = {
+  'definition': 1,
+  'theorem': 0
 };
 
-export const NODE_TYPE_LABELS: Record<NodeType, string> = {
-  'Theorem': '定理',
-  'Definition': '定义',
-  'Instance': '实例',
-  'Class': '类',
-  'Inductive': '归纳类型',
-  'Constructor': '构造器'
+export const NODE_TYPE_LABELS: Record<string, string> = {
+  'definition': '定义',
+  'theorem': '定理'
 };
+
+export const SHAPE_SYMBOLS: Record<number, string> = {
+  '0': '●',
+  '1': '■'
+};
+
+export const PRIMARY_LOCALE = 'zh';

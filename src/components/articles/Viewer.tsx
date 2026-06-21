@@ -1,35 +1,96 @@
-import { useEffect, useState, useRef, useCallback, useContext } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft, CalendarDays, Trash2, Edit3, Tag, Download,
-  Plus, ChevronLeft, ChevronRight, LayoutGrid, FileText, Save, X
+  Compass, CircleDot
 } from 'lucide-react';
 import {
   getArticleBySlug,
   getArticleById,
   deleteArticle,
-  getArticleBySlug as getArticle,
-  type ArticleWithContent,
-  type ArticleListItem
+  type ArticleWithContent
 } from '../../services/articleService';
 import { ConfirmDialog } from '../ui/generic/ConfirmDialog';
 import { TiptapEditor } from './core/TipTap';
 import { FootnotePanel } from './panels/Footnote';
 import { TocItem, TableOfContentsPanel } from './panels/TableOfContents';
 import { useTocUtils } from './utils/ToC';
-import { MultiViewer, type MultiViewerHandle } from './MultiViewer';
-import { ArticleSelector } from './ArticleSelector';
-import { ConnectionProvider, ArticleConnectionLines, ConnectionPointManager, ConnectionInteraction, JumpPathBar } from './connection';
-import { ConnectionContext, type ExtendedConnectionContextValue, type JumpGraph, addJumpToGraph } from './connection/types';
+import { ArticleSelector, type ArticleSelectorSingleResult } from './ArticleSelector';
+import { JumpPathBar } from './JumpPathBar';
+import { type JumpEdge, dockBodyTransition } from './jumpTypes';
+import {
+  useJumpGraphStore,
+  addJump,
+  clearJumps,
+  setRecording as storeSetRecording,
+  setDockCollapsed as storeSetDockCollapsed
+} from './jumpGraphStore';
+import { ExplorationNavigator } from '@/components/articles/ExplorationNavigator';
+import { addArticleConnection, getArticleNeighbors, type ArticleNeighbors } from '@/services/articlesConnections';
 import type { Editor } from '@tiptap/react';
 
-type ViewMode = 'single' | 'grid';
-type SidePosition = 'left' | 'right' | null;
+export interface NeighborNode {
+  id: string;
+  articleTitle: string;
+}
 
-interface SideArticle {
-  article: ArticleWithContent;
-  position: SidePosition;
-  pointId: string;
+export interface NeighborEdge {
+  sourceId: string;
+  targetId: string;
+  relationship?: string | undefined;
+}
+
+const DOCK_LEAVE_COLLAPSE_MS = 300;
+
+function neighborsToGraphData (
+  currentArticleId: string,
+  currentArticleTitle: string,
+  neighbors: ArticleNeighbors
+): { nodes: NeighborNode[]; edges: NeighborEdge[]; currentNode: NeighborNode } {
+  const currentNode: NeighborNode = {
+    'id': currentArticleId,
+    'articleTitle': currentArticleTitle
+  };
+
+  const nodeMap = new Map<string, NeighborNode>();
+  nodeMap.set(currentArticleId, currentNode);
+
+  const edges: NeighborEdge[] = [];
+
+  for (const n of neighbors.incoming) {
+    if (!nodeMap.has(n.id)) {
+      nodeMap.set(n.id, {
+        'id': n.id,
+        'articleTitle': n.title
+      });
+    }
+    edges.push({
+      'sourceId': n.id,
+      'targetId': currentArticleId,
+      'relationship': n.relationship
+    });
+  }
+
+  for (const n of neighbors.outgoing) {
+    if (!nodeMap.has(n.id)) {
+      nodeMap.set(n.id, {
+        'id': n.id,
+        'articleTitle': n.title
+      });
+    }
+    edges.push({
+      'sourceId': currentArticleId,
+      'targetId': n.id,
+      'relationship': n.relationship
+    });
+  }
+
+  return {
+    'nodes': [...nodeMap.values()],
+    edges,
+    currentNode
+  };
 }
 
 export function ArticleViewer () {
@@ -41,22 +102,21 @@ export function ArticleViewer () {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [editor, setEditor] = useState<Editor | null>(null);
-  const editorRef = useRef<{ getEditor:() => Editor | null } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
   const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
 
-  const [multiArticles, setMultiArticles] = useState<ArticleWithContent[]>([]);
-  const [viewMode, setViewMode] = useState<ViewMode>('single');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showArticleSelector, setShowArticleSelector] = useState(false);
-  const [sideArticle, setSideArticle] = useState<SideArticle | null>(null);
-  const sideEditorRef = useRef<{ getEditor:() => Editor | null } | null>(null);
-  const sideContentRef = useRef<HTMLDivElement>(null);
-  const [jumpGraph, setJumpGraph] = useState<JumpGraph>({ 'nodes': [], 'edges': [] });
-  const multiViewerRef = useRef<MultiViewerHandle>(null);
+  const store = useJumpGraphStore();
+  const { jumpGraph, recording, dockCollapsed } = store;
+  const recordingRef = useRef(recording);
+  useEffect(() => {
+    recordingRef.current = recording;
+  }, [recording]);
 
-  const isMultiMode = multiArticles.length > 1;
+  const [neighbors, setNeighbors] = useState<ArticleNeighbors>({ 'incoming': [], 'outgoing': [] });
+  const [showConnectionSelector, setShowConnectionSelector] = useState(false);
+  const [selectorDirection, setSelectorDirection] = useState<'incoming' | 'outgoing'>('outgoing');
+  const dockLeaveTimerRef = useRef<number | null>(null);
 
   const { toggleCollapsed, getChildIds, isItemCollapsed, shouldShowItem } = useTocUtils();
 
@@ -74,10 +134,6 @@ export function ArticleViewer () {
       try {
         const data = await getArticleBySlug(slug);
         setArticle(data);
-        if (data) {
-          setMultiArticles([data]);
-          setCurrentIndex(0);
-        }
       } finally {
         setIsLoading(false);
       }
@@ -86,13 +142,8 @@ export function ArticleViewer () {
     loadArticle();
   }, [slug]);
 
-  const currentArticle = isMultiMode ? multiArticles[currentIndex] : article;
-
   const handleEditorReady = useCallback((editorInstance: Editor) => {
     setEditor(editorInstance);
-    editorRef.current = {
-      'getEditor': () => editorInstance
-    };
   }, []);
 
   const handleTableOfContentsChange = useCallback((items: TocItem[]) => {
@@ -219,7 +270,7 @@ export function ArticleViewer () {
   }, []);
 
   const handleDelete = async () => {
-    if (!currentArticle || isDeleting) {
+    if (!article || isDeleting) {
       return;
     }
 
@@ -227,13 +278,13 @@ export function ArticleViewer () {
   };
 
   const confirmDelete = async () => {
-    if (!currentArticle || isDeleting) {
+    if (!article || isDeleting) {
       return;
     }
 
     setIsDeleting(true);
     try {
-      const success = await deleteArticle(currentArticle.id);
+      const success = await deleteArticle(article.id);
       if (success) {
         navigate('/articles');
       } else {
@@ -246,7 +297,7 @@ export function ArticleViewer () {
   };
 
   const handleExportHtml = () => {
-    if (!currentArticle) {
+    if (!article) {
       return;
     }
 
@@ -264,7 +315,7 @@ export function ArticleViewer () {
       });
     };
 
-    const exportArticle = currentArticle;
+    const exportArticle = article;
     const exportCreatedDate = formatDateForExport(exportArticle.created_at);
     const exportUpdatedDate = formatDateForExport(exportArticle.updated_at);
 
@@ -383,302 +434,124 @@ export function ArticleViewer () {
     URL.revokeObjectURL(url);
   };
 
-  const handleAddArticles = useCallback(async (selectedArticles: ArticleListItem[]) => {
-    const loadedArticles: ArticleWithContent[] = [];
-
-    for (const item of selectedArticles) {
-      const existing = multiArticles.find(a => a.id === item.id);
-      if (existing) {
-        loadedArticles.push(existing);
-      } else {
-        const fullArticle = await getArticle(item.slug);
-        if (fullArticle) {
-          loadedArticles.push(fullArticle);
-        }
-      }
-    }
-
-    setMultiArticles(prev => [...prev, ...loadedArticles]);
-    if (multiArticles.length <= 1 && loadedArticles.length > 0) {
-      setViewMode('grid');
-    }
-  }, [multiArticles]);
-
-  const handleRemoveArticle = useCallback((articleId: string) => {
-    setMultiArticles(prev => {
-      const next = prev.filter(a => a.id !== articleId);
-      if (next.length <= 1) {
-        setViewMode('single');
-      }
-      return next;
-    });
-    setCurrentIndex(prev => {
-      if (prev >= multiArticles.length - 1) {
-        return Math.max(0, multiArticles.length - 2);
-      }
-      return prev;
-    });
-  }, [multiArticles.length]);
-
-  const handleSelectArticle = useCallback((articleId: string) => {
-    const index = multiArticles.findIndex(a => a.id === articleId);
-    if (index >= 0) {
-      setCurrentIndex(index);
-      setViewMode('single');
-    }
-  }, [multiArticles]);
-
-  const handlePrevArticle = useCallback(() => {
-    setCurrentIndex(prev => (prev > 0 ? prev - 1 : multiArticles.length - 1));
-  }, [multiArticles.length]);
-
-  const handleNextArticle = useCallback(() => {
-    setCurrentIndex(prev => (prev < multiArticles.length - 1 ? prev + 1 : 0));
-  }, [multiArticles.length]);
-
-  const handleToggleViewMode = useCallback(() => {
-    setViewMode(prev => prev === 'single' ? 'grid' : 'single');
-  }, []);
-
-  const handleJumpToPoint = useCallback((pointId: string) => {
-    const marker = document.querySelector(`[data-connection-point-id="${pointId}"]`) as HTMLElement;
-    if (marker) {
-      marker.scrollIntoView({ 'behavior': 'smooth', 'block': 'center' });
-    }
-  }, []);
-
-  const handleJumpToArticleWithPath = useCallback(async (targetArticleId: string, pointId: string, _direction: 'source' | 'target', connectionId?: string) => {
-    const displayArticle2 = currentArticle || article;
-    if (!displayArticle2) {
+  const handleNavigate = useCallback(async (targetArticleId: string, relationship?: string) => {
+    if (!article) {
       return;
     }
-
-    if (targetArticleId === displayArticle2.id) {
-      handleJumpToPoint(pointId);
+    if (targetArticleId === article.id) {
       return;
     }
-
-    if (viewMode !== 'grid' && sideArticle && targetArticleId === sideArticle.article.id) {
-      setTimeout(() => {
-        handleJumpToPoint(pointId);
-      }, 100);
-      return;
-    }
-
-    let connLabel = '';
-    let srcPointId: string | undefined;
-    let srcPointText: string | undefined;
-    let srcPointColor: string | undefined;
-    let tgtPointId: string | undefined;
-    let tgtPointText: string | undefined;
-    let tgtPointColor: string | undefined;
-
-    if (connectionId) {
-      const connectionCtx = (window as unknown as Record<string, unknown>).__connCtx as ExtendedConnectionContextValue | undefined;
-      if (connectionCtx) {
-        const conn = connectionCtx.state.connections.get(connectionId);
-        if (conn) {
-          connLabel = conn.label;
-          const srcPoint = connectionCtx.state.points.get(conn.sourcePointId);
-          const tgtPoint = connectionCtx.state.points.get(conn.targetPointId);
-          if (_direction === 'target') {
-            srcPointId = conn.sourcePointId;
-            srcPointText = srcPoint?.selectedText;
-            srcPointColor = srcPoint?.color;
-            tgtPointId = conn.targetPointId;
-            tgtPointText = tgtPoint?.selectedText;
-            tgtPointColor = tgtPoint?.color;
-          } else {
-            srcPointId = conn.targetPointId;
-            srcPointText = tgtPoint?.selectedText;
-            srcPointColor = tgtPoint?.color;
-            tgtPointId = conn.sourcePointId;
-            tgtPointText = srcPoint?.selectedText;
-            tgtPointColor = srcPoint?.color;
-          }
-        }
-      }
-    }
-
     const targetArticle = await getArticleById(targetArticleId);
     if (!targetArticle) {
       return;
     }
+    if (recordingRef.current) {
+      addJump({
+        'sourceArticleId': article.id,
+        targetArticleId,
+        'sourceArticleTitle': article.title,
+        'targetArticleTitle': targetArticle.title,
+        'connectionLabel': relationship
+      });
+    }
+    navigate(`/articles/${targetArticle.slug}`);
+  }, [article, navigate]);
 
-    setJumpGraph(prev => addJumpToGraph({
-      'graph': prev,
-      'sourceArticleId': displayArticle2.id,
-      targetArticleId,
-      'sourceArticleTitle': displayArticle2.title,
-      'targetArticleTitle': targetArticle.title,
-      connectionId,
-      'connectionLabel': connLabel || undefined,
-      'sourcePointId': srcPointId,
-      'sourcePointText': srcPointText,
-      'sourcePointColor': srcPointColor,
-      'targetPointId': tgtPointId,
-      'targetPointText': tgtPointText,
-      'targetPointColor': tgtPointColor
-    }));
-
-    if (viewMode === 'grid') {
-      const exists = multiArticles.some(a => a.id === targetArticleId);
-      if (!exists) {
-        setMultiArticles(prev => [...prev, targetArticle]);
+  useEffect(() => {
+    if (!article) {
+      return undefined;
+    }
+    let cancelled = false;
+    getArticleNeighbors(article.id).then(result => {
+      if (!cancelled) {
+        setNeighbors(result);
       }
-      setTimeout(() => {
-        multiViewerRef.current?.focusArticle(targetArticleId, pointId);
-      }, exists ? 0 : 100);
-      return;
-    }
-
-    if (sideArticle) {
-      setArticle(sideArticle.article);
-      setMultiArticles([sideArticle.article]);
-      setCurrentIndex(0);
-    }
-
-    setSideArticle({
-      'article': targetArticle,
-      'position': 'right',
-      pointId
     });
-  }, [currentArticle, article, sideArticle, handleJumpToPoint, viewMode, multiArticles]);
+    return () => {
+      cancelled = true;
+    };
+  }, [article]);
 
-  const handlePathJump = useCallback(async (targetArticleId: string, pointId: string) => {
-    const displayArticle2 = currentArticle || article;
-    if (!displayArticle2) {
-      return;
+  const clearDockLeaveTimer = useCallback(() => {
+    if (dockLeaveTimerRef.current !== null) {
+      window.clearTimeout(dockLeaveTimerRef.current);
+      dockLeaveTimerRef.current = null;
     }
-
-    if (targetArticleId === displayArticle2.id) {
-      return;
-    }
-
-    const targetArticle = await getArticleById(targetArticleId);
-    if (!targetArticle) {
-      return;
-    }
-
-    if (viewMode === 'grid') {
-      const exists = multiArticles.some(a => a.id === targetArticleId);
-      if (!exists) {
-        setMultiArticles(prev => [...prev, targetArticle]);
-      }
-      setTimeout(() => {
-        multiViewerRef.current?.focusArticle(targetArticleId, pointId);
-      }, exists ? 0 : 100);
-      return;
-    }
-
-    if (sideArticle) {
-      setArticle(sideArticle.article);
-      setMultiArticles([sideArticle.article]);
-      setCurrentIndex(0);
-    }
-
-    setSideArticle({
-      'article': targetArticle,
-      'position': 'right',
-      pointId
-    });
-  }, [currentArticle, article, sideArticle, viewMode, multiArticles]);
-
-  const handleNodeNavigate = useCallback(async (articleId: string) => {
-    const displayArticle2 = currentArticle || article;
-    if (!displayArticle2 || articleId === displayArticle2.id) {
-      return;
-    }
-
-    if (viewMode !== 'grid' && sideArticle && articleId === sideArticle.article.id) {
-      return;
-    }
-
-    const targetArticle = await getArticleById(articleId);
-    if (!targetArticle) {
-      return;
-    }
-
-    if (viewMode === 'grid') {
-      const exists = multiArticles.some(a => a.id === articleId);
-      if (!exists) {
-        setMultiArticles(prev => [...prev, targetArticle]);
-      }
-      setTimeout(() => {
-        multiViewerRef.current?.focusArticle(articleId);
-      }, exists ? 0 : 100);
-      return;
-    }
-
-    if (sideArticle) {
-      setArticle(sideArticle.article);
-      setMultiArticles([sideArticle.article]);
-      setCurrentIndex(0);
-    }
-
-    setSideArticle({
-      'article': targetArticle,
-      'position': 'right',
-      'pointId': ''
-    });
-  }, [currentArticle, article, sideArticle, viewMode, multiArticles]);
-
-  const handleClearPath = useCallback(() => {
-    setJumpGraph({ 'nodes': [], 'edges': [] });
   }, []);
 
-  const handleCloseSideArticle = useCallback(() => {
-    setSideArticle(null);
+  const handleDockTitlePointerEnter = useCallback(() => {
+    clearDockLeaveTimer();
+    storeSetDockCollapsed(false);
+  }, [clearDockLeaveTimer]);
+
+  const handleDockRegionPointerLeave = useCallback(() => {
+    clearDockLeaveTimer();
+    dockLeaveTimerRef.current = window.setTimeout(() => {
+      storeSetDockCollapsed(true);
+      dockLeaveTimerRef.current = null;
+    }, DOCK_LEAVE_COLLAPSE_MS);
+  }, [clearDockLeaveTimer]);
+
+  useEffect(() => {
+    return () => {
+      clearDockLeaveTimer();
+    };
+  }, [clearDockLeaveTimer]);
+
+  const handleDockEdgeClick = useCallback((edge: JumpEdge) => {
+    handleNavigate(edge.targetArticleId, edge.connectionLabel);
+  }, [handleNavigate]);
+
+  const handleToggleRecording = useCallback(() => {
+    storeSetRecording(!recording);
+  }, [recording]);
+
+  const handleAddConnectionClick = useCallback((direction: 'incoming' | 'outgoing') => {
+    setSelectorDirection(direction);
+    setShowConnectionSelector(true);
   }, []);
 
-  function SaveButton () {
-    const { save, state } = useContext(ConnectionContext) as ExtendedConnectionContextValue;
-    const [isSaving, setIsSaving] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
-
-    const handleSave = useCallback(async () => {
-      setIsSaving(true);
-      const success = await save();
-      setIsSaving(false);
-      if (success) {
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 2000);
-      }
-    }, [save]);
-
-    const hasData = state.points.size > 0 || state.connections.size > 0;
-
-    const getButtonStyle = () => {
-      if (showSuccess) {
-        return 'bg-green-500 text-white';
-      }
-      if (hasData) {
-        return 'bg-indigo-500 hover:bg-indigo-600 text-white';
-      }
-      return 'bg-slate-200/50 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed';
+  const handleConnectionSelectorConfirm = useCallback(async (result: ArticleSelectorSingleResult) => {
+    if (!article) {
+      return;
+    }
+    const { 'article': selectedArticle, label } = result;
+    const sourceId = selectorDirection === 'incoming' ? selectedArticle.id : article.id;
+    const targetId = selectorDirection === 'incoming' ? article.id : selectedArticle.id;
+    const params: { sourceArticleId: string; targetArticleId: string; relationshipType?: string } = {
+      'sourceArticleId': sourceId,
+      'targetArticleId': targetId
     };
+    if (label) {
+      params.relationshipType = label;
+    }
+    await addArticleConnection(params);
+    const updatedNeighbors = await getArticleNeighbors(article.id);
+    setNeighbors(updatedNeighbors);
+    setShowConnectionSelector(false);
+  }, [selectorDirection, article]);
 
-    const getButtonText = () => {
-      if (showSuccess) {
-        return '已保存';
-      }
-      if (isSaving) {
-        return '保存中...';
-      }
-      return '保存连接';
-    };
+  const excludedConnectionIds = useMemo(() => {
+    if (!article) {
+      return new Set<string>();
+    }
+    const ids = new Set<string>();
+    ids.add(article.id);
+    for (const n of neighbors.incoming) {
+      ids.add(n.id);
+    }
+    for (const n of neighbors.outgoing) {
+      ids.add(n.id);
+    }
+    return ids;
+  }, [article, neighbors]);
 
-    return (
-      <button
-        onClick={handleSave}
-        disabled={isSaving || !hasData}
-        className={`flex items-center gap-2 px-3 py-1.5 rounded font-medium text-sm transition-all ${getButtonStyle()}`}
-      >
-        <Save className={`w-4 h-4 ${isSaving ? 'animate-pulse' : ''}`} />
-        {getButtonText()}
-      </button>
-    );
-  }
+  const graphData = useMemo(() => {
+    if (!article) {
+      return null;
+    }
+    return neighborsToGraphData(article.id, article.title, neighbors);
+  }, [article, neighbors]);
 
   if (isLoading) {
     return (
@@ -718,133 +591,19 @@ export function ArticleViewer () {
     });
   };
 
-  const excludedIds = new Set(multiArticles.map(a => a.id));
-  const articleIds = multiArticles.map(a => a.id);
-
-  if (viewMode === 'grid' && isMultiMode) {
-    return (
-      <ConnectionProvider articleIds={articleIds}>
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-          <div className="sticky top-0 z-20 bg-slate-100/90 dark:bg-slate-800/90 border-b border-slate-200/60 dark:border-slate-700/60 px-4 py-2 print:hidden">
-            <div className="max-w-7xl mx-auto flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleToggleViewMode}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
-                >
-                  <FileText className="w-4 h-4" />
-                  单篇查看
-                </button>
-                <button
-                  onClick={() => setShowArticleSelector(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  添加文章
-                </button>
-                <SaveButton />
-              </div>
-              <span className="text-sm text-slate-500 dark:text-slate-400">
-                {multiArticles.length} 篇文章
-              </span>
-            </div>
-          </div>
-
-          <MultiViewer
-            ref={multiViewerRef}
-            articles={multiArticles}
-            onRemoveArticle={handleRemoveArticle}
-            onSelectArticle={handleSelectArticle}
-          />
-
-          <ArticleSelector
-            isOpen={showArticleSelector}
-            excludedIds={excludedIds}
-            onAdd={handleAddArticles}
-            onClose={() => setShowArticleSelector(false)}
-          />
-        </div>
-      </ConnectionProvider>
-    );
-  }
-
-  const displayArticle = currentArticle || article;
-  if (!displayArticle) {
-    return null;
-  }
-
-  const createdDate = formatDate(displayArticle.created_at);
-  const updatedDate = formatDate(displayArticle.updated_at);
-  const singleArticleIds = isMultiMode
-    ? multiArticles.map(a => a.id)
-    : [displayArticle.id, ...(sideArticle ? [sideArticle.article.id] : [])];
-
-  let mainVirtualDirection: 'left' | 'right' | undefined;
-  if (sideArticle) {
-    mainVirtualDirection = sideArticle.position === 'left' ? 'right' : 'left';
-  } else {
-    mainVirtualDirection = undefined;
-  }
+  const createdDate = formatDate(article.created_at);
+  const updatedDate = formatDate(article.updated_at);
 
   return (
-    <ConnectionProvider articleIds={singleArticleIds}>
-      <ConnectionInteraction
-        interactive={isMultiMode}
-        currentArticleId={displayArticle.id}
-        onJumpToArticle={handleJumpToArticleWithPath}
-        onJumpToPoint={handleJumpToPoint}
-      />
-      <div className={`flex gap-4 max-w-7xl mx-auto px-4 py-8 ${sideArticle ? 'max-w-none' : ''}`}>
-        {sideArticle && sideArticle.position === 'left' && (
-          <div className="w-1/2 min-w-0 flex-shrink-0">
-            <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-300 truncate">{sideArticle.article.title}</h2>
-                <button
-                  onClick={handleCloseSideArticle}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="min-w-0" ref={sideContentRef}>
-                <main className="bg-white dark:bg-slate-800 relative">
-                  <ArticleConnectionLines
-                    articleId={sideArticle.article.id}
-                    scrollContainerRef={sideContentRef}
-                    editorRef={sideEditorRef}
-                    renderedArticleIds={[displayArticle.id, sideArticle.article.id]}
-                    renderCrossArticle={true}
-                    virtualPointDirection="left"
-                  />
-                  <ConnectionPointManager
-                    articleId={sideArticle.article.id}
-                    editorRef={sideEditorRef}
-                    interactive={false}
-                  />
-                  {sideArticle.article.content && (
-                    <TiptapEditor
-                      key={sideArticle.article.id}
-                      editable={false}
-                      content={sideArticle.article.content}
-                      onEditorReady={(e) => {
-                        sideEditorRef.current = { 'getEditor': () => e };
-                      }}
-                    />
-                  )}
-                </main>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className={`${sideArticle ? 'w-1/2 flex-shrink-0' : 'flex-1'} min-w-0`}>
+    <>
+      <div className="flex gap-4 max-w-7xl mx-auto px-4 py-8">
+        <div className="flex-1 min-w-0">
           <article>
-            {displayArticle.cover_image && (
+            {article.cover_image && (
               <div className="mb-6 rounded overflow-hidden bg-slate-100/40 dark:bg-slate-800/40">
                 <img
-                  src={displayArticle.cover_image}
-                  alt={displayArticle.title}
+                  src={article.cover_image}
+                  alt={article.title}
                   className="w-full h-auto object-cover max-h-[70vh]"
                 />
               </div>
@@ -852,35 +611,8 @@ export function ArticleViewer () {
 
             <div className="mb-6">
               <div className="flex items-center justify-between gap-4 flex-wrap">
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-700 dark:text-slate-300 min-w-0">{displayArticle.title}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-700 dark:text-slate-300 min-w-0">{article.title}</h1>
                 <div className="flex items-center gap-2 flex-shrink-0 print:hidden">
-                  {isMultiMode && (
-                    <>
-                      <button
-                        onClick={handleToggleViewMode}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
-                      >
-                        <LayoutGrid className="w-4 h-4" />
-                    总览
-                      </button>
-                      <button
-                        onClick={() => setShowArticleSelector(true)}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
-                      >
-                        <Plus className="w-4 h-4" />
-                    添加
-                      </button>
-                    </>
-                  )}
-                  {!isMultiMode && (
-                    <button
-                      onClick={() => setShowArticleSelector(true)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
-                    >
-                      <LayoutGrid className="w-4 h-4" />
-                  多篇查看
-                    </button>
-                  )}
                   <button
                     onClick={handleExportHtml}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
@@ -889,7 +621,7 @@ export function ArticleViewer () {
                 导出HTML
                   </button>
                   <button
-                    onClick={() => navigate(`/articles/${displayArticle.slug}/edit`)}
+                    onClick={() => navigate(`/articles/${article.slug}/edit`)}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors"
                   >
                     <Edit3 className="w-4 h-4" />
@@ -916,9 +648,9 @@ export function ArticleViewer () {
                 </div>
               </div>
 
-              {displayArticle.tags && displayArticle.tags.length > 0 && (
+              {article.tags && article.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-4">
-                  {displayArticle.tags.map((tag, index) => (
+                  {article.tags.map((tag, index) => (
                     <span
                       key={index}
                       title={tag}
@@ -932,10 +664,10 @@ export function ArticleViewer () {
               )}
             </div>
 
-            {displayArticle.summary && (
+            {article.summary && (
               <blockquote className="mb-6 pl-4 border-l-4 border-sky-400 bg-sky-50 dark:bg-sky-900/20 py-3 pr-4 rounded-r-lg">
                 <p className="text-slate-700 dark:text-slate-300 italic m-0">
-                  {displayArticle.summary}
+                  {article.summary}
                 </p>
               </blockquote>
             )}
@@ -961,23 +693,11 @@ export function ArticleViewer () {
 
             <div className="flex-1 min-w-0" ref={contentRef}>
               <main className="bg-white dark:bg-slate-800 relative">
-                <ArticleConnectionLines
-                  articleId={displayArticle.id}
-                  scrollContainerRef={contentRef}
-                  editorRef={editorRef}
-                  renderedArticleIds={sideArticle ? [displayArticle.id, sideArticle.article.id] : undefined}
-                  virtualPointDirection={mainVirtualDirection}
-                />
-                <ConnectionPointManager
-                  articleId={displayArticle.id}
-                  editorRef={editorRef}
-                  interactive={isMultiMode}
-                />
-                {displayArticle.content && (
+                {article.content && (
                   <TiptapEditor
-                    key={displayArticle.id}
+                    key={article.id}
                     editable={false}
-                    content={displayArticle.content}
+                    content={article.content}
                     onEditorReady={handleEditorReady}
                     onTableOfContentsChange={handleTableOfContentsChange}
                   />
@@ -986,85 +706,82 @@ export function ArticleViewer () {
             </div>
           </article>
         </div>
-
-        {sideArticle && sideArticle.position === 'right' && (
-          <div className="w-1/2 min-w-0 flex-shrink-0">
-            <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-300 truncate">{sideArticle.article.title}</h2>
-                <button
-                  onClick={handleCloseSideArticle}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="min-w-0" ref={sideContentRef}>
-                <main className="bg-white dark:bg-slate-800 relative">
-                  <ArticleConnectionLines
-                    articleId={sideArticle.article.id}
-                    scrollContainerRef={sideContentRef}
-                    editorRef={sideEditorRef}
-                    renderCrossArticle={true}
-                    virtualPointDirection="right"
-                  />
-                  <ConnectionPointManager
-                    articleId={sideArticle.article.id}
-                    editorRef={sideEditorRef}
-                    interactive={false}
-                  />
-                  {sideArticle.article.content && (
-                    <TiptapEditor
-                      key={sideArticle.article.id}
-                      editable={false}
-                      content={sideArticle.article.content}
-                      onEditorReady={(e) => {
-                        sideEditorRef.current = { 'getEditor': () => e };
-                      }}
-                    />
-                  )}
-                </main>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {isMultiMode && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 rounded-full px-3 py-1.5 print:hidden">
-          <button
-            onClick={handlePrevArticle}
-            className="p-2 text-slate-500 dark:text-slate-400 hover:text-sky-500 dark:hover:text-sky-400 rounded-full hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
+      {/* 底部探索 Dock */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-30 print:hidden"
+        onPointerLeave={handleDockRegionPointerLeave}
+      >
+        <div className="bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur-sm border-t border-slate-200/60 dark:border-slate-700/60">
+          <div
+            className="max-w-7xl mx-auto flex items-center justify-between gap-2 px-4 py-2"
+            onPointerEnter={handleDockTitlePointerEnter}
           >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <span className="text-sm font-medium text-slate-500 dark:text-slate-400 min-w-[4rem] text-center">
-            {currentIndex + 1} / {multiArticles.length}
-          </span>
-          <button
-            onClick={handleNextArticle}
-            className="p-2 text-slate-500 dark:text-slate-400 hover:text-sky-500 dark:hover:text-sky-400 rounded-full hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-          <div className="w-px h-5 bg-slate-200/60 dark:bg-slate-700/60 mx-1" />
-          <button
-            onClick={handleToggleViewMode}
-            className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-full hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-colors"
-            title="查看所有文章"
-          >
-            <LayoutGrid className="w-5 h-5" />
-          </button>
-        </div>
-      )}
+            <div className="flex min-w-0 items-center gap-2">
+              <Compass className="h-5 w-5 shrink-0 text-sky-500" />
+              <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-300">
+                探索
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleToggleRecording}
+                className={`flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium transition-colors ${
+                  recording
+                    ? 'border-sky-300 bg-sky-100/50 text-sky-600 dark:border-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
+                    : 'border-slate-200/70 bg-slate-100/50 text-slate-400 dark:border-slate-600/60 dark:bg-slate-800/50 dark:text-slate-500'
+                }`}
+              >
+                <CircleDot className="h-3.5 w-3.5" />
+                {recording ? '记录：开' : '记录：关'}
+              </button>
+            </div>
+          </div>
 
-      <JumpPathBar
-        graph={jumpGraph}
-        currentArticleId={displayArticle.id}
-        onNodeClick={handleNodeNavigate}
-        onEdgeClick={handlePathJump}
-        onClear={handleClearPath}
-      />
+          <AnimatePresence initial={false}>
+            {!dockCollapsed && (
+              <motion.div
+                key="dock-body"
+                initial={{ 'height': 0, 'opacity': 0 }}
+                animate={{ 'height': 'auto', 'opacity': 1 }}
+                exit={{ 'height': 0, 'opacity': 0 }}
+                transition={dockBodyTransition}
+                style={{ 'overflow': 'hidden' }}
+              >
+                <JumpPathBar
+                  graph={jumpGraph}
+                  currentArticleId={article.id}
+                  onNodeClick={handleNavigate}
+                  onEdgeClick={handleDockEdgeClick}
+                  onClear={clearJumps}
+                />
+
+                {graphData && (
+                  <ExplorationNavigator
+                    nodes={graphData.nodes}
+                    edges={graphData.edges}
+                    currentNode={graphData.currentNode}
+                    onNavigate={(targetId: string, relationship?: string) => handleNavigate(targetId, relationship)}
+                    onAddConnection={handleAddConnectionClick}
+                  />
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <ArticleSelector
+          isOpen={showConnectionSelector}
+          excludedIds={excludedConnectionIds}
+          title="选择关联文章"
+          direction={selectorDirection}
+          currentArticleTitle={article.title}
+          onConfirm={handleConnectionSelectorConfirm}
+          onClose={() => setShowConnectionSelector(false)}
+        />
+      </div>
 
       <ConfirmDialog
         isOpen={showDeleteDialog}
@@ -1087,13 +804,6 @@ export function ArticleViewer () {
         onCancel={() => setShowErrorDialog(false)}
         className="print:hidden"
       />
-
-      <ArticleSelector
-        isOpen={showArticleSelector}
-        excludedIds={excludedIds}
-        onAdd={handleAddArticles}
-        onClose={() => setShowArticleSelector(false)}
-      />
-    </ConnectionProvider>
+    </>
   );
 }
