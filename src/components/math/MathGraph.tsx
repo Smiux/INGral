@@ -408,7 +408,6 @@ export default function MathGraph ({
           const x = event.clientX - rect.left;
           const y = event.clientY - rect.top;
 
-          // Check link right-click first
           const hoveredLinkIdx = hoveredLinkIndexRef.current;
           if (hoveredLinkIdx !== undefined) {
             const linkInfo = validLinksRef.current[hoveredLinkIdx];
@@ -418,7 +417,6 @@ export default function MathGraph ({
             }
           }
 
-          // Fall back to node right-click
           const node = findNodeAtPosition(graphRef.current, nodesRef.current, x, y);
           if (node) {
             onNodeRightClickRef.current(node);

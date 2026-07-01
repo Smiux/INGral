@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.plante-thurston-nilpotent",
+  "to": "dynamics.kopell-lemma",
+  "description": {
+    "zh": [
+      "Plante–Thurston 定理的证明依赖 Kopell 引理来控制中心元在不动点集边界处的作用，从而导出矛盾。"
+    ]
+  }
+}

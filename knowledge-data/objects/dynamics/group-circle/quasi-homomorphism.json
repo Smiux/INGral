@@ -1,0 +1,36 @@
+{
+  "id": "dynamics.group-circle.quasi-homomorphism",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "拟同态",
+      "准同态"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 为群。映射 $F\\colon\\Gamma\\to\\mathbb R$ 称为**拟同态**（quasi-homomorphism），若存在常数 $D>0$ 使\n$$|F(\\gamma_1\\gamma_2)-F(\\gamma_1)-F(\\gamma_2)|\\leqslant D,\\quad\\forall\\gamma_1,\\gamma_2\\in\\Gamma.$$\n$D$ 称为 $F$ 的缺陷（defect）。当 $\\Gamma=\\mathbb Z$ 时，拟同态 $F\\colon\\mathbb Z\\to\\mathbb R$ 是「近似加性」序列：存在唯一 $\\tau\\in\\mathbb R$ 使 $|F(n)-n\\tau|$ 有界。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "有界上同调",
+      "旋转数",
+      "平移数",
+      "群论"
+    ],
+    "notes": [
+      {
+        "zh": "若 $D=0$，则 $F$ 是通常的同态。拟同态与同态的偏差 $|F(\\gamma_1\\gamma_2)-F(\\gamma_1)-F(\\gamma_2)|$ 即使有界但**非零**是该概念的趣味所在——它在群的上同调中对应于一个有界 2-上循环的边界。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "拟同态是群论与动力系统交界处的重要概念。在 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 上，平移数 $T(\\tilde f)=\\tilde f(0)$ 是一个拟同态：$|T(\\tilde f\\tilde g)-T(\\tilde f)-T(\\tilde g)|\\leqslant 1$ 直接由振荡引理得出。这一定义在 $\\mathbb Z$ 上退化——因为对 $\\mathbb Z$ 的拟同态必然线性（$F(n)=n\\tau$ 有界偏差），但对更复杂的群（如 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ ）拟同态的集合远大于同态集合。\n\n平移数 $\\tau$ 是 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\mathbb R$ 的唯一在单生成子群上是同态的拟同态（$\\tau(\\tilde f^n)=n\\tau(\\tilde f)$），且对平移 $1$ 取值为 $1$。这一唯一性通过 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的完全性（每个元素可写为两个换位子之积）证明：任何具有「单生成子群上为同态」性质的拟同态在换位子上有界，从而 $\\tau$ 与另一此类拟同态的差有界，又因在 $\\mathbb Z$ 上两者的差为 $0$ 从而恒为零。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
+    ]
+  }
+}

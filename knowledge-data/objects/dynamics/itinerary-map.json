@@ -1,0 +1,30 @@
+{
+  "id": "dynamics.itinerary-map",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "航拍映射",
+      "itinerary map"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\mathcal P=\\{P_1,\\ldots,P_k\\}$ 为相空间 $M$ 的一个划分。对迭代映射 $f\\colon M\\to M$，点 $x\\in M$ 的**航拍**（itinerary map）定义为符号序列\n$$\\operatorname{It}_f(x):=(i_n)_{n\\in\\mathbb N_0}\\in\\llbracket k\\rrbracket^{\\mathbb N_0},$$\n其中 $i_n$ 由 $f^n(x)\\in P_{i_n}$ 确定。\n\n航拍映射 $\\operatorname{It}_f\\colon M\\to\\llbracket k\\rrbracket^{\\mathbb N_0}$ 建立了 $M$ 中轨道与符号动力系统之间的联系。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "符号动力系统",
+      "移位映射",
+      "Cantor 集"
+    ],
+    "article": [
+      {
+        "zh": "航拍映射是将动力系统的轨道编码为符号序列的基本工具。对于二次族 $Q_\\mu$ 当 $\\mu>\\sqrt5+2$ 时，不变量 $\\Lambda_\\mu$ 上的航拍映射 $h\\colon\\Lambda_\\mu\\to\\llbracket2\\rrbracket^{\\mathbb N_0}$ 是一个同胚，将 $Q_\\mu$ 共轭于符号空间上的移位映射 $\\sigma$。\n\n更一般地，当映射具有 Markov 划分时，航拍映射给出了原系统到符号动力系统的半共轭。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §4.2."
+    ]
+  }
+}

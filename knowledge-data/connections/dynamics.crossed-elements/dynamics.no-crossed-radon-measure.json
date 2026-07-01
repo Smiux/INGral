@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.crossed-elements",
+  "to": "dynamics.no-crossed-radon-measure",
+  "description": {
+    "zh": [
+      "无交叉元素保测定理的反面：交叉元素的存在意味着群含自由半群从而不保 Radon 测度。"
+    ]
+  }
+}

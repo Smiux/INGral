@@ -1,0 +1,38 @@
+{
+  "id": "algebra.group-theory.sl-n-z-non-orderable",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "SL(n,Z) 不可序定理",
+      "高秩特殊线性群有限指数子群不可序"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $n\\geqslant3$，$\\Gamma$ 为 $\\operatorname{SL}(n,\\mathbb Z)$ 的有限指数子群。则 $\\Gamma$ 不是可序群（即不接受左不变全序）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "可序群",
+      "实直线作用",
+      "特殊线性群",
+      "高秩格点",
+      "Witte-Morris"
+    ],
+    "article": [
+      {
+        "zh": "该定理表明 $\\operatorname{SL}(n,\\mathbb Z)$（$n\\geqslant3$）的有限指数子群无法忠实地作用在实数直线上，因为可序性是有序直线作用的必要条件。\n\n该定理与 Witte-Morris 定理互为补充：Witte-Morris 定理指出可序顺从群必有到 $(\\mathbb R,+)$ 的非平凡同态，而本定理则指出高秩算术子群甚至根本不可序。两者的结合表明 $\\operatorname{SL}(n,\\mathbb Z)$（$n\\geqslant3$）的有限指数子群在 $\\mathbb R$ 上的任何保向同胚作用必是平凡的——若 $\\Gamma$ 有非平凡 $\\mathbb R$ 作用，则 $\\Gamma$ 可序，矛盾。这一结论揭示了高秩格点与一维动力学之间的刚性。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "1. 对 $n\\geqslant3$，$\\operatorname{SL}(3,\\mathbb Z)\\hookrightarrow\\operatorname{SL}(n,\\mathbb Z)$，故只需证 $n=3$。\n2. 设 $\\Gamma$ 是 $\\operatorname{SL}(3,\\mathbb Z)$ 的有限指数子群且有序 $\\preceq$。取充分大的 $k$ 使 $g_1,\\ldots,g_6\\in\\Gamma$，其中\n   $$g_1=\\begin{pmatrix}1&k&0\\\\0&1&0\\\\0&0&1\\end{pmatrix},\\quad g_2=\\begin{pmatrix}1&0&k\\\\0&1&0\\\\0&0&1\\end{pmatrix},\\ldots$$\n   它们满足 $g_i g_{i+1}=g_{i+1}g_i$ 且 $[g_{i-1},g_{i+1}]=g_i^k$。\n3. 对每个 $g$ 定义 $|g|=g$（若 $g\\succ id$）或 $|g|=g^{-1}$（若 $g\\prec id$）。$g\\gg h$ 意为 $g\\succ h^n$ 对所有 $n\\geqslant1$。\n4. 对固定 $i$，在 $\\langle g_{i-1},g_i,g_{i+1}\\rangle$ 中取正元 $a,b,c$ 满足 $ac=ca$, $bc=cb$, $aba^{-1}b^{-1}=c^{-1}$。\n5. 构造 $d_m=a^m b^m (a^{-1}c^n)^m (b^{-1}c^n)^m$。若同时 $c^n\\prec a$ 且 $c^n\\prec b$，则 $d_m$ 既为正又为 $c^{-m^2+2mn}\\prec id$（对充分大的 $m$），矛盾。故要么 $a\\gg c$ 要么 $b\\gg c$。\n6. 从而 $|g_i|\\ll|g_{i-1}|$ 或 $|g_i|\\ll|g_{i+1}|$。沿 $i=1\\to2\\to\\cdots\\to6\\to1$ 传递得 $|g_1|\\ll|g_1|$，矛盾。故 $\\Gamma$ 不可序。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.3.",
+      "D. Witte-Morris, Amenable groups that act on the line, Algebr. Geom. Topol. 6 (2006), 2509–2518."
+    ]
+  }
+}

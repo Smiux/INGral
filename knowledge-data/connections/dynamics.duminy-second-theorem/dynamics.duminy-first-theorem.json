@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.duminy-second-theorem",
+  "to": "dynamics.duminy-first-theorem",
+  "description": {
+    "zh": [
+      "Duminy 两个定理均研究例外极小集相关轨道的结构——第一定理给出不存在例外极小集的充分条件，第二定理刻画半例外轨道的无限端结构。"
+    ]
+  }
+}

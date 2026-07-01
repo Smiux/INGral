@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.bernoulli-scheme",
+  "to": "dynamics.ergodic.mixing",
+  "description": {
+    "zh": [
+      "每个 Bernoulli 方案都是强混合的（从而遍历），这是独立同分布序列的渐近独立性的直接推论。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.duminy-first-theorem",
+  "to": "dynamics.denjoy-theorem",
+  "description": {
+    "zh": [
+      "Duminy 第一定理将 Denjoy 定理从单个 $C^{1+\\mathrm{bv}}$ 微分同胚推广到群作用语境，不再是单个同胚不能有例外极小集，而是生成元充分接近旋转的群也不能有例外极小集。"
+    ]
+  }
+}

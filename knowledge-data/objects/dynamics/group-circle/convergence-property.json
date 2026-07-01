@@ -1,0 +1,34 @@
+{
+  "id": "dynamics.group-circle.convergence-property",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "收敛性质",
+      "收敛性群"
+    ]
+  },
+  "description": {
+    "zh": [
+      "圆周同胚序列 $(g_n)$ 具**收敛性质**（convergence property），若它含子序列 $(g_{n_k})$ 满足以下之一：\n(i) 存在 $a,b\\in\\mathbb S^1$（可能相同）使得 $g_{n_k}\\to b$ 在 $\\mathbb S^1\\setminus\\{a\\}$ 上逐点收敛，且 $g_{n_k}^{-1}\\to a$ 在 $\\mathbb S^1\\setminus\\{b\\}$ 上逐点收敛；\n(ii) 存在 $g\\in\\operatorname{Homeo}_+(\\mathbb S^1)$ 使 $g_{n_k}\\to g$ 及 $g_{n_k}^{-1}\\to g^{-1}$ 在圆周上一致收敛。\n\n子群 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 具收敛性质，若 $\\Gamma$ 的每个元序列都有收敛子序列。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "PSL(2,R)",
+      "Möbius 群",
+      "拓扑动力学"
+    ],
+    "article": [
+      {
+        "zh": "收敛性质是拓扑动力学中的一个重要条件，最初从 Fuchs 群（$\\operatorname{PSL}(2,\\mathbb R)$ 的离散子群）的动力学行为中抽象出来。该条件仅涉及同胚序列的极限行为：任意无穷序列要么在一致拓扑下收敛到某个同胚，要么存在一点 $a$ 使得序列在 $\\mathbb S^1\\setminus\\{a\\}$ 上逐点收敛到常值。\n\n具有收敛性质的子群包括所有离散的 $\\operatorname{PSL}(2,\\mathbb R)$ 子群、均匀拟对称群（uniformly quasisymmetric group）、以及保持满足特定缩放条件的测地线流（geodesic current）的群。反之，$\\operatorname{SO}(2,\\mathbb R)$ 的子群（旋转群）不具收敛性质——其元素序列虽可一致收敛，但逆序列不满足相应条件。\n\n在离散情形下，收敛性质等价于作用在圆周有序三元组空间 $\\Theta(\\mathbb S^1)$ 上的自由真不连续性。更具里程碑意义的是，收敛群分类定理（convergence group theorem）表明满足收敛性质的子群必共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群——这一纯动力学刻画完全不依赖于双曲几何或分式线性变换的语言。"
+      }
+    ],
+    "references": [
+      "A. Casson–D. Jungreis, Convergence groups and Seifert fibered 3-manifolds, Invent. Math. 118 (1994), 441–456.",
+      "D. Gabai, Convergence groups are Fuchsian groups, Ann. Math. 136 (1992), 447–510.",
+      "A. Hinkkanen, Abelian and non discrete convergence groups of the circle, Trans. AMS 318 (1990), 87-121.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.3.3.",
+      "P. Tukia, Homeomorphic conjugates of Fuchsian groups, J. Reine Angew. Math. 391 (1989), 1-54."
+    ]
+  }
+}

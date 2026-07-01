@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.bi-lipschitz-conjugacy",
+  "to": "dynamics.stationary-measure",
+  "description": {
+    "zh": [
+      "Bi-Lipschitz 共轭的证明使用平稳测度作为将共轭映到 Lebesgue 测度的参考工具。"
+    ]
+  }
+}

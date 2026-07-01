@@ -1,0 +1,42 @@
+{
+  "id": "dynamics.denjoy-koksma-inequality",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Denjoy–Koksma 不等式",
+      "Denjoy 不等式"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f$ 为 $\\mathbb S^1$ 上旋转数为无理数 $\\theta$ 的同胚，$\\mu$ 为其唯一不变概率测度。设 $p/q$ 满足 $|\\theta-p/q|\\leq 1/q^2$。则对有界变差函数 $\\psi$ 和任意 $x\\in\\mathbb S^1$，\n\n**Denjoy–Koksma 不等式：**\n$$\\left|\\sum_{i=0}^{q-1}\\psi(f^i(x))-q\\int_{\\mathbb S^1}\\psi\\,d\\mu\\right|\\leq \\operatorname{var}(\\psi;\\mathbb S^1).$$\n\n**Denjoy 不等式：** 若 $f$ 为 $C^{1+\\mathrm{bv}}$ 且 $f'$ 有界变差 $V(f)=\\operatorname{var}(\\log f')$，则对任意 $x$ 和 $n$ 有\n$$\\exp(-V(f))\\leq (f^{q_n})'(x)\\leq\\exp(V(f)).$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Denjoy",
+      "Koksma",
+      "不等式",
+      "旋转数",
+      "有界变差"
+    ],
+    "notes": [
+      {
+        "zh": "Denjoy–Koksma 不等式对分段仿射圆周同胚同样成立（由类似证明得到）。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "Denjoy–Koksma 不等式是研究圆周微分同胚线性化的核心分析工具。它将沿轨道的函数求和 $S_q\\psi(x)=\\sum_{i=0}^{q-1}\\psi(f^i(x))$ 与轨道均值 $q\\int\\psi\\,d\\mu$ 之间的偏差用 $\\psi$ 的全变差控制住——且步数 $q$ 取自旋转数 $\\theta$ 的最佳有理逼近 $p/q$ 的分母。偏差的界**不依赖于 $x$** 的事实是惊人的：它意味着沿 $f$ 的所有轨道，$q$ 步 Birkhoff 和的偏差一致有界于 $\\operatorname{var}(\\psi)$。\n\n这一不等式的力量来自其普适性——它对任意有界变差函数 $\\psi$ 和任意具有无理旋转数 $\\theta$ 的同胚 $f$（不一定光滑）都成立。当 $\\psi=\\log f'$ 且 $f$ 是 $C^{1+\\mathrm{bv}}$ 圆周微分同胚时，$\\int\\log f'\\,d\\mu=0$ 须独立证明（由 $f$ 保测、将 $\\log f'$ 的积分解释为 $f$ 的拓扑熵度量）。代入即得 Denjoy 不等式：$(f^{q_n})'(x)$ 介于 $\\exp(\\pm V(f))$ 之间。\n\nDenjoy 不等式在证明 $C^{1+\\mathrm{bv}}$ Denjoy 定理（无例外极小集）中扮演关键角色。证明的反证法结构如下：设 $f$ 有例外极小集 $\\Lambda$，考虑其补区间 $I_n$。Denjoy 不等式给出区间长度比 $|I_{n+q}|/|I_n|$ 的乘积的一致有界性。但若 $\\sum|I_n|=1$（补区间总长为 $1$），则 $|I_n|$ 必须指数衰减，与有界性矛盾。因此例外极小集不可能存在。\n\nDenjoy–Koksma 不等式的一般性还意味着它在更广泛的语境中适用：分段仿射圆周同胚、逐段线性映射的旋转共轭问题甚至 KAM 理论中都有它的变形。它不属于光滑理论本身，而是属于「有界变差函数在等分布序列上的求和」这一更广泛的调和分析领域——连接了数论（连分数逼近）与动力系统。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "**Denjoy–Koksma 不等式：** 对有理逼近 $p/q$，将求和 $\\sum_{i=0}^{q-1}\\psi\\circ f^i$ 分解为 $q$ 个区间上的和，利用 $f$ 的保测性和 $\\psi$ 的有界变差控制偏差。\n\n**Denjoy 不等式：** 代入 $\\psi=\\log f'$，由 $\\int\\log f'\\,d\\mu=0$ 和 $\\operatorname{var}(\\log f')=V(f)$ 直接得到。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.1."
+    ]
+  }
+}

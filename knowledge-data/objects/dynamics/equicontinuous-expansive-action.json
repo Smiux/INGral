@@ -1,0 +1,33 @@
+{
+  "id": "dynamics.equicontinuous-expansive-action",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "等度连续与扩张作用",
+      "圆周群作用的等度连续性与扩张性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 通过保向同胚作用在圆周 $\\mathbb S^1$ 上。\n**等度连续**（equicontinuous）：对任意 $\\delta>0$ 存在 $\\varepsilon>0$ 使当 $\\operatorname{dist}(x,y)<\\varepsilon$ 时 $\\operatorname{dist}(g(x),g(y))<\\delta$ 对所有 $g\\in\\Gamma$ 成立。\n**扩张**（expansive）：对任意 $x\\in\\mathbb S^1$ 存在含 $x$ 的开区间 $I$ 及序列 $(g_n)\\subset\\Gamma$ 使 $|g_n(I)|\\to0$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周作用",
+      "等度连续",
+      "扩张",
+      "极小作用",
+      "Margulis 交替"
+    ],
+    "article": [
+      {
+        "zh": "这两个概念将圆周上的极小群作用划分为截然不同的两个动力学世界，它们构成了一个互补二分法：每个极小作用要么等度连续（所有轨道以相同速率「旋转」），要么扩张（存在局部区间被某族群元压碎到零）。二者不能同时发生，也不能同时不发生。\n\n等度连续情形对应「可积」动力学：由 Ascoli-Arzela 定理，等度连续意味着作用群在 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 中的闭包是紧致的。紧致性导致存在不变概率测度，且 $\\Gamma$ 共轭于旋转子群。换句话说，等度连续作用是刚性旋转的广义形式——所有点运动模式一致，没有混沌。\n\n扩张情形则是「混沌」动力学。扩张性的几何意义是：在每个点附近，存在一个「可压碎」的区间——这是群作用版本的不稳定方向。强扩张性进一步加强了这一要求，使得可以用 Ping-Pong 引理构造自由子群。扩张性与等度连续性的二分法是 Margulis 交替定理的基石：任何 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的极小子群要么具有不变概率测度（等度连续情形），要么含有非交换自由子群（扩张情形）。中间地带——有不变测度但仍含自由子群——被排除。"
+      }
+    ],
+    "references": [
+      "S. Hurder, Dynamics of expansive group actions on the circle, Preprint (2004).",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.3.1."
+    ]
+  }
+}

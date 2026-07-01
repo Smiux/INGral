@@ -1,0 +1,32 @@
+{
+  "id": "analysis.complex.schwarzian-derivative",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Schwarzian 导数",
+      "Schwarz 导数"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f$ 为 $\\mathbb R$（或 $\\mathbb C$）上 $C^3$ 微分同胚。$f$ 的 **Schwarzian 导数** 定义为\n$$S(f)=\\frac{f'''}{f'}-\\frac32\\left(\\frac{f''}{f'}\\right)^2.$$\n\n$S(f)\\equiv0$ 当且仅当 $f$ 是 Möbius 变换。它满足上循环关系\n$$S(f\\circ g)=S(g)+(g')^2\\cdot S(f)\\circ g.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Möbius 变换",
+      "射影结构",
+      "上循环",
+      "二次微分式",
+      "对数导数"
+    ],
+    "article": [
+      {
+        "zh": "Schwarzian 导数是 $C^3$ 微分同胚的一个二阶微分不变量，具有两个关键性质：$S(f)\\equiv0$ 当且仅当 $f$ 是 Möbius 变换（$\\frac{ax+b}{cx+d}$），且满足上循环关系 $S(f\\circ g)=S(g)+(g')^2\\cdot S(f)\\circ g$。后一性质意味着 $S(f)$ 在坐标变换下像二次微分式（quadratic differential）一样变换——这使得它可以被解释为射影结构上的一个 2-上循环。\n\n从动力系统的角度看，$S(f)=0$ 刻画了射影作用（Möbius 变换），正如 $f''=0$ 刻画了仿射作用（$x\\mapsto ax+b$）。这对应 Lie 分类中射影几何和仿射几何的区分。在圆周动力学中，若一个群 $\\Gamma$ 共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群，则在适当的坐标系下共轭映射的 Schwarzian 导数为零。\n\n一个深刻的应用：$S(f)$ 的正负性在区间动力学中决定了映射的扩张性。对于 $C^3$ 区间映射，若 $S(f)<0$（称为负 Schwarzian 导数），则 $f$ 具有良好的扩张性质和单峰性——这是生成混沌（拓扑传递、敏感依赖性）的充分条件。在圆周上，这个条件也出现在区间映射的 Milnor-Thurston  kneading 理论中。\n\nSchwarzian 导数与复分析的联系：全纯函数的 Schwarzian 导数 $S(f)$ 与施图姆-刘维尔方程 $u''+\\frac12S(f)u=0$ 的解空间有关。若 $f$ 全纯且 $S(f)\\equiv0$，则 $f$ 是 Möbius 变换——这是经典 Liouville 定理的 Scharzian 类比。Navas 的书指出，$S(f)$ 在圆周射影结构理论中扮演的角色类似于曲率在 Riemann 几何中的角色。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.3.1."
+    ]
+  }
+}

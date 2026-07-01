@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.thurston-stability",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Thurston 稳定性定理",
+      "Thurston 区间作用平凡性定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 为有限生成群。若 $\\Gamma$ 没有非平凡的同态映到 $(\\mathbb R,+)$，则每个表示 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^1([0,1[)$ 都是平凡表示（即每个元都作用为恒等映射）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "区间微分同胚",
+      "群作用",
+      "Reeb 稳定性",
+      "一维动力系统"
+    ],
+    "article": [
+      {
+        "zh": "Thurston 稳定性定理是微分动力系统中 Reeb 稳定性定理在群作用语境下的版本。它的大致含义是：对区间进行微分同胚作用需要群具有向 $(\\mathbb R,+)$ 的非平凡同态——即群需要有「平移自由度」。如果一个有限生成群的所有同态到可加实数群都是平凡的，那么它无法产生区间上的非平凡 $C^1$ 作用。\n\n证明使用近似同态（$\\varepsilon$-homomorphism）方法：给定有限对称生成集 $\\mathcal G$，考虑 $\\Gamma$ 在区间端点附近的近似同态。基本事实是：若对每个 $k$ 都存在 $(B_{\\mathcal G}(k),1/k)$-同态，则存在一非平凡同态 $\\Gamma\\to\\mathbb R$。如果 $\\Phi$ 非平凡且所有 $\\Phi(g)'(x)=1$（在端点处的导数为 1），则可以构造这样的近似同态序列，从而导出非平凡实数同态，矛盾。如果某些 $\\Phi(g)'(x)\\neq1$，则可以通过考虑导数本身构造同态。\n\n这一定理与 Reeb 稳定性定理的联系源于叶状结构理论：$C^1$ 叶状结构的局部稳定性问题可以化归为和乐群在横截区间上的作用问题。Thurston 定理实际上表明，如果和乐群没有到 $\\mathbb R$ 的非平凡同态，则叶状结构在紧叶附近是稳定的。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "使用近似同态（$\\varepsilon$-homomorphism）方法。给定有限对称生成集 $\\mathcal G$，考虑 $\\Gamma$ 在区间端点附近的近似同态。基本事实：若对每个 $k$ 都存在 $(B_{\\mathcal G}(k),1/k)$-同态，则存在非平凡同态 $\\Gamma\\to\\mathbb R$。若 $\\Phi$ 非平凡且所有 $\\Phi(g)'(x)=1$（端点处导数为 1），则可构造这样的近似同态序列，导出非平凡实数同态，矛盾。若某些 $\\Phi(g)'(x)\\neq1$，则通过考虑导数本身构造同态。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §5.1.",
+      "W. Thurston, A generalization of the Reeb stability theorem, Topology 13 (1974), 347-352."
+    ]
+  }
+}

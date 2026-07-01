@@ -1,0 +1,36 @@
+{
+  "id": "algebra.group-theory.neumann-lemma",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Neumann 群论引理",
+      "群不能表示为有限个无穷指标左陪集之并"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设群 $\\Gamma$ 有形如 $\\Gamma = \\bigcup_{i=1}^k S_i[g_i]$ 的分解，其中每个 $S_i$ 有限、$[g_i]$ 是某个子群（可能不同）的左陪集。则必存在某个 $i$ 使 $[g_i]$ 在 $\\Gamma$ 中有限指标。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "陪集",
+      "有限指标",
+      "群论"
+    ],
+    "article": [
+      {
+        "zh": "该引理在 Margulis 定理的证明中用于选出将扩张极小作用中两特殊点同时移到它们之外的群元素。证明通过对陪集个数 $k$ 归纳进行：若 $S_1[g_1]\\neq\\Gamma$，取 $g\\in\\Gamma\\setminus S_1[g_1]$，利用 $g[g_1]\\cap S_1[g_1]=\\varnothing$ 将 $S_1[g_1]$ 合并到其他陪集中，归约为 $k-1$ 的情形。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "对陪集个数 $k$ 归纳。$k=1$ 时结论平凡。假设结论对 $\\leq n$ 成立，考虑分解 $\\Gamma=S_1[g_1]\\cup\\dots\\cup S_{n+1}[g_{n+1}]$，其中每个 $S_i$ 有限，$[g_i]$ 是某子群的左陪集（子群可不同）。\n\n若 $S_1[g_1]=\\Gamma$ 则 $[g_1]$ 在 $\\Gamma$ 中有有限指标。否则取 $g\\in\\Gamma\\setminus S_1[g_1]$，则 $g[g_1]\\cap S_1[g_1]=\\varnothing$，$g[g_1]$ 含于 $S_2[g_2]\\cup\\dots\\cup S_{n+1}[g_{n+1}]$。于是\n\n$$\nS_1[g_1]\\subset T_2[g_2]\\cup\\dots\\cup T_{n+1}[g_{n+1}],\n$$\n\n其中 $T_i=\\{h_1g^{-1}h_i:h_1\\in S_1,h_i\\in S_i\\}$ 有限。从而\n\n$$\n\\Gamma=(T_2\\cup S_2)[g_2]\\cup\\dots\\cup(T_{n+1}\\cup S_{n+1})[g_{n+1}],\n$$\n\n归约为 $n$ 个陪集之并。由归纳假设存在 $j\\in\\{2,\\dots,n+1\\}$ 使 $[g_j]$ 在 $\\Gamma$ 中有有限指标。"
+      }
+    ],
+    "references": [
+      "B. H. Neumann, Groups covered by permutable subsets, J. London Math. Soc. 29 (1954), 236-248.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.3.1."
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.ergodic-decomposition",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "遍历分解定理",
+      "ergodic decomposition"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\mu$ 为标准概率空间 $X$ 上 Borel 映射 $T$ 的不变 Borel 概率测度，$\\{\\mu_x\\}_{x\\in X}$ 为关于 $\\operatorname{Inv}(T)$ 的条件概率。则 $\\mu=\\int_X\\mu_x\\,d\\mu(x)$；对 $\\mu$-几乎每个 $x$，$\\mu_x$ 是 $T$-不变的且遍历的。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "不变测度",
+      "条件期望",
+      "Choquet 分解",
+      "不变 σ-代数"
+    ],
+    "article": [
+      {
+        "zh": "遍历分解定理将任意不变测度表示为遍历测度的凸组合（或积分）。这对应于 Choquet 分解的观点：$\\mathfrak M(T)$（不变概率测度之集）的极值点恰为遍历测度，且每个不变测度可唯一表示为遍历测度的凸组合。\n\n证明的关键是使用条件期望 $\\mathbb E(f|\\operatorname{Inv}(T))$ 和 Birkhoff 遍历定理。对每个 $f$，条件期望 $\\mathbb E(f|\\operatorname{Inv}(T))(x)$ 就是 $f$ 沿 $x$ 轨道的时均极限。令 $\\mu_x$ 为 $\\mathbb E(\\cdot|\\operatorname{Inv}(T))(x)$ 对应的测度（由 Dunford–Pettis 定理或 Radon–Nikodym 导子得到），则 $\\mu=\\int\\mu_x\\,d\\mu(x)$，且 $\\mu_x$ 几乎必然是遍历的。\n\n该定理在应用中的意义是：要研究一个不变测度 $\\mu$ 的渐近性质，只需研究其遍历分量 $\\mu_x$——每个分量对应系统在 $x$ 所在「递推分量」上的不可分解统计行为。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.3.3."
+    ]
+  }
+}

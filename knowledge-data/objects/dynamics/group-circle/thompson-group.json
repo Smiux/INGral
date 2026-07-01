@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.group-circle.thompson-group",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Thompson 群",
+      "Thompson 的 $G$ 群"
+    ]
+  },
+  "description": {
+    "zh": [
+      "Thompson 群 $G$ 是 $\\operatorname{PL}_+(\\mathbb S^1)$ 中由满足以下条件的同胚生成的子群：\n(i) 单调递增，连续，分段仿射（每段形如 $x\\mapsto 2^mx+r$，$m,r\\in\\mathbb Z$）；\n(ii) 仅有限个间断点，且间断点在 $\\mathbb Z[1/2]$ 中；\n(iii) 分段间的连接点为二进有理数。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "群论",
+      "圆周动力学",
+      "分段线性群",
+      "反例"
+    ],
+    "notes": [
+      {
+        "zh": "Thompson 群 $G$ 不包含非交换自由子群，但也不是虚拟可解群——因此它展示了 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的子群可以超出 Tits 交替（虚拟可解 $\\mapsto$ 非交换自由）的范畴。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "Thompson 群 $G$ 是组合群论和动力系统交汇处的卓越研究对象。它通过分式线性变换与模群 $\\operatorname{PSL}(2,\\mathbb Z)$ 有着惊人的联系：将 $\\mathbb R/\\mathbb Z$ 中的二进有理点映到 $\\mathbb{RP}^1$ 中的有理点的同胚将 $G$ 共轭到 $\\mathbb{RP}^1$ 上的分段 $\\operatorname{PSL}(2,\\mathbb Z)$ 同胚群。\n\n$G$ 的重要性体现在多个层面。它是 $\\operatorname{PL}_+(\\mathbb S^1)$ 中 Fuchs 群的类比——正如 Fuchs 群是 $\\operatorname{PSL}(2,\\mathbb R)$ 的离散子群，$G$ 是 $\\operatorname{PL}_+(\\mathbb S^1)$ 的可数子群。同时，$G$ 是无限有限表示单群。此外，$G$ 是各类反例构造的丰富来源。\n\n$G$ 的一个惊人性质是它具有 $\\mathrm C^{\\infty}$ 光滑实现，由 Ghys 与 Sergiescu 给出。该构造将每个满足 $H(x+1)=H(x)+2$ 和 $H(0)=0$ 的同胚 $H\\colon\\mathbb R\\to\\mathbb R$ 对应到 $G$ 的表示 $\\Phi_H$。当 $H$ 是 $\\mathrm C^r$ 微分同胚且其 $0$ 处 Taylor 展开至 $r$ 阶与恒等映射重合时，$\\Phi_H(G)$ 为 $\\mathrm C^r$ 圆周微分同胚群。标准例子 $H(x)=2x$ 给出分段仿射作用。此外，通过 Thurston 的 Farey 序列构造，$G$ 还有 $\\mathrm C^{1+\\mathrm{Lip}}$ 实现——分点为有理数，区间间映射为 $\\operatorname{PSL}(2,\\mathbb Z)$ 元素的限制。\n\n一个值得注意的动力系统结果是：当构造中的同胚 $H$ 至少有两个不动点时，$\\Phi_H(G)$ 的作用具有例外极小集。这表明即使对无限可微的群作用，例外极小集的出现仍然是可能的，而并非光滑性本身可排除的现象。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
+      "R. Thompson, unpublished manuscript, 1965.",
+      "E. Ghys & V. Sergiescu, Sur un groupe remarquable de difféomorphismes du cercle, Comment. Math. Helv. 62 (1987), 185-239."
+    ]
+  }
+}

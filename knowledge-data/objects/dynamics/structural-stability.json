@@ -1,0 +1,31 @@
+{
+  "id": "dynamics.structural-stability",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "结构稳定性",
+      "拓扑结构稳定性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "映射 $f\\colon M\\to M$ 称为 $C^r$ **结构稳定**的，若存在 $f$ 在 $C^r$ 拓扑下的邻域 $\\mathcal U$，使得每个 $g\\in\\mathcal U$ 拓扑共轭于 $f$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "拓扑共轭",
+      "扩张映射",
+      "Morse-Smale",
+      "稳健性"
+    ],
+    "article": [
+      {
+        "zh": "结构稳定性是动力系统研究中「稳健性」概念的核心。在圆周扩张映射的语境下，所有扩张映射是 $C^1$ 结构稳定的，因为 $C^1$ 小扰动保持扩张性且共轭于标准扩张 $E_d$（Corollary 5.16）。\n\nMorse-Smale 圆周微分同胚的集合在 $C^1$ 拓扑下是开的（Theorem 5.11），这蕴含了某种形式的稳健性。结构稳定性的证明通常依赖于阴影引理和双曲性。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §5.3."
+    ]
+  }
+}

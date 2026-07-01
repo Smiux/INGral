@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.denjoy-theorem",
+  "to": "dynamics.group-circle.semi-conjugacy",
+  "description": {
+    "zh": [
+      "Denjoy 定理的证明使用半共轭将微分同胚化归为旋转：由无理旋转数的分类已存在半共轭，进一步证明此半共轭在 $C^{1+\\mathrm{bv}}$ 下必为同胚。"
+    ]
+  }
+}

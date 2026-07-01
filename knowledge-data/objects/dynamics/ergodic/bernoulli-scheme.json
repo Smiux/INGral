@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.bernoulli-scheme",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Bernoulli 方案",
+      "Bernoulli scheme"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $S$ 为有限字母集，$\\underline p=(p_a)_{a\\in S}$ 为概率向量。Bernoulli 方案是概率空间 $(X,\\mathcal B,\\mu)$ 配上左移位 $\\sigma$，其中 $X=S^{\\mathbb N}$，$\\mu$ 由柱集上的乘积测度 $\\mu[a_0,\\dots,a_{n-1}]=p_{a_0}\\cdots p_{a_{n-1}}$ 唯一确定。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "符号动力学",
+      "移位映射",
+      "独立同分布",
+      "乘积测度"
+    ],
+    "article": [
+      {
+        "zh": "Bernoulli 方案是遍历理论中最基本的独立同分布随机过程模型。字母 $S$ 代表可能的状态，概率向量 $\\underline p$ 规定各状态出现的概率，且各时刻的状态完全独立。\n\nBernoulli 方案总是混合的（从而遍历）。$\\bigl(\\frac12,\\frac12\\bigr)$-Bernoulli 方案与角加倍映射测度论同构——同构映射为二进制展开。\n\n与一般子移位的区别在于：Bernoulli 方案不对序列施加任何限制（所有有限字均可出现），而子移位要求相邻字母满足给定的转移规则。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.5.3."
+    ]
+  }
+}

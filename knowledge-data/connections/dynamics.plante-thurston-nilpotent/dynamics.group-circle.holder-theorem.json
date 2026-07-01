@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.plante-thurston-nilpotent",
+  "to": "dynamics.group-circle.holder-theorem",
+  "description": {
+    "zh": [
+      "Hölder 定理将自由作用刻画为平移群，由此导出幂零群在区间上的交换性。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.lyapunov-function",
+  "to": "dynamics.conley-theorem",
+  "description": {
+    "zh": [
+      "Conley 定理断言存在一个完全 Lyapunov 函数，其在链回归集上为常数，在其余地方严格下降。"
+    ]
+  }
+}

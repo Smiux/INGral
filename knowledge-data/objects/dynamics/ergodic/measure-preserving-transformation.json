@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.measure-preserving-transformation",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "保测变换",
+      "measure preserving transformation",
+      "mpt"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu)$ 为测度空间。可测映射 $T\\colon X\\to X$ 称为**保测变换**，若 $\\mu(T^{-1}E)=\\mu(E)$ 对一切 $E\\in\\mathcal B$ 成立。若 $\\mu(X)=1$ 则称 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换（ppt）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "不变测度",
+      "可测动力系统",
+      "Koopman 算子"
+    ],
+    "article": [
+      {
+        "zh": "保测变换是遍历理论的基本研究对象。其核心思想是：在「几乎处处」的意义下，系统的统计行为不随时间改变。Poincaré 回复定理是这一设定的第一个深刻推论——若 $\\mu$ 是有限测度，则几乎所有点都会无限次返回其初始位置的任意邻域。\n\n保测变换的概念比微分动力系统中的光滑映射更一般：它不要求任何微分结构或拓扑结构，只要求可测性和测度保持性。这种极简假设正好是经典力学中 Liouville 定理的抽象版本——Hamilton 相流保持 Lebesgue 测度。\n\n保测变换的 Koopman 算子 $U_Tf=f\\circ T$ 将问题转化为 Hilbert 空间 $L^2(\\mu)$ 上的等距算子，从而可以引入谱方法。遍历性、混合性等动力学性质均可通过 Koopman 算子的谱性质刻画。\n\n典型例子包括：圆周旋转（Lebesgue 测度保测）、角加倍映射（Lebesgue 测度保测）、Bernoulli 移位（Bernoulli 测度保测）、Markov 链（平稳 Markov 测度保测）。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.2."
+    ]
+  }
+}

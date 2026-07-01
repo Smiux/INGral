@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.chain-recurrence",
+  "to": "dynamics.conley-theorem",
+  "description": {
+    "zh": [
+      "Conley 定理的结论涉及链回归集 $\\mathcal R(f)$：完全 Lyapunov 函数在 $\\mathcal R(f)$ 上的限制取值为一个紧全不连通集，$\\mathcal R(f)$ 的连通分量为链回归类。"
+    ]
+  }
+}

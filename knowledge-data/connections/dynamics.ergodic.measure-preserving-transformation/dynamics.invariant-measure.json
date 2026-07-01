@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.measure-preserving-transformation",
+  "to": "dynamics.invariant-measure",
+  "description": {
+    "zh": [
+      "保测变换的定义即要求存在一个 T-不变测度 μ，二者是一体两面的概念。"
+    ]
+  }
+}

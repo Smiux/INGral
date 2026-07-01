@@ -1,0 +1,36 @@
+{
+  "id": "dynamics.circle.rotation-number-rationality",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "旋转数与周期点的关系",
+      "有理旋转数的周期点刻画"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\in\\operatorname{Homeo}_+(\\mathbb T)$，$\\tilde f$ 为其提升，$\\rho(\\tilde f)$ 为旋转数。则\n$$\\rho(\\tilde f)\\in\\mathbb Q \\iff \\operatorname{Per}(f)\\neq\\varnothing.$$\n\n具体地，若 $z\\in\\operatorname{Per}(f)$ 的素周期为 $q$，则存在与 $q$ 互质的整数 $p$ 使得 $\\tilde f^q(\\tilde z)=\\tilde z+p$ 对一切 $\\tilde z\\in\\pi^{-1}(z)$ 成立，且 $\\rho(\\tilde f)=p/q$。进一步，$f$ 的全体周期点具有相同的素周期 $q$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周映射",
+      "Denjoy 理论"
+    ],
+    "article": [
+      {
+        "zh": "旋转数的有理/无理二分法是圆周动力学最基本的分类定理。它建立了周期点存在性与代数条件（$\\rho\\in\\mathbb Q$）之间的等价关系，将旋转数从纯量性不变量（数值）提升为系统性态的判决工具。\n\n这个定理实质上推广了刚性旋转的动力学。在刚性旋转 $R_\\alpha$ 中：$\\alpha$ 有理 ⇔ 所有点的轨道是周期的（周期即分母），$\\alpha$ 无理 ⇔ 系统极小（每条轨道稠密）。对于一般的 $f\\in\\operatorname{Homeo}_+(\\mathbb T)$，旋转数的有理性仍然完全控制了周期轨道的存在性，但需注意一个技术细节：当 $\\rho=p/q$ 时，尽管存在周期点，其轨道结构仍可能比刚性旋转更复杂——周期点可以散布在不同位置，吸引子和排斥子可以交替出现。Morse 与 Smale 系统就是最一般的例证。\n\n证明中，两个方向的论证都简洁而精致。（⇐）若有 $q$ 周期点 $z$，则 $\\tilde f^q(\\tilde z)\\equiv\\tilde z+p$ 对某 $p\\in\\mathbb Z$；直接由定义有 $\\rho(\\tilde f)=\\lim_n(\\tilde f^{nq}(\\tilde z)-\\tilde z)/(nq)=p/q$。（⇒）若 $\\rho(\\tilde f)=p/q$ 且 $\\gcd(p,q)=1$，则由有界偏差估计存在 $x_q$ 使 $\\Delta_{\\tilde f^q}(x_q)=q\\rho(\\tilde f)=p\\in\\mathbb Z$，故 $\\tilde f^q(\\tilde x_q)=\\tilde x_q+p$——此即周期点。进一步，任何周期点的素周期必为 $q$（若存在素周期 $q'<q$ 的周期点，则由已证部分 $\\rho=p'/q'$，与 $p/q$ 既约矛盾）。这一细节在 Morse 与 Smale 理论中至关重要：它意味著有理旋转数同胚的所有周期点共享相同的素周期 $q$，因此非游荡集 $\\Omega(f)$ 是吸引子和排斥子交替的有限循环。\n\n该定理是 Denjoy 理论的分界线。无理旋转数一侧：$C^2$ 微分同胚时系统拓扑共轭于刚性无理旋转（Denjoy 定理），系统是极小的且 $\\Omega(f)=K$（极小集，要么 $\\mathbb T$ 要么 Cantor）。有理旋转数一侧：系统总有周期点，且在一般位置下具有有限个双曲周期点（Morse 与 Smale 开稠定理论），该有限性由圆周的紧性和双曲性联合保证。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "（⇐）设 $z\\in\\operatorname{Per}(f)$ 素周期为 $q$。则 $\\tilde f^q(\\tilde z)\\equiv\\tilde z+p$（对一切 $\\tilde z\\in\\pi^{-1}(z)$），$p\\in\\mathbb Z$。由旋转数的定义 $\\rho(\\tilde f)=\\lim_{n\\to\\infty}(\\tilde f^{nq}(\\tilde z)-\\tilde z)/(nq)=p/q\\in\\mathbb Q$。若 $p,q$ 不既约，设 $\\rho(\\tilde f)=p'/q'$ 既约，则前向论证给出素周期 $q'$ 的周期点，矛盾。\n\n（⇒）设 $\\rho(\\tilde f)=p/q$，$p,q$ 互质。由有界偏差估计，存在 $x_q\\in\\mathbb T$ 使 $\\Delta_{\\tilde f^q}(x_q)=q\\rho(\\tilde f)=p\\in\\mathbb Z$，故 $\\tilde f^q(\\tilde x_q)=\\tilde x_q+p$，即 $x_q\\in\\operatorname{Per}(f)$。\n\n进一步可证所有周期点的素周期均为 $q$：若某周期点素周期为 $q'<q$，则 $\\rho=p'/q'$，与 $p/q$ 既约矛盾。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA, 2024.",
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026.",
+      "H. Poincaré, Mémoire sur les courbes définies par une équation différentielle, Journal de Mathématiques 7 (1881), 375-422."
+    ]
+  }
+}

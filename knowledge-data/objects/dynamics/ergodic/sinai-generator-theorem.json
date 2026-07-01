@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.sinai-generator-theorem",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Sinai 生成子定理",
+      "Sinai's generator theorem"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为可逆概率保测变换，$\\alpha$ 为有限熵的生成子（即 $\\bigvee_{i=-\\infty}^\\infty T^{-i}\\alpha$ 生成 $\\mathcal B$ 模 $\\mu$）。则 $h_\\mu(T)=h_\\mu(T,\\alpha)$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "熵",
+      "生成子",
+      "Bernoulli 方案",
+      "Kolmogorov"
+    ],
+    "article": [
+      {
+        "zh": "Sinai 生成子定理（1966）是计算度量熵的关键工具。根据定义，$h_\\mu(T)=\\sup_\\alpha h_\\mu(T,\\alpha)$ 需要对所有有限熵划分取上确界——这在实际计算中几乎不可能。生成子定理断言：只要 $\\alpha$ 是生成子，$h_\\mu(T,\\alpha)$ 就直接等于 $h_\\mu(T)$，不需要再取上确界。\n\n证明的关键步骤是通过条件熵的不等式：若 $\\alpha$ 是生成子且 $\\beta$ 是任意有限熵划分，则对任意 $\\varepsilon>0$ 存在 $N$ 和 $\\beta$ 的 $\\varepsilon$-逼近，从而 $H_\\mu(\\beta|\\alpha_{-N}^N)$ 可被控制，进而 $h_\\mu(T,\\beta)\\le h_\\mu(T,\\alpha)+\\varepsilon$。\n\n该定理的直接应用是计算 Bernoulli 方案的熵：取 $\\alpha=\\{[a]:a\\in S\\}$（单符号柱集），则 $h_\\mu(T)=H_\\mu(\\alpha)=-\\sum p_a\\log_2 p_a$。这给出了熵作为 Bernoulli 方案完备不变量的计算基础。\n\n对不可逆系统，需要更精细的条件（强生成子），即 $\\bigvee_{i=0}^\\infty T^{-i}\\alpha$ 生成 $\\mathcal B$。§4.4 给出了强生成子的例子：角加倍映射的二进制划分是强生成子。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §4.3.3."
+    ]
+  }
+}

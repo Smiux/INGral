@@ -1,0 +1,35 @@
+{
+  "id": "dynamics.group-circle.homeomorphism-group-simplicity",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Homeo₊(S¹) 的单性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "$\\operatorname{Homeo}_+(\\mathbb S^1)$ 是单群，即其不包含非平凡的正规子群。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "单群",
+      "圆周同胚",
+      "变换群"
+    ],
+    "article": [
+      {
+        "zh": "$\\operatorname{Homeo}_+(\\mathbb S^1)$ 的单性是一个基本的结构结果。其证明分为两步：完全性（perfectness）和换位子覆盖论证。\n\n完全性意味着每个元素都是换位子之积。这是证明单性的前提——因为若 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 不是完全的，则其换位子子群（即首换位子群）是不同于整个群的正规子群，当然不可能有单性。完全性的证明使用平移数拟同态 $\\tau\\colon\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\mathbb R$。换位子的平移数具有一致的上界，由此推出换位子子群的闭包是有限的。由于 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 是无限群且知其为单群（递归论证），事实上换位子子群必须是整个群。\n\n完全的群未必单（例如 $\\operatorname{SL}(2,\\mathbb R)$ 是完全的但不单，因为 $\\{\\pm I\\}$ 是中心）。单性需要进一步的论证：对任意非平凡正规子群 $N$，取 $f\\in N\\setminus\\{\\mathrm{id}\\}$ 和某区间支撑的元素 $g$，通过换位子操作将 $g$ 纳入 $N$ 中。三区间覆盖技巧（选择三个两两相交但无公共交点的子区间）确保 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 靠近恒等映射的任意元素可写为支撑在这些区间上的元素的乘积，从而 $N$ 包含这些元素生成的整个子群，因此 $N$ 是 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的全体。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "分两步证明。\n\n**完全性**：平移数拟同态 $\\tau\\colon\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\mathbb R$ 在换位子上取值有界，故换位子子群的闭包有限。因 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 无限，其换位子子群必为整个群。\n\n**单性**：设 $N\\trianglelefteq\\operatorname{Homeo}_+(\\mathbb S^1)$ 非平凡。取 $f\\in N\\setminus\\{\\mathrm{id}\\}$ 及某区间支撑的元素 $g$。通过换位子操作将 $g$ 纳入 $N$。三区间覆盖技巧表明，任意靠近恒等映射的元素可写为支撑在三个两两相交但无公共交点的子区间上的元素之积，从而 $N$ 含这些元素生成的整个子群，故 $N=\\operatorname{Homeo}_+(\\mathbb S^1)$。"
+      }
+    ],
+    "references": [
+      "M. Brin & C. Squier, Groups of piecewise linear homeomorphisms of the real line, Invent. Math. 79 (1985), 485-498.",
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
+    ]
+  }
+}

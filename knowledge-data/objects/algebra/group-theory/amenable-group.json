@@ -1,0 +1,33 @@
+{
+  "id": "algebra.group-theory.amenable-group",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "顺从群",
+      "可均群"
+    ]
+  },
+  "description": {
+    "zh": [
+      "群 $\\Gamma$ 称为**顺从的**，若 $\\Gamma$ 在紧度量空间上的每个连续作用（由同胚）都保持一个 Borel 概率测度。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "不变测度",
+      "Følner 条件",
+      "von Neumann",
+      "自由群",
+      "平均不变"
+    ],
+    "article": [
+      {
+        "zh": "顺从性（amenability）是群论中最重要的概念之一，它捕获了「平均可积」或「不变平均存在」的直觉。von Neumann 在 1929 年引入该概念来解决 Banach-Tarski 悖论——他发现悖论的关键在于自由群 $F_2$ 的非顺从性，而所有可解群都是顺从的，因此 $\\mathbb R^3$ 中的悖论不可能在更低维出现。\n\n顺从群有大量等价定义，各自揭示了不同的方面：(i) **不变平均**：存在 $\\ell^\\infty(\\Gamma)$ 上的左不变正线性泛函；(ii) **Følner 条件**：对任意有限子集 $K\\subset\\Gamma$ 和 $\\varepsilon>0$，存在有限集 $F\\subset\\Gamma$ 使 $|gF\\triangle F|<\\varepsilon|F|$ 对所有 $g\\in K$ 成立；(iii) **不动点性质**：群在紧凸集上的每个仿射等距作用都有不动点；(iv) **测度论**：群在紧度量空间上的每个连续作用都保持一个 Borel 概率测度。定义中使用的「紧度量空间上的连续作用保持不变概率测度」是圆周群作用理论中最常用的形式。\n\n在圆周微分同胚群理论中，顺从群具有核心地位。一个深刻的结果：$C^{1+\\mathrm{bv}}$ 圆周微分同胚的顺从群可以通过旋转数进行分类——顺从且 $C^{1+\\mathrm{bv}}$ 的群要么共轭于旋转子群，要么具有到 $\\mathbb R$ 的非平凡同态（Witte-Morris 定理）。\n\n常见顺从群的例子包括：所有有限群、Abel 群、可解群、可数顺从群的归纳极限。非顺从群的例子：$F_2$、$\\operatorname{SL}(n,\\mathbb Z)$（$n\\geq2$）、$\\operatorname{PSL}(2,\\mathbb Z)$ 等。顺从性在扩张下保持：若 $N$ 和 $\\Gamma/N$ 顺从则 $\\Gamma$ 顺从。但顺从群的子群不一定顺从——事实上 $F_2$ 是顺从群 $\\operatorname{SL}(2,\\mathbb Z)$ 的子群（虽然 $F_2$ 本身非顺从）。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), Appendix B.",
+      "A. L. T. Paterson, Amenability, 1988."
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "dynamics.hyperbolic-fixed-point",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "双曲不动点",
+      "双曲不动点的吸引子与排斥子"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $I\\subset\\mathbb R$ 为开区间，$f\\colon I\\to I$ 为 $C^1$ 映射。不动点 $p\\in I$（即 $f(p)=p$）称为**双曲的**，若 $|f'(p)|\\neq 1$。\n\n当 $|f'(p)|<1$ 时称 $p$ 为**吸引子**，当 $|f'(p)|>1$ 时称 $p$ 为**排斥子**。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "动力系统",
+      "局部动力学",
+      "稳定性"
+    ],
+    "notes": [
+      {
+        "zh": "此处的定义仅限于一维情形。高维双曲不动点的定义涉及导数矩阵的特征值：若所有特征值模长均不为 $1$，则不动点是双曲的。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "双曲不动点是双曲动力系统理论的基本细胞。$|f'(p)|\\neq1$ 这一条件将不动点的局部动力学分为截然不同的两类——吸引或排斥——且定量信息由导数的模长完全决定。吸引子情形的证明基于 Banach 不动点定理与中值定理的压缩估计，排斥子情形则通过 $f^{-1}$ 转化为吸引子情形。\n\n二次族 $Q_\\mu(x)=\\mu x(1-x)$ 的动力学随参数 $\\mu$ 变化而丰富。$\\mu\\in(0,1)$ 时 $p_\\mu<0$ 是排斥子，$0$ 是吸引子，存在 $q_\\mu>p_\\mu$ 使 $Q_\\mu^n(x)\\to0$ 对 $x\\in(p_\\mu,q_\\mu)$ 且 $Q_\\mu^n(x)\\to-\\infty$ 对 $x$ 在区间外。$\\mu=1$ 时 $p_\\mu=0$ 变为非双曲，$Q_1^n(x)\\to0$ 对 $x\\in(0,1)$。$\\mu\\in(1,3)$ 时 $p_\\mu\\in(0,1)$ 是双曲吸引子，$0$ 是排斥子。$\\mu=3$ 时 $p_\\mu$ 再次变为非双曲但仍是吸引子。$\\mu\\in(3,4)$ 时两个不动点均为排斥子，$[0,1]$ 是全不变集，动力学进入混沌。$\\mu>4$ 时 $[0,1]$ 不再不变，极大不变集 $\\Lambda_\\mu$ 是 Cantor 空间，$Q_\\mu$ 在 $\\Lambda_\\mu$ 上共轭于二符号移位。$\\mu>\\sqrt5+2$ 时这一共轭由航拍映射显式给出。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "设 $|f'(p)|<1$。取 $\\lambda=|f'(p)|+\\varepsilon<1$，由导数连续性存在 $\\delta>0$ 使在区间 $J=(p-\\delta,p+\\delta)$ 上 $|f'(x)|\\leqslant\\lambda$。由中值定理，对任意 $x\\in J$ 有 $|f(x)-p|\\leqslant\\lambda|x-p|$。故 $f(J)\\subset J$ 且 $f$ 在 $J$ 上是一致压缩的，Banach 不动点定理给出 $p$ 是 $J$ 中唯一不动点且所有点收敛到 $p$。\n\n若 $|f'(p)|>1$，则 $|(f^{-1})'(p)|<1$，通过将 $f^{-1}$ 的吸引子情形作用于 $p$ 即得 $p$ 为排斥子。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §4.2.",
+      "P. Hartman, A lemma in the theory of structural stability of differential equations, Proc. AMS 11 (1960), 610-620.",
+      "D. Grobman, Homeomorphisms of systems of differential equations, Dokl. Akad. Nauk SSSR 128 (1959), 880-881."
+    ]
+  }
+}

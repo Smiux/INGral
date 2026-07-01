@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.expanding-map",
+  "to": "dynamics.circle.shadowing-lemma",
+  "description": {
+    "zh": [
+      "影子引理是扩张映射的基本性质：每条伪轨可被唯一的真实轨道跟踪。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.measure-preserving-transformation",
+  "to": "dynamics.ergodic.natural-extension",
+  "description": {
+    "zh": [
+      "自然延拓将不可逆保测变换提升为可逆保测变换，是遍历理论中处理不可逆系统的重要工具。"
+    ]
+  }
+}

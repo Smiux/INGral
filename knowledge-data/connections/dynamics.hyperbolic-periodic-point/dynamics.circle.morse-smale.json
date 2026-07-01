@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.hyperbolic-periodic-point",
+  "to": "dynamics.circle.morse-smale",
+  "description": {
+    "zh": [
+      "Morse-Smale 微分同胚的定义要求每个周期点均为双曲的。"
+    ]
+  }
+}

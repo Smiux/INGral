@@ -1,0 +1,9 @@
+{
+  "from": "analysis.operator-theory.operator-spectrum",
+  "to": "dynamics.hyperbolic-linear-map",
+  "description": {
+    "zh": [
+      "双曲线性自同构的定义直接依赖于谱条件：$\\sigma(A)\\cap\\mathbb T=\\varnothing$。谱的紧性进一步保证双曲常数的存在。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "analysis.operator-theory.operator-spectrum",
+  "to": "dynamics.stable-unstable-splitting",
+  "description": {
+    "zh": [
+      "稳定/不稳定分裂的指数估计使用谱半径公式 $r(A_s)=\\lim\\|A_s^n\\|^{1/n}$ 确定压缩率。"
+    ]
+  }
+}

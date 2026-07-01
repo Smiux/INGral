@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.group-circle.affine-group-characterization",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "仿射群刻画定理",
+      "Aff₊(R) 子群的 Radon 测度刻画"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb R)$ 为保向直线同胚的子群。若存在一个无原子的全支撑 Radon 测度 $\\nu$ 在 $\\Gamma$ 下**拟不变**（quasi-invariant），即 $\\nu(g(A))=\\kappa(g)\\nu(A)$ 对某 $\\kappa(g)>0$ 和一切 Borel 集 $A$ 成立，则 $\\Gamma$ 共轭于 $\\operatorname{Aff}_+(\\mathbb R)$ 的一个子群。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Radon 测度",
+      "拟不变测度",
+      "直线作用",
+      "Lie 群分类",
+      "测度论刻画"
+    ],
+    "article": [
+      {
+        "zh": "该定理完成了 Lie 群作用在直线上的分类中仿射情形的刻画。与旋转群的刻画（由无原子全支撑概率测度的保持来定义）形成平行对照：旋转群的情形给出有限（概率）测度，仿射群的情形给出无限（Radon）测度。两者之间的唯一区别是测度的有限性。\n\n当 Radon 测度的缩放系数 $\\kappa(g)\\equiv1$（即 $\\nu$ 实际上是平移不变的），则退化到平移作用的情形——这对应于 Lie 分类中的 Euclid 情形。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "设 $\\nu$ 为 $\\Gamma$ 下拟不变的 Radon 测度。定义 $h(x):=\\nu([0,x])$（若 $x>0$）或 $h(x):=-\\nu([x,0])$（若 $x<0$），$h(0)=0$。则 $h$ 是严格递增的连续映射，且可证 $h\\circ\\gamma(x)=\\kappa(\\gamma)h(x)+c_\\gamma$ 对某 $c_\\gamma\\in\\mathbb R$ 成立，即 $\\Gamma$ 共轭于仿射子群。\n\n若 $\\kappa(g)\\equiv1$（$\\nu$ 平移不变），则 $h\\circ\\gamma(x)=h(x)+c_\\gamma$，故 $\\Gamma$ 共轭于平移子群。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.2."
+    ]
+  }
+}

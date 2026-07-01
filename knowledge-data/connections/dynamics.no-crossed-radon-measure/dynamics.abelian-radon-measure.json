@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.no-crossed-radon-measure",
+  "to": "dynamics.abelian-radon-measure",
+  "description": {
+    "zh": [
+      "无交叉元素保测定理是 Abel 群保测定理的一般形式。"
+    ]
+  }
+}

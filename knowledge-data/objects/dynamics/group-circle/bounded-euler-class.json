@@ -1,0 +1,33 @@
+{
+  "id": "dynamics.group-circle.bounded-euler-class",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "有界 Euler 类",
+      "圆周群作用的有界 Euler 类"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 为同态。中心扩张 $0\\to\\mathbb Z\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\operatorname{Homeo}_+(\\mathbb S^1)\\to 1$ 通过 $\\phi$ 拉回得到 $\\Gamma$ 的中心扩张，其 Euler 类 $eu(\\phi)\\in H^2(\\Gamma,\\mathbb Z)$。\n\n取规范截面 $\\sigma(f)\\in\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 使 $\\sigma(f)(0)\\in[0,1[$，则相应的 2-上循环 $\\bar c(f_1,f_2)=\\sigma(f_1f_2)^{-1}\\sigma(f_1)\\sigma(f_2)$ 仅取值 $0$ 或 $1$，从而给出了 $H_b^2(\\Gamma,\\mathbb Z)$ 中的一个类——即 $\\phi$ 的**有界 Euler 类**（bounded Euler class）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "有界上同调",
+      "圆周上的群作用",
+      "中心扩张",
+      "上循环",
+      "旋转数"
+    ],
+    "article": [
+      {
+        "zh": "有界 Euler 类将旋转数、Euler 类和上同调统一在一个框架中。它的构造依赖于中心扩张 $0\\to\\mathbb Z\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\operatorname{Homeo}_+(\\mathbb S^1)\\to 1$ 的一个特殊截面 $\\sigma$：$\\sigma(f)$ 是 $f$ 的满足 $\\sigma(f)(0)\\in[0,1[$ 的唯一提升。由此得到的 2-上循环 $\\overline c(f_1,f_2)$ 有界（取值 0 或 1），从而属于有界上同调。\n\n这一不变量包含了经典 Euler 类（遗忘有界性后）和旋转数（$\\Gamma=\\mathbb Z$ 时）的信息。对一般群 $\\Gamma$，Milnor-Wood 不等式（$|eu(\\phi)|\\leqslant 2g-2$ 对曲面群 $\\Gamma_g$）给出了有界 Euler 类的具体界限。\n\n完整的分类定理表明：有界 Euler 类从本质上区分了圆周上的群作用——有理类对应有限轨道，无理类对应最小作用在共轭意义下的分类。当有界 Euler 类为 0 时，作用有公共不动点，等价于 $\\phi$ 可提升至 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 的同态。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
+      "D. Eisenbud, U. Hirsch, W. Neumann, Transverse foliations, Invent. Math. 45 (1977)."
+    ]
+  }
+}

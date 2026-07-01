@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.abelian-diffeomorphism-classification",
+  "to": "dynamics.plante-thurston-nilpotent",
+  "description": {
+    "zh": [
+      "Abel $C^{1+\\mathrm{bv}}$ 微分同胚群分类是 Plante-Thurston 幂零群交换性定理在交换群情形下的显式描述。"
+    ]
+  }
+}

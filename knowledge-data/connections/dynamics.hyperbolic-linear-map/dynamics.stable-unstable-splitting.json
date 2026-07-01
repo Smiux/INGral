@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.hyperbolic-linear-map",
+  "to": "dynamics.stable-unstable-splitting",
+  "description": {
+    "zh": [
+      "稳定/不稳定分裂定理对双曲线性自同构进行谱分解，给出指数估计和适应范数的构造。"
+    ]
+  }
+}

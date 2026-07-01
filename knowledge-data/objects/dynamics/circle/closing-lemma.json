@@ -1,0 +1,43 @@
+{
+  "id": "dynamics.circle.closing-lemma",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "圆周上的 C∞-closing 引理",
+      "closing 引理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\in\\operatorname{Homeo}_+(\\mathbb T)$ 为保向圆周同胚，$\\tilde f$ 为其提升。对每个 $t\\in\\mathbb R$，定义 $\\tilde f_t(x):=\\tilde f(x)+t$，记 $f_t$ 为 $\\tilde f_t$ 诱导的圆周同胚。\n\n则函数 $t\\mapsto\\rho(\\tilde f_t)$ 连续且非减。若 $\\rho(\\tilde f)\\in\\mathbb R\\setminus\\mathbb Q$，则对任意 $\\varepsilon>0$ 存在 $t_-\\in(-\\varepsilon,0)$ 和 $t_+\\in(0,\\varepsilon)$ 使得 $\\rho(\\tilde f_{t_-})<\\rho(\\tilde f)<\\rho(\\tilde f_{t_+})$ 且 $\\rho(\\tilde f_{t_-}),\\rho(\\tilde f_{t_+})\\in\\mathbb Q$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周映射",
+      "旋转数",
+      "通有动力学",
+      "Morse 与 Smale",
+      "Cr-通有"
+    ],
+    "notes": [
+      {
+        "zh": "该引理之所以称为「closing」引理，是因为通过给提升加小常数 $t$，可以迫使原本无周期点的系统（无理旋转数情形）产生周期点——将轨道「关闭」。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "Closing 引理是 Morse–Smale 通有性定理的基石。它解决了如下问题：给定一个保向圆周同胚 $f$ 且旋转数为无理（即 $f$ 没有周期点），能否通过任意小的 $C^\\infty$ 扰动迫使 $f$ 获得周期点？答案是可以——而且扰动的构造不依赖于 $f$ 的任何光滑性假设，仅仅通过提升加一个小常数 $t$ 就实现。\n\n为什么加常数 $t$ 能「关闭」轨道？因为提升 $\\tilde f$ 的 $n$ 次迭代 $\\tilde f^n(\\tilde x)$ 相对于线性运动 $\\tilde x + n\\rho(\\tilde f)$ 的偏差一致有界（有界偏差估计）。当 $\\rho$ 为无理时，$\\tilde f^n(\\tilde x)$ 在 $\\mathbb R$ 上的散布在拓扑上是稠密的。通过将 $\\tilde f$ 略微提升（加上小 $t$），可以「推动」某次迭代恰好落在一个整数格点上——这意味着投影后的点返回自身，即产生了周期点。\n\n证明使用了两个关键技术。一是旋转数的连续性（$t\\mapsto\\rho(\\tilde f_t)$ 是连续的且非减的），这来自有界偏差估计：$|\\rho(\\tilde f_t)-\\rho(\\tilde f) - t|\\leqslant 2/n$ 对充分大的 $n$。二是极小集的构造：对于无理旋转，存在唯一的极小集 $K$，其两侧的稠密性使得可以在 $\\tilde f^n(\\tilde x)$ 和某个整数 $p$ 之间建立小于 $\\varepsilon$ 的不等式。注意这里不需要 $f$ 的任何光滑性——纯拓扑论证已经足够。Closing 引理因此将 $C^r$ 通有性理论的准备工作压缩到了最少的拓扑假设中。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "连续性由有界偏差估计直接得到。单调性：归纳证明 $\\tilde f_{-t}^n(\\tilde x)\\leqslant\\tilde f^n(\\tilde x)\\leqslant\\tilde f_t^n(\\tilde x)$ 对 $t\\geqslant0$ 成立。\n\n设 $\\rho(\\tilde f)$ 无理，由无理旋转数动力学定理知存在唯一极小集 $K$。可取 $x\\in K$ 使得 $(\\tilde x,\\tilde x+\\varepsilon)\\cap\\tilde K\\neq\\varnothing$ 和 $(\\tilde x-\\varepsilon,\\tilde x)\\cap\\tilde K\\neq\\varnothing$。\n\n存在 $n,p$ 使 $\\tilde x+p-\\varepsilon<\\tilde f^n(\\tilde x)<\\tilde x+p$。结合单调性得 $\\tilde f_\\varepsilon^n(\\tilde x)\\geqslant\\tilde f^n(\\tilde x)+\\varepsilon>\\tilde x+p$。由 $\\tilde f_t$ 对 $t$ 的连续性，存在 $t_+\\in(0,\\varepsilon)$ 使 $\\tilde f_{t_+}^n(\\tilde x)=\\tilde x+p$，故 $\\rho(\\tilde f_{t_+})=p/n\\in\\mathbb Q$ 且 $\\rho(\\tilde f_{t_+})>\\rho(\\tilde f)$。$t_-$ 的构造完全对称。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026.",
+      "J. Palis & F. Takens, Hyperbolicity and sensitive chaotic dynamics, Cambridge Studies in Advanced Mathematics 35, Cambridge University Press (1993)."
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.topological-factor",
+  "to": "dynamics.topological-conjugacy",
+  "description": {
+    "zh": [
+      "拓扑因子（连续满射情形的半共轭）是拓扑共轭的弱化版本：交换关系 $h\\circ f=E_d\\circ h$ 成立，但 $h$ 仅为连续满射（非单射）。"
+    ]
+  }
+}

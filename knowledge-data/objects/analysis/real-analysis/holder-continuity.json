@@ -1,0 +1,33 @@
+{
+  "id": "analysis.real-analysis.holder-continuity",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Hölder 连续性",
+      "Hölder 条件",
+      "$C^{1+\\tau}$ 正则性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,d_X)$ 与 $(Y,d_Y)$ 为度量空间，$\\tau>0$。映射 $f\\colon X\\to Y$ 称为 $\\tau$-Hölder 连续的，若存在常数 $C>0$ 使\n$$d_Y(f(x),f(y))\\leq C\\,d_X(x,y)^\\tau,\\quad\\forall x,y\\in X.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Lipschitz",
+      "正则性",
+      "微分同胚",
+      "C^{1+\\tau}",
+      "Denjoy 定理"
+    ],
+    "article": [
+      {
+        "zh": "Hölder 连续性度量了映射在多大程度上可被幂函数控制——指数 $\\tau$ 越接近 $1$，映射越接近 Lipschitz，$\\tau>1$ 时非常数映射不存在（因为导数在任意点应为零）。在圆周微分同胚理论中，$\\tau$-Hölder 连续导数（记作 $C^{1+\\tau}$）是临界正则性阈值：Denjoy 定理在 $C^{1+\\mathrm{bv}}$（导数对数有界变差）下成立但在纯 $C^1$ 下失败；Sacksteder 定理在 $C^{1+\\mathrm{Lip}}$（$\\tau=1$）下成立但在 $C^{1-\\varepsilon}$ 下失败。\n\n$C^{1+\\tau}$ 类最重要的性质是闭包下的保持性：若 $f,g\\in C^{1+\\tau}(\\mathbb S^1)$ 是保向微分同胚，则 $f\\circ g$ 和 $f^{-1}$ 也属于 $C^{1+\\tau}$——这使得 $C^{1+\\tau}$ 微分同胚构成 $\\operatorname{Diff}_+^1(\\mathbb S^1)$ 的子群。导数计算的链式法则给出 $\\log(f\\circ g)' = (\\log f')\\circ g + \\log g'$，故 $C^{1+\\mathrm{bv}}$ 和 $C^{1+\\mathrm{Lip}}$ 也构成子群。\n\n这些正则性类之间的严格包含关系是：\n$$C^{1+\\mathrm{Lip}} \\subsetneq C^{1+\\mathrm{bv}} \\subsetneq \\bigcap_{\\tau<1} C^{1+\\tau} \\subsetneq C^1.$$\n每个严格包含都有动力学意义：$C^{1+\\mathrm{Lip}}$ 是 Sacksteder 定理的临界（最优）正则性，$C^{1+\\mathrm{bv}}$ 是 Denjoy 定理的临界正则性，$\\bigcap_{\\tau<1}C^{1+\\tau}$ 是 $C^1$ 中使 Denjoy 定理可能成立的「极大」类。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), Notation."
+    ]
+  }
+}

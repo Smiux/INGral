@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.non-wandering-set",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "非游荡集",
+      "非游荡点"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\colon M\\to M$ 为紧度量空间上的同胚。点 $p\\in M$ 称为**非游荡点**，若对 $p$ 的每个邻域 $U$，存在 $n\\geqslant1$ 使 $U\\cap f^{-n}(U)\\neq\\varnothing$。非游荡点的全体记作 $\\Omega(f)$。点 $p$ 称为**游荡点**（wandering point），若存在 $p$ 的邻域 $U$ 使 $f^{-n}(U)\\cap U=\\varnothing$ 对一切 $n\\geqslant1$ 成立。\n\n$\\Omega(f)$ 是紧的 $f$-不变集，且位于回归层级的中层：$L(f)\\subset\\Omega(f)\\subset\\mathcal R(f)$（其中 $L(f)$ 为极限集，$\\mathcal R(f)$ 为链回归集）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "动力系统",
+      "回归",
+      "Conley 理论",
+      "Smale",
+      "结构稳定性"
+    ],
+    "notes": [
+      {
+        "zh": "非游荡集是 Smale 的谱分解定理（spectral decomposition）的核心：公理 A 微分同胚的非游荡集可分解为有限个互斥的紧不变基本集（basic set）的并。在 Conley 理论中，$\\mathcal R(f)$ 在 $\\Omega(f)$ 上引力/排斥分解的精细结构由链等价关系给出。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "非游荡点捕捉了动力学中「返回」最直观的含义：不论取多小的邻域，经过足够多次迭代后，该邻域总会与自身相交。这比正回归性（要求某条特定轨道返回该邻域）弱，但比链回归性（允许 $\\varepsilon$ 误差）强。$\\Omega(f)$ 的本质在于它界定了 Lyapunov 函数能够严格下降的区域——若 $p\\in\\Omega(f)$，则对任何 Lyapunov 函数 $L$ 必有 $L(f(p))=L(p)$（Schur 引理式的论证：若非游荡点 $p$ 满足 $L(f(p))<L(p)$，则由连续性将在 $p$ 的邻域内严格下降，这与非游荡性矛盾）。\n\n$\\Omega(f)$ 是紧的（由紧性直接验证：$\\Omega(f)$ 是闭集，因为其补集是游荡点的开覆盖的可数并）且 $f$-不变的。极小系统（如无理旋转）中 $\\Omega(f)=M$。\n\n在回复性层级中，$\\Omega(f)$ 处于中间位置：$L(f)\\subset\\Omega(f)\\subset\\mathcal R(f)=\\mathcal R(f^{-1})$。值得注意的是，$\\Omega(f)$ 对 $f^{-1}$ 对称（$\\Omega(f)=\\Omega(f^{-1})$），且它包含 $+\\infty$ 和 $-\\infty$ 两个方向的所有极限点。但 $\\Omega(f)$ 通常严格小于 $\\mathcal R(f)$：一个点可以是链回归的（即在任意 $\\varepsilon$ 精度下存在周期伪轨）而不必是非游荡的（即其真邻域与自身的迭代相交）。Conley 定理的证明框架正是从 $\\varepsilon$-链到 $\\mathcal R(f)$ 再到 $\\Omega(f)$ 的逐步扩张：先用 $\\varepsilon$-链构造陷阱区域和吸引子-排斥子对，再通过可数族陷阱区域归纳出完全的 Lyapunov 函数，该函数恰好在 $\\mathcal R(f)$ 上为常数，而在 $\\mathcal R(f)\\setminus\\Omega(f)$ 上严格下降——这构成了整张动力系统的「势能图」（Hasse 图）。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1.",
+      "S. Smale, Differentiable dynamical systems, Bull. of the AMS 73 (1967), 747-817."
+    ]
+  }
+}

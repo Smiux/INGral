@@ -1,0 +1,31 @@
+{
+  "id": "dynamics.ergodic.factor",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "因子（保测变换论）",
+      "measure theoretic factor"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 和 $(Y,\\mathcal C,\\nu,S)$ 为保测变换。称 $Y$ 是 $X$ 的（测度论）因子，若存在满测度子集 $X'\\subset X,\\,Y'\\subset Y$ 和可测满射 $\\pi\\colon X'\\to Y'$ 使得 $\\nu\\circ\\pi^{-1}=\\mu$ 且 $\\pi\\circ T=S\\circ\\pi$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "因子映射",
+      "保测变换",
+      "同构"
+    ],
+    "article": [
+      {
+        "zh": "因子构造与斜积相反：斜积扩张空间，因子压缩空间。因子保留了原系统的全部测度论信息，但可能丢失了一些可观测量的细节。\n\n因子映射的典型的例子包括：斜积到基底的投影、在更粗的 $\\sigma$-代数上的限制（如仅观测 $f\\circ T^n$ 生成的信息）。\n\n若系统是遍历的（或混合的），其因子也是遍历的（或混合的）。反之一般不成立。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.6.2."
+    ]
+  }
+}

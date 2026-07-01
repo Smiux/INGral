@@ -1,0 +1,16 @@
+{
+  "from": "dynamics.circle.rotation-number",
+  "to": "dynamics.circle.rotation-number-rationality",
+  "description": {
+    "zh": [
+      "该定理研究旋转数的有理性与周期点存在性之间的等价关系。"
+    ]
+  },
+  "extension": {
+    "notes": [
+      {
+        "zh": "该定理的证明两个方向均依赖有界偏差估计：$(\\Rightarrow)$ 由偏差估计找到周期点；$(\\Leftarrow)$ 将旋转数定义为极限后直接计算。"
+      }
+    ]
+  }
+}

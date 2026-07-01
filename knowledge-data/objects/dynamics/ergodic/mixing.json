@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.mixing",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "混合性",
+      "strong mixing",
+      "强混合性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换。称 $T$ 是**强混合的**（简称混合），若对一切 $E,F\\in\\mathcal B$ 有 $\\lim_{n\\to\\infty}\\mu(E\\cap T^{-n}F)=\\mu(E)\\mu(F)$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "相关性衰减",
+      "相关性",
+      "Koopman 算子"
+    ],
+    "article": [
+      {
+        "zh": "混合性比遍历性更强：它要求事件 $F$ 经过长时间演化后与另一事件 $E$「渐近独立」。用概率论的语言，$\\mu(T^{-n}F)$ 作为随机事件与 $E$ 的相关系数趋于零。\n\n等价地，对任意 $f,g\\in L^2(\\mu)$ 有 $\\int f\\cdot g\\circ T^n\\,d\\mu\\to\\int f\\,d\\mu\\int g\\,d\\mu$，即协方差 $\\operatorname{Cov}(f,g\\circ T^n)\\to 0$。\n\n强混合 $\\Rightarrow$ 遍历（取 $E$ 为不变集即得），但反之不真——无理旋转是遍历但不混合的典型例子。\n\n角加倍映射、Bernoulli 移位、不可约非周期 Markov 链都是混合的。两个混合系统的乘积仍然是混合的。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.4."
+    ]
+  }
+}

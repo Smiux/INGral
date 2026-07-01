@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.subshift-of-finite-type",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "有限型子移位",
+      "SFT",
+      "subshift of finite type"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $S$ 为有限字母集，$A=(t_{ab})_{S\\times S}$ 为 $0$-$1$ 矩阵（无全零行/列）。有限型子移位 $\\Sigma_A^+$ 是 $S^{\\mathbb N}$ 中满足 $t_{x_ix_{i+1}}=1$（对所有 $i$）的无穷序列全体，配上度量 $d(\\underline x,\\underline y)=2^{-\\min\\{k:x_k\\neq y_k\\}}$ 和左移位 $\\sigma$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "符号动力学",
+      "转移矩阵",
+      "Markov 链",
+      "Bernoulli 方案"
+    ],
+    "article": [
+      {
+        "zh": "有限型子移位是符号动力学的基本对象。它可想象为一个有向图上的所有无穷路径——顶点为 $S$，边由 $A$ 中的 $1$ 定义。左移位沿路径前移一步。\n\n子移位的测度论性质由转移矩阵 $A$ 和其上的 Markov 测度（即平稳概率向量 $\\underline p$ 与转移概率矩阵 $P$ 兼容）决定。当 $P$ 不可约时 Markov 测度是遍历的；当 $P$ 不可约且非周期时是混合的。\n\n典型的例子包括：全移位（$A$ 全 $1$ 矩阵，即 Bernoulli 方案），以及排除某些禁止字的限制性子移位。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.5.4."
+    ]
+  }
+}

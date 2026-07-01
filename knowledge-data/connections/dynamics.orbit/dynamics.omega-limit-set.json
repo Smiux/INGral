@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.orbit",
+  "to": "dynamics.omega-limit-set",
+  "description": {
+    "zh": [
+      "omega-极限集 $\\omega_f(p)$ 是 $p$ 的轨道聚点的集合。"
+    ]
+  }
+}

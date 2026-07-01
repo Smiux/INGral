@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.equivariant-gottschalk-hedlund",
+  "to": "dynamics.gottschalk-hedlund",
+  "description": {
+    "zh": [
+      "等变 Gottschalk–Hedlund 引理将经典定理从单个同胚推广到一般群作用，函数替换为上循环（cocycle）。"
+    ]
+  }
+}

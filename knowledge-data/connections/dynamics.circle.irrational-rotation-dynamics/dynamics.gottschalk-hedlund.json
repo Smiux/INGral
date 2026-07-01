@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.irrational-rotation-dynamics",
+  "to": "dynamics.gottschalk-hedlund",
+  "description": {
+    "zh": [
+      "无理旋转数动力学定理的证明需要构造无周期点情形的半共轭，Gottschalk–Hedlund 定理为该构造提供了保证——它将位移函数与线性增长之间的偏差 $\\Delta_{\\tilde f}-\\rho(\\tilde f)$ 转化为上同调边界 $u\\circ f-u$。"
+    ]
+  }
+}

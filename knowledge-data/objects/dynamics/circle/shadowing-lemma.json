@@ -1,0 +1,39 @@
+{
+  "id": "dynamics.circle.shadowing-lemma",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "扩张圆周映射的影子引理",
+      "影子引理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\in C^1_d(\\mathbb T)$ 为扩张映射。则存在 $\\alpha_0>0$ 使得对任意 $\\alpha\\in(0,\\alpha_0)$，存在 $\\beta>0$ 满足：对每条 $\\beta$-伪轨 $(x_n)_{n\\geqslant0}\\subset\\mathbb T$（即 $d(f(x_n),x_{n+1})<\\beta$ 对所有 $n$ 成立），存在唯一的一点 $x\\in\\mathbb T$ 以 $\\alpha$ 精度跟踪该伪轨：\n$$d(f^n(x),x_n)<\\alpha,\\quad\\forall n\\geqslant0.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周映射",
+      "扩张映射",
+      "影子性质",
+      "伪轨",
+      "结构稳定性",
+      "双曲动力学"
+    ],
+    "article": [
+      {
+        "zh": "影子引理（也称跟踪引理）是双曲动力学最基本的结构性结论之一。它回答的问题是：如果一条序列在每次迭代时都「几乎」符合动力学规律（即伪轨），是否存在一条真实的轨道以可控误差「跟踪」它？在扩张系统中，答案是肯定的。\n\n「伪轨」概念来源于数值模拟：由于舍入误差，计算机迭代产生的序列几乎不会是真正的轨道——但它可能是一个伪轨。影子引理保证了在扩张系统中，数值误差不会累积失控——因为总存在真实轨道「关在笼子里」的影子，其与计算结果的偏差一致有界。\n\n证明的核心是回溯构造法。从伪轨的最后一点（实际上是考虑无穷序列）出发，通过解 $f(y_{m}) = x_{m-n+1}$ 逐次回溯。关键在于扩张性使这些回溯点的逆像「锥」呈指数收缩：每次回溯，候选点的集合直径缩小 $\\lambda^{-1}$ 倍。最终取极限即得唯一的跟踪点。这个论证不依赖于 $f$ 的光滑性（只需 $C^1$ 扩张意味着局部逆映射存在），展示了几何级数收敛在动力系统证明中的力量。\n\n影子引理的价值远远超出了它的证明。它是扩张映射结构稳定性的直接工具：若 $g$ 在 $C^1$ 拓扑下充分接近 $f$，则 $f$ 的一条轨道给出了 $g$ 的一条伪轨，影子引理将它们联系起来从而得到 $f$ 和 $g$ 的拓扑共轭。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "设 $C>0,\\lambda>1$ 使 $|Df^n(x)|\\geqslant C\\lambda^n$。由于 $f$ 无临界点且 $\\mathbb T$ 紧，存在 $\\alpha_0>0$ 使得对满足 $f(x)=y$ 的任意 $x,y$ 有局部逆 $f_{x,y}^{-1}:B_\\delta(y)\\to\\mathbb T$。取 $\\alpha_0<\\min\\{C(1-\\lambda^{-1})\\delta,\\delta\\}$，$\\beta<\\alpha(1-\\lambda^{-1})C$。\n\n对给定 $\\beta$-伪轨 $(x_n)$，对每个 $m\\in\\mathbb N$ 回溯构造\n$$y_m^n:=f_{x_{m-n},x_{m-n+1}}^{-1}\\circ\\cdots\\circ f_{x_{m-1},x_m}^{-1}(x_m).$$\n关键估计 $d(y_m^n,x_{m-n})\\leqslant C^{-1}\\beta/(1-\\lambda^{-1})$ 确保点列 $(y_m^m)_{m\\geqslant0}$ 是 Cauchy 列，其极限 $x$ 即为跟踪点。唯一性由扩张性保证。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026.",
+      "R. Bowen, A horseshoe with positive measure, Invent. Math. 29 (1975), 203-204."
+    ]
+  }
+}

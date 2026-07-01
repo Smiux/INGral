@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.ergodic-decomposition",
+  "to": "dynamics.ergodic.ergodicity",
+  "description": {
+    "zh": [
+      "遍历分解定理将不变测度表示为遍历测度的积分，每个遍历分量对应系统的一个不可分解的递推部分。"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "algebra.group-theory.kazhdan-property-t",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Kazhdan 性质 (T)"
+    ]
+  },
+  "description": {
+    "zh": [
+      "拓扑群 $G$ 具有 **Kazhdan 性质 (T)**，若 $G$ 在 Hilbert 空间上的每个连续酉表示若几乎有不变向量则必有非零不变向量。\n\n等价地，$G$ 的平凡表示是其他所有不可约酉表示分离的孤立点（在 Fell 拓扑下）。",
+      "可数群 $\\Gamma$ 称为具有 Kazhdan 性质 (T)，若对每个酉表示 $\\Psi\\colon\\Gamma\\to U(\\mathcal H)$，其第一次上同调群 $H^1(\\Gamma,\\Psi)$ 平凡——即每个 cocycle $c\\colon\\Gamma\\to\\mathcal H$ 都是上边界。等价地，$\\Gamma$ 的每个仿射等距作用在 Hilbert 空间上都有全局不动点。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "刚性",
+      "酉表示",
+      "Haagerup 性质",
+      "格子",
+      "不可约表示",
+      "cocycle",
+      "第一次上同调"
+    ],
+    "article": [
+      {
+        "zh": "性质 (T) 由 Kazhdan 在 1967 年引入，最初用于研究高秩 Lie 群的离散子群（如格子）的有限生成性。原始定义涉及拓扑群在 Hilbert 空间上的连续酉表示中几乎不变向量与不变向量的关系（紧生成拓扑群的情形）；对于可数群，上同调定义更为便捷：可数群 $\\Gamma$ 具有性质 (T) 当且仅当其每个酉表示 $\\Psi$ 的第一次上同调群 $H^1(\\Gamma,\\Psi)$ 平凡，等价地，$\\Gamma$ 的每个仿射等距作用在 Hilbert 空间上都有全局不动点。\n\n该性质是群论中最重要的刚性性质之一，与调和分析及群作用紧密相关：具有性质 (T) 的群到可换群的同态必然有有限像（因此到 $(\\mathbb R,+)$ 的同态平凡）；性质 (T) 在有限指标子群、有限扩张和商群下保持。\n\n典型例子：$\\operatorname{SL}(n,\\mathbb Z)$（$n\\geqslant3$）及更一般的秩 $\\geqslant2$ 的不可约格点具有性质 (T)，而 $\\operatorname{SL}(2,\\mathbb Z)$ 没有。性质 (T) 与 Haagerup 性质（a-T-可均性）互为对偶。\n\n在一维动力系统中，性质 (T) 起到关键作用：具有性质 (T) 的群在 $C^{1+\\tau}$（$\\tau>0$）圆周微分同胚群中的作用必然是有限的、可测的（适合刚性定理）；当 $\\tau>1/2$ 时，这样的群必然本身为有限群。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §5.2.1.",
+      "B. Bekka, P. de la Harpe, A. Valette, Kazhdan's Property (T), Cambridge Univ. Press, 2008."
+    ]
+  }
+}

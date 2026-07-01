@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.circle.topological-degree",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "度",
+      "拓扑度"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f:\\mathbb T\\to\\mathbb T$ 为连续映射，$\\tilde f:\\mathbb R\\to\\mathbb R$ 为其任意提升。$f$ 的**度**定义为整数 $\\deg(f):=\\tilde f(\\tilde x+1)-\\tilde f(\\tilde x)$，该值与 $\\tilde x\\in\\mathbb R$ 及提升的选择无关。\n\n若 $f$ 是同胚，则 $\\deg(f)\\in\\{-1,1\\}$。$\\deg(f)=1$ 时称 $f$ 保向（orientation preserving），$\\deg(f)=-1$ 时称 $f$ 反向（orientation reversing）。保向圆周同胚的全体记作\n$$\\operatorname{Homeo}_+(\\mathbb T):=\\{f\\in\\operatorname{Homeo}(\\mathbb T):\\deg(f)=1\\}.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周映射",
+      "覆叠空间",
+      "环绕数",
+      "映射度"
+    ],
+    "notes": [
+      {
+        "zh": "拓扑度是连续映射的同伦不变量：若 $f\\simeq g$ 同伦，则 $\\deg(f)=\\deg(g)$。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "圆周映射的拓扑度是代数拓扑中最基本的同伦不变量之一，但在动力系统中，度的符号直接决定了圆周同胚的根本动力学性质，并将同胚划分为两个截然不同的类别。\n\n**反向同胚**（$\\deg=-1$）具有严格递减的提升。其动力学完全简单：每个提升 $\\tilde f_k:=\\tilde f+k$ 恰好有一个不动点，投影回 $\\mathbb T$ 后 $f$ 恰好有两个不动点。$f$ 的周期点恰好是 $f^2$ 的不动点（$f^2$ 保向），每一点的 $\\alpha$- 和 $\\omega$-极限集是两条不同的周期轨道。这意谓反向同胚不产生任何复杂的长时行为——其本质完全由其平方（保向同胚）捕获。\n\n因此旋转理论几乎只关注**保向同胚群** $\\operatorname{Homeo}_+(\\mathbb T)$。在这里，度的符号是判别提升单调性的充要条件：$\\deg(f)=1$ 当且仅当任意提升是 $\\mathbb R$ 上严格递增的同胚。这直接保证了旋转数的概念可以定义（通过 Birkhoff 平均或子加性序列），也导出了位移函数的 $\\mathbb Z$-周期性（定义 $\\Delta_{\\tilde f}$ 为 $C^0(\\mathbb T,\\mathbb R)$ 的元素）。\n\n两个经典例子揭示了保向同胚的宽广范围。**刚性旋转** $R_\\alpha(x)=x+\\alpha$（$\\deg=1$）中，$\\alpha\\in\\mathbb Q/\\mathbb Z$（有理）时全体点的周期等于分母，$\\alpha$ 无理时系统极小（任何轨道稠密）——这是「可积」动力学。**Möbius 变换**（$\\deg=1$）通过 $\\mathbb{RP}^1\\cong\\mathbb T$ 上的射影作用 $f_A[v]=[Av]$（$A\\in\\operatorname{SL}_2(\\mathbb R)$）给出：$|\\operatorname{tr}A|<2$ 时 $f_A$ 共轭于刚性旋转（椭圆型），$|\\operatorname{tr}A|>2$ 时有两个双曲不动点（双曲型），$|\\operatorname{tr}A|=2$ 时有一个抛物不动点（抛物型）。这个三分法预示了双曲动力学的核心分类。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA, 2024.",
+      "M. Hirsch, Differential topology, GTM 33, Springer (1976)."
+    ]
+  }
+}

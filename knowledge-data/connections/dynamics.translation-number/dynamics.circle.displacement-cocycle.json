@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.translation-number",
+  "to": "dynamics.circle.displacement-cocycle",
+  "description": {
+    "zh": [
+      "平移数 $\\tau_\\nu(g)=\\nu([x,g(x)[)$ 与位移函数 $\\Delta_{\\tilde f}$ 共享上循环（cocycle）结构：两者均满足加性迭代恒等式。旋转数是提升位移的平移数。"
+    ]
+  }
+}

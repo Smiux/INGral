@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.skew-product",
+  "to": "dynamics.ergodic.factor",
+  "description": {
+    "zh": [
+      "斜积 T_f 以基底 (X,B,μ,T) 为因子（π(x,g)=x），因子映射是斜积到基底的投影。"
+    ]
+  }
+}

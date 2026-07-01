@@ -1,0 +1,36 @@
+{
+  "id": "dynamics.amenable-classification-sa",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "SA 群分类定理",
+      "顺从群 SA 分类"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}([0,1[)$ 属于有限序数 $\\alpha$ 对应的 SA$_\\alpha$ 族（SA 是顺从群中由亚指数增长群通过子群、商群、扩张和并集操作生成的子族）。则 $\\Gamma$ 可解，且可解度不超过 $\\alpha$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "可解",
+      "$C^{1+bv}$",
+      "区间微分同胚"
+    ],
+    "article": [
+      {
+        "zh": "该定理的根本问题在于：顺从群在一维区间微分同胚中的全部可能性是什么？SA 族是顺从群中由亚指数增长群通过超限构造生成的一个子族——但更关键的问题是：SA 是否能覆盖全部可能性？答案是否定的。Thompson 群 $F$ 可忠实地 $C^\\infty$ 作用于区间（$F$ 由分段仿射变换生成，属最正则的微分同胚），但 $F$ 是否顺从是困扰动力系统与群论四十余年的公开问题。若 $F$ 顺从，则它将是一个不在 SA 中的 $C^\\infty$ 区间作用顺从群。\n\n这意味着 $C^{1+\\mathrm{bv}}$ 区间微分同胚中顺从群的分类远未完成。SA 族的可解性证明本质上将群论的组合结构（可解度）与一维微分约束（$C^{1+\\mathrm{bv}}$ 的导数畸变控制）联系起来——这是 Kopell 引理思想在可解群语境中的推广。在区间情形，无不动点元的存在与亚指数增长结合，通过导数畸变的有界性迫使换位子序列终止。\n\n一个更细微的观察：定理要求 $\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}([0,1[)$ 而不要求 $\\Gamma$ 在 $]0,1[$ 中无不动点。换言之，即使 $\\Gamma$ 有全局不动点（如区间一端），定理仍然成立——但此时可解性来自平凡的动力学（任何元在固定端点处的导数行为受到 $C^{1+\\mathrm{bv}}$ 约束），而非来自轨道结构的复杂性。这表明 $C^{1+\\mathrm{bv}}$ 正则性本身已经隐含了群论的刚性。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "SA 族通过超限归纳定义：SA$_1$ 是所有有限生成子群皆亚指数增长的可数群；SA$_\\alpha$ 是 SA$_{\\alpha-1}$ 中群的子群、商群或扩张；极限序数情形取并集。属于有限层 SA$_\\alpha$ 的 $C^{1+\\mathrm{bv}}$ 区间微分同胚群可解性的证明如下。\n\n对 $\\alpha$ 进行超限归纳。$\\alpha=1$ 时，$\\Gamma\\in\\mathrm{SA}_1$ 的每个有限生成子群亚指数增长。由亚指数增长群在 $C^{1+\\mathrm{bv}}$ 区间作用下的性质（有界导数畸变控制），可证 $\\Gamma$ 的换位子序列终止于平凡群，即可解。\n\n归纳假设对 $\\beta<\\alpha$ 已证。$\\alpha$ 为后继序数 $\\beta+1$ 时，$\\Gamma\\in\\mathrm{SA}_{\\beta+1}$ 由 $\\mathrm{SA}_{\\beta}$ 中的群通过子群、商群或扩张操作得到：\n- **子群**：可解群的子群可解；\n- **商群**：可解群的商群可解；\n- **扩张**：若 $N\\triangleleft\\Gamma$ 且 $\\Gamma/N$ 可解，且 $N$ 可解，则 $\\Gamma$ 可解。\n\n$\\alpha$ 为极限序数时，$\\Gamma\\in\\mathrm{SA}_\\alpha = \\bigcup_{\\beta<\\alpha}\\mathrm{SA}_{\\beta}$，由归纳假设即得。\n\n在每一步中，$C^{1+\\mathrm{bv}}$ 正则性的关键作用在于控制导数畸变，使群的可解性与区间作用的几何约束一致。"
+      }
+    ],
+    "references": [
+      "A. Navas, Quelques groupes moyennables de difféomorphismes de l'intervalle, Bol. Soc. Mat. Mexicana 10 (2004), 219-244.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §4.5."
+    ]
+  }
+}

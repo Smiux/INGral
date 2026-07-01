@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.crossed-elements",
+  "to": "dynamics.plante-radon-measure",
+  "description": {
+    "zh": [
+      "殆幂零群不含自由半群，从而不可能有交叉元素，因此必保 Radon 测度。"
+    ]
+  }
+}

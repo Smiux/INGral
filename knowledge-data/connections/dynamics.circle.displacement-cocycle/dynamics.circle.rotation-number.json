@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.displacement-cocycle",
+  "to": "dynamics.circle.rotation-number",
+  "description": {
+    "zh": [
+      "旋转数的两个基本方面——极限存在性和积分表示——均以位移函数为载体：存在性依赖位移函数的上循环恒等式（cocycle identity）保证序列近似加性，积分表示则将旋转数视为位移函数在不变测度下的平均值。"
+    ]
+  }
+}

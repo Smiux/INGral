@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.herman-counterexample",
+  "to": "dynamics.denjoy-theorem",
+  "description": {
+    "zh": [
+      "Herman 反例表明 Denjoy 定理的 $C^{1+\\mathrm{bv}}$ 正则性条件是紧的——对任意 $\\tau<1$ 结论不成立。"
+    ]
+  }
+}

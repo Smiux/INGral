@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.sacksteder-theorem",
+  "to": "dynamics.denjoy-theorem",
+  "description": {
+    "zh": [
+      "Sacksteder 定理是 Denjoy 定理从单个微分同胚到伪群的推广。"
+    ]
+  }
+}

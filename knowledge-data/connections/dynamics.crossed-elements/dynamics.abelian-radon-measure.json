@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.crossed-elements",
+  "to": "dynamics.abelian-radon-measure",
+  "description": {
+    "zh": [
+      "Abel 群自动无交叉元素，从而 Abel 群保测定理可直接由无交叉元素保测定理推出。"
+    ]
+  }
+}

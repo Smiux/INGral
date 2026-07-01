@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.closing-lemma",
+  "to": "dynamics.circle.morse-smale",
+  "description": {
+    "zh": [
+      "C∞-closing 引理是 Morse-Smale 定理证明的第一步：将无理旋转数扰动为有理旋转数，使系统获得周期点。"
+    ]
+  }
+}

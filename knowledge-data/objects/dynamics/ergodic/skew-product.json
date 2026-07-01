@@ -1,0 +1,31 @@
+{
+  "id": "dynamics.ergodic.skew-product",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "斜积",
+      "skew product"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为保测变换，$G$ 为 Polish 群，$f\\colon X\\to G$ 可测。斜积是 $X\\times G$ 上由 $T_f(x,g)=(Tx,\\,g\\cdot f(x))$ 定义的保测变换（测度为 $\\mu\\times m_G$，$m_G$ 为 $G$ 的 Haar 测度），$f$ 称为上循环。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "上循环",
+      "随机动力系统",
+      "群作用"
+    ],
+    "article": [
+      {
+        "zh": "斜积是遍历理论中通过上循环「驱动」群作用的基本构造。其 $n$ 次迭代为 $T_f^n(x,g)=(T^nx,\\,g\\cdot f(x)f(Tx)\\cdots f(T^{n-1}x))$，第二坐标可视作以 $(X,\\mathcal B,\\mu,T)$ 为噪声源的 $G$-随机游走。\n\n当群 $G$ 进一步保测地作用在空间 $(Y,\\mathcal C,\\nu)$ 上时，可构造随机动力系统 $T_f(x,y)=(Tx,\\,T_{f(x)}y)$。\n\n重要的障碍：若上循环 $f$ 是算术的（存在非平凡特征 $\\gamma\\in\\widehat G$ 使 $\\gamma\\circ f = h/h\\circ T$），则斜积非遍历；若 $f$ 是周期的（$\\gamma\\circ f = \\lambda h/h\\circ T$），则斜积非混合。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.6.1."
+    ]
+  }
+}

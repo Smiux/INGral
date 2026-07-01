@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.rotation-number",
+  "to": "dynamics.circle.rotation-number-bounded-deviation",
+  "description": {
+    "zh": [
+      "有界偏差估计是旋转数存在定理的直接推论，利用上循环恒等式（cocycle identity）和振荡引理得到 $|\\tilde f^n(z)-z-n\\rho|\\leqslant 1$。"
+    ]
+  }
+}

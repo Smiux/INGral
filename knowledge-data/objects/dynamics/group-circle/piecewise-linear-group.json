@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.group-circle.piecewise-linear-group",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "分段线性同胚群",
+      "PL⁺(S¹)"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\mathbb S^1\\simeq\\mathbb R/\\mathbb Z$。保向分段线性（PL）同胚 $f\\colon\\mathbb S^1\\to\\mathbb S^1$ 是指存在递增序列 $\\cdots<x_i<x_{i+1}<\\cdots$，$\\lim_{\\pm\\infty}x_i=\\pm\\infty$，使得 $f$ 在每个区间 $[x_i,x_{i+1}]$ 上是仿射映射，且满足 $f(x+1)=f(x)+1$。\n\n所有保向分段线性同胚的集合 $\\operatorname{PL}_+(\\mathbb S^1)$ 形成一个群。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周同胚",
+      "Thompson 群",
+      "变换群",
+      "折点",
+      "仿射映射"
+    ],
+    "notes": [
+      {
+        "zh": "Brin–Squier 定理：区间上的分段线性同胚群 $\\operatorname{PL}_+([0,1])$ 不包含非交换自由子群。但 $\\operatorname{PL}_+([0,1])$ 也不满足任何律（law）——对每个非平凡词 $w$ 都存在元素使 $w(f,g)\\neq\\mathrm{id}$。这与圆周情形截然不同：$\\operatorname{PL}_+(\\mathbb S^1)$ 很容易（通过 Klein 乒乓引理）找到两生成元自由子群。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "$\\operatorname{PL}_+(\\mathbb S^1)$ 是 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 中一个极大且重要的子群，其正则性介于 $C^0$（连续）和 $C^1$（可微）之间。它的元素具有任意多的折点，这是与 $\\operatorname{PGL}(2,\\mathbb R)$（至多两个「隐式折点」，即导数为零的点）的本质区别。尽管两者都传递地作用在圆周上，$\\operatorname{PL}_+(\\mathbb S^1)$ 的代数结构远为复杂。\n\n一个深刻的事实：$\\operatorname{PL}_+([0,1])$ 不包含非交换自由子群（Brin-Squier 定理），但也不满足任何群律——对每个非平凡词 $w$，存在 $f,g\\in\\operatorname{PL}_+([0,1])$ 使 $w(f,g)\\neq\\mathrm{id}$。这意味著 $\\operatorname{PL}_+([0,1])$ 在组合群论意义下既不是虚拟可解的也不含自由子群——正好处于 Tits 交替的缝隙中。与之对比，$\\operatorname{PL}_+(\\mathbb S^1)$ 很容易包含自由子群（利用圆周的全局拓扑构造 Klein 乒乓）。\n\n$\\operatorname{PL}_+(\\mathbb S^1)$ 中最著名的子群是 Thompson 群 $G$：它是 $\\operatorname{PL}_+(\\mathbb S^1)$ 中折点在二进有理数、斜率是 $2$ 的幂的分段仿射同胚构成的子群。$G$ 是无限、有限表示、单群——一个非平凡的性质组合。类比关系如下：\n\n$$\\frac{\\text{Fuchs 群}}{\\operatorname{PSL}(2,\\mathbb R)}\\quad\\sim\\quad\\frac{\\text{Thompson 群 }G}{\\operatorname{PL}_+(\\mathbb S^1)}$$\n\n但两者的正则性决定了根本性差异——Fuchs 群是离散的，Thompson 群在 $\\operatorname{PL}_+(\\mathbb S^1)$ 中也是离散的，但由于 $\\operatorname{PL}_+(\\mathbb S^1)$ 本身不承载与 $\\operatorname{PSL}(2,\\mathbb R)$ 可比的拓扑群结构，这些「类比」的深层意义仍需探索。实际上，Thompson 群 $G$ 在 $\\operatorname{PL}_+(\\mathbb S^1)$ 中有无穷多个共轭类，这使得其表示空间极其丰富。"
+      }
+    ],
+    "references": [
+      "M. Brin & C. Squier, Groups of piecewise linear homeomorphisms of the real line, Invent. Math. 79 (1985), 485-498.",
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
+    ]
+  }
+}

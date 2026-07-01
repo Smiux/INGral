@@ -20,6 +20,8 @@ skills-lock.json
 # IDE 和编辑器配置
 .vscode/
 .trae/
+.reasonix/
+.letta/
 
 # 脚本目录
 scripts/

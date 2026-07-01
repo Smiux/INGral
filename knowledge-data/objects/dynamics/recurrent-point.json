@@ -1,0 +1,39 @@
+{
+  "id": "dynamics.recurrent-point",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "回复点",
+      "正回复点",
+      "递归点",
+      "正回归点",
+      "正向回复点"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\colon M\\to M$（可逆时包括 $f^{-1}$）。$p\\in M$ 称为 $f$ 的**正回复点**，若存在严格递增序列 $n_j\\uparrow+\\infty$ 使 $f^{n_j}(p)\\to p$。正回复点集记作 $\\operatorname{Rec}^+(f)$。若 $f$ 可逆，负回复点集 $\\operatorname{Rec}^-(f)=\\operatorname{Rec}^+(f^{-1})$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "回复性",
+      "极限点",
+      "周期点",
+      "Conley 理论"
+    ],
+    "notes": [
+      {
+        "zh": "$\\operatorname{Rec}^+(f)\\cap\\operatorname{Rec}^-(f)\\neq\\varnothing$。事实上，由 Zorn 引理可证存在极小集，而极小集中每点既是正回归又是负回归。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "回复点比周期点更弱：回复点只需轨道无穷多次回到自身附近，而非精确经过自身。\n\n回复性层级：$\\operatorname{Fix}(f)\\subset\\operatorname{Per}(f)\\subset\\operatorname{Rec}^+(f)\\subset L(f)\\subset\\Omega(f)\\subset\\mathcal R(f)$。\n\n正回归是回复性层级中的关键一环：固定点必然回归，周期点必然回归，但回归点不一定是周期的——无理旋转下每点都是回归的但无周期点。与 $\\omega$-极限集的关系：$\\operatorname{Rec}^+(f)\\subset L(f)$（因为正回归点 $p$ 必然在其自身的 $\\omega$-极限集中）。\n\n在 Conley 理论的框架下，正回归点构成了 Lyapunov 函数严格下降性的最终障碍之一。任何 Lyapunov 函数在回归点处不能严格下降，因为轨道不断返回该点附近，$L$ 的值沿该轨道收敛于某个常数。完全 Lyapunov 函数在 $\\operatorname{Rec}^+(f)$ 上必然为常数。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1."
+    ]
+  }
+}

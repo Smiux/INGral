@@ -1,0 +1,32 @@
+{
+  "id": "topology.cantor-space",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Cantor 空间",
+      "康托空间"
+    ]
+  },
+  "description": {
+    "zh": [
+      "可度量化拓扑空间 $K$ 称为 **Cantor 空间**，若 $K$ 同时满足：\n- 紧；\n- 完美（无孤立点）；\n- 全不连通（每个非空连通子集均为单点集）。\n\n对任意 $k\\geqslant2$，符号空间 $[\\![k]\\!]^{\\mathbb N_0}$ 赋予乘积拓扑是 Cantor 空间。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "拓扑",
+      "符号动力学",
+      "移位映射",
+      "Cantor 集",
+      "全不连通"
+    ],
+    "article": [
+      {
+        "zh": "Cantor 空间在动力系统中频繁出现，因为许多紧不变集——特别是双曲系统的极大不变集——都与其同胚。在二次族 $Q_\\mu$ 中，当 $\\mu>\\sqrt5+2$ 时，极大不变集 $\\Lambda_\\mu=\\bigcap_{n\\in\\mathbb N}Q_\\mu^{-n}([0,1])$ 是 Cantor 空间，且通过航拍映射（itinerary）同胚于二符号空间 $[\\![2]\\!]^{\\mathbb N_0}$。在 Conley 完全 Lyapunov 函数定理中，$L(\\mathcal R(f))$ 必须是紧全不连通集——这本质上就是 $\\mathbb R$ 中与 Cantor 空间子空间同胚的集合。因此 Cantor 空间的性质直接支撑了 Conley 理论的结论结构。\n\n符号空间 $[\\![k]\\!]^{\\mathbb N_0}$ 本身是最高质感的 Cantor 空间模型：它作为紧致无孤立点的全不连通空间，Brouwer 定理保证了所有 Cantor 空间彼此同胚，故 $\\{0,1\\}^{\\mathbb N_0}$ 与三进制 Cantor 集是同一个拓扑对象。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026."
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.ergodicity",
+  "to": "dynamics.ergodic.birkhoff-ergodic",
+  "description": {
+    "zh": [
+      "遍历性使 Birkhoff 遍历定理的时间平均等于空间平均（常数极限），而非遍历情形下极限是条件期望。"
+    ]
+  }
+}

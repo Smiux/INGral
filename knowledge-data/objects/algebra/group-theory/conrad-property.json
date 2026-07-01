@@ -1,0 +1,37 @@
+{
+  "id": "algebra.group-theory.conrad-property",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Conrad 性质",
+      "C-可序群"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\preceq$ 为群 $\\Gamma$ 上的左不变全序。称 $\\preceq$ 具有 **Conrad 性质**，若对任意正元 $f,h\\in\\Gamma$（$f,h\\succ{\\rm id}$），存在 $n\\in\\mathbb N$ 使 $fh^n\\succ h$。\n\n称 $\\Gamma$ 为 **C-可序群**（C-orderable group），若它接受一个具有 Conrad 性质的序。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "可序群",
+      "序空间",
+      "实直线作用",
+      "Conrad"
+    ],
+    "notes": [
+      {
+        "zh": "Conrad 性质不等价于双不变序。例如 $\\mathbb Z^2$ 的字典序是 Conrad 的但不是双不变的。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "Conrad 性质是可序群理论中的一个精细条件，其动力学意义在于：具有 Conrad 性质的序的动力学实现恰好是无交叉元素（crossed elements）的忠实 $\\operatorname{Homeo}_+(\\mathbb R)$ 作用。换言之，Conrad 性质是「群可忠实地无交叉元素作用在 $\\mathbb R$ 上」的代数等价描述。\n\n右回复序（right-recurrent ordering）要求 $\\forall f\\succ{\\rm id},\\forall h,\\exists n$ 使 $fh^n\\succ h^n$——比 Conrad 性质更强。Poincaré 回复定理证明顺从可序群存在右回复序。\n\n一个非右回复但 Conrad 的例子是 Klein 四元群 $\\langle f,g\\mid fgf^{-1}=g^{-1}\\rangle$。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.6.",
+      "P. Conrad, Right-ordered groups, Michigan Math. J. 6 (1959), 267-275."
+    ]
+  }
+}

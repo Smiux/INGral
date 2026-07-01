@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.equicontinuous-expansive-action",
+  "to": "dynamics.strongly-expansive-action",
+  "description": {
+    "zh": [
+      "强扩张是扩张作用在满足额外区间收缩条件时的加强版本。"
+    ]
+  }
+}

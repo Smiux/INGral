@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.moriyama-classification",
+  "to": "dynamics.group-circle.affine-group-action",
+  "description": {
+    "zh": [
+      "Moriyama 分类情形(i)中，$\\Gamma$ 共轭于仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 的子群。"
+    ]
+  }
+}

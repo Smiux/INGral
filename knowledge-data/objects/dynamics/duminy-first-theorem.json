@@ -1,0 +1,40 @@
+{
+  "id": "dynamics.duminy-first-theorem",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Duminy 第一定理",
+      "Duminy 例外极小集存在性定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "存在普适常数 $V_0>0$ 满足以下性质：设 $\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}(\\mathbb S^1)$ 是由一族（不必有限）微分同胚 $\\mathcal G$ 生成的子群，若 $\\mathcal G$ 中至少有一个元具有有限多个周期点、且每个 $g\\in\\mathcal G$ 满足 $V(g):=\\operatorname{Var}_{\\mathbb S^1}(\\log g')<V_0$，则 $\\Gamma$ 没有例外极小集。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周微分同胚",
+      "全变差",
+      "$C^{1+bv}$"
+    ],
+    "notes": [
+      {
+        "zh": "最优常数 $V_0$ 在 PSL(2,R) 子群情形下为 $4\\log(5/3)$。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "Duminy 第一定理建立在 Denjoy 定理和 Sacksteder 定理的序列上，处理的是从单个微分同胚到群作用语境的推广：若群中所有生成元充分靠近旋转（以导数对数的全变差 $V(g)$ 度量），且至少一个生成元具有孤立的周期点，则不会有例外极小集。这一定理与 Fuchsian 群理论有类比——Jørgensen 不等式、Marden 定理和 Margulis 不等式都刻画了「群生成元离恒等映射足够近则群的行为受控」的现象，Duminy 定理是这种现象在圆周微分同胚群上的对应。\n\n定理条件中 $V(g)<V_0$ 的几何意义是每个生成元在 $C^{1+\\mathrm{bv}}$ 拓扑下足够接近旋转；$V(g)=0$ 恰好刻画旋转（此时 $Dg\\equiv1$）。对于 $C^2$ 微分同胚，$V(g)$ 可以通过 $|g''|$ 控制，从而存在普适的 $\\delta_0$ 使 $|g''|<\\delta_0$ 保证 $V(g)<V_0$——这是证明的推论之一。\n\n证明的核心构造是扩张第一返回映射（expanding first-return map）。基本思想是：如果有一个例外极小集 $\\Lambda$，那么通过 Duminy 引理和一个扩张返回映射的构造，可以证明 $\\Lambda$ 的某段补区间长度在迭代下指数增长，最终导致矛盾。这里用到的关键工具是 $C^{1+\\mathrm{bv}}$ 正则性对导数对数全变差的控制——与 Denjoy 定理证明中通过有界变差控制 $\\sum|\\log Df(f^n(x))|$ 收敛性的技巧一脉相承。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "反证法。假设有例外极小集 $\\Lambda$。通过 Duminy 引理构造扩张第一返回映射（expanding first-return map）：取 $\\Lambda$ 的一个补区间 $J$，对 $x\\in J$ 定义返回时间 $n(x)=\\min\\{n\\geqslant1:g^n(x)\\in J\\}$。利用 $C^{1+\\mathrm{bv}}$ 正则性对导数对数全变差的控制，证明 $\\Lambda$ 的某段补区间长度在迭代下指数增长，最终导致与全变差有界性矛盾。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.3."
+    ]
+  }
+}

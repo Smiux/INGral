@@ -1,0 +1,32 @@
+{
+  "id": "topology.haar-measure",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Haar 测度",
+      "Haar 概率测度"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $G$ 为紧群。$G$ 上的 **Haar 测度** 是唯一的 Borel 概率测度 $\\lambda$，满足对每个可测集 $A\\subset G$ 和每个 $g\\in G$ 有 $\\lambda(gA)=\\lambda(A)$（左平移不变性）（也在右平移下不变）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "不变测度",
+      "紧群",
+      "积分平均"
+    ],
+    "article": [
+      {
+        "zh": "Haar 测度是紧群上存在唯一的不变概率测度，其存在性由 von Neumann 在 1930 年代证明（紧致情形），一般局部紧群上的存在性由 Weil 和 Cartan 完成。该测度在群论、调和分析和动力系统中有根本性作用。\n\n在圆周群作用理论中，Haar 测度是「紧子群必共轭于旋转子群」这一事实的核心工具。设 $K\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 为紧子群，取 $\\mathbb S^1$ 上的 Lebesgue 测度 $dx$，通过 Haar 测度 $\\lambda$ 做积分平均：\n\n$$\\mu=\\int_K(k_*dx)\\,d\\lambda(k),$$\n\n即将每个 $k\\in K$ 对 Lebesgue 测度的推前测度按 $\\lambda$ 平均。由于 $\\lambda$ 左不变，$\\mu$ 是 $K$-不变的 Borel 概率测度。无原子性由 $\\mu$ 的构造和 $K$ 的紧性导出，全支撑由 $K$ 的传递性保证。将一个无原子全支撑不变概率测度拉回到 $\\mathbb R$ 上的单调函数，该函数给出共轭于旋转的映射。\n\n这一论证与仿射群的测度论刻画形成平行对照：旋转群由**有限**不变概率测度的保持来刻画，而仿射群由**无限** Radon 测度的拟不变性来刻画。两者的唯一区别是测度的有限性——这一观察统一了 Lie 分类中 Euclid 和仿射两种情形。\n\n更一般地，Haar 测度出现在 Peter-Weyl 定理中：紧群的所有不可约酉表示可通过 $L^2(G,\\lambda)$ 上的正则表示分解得到。在圆周上，$\\operatorname{SO}(2,\\mathbb R)$ 的 Haar 测度就是归一化的弧长，其 Fourier 级数对应 Peter-Weyl 分解。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.1.",
+      "L. Nachbin, The Haar Integral, Van Nostrand, 1965.",
+      "A. Weil, L'intégration dans les groupes topologiques, Hermann, 1940."
+    ]
+  }
+}

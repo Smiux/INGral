@@ -1,0 +1,46 @@
+{
+  "id": "dynamics.group-circle.ping-pong-lemma",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "乒乓引理",
+      "Klein 乒乓引理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $X$ 为集合，$A,A'\\subset X$ 为两个不交非空子集，$f,f'$ 为 $X$ 上的双射。若 $f^n(A)\\subset A'$ 且 $f'^{\\,n}(A')\\subset A$ 对所有 $n\\in\\mathbb Z\\setminus\\{0\\}$ 成立，则 $f$ 和 $f'$ 生成 $\\operatorname{Sym}(X)$ 中的自由子群。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "自由群",
+      "组合群论",
+      "自由子群",
+      "双射",
+      "交替作用"
+    ],
+    "notes": [
+      {
+        "zh": "对圆周保向同胚的典型应用：取四段不交闭区间 $I,J,I',J'\\subset\\mathbb S^1$，若 $f(I)=\\mathbb S^1\\setminus\\operatorname{int}(J)$ 且 $f'(I')=\\mathbb S^1\\setminus\\operatorname{int}(J')$，则 $f$ 和 $f'$ 生成自由子群。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "乒乓引理是组合群论中构造自由子群的标准工具，其名称源于球桌的乒乓隐喻——元素 $f$ 将 $A$ 打入 $A'$，$f'$ 将 $A'$ 打入 $A$，使非平凡词交替作用无法回到起点。\n\n在圆周动力系统中，该引理用于证明大量群包含非交换自由子群（Margulis 定理的核心步骤）。关键在于找到将圆周「几乎全覆盖」的两段区间及对应的同胚——若存在收缩到不同点的区间序列 $I_n$ 及其像的补区间 $J_n$，则对足够大的 $n$ 可构造满足乒乓条件的四段区间，从而得到自由子群。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "考虑 $f,f'$ 生成的自由群中的非平凡既约词 $w=g_1g_2\\cdots g_k$，其中 $g_i\\in\\{f^{\\pm1},f'^{\\pm1}\\}$。设 $w$ 以 $f^{\\pm1}$ 开头（$f'^{\\pm1}$ 情形对称）。取 $x\\in A$，由条件 $f^n(A)\\subset A'$ 和 $f'^{\\,n}(A')\\subset A$ 归纳可得 $g_1\\cdots g_k(x)\\in A'$（若 $w$ 以 $f$ 开头）或 $\\in A$（若 $w$ 以 $f^{-1}$ 开头）。因 $A\\cap A'=\\varnothing$，$w(x)\\notin A$ 当 $w$ 以 $f$ 开头，故 $w$ 非常词。这证明 $\\langle f,f'\\rangle$ 自由。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
+      "G. Margulis, Free subgroups of the homeomorphism group of the circle, C. R. Acad. Sci. Paris 331 (2000), 669-674.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007).",
+      "P. de la Harpe, Topics in Geometric Group Theory, Chicago 2000.",
+      "J. Tits, Free subgroups in linear groups, J. Algebra 20 (1972), 250-270."
+    ]
+  }
+}

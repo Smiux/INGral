@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.strongly-expansive-action",
+  "to": "dynamics.group-circle.margulis-alternative",
+  "description": {
+    "zh": [
+      "强扩张性是 Margulis 定理证明中由扩张极小作用构造自由子群的关键中间步骤。"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "dynamics.circle.rotation-number-bounded-deviation",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "旋转数有界偏差估计"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\in\\operatorname{Homeo}_+(\\mathbb T)$，$\\tilde f$ 为其提升，$\\rho(\\tilde f)$ 为旋转数。则对任意 $n\\in\\mathbb Z$ 及任意 $\\tilde z\\in\\mathbb R$ 有\n$$\\bigl|\\tilde f^n(\\tilde z)-\\tilde z-n\\rho(\\tilde f)\\bigr|\\leqslant 1.$$\n换言之，迭代位移与线性近似的偏差一致有界。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周映射",
+      "cocycle",
+      "有界上同调",
+      "拟态射"
+    ],
+    "article": [
+      {
+        "zh": "有界偏差估计是旋转数理论中从振荡引理直接导出的定量核心结果——可以说，它是旋转数理论中「使用最多的单行不等式」。尽管 $f$ 的动力学可能极其复杂（无理旋转时 $f$ 在极小 Cantor 集上是极小的），提升的 $n$ 次迭代在 $\\mathbb R$ 上与均匀线性运动 $x\\mapsto x+n\\rho(\\tilde f)$ 的偏差始终不超过 $1$。这意谓无论我们追踪哪一点的轨道，其长期行为从不超过一次完整的圆周绕行所对应的位移误差。\n\n证明极为简洁但富有洞见。从积分表示 $\\rho(\\tilde f)=\\int\\Delta_{\\tilde f}\\mathrm d\\mu$ 和 cocycle 恒等式可得 $\\int\\Delta_{\\tilde f^n}\\mathrm d\\mu=n\\rho(\\tilde f)$，故由积分中值性质存在点 $x_n$ 使 $\\Delta_{\\tilde f^n}(x_n)=n\\rho(\\tilde f)$——意即「平均位移等于 $\\rho$」在某个特定点上被精确实现。然后振荡引理断言位移函数在 $\\mathbb T$ 上振荡不超过 $1$，从而任意点的位移与这个「精确点」的位移之差不超过 $1$：$|\\Delta_{\\tilde f^n}(z)-\\Delta_{\\tilde f^n}(x_n)|\\leqslant\\operatorname{osc}\\Delta_{\\tilde f^n}\\leqslant 1$。这两个事实——积分存在性和振荡有界性——的配合产生了偏差估计。\n\n该估计有三个直接推论。关于旋转数的连续性，若两同胚在一致拓扑中充分接近，其 $n$ 步迭代也充分接近，由 $|\\rho(\\tilde f)-\\rho(\\tilde g)|\\leqslant(\\|\\tilde f^n-\\tilde g^n\\|_\\infty+2)/n$ 取 $n$ 充分大即得。关于有理二歧性，若 $\\rho=p/q$ 既约，则上述的 $x_q$ 满足 $\\tilde f^q(\\tilde x_q)=\\tilde x_q+p$，即为 $f$ 的周期点。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "取任意 $f$-不变测度 $\\mu$。由 cocycle 恒等式 $\\Delta_{\\tilde f^n}=\\sum_{j=0}^{n-1}\\Delta_{\\tilde f}\\circ f^j$ 得\n$$\\int_{\\mathbb T}\\Delta_{\\tilde f^n}\\,\\mathrm d\\mu = n\\int_{\\mathbb T}\\Delta_{\\tilde f}\\,\\mathrm d\\mu = n\\rho(\\tilde f).$$\n故存在 $x_n\\in\\mathbb T$ 使 $\\Delta_{\\tilde f^n}(x_n)=n\\rho(\\tilde f)$。由振荡引理 $\\operatorname{osc}\\Delta_{\\tilde f^n}\\leqslant 1$，对任意 $z\\in\\mathbb T$ 有\n$$\\bigl|\\tilde f^n(\\tilde z)-\\tilde z-n\\rho(\\tilde f)\\bigr| = \\bigl|\\Delta_{\\tilde f^n}(z)-\\Delta_{\\tilde f^n}(x_n)\\bigr|\\leqslant 1.$$"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA, 2024.",
+      "H. Poincaré, Mémoire sur les courbes définies par une équation différentielle, Journal de Mathématiques 7 (1881), 375-422."
+    ]
+  }
+}

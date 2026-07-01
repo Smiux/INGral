@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.pseudo-group",
+  "to": "dynamics.sacksteder-theorem",
+  "description": {
+    "zh": [
+      "Sacksteder 定理的原始陈述是在伪群框架中给出的，适用于叶状结构的和乐伪群。"
+    ]
+  }
+}

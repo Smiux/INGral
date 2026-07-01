@@ -1,0 +1,33 @@
+{
+  "id": "dynamics.ergodic.kingman-subadditive-ergodic",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Kingman 子加性遍历定理",
+      "次可加遍历定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换，$\\{g^{(n)}\\}_{n\\ge1}$ 为一列可测函数满足子加性 $g^{(n+m)}\\leq g^{(n)}+g^{(m)}\\circ T^n$（对所有 $n,m$）且 $g^{(1)}\\in L^1$。则极限\n$$g(x):=\\lim_{n\\to\\infty}\\frac{g^{(n)}(x)}n$$\n几乎处处存在，且 $g$ 是 $T$-不变的。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历定理",
+      "子加性",
+      "子加性上循环",
+      "乘法遍历定理",
+      "Lyapunov 指数"
+    ],
+    "article": [
+      {
+        "zh": "Kingman 子加性遍历定理（1968）是 Birkhoff 定理的非可加推广，对处理导数上循环、随机矩阵乘积等一列仅满足子加性估计的量给出了极限存在性。\n\n在动力系统中最典型的应用是 Oseledets 乘法遍历定理的证明中：令 $g^{(n)}(x)=\\log\\|A^{(n)}(x)\\|$，其中 $A^{(n)}(x)$ 是沿轨道的导数乘积，则 $g^{(n)}$ 满足子加性，其极限 $\\lambda_1=\\lim\\frac1n\\log\\|A^{(n)}(x)\\|$ 就是最大 Lyapunov 指数。这一模式可推广到微分动力系统、随机矩阵乘积、群上随机游走等。\n\n证明思路：先通过 $h^{(n)}=g^{(n)}-\\sum_{k=0}^{n-1}g^{(1)}\\circ T^k$ 化为非正子加性情形。定义 $G(x)=\\liminf g^{(n)}(x)/n$，由 Poincaré 回复定理得 $G\\circ T=G$。然后通过复杂的「涂色」论证证明上极限不超过 $G$，从而极限存在。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.5.",
+      "J. F. Kingman, The ergodic theory of subadditive stochastic processes, J. Roy. Statist. Soc. Ser. B 30 (1968), 499-510."
+    ]
+  }
+}

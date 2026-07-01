@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.group-circle.lie-classification-1d",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "连接 Lie 群在 1-维流形上传递忠实作用的分类",
+      "Lie 分类定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $G$ 为连通 Lie 群，传递且忠实地作用在 1-维流形（$\\mathbb S^1$ 或 $\\mathbb R$）上。则在共轭意义下，可能的作用仅有以下五种：\n- $\\mathbb R$ 在自身上的平移作用；\n- $\\mathbb R/\\lambda\\mathbb Z$（$\\lambda>0$）在自身上的旋转作用；\n- 仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 在 $\\mathbb R$ 上的作用；\n- $\\operatorname{PSL}_k(2,\\mathbb R)$ 在圆周上的射影作用（$k\\geqslant1$）；\n- $\\widetilde{\\operatorname{SL}}(2,\\mathbb R)$ 在 $\\mathbb R$（$\\mathbb S^1$ 的泛覆盖）上的作用。\n\n因此，1-维流形上具有有限型几何的三种基本结构分别是：Euclid 几何、仿射几何和射影几何。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周作用",
+      "射影几何",
+      "向量场",
+      "微分方程",
+      "连接 Lie 群"
+    ],
+    "article": [
+      {
+        "zh": "该分类定理是理解圆周上作用之 Lie 群的本质工具。Lie 的局部分类定理从局部推理出发：取 0 处非零的向量场芽 $\\partial/\\partial x$ 后，求导运算使相应的函数空间稳定，有限维性迫使所有函数满足某常系数线性微分方程，从而为实解析。通过比较括号运算的次数，维数被限制为 $\\leqslant3$，且在该坐标系下向量场恰好为 $\\leqslant2$ 次的多项式形式。\n\n从局部到整体的过渡利用了 $G/\\operatorname{Stab}(x)\\cong 1$-流形这一事实。按 $j_2(\\mathfrak G)$ 的维数（1,2,3）分别对应 $\\mathbb R$、$\\operatorname{Aff}_+(\\mathbb R)$（仿射群）、${\\mathfrak{sl}}(2,\\mathbb R)$（从而 $\\operatorname{PSL}_k(2,\\mathbb R)$ 或 $\\widetilde{\\operatorname{SL}}(2,\\mathbb R)$）。对非传递作用，可分解为固定点集及其余区间上的传递作用——如圆周上的拓扑流（$\\mathbb R$ 的作用）要么传递地共轭于 $\\mathbb R/\\lambda\\mathbb Z$ 上的旋转，要么具有非空固定点集且在每段上流向同一方向。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "Lie 的局部分类：取 $0$ 处非零向量场芽 $\\partial/\\partial x$，有限维性迫使所有函数满足常系数线性微分方程，故实解析。比较括号运算次数知维数 $\\leqslant3$，在该坐标系下向量场为 $\\leqslant2$ 次多项式。\n\n局部到整体：$G/\\operatorname{Stab}(x)\\cong 1$-流形。按 $j_2(\\mathfrak G)$ 维数 $1,2,3$ 分别对应 $\\mathbb R$（平移）、$\\operatorname{Aff}_+(\\mathbb R)$（仿射）、${\\mathfrak{sl}}(2,\\mathbb R)$（射影）。后者的整体实现依赖单连通覆盖，给出 $\\operatorname{PSL}_k(2,\\mathbb R)$（$\\mathbb S^1$ 上）和 $\\widetilde{\\operatorname{SL}}(2,\\mathbb R)$（$\\mathbb R$ 上）。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
+      "S. Lie, 1880 (original classification)."
+    ]
+  }
+}

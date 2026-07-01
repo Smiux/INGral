@@ -1,0 +1,36 @@
+{
+  "id": "dynamics.moriyama-classification",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Moriyama 多循环群分类定理",
+      "多循环群分类"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}([0,1[)$ 为多循环子群且在 $]0,1[$ 中无全局不动点。设 $N(\\Gamma)$ 为其幂零根（极大幂零正规子群）。则以下二者必居其一：\n(i) 若 $N(\\Gamma)$ 在 $]0,1[$ 中无全局不动点，则 $\\Gamma$ 共轭于仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 的子群；\n(ii) 若 $N(\\Gamma)$ 在 $]0,1[$ 中有全局不动点，则 $\\Gamma$ 形如 $\\mathbb Z^n\\rtimes\\mathbb Z$ 的半直积。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "区间微分同胚",
+      "仿射群",
+      "$C^{1+\\mathrm{bv}}$"
+    ],
+    "article": [
+      {
+        "zh": "Moriyama 分类定理给出了区间上 $C^{1+\\mathrm{bv}}$ 多循环子群的完全分类。两种情形的动力学行为本质不同：\n\n情形(i)中，$\\Gamma$ 共轭于仿射群的子群——即由线性伸缩和平移生成的群。这类作用有简单的动力学结构：轨道由形如 $x\\mapsto\\lambda x+b$ 的映射生成。\n\n情形(ii)中，$\\Gamma$ 是 $\\mathbb Z^n\\rtimes\\mathbb Z$ 形半直积。此时 $N(\\Gamma)$ 有一个全局不动点，其作用共轭于平移群的闭子群。$\\mathbb Z$ 分量则通过逆向收缩作用（contracting dynamics，形如 $f^{-1}f_i f = \\prod_j f_j^{a_{ij}}$）实现，其动力学由矩阵 $A\\in\\operatorname{SL}(n,\\mathbb Z)$ 控制。\n\n分类的推导分两步进行。首先证明所有多循环 $C^{1+\\mathrm{bv}}$ 子群是亚交换的（利用 Plante–Thurston 定理得到幂零根交换，再通过有限指标子群过渡到整个群）。然后利用可解群的分类得到完整描述。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "分两步。\n\n第一步（亚交换性）。由多循环群的定义，$\\Gamma$ 有正规子群链 $\\Gamma=\\Gamma_0\\triangleright\\Gamma_1\\triangleright\\cdots\\triangleright\\Gamma_k=\\{1\\}$ 使每个商 $\\Gamma_{i-1}/\\Gamma_i$ 循环。幂零根 $N(\\Gamma)$ 是极大幂零正规子群。Plante–Thurston 定理断言 $C^{1+\\mathrm{bv}}$ 区间作用的幂零子群必交换，故 $N(\\Gamma)$ 交换。因多循环群的幂零根具有有限指数（$[\\Gamma:N(\\Gamma)]<\\infty$），通过有限指标子群过渡可得 $\\Gamma$ 本身是亚交换的（即二阶可解：$\\Gamma^{(2)}=\\{1\\}$）。\n\n第二步（分类）。由可解群的结构理论，亚交换群分为两种情形：(i) 若 $N(\\Gamma)$ 在 $]0,1[$ 中无全局不动点，则其作用共轭于 $\\mathbb R$ 上平移群的闭子群，且 $\\Gamma$ 整体共轭于仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 的子群。(ii) 若 $N(\\Gamma)$ 有全局不动点，则 $N(\\Gamma)\\cong\\mathbb Z^n$ 且 $\\Gamma\\cong\\mathbb Z^n\\rtimes\\mathbb Z$。$\\mathbb Z$ 分量通过反向收缩作用实现（形如 $f^{-1}f_i f = \\prod_j f_j^{a_{ij}}$），收缩矩阵 $A=(a_{ij})\\in\\operatorname{SL}(n,\\mathbb Z)$ 控制了半直积的乘法结构和整个扩张的动力学。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §4.3.",
+      "Y. Moriyama, Polycyclic groups of diffeomorphisms of the half line, Hokkaido Math. J. 23 (1994), 399-422."
+    ]
+  }
+}

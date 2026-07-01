@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.conjugacy",
+  "to": "dynamics.group-circle.action",
+  "description": {
+    "zh": [
+      "共轭是群作用分类的基本等价关系：两个作用共轭当且仅当它们对应的 $\\Gamma\\to\\operatorname{Homeo}(\\mathbb S^1)$ 嵌入相差一个内自同构。"
+    ]
+  }
+}

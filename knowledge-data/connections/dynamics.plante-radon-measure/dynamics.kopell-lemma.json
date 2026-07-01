@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.plante-radon-measure",
+  "to": "dynamics.kopell-lemma",
+  "description": {
+    "zh": [
+      "Plante 定理的 $C^0$ 测度论结论是 Kopell 引理所使用的交换性论证的前提之一。"
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "dynamics.free-action",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "自由作用",
+      "自由群作用"
+    ]
+  },
+  "description": {
+    "zh": [
+      "群 $\\Gamma$ 在空间 $M$ 上的作用称为**自由的**，若每个 $x\\in M$ 的稳定子群 $\\operatorname{Stab}(x)=\\{g\\in\\Gamma:g\\cdot x=x\\}$ 是平凡的——即对每个非平凡元 $g\\in\\Gamma\\setminus\\{{\\rm id}\\}$，$g$ 没有不动点。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "群作用",
+      "不动点",
+      "稳定子"
+    ],
+    "article": [
+      {
+        "zh": "自由作用要求每个非平凡群元完全没有不动点，这比忠实作用（仅要求不同群元给出不同映射）严格得多。自由性在动力系统分类中的力量体现在覆盖空间理论上：若 $\\Gamma$ 在流形 $M$ 上自由且真不连续地作用，则 $M/\\Gamma$ 是 $M$ 的覆盖空间——从而 $\\Gamma$ 同构于覆盖变换群。这一观察将群作用分类转化为覆盖空间分类问题。\n\n在圆周动力学中，自由作用与旋转数的概念密切相关。设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 自由作用，则旋转数映射 $\\rho\\colon\\Gamma\\to\\mathbb R/\\mathbb Z$ 是单射（因为 $\\rho(g)=0$ 意味着 $g$ 有不动点，与自由性矛盾）。因此自由作用的圆周同胚群同构于 $\\mathbb R/\\mathbb Z$ 的某个子群——从而必定是交换的。这一结论是 Hölder 定理的推论：$\\mathbb S^1$ 上的自由保向同胚群可共轭于旋转群。\n\n对于 $\\mathbb R$ 上的自由作用，情况更精细。自由 $\\operatorname{Homeo}_+(\\mathbb R)$ 子群同构于 $\\mathbb R$ 的加法子群（Hölder 定理）。结合了自由性与最小性（无真闭不变集）的作用进一步可共轭于平移群——这是实数直线上动力系统的完全分类。在 Plante 定理和交叉元素引理中，自由作用作为中间步骤出现：通过证明无交叉元素的有限生成群必定自由作用（或其极小集是离散的），从而推出 Radon 测度的存在性。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups Acting on the Circle, Enseign. Math. 47 (2001), §2."
+    ]
+  }
+}

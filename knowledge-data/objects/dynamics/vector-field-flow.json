@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.vector-field-flow",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "向量场及其流",
+      "圆周上的向量场所生成的流"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $X\\colon\\mathbb T\\to\\mathbb R$ 为圆周 $\\mathbb T$ 上的 $C^r$ 向量场。$X$ 生成的流 $\\Phi_X\\colon\\mathbb R\\times\\mathbb T\\to\\mathbb T$ 满足\n$$\\Phi_X^0(p)=p,\\quad \\frac{\\partial}{\\partial t}\\Phi_X^t(p)\\big|_{t=0}=X(p).$$\n**奇点集**为 $\\operatorname{Sing}(X)=X^{-1}(0)$。若 $\\operatorname{Sing}(X)\\neq\\varnothing$，每点沿流趋于奇点。若 $\\operatorname{Sing}(X)=\\varnothing$，流是周期的。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "向量场",
+      "流",
+      "圆周",
+      "奇点",
+      "周期流"
+    ],
+    "article": [
+      {
+        "zh": "向量场 $X$ 与其生成流 $\\Phi_X$ 的关系可以理解为「无穷小生成元」与「整体演化」之间的双向通道：$(\\partial_t\\Phi_X^t)|_{t=0}=X$ 将流微分得到场，而 $\\Phi_X$ 是 $X$ 的积分曲线族——因此研究 $\\Phi_X$ 等价于解常微分方程 $\\dot x = X(x)$。这一双向通道使得动力系统理论可以交替使用微分几何的工具（研究 $X$ 的奇点、散度、旋度）和拓扑动力学的工具（研究 $\\Phi_X$ 的极限集、回复性、遍历性）。\n\n圆周上的向量场提供了这一框架的最纯净案例。奇点集 $\\operatorname{Sing}(X)=X^{-1}(0)$ 分裂了可能的行为：有奇点时，每点的轨道收敛于某个奇点（梯度状行为）；无奇点时，流是周期的——这由 $\\mathbb T$ 是一维紧流形的拓扑事实保证：一维紧流形上的流要么有奇点，要么全局周期。\n\n无奇点情形下，周期 $T=\\int_{\\mathbb T}dx/X(x)$（严格正且有限）是最小正周期，其倒数 $\\rho_X=1/T$ 是向量场的旋转数。存在 $C^{r+1}$ 共轭 $h$ 使 $h_*X\\equiv\\rho_X$（即 $Dh(X(x))=\\rho_X$）——也就是说，每个无奇点向量场 $C^{r+1}$ 共轭于常向量场。这一共轭的构造是显式的：$h(x)=\\rho_X\\int_0^x dt/X(t)$。由此可推知，$\\Phi_X$ 的 $\\omega$-极限集等于整个 $\\mathbb T$（没有真吸引子），且所有点都是回复的。\n\n有奇点情形则完全相反。$\\operatorname{Sing}(X)\\neq\\varnothing$ 时，每点的 $\\omega$-极限集退化为某个奇点的单点集。因此圆周向量场给出了一个二分法：要么所有点回复且全空间是极小集（无奇点），要么所有轨道收敛到奇点（有奇点）——一维紧流形上不可能存在「既有非平凡回复轨道又有收敛轨道」的混合行为。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA."
+    ]
+  }
+}

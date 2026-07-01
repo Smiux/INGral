@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.herman-katok-ergodicity",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Herman–Katok 遍历性定理",
+      "无理旋转 $C^{1+\\mathrm{bv}}$ 微分同胚的遍历性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $g\\in\\operatorname{Diff}_+^{1+\\mathrm{bv}}(\\mathbb S^1)$ 有无理旋转数。则 $g$ 生成的（$\\mathbb Z$）作用关于 Lebesgue 测度是遍历的。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历性",
+      "无理旋转",
+      "$C^{1+bv}$",
+      "Herman",
+      "Katok"
+    ],
+    "article": [
+      {
+        "zh": "该定理由 Herman（$C^2$ 情形）和 Katok（$C^{1+\\mathrm{bv}}$ 一般情形）独立证明。它指出 $C^{1+\\mathrm{bv}}$ 正则性足以保证无理旋转微分同胚的遍历性，尽管其共轭到旋转的映射通常是奇异的（即使对实解析情形）。因此这一定理不是 Denjoy 定理的直接推论（后者仅给出拓扑共轭性，不保证绝对连续性）。\n\n证明利用密度点定理和 Denjoy–Koksma 不等式（或等价的失真控制）。给定不变可测集 $A$，若 $A$ 的 Lebesgue 测度为正，取密度点 $x_0$。设 $\\varphi$ 为 $g$ 到旋转的共轭，利用旋转的等分布性质和 $C^{1+\\mathrm{bv}}$ 的失真控制，将 $A$ 的补集测度用 $\\varphi$ 下的局部偏差控制住，最终推出 $A$ 的测度为全测度。\n\n该定理对一般有限生成群作用有重要推论：$C^{1+\\mathrm{bv}}$ 有限生成最小保测作用必遍历。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "利用密度点定理和 Denjoy–Koksma 不等式。设 $A\\subset\\mathbb S^1$ 为 $g$-不变可测集且 $\\operatorname{Leb}(A)>0$。取密度点 $x_0\\in A$。令 $\\varphi$ 为 $g$ 到旋转 $R_\\theta$ 的拓扑共轭（由 Denjoy 定理存在）。对任意 $x\\in\\mathbb S^1$，利用旋转的等分布性和 Denjoy–Koksma 不等式控制 $\\varphi$ 下的局部偏差，可证 $\\varphi$ 将 Lebesgue 测度零集映为零测集。由此推出 $\\operatorname{Leb}(\\mathbb S^1\\setminus A)=0$。有限生成群情形的证明类似。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.5.1.",
+      "M. Herman, Sur la conjugaison différentiable des difféomorphismes du cercle à des rotations, Publ. Math. de l'IHES 49 (1979), 5-234."
+    ]
+  }
+}

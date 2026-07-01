@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.denjoy-koksma-inequality",
+  "to": "dynamics.denjoy-theorem",
+  "description": {
+    "zh": [
+      "Denjoy 不等式是 Denjoy 定理证明中的关键分析工具，用于控制迭代微分同胚的失真。"
+    ]
+  }
+}

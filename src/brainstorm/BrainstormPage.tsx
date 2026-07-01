@@ -113,7 +113,7 @@ export function BrainstormPage () {
           {hasPrev && (
             <button
               onClick={() => setCurrentIndex((i) => i - 1)}
-              className="fixed left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/80 dark:bg-slate-800/80 shadow-md border border-slate-200/60 dark:border-slate-700/60 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all print:hidden"
+              className="fixed left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all print:hidden"
               aria-label="上一篇"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -134,7 +134,7 @@ export function BrainstormPage () {
           {hasNext && (
             <button
               onClick={() => setCurrentIndex((i) => i + 1)}
-              className="fixed right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/80 dark:bg-slate-800/80 shadow-md border border-slate-200/60 dark:border-slate-700/60 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all print:hidden"
+              className="fixed right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all print:hidden"
               aria-label="下一篇"
             >
               <ChevronRight className="w-5 h-5" />

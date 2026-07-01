@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.abelian-diffeomorphism-classification",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Abel $C^{1+\\mathrm{bv}}$ 微分同胚群分类",
+      "圆周交换微分同胚群的结构"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}(\\mathbb S^1)$ 为交换子群。则 $\\Gamma$ 要么半共轭于旋转群，要么是至多可数个作用在互斥区间上的平移群的有限中心扩张。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Abel 群",
+      "$C^{1+bv}$",
+      "圆周作用",
+      "Kopell 引理",
+      "Szekeres"
+    ],
+    "article": [
+      {
+        "zh": "该分类揭示了一个深刻的刚性现象：交换性对微分同胚的约束如此之强，使得整个 $C^{1+\\mathrm{bv}}$ 交换微分同胚群只有两种可能的结构——要么是旋转（拓扑可积），要么是区间上的平移（分段刚体运动）。两者之间不存在「混合」情形。\n\n分类的判决条件是 $\\Gamma$ 是否保概率测度。若保测，则 $\\Gamma$ 通过旋转数同态嵌入到 $\\mathbb T$ 的紧子群或稠密子群中，从而共轭于旋转群。若不保测，则 Kopell 引理迫使 $\\Gamma$ 的每个无不动点元与平移「局部相同」：在每个不可约分量上，$\\Gamma$ 共轭于平移群的子群。这里的分类不是「要么 A 要么 B」的平铺陈述，而是具有层次结构——通过检查测度存在性，两分支以互斥方式覆盖全部可能。\n\n更深层的洞察来自 Szekeres 定理。在 $C^2$ 情形中，Szekeres 定理表明每个无不动点的交换微分同胚 $f$ 不仅可嵌入流（即存在向量场 $X$ 使 $f = \\Phi_X^1$），而且其中心化子（与 $f$ 交换的所有微分同胚之集）恰好就是该流 $\\{\\Phi_X^t\\}$。这意味著交换 $C^2$ 微分同胚群中每个元素都「知道」整个交换群的结构——中心化子的大小与群的结构直接对应。这与有限群论中中心化子的概念惊人地相似：在有限单群分类中，中心化子的结构是分类的核心工具之一。Szekeres 定理是这一思想的微分动力系统版本。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "首先判断 $\\Gamma$ 是否保概率测度。若 $\\Gamma$ 存在不变概率测度，则旋转数同态 $\\rho\\colon\\Gamma\\to\\mathbb T$ 为群同态，由 $\\rho(\\Gamma)$ 在 $\\mathbb T$ 中的像确定共轭：当 $\\rho(\\Gamma)$ 有限时 $\\Gamma$ 共轭于有限旋转群，当 $\\rho(\\Gamma)$ 稠密时 $\\Gamma$ 共轭于无理旋转子群。\n\n若 $\\Gamma$ 不保概率测度，则 $\\Gamma$ 必有一不可约分量（即极大无不动点元的序区间）。Kopell 引理证明在该分量上 $\\Gamma$ 的每个元交换且作用自由，从而共轭于平移群的子群。Szekeres 定理将这些独立分量上的平移作用粘合为整体：每个分量对应 $\\Gamma$ 的一个诱导平移数同态，不同分量间的序关系由 $\\Gamma$ 的生成元在分量边界上的作用决定。粘合后得到的圆周同胚群是至多可数个平移群的有限中心扩张。"
+      }
+    ],
+    "references": [
+      "N. Kopell, Commuting diffeomorphisms, Global Analysis (1968), 165-184.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §4.1.2."
+    ]
+  }
+}

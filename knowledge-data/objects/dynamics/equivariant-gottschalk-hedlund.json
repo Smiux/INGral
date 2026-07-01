@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.equivariant-gottschalk-hedlund",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "等变 Gottschalk–Hedlund 引理",
+      "群作用上同调方程可解性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设紧度量空间 $M$ 上有限生成群 $\\Gamma$ 的作用极小，$c\\colon\\Gamma\\times M\\to\\mathbb R$ 为连续 cocycle。则以下等价：\n(i) 存在 $x_0\\in M$ 和 $C_0>0$ 使 $|c(f,x_0)|\\leqslant C_0$ 对任意 $f\\in\\Gamma$ 成立；\n(ii) 存在连续函数 $\\phi\\colon M\\to\\mathbb R$ 使 $c(f,x)=\\phi(f(x))-\\phi(x)$ 对所有 $f,x$ 成立。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "上同调方程",
+      "cocycle",
+      "群作用",
+      "极小作用"
+    ],
+    "article": [
+      {
+        "zh": "该引理回答了上同调方程何时可解的问题：给定群作用上的 cocycle $c$，何时存在 $\\phi$ 使得 $c(f,x)=\\phi(f(x))-\\phi(x)$？方程的解 $\\phi$ 称为「上边界」——$c$ 可被视为「$\\phi$ 的一阶差分」。经典 Gottschalk–Hedlund 定理处理一个同胚 $f$ 的情形：若函数 $\\varphi$ 的 Birkhoff 和一致有界，则 $\\varphi$ 是 $f$-上边界。等变版本将单个同胚推广到群作用，将函数推广到 cocycle。\n\n证明的几何构造极其精妙：将 cocycle $c$ 编码为群在纤维丛 $M\\times\\mathbb R$ 上的对角作用 $\\hat f(x,t)=(f(x),t+c(f,x))$。如果 $c$ 在某个点 $x_0$ 处有界，则该点的 $\\hat\\Gamma$-轨道保持在带状区域 $M\\times[-C_0,C_0]$ 中。Zorn 引理取出极小紧不变集 $\\Lambda$。若 $\\Lambda$ 在某根纤维 $\\{x\\}\\times\\mathbb R$ 上包含两个不同高度的点，则高度差 $t$ 给出了 $\\Lambda$ 的一个平移对称性：$\\Lambda + t = \\Lambda$。迭代得 $\\Lambda + nt = \\Lambda$ 对所有 $n\\in\\mathbb Z$ 成立，但 $\\Lambda$ 的紧致性迫使 $t=0$。因此 $\\Lambda$ 必为某个连续函数 $\\phi$ 的图像——这正是所要的解。\n\n这个「Zorn + 平移压缩」的论证模式在动力系统中反复出现（如 Aubry–Mather 理论、不变环面存在性），其本质是通过最简系统的对称性破缺来构造解。上同调方程的可解性是许多更深层次结果的基础：旋转数的积分表示、共轭光滑性提升中 $C^r$ 性的传播，以及无理旋转动力学中半共轭的构造都依赖于此。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "构造 $M\\times\\mathbb R$ 上的对角作用 $\\hat f(x,t)=(f(x),t+c(f,x))$。考虑 $M\\times\\mathbb R$ 上所有 $\\Gamma$-不变紧子集的族，由 Zorn 引理取极小元 $\\Lambda$。核心论证：若 $\\Lambda$ 包含两点 $(\\bar x,t_1)$ 和 $(\\bar x,t_2)$ 且 $t_1\\neq t_2$，则平移 $t=t_2-t_1$ 保持 $\\Lambda$ 不变，从而 $\\Lambda=\\Lambda_t=\\Lambda_{2t}=\\ldots$，由紧致性推出矛盾。因此 $\\Lambda$ 是某个连续函数 $\\phi$ 的图像，$c$ 即为 $\\phi$ 的上边界 $c(f,x)=\\phi(f(x))-\\phi(x)$。"
+      }
+    ],
+    "references": [
+      "W. Gottschalk & G. Hedlund, Topological dynamics, AMS Colloquium Publications 36 (1955).",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.6.2, Lemma 3.6.10."
+    ]
+  }
+}

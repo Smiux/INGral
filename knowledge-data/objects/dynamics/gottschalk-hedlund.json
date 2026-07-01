@@ -1,0 +1,36 @@
+{
+  "id": "dynamics.gottschalk-hedlund",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Gottschalk–Hedlund 定理",
+      "上同调可解条件"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,d)$ 为紧度量空间，$f\\colon X\\to X$ 为极小同胚，$\\varphi\\in C^0(X,\\mathbb R)$。则上同调方程 $\\varphi=u\\circ f-u$ 有连续解 $u\\in C^0(X,\\mathbb R)$ 当且仅当存在 $x_0\\in X$ 使 Birkhoff 和一致有界：\n$$\\sup_{n\\in\\mathbb N}\\Bigl|\\sum_{i=0}^{n-1}\\varphi(f^i(x_0))\\Bigr|<+\\infty.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "动力系统",
+      "极小同胚",
+      "Birkhoff 和",
+      "旋转数"
+    ],
+    "article": [
+      {
+        "zh": "Gottschalk–Hedlund 定理是动力系统中上同调方程可解性的刻画。它回答了这样一个问题：给定函数 $\\varphi$，何时可以写为 $u\\circ f-u$ 的形式（即一个 coboundary）？答案是当且仅当其 Birkhoff 和沿某条轨道一致有界。\n\n「极小性」假设是必不可少的。若 $f$ 不是极小的（即存在真闭不变子集），则函数 $\\varphi$ 可能在某条轨道上有界而在另一条上无界，定理无法统一地给出连续解。在极小系统上，函数的 Birkhoff 和要么在所有轨道上都有界（此时解存在），要么在所有轨道上都无界——不会有中间情况。\n\n在圆周同胚的无理旋转数情形中，该定理起着核心作用。令 $\\varphi=\\Delta_{\\tilde f}-\\rho(\\tilde f)$，由有界偏差估计知 $\\sup_n|\\sum_{i=0}^{n-1}\\varphi(f^i(x))|\\leqslant1$，故 Gottschalk–Hedlund 定理给出连续 $u$ 使 $\\varphi=u\\circ f-u$。将此 $u$ 代入 $\\tilde h(\\tilde x)=\\tilde x+u(x)$ 即得 $\\tilde h\\circ\\tilde f=R_{\\rho}\\circ\\tilde h$——这是无理旋转情形下半共轭的构造关键。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "充分性：若上同调方程有解 $u$，则 $\\sum_{i=0}^{n-1}\\varphi(f^i(x_0))=u(f^n(x_0))-u(x_0)$，Birkhoff 和一致有界。必要性：设 $\\sup_n|S_n\\varphi(x_0)|\\leqslant C$。定义 $u(x)=\\limsup_{n\\to\\infty}\\varphi(f^{-n}(x))+\\cdots+\\varphi(f^{-1}(x))$，利用极小性验证 $u$ 连续且满足 $u\\circ f-u=\\varphi$。核心是极小性保证 $u$ 的定义与轨道一致，且 $u$ 的有界性确保连续性。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026."
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.kazhdan-circle-rigidity",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Kazhdan 圆周作用有限性定理",
+      "Navas Kazhdan 定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$ 为可数群的表示，$\\tau>1/2$。若 $\\Gamma$ 具有 Kazhdan 性质 (T)，则 $\\Phi(\\Gamma)$ 是有限群。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "性质 (T)",
+      "圆周微分同胚",
+      "刚性",
+      "Navas",
+      "有限性"
+    ],
+    "article": [
+      {
+        "zh": "该定理表明 $C^{1+\\tau}$（$\\tau>1/2$）正则性足以排除无穷 Kazhdan 群在圆周上的非平凡微分同胚作用。\n\n证明的思路分为三层。首先证明一个关键命题：若 $g\\in\\Gamma$ 且 $\\Phi(g)$ 有不动点，则 $\\Phi(g)$ 为恒等映射。这是因为利用三点覆盖技巧（考虑 3 阶圆周覆叠上的提升作用）可以将单个不动点增强为三个不动点，然后通过 Liouville 测度上的积分估计导出矛盾。\n\n其次，由上述命题可知 $\\Phi(\\Gamma)$ 的作用是自由的。Hölder 定理将自由圆周作用刻画为交换群（共轭于旋转群的子群）。因此 $\\Phi(\\Gamma)$ 是交换群，同时继承了性质 (T)——交换群的有限生成子群若具有性质 (T) 则必有限。\n\n定理对 $C^{1+\\tau}$（$\\tau>1/2$）条件敏感。对 $C^1$ 微分同胚或仅同胚的情形是否成立仍是公开问题。一个推论是：Thompson 群 $G$ 不具有性质 (T)——因为 $G$ 有 $C^\\infty$ 圆周忠实作用。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "分三层。第一层：若 $g\\in\\Gamma$ 且 $\\Phi(g)$ 有不动点，则 $\\Phi(g)$ 为恒等映射——利用三点覆盖技巧（考虑 3 阶圆周覆叠上的提升作用）将单个不动点增强为三个不动点，通过 Liouville 测度上的积分估计导出矛盾。第二层：由上述命题知 $\\Phi(\\Gamma)$ 的作用自由。Hölder 定理将自由圆周作用刻画为交换群（共轭于旋转群的子群）。第三层：$\\Phi(\\Gamma)$ 交换且继承性质 (T)，而交换群的有限生成子群若具有性质 (T) 则必有限。"
+      }
+    ],
+    "references": [
+      "A. Navas, Actions de groupes de Kazhdan sur le cercle, Annales Sci. ENS 35 (2002), 749-758.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §5.2.2."
+    ]
+  }
+}

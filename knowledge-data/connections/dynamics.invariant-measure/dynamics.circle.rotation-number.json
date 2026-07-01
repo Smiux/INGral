@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.invariant-measure",
+  "to": "dynamics.circle.rotation-number",
+  "description": {
+    "zh": [
+      "旋转数可表述为位移函数对任意不变测度的积分。"
+    ]
+  }
+}

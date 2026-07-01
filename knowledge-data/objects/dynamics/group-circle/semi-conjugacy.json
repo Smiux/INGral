@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.group-circle.semi-conjugacy",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "群作用的半共轭"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\phi_1,\\phi_2$ 为群 $\\Gamma$ 在 $\\mathbb S^1$ 上的保向作用。称 $\\phi_1$ **半共轭**（semi-conjugacy）于 $\\phi_2$，若存在保向的增连续满射 $h\\colon\\mathbb S^1\\to\\mathbb S^1$（$\\deg h=1$，不一定单）使 $\\phi_2(\\gamma)\\circ h=h\\circ\\phi_1(\\gamma)$ 对所有 $\\gamma\\in\\Gamma$ 成立。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "例外极小集",
+      "拓扑动力学",
+      "约化",
+      "商空间",
+      "连续满射",
+      "粗粒化"
+    ],
+    "notes": [
+      {
+        "zh": "半共轭关系不对称：$\\phi_1$ 半共轭于 $\\phi_2$ 并不意味着 $\\phi_2$ 半共轭于 $\\phi_1$。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "半共轭是群作用分类中弱于共轭的等价关系。它不要求 $h$ 是同胚（只需连续满射），因此允许将「坏」的集合（如例外极小集的补区间）压缩为点，从而揭示作用在粗粒化后的本质结构。\n\n在圆周群作用的研究中，半共轭的主要用途是约化：当 $\\phi(\\Gamma)$ 具有例外极小集 $K$ 时，将 $K$ 的补区间（一条可数族开区间）分别塌缩为点，商空间仍然是圆周。在此商空间上诱导的作用 $\\bar\\phi(\\Gamma)$ 具有稠密轨道，且 $\\phi$ 半共轭于 $\\bar\\phi$。这允许许多问题先约化到稠密轨道情形再处理。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
+    ]
+  }
+}

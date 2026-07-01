@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.shannon-entropy-partition",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Shannon 熵（划分）",
+      "划分的信息熵"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu)$ 为概率空间，$\\alpha$ 为可数可测划分。$\\alpha$ 的 **Shannon 熵**定义为\n$$H_\\mu(\\alpha):=-\\sum_{A\\in\\alpha}\\mu(A)\\log_2\\mu(A).$$\n集合 $A$ 的信息含量为 $I_\\mu(A):=-\\log_2\\mu(A)$；$\\alpha$ 的信息函数为 $I_\\mu(\\alpha)(x):=\\sum_{A\\in\\alpha}I_\\mu(A)\\mathbf1_A(x)$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "信息论",
+      "Shannon",
+      "划分",
+      "条件熵"
+    ],
+    "article": [
+      {
+        "zh": "Shannon 熵是信息论的基本概念，其公理要求 $I(A)$ 非负、独立事件可加、且是概率的递减函数。这些条件唯一确定 $I(A)=-c\\log_2\\mu(A)$ 的形式。\n\n条件熵 $H_\\mu(\\alpha|\\mathcal F):=\\int I_\\mu(\\alpha|\\mathcal F)d\\mu$ 给出了给定部分信息后的剩余不确定性。基本恒等式 $H_\\mu(\\alpha\\vee\\beta)=H_\\mu(\\alpha)+H_\\mu(\\beta|\\alpha)$ 表明总信息量等于当前信息量与条件信息量之和。\n\n$H_\\mu(\\alpha\\vee\\beta)\\le H_\\mu(\\alpha)+H_\\mu(\\beta)$，等式成立当且仅当 $\\alpha,\\beta$ 独立。这一性质源于函数 $\\varphi(t)=-t\\log t$ 的严格凹性。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §4.1–4.2."
+    ]
+  }
+}

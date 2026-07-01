@@ -1,0 +1,36 @@
+{
+  "id": "dynamics.plante-thurston-nilpotent",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Plante–Thurston 幂零群定理",
+      "幂零群交换性定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "(i) $\\operatorname{Diff}_+^{1+\\mathrm{bv}}([0,1[)$ 的每个幂零子群都是交换群。\n(ii) $\\operatorname{Diff}_+^{1+\\mathrm{bv}}(\\mathbb S^1)$ 的每个幂零子群都是交换群。\n(iii) $\\operatorname{Diff}_+^{1+\\mathrm{bv}}(\\mathbb R)$ 的每个幂零子群都是亚交换群（metabelian）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "交换",
+      "一维动力系统",
+      "$C^{1+\\mathrm{bv}}$"
+    ],
+    "article": [
+      {
+        "zh": "Plante–Thurston 定理是交换微分同胚群分类的第一步。它表明在 $C^{1+\\mathrm{bv}}$ 正则性下，圆周（$\\mathbb S^1$）和区间 $[0,1[$ 上的幂零子群必然交换。这意味着幂零群在一维动力系统中的行为比抽象群论中的一般幂零群简单得多。\n\n证明的核心工具是 Kopell 引理。基本思路（以区间情形为例）：设 $\\Gamma$ 是幂零子群，假设 $[0,1[$ 是 $\\Gamma$ 作用的不可约分量。若存在非平凡元 $f$ 在 $]0,1[$ 中有不动点，取 $g$ 为 $\\Gamma$ 中心中的非平凡元。利用幂零群的中心结构，通过 Kopell 引理导出矛盾——$g$ 必须固定 $f$ 的不动点集的边界点，从而显示 $\\Gamma$ 在该点上不保持不可约性。因此所有非平凡元都无不动点，由 Hölder 定理知 $\\Gamma$ 共轭于平移群的子群，故交换。\n\n圆周情形通过旋转数论证归结到区间情形。直线情形则得到较弱的结论——仅亚交换，这是最优的（反例：仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 的幂零子群可能非交换）。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "以区间情形为例。设 $\\Gamma$ 是幂零子群，$[0,1[$ 是 $\\Gamma$ 作用的不可约分量。若存在非平凡元 $f\\in\\Gamma$ 在 $]0,1[$ 中有不动点，取其最靠近 $0$ 的不动点 $\\alpha$。取 $g$ 为 $\\Gamma$ 中心中的非平凡元。由幂零群的中心非平凡，$g$ 存在。利用 Kopell 引理：$g$ 在 $\\alpha$ 处导数为 $1$ 且 $g(\\alpha)=\\alpha$（否则 $g$ 会移动 $f$ 的轨道，与不可约性矛盾）。从而 $g$ 在 $\\alpha$ 附近无局部压缩或扩张，进一步可证 $g$ 在 $\\alpha$ 的某邻域中为恒等映射，与不可约性矛盾（因为这会破坏 $\\Gamma$ 的极小性）。因此所有非平凡元在 $]0,1[$ 中均无不动点。由 Hölder 定理，$\\Gamma$ 共轭于平移群的子群，故交换。圆周情形：通过旋转数 $\\rho$ 将圆周作用提升到直线或化为有不动点情形，利用区间情形的结论。直线情形通过考虑 $\\Gamma$ 在无穷远处的行为得到较弱的亚交换结论（仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 的幂零子群是反例）。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §4.2.",
+      "J. Plante & W. Thurston, Polynomial growth in holonomy groups of foliations, Comment. Math. Helv. 51 (1976), 567-584."
+    ]
+  }
+}

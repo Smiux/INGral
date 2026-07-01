@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.group-circle.sacksteder-optimal-c1",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Sacksteder 定理最优 $C^1$ 版本",
+      "无不变测度 $C^1$ 群作用的双曲不动点结构"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 为 $\\operatorname{Diff}_+^1(\\mathbb S^1)$ 的有限生成子群且无不变概率测度。则 $\\Gamma$ 含有具有 $2d(\\Gamma)$ 个不动点的元素，所有不动点皆为双曲的（一半收缩、一半扩张）。这里 $d(\\Gamma)$ 是 $\\Gamma$ 的度（见强扩张作用条目）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "微分同胚群",
+      "Lyapunov 指数",
+      "Pesin 理论",
+      "有限生成子群",
+      "强扩张作用"
+    ],
+    "article": [
+      {
+        "zh": "该定理是 Sacksteder 定理理论发展的最终形式之一，涉及 $C^1$ 群作用与不变测度之间的深刻对立。经典 $C^{1+\\mathrm{Lip}}$ 版本（Sacksteder 1965）证明：若 $C^{1+\\mathrm{Lip}}$ 叶状族群无不变测度，则存在某个群元素具有双曲不动点。将正则性降到 $C^1$ 且结论从「一个双曲不动点」增强到「$2d(\\Gamma)$ 个双曲不动点」是 Navas 等人的贡献。\n\n证明的核心突破在于使用 Lyapunov 指数工具（Pesin 理论的叶状版本）。无不变概率测度时，随机游走在圆周上诱导的平稳测度是**非原子**的。对此测度应用 Oseledets 乘法遍历定理的叶状版本，得到沿随机轨道的正 Lyapunov 指数。正 Lyapunov 指数意味着轨道邻域在某个方向指数拉伸，结合 Newman 引理（圆周上 $C^1$ 微分同胚的扩张区间结构引理），可构造一个群元素恰好有 $2d(\\Gamma)$ 个双曲不动点，其中 $d(\\Gamma)$ 是强扩张作用理论中定义的「度」。\n\n度 $d(\\Gamma)$ 的动力学意义：它度量了群作用在圆周上「扩张」的程度。$d(\\Gamma)=1$ 对应强扩张作用——即存在某个元素将整个圆周拉长到超过其长度。$d(\\Gamma)>1$ 时，作用具有更复杂的扩张结构，对应定理中 $2d(\\Gamma)$ 个交错排列的双曲不动点（一半收缩、一半扩张），这些不动点恰好构成了作用在圆周上的一个周期轨道骨架。\n\n这一结果深刻之处在于：$C^1$ 正则性是最优的——对 $C^{1-\\varepsilon}$ 正则性（即导数仅 Hölder 连续但指数 $<1$），结论不再成立，因为存在 $C^{1-\\varepsilon}$ 的圆周微分同胚群在不具有不变测度时也没有任何双曲不动点。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "使用 Lyapunov 指数方法（Pesin 理论的叶状版）。无不变概率测度时，随机游走的平稳测度导出沿随机轨道的正 Lyapunov 指数。结合 Newman 引理构造具有 $2d(\\Gamma)$ 个双曲不动点的元素：其中一半为收缩型（导数为负对数），另一半为扩张型。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.2.3.",
+      "R. Sacksteder, Foliations and pseudogroups, Amer. J. Math. 87 (1965), 79-102."
+    ]
+  }
+}

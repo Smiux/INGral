@@ -1,0 +1,33 @@
+{
+  "id": "dynamics.ergodic.standard-measure-space",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "标准测度空间",
+      "standard probability space",
+      "Lebesgue 空间"
+    ]
+  },
+  "description": {
+    "zh": [
+      "称概率空间 $(X,\\mathcal B,\\mu)$ 为**标准概率空间**，若 $X$ 是可分完全度量空间，$\\mathcal B$ 是其 Borel $\\sigma$-代数，$\\mu$ 是 Borel 概率测度的完备化。标准概率空间同构于 $[0,1]$ 上 Lebesgue 测度与至多可数多个原子的并。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "测度论",
+      "Polish 空间",
+      "同构定理",
+      "保测变换"
+    ],
+    "article": [
+      {
+        "zh": "标准概率空间是遍历理论的标准工作框架。这类空间具有以下良好性质：同构定理断言两个非原子的标准概率空间测度论同构（即存在保测双射），因此遍历理论中通常不区分具体的标准空间，而将所有非原子标准概率空间视为同一个抽象空间。\n\n这一结论的证明思路：将空间嵌入 $[0,1]^{\\mathbb N}$ 并利用二进制展开构造同构。Polish 空间的紧子集上的 Borel 概率测度自动满足正则性条件，这为遍历分解定理等结果的证明提供了基础。\n\n在遍历理论中，假定相空间是标准概率空间是常规做法——这足以保证所有需要的测度论构造（条件期望、遍历分解、自然延伸等）的有效性。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), Appendix A."
+    ]
+  }
+}

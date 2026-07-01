@@ -1,0 +1,31 @@
+{
+  "id": "dynamics.invariant-measure",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "不变测度",
+      "不变 Borel 概率测度"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\colon X\\to X$ 为可测映射。Borel 概率测度 $\\mu$ 称为 $f$**不变的**，若对每个 Borel 集 $A$ 有 $\\mu(f^{-1}A)=\\mu(A)$。\n\n记 $\\mathfrak M(f)$ 为 $f$ 的所有不变 Borel 概率测度之集。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "概率测度",
+      "保测变换",
+      "Borel 测度"
+    ],
+    "article": [
+      {
+        "zh": "不变测度 $\\mu(f^{-1}A)=\\mu(A)$ 将动力系统的轨道信息压缩为单一的统计描述。它的存在性（紧度量空间上连续映射的 Bogolioubov–Krylov 定理）是泛函分析中 Markov–Kakutani 不动点定理的直接推论：考虑所有 Borel 概率测度之集 $\\mathfrak M$（在弱*拓扑下为紧凸集），$f$ 的推进映射 $f_*\\colon\\mu\\mapsto\\mu\\circ f^{-1}$ 是 $\\mathfrak M$ 上的仿射连续自映射，故必有不动点——即 $f$-不变测度。\n\n不变测度的最深刻推论之一是 Poincaré 回复定理：若 $\\mu$ 为 $T$-不变概率测度，则对任意可测集 $E$，几乎所有 $x\\in E$ 都会无限次返回 $E$。这一简单而普适的结论完全建立在保测性之上，不依赖任何光滑性假设。\n\n不变测度不仅是抽象的统计量，它与具体的动力学量之间存在深层联系。在旋转数理论中，$\\mathfrak M(f)$ 的紧凸性保证了旋转数的积分表示 $\\rho(\\tilde f)=\\int\\Delta_{\\tilde f}d\\mu$ 对所有 $\\mu\\in\\mathfrak M(f)$ 取相同值——这正是旋转数良定义的依据。在遍历理论中，Birkhoff 遍历定理断言 $\\mu$-几乎处处单条轨道的时均等于空间均值，因此不变测度使我们可以从单条轨道的数值模拟推断全局的统计行为。\n\n不变测度的存在性导出了遍历分解定理：$\\mathfrak M(f)$ 的极值点恰为遍历测度（即不可分解的不变测度），且每个不变测度可唯一表示为遍历测度的凸组合（Choquet 分解）。这一分解在应用中的意义是：系统的统计行为可以分解为若干「纯态」（遍历分量）的混合——每个纯态对应系统的一个递推移部分，其上的动力学在统计意义上是不可再分的。\n\n对于圆周同胚，不变概率测度在无理旋转下唯一（即 Lebesgue 测度），在有理旋转下则有无穷多个（每个周期轨上的均匀分布都是遍历测度）。这一简单但本质的差异揭示了有理/无理旋转数二分的遍历论深度：有理数对应「多点支撑的遍历测度」，无理数对应「连续的遍历测度」。当 $f$ 是 $C^{1+\\mathrm{bv}}$ 圆周微分同胚且 $\\rho(f)$ 无理时，$f$ 的不变概率测度唯一且绝对连续于 Lebesgue 测度——这是 Denjoy 定理在测度论层面的推论。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA.",
+      "N. Bogolioubov & N. Krylov, La théorie générale de la mesure dans son application à l'étude des systèmes dynamiques de la mécanique non linéaire, Ann. of Math. 38 (1937), 65-113."
+    ]
+  }
+}

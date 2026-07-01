@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.moriyama-classification",
+  "to": "dynamics.plante-thurston-nilpotent",
+  "description": {
+    "zh": [
+      "Moriyama 分类中「多循环群是亚交换的」这一关键步骤通过 Plante–Thurston 定理证明其幂零根交换。"
+    ]
+  }
+}

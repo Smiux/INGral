@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.duminy-first-theorem",
+  "to": "dynamics.minimal-set",
+  "description": {
+    "zh": [
+      "Duminy 第一定理给出了一类群不包含例外极小集的充分条件，若群生成元充分接近旋转（导数对数全变差足够小），且至少一个生成元有孤立周期点，则不存在例外极小集。"
+    ]
+  }
+}

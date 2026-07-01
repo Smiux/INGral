@@ -1,0 +1,33 @@
+{
+  "id": "dynamics.circle.morse-smale",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Morse 与 Smale 圆周微分同胚",
+      "Morse 与 Smale 系统"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\in\\operatorname{Diff}^1(\\mathbb T)$。若 $\\operatorname{Per}(f)\\neq\\varnothing$ 且 $f$ 的每个周期点均为双曲的，则称 $f$ 为 **Morse 与 Smale 微分同胚**。\n\n对 $r\\in\\mathbb N\\cup\\{\\infty\\}$，记 $MS^r$ 为保向 Morse-Smale 圆周 $C^r$ 微分同胚的集合。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周映射",
+      "双曲",
+      "通有动力学",
+      "稠密性",
+      "Cr-通有"
+    ],
+    "article": [
+      {
+        "zh": "Morse–Smale 系统是圆周微分同胚中「动力学最简单」的一类——非游荡集由有限个双曲周期点组成。这里的「简单」指的是无混沌、无无限复杂性。但 Morse–Smale 系统的伟大意义在于它们的稠密性：在 $\\operatorname{Diff}_+^r(\\mathbb T)$ 中，$MS^r$ 是 $C^1$-开且 $C^r$-稠密的。这意味着任意圆周微分同胚都可以通过任意小的 $C^r$ 扰动变成一个周期点全部双曲的系统。稠密性确保了「通有」圆周微分同胚具有 Morse–Smale 结构。\n\n稠密性证明分为两步。先用 closing 引理将旋转数有理化（通过提升加小常数 $t$ 使 $\\rho$ 变为有理数），从而迫使系统出现周期点。然后用参数横截性定理将这些周期点依次扰动为双曲的——在取适当参数族后，非双曲性质对应一个代数条件，通过 Sard 定理可以避开。第一步是拓扑的，第二步依赖于微分拓扑的横截性工具。$C^1$-开性由双曲周期点在 $C^1$ 小扰动下保持存在和双曲型来保证：双曲不动点是结构稳定的（隐函数定理的直接推论），因此 $MS^r$ 在 $C^1$ 拓扑下是一个开集。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026.",
+      "J. Palis & F. Takens, Hyperbolicity and sensitive chaotic dynamics, Cambridge Studies in Advanced Mathematics 35, Cambridge University Press (1993)."
+    ]
+  }
+}

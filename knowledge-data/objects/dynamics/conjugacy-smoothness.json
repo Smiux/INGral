@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.conjugacy-smoothness",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "共轭光滑性提升定理",
+      "共轭提升定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Phi_1,\\Phi_2\\colon\\Gamma\\to\\operatorname{Diff}_+^r(\\mathbb S^1)$ 为两个表示，$2\\leqslant r\\leqslant\\infty$。若 $\\Phi_1(\\Gamma)$ 的轨道稠密且 $\\Phi_1(\\Gamma)$ 不拓扑共轭于旋转群，则任意 $C^1$ 共轭 $\\varphi$（即 $\\varphi\\circ\\Phi_1(\\gamma)=\\Phi_2(\\gamma)\\circ\\varphi$）自动为 $C^r$ 微分同胚。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周微分同胚",
+      "群作用",
+      "Sternberg"
+    ],
+    "article": [
+      {
+        "zh": "共轭光滑性提升定理是回答以下问题的结果：如果两个圆周微分同胚群作用之间存在一个 $C^1$ 共轭，那么该共轭的真实光滑性是否由作用的光滑性决定？定理表明，只要作用是稠密轨道且不共轭于旋转，$C^1$ 共轭就自动「提升」为 $C^r$——即共轭的光滑性与作用本身的光滑性相同。\n\n证明的关键步是使用 Sacksteder 定理的推论找到 $\\Phi_1(\\Gamma)$ 中一个元 $g$ 和一个点 $x$ 使得 $\\Phi_1(g)(x)=x$ 且 $\\Phi_1(g)'(x)\\neq1$。在局部坐标下这给出了一个双曲胚。$\\varphi$ 将其共轭到另一个双曲胚，由 Sternberg 线性化定理的推论可知 $\\varphi$ 在 $x$ 附近是 $C^r$ 的。然后利用共轭关系 $\\varphi\\circ\\Phi_1(h)=\\Phi_2(h)\\circ\\varphi$，将 $C^r$ 性沿稠密轨道传播到整个圆周。\n\n定理对 $C^{1+\\tau}$ 和非交换极小作用也成立。对于 bi-Lipschitz 共轭，在遍历性假设下同样可以得到 $C^1$ 结论。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "证明的关键步是使用 Sacksteder 定理的推论找到 $\\Phi_1(\\Gamma)$ 中一个元 $g$ 和一个点 $x$ 使得 $\\Phi_1(g)(x)=x$ 且 $\\Phi_1(g)'(x)\\neq1$。在局部坐标下这给出了一个双曲胚。$\\varphi$ 将其共轭到另一个双曲胚，由 Sternberg 线性化定理的推论可知 $\\varphi$ 在 $x$ 附近是 $C^r$ 的。然后利用共轭关系 $\\varphi\\circ\\Phi_1(h)=\\Phi_2(h)\\circ\\varphi$，将 $C^r$ 性沿稠密轨道传播到整个圆周。"
+      }
+    ],
+    "references": [
+      "J. C. Yoccoz, Centralisateurs et conjugaison différentiable des difféomorphismes du cercle, Astérisque 231 (1995), 89-242.",
+      "E. Ghys & T. Tsuboi, Différentiabilité des conjugaisons, Ann. Inst. Fourier 38 (1988), 215-244.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.6.1."
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "dynamics.translation-number",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "平移数"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb R)$ 为保向直线同胚群，$\\nu$ 为 $\\Gamma$-不变 Radon 测度（未必有限）。$g\\in\\Gamma$ 关于 $\\nu$ 的**平移数**定义为 $\\tau_\\nu(g):=\\nu([x,g(x)[)$，该值与起点 $x$ 的选择无关（$[x,g(x)[$ 按 $\\mathbb R$ 的定向取正/负）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Radon 测度",
+      "直线作用",
+      "仿射群",
+      "余循环"
+    ],
+    "article": [
+      {
+        "zh": "平移数 $\\tau_\\nu(g)=\\nu([x,g(x)[)$ 是旋转数在直线上的类比——两者都来自位移函数的积分平均，且都满足上同调（cocycle）性质。主要区别在于值域：旋转数模 $\\mathbb Z$ 取值（因为圆周的提升相差整数平移），而平移数直接取实数值。\n\n平移数的良定义性依赖于 $\\nu$ 的 $\\Gamma$-不变性：若 $\\nu$ 是 $\\Gamma$-不变的 Radon 测度，则 $\\nu([x,g(x)[)$ 与 $x$ 的选择无关。因为若取另一基点 $y$，区间 $[x,g(x)[$ 和 $[y,g(y)[$ 的对称差可写为有限个 $g^i(J)$ 的并（$J$ 是 $[x,y]$ 或其逆），而不变性保证 $\\nu(g(J))=\\nu(J)$，从而对称差的测度为零。\n\n平移数的关键性质之一是它的上同调行为：$\\tau_\\nu(gh)=\\tau_\\nu(g)+\\tau_\\nu(h)$ 对可交换的 $g,h$ 成立，但对非交换的元素一般不成立。这一偏差正是 $\\nu$ 的非紧性导致的——紧支撑的有限不变测度下平移数恒为零，因此平移数仅在非紧情形有意义。这正是仿射群刻画定理的语境：仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 的作用保持无限 Radon 测度（Lebesgue 测度乘以 $dx/x$ 类），其平移数非平凡，从而可以区分不同的幂（$\\tau_\\nu(g)=\\log\\lambda$ 对 $g(x)=\\lambda x+b$ 成立）。\n\n在无交叉元素的 $\\mathbb R$ 同胚子群中，平移数给出了群到 $(\\mathbb R,+)$ 的同态（因为无交叉性保证了可交换性），进而可用于分类共轭于平移子群的充要条件。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.5."
+    ]
+  }
+}

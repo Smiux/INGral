@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.koopman-operator",
+  "to": "dynamics.ergodic.measure-preserving-transformation",
+  "description": {
+    "zh": [
+      "Koopman 算子 $U_Tf=f\\circ T$ 定义了保测变换在 $L^2$ 上的作用，是谱方法的基本工具。"
+    ]
+  }
+}

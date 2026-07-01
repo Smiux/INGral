@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.abramov-formula",
+  "to": "dynamics.ergodic.metric-entropy",
+  "description": {
+    "zh": [
+      "Abramov 公式将诱导系统的熵与原系统的熵联系起来，提供了通过诱导计算熵的工具。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.lift",
+  "to": "dynamics.circle.displacement-cocycle",
+  "description": {
+    "zh": [
+      "位移函数 $\\Delta_{\\tilde f}=\\tilde f-\\operatorname{id}_{\\mathbb R}$ 以提升 $\\tilde f$ 为直接前提——其定义、良定义性以及上循环恒等式（cocycle identity） $\\Delta_{\\tilde f^n}=\\sum_{j=0}^{n-1}\\Delta_{\\tilde f}\\circ f^j$ 均源自于提升的迭代结构。"
+    ]
+  }
+}

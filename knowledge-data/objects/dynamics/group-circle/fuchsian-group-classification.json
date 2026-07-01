@@ -1,0 +1,33 @@
+{
+  "id": "dynamics.group-circle.fuchsian-group-classification",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Fuchs 群圆周动力学分类",
+      "第一类与第二类 Fuchs 群"
+    ]
+  },
+  "description": {
+    "zh": [
+      "Fuchs 群（$\\operatorname{PSL}(2,\\mathbb R)$ 的离散子群）按其在圆周上的动力学行为分为三类：\n- **初等群**（elementary）：存在有限轨道；\n- **第一类群**（first kind）：所有轨道稠密；\n- **第二类群**（second kind）：存在例外极小集（Cantor 集）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "PSL(2,R)",
+      "离散子群",
+      "例外极小集",
+      "Schottky 群",
+      "初等群"
+    ],
+    "article": [
+      {
+        "zh": "Fuchs 群的这种三角分类源于 $\\operatorname{PSL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1$ 上的动力学，并与双曲几何深刻对应。初等群存在有限轨道——它们恰好是 $\\operatorname{PSL}(2,\\mathbb R)$ 中有限子群（椭圆元生成的循环群）或含抛物元/双曲元但不是 Schottky 型的群。第一类群对应双曲曲面的 Fuchs 群表示，其极限集为整个圆周，意味着它们在动力学上是混沌的（每个轨道稠密）。第二类群（也称退化群）的极限集是真子集——Cantor 集，对应双曲曲面上的「孔洞」结构。\n\n第二类群的一个典型例子是 Schottky 群：由两个双曲元 $g_0,g_1$ 生成，在圆周上存在互不相交的区间 $I_0,I_1,J_0,J_1$ 使得 $g_i(I_i\\cup J_i\\cup J_{1-i})\\subset I_i$ 且 $g_i^{-1}(I_i\\cup I_{1-i}\\cup J_{1-i})\\subset J_i$。这种 ping-pong 配置在其极限集上产生标准的 Cantor 动力学，与符号空间 $\\{0,1\\}^{\\mathbb N}$ 上的移位映射共轭。\n\n该分类与圆周群作用的一般理论相联系：圆周上任意保向同胚子群的作用可分为三类——有限轨道、稠密轨道和例外极小集（Cantor 集），Fuchs 群的分类是此一般分类在 $\\operatorname{PSL}(2,\\mathbb R)$ 离散子群上的具体化。特别是，例外极小集的出现刻画了第二类 Fuchs 群，而稠密轨道（即极限集为整个 $\\mathbb{RP}^1$）刻画了第一类群。\n\n收敛群分类定理的重要推论：若 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 具有收敛性质且无有限轨道，则 $\\Gamma$ 必然是第一类或第二类 Fuchs 群——即每个满足收敛性质的无穷群都是 Fuchs 群。这给出 Fuchs 群的纯动力学刻画。"
+      }
+    ],
+    "references": [
+      "L. Ahlfors, Finitely generated Kleinian groups, Amer. J. Math. 86 (1964), 413-429.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.1.1."
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.group-circle.conjugacy",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "群作用的共轭"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\phi_1,\\phi_2$ 为群 $\\Gamma$ 分别在 $X_1,X_2$ 上的作用。称 $\\phi_1$ 与 $\\phi_2$ **共轭**（conjugate），若存在同胚 $h\\colon X_1\\to X_2$ 使得 $\\phi_2(\\gamma)=h\\circ\\phi_1(\\gamma)\\circ h^{-1}$ 对每个 $\\gamma\\in\\Gamma$ 成立。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "拓扑动力学",
+      "分类",
+      "等价关系",
+      "对角化",
+      "嵌入"
+    ],
+    "article": [
+      {
+        "zh": "群作用的共轭是分类的基本等价关系。它与单个映射的拓扑共轭的关键区别在于：$h$ 必须同时将所有 $\\gamma\\in\\Gamma$ 的作用「对角化」。因此存在两个作用每个元素逐一共轭、但整体不共轭的现象。在这一现象中最著名的例子是 $\\operatorname{PSL}(2,\\mathbb R)$ 的嵌入：一个由双曲元生成的 $\\mathbb Z$ 子群可以通过不同的 Fuchs 群嵌入在圆周上实现为不同的 Schottky 群，它们的元素同伦论共轭但整体不共轭。\n\n更精确地，两个嵌入 $\\phi_1,\\phi_2:\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 共轭当且仅当存在 $h\\in\\operatorname{Homeo}_+(\\mathbb S^1)$ 使 $\\phi_2(\\gamma)=h\\phi_1(\\gamma)h^{-1}$ 对所有 $\\gamma$ 成立。这意味着相应的 Euler 类 $eu(\\phi_1),eu(\\phi_2)\\in H^2(\\Gamma,\\mathbb Z)$ 相等——Euler 类是共轭不变的非平凡障碍。当 $\\Gamma$ 是曲面基本群 $\\Gamma_g$ 时，Milnor-Wood 不等式 $|eu(\\phi)|\\leqslant 2g-2$ 给出了 Euler 数的范围，不同的 Euler 数对应不同的共轭类。\n\n共轭问题与 $\\Gamma$ 到 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的表示空间的轨道空间分类等价。由于 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 不是代数群，此表示空间缺乏代数几何结构，因此分类通常借助不变量（Euler 类、旋转数、平移数）和刚性定理（如收敛群分类定理：满足收敛性质的群必共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群）来完成。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
+      "W. de Melo & S. van Strien, One-dimensional dynamics, Springer-Verlag (1993)."
+    ]
+  }
+}

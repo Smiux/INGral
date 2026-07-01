@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.ergodic.birkhoff-ergodic",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Birkhoff 遍历定理",
+      "Birkhoff 点态遍历定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu)$ 为概率测度空间，$T\\colon X\\to X$ 保测。则对任意 $\\varphi\\in L^1(X,\\mu)$，极限\n$$\\lim_{n\\to\\infty}\\frac1n\\sum_{j=0}^{n-1}\\varphi(T^j(x))$$\n存在 $\\mu$-几乎处处，记作 $\\overline\\varphi(x)$。$\\overline\\varphi$ 为 $T$-不变的，且满足 $\\int\\overline\\varphi\\,d\\mu = \\int\\varphi\\,d\\mu$。\n\n若 $\\mu$ 还是遍历的，则 $\\overline\\varphi$ $\\mu$-几乎处处等于 $\\int\\varphi\\,d\\mu$。\n\n在非遍历情形下，$\\overline\\varphi=\\mathbb E(\\varphi|\\mathfrak{Inv}(T))$，即 $\\varphi$ 关于 $T$-不变 $\\sigma$-代数的条件期望。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历定理",
+      "保测变换",
+      "时间平均",
+      "Birkhoff",
+      "极大遍历定理"
+    ],
+    "article": [
+      {
+        "zh": "Birkhoff 遍历定理是遍历论的基本定理之一，断言保测变换沿轨道的时间平均几乎处处收敛到空间平均（在遍历条件下相等）。定理的证明将非负函数的时间平均分解为极限上确界和极限下确界两部分，通过构造首次进入时刻作为停时来「涂色」时间区间，分别用不等式估计上极限和下极限的积分，从而迫使两者几乎处处相等。\n\n在非遍历情形下，极限 $\\overline\\varphi$ 是条件期望 $\\mathbb E(\\varphi|\\mathfrak{Inv}(T))$，即 $\\varphi$ 在不变 $\\sigma$-代数上的平均。这给出了遍历分解定理的另一种视角：将 $\\mu$ 分解为遍历分量，$\\overline\\varphi$ 等于 $\\varphi$ 在各遍历分量上的空间平均的再平均。\n\n在旋转数理论中，Birkhoff 遍历定理用于证明旋转数 $\\rho(\\tilde f)$ 可表示为 $\\int_{\\mathbb T}\\Delta_{\\tilde f}d\\mu$ 对任意不变测度 $\\mu$ 成立——由定理的 $\\mu$-几乎处处收敛与振荡引理结合得出对所有点一致收敛。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "设 $M=\\limsup_n S_n(\\varphi)/n$，其中 $S_n(\\varphi)=\\sum_{j=0}^{n-1}\\varphi\\circ T^j$。对任意 $\\varepsilon>0$，存在可测集 $D$ 使 $M\\leq \\int_D\\varphi d\\mu+\\varepsilon$ 且 $T$-回复性质给出覆盖。构造 $\\varphi_\\alpha=\\varphi-\\alpha$，利用极大遍历定理 $\\int_{\\{M_\\alpha>0\\}}\\varphi_\\alpha d\\mu\\geq 0$。推出 $\\int M d\\mu = \\int \\varphi d\\mu$ 且 $M$ 是 $T$-不变的。由 $M$ 的定义对称性得到 $M = \\liminf_n S_n(\\varphi)/n$ 几乎处处，从而极限存在。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA.",
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.2."
+    ]
+  }
+}

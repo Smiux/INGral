@@ -1,0 +1,34 @@
+{
+  "id": "dynamics.ergodic.shannon-mcmillan-breiman",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Shannon–McMillan–Breiman 定理",
+      "SMB 定理",
+      "遍历论的渐近等分性质"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为遍历概率保测变换，$\\alpha$ 为有限熵的可数可测划分。则对 $\\mu$-几乎每个 $x$，\n$$\\lim_{n\\to\\infty}-\\frac1n\\log_2\\mu\\big(\\alpha_n(x)\\big)=h_\\mu(T,\\alpha),$$\n其中 $\\alpha_n(x)$ 是 $\\bigvee_{i=0}^{n-1}T^{-i}\\alpha$ 中包含 $x$ 的元素。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "熵",
+      "典型序列",
+      "信息论",
+      "Shannon"
+    ],
+    "article": [
+      {
+        "zh": "Shannon–McMillan–Breiman 定理是信息论与遍历理论交汇的核心结果，它断言：沿几乎每条轨道，由 $\\alpha$-航拍生成的 $n$ 步柱集的测度以指数速率 $h_\\mu(T,\\alpha)$ 衰减。换言之，从典型轨道上观察到的「$\\alpha$-名字」的观测概率以 $2^{-n h_\\mu(T,\\alpha)}$ 的量级衰减。\n\n该定理的名字反映了其历史：Shannon 在信息论背景下提出了信源编码定理的渐近等分性质（AEP）；McMillan 将其严格化并证明了 $L^1$ 收敛；Breiman 进一步将收敛加强为几乎处处收敛。\n\n一个直接推论是「渐近等分性质」（AEP）：对任意 $\\varepsilon>0$，存在 $N$ 使对 $n\\ge N$，可将 $X$ 分为两个集合：构成「典型集」的那些柱集——它们的测度约在 $2^{-n h_\\mu(T,\\alpha)}$ 附近，总测度接近 1。\n\n证明思路：将 $-\\log_2\\mu(\\alpha_n(x))$ 表为 $\\sum_{i=0}^{n-1}\\varphi\\circ T^i$ 的形式，其中 $\\varphi$ 适当定义，然后应用 Birkhoff 遍历定理。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §4.3.2.",
+      "C. Shannon, A mathematical theory of communication, Bell System Tech. J. 27 (1948), 379–423."
+    ]
+  }
+}

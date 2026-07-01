@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.minimal-set",
+  "to": "dynamics.circle.irrational-rotation-dynamics",
+  "description": {
+    "zh": [
+      "无理旋转数动力学定理以极小集为核心概念：唯一极小集 $K$ 要么是整个圆周要么是 Cantor 集，这一结论将极小集的分类性质（紧、不变、无真闭不变子集）具体化到圆周动力学的语境中。"
+    ]
+  }
+}

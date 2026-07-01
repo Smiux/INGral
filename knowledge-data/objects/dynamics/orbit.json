@@ -1,0 +1,31 @@
+{
+  "id": "dynamics.orbit",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "轨道",
+      "点轨道",
+      "轨迹"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Phi\\colon\\mathbb T\\times M\\to M$ 为动力系统。点 $x\\in M$ 的**轨道**定义为\n$$\\mathcal O_\\Phi(x):=\\{\\Phi(t,x):t\\in\\mathbb T\\}.$$\n\n正向轨道 $\\{\\Phi(t,x):t\\geqslant0\\}$ 和逆向轨道（当可逆时）$\\{\\Phi(t,x):t\\leqslant0\\}$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "正向轨道",
+      "渐近行为",
+      "相空间"
+    ],
+    "article": [
+      {
+        "zh": "轨道 $\\mathcal O_\\Phi(x)=\\{\\Phi(t,x):t\\in\\mathbb T\\}$ 是动力系统中最直接的观察对象，它将「点的演化」转化为「相空间中的子集」，从而将动力学问题转化为集合论与拓扑学问题。动力系统理论的主要目标正是描述各类轨道的渐近行为。\n\n轨道概念的一个核心微妙之处在于「正向」与「逆向」的不对称性。当 $\\mathbb T=\\mathbb N_0$（单向半群）时，只有正向轨道有定义；当 $\\mathbb T=\\mathbb R_{\\geqslant0}$（连续半群）时同样如此。只有当时间集是群（$\\mathbb Z$ 或 $\\mathbb R$）时才能谈论完整的双向轨道。在耗散系统中，逆向轨道通常无物理意义；即使在可逆系统中，逆向轨道的渐近行为也可能与正向截然不同。\n\n轨道的分类构成动力系统分类的底层语言：\n- **周期轨道**对应 $\\mathcal O(x)$ 为有限集的行为，它的存在性由旋转数的有理数/无理数分裂刻画（圆周同胚）。\n- **稠密轨道**对应 $\\overline{\\mathcal O(x)} = M$ 的行为；具有稠密轨道的系统称为拓扑传递的。\n- **极小轨道**对应 $\\overline{\\mathcal O(x)}$ 是极小集——即不含真闭不变子集；此时 $\\mathcal O(x)$ 本身在 $\\overline{\\mathcal O(x)}$ 中稠密，且每点都是回归的。无理旋转 $R_\\alpha$ 的每条轨道在 $\\mathbb T$ 中稠密，因此每条轨道都是极小的。\n- **游荡点**与**非游荡点**的二分：$x$ 是非游荡点当且仅当它的每个邻域 $U$ 存在 $n\\geqslant1$ 使 $U\\cap f^{-n}(U)\\neq\\varnothing$。非游荡点集 $\\Omega(f)$ 是回复性层级 $\\operatorname{Fix}(f)\\subset\\operatorname{Per}(f)\\subset\\operatorname{Rec}^+(f)\\subset L(f)\\subset\\Omega(f)\\subset\\mathcal R(f)$ 中的关键一环。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §1, §3.1, §5.1."
+    ]
+  }
+}

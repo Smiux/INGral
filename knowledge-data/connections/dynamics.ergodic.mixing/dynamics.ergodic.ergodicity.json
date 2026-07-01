@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.mixing",
+  "to": "dynamics.ergodic.ergodicity",
+  "description": {
+    "zh": [
+      "强混合性蕴含遍历性：若 T 是混合的，则每个不变集 E 满足 μ(E)=μ(E)^2，故 μ(E)=0 或 1。"
+    ]
+  }
+}

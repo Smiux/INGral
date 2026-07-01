@@ -1,0 +1,33 @@
+{
+  "id": "algebra.group-theory.polycyclic-group",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "多重循环群",
+      "polycyclic 群"
+    ]
+  },
+  "description": {
+    "zh": [
+      "群 $\\Gamma$ 称为**多重循环的**，若它是有限生成可解的，且其降列 $\\Gamma^{(i+1)}=[\\Gamma^{(i)},\\Gamma^{(i)}]$ 中每个 $\\Gamma^{(i)}$ 都是有限生成的。等价地，$\\Gamma$ 有子群序列\n$$\\{e\\}=G_n\\triangleleft G_{n-1}\\triangleleft\\cdots\\triangleleft G_0=\\Gamma$$\n使得每个 $G_i/G_{i+1}$ 是无限循环的。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "可解群",
+      "幂零根",
+      "强多重循环",
+      "降列",
+      "有限生成"
+    ],
+    "article": [
+      {
+        "zh": "多重循环群是可解群中性质最好的一类——它们是可解群中「有限维类比」的对应物。定义中的降列条件 $\\Gamma^{(i+1)}=[\\Gamma^{(i)},\\Gamma^{(i)}]$（导出列）每步有限生成保证了群的整体有限性，这等价于要求每个商因子 $\\Gamma^{(i)}/\\Gamma^{(i+1)}$ 是有限生成 Abel 群（即 $\\mathbb Z^r$ 加上有限挠群）。多重循环群正好是有限生成可解群中那些满足极大条件（ascending chain condition on subgroups）的群。\n\n其结构理论的关键定理：多重循环群 $\\Gamma$ 的幂零根 $N(\\Gamma)$（所有幂零正规子群的积）是极大正规幂零子群，且存在有限指数子群 $\\Gamma_0$ 使 $[\\Gamma_0,\\Gamma_0]\\subset N(\\Gamma)$——即 $\\Gamma_0/N(\\Gamma)$ 是 Abel 群。这意味着多重循环群在有限指数后几乎幂零。\n\n在微分同胚群理论中，多重循环群的重要性来自以下事实：(i) 圆周上 $C^{1+\\mathrm{bv}}$ 多重循环微分同胚群必保持一个概率测度——这是 Navas 刚性定理的推论；(ii) 圆周上的多重循环群作用最终由旋转数和 Abel 化控制，因为高次导出子群被幂零根吸收。\n\n重要例子包括：$\\mathbb Z^n$、整数 Heisenberg 群、$\\mathbb Z^n\\rtimes\\mathbb Z$（当半直积由幺模矩阵给出时）。非例子：自由可解群（即使有限生成）不是多重循环的——因为其导出列的子群非有限生成。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), Appendix A.",
+      "D. J. S. Robinson, A Course in the Theory of Groups, Springer, 1996."
+    ]
+  }
+}

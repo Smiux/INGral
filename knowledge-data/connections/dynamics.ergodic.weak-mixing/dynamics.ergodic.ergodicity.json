@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.weak-mixing",
+  "to": "dynamics.ergodic.ergodicity",
+  "description": {
+    "zh": [
+      "弱混合性由 T×T 的遍历性等价刻画，这是证明弱混合 ⇒ 遍历的直接途径。"
+    ]
+  }
+}

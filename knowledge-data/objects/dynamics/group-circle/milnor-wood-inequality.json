@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.group-circle.milnor-wood-inequality",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Milnor–Wood 不等式"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma_g$ 为亏格 $g\\geqslant1$ 的闭定向曲面的基本群，$\\phi\\colon\\Gamma_g\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 为任意同态。则 Euler 数满足\n$$|eu(\\phi)|\\leqslant 2g-2.$$\n\n当 $\\phi(\\Gamma_g)\\subset\\operatorname{PSL}(2,\\mathbb R)$ 为双曲结构对应的 Fuchs 群嵌入时，$eu(\\phi)=2g-2$，达到等号。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Euler 类",
+      "曲面群",
+      "Fuchs 群",
+      "有界上同调",
+      "换位子乘积"
+    ],
+    "article": [
+      {
+        "zh": "Milnor–Wood 不等式是 Euler 类在圆周群作用框架中的核心约束。其证明的核心思想是：Euler 数 $eu(\\phi)$ 可以通过提升到 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 的换位子乘积的平移数来计算。取曲面基本群的标准表示\n$$\\Gamma_g=\\langle a_1,b_1,\\ldots,a_g,b_g\\mid a_1b_1a_1^{-1}b_1^{-1}\\cdots a_gb_ga_g^{-1}b_g^{-1}=1\\rangle,$$\n选择 $\\phi(a_i),\\phi(b_i)$ 的提升 $\\tilde a_i,\\tilde b_i$，则乘积 $\\tilde a_1\\tilde b_1\\tilde a_1^{-1}\\tilde b_1^{-1}\\cdots\\tilde a_g\\tilde b_g\\tilde a_g^{-1}\\tilde b_g^{-1}$ 是恒等映射的提升，故为整数平移——这个整数就是 $eu(\\phi)$。\n\n由于平移数 $\\tau$ 是拟同态且满足 $\\tau(\\tilde f^{-1})=-\\tau(\\tilde f)$，我们可以用拟同态缺陷估计 $\\tau$ 在该换位子乘积上的值。粗糙版本给出 $|eu(\\phi)|\\leqslant (4g-1)D$，其中 $D$ 是 $\\tau$ 的缺陷。精确的上界 $2g-2$ 需要更精细的分析——这对应于有界 Euler 类在 $H_b^2(\\Gamma_g,\\mathbb R)$ 中的范数恰好为 $1/2$。\n\n当 $\\phi(\\Gamma_g)$ 是 Fuchs 群（即 $\\operatorname{PSL}(2,\\mathbb R)$ 中的离散子群）且对应双曲曲面的紧化嵌入时，$eu(\\phi)=\\pm(2g-2)$ 达到等号，这是 Milnor 原论文中的关键计算。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "取曲面基本群的标准表示 $\\Gamma_g=\\langle a_1,b_1,\\ldots,a_g,b_g\\mid\\prod_{i=1}^g[a_i,b_i]=1\\rangle$。选择 $\\phi(a_i),\\phi(b_i)$ 的提升 $\\tilde a_i,\\tilde b_i\\in\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$。则乘积 $\\prod_{i=1}^g[\\tilde a_i,\\tilde b_i]$ 是恒等映射的提升，故为整数平移 $m$，且 $eu(\\phi)=m$。\n\n平移数 $\\tau$ 是拟同态，缺陷 $D=1$。估计 $\\tau$ 在换位子乘积上的值得 $|m|\\leqslant (4g-1)D$。精细分析利用有界上同调中 Euler 类的范数 $\\|eu\\|_\\infty=1/2$，可得最优上界 $|eu(\\phi)|\\leqslant 2g-2$。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
+      "J. Milnor, On the existence of a connection with curvature zero, Comment. Math. Helv. 32 (1958), 215–223.",
+      "J. Wood, Bundles with totally disconnected structure group, Comment. Math. Helv. 46 (1971), 257–273."
+    ]
+  }
+}

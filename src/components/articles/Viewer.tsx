@@ -708,7 +708,6 @@ export function ArticleViewer () {
         </div>
       </div>
 
-      {/* 底部探索 Dock */}
       <div
         className="fixed bottom-0 left-0 right-0 z-30 print:hidden"
         onPointerLeave={handleDockRegionPointerLeave}

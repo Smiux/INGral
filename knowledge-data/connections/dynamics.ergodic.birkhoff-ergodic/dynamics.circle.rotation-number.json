@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.birkhoff-ergodic",
+  "to": "dynamics.circle.rotation-number",
+  "description": {
+    "zh": [
+      "Birkhoff 遍历定理在旋转数存在性证明中用于将时间平均收敛到空间平均。"
+    ]
+  }
+}

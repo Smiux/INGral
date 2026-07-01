@@ -1,0 +1,42 @@
+{
+  "id": "dynamics.denjoy-theorem",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Denjoy 定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\in\\operatorname{Diff}_+^{1+\\mathrm{bv}}(\\mathbb S^1)$ 为导数有界变差的 $C^1$ 圆周微分同胚。若 $\\rho(f)\\in\\mathbb R\\setminus\\mathbb Q$ 为无理旋转数，则 $f$ 拓扑共轭于刚体旋转 $R_{\\rho(f)}$。\n\n等价表述：$C^{1+\\mathrm{bv}}$ 圆周微分同胚不可能有例外极小集。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周微分同胚",
+      "无理旋转",
+      "例外极小集",
+      "光滑动力学",
+      "拓扑共轭"
+    ],
+    "notes": [
+      {
+        "zh": "Denjoy 定理的 $C^{1+\\tau}$ ($\\tau<1$) 版本不成立——Herman 构造了对任意 $\\tau<1$ 存在 $C^{1+\\tau}$ 反例（非共轭于旋转的无理旋转数微分同胚）。$C^{1+\\mathrm{bv}}$ 条件是最优的。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "Denjoy 定理是圆周动力学光滑理论的起点。它划定了「可能通过光滑性排除例外极小集」的边界：$C^1$ 正则性不足以排除例外极小集，但 $C^{1+\\mathrm{bv}}$（导数有界变差）就够了。定理的证明利用了导数有界变差对 $\\sum |\\log Df(f^n(x))|$ 收敛性的控制——通过逐段迭代将位移函数的振荡限制在 $1$ 以下，然后通过半共轭和长度论证导出矛盾。\n\n对于群作用，Denjoy 的推广给出：若 $\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}(\\mathbb S^1)$ 且 $\\Gamma$ 中每个非平凡元都有无理旋转数，则 $\\Gamma$ 拓扑共轭于旋转群的子群（即整个群同时共轭）。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "反证法。若 $f$ 有例外极小集 $\\Lambda$，则 $\\Lambda$ 是 $\\mathbb S^1$ 中的 Cantor 集且 $f|_{\\Lambda}$ 极小而半共轭于无理旋转。考虑 $\\Lambda$ 的补区间 $(I_n)_{n\\in\\mathbb Z}$，其长度 $|I_n|$ 满足 $\\sum|I_n|=1$。利用 $C^{1+\\mathrm{bv}}$ 条件控制 $\\log f'$ 的全变差，通过 Denjoy–Koksma 不等式估计 $|I_{n+q}|/|I_n|$ 的乘积，可得 $\\prod_{k=1}^q |I_{n+k}|/|I_n|$ 一致有界。但 $\\sum|I_n|<\\infty$ 时，$|I_n|$ 必须指数衰减，这与有界性矛盾。故 $\\Lambda$ 不存在。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.1.",
+      "A. Denjoy, Sur les courbes définies par des équations différentielles à la surface du tore, J. Math. Pure et Appl. 11 (1932), 333-375."
+    ]
+  }
+}

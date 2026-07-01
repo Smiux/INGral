@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.semi-exceptional-orbit",
+  "to": "dynamics.minimal-set",
+  "description": {
+    "zh": [
+      "半例外轨道以例外极小集为定义前提——它是例外极小集的补区间端点轨道，介于例外点与平凡点之间。"
+    ]
+  }
+}

@@ -855,7 +855,7 @@ math-field::part(menu-toggle) {
   video {
     display: none !important;
   }
-
+  }
   mark,
   mark[data-match-index] {
     background-color: #ffffcc !important;
@@ -1056,7 +1056,6 @@ math-field::part(menu-toggle) {
     margin-left: auto !important;
     margin-right: auto !important;
   }
-}
 }
 
 /* ========================================

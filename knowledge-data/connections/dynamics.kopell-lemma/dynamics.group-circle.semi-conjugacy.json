@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.kopell-lemma",
+  "to": "dynamics.group-circle.semi-conjugacy",
+  "description": {
+    "zh": [
+      "Kopell 引理保证中心化子自由作用，通过半共轭将其表示为平移群——当平移群稠密时半共轭成为拓扑共轭。"
+    ]
+  }
+}

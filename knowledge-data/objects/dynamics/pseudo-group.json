@@ -1,0 +1,30 @@
+{
+  "id": "dynamics.pseudo-group",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "伪群",
+      "微分同胚伪群"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $M$ 为拓扑空间。$M$ 上的一个**伪群**（pseudo-group）$\\Gamma$ 是满足以下条件的 $M$ 的子集间同胚的族：\n- 每个 $g\\in\\Gamma$ 的域 $\\operatorname{dom}(g)$ 和像 $\\operatorname{ran}(g)$ 是开集；\n- 若 $g,h\\in\\Gamma$ 且 $\\operatorname{ran}(h)\\subset\\operatorname{dom}(g)$，则 $gh\\in\\Gamma$；\n- 若 $g\\in\\Gamma$，则 $g^{-1}\\in\\Gamma$；\n- $\\operatorname{id}_M\\in\\Gamma$；\n- 若 $g\\in\\Gamma$ 且 $A\\subset\\operatorname{dom}(g)$ 为开集，则 $g|_A\\in\\Gamma$；\n- 若 $g$ 是 $M$ 的开子集间的同胚且对每个 $x$ 存在邻域 $V_x$ 使 $g|_{V_x}\\in\\Gamma$，则 $g\\in\\Gamma$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Foliation 理论",
+      "局部同胚",
+      "同痕"
+    ],
+    "article": [
+      {
+        "zh": "伪群（pseudo-group）的概念是为处理**局部定义的同胚**而引入的。与群不同，伪群的元素不必在整个空间上有定义——它们是从一个开集到另一个开集的同胚，且伪群对复合、逆、限制和粘合封闭。这一灵活性的代价是失去了全局群作用的结构（如轨道、稳定子等概念在伪群语境下需要重新定义）。\n\n伪群渗透在动力系统的多个分支中。在叶状结构（foliation）理论中，沿叶的和乐（holonomy）映射构成一个伪群——这是叶状结构分类的基本不变量。$C^r$ 叶状结构的许多性质（如 Sacksteder 定理的结论）实际上是对和乐伪群性质的陈述，而非对某个抽象群性质的陈述。在 Sacksteder 定理的证明中，伪群的技术优势表现为：当群作用限制到某个开集 $U$ 上时，得到的不是原群的子群（因为限制到开集上的映射不一定能延拓回全空间），而是一个伪群——但仍然保持了足够的代数结构（如自由半群的存在性）来推导矛盾。\n\n伪群的另一个重要应用是与其生成性相关的概念。一个伪群称为**有限生成**的，若存在有限个生成元使得每个伪群元素可写为这些生成元在适当子域上的复合的限制。叶状结构的和乐伪群是否有限生成是一个深层次的问题，它直接关系到叶状结构在紧致流形上的整体性质。\n\n在复动力系统中，Julia 集的局部动力学也常常用伪群来描述——在 Julia 集的外点，映射是逆紧的局部同胚，这些局部逆构成了一个伪群，其轨道结构直接刻画了 Julia 集的拓扑性质。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.2."
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.witte-morris-theorem",
+  "to": "dynamics.group-circle.holder-theorem",
+  "description": {
+    "zh": [
+      "定理证明中无交叉元素推 Radon 保测测度的分析工具与 Hölder 定理共享自由作用分析的基本框架。"
+    ]
+  }
+}

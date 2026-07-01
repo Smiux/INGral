@@ -1,0 +1,33 @@
+{
+  "id": "analysis.real-analysis.bounded-variation",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "有界变差函数",
+      "有界变差",
+      "总变差"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\colon[a,b]\\to\\mathbb R$ 为函数。$f$ 在 $[a,b]$ 上的**总变差**定义为\n$$\\operatorname{var}(f;[a,b]):=\\sup_{a=t_0<\\cdots<t_n=b}\\sum_{i=0}^{n-1}|f(t_{i+1})-f(t_i)|.$$\n若 $\\operatorname{var}(f;[a,b])<\\infty$，则称 $f$ 在 $[a,b]$ 上**有界变差**，记作 $f\\in BV([a,b])$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "C^{1+bv}",
+      "正则性",
+      "Denjoy 定理",
+      "单调分解",
+      "几乎处处可导"
+    ],
+    "article": [
+      {
+        "zh": "有界变差函数是分析学中最有用的函数类之一，介于 $C^0$ 和绝对连续之间。其核心性质——可分解为两个单调函数的差——是 Jordan 分解定理的内容。这一分解使得变差函数的几乎所有问题都可化归为单调函数情形。\n\n在圆周微分同胚的 Denjoy 理论中，$C^{1+\\mathrm{bv}}$ 类指导数对数有界变差的 $C^1$ 微分同胚：$V(f)=\\operatorname{var}(\\log f';\\mathbb S^1)<\\infty$。Denjoy 定理断言：$C^{1+\\mathrm{bv}}$ 保向圆周微分同胚若无周期点则必与无理旋转拓扑共轭。这一定理在纯 $C^1$ 类中不成立（Denjoy 反例），故 $C^{1+\\mathrm{bv}}$ 是 Denjoy 定理的最优正则性条件。\n\n$C^{1+\\mathrm{bv}}$ 在动力系统中的应用依赖于以下事实：$\\log f'$ 的有界变差等价于 $f'$ 的乘性振荡受控。这一性质在以下推理中起关键作用：假设 $f$ 无周期点且共轭于旋转 $R_\\alpha$，则半共轭函数 $h$ 的连续性可由 $\\log f'$ 的有界变差保证——这是 Denjoy 经典证明的核心。\n\n有界变差函数本身还有以下重要性质：(i) 几乎处处可导且 $f'\\in L^1$；(ii) 变差函数的次可加性 $\\operatorname{var}(f;[a,c])\\leq\\operatorname{var}(f;[a,b])+\\operatorname{var}(f;[b,c])$；(iii) 跳跃点至多可数；(iv) 绝对连续函数 $\\subset$ 有界变差函数 $\\subset$ 可微几乎处处函数。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.1."
+    ]
+  }
+}

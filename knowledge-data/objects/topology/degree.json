@@ -1,0 +1,34 @@
+{
+  "id": "topology.degree",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "拓扑度",
+      "连续映射的拓扑度",
+      "圆周映射的度"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\colon\\mathbb S^1\\to\\mathbb S^1$ 为连续映射，$\\tilde f\\colon\\mathbb R\\to\\mathbb R$ 为其提升。$f$ 的**拓扑度**定义为整数\n$$\\deg f = \\tilde f(\\tilde x+1)-\\tilde f(\\tilde x),$$\n该值与 $\\tilde x$ 和提升的选择无关。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "提升",
+      "同伦",
+      "同伦不变性",
+      "保向映射",
+      "绕数"
+    ],
+    "article": [
+      {
+        "zh": "拓扑度是圆周映射最基本的同伦不变量。其定义借助提升 $\\tilde f$：$\\deg f = \\tilde f(\\tilde x+1)-\\tilde f(\\tilde x)$ 是 $\\tilde x$ 无关的整数。几何直观：$f$ 将圆周正向绕了 $\\deg f$ 圈（负值表示反向）。\n\n拓扑度满足三个基本性质使其成为同伦分类的完全不变量：同伦不变性（$f\\simeq g\\iff\\deg f=\\deg g$）、复合性（$\\deg(f\\circ g)=\\deg f\\cdot\\deg g$）以及同痕不变性。圆周 $\\mathbb S^1$ 的基本群 $\\pi_1(\\mathbb S^1)=\\mathbb Z$，而度正是同伦类的同构 $\\pi_1(\\mathbb S^1)\\to\\mathbb Z$ 下的像。\n\n在动力系统中，度 $1$ 的映射（保向映射）构成 $\\operatorname{Homeo}_+(\\mathbb S^1)$。度为 $-1$ 的映射（逆向映射）的动力学性质与保向映射有本质区别：逆向同胚必有不动点（由中间值定理），且其迭代动力学比保向情形简单（所有轨道最终趋于周期点）。旋转数理论仅对保向映射有意义，因为逆向映射的旋转数定义无意义（提升不保序）。\n\n对更高维球面 $\\mathbb S^n$ 的连续映射，拓扑度同样可由 $H^n(\\mathbb S^n)\\to H^n(\\mathbb S^n)$ 的诱导映射定义——但此时度的计算（如 Brouwer 度）需要 de Rham 上同调或奇异同调，不再有圆周情形下简单的提升公式。圆周的特殊之处在于它是唯一维数为 1 的紧流形，其覆叠空间 $\\mathbb R$ 提供了全局坐标化。"
+      }
+    ],
+    "references": [
+      "A. Hatcher, Algebraic Topology, Cambridge University Press (2002).",
+      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA."
+    ]
+  }
+}

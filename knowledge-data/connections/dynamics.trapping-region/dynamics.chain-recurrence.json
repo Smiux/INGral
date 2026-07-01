@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.trapping-region",
+  "to": "dynamics.chain-recurrence",
+  "description": {
+    "zh": [
+      "对任意 $p\\in M$ 和 $\\varepsilon>0$，$\\varepsilon$-链通集 $\\mathcal R_f(p,\\varepsilon)$ 是 $f$ 的陷阱区域（开集且 $f(\\overline{\\mathcal R_f(p,\\varepsilon)})\\subset\\mathcal R_f(p,\\varepsilon)$）。"
+    ]
+  }
+}

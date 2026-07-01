@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.expanding-conjugacy",
+  "to": "dynamics.topological-conjugacy",
+  "description": {
+    "zh": [
+      "扩张映射的拓扑共轭定理使用拓扑共轭的概念证明所有扩张映射与标准扩张 $E_d$ 共轭。"
+    ]
+  }
+}

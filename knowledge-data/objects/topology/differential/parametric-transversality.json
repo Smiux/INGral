@@ -1,0 +1,36 @@
+{
+  "id": "topology.differential.parametric-transversality",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "参数横截性定理",
+      "横截性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Lambda,M,N$ 为光滑流形，$S\\subset N$ 为闭子流形，$F\\colon\\Lambda\\times M\\to N$ 为 $C^r$ 映射，$r>\\max\\{0,\\dim N+\\dim\\Lambda-\\dim M\\}$。若 $F$ 横截于 $S$，则集合\n$$T_{\\Lambda,S}:=\\{\\lambda\\in\\Lambda:F(\\lambda,\\cdot):M\\to N\\text{ 横截于 }S\\}$$\n在 $\\Lambda$ 中是剩余集，故在 $\\Lambda$ 中稠密。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "微分拓扑",
+      "通有性质",
+      "Morse-Smale"
+    ],
+    "article": [
+      {
+        "zh": "参数横截性定理是微分拓扑中最基本的通有性质定理之一，其核心陈述出奇简单：若含参数 $\\lambda$ 的映射族 $F(\\lambda,\\cdot)$ 在整体上（即 $F$ 作为无参数映射）横截于子流形 $S$，则对**几乎所有**参数 $\\lambda$，个别映射 $F_\\lambda$ 也横截于 $S$。这里的「几乎所有」是 Baire 意义下的剩余集——即可数多个开稠集的交。\n\n该定理是 Whitney 浸入定理、Thom 横截性定理和 Morse 理论中构造通有性质的标准工具。在动力系统中，它将有限维参数空间中「好」参数的存在性化归为一个整体横截性条件——这一条件通常由映射的显式构造保证。\n\n以圆周 Morse-Smale 定理的证明为例。目标是证明：对参数 $t$ 的稠密集，$g_t$ 的所有周期点都是双曲的。构造辅助映射 $G_n(t,x)=\\pi\\circ\\tilde g_t^n(\\tilde x)$——即 $g_t^n$ 的提升在覆盖投影下的像。关键观察：当 $t$ 使得 $g_t^n(x)=x$ 时，$G_n(t,x)=x$，且 $\\partial_x G_n(t,x)-1$ 的正则性由旋转数的有理性和隐函数定理保证。$G_n$ 在含参坐标系下横截于对角线，参数横截性定理（应用于适当的函数空间）即给出 $t$ 的稠密集使 $G_n(t,\\cdot)$ 横截于对角线——这意味着 $g_t$ 的 $n$-周期点都是双曲的。将这一论证对所有 $n$ 取交（仍然是剩余集）即得 $g_t$ 的所有周期点双曲。\n\n正则性条件 $r>\\max\\{0,\\dim N+\\dim\\Lambda-\\dim M\\}$ 确保了 Sard 定理和隐函数定理在无限维空间中可应用。实际应用中，$\\Lambda$ 通常是 $\\mathbb R^d$ 中的开集或 Banach 流形。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "记 $\\Lambda_0:=\\{\\lambda\\in\\Lambda:F_\\lambda\\pitchfork S\\}$。对每个 $\\lambda\\in\\Lambda_0$，$F_\\lambda\\pitchfork S$ 意味着 $T_{F(\\lambda,x)}N=T_{F(\\lambda,x)}S+\\mathrm d_xF_\\lambda(T_xM)$。考虑图映射 $G(\\lambda,x)=(x,F(\\lambda,x))$，其横截于 $\\Lambda\\times S$ 由 $F\\pitchfork S$ 保证。\n\n由 Thom 横截性定理推广，横截参数的集合为剩余集。具体地，构造 $\\mathcal C^r$ 拓扑下的开稠条件。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026.",
+      "M. Hirsch, Differential Topology, Graduate Texts in Mathematics 33, Springer, 1976."
+    ]
+  }
+}

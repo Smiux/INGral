@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.kazhdan-circle-rigidity",
+  "to": "dynamics.group-circle.holder-theorem",
+  "description": {
+    "zh": [
+      "Hölder 定理将自由圆周作用刻画为交换群，这是从性质 (T) 推导作用有限的中间步骤。"
+    ]
+  }
+}

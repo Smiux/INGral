@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.bi-lipschitz-conjugacy",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Bi-Lipschitz 共轭定理",
+      "可数圆周同胚群共轭于 bi-Lipschitz 群"
+    ]
+  },
+  "description": {
+    "zh": [
+      "每个可数 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 子群（或 $\\operatorname{Homeo}_+([0,1])$ 子群）拓扑共轭于一个 bi-Lipschitz 同胚群。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "bi-Lipschitz",
+      "正则性",
+      "圆周作用",
+      "平稳测度"
+    ],
+    "article": [
+      {
+        "zh": "该定理的背后思想是：正则性不足从来不是拓扑障碍——任何可数群在同胚意义下「总是」可以嵌入到足够正则（Lipschitz）的群中去。本质上，共轭的作用是改变度量而非改变拓扑；通过选择合适的参考测度（平稳测度），我们将「速度」的控制嵌入共轭中。\n\n证明的精髓是用概率方法构造几何。取 $\\Gamma$ 上的非退化对称概率测度 $p$，做随机游走，平稳测度 $\\mu$ 就是随机游走的稳态分布。$\\mu$ 的变换性质 $\\mu(g(I))\\leq \\mu(I)/p(g)$ 来自随机游走的马尔可夫性：为了 $g$ 将 $I$ 映回「典型位置」，至少需要概率 $p(g)$——这给出了 Lipschitz 常数 $1/p(g)$。这一论证的优美之处在于，群的概率结构（$p$）直接翻译为共轭映射的正则性常数。\n\nSullivan 最初将这一方法用于离散共形群，证明任何离散共形群共轭于一个 bi-Lipschitz 群。这里的关键是将问题从共形几何（刚性极强）降维到拓扑动力系统（弹性更大），借由概率手段获得正则性提升。事实上，这是动力系统中「以概率换正则」范式的早期范例——后世在 Fathi 关于叶状结构、Kaimanovich 关于遍历理论中的许多工作都继承了这个思路。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "取非退化对称概率测度 $p$，令 $\\mu$ 为对应的平稳测度。若 $\\Gamma$ 轨道稠密，则 $\\mu$ 无原子且全支撑。将 $\\mu$ 映到 Lebesgue 测度的同胚 $\\varphi$ 将 $\\Gamma$ 共轭到 Lipschitz 群，其中 Lipschitz 常数 $1/p(g)$ 来自不等式 $\\mu(g(I))\\leq\\mu(I)/p(g)$。非稠密轨道情形通过添加无理旋转归约到稠密情形。区间情形通过将区间端点等同为圆周归约到圆周情形。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.3.2.",
+      "D. Sullivan, Discrete conformal groups and measurable dynamics, Bull. of the AMS 6 (1982), 57-73."
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.shannon-entropy-partition",
+  "to": "dynamics.ergodic.ergodicity",
+  "description": {
+    "zh": [
+      "SMB 定理要求系统是遍历的——遍历性保证了柱集概率的几乎处处极限存在且为常数。"
+    ]
+  }
+}

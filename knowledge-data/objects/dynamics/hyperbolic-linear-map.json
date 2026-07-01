@@ -1,0 +1,35 @@
+{
+  "id": "dynamics.hyperbolic-linear-map",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "双曲线性自同构",
+      "双曲算子",
+      "双曲同构"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $E$ 为 Banach 空间，$A\\in GL(E)$ 为有界可逆线性算子。$A$ 称为**双曲的**，若其谱与单位圆不交：\n$$\\sigma(A)\\cap\\{\\lambda\\in\\mathbb C:|\\lambda|=1\\}=\\varnothing.$$\n\n由于谱紧致，双曲算子存在双曲常数 $\\lambda\\in(0,1)$ 满足 $\\sigma(A)\\cap\\{z\\in\\mathbb C:\\lambda\\leqslant|z|\\leqslant\\lambda^{-1}\\}=\\varnothing$。谱中模长小于 $1$ 的部分称为稳定谱，模长大于 $1$ 的部分称为不稳定谱。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "动力系统",
+      "线性算子",
+      "Banach 空间",
+      "谱理论",
+      "稳定/不稳定分裂"
+    ],
+    "article": [
+      {
+        "zh": "双曲线性映射是双曲动力系统理论的起点。定义在 Banach 空间上而非局限于 $\\mathbb R^d$ 的抽象处理有两层含义：其一，它统一了有限维和无穷维系统（如偏微分方程诱导的流）；其二，它迫使依赖谱理论而非特征值计算，从而使得稳定/不稳定分裂的构造完全一般。\n\n谱条件 $\\sigma(A)\\cap\\mathbb T=\\varnothing$ 等价于存在双曲常数 $\\lambda\\in(0,1)$ 使 $\\sigma(A)\\cap\\{z\\in\\mathbb C:\\lambda\\leqslant|z|\\leqslant\\lambda^{-1}\\}=\\varnothing$。这一常数 $\\lambda$ 直接代入后续的指数估计中。双曲性分为两个谱区域：稳定谱（模长 $<1$）和不稳定谱（模长 $>1$）。在有限维空间中，这等价于说所有特征值的模长均不为 $1$。\n\n非线性双曲系统的局部理论——Hartman-Grobman 定理和稳定流形定理——全部建立在双曲线性映射的框架之上：它们断言非线性系统在双曲不动点附近拓扑共轭于线性化系统，并且存在切于 $E^s$ 和 $E^u$ 的同胚不变流形。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §6.1.",
+      "P. Hartman, A lemma in the theory of structural stability of differential equations, Proc. AMS 11 (1960), 610-620.",
+      "D. Grobman, Homeomorphisms of systems of differential equations, Dokl. Akad. Nauk SSSR 128 (1959), 880-881."
+    ]
+  }
+}

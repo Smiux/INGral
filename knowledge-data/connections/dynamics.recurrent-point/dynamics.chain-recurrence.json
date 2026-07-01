@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.recurrent-point",
+  "to": "dynamics.chain-recurrence",
+  "description": {
+    "zh": [
+      "正回归集是链回归集的子集：$\\operatorname{Rec}^+(f)\\subset\\mathcal R(f)$，因为回归点可通过自身的轨道片段构造任意 $\\varepsilon$-链。"
+    ]
+  }
+}

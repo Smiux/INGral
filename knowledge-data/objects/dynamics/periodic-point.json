@@ -1,0 +1,30 @@
+{
+  "id": "dynamics.periodic-point",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "周期点",
+      "周期轨"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\colon M\\to M$ 为映射。点 $p\\in M$ 称为 $f$ 的**周期点**，若存在 $n\\geqslant1$ 使 $f^n(p)=p$。满足此条件的最小 $n$ 称为 $p$ 的**最小周期**。$f$ 的周期点集记作 $\\operatorname{Per}(f)=\\bigcup_{n\\geqslant1}\\operatorname{Fix}(f^n)$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "不动点",
+      "回复性",
+      "最小周期"
+    ],
+    "article": [
+      {
+        "zh": "周期点 $f^n(p)=p$ 将不动点的精确回复从一步推广为 $n$ 步。但这一推广带来的不是量的扩展而是质的飞跃——周期点的存在性与系统的复杂性密切相关。不动点数通常有限且容易计算；周期点数则可能随周期 $n$ 指数增长。\n\n圆周同胚理论给出了周期点存在性的最精确刻画。设 $f\\in\\operatorname{Homeo}_+(\\mathbb S^1)$，则 $f$ 有周期点当且仅当其旋转数 $\\rho(f)$ 为有理数。具体地，若 $\\rho(f)=p/q$（既约），则 $f$ 有 $q$-周期点且最小周期为 $q$。当 $\\rho(f)$ 为无理数时，$f$ 无周期点——实际上每点都是回归的但无一周期。这一简单而优美的二分法建立了代数（$\\mathbb Q$ vs $\\mathbb R\\setminus\\mathbb Q$）与动力学（存在周期点 vs 无周期点）之间的精确对应。\n\n对圆周 $C^{1+\\mathrm{bv}}$ 微分同胚，Denjoy 定理进一步表明：若 $\\rho(f)$ 无理，则 $f$ 拓扑共轭于无理旋转，从而所有轨道都稠密。这意味着对于足够光滑的圆周微分同胚，周期点的存在性等价于旋转数的有理性——这是一种完全的信息。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1."
+    ]
+  }
+}

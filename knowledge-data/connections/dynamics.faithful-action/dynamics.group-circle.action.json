@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.faithful-action",
+  "to": "dynamics.group-circle.action",
+  "description": {
+    "zh": [
+      "忠实作用是群作用的特殊情形：作用同态为单射。因此忠实作用继承了一般作用的所有基本性质，但额外要求群嵌入变换群。"
+    ]
+  }
+}

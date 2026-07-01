@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.dynamical-system",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "动力系统",
+      "自治确定型动力系统"
+    ]
+  },
+  "description": {
+    "zh": [
+      "一个**自治确定型动力系统**由三要素构成：**相空间** $M$（系统可能状态之集合）、**时间集** $\\mathbb T\\subset\\mathbb R$（通常为 $\\mathbb N_0$ 或 $\\mathbb R_{\\geqslant0}$）、**演化规律** $\\Phi\\colon\\mathbb T\\times M\\to M$，满足流条件\n$$\\Phi(t+s,x)=\\Phi(t,\\Phi(s,x)),\\quad\\forall t,s\\in\\mathbb T,\\forall x\\in M.$$\n\n离散时间系统由迭代 $\\Phi(n,x)=f^n(x)$ 生成；连续时间系统由向量场 $X(p)=\\partial_t\\Phi(t,p)|_{t=0}$ 生成。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "相空间",
+      "流",
+      "离散时间",
+      "连续时间",
+      "演化规律"
+    ],
+    "article": [
+      {
+        "zh": "动力系统的数学定义——相空间 $M$、时间集 $\\mathbb T$、演化规律 $\\Phi$ 满足流条件——是自 Newton 以来对「确定性演化」的数学形式化。动力系统理论的发展经历了三个历史阶段。\n\nNewton 时代的目标是求解微分方程（求积法），如限制性二体问题的解是圆锥曲线（直线、椭圆、抛物线或双曲线）。Poincaré 时代认识到许多微分方程（如 $n\\geqslant3$ 体问题）无法用求积法求解，于是转向定性理论——描述解的几何性质而非写出显式解。Smale 和 Andronov 时代进一步关注参数扰动下轨道几何性质的稳健性（鲁棒性）——微小参数变化可能导致解的定性行为彻底改变。这三个阶段被 Étienne Ghys 精辟地概括为：Newton 时代给你一个 ODE，要求找到解；Poincaré 时代给你一个 ODE，要求阐明其解的几何性质；Smale 时代根本不给你 ODE，却要求说出有趣的东西。\n\n流条件 $\\Phi(t+s,x)=\\Phi(t,\\Phi(s,x))$ 是系统自治性的数学表达。离散时间系统由单映射 $f$ 的迭代生成：$\\Phi(n,x)=f^n(x)$；连续时间系统由向量场 $X(p)=\\partial_t\\Phi(t,p)|_{t=0}$ 生成。研究的主要目标是描述轨道的渐近行为。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §1."
+    ]
+  }
+}

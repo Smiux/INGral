@@ -1,0 +1,34 @@
+{
+  "id": "dynamics.group-circle.affine-group-action",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "仿射群作用",
+      "Aff₊(R) 在 R 上的作用"
+    ]
+  },
+  "description": {
+    "zh": [
+      "仿射群 $\\operatorname{Aff}_+(\\mathbb R)=\\{x\\mapsto ax+b\\mid a>0,b\\in\\mathbb R\\}$ 是实数直线 $\\mathbb R$ 上保向仿射同胚的群。它在 $\\mathbb R$ 上的作用由 $x\\mapsto ax+b$ 给出。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "实数直线",
+      "拟不变测度",
+      "Radon 测度",
+      "矩阵表示",
+      "保向同胚",
+      "正规子群"
+    ],
+    "article": [
+      {
+        "zh": "$\\operatorname{Aff}_+(\\mathbb R)$ 在 $\\mathbb R$ 上的作用是 Lie 群作用分类（Euclid、仿射、射影）中仿射情形的标准代表。它与平移群的关系是：平移群是仿射群中 $a=1$ 的正规子群。该群的矩阵表示 $x\\mapsto ax+b$ 同构于 $\\begin{pmatrix}a&b\\\\0&1\\end{pmatrix}\\in\\operatorname{GL}_+(2,\\mathbb R)$。\n\n与旋转群的刻画——后者由无原子全支撑概率测度的保持来定义——类似，仿射群由 Radon 测度的拟不变性来刻画。当 Radon 测度的缩放系数 $\\kappa(g)\\equiv1$（即 $\\nu$ 实际上是平移不变的），则退化到平移作用的情形。这一测度论刻画将仿射群的作用与旋转群的作用统一到同一框架下：差别仅在于所保持的测度是有限（概率）还是无限（Radon）。\n\n在圆周动力学中，仿射群出现在 Lie 分类的非传递情形：圆周上具有不动点集的作用在不动点的补区间上可分解为传递作用——其结构要么是旋转（Euclid）要么是仿射。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.2.",
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
+    ]
+  }
+}

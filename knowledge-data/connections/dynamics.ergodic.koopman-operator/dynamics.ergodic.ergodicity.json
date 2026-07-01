@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.koopman-operator",
+  "to": "dynamics.ergodic.ergodicity",
+  "description": {
+    "zh": [
+      "遍历性等价于 Koopman 算子的不变函数空间维数为 1，即 $\\dim\\{f:U_Tf=f\\}=1$。"
+    ]
+  }
+}

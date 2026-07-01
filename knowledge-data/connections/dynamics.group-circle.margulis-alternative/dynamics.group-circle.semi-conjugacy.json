@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.margulis-alternative",
+  "to": "dynamics.group-circle.semi-conjugacy",
+  "description": {
+    "zh": [
+      "例外极小集情形通过半共轭约化到最小作用后应用 Margulis 定理。"
+    ]
+  }
+}

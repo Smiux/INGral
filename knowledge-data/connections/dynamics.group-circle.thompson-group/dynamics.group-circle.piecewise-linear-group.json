@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.thompson-group",
+  "to": "dynamics.group-circle.piecewise-linear-group",
+  "description": {
+    "zh": [
+      "Thompson 群 $G$ 是 $\\operatorname{PL}_+(\\mathbb S^1)$ 的可数子群，由二进有理分点和 $2$ 的幂斜率的条件定义。"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "dynamics.group-circle.projective-action",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "射影群在圆周上的作用",
+      "PGL(2,R) 在 RP¹ 上的作用"
+    ]
+  },
+  "description": {
+    "zh": [
+      "射影群 $\\operatorname{PGL}(2,\\mathbb R)=\\operatorname{GL}(2,\\mathbb R)/\\{\\text{标量矩阵}\\}$ 通过分式线性变换作用在实射影线 $\\mathbb{RP}^1\\simeq\\mathbb S^1$ 上：\n$$\\left(\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix},\\, x\\right)\\mapsto\\frac{ax+b}{cx+d},$$\n其中 $x\\in\\mathbb{RP}^1\\simeq\\mathbb R\\cup\\{\\infty\\}$。$\\operatorname{PGL}(2,\\mathbb R)$ 有两个连通分支，由行列式符号区分。单位连通分支同构于 $\\operatorname{PSL}(2,\\mathbb R)=\\operatorname{SL}(2,\\mathbb R)/\\{\\pm I\\}$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "PSL(2,R)",
+      "分式线性变换",
+      "Möbius 变换",
+      "双曲几何",
+      "Fuchs 群",
+      "测地线流"
+    ],
+    "notes": [
+      {
+        "zh": "$\\operatorname{PSL}(2,\\mathbb R)$ 与 $\\operatorname{SO}(3,\\mathbb R)$ 是仅有的三维单 Lie 群。这解释了为何 $\\operatorname{PSL}(2,\\mathbb R)$ 以多种形式出现在数学中。"
+      },
+      {
+        "zh": "Fuchs 群是指 $\\operatorname{PSL}(2,\\mathbb R)$ 的离散子群。最著名的例子是模群 $\\operatorname{PSL}(2,\\mathbb Z)$，它可能是数学史上第一个被研究的非交换群。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "$\\operatorname{PGL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1$ 上的射影作用是圆周上最重要的群作用之一，其根源可追溯到 Gauss 对二次型的研究和 Poincaré 对 Fuchs 群的分析。该作用与双曲几何有着内在联系：$\\operatorname{PSL}(2,\\mathbb R)$ 在上半平面 $\\mathcal H$（赋予 Poincaré 度量）上的作用兼是全纯和等距的，且 $\\mathcal H$ 的边界 $\\mathbb{RP}^1$ 恰好是 $\\operatorname{PSL}(2,\\mathbb R)$ 在无穷远处的几何边界。\n\n该作用还是**传递**的：$\\operatorname{PGL}(2,\\mathbb R)$ 可将其上任一点映到任意另一点。从 Lie 群角度，$\\mathbb{RP}^1$ 可视为 $\\operatorname{PGL}(2,\\mathbb R)$ 模去 $x=\\infty$ 处的稳定子（Borel 子群）的商空间。\n\n与该作用紧密相关的离散子群（Fuchs 群）是双曲几何和数论的交叉点。特别地，$\\operatorname{PSL}(2,\\mathbb Z)$ 在 $\\mathbb{RP}^1$ 上的作用展示了旋转数与连分数的关系。\n\nLiouville 测地线流（Liouville geodesic current）是该作用的一个深刻不变量：它是双曲盘测地线空间上在 $\\operatorname{PSL}(2,\\mathbb R)$ 对角作用下唯一（至多差常数倍）不变的测地线流。其密度 $Lv = ds\\,dt/4\\sin^2\\big((s-t)/2\\big)$ 满足恒等式 $e^{-Lv([a,b]\\times[c,d])}+e^{-Lv([b,c]\\times[d,a])}=1$，这一性质刻画了它的唯一性。保持该测地线流的圆周同胚群恰为 $\\operatorname{PSL}(2,\\mathbb R)$，从而给出了与旋转群、仿射群平行的测度论刻画。\n\n$\\operatorname{PSL}(2,\\mathbb R)$ 作用还可用收敛性质（convergence property）纯动力学刻画：$\\operatorname{Homeo}_+(\\mathbb S^1)$ 的子群共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群当且仅当其具有收敛性质。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
+    ]
+  }
+}

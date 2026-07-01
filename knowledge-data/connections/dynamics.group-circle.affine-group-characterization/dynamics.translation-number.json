@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.affine-group-characterization",
+  "to": "dynamics.translation-number",
+  "description": {
+    "zh": [
+      "翻译数 $\\tau_\\nu$ 的定义正依赖于 $\\nu$ 的 $\\Gamma$-不变性，而该定理给出了 $\\Gamma$ 保持 Radon 测度时的代数刚性结论。"
+    ]
+  }
+}

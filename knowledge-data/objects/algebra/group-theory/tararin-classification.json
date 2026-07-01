@@ -1,0 +1,42 @@
+{
+  "id": "algebra.group-theory.tararin-classification",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Tararin 分类",
+      "有限多可序群分类"
+    ]
+  },
+  "description": {
+    "zh": [
+      "可序群 $\\Gamma$ 只有有限多个不同的左不变全序当且仅当它是 Tararin 群的某种特定构造。若 $\\Gamma$ 有无穷多个序，则它必有无穷多个——事实上不可数多个。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "可序群",
+      "序空间",
+      "左不变序",
+      "Cantor 集",
+      "Linnell"
+    ],
+    "notes": [
+      {
+        "zh": "Linnell 定理：若 $\\preceq$ 是 $\\mathcal O(\\Gamma)$ 的非孤立点，则其正锥不是有限生成半群。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "Tararin 分类描述了可序群上所有左不变全序的拓扑结构。对有限生成可序群 $\\Gamma$，其序空间 $\\mathcal O(\\Gamma)$（在 Hamming 距离下）是紧致超度量空间。分类结论如下：若 $|\\mathcal O(\\Gamma)|<\\infty$，则 $\\Gamma$ 属于 Tararin 给出的具体构造类；若 $|\\mathcal O(\\Gamma)|=\\infty$，则 $\\mathcal O(\\Gamma)$ 同胚于 Cantor 集——对 $\\mathbb Z^n$（$n\\geqslant2$）、非交换挠自由幂零群、非交换自由群均如此；此外还存在中间情形：$\\mathcal O(\\Gamma)$ 有无穷多点但含孤立点。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "对有限生成可序群 $\\Gamma$，固定有限生成元集 $\\mathcal G$。在 $\\mathcal O(\\Gamma)$ 上定义 Hamming 距离：$\\operatorname{dist}(\\leq,\\preceq)=e^{-n}$，其中 $n$ 为使得两个序在半径 $n$ 的球 $B_\\mathcal G(n)$ 上一致的最大非负整数。$\\mathcal O(\\Gamma)$ 在此距离下是紧致超度量空间，且 $\\Gamma$ 通过右乘连续作用其上。\n\n**有限序情形**：若 $|\\mathcal O(\\Gamma)|<\\infty$，$\\Gamma$ 属于 Tararin 显式构造类——具体地，$\\Gamma$ 必须为某种有限次可解群，其序空间的结构可通过群的 derived series 和中心扩张完全描述。\n\n**无穷序情形**：若 $|\\mathcal O(\\Gamma)|=\\infty$，则 $\\mathcal O(\\Gamma)$ 中无孤立点，从而作为紧致超度量无孤立点的完全空间，必同胚于 Cantor 集。典型例子包括 $\\mathbb Z^n$（$n\\geq2$）、非交换挠自由幂零群、非交换自由群，它们的序空间均同胚于 Cantor 集。\n\n**中间情形**：存在群的序空间有无穷多个点但含孤立点。此类群的构造介于前两者之间，其序空间同胚于 Cantor 集并上一个可数离散点集。\n\nLinnell 定理进一步刻画：若 $\\preceq\\in\\mathcal O(\\Gamma)$ 为非孤立点，则其正锥 $\\{g\\in\\Gamma:g\\succ\\mathrm{id}\\}$ 不是有限生成半群。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.6."
+    ]
+  }
+}

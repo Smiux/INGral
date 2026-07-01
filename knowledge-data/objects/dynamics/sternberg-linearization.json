@@ -1,0 +1,35 @@
+{
+  "id": "dynamics.sternberg-linearization",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Sternberg 线性化定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $g\\in\\mathcal G_+^r(\\mathbb R,0)$ 为双曲芽（即 $a:=g'(0)\\neq1$）且 $2\\leqslant r\\leqslant\\infty$。则存在 $[h]\\in\\mathcal G_+^r(\\mathbb R,0)$ 使 $h'(0)=1$ 且 $h(g(x))=a\\,h(x)$ 对 $0$ 附近的 $x$ 成立。换言之，$g$ 在 $C^r$ 共轭意义下可线性化为乘以 $a$ 的线性映射 $M_a(x)=ax$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "双曲芽",
+      "共轭",
+      "局部动力学"
+    ],
+    "article": [
+      {
+        "zh": "Sternberg 线性化定理是一维局部动力系统的经典结论：在双曲不动点附近，$C^r$ 微分同胚胚（$r\\geqslant2$）可通过 $C^r$ 坐标变换线性化为其导数映射。与线性化对应的 $h$ 是唯一的——若 $h_1$ 也是满足 $h_1\\circ g = M_a\\circ h_1$ 的 $C^1$ 胚，则 $h_1$ 自动具有与原 $g$ 相同的 $C^r$ 正则性，且 $[h_1]=[h]$。\n\n证明思路：首先通过消去各阶 Taylor 系数将 $g$ 简化为 $g^{(i)}(0)=0$（$i\\geqslant2$）的形式，然后通过构造 Banach 空间上的收缩算子 $S(\\psi)=(\\psi\\circ g)/a$ 解出共轭方程 $h\\circ g = a\\cdot h$。收缩性要求 $\\delta>0$ 足够小，使得 $\\|S_\\delta\\|<1$，这依赖于 $a<1$（或对 $a>1$ 考虑 $g^{-1}$）。\n\n该定理在圆周微分同胚群共轭光滑性理论中有重要应用——当两个群作用之间存在拓扑共轭且满足适当正则性条件时，Sternberg 定理可用于提升共轭的光滑性。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "首先通过消去各阶 Taylor 系数将 $g$ 简化为 $g^{(i)}(0)=0$（$i\\geqslant2$）的形式，即 $g(x)=ax+O(x^\\infty)$。然后构造 Banach 空间上的收缩算子 $S(\\psi)=(\\psi\\circ g)/a$，解共轭方程 $h\\circ g = a\\cdot h$。收缩性要求 $\\delta>0$ 足够小使 $\\|S_\\delta\\|<1$，这依赖于 $a<1$（$a>1$ 时考虑 $g^{-1}$）。由 $S$ 的压缩映射原理得唯一解 $h$，$h'(0)=1$。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.6.1.",
+      "S. Sternberg, Local Cn-transformations of the real line, Duke Math. J. 24 (1957), 97-102."
+    ]
+  }
+}

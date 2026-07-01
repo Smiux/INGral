@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.displacement-cocycle",
+  "to": "dynamics.circle.oscillation-lemma",
+  "description": {
+    "zh": [
+      "振荡引理陈述位移函数的一个基本有界性质：$\\operatorname{osc}\\Delta_{\\tilde f}<1$。"
+    ]
+  }
+}

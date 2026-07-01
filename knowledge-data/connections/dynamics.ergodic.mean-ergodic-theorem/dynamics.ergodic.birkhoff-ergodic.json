@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.mean-ergodic-theorem",
+  "to": "dynamics.ergodic.birkhoff-ergodic",
+  "description": {
+    "zh": [
+      "均值遍历定理（L^2 收敛）先于 Birkhoff 点态遍历定理（几乎处处收敛），二者的极限都是到不变函数空间的投影。"
+    ]
+  }
+}

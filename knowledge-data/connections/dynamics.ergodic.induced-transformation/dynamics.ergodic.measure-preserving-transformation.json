@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.induced-transformation",
+  "to": "dynamics.ergodic.measure-preserving-transformation",
+  "description": {
+    "zh": [
+      "诱导变换保持 μA 不变（定理 1.7(i)），因此是子集上的保测变换。"
+    ]
+  }
+}

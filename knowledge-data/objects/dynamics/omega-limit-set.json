@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.omega-limit-set",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "$\\omega$-极限集",
+      "$\\alpha$-极限集",
+      "极限集"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\colon M\\to M$ 为度量空间上的连续映射。点 $p\\in M$ 的 **$\\omega$-极限集**定义为\n$$\\omega_f(p):=\\{x\\in M:\\exists n_j\\uparrow+\\infty,\\ f^{n_j}(p)\\to x\\}.$$\n\n当 $f$ 为同胚时，$p$ 的 **$\\alpha$-极限集**定义为 $\\alpha_f(p):=\\omega_{f^{-1}}(p)$。\n\n$f$ 的正向极限集为 $L^+(f):=\\bigcup_{p\\in M}\\omega_f(p)$，极限集为 $L(f):=\\bigcup_{p\\in M}(\\alpha_f(p)\\cup\\omega_f(p))$。\n\n这些集合在回归层级中满足 $\\operatorname{Per}(f)\\subset\\operatorname{Rec}^+(f)\\subset L(f)\\subset\\Omega(f)$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "动力系统",
+      "回归",
+      "渐近行为",
+      "吸引子",
+      "梯度流"
+    ],
+    "notes": [
+      {
+        "zh": "$\\alpha$-极限集与 $\\omega$-极限集是反向的：$\\alpha_f(p):=\\omega_{f^{-1}}(p)$。在梯度流中两者分别是 $p$ 正向和反向轨道趋于的临界点。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "$\\omega$-极限集的概念承载了动力系统最根本的问题：一个点的轨道最终去向何处？从 Newton 的求积法（解出整个轨道）到 Poincaré 的定性理论（描述解的几何性质），这一转变的核心就是认识到：即使无法显式表达轨道 $\\{f^n(p)\\}_{n\\geqslant0}$，我们仍然可以描述它的**极限点的集合**——这正是 $\\omega_f(p)$ 的价值。\n\n当 $M$ 紧时，$\\omega_f(p)$ 非空、闭、$f$-不变，且 $f(\\omega_f(p))=\\omega_f(p)$。在梯度流（gradient flow）中，$\\omega_f(p)$ 是唯一的临界点（$L$ 的最小点）；在无理旋转中，$\\omega_f(p)=\\mathbb T$（全空间）；在 Banach 压缩映射中，$\\omega_f(p)=\\{p^*\\}$（唯一不动点）。因此 $\\omega$-极限集可以是从单点集到整个空间之间的任何闭不变集，其拓扑复杂度直接反映了系统的动力学复杂度。\n\n$f$ 的正向极限集 $L^+(f)=\\bigcup_p\\omega_f(p)$ 和极限集 $L(f)=\\bigcup_p(\\alpha_f(p)\\cup\\omega_f(p))$ 位于回复性层级（recurrence hierarchy）的中间层：$\\operatorname{Fix}(f)\\subset\\operatorname{Per}(f)\\subset\\operatorname{Rec}^+(f)\\subset L(f)\\subset\\Omega(f)$。这意味着极限集对 Lyapunov 函数的严格下降性构成障碍——若 $p\\in L(f)$，则任何 Lyapunov 函数 $L$ 在 $p$ 处不可能严格下降（因为存在某个点 $q$ 沿其轨道趋近 $p$，使得 $L$ 的值沿该轨道单调收敛）。Conley 定理的证明中，极限集 $L(f)$ 是连接回复点（$\\operatorname{Rec}^+$）与非游荡集（$\\Omega(f)$）的关键一环：$L(f)\\subset\\Omega(f)\\subset\\mathcal R(f)$，而完全的 Lyapunov 函数仅在 $\\mathcal R(f)$ 上为常数。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1."
+    ]
+  }
+}

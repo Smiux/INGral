@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.stable-unstable-splitting",
+  "to": "dynamics.hyperbolic-fixed-point",
+  "description": {
+    "zh": [
+      "一维双曲不动点的定义（$|f'(p)|\\neq1$）是 $\\mathbb R$ 上双曲线性映射的特殊情形：$A=f'(p)$ 的谱即为 $\\{f'(p)\\}$。"
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "dynamics.group-circle.holder-theorem",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Hölder 定理",
+      "自由作用在 $\\mathbf R$ 上的群结构"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设群 $\\Gamma$ 通过保向同胚**自由作用**（free action）在 $\\mathbb R$ 上（即非平凡元无不动点）。则 $\\Gamma$ 交换，同构于 $\\mathbb R$ 的某个加法子群，且该作用半共轭于平移作用。\n\n同样地，若 $\\Gamma$ 自由作用在 $\\mathbb S^1$ 上，则 $\\Gamma$ 交换，同构于 $\\operatorname{SO}(2)$ 的某个子群，且半共轭于旋转作用。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "实数直线",
+      "交换",
+      "平移",
+      "自由群作用",
+      "全序群"
+    ],
+    "article": [
+      {
+        "zh": "Hölder 定理是理解 $\\mathbb R$ 上自由群作用的基石。自由作用意味着非平凡元 $\\phi(\\gamma)$ 在实数直线上没有不动点——这意味着要么 $\\phi(\\gamma)(x)>x$ 对所有 $x$ 成立，要么 $\\phi(\\gamma)(x)<x$ 对所有 $x$ 成立。这一定义了一个双向不变的全体序：$\\gamma\\preceq\\gamma'\\iff\\phi(\\gamma)(0)\\leq\\phi(\\gamma')(0)$。\n\n这个序具有 Archimedes 性质：对任意非平凡元素 $\\gamma,\\gamma'$（均大于单位元），存在正整数 $n$ 使 $\\gamma'\\preceq\\gamma^n$。原因在于 $\\phi(\\gamma)^n(0)\\to\\pm\\infty$——否则其极限将是 $\\phi(\\gamma)$ 的不动点。通过 Archimedes 序可以构造一个整值拟同态 $\\Phi(\\gamma)$（最小的整数 $k$ 使 $\\gamma\\preceq\\gamma_0^k$），其齐次化极限 $\\phi(\\gamma)=\\lim_{n\\to\\infty}\\Phi(\\gamma^n)/n$ 给出了一个纯同态 $\\phi\\colon\\Gamma\\to\\mathbb R$，且是单射。\n\n最后，半共轭于平移作用：映射 $h(x)=\\sup\\{\\phi(\\gamma)\\mid\\gamma(0)\\leq x\\}$ 满足 $h(\\gamma(x))=h(x)+\\phi(\\gamma)$，且 $h$ 连续——若 $h$ 在某点跳跃，由此产生的空隙将是 $\\phi(\\Gamma)$-平移不变的，与 $\\phi(\\Gamma)$ 稠密（当 $\\Gamma\\not\\cong\\mathbb Z$ 时）矛盾。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "自由作用定义了一个双向不变的全体序：$\\gamma\\preceq\\gamma'\\iff\\phi(\\gamma)(0)\\leq\\phi(\\gamma')(0)$。该序具有 Archimedes 性质：对非平凡正元 $\\gamma,\\gamma'$，$\\phi(\\gamma)^n(0)\\to\\pm\\infty$ 保证存在 $n$ 使 $\\gamma'\\preceq\\gamma^n$。\n\n构造整值拟同态 $\\Phi(\\gamma)=\\min\\{k\\in\\mathbb Z\\mid\\gamma\\preceq\\gamma_0^k\\}$（$\\gamma_0$ 为某固定正元），其齐次化 $\\phi(\\gamma)=\\lim_{n\\to\\infty}\\Phi(\\gamma^n)/n$ 是单同态 $\\Gamma\\to(\\mathbb R,+)$。\n\n半共轭：$h(x)=\\sup\\{\\phi(\\gamma)\\mid\\gamma(0)\\leq x\\}$ 满足 $h(\\gamma(x))=h(x)+\\phi(\\gamma)$ 且连续。$\\mathbb S^1$ 情形同理，通过覆叠空间论证。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
+      "O. Hölder, Die Axiome der Quantität, Ber. Sächs. Ges. Wiss. 53 (1901).",
+      "O. Hölder, Die Axiome der Quantität und die Lehre vom Mass, Ber. Verh. Sächs. Ges. Wiss. Leipzig 53 (1901), 1-64."
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "dynamics.real-line.affine-map",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "仿射映射",
+      "实直线仿射映射"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $a,b\\in\\mathbb R$。映射 $f_{a,b}(x)=ax+b$ 称为**仿射映射**。其动力学由参数 $a$ 决定：\n\n- $a=1$ 且 $b=0$：恒等映射。\n- $a=1$ 且 $b>0$：$f_{1,b}^n(x)\\to+\\infty$ 对一切 $x$。\n- $a=1$ 且 $b<0$：$f_{1,b}^n(x)\\to-\\infty$ 对一切 $x$。\n- $a\\neq1$：存在唯一不动点 $p=-b/(a-1)$。$|a|<1$ 时 $p$ 为全局吸引子；$|a|>1$ 时 $p$ 为排斥子，$|f_{a,b}^n(x)|\\to+\\infty$ 对 $x\\neq p$。\n- $a=-1$：$f_{-1,b}^2=\\operatorname{id}_{\\mathbb R}$，$\\operatorname{Fix}(f_{-1,b})=\\{p\\}$，$\\operatorname{Per}(f_{-1,b})=\\mathbb R$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "实直线动力学",
+      "不动点",
+      "收缩",
+      "双曲不动点"
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026."
+    ]
+  }
+}

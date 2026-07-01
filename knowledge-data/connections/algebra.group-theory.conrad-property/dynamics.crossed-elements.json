@@ -1,0 +1,9 @@
+{
+  "from": "algebra.group-theory.conrad-property",
+  "to": "dynamics.crossed-elements",
+  "description": {
+    "zh": [
+      "Conrad 性质是可序群无交叉元素忠实 R 作用的代数等价描述。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.homeomorphism-group",
+  "to": "dynamics.group-circle.action",
+  "description": {
+    "zh": [
+      "$\\operatorname{Homeo}_+(\\mathbb S^1)$ 是所有圆周保向作用的靶群：每个作用 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}(\\mathbb S^1)$ 的像落在此群中。"
+    ]
+  }
+}

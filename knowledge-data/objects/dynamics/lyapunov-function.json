@@ -1,0 +1,33 @@
+{
+  "id": "dynamics.lyapunov-function",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Lyapunov 函数",
+      "李雅普诺夫函数"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $M$ 为度量空间，$f\\colon M\\to M$ 连续。连续函数 $L\\colon M\\to\\mathbb R$ 称为 $f$ 的 **Lyapunov 函数**，若 $L(f(x))\\leqslant L(x)$ 对一切 $x\\in M$ 成立。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "动力系统",
+      "回归",
+      "吸引子",
+      "Conley 理论",
+      "稳定性"
+    ],
+    "article": [
+      {
+        "zh": "Lyapunov 函数的概念可以看作动力系统历史三次转折的自然产物。第一次转折属于 Newton：用求积法（quadrature）解出微分方程的精确解，如限制性二体问题的解是圆锥曲线。Newton 时代的目标是「给出方程，解出轨道」。第二次转折属于 Poincaré：当三体问题（以及更一般的 $n\\geqslant3$ 体问题）被证明无法用求积法求解时，Poincaré 提出应当「描述解的几何性质」——即定性理论。此时的目标变为：即使无法写出轨道，也要回答轨道最终去向何方、是否周期等问题。第三次转折属于 Smale 和 Andronov：系统的参数扰动可以彻底改变轨道的几何性质——如 $n$-体问题中的 $3n$ 个参数中微小变化可能导致解的定性行为完全不同——于是目标是找出那些对扰动保持鲁棒的几何性质。\n\nLyapunov 函数正是回答「轨道最终去向」这一定性问题的核心工具。梯度流（gradient flow）提供了原型：势函数 $L$ 沿梯度流单调递减，且临界点（$\\nabla L=0$）对应于 $L$ 的常值点。在 $\\mathbb S^2$ 上取 $L(x,y,z)=-z$，流由 $-\\nabla L$ 生成，则南极点 $(0,0,-1)$ 是全局吸引子、北极点是全局排斥子。一般地，对紧 Riemann 流形上的光滑函数 $L$，$X=-\\nabla L$ 产生的流满足 $\\partial_t(L\\circ\\Phi^t)|_{t=0}=-\\|\\nabla L(p)\\|^2\\leqslant0$，且严格下降当且仅当 $p$ 是正则点。\n\nConley 的完全 Lyapunov 定理将这一图景推广到任意紧度量空间上的同胚：存在「完全的」Lyapunov 函数 $L$ 满足四个条件——(1) $L(f(x))\\leqslant L(x)$ 对所有 $x$；(2) 等号成立当且仅当 $x\\in\\mathcal R(f)$（链回归集）；(3) $L$ 在 $\\mathcal R(f)$ 上区分链等价类；(4) $L(\\mathcal R(f))$ 是紧全不连通集。这是 Lyapunov 函数理论的最一般形式：它将动力系统分解为链回归部分（$L$ 为常数）和梯度状部分（$L$ 严格下降）。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3, §2.",
+      "C. Conley, Isolated invariant sets and the Morse index, CBMS Regional Conference Series in Mathematics 38, AMS (1978)."
+    ]
+  }
+}

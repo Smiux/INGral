@@ -1,0 +1,31 @@
+{
+  "id": "dynamics.ergodic.natural-extension",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "自然延拓",
+      "natural extension"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为 Lebesgue 空间上的概率保测变换且 $T(X)=X$。$T$ 的**自然延拓**是可逆保测变换 $(\\widetilde X,\\widetilde{\\mathcal B},\\widetilde\\mu,\\widetilde T)$，其中\n$$\\widetilde X:=\\{\\underline x=(\\dots,x_{-1},x_0,x_1,\\dots):x_i\\in X,\\,T(x_i)=x_{i+1}\\},$$\n$\\widetilde T$ 为左移位，$\\widetilde\\mu$ 由柱集 $\\widetilde\\mu[E_{-n},\\dots,E_0]:=\\mu(\\bigcap_{i=0}^n T^{-(n-i)}E_{-i})$ 唯一确定。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "可逆保测变换",
+      "保测变换",
+      "Carathéodory 延拓"
+    ],
+    "article": [
+      {
+        "zh": "自然延拓将不可逆保测变换提升为可逆的，其构造方式与符号动力学中的双侧移位类似：每个点 $x_0$ 的历史轨道 $\\dots,x_{-2},x_{-1}$ 由 $T(x_{-i-1})=x_{-i}$ 逆向唯一确定。\n\n定理 1.6 断言自然延拓具有普适性——它是 $T$ 的最大可逆扩张：任何其他可逆扩张都以自然延拓为因子。此外，$T$ 与 $\\widetilde T$ 具有相同的遍历性和混合性（$T$ 遍历 $\\iff\\widetilde T$ 遍历，$T$ 混合 $\\iff\\widetilde T$ 混合）。\n\n自然延拓在遍历理论的许多证明中起到关键作用，例如弱混合性的非可逆版本的证明可通过自然延拓转化为可逆情形（见 §3.2.2）。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.6.3."
+    ]
+  }
+}

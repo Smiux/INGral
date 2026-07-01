@@ -5,10 +5,11 @@ export interface KnowledgeObject {
   description: Record<string, string[]>;
   extension?: {
     tags?: string[];
-    notation?: string[];
     notes?: Record<string, string>[];
     examples?: Record<string, string>[];
-    sources?: string[];
+    references?: string[];
+    article?: Record<string, string>[];
+    proof?: Record<string, string>[];
   };
 }
 

@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.stationary-measure",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "平稳测度",
+      "群作用的 stationary 测度"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 可数，$p$ 是 $\\Gamma$ 上支撑生成 $\\Gamma$ 作为半群的概率测度。$\\mathbb S^1$ 上的概率测度 $\\mu$ 称为关于 $p$ 的**平稳测度**（stationary measure），若对每个连续函数 $\\psi$ 有\n$$\\int_{\\mathbb S^1}\\psi(x)d\\mu(x) = \\int_\\Gamma\\int_{\\mathbb S^1}\\psi(g(x))d\\mu(x)dp(g).$$\n即 $p*\\mu=\\mu$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "随机游走",
+      "扩散算子",
+      "圆周作用",
+      "遍历理论"
+    ],
+    "notes": [
+      {
+        "zh": "平稳测度的存在性可视为 Bogolioubov-Krylov 技术在随机作用下的推广。Kakutani 不动点定理（在 $\\Gamma$ 可数不要求紧致时）是确保存在性的标准工具。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "平稳测度是随机游走稳态分布在拓扑动力系统中的对应概念。给定群 $\\Gamma$ 上的概率测度 $p$（控制每一步抽到哪个群元），平稳测度 $\\mu$ 是「在 $\\mathbb S^1$ 上随机移动」的稳态：从 $\\mu$ 出发，随机抽取 $g\\sim p$ 作用一次后，点的分布式仍然是 $\\mu$。\n\nKakutani 不动点定理保证每个圆周作用至少存在一个平稳测度——这是 Bogolioubov–Krylov 不变测度存在性定理在随机作用下的推广。当 $\\Gamma$ 不保任何概率测度（这是常见情形，如非交换自由群的作用），平稳测度就成为唯一的合理替代。它的唯一性由 Furstenberg 理论中的 Poisson 边界结构控制。\n\n平稳测度在群作用正则性理论中的角色令人意外：它被用作构造 bi-Lipschitz 共轭的几何工具。其思想是用 $\\mu$ 取代 Lebesgue 测度作为参考度量，因为 $\\mu(g(I))\\leq \\mu(I)/p(g)$ 给出了群元作用的 Lipschitz 控制。这一不等式来自随机游走的 Markov 性质：为了回到 $I$，必须恰好抽出 $g$。因此群的概率结构直接翻译为共轭映射的正则性——这是概率论与微分拓扑之间一个深刻的交叉。"
+      }
+    ],
+    "references": [
+      "H. Furstenberg, Boundary theory and stochastic processes on homogeneous spaces, Proc. Sympos. Pure Math. 26 (1973), 193-229.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.3.2."
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { X, BookOpen, Tags, ListTree, ExternalLink, Info, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { X, BookOpen, FileText, Tags, ListTree, ExternalLink, Info, ChevronLeft, ChevronRight, ArrowRight, CornerDownRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { marked } from 'marked';
 import katex from 'katex';
@@ -55,11 +55,29 @@ function renderMarkdown (md: string): string {
   return marked.parse(md, { 'async': false }) as string;
 }
 
+function renderInlineMath (text: string): string {
+  let result = text.replace(/\$\$([^$]+?)\$\$/g, (_, code: string) => {
+    try {
+      return `<span class="katex-display inline-block">${katex.renderToString(code.trim(), { 'throwOnError': false, 'displayMode': true })}</span>`;
+    } catch {
+      return `<code>${code.trim()}</code>`;
+    }
+  });
+  result = result.replace(/\$([^$\n]+?)\$/g, (_, code: string) => {
+    try {
+      return katex.renderToString(code.trim(), { 'throwOnError': false, 'displayMode': false });
+    } catch {
+      return `<code>${code.trim()}</code>`;
+    }
+  });
+  return result;
+}
+
 function MarkdownRenderer ({ content, className }: { content: string; className?: string }) {
   const html = useMemo(() => renderMarkdown(content), [content]);
   return (
     <div
-      className={`prose prose-xs prose-slate dark:prose-invert max-w-none [&_.katex-display]:my-2 [&_.katex-display]:overflow-x-auto [&_.katex]:text-inherit ${className ?? ''}`}
+      className={`prose prose-xs prose-slate dark:prose-invert max-w-none [&_.katex-display]:my-2 [&_.katex-display]:overflow-x-visible [&_.katex]:text-inherit ${className ?? ''}`}
       dangerouslySetInnerHTML={{ '__html': html }}
     />
   );
@@ -99,11 +117,44 @@ function DepList ({ deps, onNavigate }: { deps: { id: string; label: string }[];
         <button
           key={dep.id}
           onClick={() => onNavigate(dep.id)}
-          className="text-xs px-1.5 py-0.5 rounded bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-slate-700 dark:hover:text-slate-300 transition-colors font-mono"
+          className="group inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200/40 dark:border-slate-700/30 text-slate-500 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 transition-colors font-mono"
         >
-          {dep.label}
+          <span>{dep.label}</span>
+          <ChevronRight className="w-2.5 h-2.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 dark:group-hover:text-slate-500 transition-colors shrink-0" />
         </button>
       ))}
+    </div>
+  );
+}
+
+function ProofSection ({ proofList }: { proofList: string[] }) {
+  const [proofIndex, setProofIndex] = useState(0);
+  const safeIndex = Math.min(proofIndex, proofList.length - 1);
+  const currentProof = proofList[safeIndex] ?? '';
+  return (
+    <div className="rounded-lg border bg-sky-50/60 dark:bg-sky-950/30 border-sky-200/60 dark:border-sky-800/40 overflow-hidden">
+      <div className="px-3 pt-3">
+        <MarkdownRenderer content={currentProof} className="text-xs leading-relaxed text-slate-600 dark:text-slate-400" />
+      </div>
+      {proofList.length > 1 && (
+        <div className="flex items-center justify-between px-3 pb-2.5 gap-2">
+          <button
+            onClick={() => setProofIndex(i => (i - 1 + proofList.length) % proofList.length)}
+            className="p-1 rounded hover:bg-sky-100/60 dark:hover:bg-sky-900/30 text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors"
+          >
+            <ChevronLeft className="w-3 h-3" />
+          </button>
+          <span className="text-[10px] text-sky-400 dark:text-sky-500">
+            {safeIndex + 1} / {proofList.length}
+          </span>
+          <button
+            onClick={() => setProofIndex(i => (i + 1) % proofList.length)}
+            className="p-1 rounded hover:bg-sky-100/60 dark:hover:bg-sky-900/30 text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors"
+          >
+            <ChevronRight className="w-3 h-3" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -154,7 +205,15 @@ export default function MathArticlePanel ({
 
   const notes = object?.extension?.notes ?? [];
   const tags = object?.extension?.tags ?? [];
-  const sources = object?.extension?.sources ?? [];
+  const references = object?.extension?.references ?? [];
+  const article = object?.extension?.article ?? [];
+  const proof = object?.extension?.proof ?? [];
+
+  const articleText = article.find(a => a[locale] ?? a.zh ?? a.en)?.[locale] ?? article.find(a => a.zh)?.zh ?? article.find(a => a.en)?.en ?? '';
+
+  const proofList = locale === 'en' && proof.filter(p => p.en).length > 0
+    ? proof.map(p => p.en ?? '')
+    : proof.map(p => p.zh ?? '');
 
   const inboundConnections = connections.filter(c => c.to === node?.id);
   const outboundConnections = connections.filter(c => c.from === node?.id);
@@ -196,9 +255,9 @@ export default function MathArticlePanel ({
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 whitespace-nowrap">
                     连接
                   </span>
-                  <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{sourceName}</h2>
+                  <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300" dangerouslySetInnerHTML={{ '__html': renderInlineMath(sourceName) }} />
                   <ArrowRight className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
-                  <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{targetName}</h2>
+                  <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300" dangerouslySetInnerHTML={{ '__html': renderInlineMath(targetName) }} />
                 </div>
                 <button
                   onClick={onClose}
@@ -209,10 +268,10 @@ export default function MathArticlePanel ({
               </div>
 
               <div className="flex-1 overflow-y-auto p-3 space-y-1">
-                <div className="flex items-center gap-2 text-xs text-slate-300 dark:text-slate-600 font-mono mb-3">
-                  <span className="truncate">{connection!.sourceId}</span>
-                  <ArrowRight className="w-3 h-3 shrink-0" />
-                  <span className="truncate">{connection!.targetId}</span>
+                <div className="flex items-start gap-2 text-xs text-slate-300 dark:text-slate-600 font-mono mb-3">
+                  <span className="break-all">{connection!.sourceId}</span>
+                  <ArrowRight className="w-3 h-3 shrink-0 mt-0.5" />
+                  <span className="break-all">{connection!.targetId}</span>
                 </div>
 
                 {connCurrentDesc && (
@@ -275,14 +334,12 @@ export default function MathArticlePanel ({
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 whitespace-nowrap">
                     {node ? NODE_TYPE_LABELS[node.type] : ''}
                   </span>
-                  <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={node?.id}>
-                    {nameZh}
-                  </h2>
+                  <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300" title={node?.id} dangerouslySetInnerHTML={{ '__html': renderInlineMath(nameZh) }} />
                   {aliases.length > 0 && (
                     <div className="group relative shrink-0">
                       <Info className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 cursor-help" />
                       <div className="absolute left-0 top-full mt-1 hidden group-hover:block z-50">
-                        <div className="bg-slate-800 dark:bg-slate-700 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap shadow-lg">
+                        <div className="bg-slate-800 dark:bg-slate-700 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap">
                           {aliases.join('、')}
                         </div>
                       </div>
@@ -329,27 +386,47 @@ export default function MathArticlePanel ({
                   </Section>
                 )}
 
+                {articleText && (
+                  <Section icon={FileText} title="说明">
+                    <div className="rounded-lg border bg-slate-50/50 dark:bg-slate-900/30 border-slate-200/60 dark:border-slate-700/40 overflow-hidden">
+                      <div className="px-3 pt-3">
+                        <MarkdownRenderer content={articleText} className="text-xs leading-relaxed text-slate-600 dark:text-slate-300" />
+                      </div>
+                    </div>
+                  </Section>
+                )}
+
                 {notes.length > 0 && (
                   <Section icon={ListTree} title="注记">
-                    {notes.map((note, i) => {
-                      const text = note[locale] ?? note.zh ?? note.en ?? '';
-                      return text ? (
-                        <div key={i} className="text-xs leading-relaxed text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900/30 rounded p-2 border-l-2 border-slate-300 dark:border-slate-600">
-                          <MarkdownRenderer content={text} />
-                        </div>
-                      ) : null;
-                    })}
+                    <div className="space-y-2">
+                      {notes.map((note, i) => {
+                        const text = note[locale] ?? note.zh ?? note.en ?? '';
+                        return text ? (
+                          <div key={i} className="rounded-lg border bg-cyan-50/60 dark:bg-cyan-950/20 border-cyan-200/40 dark:border-cyan-800/30 overflow-hidden">
+                            <div className="px-3 pt-3">
+                              <MarkdownRenderer content={text} className="text-xs leading-relaxed text-slate-500 dark:text-slate-400" />
+                            </div>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  </Section>
+                )}
+
+                {proofList.length > 0 && (
+                  <Section icon={BookOpen} title="证明">
+                    <ProofSection proofList={proofList} />
                   </Section>
                 )}
 
                 {relatedIn.length > 0 && (
-                  <Section icon={ListTree} title="指向此条目">
+                  <Section icon={CornerDownRight} title="指向此条目">
                     <DepList deps={relatedIn} onNavigate={onNavigate} />
                   </Section>
                 )}
 
                 {relatedOut.length > 0 && (
-                  <Section icon={ListTree} title="此条目指向">
+                  <Section icon={CornerDownRight} title="此条目指向">
                     <DepList deps={relatedOut} onNavigate={onNavigate} />
                   </Section>
                 )}
@@ -358,7 +435,7 @@ export default function MathArticlePanel ({
                   <Section icon={Tags} title="标签">
                     <div className="flex flex-wrap gap-1">
                       {tags.map((tag, i) => (
-                        <span key={i} className="text-xs px-1.5 py-0.5 rounded bg-slate-100/50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500">
+                        <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-sky-50/60 dark:bg-sky-950/20 text-sky-500 dark:text-sky-400 border border-sky-200/40 dark:border-sky-800/30">
                           {tag}
                         </span>
                       ))}
@@ -366,29 +443,19 @@ export default function MathArticlePanel ({
                   </Section>
                 )}
 
-                {sources.length > 0 && (
-                  <Section icon={ExternalLink} title="来源">
+                {references.length > 0 && (
+                  <Section icon={ExternalLink} title="参考文献">
                     <div className="space-y-1">
-                      {sources.map((src, i) => (
-                        <div key={i} className="text-xs font-mono text-slate-400 dark:text-slate-500 bg-slate-50/50 dark:bg-slate-900/30 rounded px-2 py-1">
-                          {src}
+                      {references.map((ref, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs text-slate-400 dark:text-slate-500 bg-slate-50/50 dark:bg-slate-900/30 rounded px-2.5 py-1.5 border-l-2 border-slate-300/40 dark:border-slate-700/40">
+                          <span className="text-slate-300 dark:text-slate-600 shrink-0 mt-0.5">[{i + 1}]</span>
+                          <span>{ref}</span>
                         </div>
                       ))}
                     </div>
                   </Section>
                 )}
 
-                {object?.extension?.notation && object.extension.notation.length > 0 && (
-                  <Section icon={Tags} title="记号">
-                    <div className="space-y-1">
-                      {object.extension.notation.map((n, i) => (
-                        <div key={i} className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900/30 rounded px-2 py-1">
-                          <MarkdownRenderer content={`$${n}$`} />
-                        </div>
-                      ))}
-                    </div>
-                  </Section>
-                )}
               </div>
 
               <div className="p-2 border-t border-slate-200/60 dark:border-slate-700/60 text-[10px] text-slate-300 dark:text-slate-600 flex gap-3">

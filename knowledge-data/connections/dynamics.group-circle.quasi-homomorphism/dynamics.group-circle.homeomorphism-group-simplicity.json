@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.quasi-homomorphism",
+  "to": "dynamics.group-circle.homeomorphism-group-simplicity",
+  "description": {
+    "zh": [
+      "完全性（每个元素是换位子之积）用于证明平移数拟同态的唯一性。"
+    ]
+  }
+}

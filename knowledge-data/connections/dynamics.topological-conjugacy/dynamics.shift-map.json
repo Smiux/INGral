@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.topological-conjugacy",
+  "to": "dynamics.shift-map",
+  "description": {
+    "zh": [
+      "当 $\\mu>\\sqrt5+2$ 时，二次映射 $Q_\\mu$ 在极大不变集 $\\Lambda_\\mu$ 上的限制与二符号移位映射的拓扑共轭是拓扑共轭概念在符号动力系统中的典型应用——共轭由航拍映射（itinerary map）显式构造，且所有轨道结构（周期点稠密性、拓扑传递性等）在共轭下完全保持。"
+    ]
+  }
+}

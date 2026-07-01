@@ -1,0 +1,9 @@
+{
+  "from": "algebra.group-theory.amenable-group",
+  "to": "dynamics.amenable-classification-sa",
+  "description": {
+    "zh": [
+      "顺从性在圆周微分同胚的分类中起核心作用。"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "dynamics.circle.oscillation-lemma",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "位移函数振荡引理",
+      "振荡引理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\in\\operatorname{Homeo}_+(\\mathbb T)$ 为保向圆周同胚，$\\tilde f$ 为其提升。则位移函数的振荡严格小于 $1$：\n$$\\operatorname{osc}\\Delta_{\\tilde f}:=\\max_{x\\in\\mathbb T}\\Delta_{\\tilde f}(x)-\\min_{x\\in\\mathbb T}\\Delta_{\\tilde f}(x)<1.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周映射",
+      "cocycle"
+    ],
+    "article": [
+      {
+        "zh": "振荡引理是旋转数理论中最基本的非平凡估计——它是所有后续定理的共同基础。尽管 $\\tilde f$ 可以是任意复杂的 $\\mathbb R$ 上同胚（只需是某保向圆周同胚的提升），位移函数的极大值与极小值之差永远严格小于 $1$。仅从 $f$ 是 $\\mathbb T$ 的同胚这一事实出发，不可能构造出振荡达到 $1$ 的位移函数。\n\n证明的核心是巧妙的几何反证法。若 $\\operatorname{osc}\\Delta_{\\tilde f}\\geqslant 1$，取极大点和极小点 $\\tilde x_M,\\tilde x_m$（由 $\\mathbb Z$-周期性可在长度 $<1$ 的区间内找到），则 $\\tilde f(\\tilde x_M)-\\tilde f(\\tilde x_m)>1$。这意味著从 $\\tilde f(\\tilde x_m)$ 到 $\\tilde f(\\tilde x_M)$ 跨越了长度大于 $1$ 的区间，因此存在 $\\tilde y$ 使得 $\\tilde y$ 和 $\\tilde y+1$ 都在像集中。连续性给出两点 $\\tilde x_0<\\tilde x_1$ 被 $\\tilde f$ 映为 $\\tilde y$ 和 $\\tilde y+1$——投影后即得 $f(x_0)=f(x_1)$ 但 $x_0\\neq x_1$（因 $|\\tilde x_1-\\tilde x_0|<1$），与 $f$ 是单射矛盾。\n\n该引理的真正威力在于：它隐含了 $\\operatorname{osc}\\Delta_{\\tilde f^n}\\leqslant 1$ 对一切迭代 $n$ 成立。这直接从 cocycle 恒等式不能推出（$\\sum$ 的振荡可能累积），但提升的严格单调性施加了额外的序约束使这种累积不可能发生。$\\operatorname{osc}\\leq1$ 是旋转数存在性（极限与初值的无关性）、有界偏差估计 $|\\tilde f^n-\\mathrm{id}-n\\rho|\\leq1$、以及周期点刻画（有理旋转数 ↔ 周期点存在）的共同基础。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "由 $\\Delta_{\\tilde f}$ 的 $\\mathbb Z$-周期性，存在 $\\tilde x_m<\\tilde x_M<\\tilde x_m+1$ 使 $\\Delta_{\\tilde f}(\\tilde x_m)=\\min\\Delta_{\\tilde f}$ 且 $\\Delta_{\\tilde f}(\\tilde x_M)=\\max\\Delta_{\\tilde f}$。\n\n反设 $\\operatorname{osc}\\Delta_{\\tilde f}\\geqslant 1$。则\n$$\\tilde f(\\tilde x_M)-\\tilde f(\\tilde x_m)=\\tilde x_M-\\tilde x_m+\\Delta_{\\tilde f}(\\tilde x_M)-\\Delta_{\\tilde f}(\\tilde x_m)>1.$$\n故存在 $\\tilde y\\in\\mathbb R$ 使 $\\tilde f(\\tilde x_m)<\\tilde y<\\tilde y+1<\\tilde f(\\tilde x_M)$。由 $\\tilde f$ 连续，存在 $\\tilde x_0,\\tilde x_1$ 满足 $\\tilde x_m<\\tilde x_0<\\tilde x_1<\\tilde x_M$ 且 $\\tilde f(\\tilde x_0)=\\tilde y$，$\\tilde f(\\tilde x_1)=\\tilde y+1$。\n\n投影回 $\\mathbb T$ 得 $f(\\pi(\\tilde x_0))=f(\\pi(\\tilde x_1))=\\pi(\\tilde y)$，但 $|\\tilde x_1-\\tilde x_0|<\\tilde x_M-\\tilde x_m<1$ 故 $\\pi(\\tilde x_0)\\neq\\pi(\\tilde x_1)$，与 $f$ 的单射性矛盾。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA, 2024.",
+      "H. Poincaré, Mémoire sur les courbes définies par une équation différentielle, Journal de Mathématiques 7 (1881), 375-422."
+    ]
+  }
+}

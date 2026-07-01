@@ -1,0 +1,9 @@
+{
+  "from": "topology.degree",
+  "to": "dynamics.circle.lift",
+  "description": {
+    "zh": [
+      "拓扑度通过提升定义，是圆周映射的基本不变量。"
+    ]
+  }
+}

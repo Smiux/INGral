@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.solvable-quasi-invariant-radon",
+  "to": "dynamics.plante-radon-measure",
+  "description": {
+    "zh": [
+      "可解群拟不变测度定理是 Plante 定理从幂零群到可解群的推广。"
+    ]
+  }
+}

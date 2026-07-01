@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.herman-katok-ergodicity",
+  "to": "dynamics.denjoy-theorem",
+  "description": {
+    "zh": [
+      "Herman-Katok 定理推广了 Denjoy 定理的结论——$C^{1+\\mathrm{bv}}$ 无理旋转微分同胚不仅是拓扑共轭的，还是遍历的。"
+    ]
+  }
+}

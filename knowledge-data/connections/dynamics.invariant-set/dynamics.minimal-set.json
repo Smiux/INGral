@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.invariant-set",
+  "to": "dynamics.minimal-set",
+  "description": {
+    "zh": [
+      "最小集是极小（按包含关系）的非空紧 $f$-不变集。"
+    ]
+  }
+}

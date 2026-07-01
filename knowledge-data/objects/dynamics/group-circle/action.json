@@ -1,0 +1,43 @@
+{
+  "id": "dynamics.group-circle.action",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "圆周上的群作用",
+      "群在圆周上的作用"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 为群，$\\mathbb S^1$ 为圆周。$\\Gamma$ 在 $\\mathbb S^1$ 上的（连续）**作用**（action）指一个同态 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}(\\mathbb S^1)$，或等价地，一个连续映射 $\\Gamma\\times\\mathbb S^1\\ni(\\gamma,x)\\mapsto\\gamma\\cdot x\\in\\mathbb S^1$ 满足\n- $\\gamma_1\\cdot(\\gamma_2\\cdot x)=(\\gamma_1\\gamma_2)\\cdot x$ 对一切 $\\gamma_1,\\gamma_2\\in\\Gamma$，$x\\in\\mathbb S^1$；\n- $e\\cdot x=x$ 对一切 $x\\in\\mathbb S^1$（$e$ 为 $\\Gamma$ 的单位元）。\n\n作用称为**忠实**（faithful）若 $\\phi$ 是单射，即非平凡元非平凡地作用。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周",
+      "拓扑动力学",
+      "变换群",
+      "忠实作用",
+      "连续作用"
+    ],
+    "notes": [
+      {
+        "zh": "圆周是 $\\mathbb S^1\\simeq\\mathbb R/\\mathbb Z\\simeq\\mathbf{RP}^1$。作用可视为 $\\Gamma$ 在圆周上的**表示**，与 $\\Gamma$ 到 $\\operatorname{Homeo}(\\mathbb S^1)$ 的同态等同。"
+      },
+      {
+        "zh": "非忠实作用可通过商掉核转化为忠实作用：$\\Gamma/\\ker\\phi$ 忠实作用在 $\\mathbb S^1$ 上。"
+      },
+      {
+        "zh": "若 $\\Gamma$ 为拓扑群，通常要求 $\\Gamma\\times\\mathbb S^1\\to\\mathbb S^1$ 连续。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "群在圆周上的作用将经典动力系统（$\\Gamma=\\mathbb Z$ 或 $\\mathbb R$）推广到任意群，这引出贯穿该领域的三个根本问题：(1) 哪些群可以忠实地作用在圆周上？(2) 给定群的表示有何种共轭分类？(3) 作用的动力学性质（轨道结构、极小集、不变测度）如何反映群的代数性质？\n\n一个关键观察：圆周不是一条无结构的曲线——它承载了序结构（$\\mathbb S^1$ 是循环序空间）和测度结构（Lebesgue 测度）。$\\operatorname{Homeo}_+(\\mathbb S^1)$ 正是保向同胚群，它恰好是保持循环序的群。这使得序动力学的工具有效：作用的最小性、传递性和唯一遍历性都与循环序的自同构群结构密切相关。\n\n具体例子之间的对比揭示深刻的结构差异：$\\operatorname{PGL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1$ 上的射影作用是解析的、$3$-可递的且保一个 Liouville 测地线流；$\\operatorname{PL}_+(\\mathbb S^1)$ 的分段线性作用仅有 $C^0$ 正则性，但构造了如 Thompson 群 $G$ 这样的无限有限表示单群；Fuchs 群作为 $\\operatorname{PSL}(2,\\mathbb R)$ 的离散子群，其作用与双曲曲面的基本群等价。这三个例子中，作用的**正则性**（解析 vs. 分段线性）极大地影响了可出现的子群类型——光滑性约束越强，可作用的群越受限。这是群作用理论的中心课题之一。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
+    ]
+  }
+}

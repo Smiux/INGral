@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.circle.lift",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "提升",
+      "提升映射"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\pi:\\mathbb R\\to\\mathbb T=\\mathbb R/\\mathbb Z$ 为自然商映射。对连续映射 $f:\\mathbb T\\to\\mathbb T$，其**提升**是连续映射 $\\tilde f:\\mathbb R\\to\\mathbb R$ 满足 $\\pi\\circ\\tilde f = f\\circ\\pi$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周映射",
+      "覆叠空间",
+      "万有覆叠",
+      "动力学",
+      "Poincaré"
+    ],
+    "notes": [
+      {
+        "zh": "若 $\\tilde f$ 是 $f$ 的提升，则对任意 $k\\in\\mathbb Z$，$\\tilde f + k$ 也是 $f$ 的提升。因此提升在相差一个整数平移的意义下唯一。由此可定义度：$\\deg(f):=\\tilde f(\\tilde x+1)-\\tilde f(\\tilde x)$，该值与提升及 $\\tilde x$ 的选择无关。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "将圆周映射提升到万有覆盖 $\\mathbb R$ 上是圆周动力学的核心技巧，其根源来自向量场理论。对于 $\\mathbb T$ 上的无奇点向量场 $X$，其提升 $\\tilde X$ 是 $\\mathbb R$ 上的 $\\mathbb Z$-周期向量场，流 $\\Phi_{\\tilde X}^t$ 满足 $\\Phi_{\\tilde X}^t(\\tilde x+1)=\\Phi_{\\tilde X}^t(\\tilde x)+1$——这正是提升的周期平移性质。事实上，若定义映射 $\\tilde h(\\tilde x)=\\rho_X\\int_0^{\\tilde x}\\frac{dt}{X(\\pi(t))}$（其中 $\\rho_X=(\\int_{\\mathbb T} dx/X)^{-1}$ 为该向量场的平均速度），则 $\\tilde h$ 是提升且是 $C^{r+1}$ 微分同胚，且将 $X$ 推前为常向量场 $\\rho_X$。这一构造本质上将任意无奇点向量场化归为常数场——即刚性旋转的无穷小生成元。\n\n然而 Poincaré 的关键发现是：并非所有圆周同胚都可以写为某个向量场的时间-$t$ 流映射。一旦脱离向量场框架，单纯说「角速度」已无意义——圆周上全序和信息丢失。但提升仍然有效：通过万有覆盖 $\\pi:\\mathbb R\\to\\mathbb R/\\mathbb Z$，我们可以将 $\\mathbb T$（一维紧流形）上的同胚提升到 $\\mathbb R$（一维非紧流形）上的同胚，从而利用 $\\mathbb R$ 的序结构（$\\tilde f$ 严格单调）和度量来定义旋转数、位移函数等不变量。这意谓提升法是从向量场到同胚的自然推广——它用覆盖空间的拓扑替代了微分方程的分析。\n\n提升群 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb T)$ 由所有保向圆周同胚的提升组成：其中每个元素都是 $\\mathbb R$ 上严格递增的同胚，且 $\\tilde f-\\operatorname{id}_{\\mathbb R}$ 是 $\\mathbb Z$-周期的。后者正是位移函数（displacement cocycle）的定义基础，前者则使得旋转数可以通过序论证（子加性引理）或遍历论证（Birkhoff 定理）来定义。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA, 2024.",
+      "M. Hirsch, Differential topology, GTM 33, Springer (1976)."
+    ]
+  }
+}

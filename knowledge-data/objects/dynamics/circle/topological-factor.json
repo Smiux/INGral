@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.circle.topological-factor",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "$E_d$ 作为拓扑因子",
+      "度为 $d$ 的圆周映射的拓扑扩张"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $d\\in\\mathbb Z$ 满足 $|d|\\geqslant2$。则任意 $f\\in C^0_d(\\mathbb T)$ 都是标准扩张 $E_d$（$E_d(x)\\equiv dx\\pmod{\\mathbb Z}$）的拓扑扩张：存在连续满射 $h\\in C^0_1(\\mathbb T)$ 使\n$$h\\circ f = E_d\\circ h.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周映射",
+      "扩张映射",
+      "cocycle",
+      "Banach 不动点定理",
+      "函数方程"
+    ],
+    "article": [
+      {
+        "zh": "该定理断言：任何度为 $d$（$|d|\\geqslant2$）的连续圆周映射都是标准扩张 $E_d$ 的拓扑因子——即存在 $h$ 使 $h\\circ f = E_d\\circ h$。$f$ 不需要是双射，也不需要是微分同胚，只需连续且度 $d$ 非平凡。\n\n这个定理的重要性在于：它将复杂的、可能非常不规则的圆周映射「半共轭」到一个极其标准的映射 $E_d$ 上，从而为研究任意度为 $d$ 的映射提供了一个共通的参考系统。虽然 $h$ 不是同胚（它可能坍缩大段区间），但 $E_d$ 的动力学的许多特征（拓扑熵为 $\\log|d|$、周期点稠密性、传递性）通过 $h$ 被 $f$ 继承或近似。\n\n证明极其精巧，是幂级数方法与泛函分析的结合。将 $f$ 的提升写成 $\\tilde f(\\tilde x)=d\\tilde x+\\Delta(\\tilde x)$，其中 $\\Delta$ 是 $\\mathbb Z$-周期连续函数。要寻找 $\\tilde h(\\tilde x)=\\tilde x+u(x)$ 使 $\\tilde h\\circ\\tilde f = d\\tilde h$。代入得 $u(x) - \\frac{1}{d}u(f(x)) = \\frac{1}{d}\\Delta(x)$。右端算子是 $C^0(\\mathbb T)$ 上的压缩，故解存在唯一。这个方法可以视为「重整化群」思想的一个早期例子——通过函数方程将复杂动力学化简为标准形式。\n\n在扩张映射的分类中，该定理是第一步：先用因子定理得到 $h$，然后再证明 $h$ 是单射从而得到拓扑共轭。因此因子定理与共轭定理构成了一个典型的两步分类策略：先建立半共轭，然后在更强的条件下（扩张性）提升为完全共轭。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "令 $\\tilde f$ 为 $f$ 的提升。由 $\\deg f=d$，存在 $\\Delta\\in C^0(\\mathbb T,\\mathbb R)$ 使 $\\tilde f(\\tilde x)=d\\tilde x+\\Delta(\\tilde x)$。\n\n定义 $\\mathcal L\\colon C^0(\\mathbb T,\\mathbb R)\\to C^0(\\mathbb T,\\mathbb R)$ 为 $\\mathcal L(u)(x):=\\frac1d u(f(x))+\\frac1d\\Delta(x)$。则\n$$\\|\\mathcal L(u)-\\mathcal L(v)\\|_\\infty = \\frac1{|d|}\\|u\\circ f-v\\circ f\\|_\\infty \\leqslant \\frac1{|d|}\\|u-v\\|_\\infty.$$\n由 $|d|\\geqslant2$，$\\mathcal L$ 为压缩。Banach 不动点定理给出唯一 $u$ 使 $\\mathcal L(u)=u$，即 $u(x)=\\frac1d u(f(x))+\\frac1d\\Delta(x)$。\n\n令 $\\tilde h(\\tilde x):=\\tilde x+u(x)$，则 $\\tilde h\\circ\\tilde f(\\tilde x)=\\tilde f(\\tilde x)+u(f(x))=d\\tilde x+\\Delta(x)+u(f(x))=d\\tilde x+du(x)=d\\tilde h(\\tilde x)=\\tilde E_d\\circ\\tilde h(\\tilde x)$。故 $\\tilde h$ 度为 $1$，投影 $h$ 满足 $h\\circ f=E_d\\circ h$。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026.",
+      "M. Shub & D. Sullivan, Expanding endomorphisms of the circle revisited, Erg. Th. Dyn. Syst. 5 (1985), 285-289."
+    ]
+  }
+}

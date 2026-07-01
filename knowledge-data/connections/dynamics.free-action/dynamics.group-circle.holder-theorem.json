@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.free-action",
+  "to": "dynamics.group-circle.holder-theorem",
+  "description": {
+    "zh": [
+      "Hölder 定理刻画了 $\\mathbb R$ 上自由作用群的可序性。"
+    ]
+  }
+}

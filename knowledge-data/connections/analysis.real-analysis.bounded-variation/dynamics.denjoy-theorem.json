@@ -1,0 +1,9 @@
+{
+  "from": "analysis.real-analysis.bounded-variation",
+  "to": "dynamics.denjoy-theorem",
+  "description": {
+    "zh": [
+      "Denjoy 定理要求 $f\\in C^{1+\\mathrm{bv}}$，即 $\\log f'$ 有界变差。"
+    ]
+  }
+}

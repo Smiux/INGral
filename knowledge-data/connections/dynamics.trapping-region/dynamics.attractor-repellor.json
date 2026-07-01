@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.trapping-region",
+  "to": "dynamics.attractor-repellor",
+  "description": {
+    "zh": [
+      "给定陷阱区域 $U$，其关联的吸引子-排斥子对 $(A_U^+,A_U^-)$ 由 $A_U^+:=\\bigcap_{n\\geqslant0}f^n(\\overline U)$ 和 $A_U^-:=\\bigcap_{n\\geqslant0}f^{-n}(M\\setminus U)$ 给出。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.sternberg-linearization",
+  "to": "dynamics.hyperbolic-fixed-point",
+  "description": {
+    "zh": [
+      "Sternberg 线性化定理以双曲不动点为前提条件——胚在 0 处的导数 $g'(0)\\neq1$ 使得线性化构造可行。"
+    ]
+  }
+}

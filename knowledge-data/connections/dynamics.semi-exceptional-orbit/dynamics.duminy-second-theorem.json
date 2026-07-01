@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.semi-exceptional-orbit",
+  "to": "dynamics.duminy-second-theorem",
+  "description": {
+    "zh": [
+      "Duminy 第二定理以半例外轨道为核心研究对象，断言每个 $C^{1+\\mathrm{Lip}}$ 半例外轨道有无穷多端。"
+    ]
+  }
+}

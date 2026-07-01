@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.herman-counterexample",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Herman 反例",
+      "Denjoy 定理在 $C^{1+\\tau}$（$\\tau<1$）下的最优性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "对任意无理角 $\\theta$ 和任意 $\\tau<1$，在 $\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$ 中旋转 $R_\\theta$ 的任意邻域内，存在旋转数为 $\\theta$ 但不拓扑共轭于 $R_\\theta$ 的微分同胚。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Denjoy 定理",
+      "$C^{1+\\tau}$",
+      "旋转数",
+      "反例",
+      "Herman"
+    ],
+    "article": [
+      {
+        "zh": "Herman 反例是 Denjoy 理论中一个关键的「负结果」：它精确刻画了 Denjoy 定理的边界。Denjoy 定理说 $C^{1+\\mathrm{bv}}$ 无理旋转微分同胚必共轭于旋转（即没有例外极小集）。Herman 的反例证明这一条件不可改进到 $C^{1+\\tau}$（$\\tau<1$）。\n\n构造的几何思想：在圆周上取一个 Cantor 集 $K$，令微分同胚 $f$ 在 $K$ 上的导数恒为 $1$——在 $K$ 上 $f$ 恰好是刚性旋转。在补区间上，调整导数使得区间长度在迭代下以可控速率收缩（扩张），同时控制 $C^{1+\\tau}$ 范数。粗略地说，补区间越窄，需要的导数变化越剧烈——而 $C^{1+\\tau}$ 限制了这种变化的「尖峰」程度。$C^{1+\\mathrm{bv}}$ 限制导数对数全变差之和有限（$\\sum|\\log Df|$ 收敛），这是 Denjoy 证明中控制畸变的关键。$C^{1+\\tau}$ 条件比 $C^{1+\\mathrm{bv}}$ 弱：全变差有界要求导数的振荡在整体上可和，而 Hölder 条件只限制了局部的振荡「率」。因此 $C^{1+\\tau}$ 允许 Cantor 集上的导数恒为 $1$ 但在补区间上积累任意大的总畸变——只要每次振荡的「量」不超过 Hölder 条件允许的范围。\n\n从等距嵌入理论的视角看，Herman 反例揭示了 $C^{1+\\mathrm{bv}}$ 是 $C^{1+\\tau}$ 谱系中唯一的正则性临界点：$C^{1+\\mathrm{Lip}}$ 和 $C^2$ 都是 $C^{1+\\mathrm{bv}}$ 的子类，因此它们自动继承 Denjoy 定理的结论。$C^{1+\\mathrm{bv}}$ 因此在 $C^1$ 与 $C^2$ 之间划出了一条精确的界线——这正是 Denjoy 原始证明中的有界变差条件所确定的界线。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "对任意 $\\tau<1$，选定无理旋转数 $\\theta$，取快速逼近有理数列 $p_n/q_n$。在圆周上构造 Cantor 集 $K$，在 $K$ 上令导数为 $1$；在补区间上构造适当的扩张/收缩比，使总 $C^{1+\\tau}$ 范数可控。通过控制 Kolmogorov-Sinai 熵或由 Denjoy 不等式证明 $f$ 不共轭于旋转。关键：在 $C^{1+\\tau}$ 但非 $C^{1+\\mathrm{bv}}$ 的边界上恰好破坏 Denjoy 条件。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.1.",
+      "M. Herman, Sur la conjugaison différentiable des difféomorphismes du cercle à des rotations, Publ. Math. de l'IHES 49 (1979), 5-234."
+    ]
+  }
+}

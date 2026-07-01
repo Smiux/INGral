@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.solvable-group-classification",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "可解群分类定理",
+      "亚交换微分同胚群分类"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}([0,1[)$ 为可解子群且 $]0,1[$ 中无不动点，可解度 $k\\geqslant2$。则 $\\Gamma$ 属于第 $k$ 族 $\\mathcal R(k)$，其递归定义如下：$\\mathcal R(1)$ 为共轭于平移群的群族；$\\mathcal R(2)$ 为共轭于非交换仿射群子群或平移群族与 $\\mathbb Z$ 的半直积；$\\mathcal R(k)$ 为 $\\mathbb Z$ 与至多可数族 $\\mathcal R(k-1)$ 群之积的子群的半直积。\n\n圆周情形：$\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}(\\mathbb S^1)$ 的可解子群要么半共轭于旋转群，要么存在有限 $\\Gamma$-不变子集 $F$ 使 $\\Gamma'$ 在补开区间上的限制属于 $\\mathcal R(k)$。\n\n直线情形：可解 $C^{1+\\mathrm{bv}}$ 子群要么半共轭于仿射群子群，要么属于某 $\\mathcal R(k)$ 族。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "区间微分同胚",
+      "亚交换",
+      "仿射群",
+      "$C^{1+\\mathrm{bv}}$"
+    ],
+    "article": [
+      {
+        "zh": "可解群分类定理是幂零群和多循环群分类的自然推广，它回答了一个基本的结构问题：当群从交换性退化为可解性（多级交换扩张）时，$C^{1+\\mathrm{bv}}$ 微分同胚的子群可以具有什么样的代数结构？答案是完全分类——$\\mathcal R(k)$ 族的递归定义覆盖了所有可能性。\n\n$\\mathcal R(1)$——平移群——是最简单的可解微分同胚群（其实是交换的），每个元是 $x\\mapsto x+\\text{const}$ 的共轭像。$\\mathcal R(2)$ 中出现了非交换性：仿射群 $x\\mapsto ax+b$ 的子群和 $\\mathbb Z$ 与平移群的半直积。这些结构的出现有深刻的几何原因：当群元可以「缩放」而不只是「平移」时——即导数不为 $1$——动力学变得更具刚性。仿射群子群是最基本的非交换可解群，其动力学结构由「一个扩张元 + 一族平移元」组成，扩张元的双曲不动点将区间拆分为两个动力区域。\n\n分类证明的核心构造技术是「仿射化」——通过分段线性变换将坐标转换为导数恒为 $1$ 的局部坐标（即修正到平移）。这一过程通常产生一个由不动点组成的序列，在每个不动点之间微分同胚近似于平移动。通过归纳，最终将整个群纳入 $\\mathcal R(k)$ 的结构之中。\n\n圆周和直线上的分类是区间分类的自然推论。在圆周上，可解 $C^{1+\\mathrm{bv}}$ 子群要么「可积」（半共轭于旋转群），要么在去除有限个例外点后退化为区间上的 $\\mathcal R(k)$ 结构。这揭示了一个微妙的过渡：圆周的紧致性强迫可解作用要么高度对称（旋转），要么必须「断裂」为有限个区间上的刚性结构。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "亚交换情形是基础：区间上无不动点的亚交换 $C^{1+\\mathrm{bv}}$ 子群要么共轭于仿射群子群，要么是 $\\mathbb Z$ 与平移群族的半直积。证明的关键是对作用中出现的点列构造分段线性化坐标变换（「仿射化」过程）。对一般可解度 $k$，通过归纳定义 $\\mathcal R(k)$ 族完成分类：$\\mathcal R(1)$ 是平移群；$\\mathcal R(2)$ 增加非交换仿射群子群和 $\\mathbb Z$ 与 $\\mathcal R(1)$ 的半直积；$\\mathcal R(k)$ 是 $\\mathbb Z$ 与至多可数族 $\\mathcal R(k-1)$ 群之积的子群的半直积。圆周和直线情形通过约化到区间情形得到。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groupes résolubles de difféomorphismes, Bull. Braz. Math. Soc. 35 (2004), 13-50.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §4.4."
+    ]
+  }
+}

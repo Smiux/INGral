@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.duminy-first-theorem",
+  "to": "dynamics.sacksteder-theorem",
+  "description": {
+    "zh": [
+      "Duminy 第一定理与 Sacksteder 定理同为群作用语境下排除例外极小集的光滑性结果。Sacksteder 要求存在双曲不动点来排除例外极小集，Duminy 则要求生成元充分接近旋转。"
+    ]
+  }
+}

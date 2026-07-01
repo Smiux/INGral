@@ -1,0 +1,35 @@
+{
+  "id": "dynamics.ergodic.oseledets-multiplicative-ergodic",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Oseledets 乘法遍历定理",
+      "乘法遍历定理",
+      "MET"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换，$A\\colon X\\to\\operatorname{GL}(d,\\mathbb R)$ 可测且 $\\log^+\\|A^{\\pm1}\\|\\in L^1$。则对 $\\mu$-几乎每个 $x$，极限\n$$\\Lambda(x):=\\lim_{n\\to\\infty}(A_n(x)^t A_n(x))^{1/2n}$$\n存在，其中 $A_n(x)=A(T^{n-1}x)\\cdots A(x)$。$\\Lambda(x)$ 是对称正定矩阵，其特征值的对数 $\\chi_1(x)>\\cdots>\\chi_s(x)$（称为 Lyapunov 指数）及其重数几乎处处 $T$-不变。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "Lyapunov 指数",
+      "子加性遍历定理",
+      "上循环",
+      "微分动力系统",
+      "Furstenberg–Kesten"
+    ],
+    "article": [
+      {
+        "zh": "Oseledets 乘法遍历定理（1968）是微分动力系统和非线性随机矩阵理论的基础工具。它断言：沿几乎每条轨道，导数乘积的奇异值的对数有确定的极限——这些极限称为 Lyapunov 指数，衡量轨道在各方向上的指数级扩张/收缩率。\n\n定理的证明基于 Kingman 子加性遍历定理：令 $g_i^{(n)}(x)=\\log\\|A_n(x)^{\\wedge i}\\|$（$\\wedge i$ 表示第 $i$ 次外幂），则 $g_i^{(n)}$ 满足子加性。它们的极限给出了奇异值乘积的增长率，从而导出各 Lyapunov 指数。\n\n一个直接推论是 Furstenberg–Kesten 定理：$\\lim_{n\\to\\infty}\\frac1n\\log\\|A_n(x)\\|$ 几乎处处存在。该定理在随机矩阵乘积（Plykin 指标、随机动力系统）和光滑遍历理论（Pesin 理论、SRB 测度）中有广泛应用。\n\n注：$\\Lambda(x)$ 的特征值给出 Lyapunov 指数 $\\chi_j=\\log\\lambda_j$，对应的子空间 $U^j(x)$ 构成 $\\mathbb R^d$ 的直和分解，沿此分解 $\\|A_n v\\|\\approx e^{n\\chi_j}\\|v\\|$（对 $v\\in U^j$）。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.6.",
+      "V. I. Oseledets, A multiplicative ergodic theorem. Lyapunov characteristic numbers for dynamical systems, Trans. Moscow Math. Soc. 19 (1968), 197-231."
+    ]
+  }
+}

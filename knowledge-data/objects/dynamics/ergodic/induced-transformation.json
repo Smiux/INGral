@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.induced-transformation",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "诱导变换",
+      "induced transformation",
+      "首次返回映射"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换，$A\\in\\mathcal B$ 满足 $\\mu(A)>0$。对 $x\\in A$，定义 $\\varphi_A(x):=\\min\\{n\\ge1:T^nx\\in A\\}$。则 $A$ 上的**诱导变换**为 $(A_0,\\mathcal B(A),\\mu_A,T_A)$，其中 $A_0:=\\{x\\in A:\\varphi_A(x)<\\infty\\}$，$\\mu_A(E):=\\mu(E\\cap A)/\\mu(A)$，$T_A(x):=T^{\\varphi_A(x)}(x)$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "Kac 公式",
+      "回复性",
+      "Poincaré 回复定理"
+    ],
+    "article": [
+      {
+        "zh": "诱导变换是遍历理论中「限制到子集后按首次返回时间加速」的标准构造。其存在性由 Poincaré 回复定理保证：$\\mu$-几乎每个 $x\\in A$ 都会返回 $A$，故 $\\varphi_A<\\infty$ 几乎处处成立。\n\n诱导变换保持 $\\mu_A$ 不变（定理 1.7(i)）。若 $T$ 是遍历的，则 $T_A$ 也是遍历的（但混合性一般不能通过诱导传递）。\n\nKac 公式（定理 1.7(iii)）是诱导变换理论的核心结果：$\\int_A\\varphi_A\\,d\\mu_A=1/\\mu(A)$。它给出了首次返回时间的期望值，是遍历理论中少数能给出精确数值的公式之一。在统计力学中，这意味着一个系统平均需要 $1/\\mu(A)$ 个时间步长才能返回区域 $A$。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.6.4."
+    ]
+  }
+}

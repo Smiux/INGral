@@ -1,0 +1,36 @@
+{
+  "id": "dynamics.kopell-lemma",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Kopell 引理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f$ 和 $g$ 为区间 $[0,1[$（或 $]0,1]$）上的交换 $C^1$ 微分同胚。若 $f$ 在 $]0,1[$ 中无不动点且 $g$ 在 $]0,1[$ 中至少有一个不动点，则 $g$ 为恒等映射。等价地，$C^{1+\\mathrm{bv}}$ 无不动点区间微分同胚的自由中心化子作用在 $]0,1[$ 上是自由的。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "交换微分同胚",
+      "区间动力学",
+      "中心化子",
+      "一维动力学"
+    ],
+    "article": [
+      {
+        "zh": "Kopell 引理是 Kopell 博士论文中的第一个引理，也是交换微分同胚群分类的基础工具。它断言：如果两个交换的区间微分同胚中一个没有内点不动点、另一个至少有一个内点不动点，那么后者必然是恒等映射。\n\n证明的关键思想是利用有界变差控制导数畸变。设 $f(x)<x$（必要时以 $f^{-1}$ 替换），取 $g$ 的不动点 $b$。定义 $b_n=f^n(b),a=b_1$。由于 $f$ 和 $g$ 交换，$g$ 固定每个 $[b_{n+1},b_n]$。通过有界变差 $\\delta=V(f;[0,b])$ 和链式法则得到 $\\sup_{x\\in[a,b]}(g^j)'(x)\\leq e^\\delta$ 对任意 $j\\in\\mathbb N$ 成立。若 $g$ 在 $[a,b]$ 上非平凡，这会导致 $(g^j)'$ 无界，矛盾。\n\nKopell 引理的一个重要推论是：$C^{1+\\mathrm{bv}}$ 无不动点区间微分同胚 $f$ 的中心化子作用在 $]0,1[$ 上是自由的。结合 Hölder 定理，该中心化子半共轭于平移群的子群——且当该子群在 $\\mathbb R$ 中稠密时，半共轭成为拓扑共轭。\n\n该引理在交换群作用分类中起核心作用：Abel 子群在每个不可约分量上共轭于平移群。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "设 $f(x)<x$（必要时以 $f^{-1}$ 替换）。取 $g$ 的不动点 $b$，定义 $b_n=f^n(b),a=b_1$。由于 $f$ 和 $g$ 交换，$g$ 固定每个 $[b_{n+1},b_n]$。通过有界变差 $\\delta=V(f;[0,b])$ 和链式法则得到 $\\sup_{x\\in[a,b]}(g^j)'(x)\\leq e^\\delta$ 对任意 $j\\in\\mathbb N$ 成立。若 $g$ 在 $[a,b]$ 上非平凡，导出 $(g^j)'$ 无界，矛盾。"
+      }
+    ],
+    "references": [
+      "N. Kopell, Commuting diffeomorphisms, in Global Analysis, Proc. Sympos. Pure Math. XIV, Berkeley, 1968, 165–184.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §4.1.1."
+    ]
+  }
+}

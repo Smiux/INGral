@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.left-orderable-group",
+  "to": "dynamics.faithful-action",
+  "description": {
+    "zh": [
+      "可数群 $\\Gamma$ 左可序当且仅当 $\\Gamma$ 可忠实地通过保向同胚作用在 $\\mathbb R$ 上（Ghys 定理）。"
+    ]
+  }
+}

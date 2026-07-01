@@ -1,0 +1,37 @@
+{
+  "id": "analysis.operator-theory.spectral-decomposition",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "谱分解定理",
+      "谱集的不变子空间分解"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $E$ 为 Banach 空间，$A\\in\\mathcal L(E)$ 为有界算子。设 $K_1,K_2\\subset\\mathbb C$ 为非空紧集且 $\\sigma(A)=K_1\\sqcup K_2$。则存在闭真子空间 $E_1,E_2\\subset E$ 满足\n\n1. $E=E_1\\oplus E_2$；\n2. $A(E_i)\\subset E_i$（$i=1,2$）；\n3. $\\sigma(A|_{E_i})=K_i$（$i=1,2$）。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "泛函分析",
+      "Banach 空间",
+      "谱理论",
+      "双曲动力学",
+      "不变子空间"
+    ],
+    "article": [
+      {
+        "zh": "谱分解定理是将算子的谱分解为不交子集后，将整个空间相应地分解为不变子空间的直和。在双曲动力学中，将谱分为 $K^s=\\sigma(A)\\cap\\{|z|<1\\}$（稳定部分）和 $K^u=\\sigma(A)\\cap\\{|z|>1\\}$（不稳定部分）后，定理给出 $E=E_A^s\\oplus E_A^u$。这一分解是稳定/不稳定流形定理的线性基础——它保证了双曲不动点附近存在切于 $E_A^s$ 和 $E_A^u$ 的 $f$-不变流形。\n\n该定理的证明依赖于 Riesz 投影算子 $P_i:=\\frac1{2\\pi i}\\int_{\\gamma_i}(\\zeta I-A)^{-1}\\mathrm d\\zeta$，其中 $\\gamma_i$ 是围绕 $K_i$ 的 Jordan 曲线。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "设 $\\gamma_i$ 为 $\\mathbb C$ 中围绕 $K_i$ 的 Jordan 曲线，$\\gamma_1\\cap\\gamma_2=\\varnothing$。定义 Riesz 投影算子\n$$P_i:=\\frac1{2\\pi i}\\int_{\\gamma_i}(\\zeta I-A)^{-1}\\,\\mathrm d\\zeta\\in\\mathcal L(E).$$\n\n由 Dunford 积分性质，$P_i$ 为投影且 $P_1+P_2=I$、$P_1P_2=P_2P_1=0$。令 $E_i:=P_i(E)$，则 $E=E_1\\oplus E_2$。因 $A$ 与 $P_i$ 可交换，$E_i$ 为 $A$-不变子空间。\n\n由谱映射定理，$\\sigma(A|_{E_i})=\\sigma(A)\\cap K_i=K_i$。具体地，对 $\\lambda\\in K_i$，$A|_{E_i}-\\lambda I|_{E_i}$ 不可逆因其逆若存在则可通过 $P_i$ 延拓为 $(A-\\lambda I)^{-1}$，矛盾。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026."
+    ]
+  }
+}

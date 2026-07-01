@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.markov-measure",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Markov 测度",
+      "Markov measure"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $P=(p_{ab})_{S\\times S}$ 为随机矩阵（$\\sum_b p_{ab}=1$），$\\underline p$ 为平稳概率向量（$\\underline p\\,P=\\underline p$）。有限型子移位 $\\Sigma_A^+$ 上的 **Markov 测度** 由柱集上的值 $\\mu[a_0,\\dots,a_{n-1}]=p_{a_0}\\,p_{a_0a_1}\\cdots p_{a_{n-2}a_{n-1}}$ 唯一确定。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "Markov 链",
+      "平稳过程",
+      "符号动力学",
+      "子移位"
+    ],
+    "article": [
+      {
+        "zh": "Markov 测度是 Bernoulli 测度的推广——它允许字母之间的相关性，但限制为一步 Markov 性：下一个字母的分布只依赖于当前字母（由转移矩阵 $P$ 决定），而与更早的历史无关。\n\n平稳性条件 $\\underline p\\,P=\\underline p$ 确保该测度关于左移位不变。任何随机矩阵至少有一个平稳概率向量（由 Brouwer 不动点定理保证）。\n\nMarkov 测度的遍历性和混合性完全由 $P$ 的不可约性和非周期性刻画：$P$ 不可约 $\\Rightarrow$ 遍历；$P$ 不可约且非周期 $\\Rightarrow$ 混合。非不可约的 $P$ 必然导致非遍历（存在非平凡不变集）。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.5.4."
+    ]
+  }
+}

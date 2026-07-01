@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.ergodic-decomposition",
+  "to": "dynamics.invariant-measure",
+  "description": {
+    "zh": [
+      "不变测度的 Choquet 分解：遍历测度是紧凸集 M(T) 的极值点，每个不变测度唯一表示为遍历测度的凸组合。"
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "dynamics.group-circle.margulis-alternative",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Margulis 交错定理",
+      "Margulis 定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 为保向圆周同胚子群。则至少以下两者之一成立：\n- $\\Gamma$ 包含一个非交换自由子群；\n- 存在 $\\Gamma$-不变的概率测度。\n\n**推论：** 若进一步 $\\Gamma$ 的所有轨道在 $\\mathbb S^1$ 中稠密，则要么 $\\Gamma$ 含非交换自由子群，要么 $\\Gamma$ 交换且共轭于某个旋转子群。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "自由子群",
+      "不变测度",
+      "Tits 交替",
+      "圆周作用",
+      "等度连续"
+    ],
+    "notes": [
+      {
+        "zh": "Tits 对线性群的经典交替定理对 Homeo⁺(S¹) 的子群不成立——$\\operatorname{PL}_+([0,1])$ 不含非交换自由子群但也不是虚拟可解群。Margulis 定理是 Tits 交替在圆周同胚群中的替代品。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "Margulis 定理将圆周同胚群的代数结构（是否存在自由子群）与测度论性质（是否存在不变概率测度）联系起来。其证明分为几个关键步骤：首先通过结构定理将作用分为三类：有限轨道、稠密轨道、例外极小集，其中有限轨道情形直接给出不变测度（Dirac 质量之和）。其次，稠密轨道情形进一步分为等度连续和非等度连续：若等度连续，由 Ascoli 定理其闭包为紧群，从前述分析知紧子群交换且共轭于旋转子群，从而 $\\Gamma$ 交换。而非等度连续情形意味着存在收缩区间（interval whose images shrink to a point），结合稠密性可构造乒乓配置——从而得到非交换自由子群。最后，例外极小集情形通过半共轭约化到最小作用，然后重复上述论证；若极小作用自由化失败则不变测度存在且支撑在例外极小集上。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "将作用分为三类。\n\n**有限轨道情形**：存在有限轨道，取平均 Dirac 质量得不变概率测度。\n\n**稠密轨道情形**：若等度连续，由 Ascoli 定理闭包为紧群，共轭于旋转子群，$\\Gamma$ 交换。若非等度连续，存在收缩区间，结合稠密性构造满足乒乓条件的四段区间，得非交换自由子群。\n\n**例外极小集情形**：通过半共轭约化到极小作用（稠密轨道情形），重复上述论证。若极小作用自由化失败则不变测度存在且支撑在例外极小集上。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007).",
+      "G. Margulis, Free subgroups of the homeomorphism group of the circle, C. R. Acad. Sci. Paris Sér. I Math. 331 (2000), 669–674."
+    ]
+  }
+}

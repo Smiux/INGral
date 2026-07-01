@@ -1,0 +1,33 @@
+{
+  "id": "dynamics.strongly-expansive-action",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "强扩张作用",
+      "圆周强扩张群作用"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 在 $\\mathbb S^1$ 上的作用极小且扩张。称该作用是**强扩张的**（strongly expansive），若对每个闭包不为全圆周的开区间 $I$，存在序列 $(g_n)\\subset\\Gamma$ 使 $|g_n(I)|\\to0$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周作用",
+      "扩张",
+      "极小作用",
+      "Margulis 交替"
+    ],
+    "article": [
+      {
+        "zh": "强扩张性是从扩张到自由子群构造之间的桥梁。扩张性保证每个点附近存在一个区间在某族群元作用下可压碎；但扩张作用中，不同点的「可压碎方向」可能是分散的，需要用多种族元来覆盖。强扩张性要求一个更强的协同性：对任意非稠密开区间 $I$，存在某个（依赖于 $I$ 的）群元序列将 $I$ 压碎到零。\n\n$\\operatorname{PSL}_k(2,\\mathbb R)$（$k\\geqslant2$）的最小作用提供了一个重要的反例：它是扩张的但不是强扩张的。这並非偶然——该作用本身就来自一个秩 $\\geqslant2$ 的群，其 Pinp-Pong 结构更为精细。通过一个与 $\\Gamma$ 交换的有限阶同胚 $R$ 的商化，任何扩张极小作用都可以约化为强扩张作用。$R$ 的阶 $d(\\Gamma)$ 测量了原作用偏离强扩张性的程度，$d(\\Gamma)=1$ 恰好就是强扩张情形。\n\n在 Margulis 交替定理的证明中，强扩张性的角色是构造自由子群。基本策略是取收敛到两个不同点的收缩区间序列 $L_n,L'_n$，利用 Neumann 引理（群不可写为有限个无穷指标左陪集之并）选出两个生成元 $g_0,g_1$。强扩张性保证了 $g_0,g_1$ 及其共轭的 Ping-Pong 几何——它们将圆周分割为若干不相交的区域，自由群的结构由此涌现。"
+      }
+    ],
+    "references": [
+      "S. Hurder, Dynamics of expansive group actions on the circle, Preprint (2004).",
+      "S. Hurder, Exceptional minimal sets of C^{1+α}-group actions, Erg. Th. Dyn. Syst. 11 (1991), 455-467.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.3.1."
+    ]
+  }
+}

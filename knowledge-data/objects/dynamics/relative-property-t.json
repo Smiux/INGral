@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.relative-property-t",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "相对性质 (T)",
+      "relative property (T)"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 为局部紧群，$\\Gamma_0$ 为 $\\Gamma$ 的子群。称对 $(\\Gamma,\\Gamma_0)$ 具有**相对性质 (T)**，若对每个 $\\Gamma$ 在 Hilbert 空间上的等距表示（连续），存在 $\\Gamma_0$ 不变的向量。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Kazhdan",
+      "性质 (T)",
+      "相对性质",
+      "单一性"
+    ],
+    "article": [
+      {
+        "zh": "相对性质 (T) 是 Kazhdan 性质 (T) 的弱化。虽然 $\\operatorname{SL}(2,\\mathbb Z)$ 本身不具有性质 (T)，但它与 $\\mathbb Z^2$ 的半直积 $\\operatorname{SL}(2,\\mathbb Z)\\ltimes\\mathbb Z^2$ 却具有相对性质 (T)（相对于正规子群 $\\mathbb Z^2$）。这使得相对性质 (T) 成为研究圆周微分同胚群中「介于性质 (T) 与 Haagerup 性质之间」的群的重要工具。\n\nNavas 定理指出：$\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$（$\\tau>1/2$）的子群若具有相对性质 (T)（相对于某个正规子群），则要么共轭于旋转子群，要么该正规子群有限。这意味着具有相对性质 (T) 的群几乎无法「非平凡」地作用在圆周上。\n\n这一结果不能推广到同胚群——$\\operatorname{SL}(2,\\mathbb Z)\\ltimes\\mathbb Z^2$ 可以忠实地通过圆周同胚作用（通过将轨道 $\\operatorname{SL}(2,\\mathbb Z)\\cdot p$ 的每个点替换为小区间的构造），但该作用无法光滑化为 $C^1$ 作用。"
+      }
+    ],
+    "references": [
+      "Y. de Cornulier, Relative Kazhdan property, Annales Sci. ENS 39 (2006), 301-333.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §5.2.4."
+    ]
+  }
+}

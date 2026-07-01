@@ -1,0 +1,9 @@
+{
+  "from": "analysis.operator-theory.spectral-decomposition",
+  "to": "dynamics.stable-unstable-splitting",
+  "description": {
+    "zh": [
+      "稳定/不稳定分裂的证明直接应用谱分解定理，将谱 $\\sigma(A)$ 分解为 $K^s=\\sigma(A)\\cap\\{|z|<1\\}$ 和 $K^u=\\sigma(A)\\cap\\{|z|>1\\}$，再由定理得到 $A$-不变子空间 $E^s,E^u$ 使 $E=E^s\\oplus E^u$。"
+    ]
+  }
+}

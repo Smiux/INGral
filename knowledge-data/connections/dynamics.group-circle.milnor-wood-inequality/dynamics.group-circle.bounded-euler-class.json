@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.milnor-wood-inequality",
+  "to": "dynamics.group-circle.bounded-euler-class",
+  "description": {
+    "zh": [
+      "Milnor-Wood 不等式给出了曲面群的有界 Euler 类的具体数值界限 $|eu(\\phi)|\\leqslant 2g-2$，对应于有界 Euler 类在 $H_b^2$ 中的范数为 $1/2$。"
+    ]
+  }
+}

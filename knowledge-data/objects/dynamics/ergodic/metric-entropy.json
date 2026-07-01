@@ -1,0 +1,33 @@
+{
+  "id": "dynamics.ergodic.metric-entropy",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "度量熵",
+      "Kolmogorov–Sinai 熵",
+      "测度熵"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换。对可测划分 $\\alpha$（$H_\\mu(\\alpha)<\\infty$），令\n$$h_\\mu(T,\\alpha)=\\lim_{n\\to\\infty}\\frac1n H_\\mu\\!\\left(\\bigvee_{i=0}^{n-1}T^{-i}\\alpha\\right).$$\n$T$ 的**度量熵**定义为\n$$h_\\mu(T)=\\sup\\{h_\\mu(T,\\alpha):\\alpha\\text{ 为可数可测划分},\\, H_\\mu(\\alpha)<\\infty\\}.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "信息论",
+      "Shannon 熵",
+      "生成子",
+      "Kolmogorov"
+    ],
+    "article": [
+      {
+        "zh": "Kolmogorov–Sinai 熵（1966）是遍历理论中最重要的不变量之一，最初为区分谱同构但非同构的 Bernoulli 方案而引入。Ornstein 定理表明，在 Bernoulli 方案类中熵是完备不变量——两个 Bernoulli 方案测度论同构当且仅当其度量熵相等。\n\n度量熵衡量系统在单位时间内产生的平均信息量。$h_\\mu(T,\\alpha)$ 的极限存在性由 $a_n=H_\\mu(\\bigvee_{i=0}^{n-1}T^{-i}\\alpha)$ 的子加性保证。定理 4.2 给出了等价公式 $h_\\mu(T,\\alpha)=H_\\mu(\\alpha|\\alpha_1^\\infty)$，其中 $\\alpha_1^\\infty=\\sigma(\\bigcup_{i\\ge1}T^{-i}\\alpha)$——这解释了熵作为「给定过去后现在的不确定性」的直观含义。\n\nSinai 生成子定理断言：若 $\\alpha$ 是 $T$ 的生成子（即 $\\bigvee_{i=-\\infty}^\\infty T^{-i}\\alpha$ 生成 $\\mathcal B$），则 $h_\\mu(T)=h_\\mu(T,\\alpha)$。这为熵的计算提供了实用方法。\n\n典型例子：$d$-符号 Bernoulli 方案 $(p_1,\\dots,p_d)$ 的熵为 $-\\sum p_i\\log_2 p_i$；无理旋转的熵为零；角加倍映射的熵为 $\\log_2 2=1$。零熵系统与正熵系统有本质不同的动力学行为：零熵意味着系统具有确定性（可预测性），正熵意味着某种程度的混沌。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §4.3–4.4."
+    ]
+  }
+}

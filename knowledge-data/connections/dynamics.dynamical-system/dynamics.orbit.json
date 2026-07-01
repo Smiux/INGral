@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.dynamical-system",
+  "to": "dynamics.orbit",
+  "description": {
+    "zh": [
+      "动力系统的基本研究对象是其点的轨道。"
+    ]
+  }
+}

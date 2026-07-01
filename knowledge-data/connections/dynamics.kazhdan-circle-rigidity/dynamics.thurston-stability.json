@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.kazhdan-circle-rigidity",
+  "to": "dynamics.thurston-stability",
+  "description": {
+    "zh": [
+      "Thurston 稳定性定理确保区间上性质 (T) 群的非平凡 $C^1$ 作用不存在，这与圆周情形互补。"
+    ]
+  }
+}

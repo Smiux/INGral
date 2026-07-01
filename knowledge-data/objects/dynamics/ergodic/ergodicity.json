@@ -1,0 +1,31 @@
+{
+  "id": "dynamics.ergodic.ergodicity",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "遍历性",
+      "ergodicity"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为保测变换。称 $T$ 是**遍历的**（或称 $\\mu$ 为遍历测度），若每个可测不变集 $E$（即 $T^{-1}E=E$）满足 $\\mu(E)=0$ 或 $\\mu(X\\setminus E)=0$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "不变集",
+      "Birkhoff 遍历定理",
+      "保测变换"
+    ],
+    "article": [
+      {
+        "zh": "遍历性是保测变换最基本的不可分解性条件：系统不能拆分为两个正测度的互不干扰的部分。等价刻画包括：几乎处处不变的可测函数必几乎处处为常数；若 $\\mu(T^{-1}E\\triangle E)=0$ 则 $\\mu(E)=0$ 或 $1$。\n\n遍历性的直观含义是「时间平均等于空间平均」：Birkhoff 遍历定理断言，对遍历系统，几乎每个点的观测值时间平均等于全空间平均。这为统计力学中 Boltzmann 的遍历假设提供了严格的数学框架。\n\n圆周旋转 $R_\\alpha$ 在 $\\alpha$ 为无理数时遍历、有理数时不遍历。角加倍映射遍历。对 Markov 链而言，转移矩阵不可约等价于遍历性。\n\n强混合性蕴含遍历性，但反之不真——无理旋转遍历但不混合。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.4."
+    ]
+  }
+}

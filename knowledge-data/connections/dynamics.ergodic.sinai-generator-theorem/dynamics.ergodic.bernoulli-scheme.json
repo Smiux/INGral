@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.sinai-generator-theorem",
+  "to": "dynamics.ergodic.bernoulli-scheme",
+  "description": {
+    "zh": [
+      "Bernoulli 方案的熵通过 Sinai 生成子定理计算：取单符号柱集为生成子，得 $h_\\mu(T)=-\\sum p_a\\log_2 p_a$。"
+    ]
+  }
+}

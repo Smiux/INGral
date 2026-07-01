@@ -1,0 +1,29 @@
+{
+  "id": "dynamics.hyperbolic-periodic-point",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "双曲周期点",
+      "简单周期点"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\in\\operatorname{Diff}^1(\\mathbb T)$，$p\\in\\mathbb T$ 为 $f$ 的周期点，素周期为 $n\\in\\mathbb N$。称 $p$ 为**简单周期点**，若 $Df^n(p)\\neq1$。称 $p$ 为**双曲周期点**，若 $|Df^n(p)|\\neq1$。\n\n双曲周期点进一步分为 **吸引** ($|Df^n(p)|<1$) 和 **排斥** ($|Df^n(p)|>1$)。\n\n注：$n=1$ 时即为双曲不动点。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "动力系统",
+      "Morse-Smale"
+    ],
+    "article": [
+      {
+        "zh": "双曲周期点是 Morse-Smale 理论的基石。在 Morse-Smale 系统中，每个周期点都是双曲的——导数模长严格不等于 $1$——因此局部动力学是指数吸引或指数排斥的。由于系统只有有限个周期点（旋转数有理时素周期均为 $q$），这一有限性加上双曲性保证了系统的结构稳定性：在 $C^1$ 小扰动下，周期点的个数和类型保持不变。\n\n简单周期点（$Df^n(p)\\neq1$）的概念是双曲周期点的弱化版本：它只排除导数等于 $1$ 的情形而不要求 $|Df^n(p)|\\neq1$。这一条件通过隐函数定理足以保证在参数扰动下周期点的延续性（continuation）。在 Morse-Smale 定理的证明中，先通过 closing 引理使系统具有周期点（此时它们不一定双曲），然后用参数横截性定理将它们依次扰动为双曲的——这是一个典型的「先存在后正则化」的策略。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026."
+    ]
+  }
+}

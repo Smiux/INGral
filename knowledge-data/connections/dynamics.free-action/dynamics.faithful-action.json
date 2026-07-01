@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.free-action",
+  "to": "dynamics.faithful-action",
+  "description": {
+    "zh": [
+      "自由作用必忠实；但忠实作用未必自由。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.metric-entropy",
+  "to": "dynamics.ergodic.mixing",
+  "description": {
+    "zh": [
+      "正熵测度通常与混合性、混沌行为相关联；零熵系统（如无理旋转）具有可预测性。Ruelle 不等式给出 Lyapunov 指数对熵的上界。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.omega-limit-set",
+  "to": "dynamics.non-wandering-set",
+  "description": {
+    "zh": [
+      "极限集 $L(f)$ 是非游荡集 $\\Omega(f)$ 的子集：$\\omega_f(p)$ 中的每一点都是非游荡的，因此 $L(f)\\subset\\Omega(f)$。"
+    ]
+  }
+}

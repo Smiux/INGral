@@ -1,0 +1,40 @@
+{
+  "id": "dynamics.superrigidity-lattice-circle",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "高秩格点圆周作用超刚性定理",
+      "格点作用超刚性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "(i) 设 $G$ 为秩 $\\geqslant2$ 的（连通）半单 Lie 群，$\\Gamma$ 为 $G$ 的不可约格点。则任意同态 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^1(\\mathbb S^1)$ 要么具有有限像，要么半共轭于某 PSL(2,$\\mathbb R$) 射影作用的有限覆叠。\n\n(ii) 设 $G=G_1\\times\\cdots\\times G_k$（$k\\geqslant2$），$\\Gamma$ 为 $G$ 的有限生成余紧格点，且 $\\Gamma$ 在各因子中的投影稠密。若 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$（$\\tau>1/2$）且 $\\Phi(\\Gamma)$ 不保持任何概率测度，则要么 $\\Phi(\\Gamma)$ 共轭于 PSL(2,$\\mathbb R$) 的子群，要么 $\\Phi$ 半共轭于某一 $G_i$ 的圆周作用的有限覆叠。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "超刚性",
+      "高秩格点",
+      "圆周微分同胚",
+      "Ghys",
+      "PSL(2,R)",
+      "半单 Lie 群"
+    ],
+    "article": [
+      {
+        "zh": "高秩格点的圆周作用超刚性定理是 Margulis 超刚性思想和 Zimmer 纲领在一维动力系统中的体现。定理表明：秩 $\\geqslant2$ 的不可约格点在圆周上的 $C^1$ 微分同胚作用要么平凡（有限像），要么本质上来自 PSL(2,$\\mathbb R$) 的射影作用。PSL(2,$\\mathbb R$) 本身秩为 1——因此第二种情形本质上是格点通过商同态「降低秩」到秩 1 后的自然作用。\n\n证明分两步。首先研究标准高秩半单 Lie 群（SL($n$,R)、Sp($2r$,R)、SO($2,q$)、SU($2,q$)）的情形——这些群具有性质 (T)，因此由圆周作用有限性定理知作用为有限像。然后处理更有趣的 PSL(2,R)×PSL(2,R) 情形——该方法利用乘积结构的分解，证明任何同态要么平凡，要么通过投影到某个因子后由 PSL(2,R) 的射影作用给出。最后利用半单 Lie 群的分类覆盖一般情形。\n\n更一般的情形中（乘积群中的格点），结论给出完整的二分类：保测情形有限，不保测情形共轭于 PSL(2,R) 子群或因子分解。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "分两步。第一步：研究标准高秩半单 Lie 群（$\\operatorname{SL}(n,\\mathbb R)$、$\\operatorname{Sp}(2r,\\mathbb R)$、$\\operatorname{SO}(2,q)$、$\\operatorname{SU}(2,q)$）的情形——这些群具有性质 (T)，由圆周作用有限性定理知作用为有限像。第二步：处理 $\\operatorname{PSL}(2,\\mathbb R)\\times\\operatorname{PSL}(2,\\mathbb R)$ 情形——利用乘积结构的分解，证明任何同态要么平凡，要么通过投影到某因子后由 $\\operatorname{PSL}(2,\\mathbb R)$ 的射影作用给出。最后利用半单 Lie 群的分类覆盖一般情形。"
+      }
+    ],
+    "references": [
+      "E. Ghys, Actions des réseaux sur le cercle, Invent. Math. 137 (1999), 199-231.",
+      "R. Zimmer, Ergodic theory of semisimple groups, Birkhäuser (1984).",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §5.3."
+    ]
+  }
+}

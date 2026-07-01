@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.duminy-second-theorem",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Duminy 第二定理",
+      "Duminy 半例外轨道无限端定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 为 $C^{1+\\mathrm{Lip}}$ 圆周微分同胚的有限生成伪群，$\\Lambda\\subset\\mathbb S^1$ 为局部例外集。则每个半例外轨道（即端点属于 $\\Lambda$ 的 $\\Lambda^c$ 补区间的端点轨道）具有无穷多端（ends）。\n\n等价表述：在 $C^{1+\\mathrm{Lip}}$ 正则性下，半例外轨道的 Cayley 图在无穷远处有无穷多个连通分支。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周微分同胚",
+      "端",
+      "例外极小集",
+      "伪群",
+      "$C^{1+Lip}$"
+    ],
+    "article": [
+      {
+        "zh": "半例外轨道是例外极小集中最「暴露」的点——它们位于例外集 $\\Lambda$ 与其补集 $\\Lambda^c$ 的边界上。第二定理的核心回答是：这种边界轨道在 $C^{1+\\mathrm{Lip}}$ 下必然在几何上有无穷多个「出口」通向无穷远（即具有无穷多端）。\n\n为什么这是非平凡的？考虑类比：$\\mathbb Z$ 在 $\\mathbb R$ 上的平移作用，每条轨道具有两端（$+\\infty$ 和 $-\\infty$）。$\\mathbb Z^2$ 在 $\\mathbb R^2$ 上的平移作用，每条轨道有一端（因为 $\\mathbb Z^2$ 的 Cayley 图是平面网格，无穷远处只有一个「方向」）。Duminy 定理说，在 $C^{1+\\mathrm{Lip}}$ 群作用下，半例外轨道必须有无穷多个端——比 $\\mathbb Z$ 的两端还要多。这意味著例外集的补区间在两端以极端发散的方式分裂。\n\n正则性条件 $C^{1+\\mathrm{Lip}}$ 的敏感性是一个重要观察。当 $\\tau<1$ 时，$C^{1+\\tau}$ 不足以约束这种发散：存在自由 $\\mathbb Z^d$（$d\\geqslant2$）的 $C^{1+\\tau}$ 非极小作用，其轨道只有一端。而 $C^{1+\\mathrm{Lip}}$ 恰好提供了足够的畸变控制，使得 $S(p',p'')$ 函数（一种对沿轨道路径长度的扭曲度量）能有效区分不同的端。$C^{1+\\mathrm{Lip}}$ 的临界性在于 Lipschitz 导数保证了 $S$ 函数的可加性——在 $C^{1+\\tau}$（$\\tau<1$）下这种可加性会丢失。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "反证法。假设半例外轨道只有有限多个端。通过 Sacksteder 定理给出的双曲不动点构造两条沿轨道趋近无穷的序列。利用 $S(p',p'')$ 函数（对路径长度的扭曲度量）和 Schwartz 型估计，证明这两条序列确定了同一端当且仅当 $S(p'_n,p''_n)\\to0$。若只有有限多端，则可以构造出 $S$ 任意小的路径，与半例外轨道的几何结构冲突。$C^{1+\\mathrm{Lip}}$ 正则性通过精细的畸变控制确保该矛盾。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.4."
+    ]
+  }
+}

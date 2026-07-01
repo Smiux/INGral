@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.conjugacy-smoothness",
+  "to": "dynamics.sternberg-linearization",
+  "description": {
+    "zh": [
+      "共轭光滑性提升定理的证明使用 Sternberg 线性化定理将双曲胚处的局部 $C^r$ 性提升到整体。"
+    ]
+  }
+}

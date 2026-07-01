@@ -1,0 +1,34 @@
+{
+  "id": "dynamics.attractor-repellor",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "吸引子-排斥子对",
+      "吸引-排斥对偶",
+      "Conley 吸引子"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\colon M\\to M$ 为紧度量空间上的同胚，$U\\subset M$ 为 $f$ 的陷阱区域。与 $U$ 关联的**吸引子-排斥子对** $(A_U^+,A_U^-)$ 定义为：\n$$A_U^+:=\\bigcap_{n\\geqslant0}f^n(\\overline U),\\qquad A_U^-:=\\bigcap_{n\\geqslant0}f^{-n}(M\\setminus U).$$\n\n$A_U^+$ 和 $A_U^-$ 是紧 $f$-不变集，分别包含于 $U$ 和 $M\\setminus\\overline U$，且非空当且仅当 $U$ 和 $M\\setminus\\overline U$ 非空。链回归集满足 $\\mathcal R(f)\\subset A_U^+\\sqcup A_U^-$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "动力系统",
+      "Conley 理论",
+      "链回归",
+      "陷阱区域",
+      "Lyapunov 函数"
+    ],
+    "article": [
+      {
+        "zh": "吸引子-排斥子对是陷阱区域 $U$ 的直接产物。正向迭代 $\\bigcap_{n\\geqslant0}f^n(\\overline U)$ 提取所有被 $U$「捕获」的轨道的正向渐近点（吸引子 $A_U^+$），负向迭代 $\\bigcap_{n\\geqslant0}f^{-n}(M\\setminus U)$ 提取逃离 $U$ 的轨道对应的负向渐近点（排斥子 $A_U^-$）。它们是紧 $f$-不变集，分别含于 $U$ 和 $M\\setminus\\overline U$，且非空当且仅当 $U$ 和 $M\\setminus\\overline U$ 非空。\n\n$\\mathcal R(f)\\subset A_U^+\\sqcup A_U^-$ 这一关键性质表明：无论 $U$ 怎样选取，任何链回归点都不可能在 $A_U^+$ 和 $A_U^-$ 之间「穿越」——它必须落在其中一侧。这意谓陷阱区域对链回归集产生了一个二分（dichotomy）。不同的 $U$ 产生不同的二分，这些二分的交集恰好是链等价关系：$x,y\\in\\mathcal R(f)$ 等价当且仅当对所有 $U$ 它们同时落入 $A_U^+$ 或同时落入 $A_U^-$。因此，$\\mathcal R(f)$ 上的等价关系就等价于「所有陷阱区域二分的一致精细」。\n\n这一思想正是 Conley 定理的核心构造机制。吸引子-排斥子对的族至多可数（紧度量空间中可数分离性），因此可以用实数值来编码这些二分：每对 $(A_U^+,A_U^-)$ 赋予 $A_U^+$ 一个值 $\\alpha_U$、$A_U^-$ 一个值 $\\beta_U<\\alpha_U$，然后对所有 $U$ 求和——不同链回归类在这组二分下的表现不同，因此最终的和函数 $L$ 在各类上取值不同，且 $L(\\mathcal R(f))$ 是紧全不连通集。在梯度流中，$A_U^+$ 是势函数的某个下水平集的吸引盆中的临界点，$A_U^-$ 是相应的排斥盆中的临界点——这正是「吸引子-排斥子对」名称的由来。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1.",
+      "C. Conley, Isolated invariant sets and the Morse index, CBMS 38, AMS (1978)."
+    ]
+  }
+}

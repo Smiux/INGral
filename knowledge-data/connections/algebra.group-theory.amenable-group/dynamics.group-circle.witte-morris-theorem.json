@@ -1,0 +1,9 @@
+{
+  "from": "algebra.group-theory.amenable-group",
+  "to": "dynamics.group-circle.witte-morris-theorem",
+  "description": {
+    "zh": [
+      "Witte-Morris 定理使用顺从性假设：可序顺从群必有非平凡 $\\mathbb R$ 同态。"
+    ]
+  }
+}

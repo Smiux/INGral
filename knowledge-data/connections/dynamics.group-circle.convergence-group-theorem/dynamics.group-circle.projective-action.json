@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.convergence-group-theorem",
+  "to": "dynamics.group-circle.projective-action",
+  "description": {
+    "zh": [
+      "该定理的结论是共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群——而 $\\operatorname{PSL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1$ 上的射影作用是圆周群作用的基本例子。"
+    ]
+  }
+}

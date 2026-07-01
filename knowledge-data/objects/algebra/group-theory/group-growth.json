@@ -1,0 +1,34 @@
+{
+  "id": "algebra.group-theory.group-growth",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "群的增长",
+      "增长函数"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 为有限生成群，$\\mathcal S$ 为一组有限生成元。$\\Gamma$ 的**增长函数** $\\gamma_{\\mathcal S}(n)$ 定义为 $\\Gamma$ 中可写为不超过 $n$ 个生成元及其逆的乘积的元素个数。\n\n增长函数的渐近行为不依赖于生成元的选择：若存在 $C\\geq1$ 使 $\\gamma_{\\mathcal S}(n)\\leq C\\gamma_{\\mathcal T}(Cn)\\leq C^2\\gamma_{\\mathcal S}(C^2n)$，则两种增长型等价。\n\n- **多项式增长**：$\\gamma(n)\\sim n^d$（对某个 $d\\geq0$）\n- **指数增长**：$\\gamma(n)\\sim e^n$\n- **中间增长**：介于多项式与指数之间"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "多项式增长",
+      "指数增长",
+      "中间增长",
+      "Gromov 定理",
+      "Grigorchuk 群",
+      "增长函数"
+    ],
+    "article": [
+      {
+        "zh": "群的增长是几何群论的基本不变量。Gromov 多项式增长定理（1981）断言：多项式增长的群恰是殆幂零群。在圆周微分同胚群的研究中，群的增长性质用于考察子群结构：指数增长是含有自由子群的必要但不充分条件；中间增长的第一个例子由 Grigorchuk 在 1984 年构造。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §4.2.2.",
+      "R. Grigorchuk, Degrees of growth of finitely generated groups, Izv. Akad. Nauk SSSR Ser. Mat. 48 (1984)."
+    ]
+  }
+}

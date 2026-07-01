@@ -1,0 +1,31 @@
+{
+  "id": "dynamics.ergodic.abramov-formula",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Abramov 公式",
+      "Abramov's formula"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为 Lebesgue 空间上的概率保测变换，$A$ 为张成可测集（即 $X=\\bigcup_{n\\ge0}T^{-n}A$ 模 $\\mu$），$(A,\\mathcal B_A,\\mu_A,T_A)$ 为诱导系统。则\n$$h_{\\mu_A}(T_A)=\\frac{h_\\mu(T)}{\\mu(A)}.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "熵",
+      "诱导变换",
+      "Kac 公式"
+    ],
+    "article": [
+      {
+        "zh": "Abramov 公式给出了原系统与诱导系统之间熵的精确关系。这一公式与 Kac 公式存在深层类比：$\\int_A\\varphi_A\\,d\\mu_A=1/\\mu(A)$（首次返回时间的期望）与 $h_{\\mu_A}(T_A)=h_\\mu(T)/\\mu(A)$ 共享相同的分母 $\\mu(A)$。\n\n证明的关键是将原系统上的熵计算分解为诱导变换各次迭代的贡献。对张成集 $A$，任意 $x\\in X$ 的 $\\alpha$-航拍可通过 $A$ 的首次返回时间分段编码，从而利用基本恒等式 $H_\\mu(\\alpha\\vee\\beta)=H_\\mu(\\alpha)+H_\\mu(\\beta|\\alpha)$ 递推。\n\n该公式在计算非均匀系统的熵时非常有用——例如在区间映射和可数 Markov 移位的熵计算中常将系统诱导到某个特殊子集上再应用此公式。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §4.5."
+    ]
+  }
+}

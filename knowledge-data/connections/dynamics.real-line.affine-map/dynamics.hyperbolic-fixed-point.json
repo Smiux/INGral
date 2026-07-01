@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.real-line.affine-map",
+  "to": "dynamics.hyperbolic-fixed-point",
+  "description": {
+    "zh": [
+      "仿射映射的不动点分类 $|a|<1$ 吸引 / $|a|>1$ 排斥是一维双曲不动点概念的原型例子。"
+    ]
+  }
+}

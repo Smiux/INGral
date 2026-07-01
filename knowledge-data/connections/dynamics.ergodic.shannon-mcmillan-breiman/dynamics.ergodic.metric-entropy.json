@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.shannon-mcmillan-breiman",
+  "to": "dynamics.ergodic.metric-entropy",
+  "description": {
+    "zh": [
+      "SMB 定理揭示了度量熵的渐近意义：几乎每条轨道的 $\\alpha$-名字的对数概率以 $h_\\mu(T,\\alpha)$ 的指数速率衰减。"
+    ]
+  }
+}

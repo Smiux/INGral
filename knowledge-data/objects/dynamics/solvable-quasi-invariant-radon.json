@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.solvable-quasi-invariant-radon",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "可解群拟不变测度定理",
+      "可解子群拟不变 Radon 测度存在性"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb R)$ 为可解子群，$\\Gamma$ 存在子群链 $\\{{\\rm id}\\}=\\Gamma_n\\triangleleft\\Gamma_{n-1}\\triangleleft\\cdots\\triangleleft\\Gamma_0=\\Gamma$ 使得每个 $\\Gamma_i$ 有限生成且每个商群 $\\Gamma_{i-1}/\\Gamma_i$ 交换。则 $\\Gamma$ 保持 $\\mathbb R$ 上的一个拟不变 Radon 测度。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "可解群",
+      "拟不变测度",
+      "Radon 测度",
+      "实直线作用"
+    ],
+    "article": [
+      {
+        "zh": "该定理将 Plante 定理（殆幂零群保 Radon 测度）从幂零群扩展到更大的可解群类。关键问题是：当交换性被放宽到可解性（群的多级交换扩张）时，实直线上的同胚作用是否仍然保持或拟保持某个 Radon 测度？答案是肯定的，但代价是从「不变」退化为「拟不变」。\n\n拟不变测度比不变测度弱：它要求 $\\nu(g(A))=0 \\iff \\nu(A)=0$（测度零集在群作用下不变），而不要求 $\\nu(g(A))=\\nu(A)$。这一放宽使得可解群也能获得某种「参考测度」，即使群的代数结构比 Abel 群复杂得多。从工程角度理解：拟不变测度就像一把尺子，虽然每个群元会拉伸尺子，但尺子的「零刻度」（测度零集）保持稳定。\n\n证明的归纳结构揭示了可解群的层次性与一维动力学的相互作用。归纳步骤的关键是：当缩放系数 $\\kappa(\\Gamma)=\\{1\\}$ 且 $\\Gamma/\\Gamma_0$ 顺从时，通过 $\\Gamma_0/\\Gamma_0^*$ 在中心中的位置和顺从性构造不变测度；当 $\\kappa(\\Gamma)\\neq\\{1\\}$ 时，通过平移数密度导出拟不变性。这种二分法（缩放系数是否平凡）在群作用测度论中反复出现，其物理直观是：$\\kappa(\\Gamma)\\neq\\{1\\}$ 意味著群中存在可检测的「伸缩」行为，这破坏了不变性但保留了拟不变性。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "设 $\\Gamma$ 不保任何 Radon 测度，则 $\\operatorname{Fix}(\\Gamma)=\\varnothing$（否则 Dirac 测度为不变测度）。\n\n**第一步**：取最小指标 $j>0$ 使 $\\operatorname{Fix}(\\Gamma_j)\\neq\\varnothing$。Abel 有限生成群 $\\Gamma_{j-1}/\\Gamma_j$ 在闭无界集 $\\operatorname{Fix}(\\Gamma_j)$ 上通过保序同胚作用，类 Plante 论证（殆幂零群保测定理的推广，利用顺从性和有界生成性）给出该作用的一个不变 Radon 测度，诱导出 $\\mathbb R$ 上 $\\Gamma_{j-1}$-不变 Radon 测度 $\\nu$，且 $\\operatorname{supp}(\\nu)\\subset\\operatorname{Fix}(\\Gamma_j)$。由于 $\\operatorname{Fix}(\\Gamma_{j-1})=\\varnothing$，有 $\\tau_\\nu(\\Gamma_{j-1})\\neq\\{0\\}$。\n\n**第二步**：设 $k>0$ 为最小指标使 $\\Gamma_k$ 保 Radon 测度 $\\nu$。同上 $\\tau_\\nu(\\Gamma_k)\\neq\\{0\\}$。由系数缩放为 $1$ 且商群顺从时的测度存在性结果知 $\\kappa(\\Gamma_{k-1})\\neq\\{1\\}$。\n\n**第三步**：由缩放系数非平凡时诱导拟不变性的结论，$\\nu$ 拟不变于 $\\Gamma_{k-1}$。\n\n**第四步**：反复应用拟不变性提升结论——若某子群的平移数集非平凡且缩放系数非平凡，则拟不变性可向原链上方提升——通过归纳证明 $\\nu$ 拟不变于 $\\Gamma_{k-2},\\Gamma_{k-3},\\dots,\\Gamma_0=\\Gamma$。\n\n注：每个 $\\Gamma_i$ 的有限生成条件可弱化为有界生成动力学条件。"
+      }
+    ],
+    "references": [
+      "J. Plante, Solvable groups acting on the line, Trans. AMS 278 (1983), 401-414.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.5."
+    ]
+  }
+}

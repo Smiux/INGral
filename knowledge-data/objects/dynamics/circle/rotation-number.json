@@ -1,0 +1,50 @@
+{
+  "id": "dynamics.circle.rotation-number",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Poincaré 旋转数",
+      "旋转数"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\in\\operatorname{Homeo}_+(\\mathbb T)$ 为保向圆周同胚，$\\tilde f$ 为其提升。则极限\n$$\\rho(\\tilde f):=\\lim_{n\\to+\\infty}\\frac{\\tilde f^n(\\tilde x)-\\tilde x}{n}$$\n存在，且与 $x\\in\\mathbb T$ 和 $\\tilde x\\in\\pi^{-1}(x)$ 的选择无关。收敛对 $x\\in\\mathbb T$ 一致。\n\n旋转数可以表示为位移函数的积分：对任意 $f$-不变 Borel 概率测度 $\\mu$，有\n$$\\rho(\\tilde f)=\\int_{\\mathbb T}\\Delta_{\\tilde f}\\,\\mathrm d\\mu.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周映射",
+      "动力学不变量",
+      "cocycle",
+      "遍历理论",
+      "拓扑流"
+    ],
+    "notes": [
+      {
+        "zh": "若 $\\tilde f$ 换为另一提升 $\\tilde f+k$（$k\\in\\mathbb Z$），则旋转数相差 $k$。因此 $f$ 的旋转数在 $\\mathbb R/\\mathbb Z$ 中良定义，常记作 $\\rho(f)\\in\\mathbb T$。"
+      },
+      {
+        "zh": "平移数 $T(\\tilde f)=\\tilde f(0)$ 是 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 上的拟同态：$|T(\\tilde f\\tilde g)-T(\\tilde f)-T(\\tilde g)|\\leqslant 1$。旋转数 $\\rho(f)=\\tau(\\tilde f)\\bmod\\mathbb Z$ 是其约化到 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的像。$\\tau$ 是唯一的在单生成子群上是同态且对平移 $1$ 取 $1$ 的拟同态。"
+      },
+      {
+        "zh": "对 $f$-不变测度 $\\mu$，量 $\\rho_\\mu(f):=\\mu([x,f(x)[)$ 与通常旋转数 $\\rho(f)$ 模 $1$ 相等。这表明旋转数可以完全通过测度论方式定义而无需求助于 Birkhoff 平均。对 amenable 子群 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$，单调群作用存在不变概率测度，因此旋转数函数在 $\\Gamma$ 上限制为群同态 $\\rho\\colon\\Gamma\\to\\mathbb T$。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "旋转数是圆周动力学中最重要的不变量，其思想根源可追溯到最简情形——圆周上的无奇点向量场。对于无奇点向量场 $X$，流 $\\Phi_X^t$ 的每条轨道都是周期的——绕圆周一周后返回起点——但提升到万有覆盖 $\\mathbb R$ 上的流 $\\tilde\\Phi_X^t$ 的位移 $\\tilde\\Phi_X^t(\\tilde x)-\\tilde x$ 随时间线性增长，且 $\\frac{\\tilde\\Phi_X^t(\\tilde x)-\\tilde x}{t}\\to\\rho_X$（一致收敛），其中平均速度 $\\rho_X = \\big(\\int_{\\mathbb T} dx/X\\big)^{-1}$ 由积分给出。更精确地说，提升同胚 $\\tilde h$ 将 $X$ 共轭为常向量场 $\\rho_X$，因此两个无奇点 $C^r$ 向量场 $C^{r+1}$-共轭当且仅当其平均速度相差仅符号——这就是旋转数为完全共轭不变量这一事实的最初形式。\n\nPoincaré 的突破在于将这一思想从向量场推广到任意圆周同胚。表面上，$\\rho(\\tilde f)=\\lim_n(\\tilde f^n(\\tilde x)-\\tilde x)/n$ 就是「长期平均的每次迭代位移」——这与向量场的平均速度完全类似。但定理真正的深度在于两点：(1) 极限存在且与初值无关（即使 $f$ 本身不是一致双曲的）；(2) 旋转数恰好等于位移函数对任意不变测度的积分——意即，从遍历论角度看，$\\rho(\\tilde f)$ 是沿轨道的 Birkhoff 平均，由 Birkhoff 遍历定理和振荡引理（$\\operatorname{osc}\\Delta_{\\tilde f^n}\\leqslant 1$）联合保证存在性和一致性。\n\n存在性证明有两种等价方法。经典证法利用子加性引理：定义 $a_n=\\Delta_{\\tilde f^n}(0)$，cocycle 恒等式给出 $|a_{m+n}-a_m-a_n|\\leqslant 1$→极限 $\\lim a_n/n$ 存在且偏差 $\\leqslant1$。另一种利用 Birkhoff 遍历定理：取遍历 $f$-不变测度 $\\nu$，定义 $\\rho:=\\int\\Delta_{\\tilde f}\\mathrm d\\nu$，由 Birkhoff 定理某点 $x_0$ 的 Birkhoff 和收敛至 $\\rho$，再由振荡引理 $|\\tilde f^n(\\tilde y)-\\tilde y-\\tilde f^n(\\tilde x_0)+\\tilde x_0|/n\\leqslant 1/n\\to0$ 即得对一切点一致收敛。两种证法的共同核心是振荡引理——$\\operatorname{osc}\\in[0,1)$ 这个严格不等式保证了无论用哪种方法，极限都不依赖于所选的初始点。\n\n旋转数满足中间值性质：对每个 $n$ 存在 $x_n$ 使 $\\tilde f^n(x_n)=x_n+n\\rho(\\tilde f)$——意即「平均位移等于 $\\rho$」这一事实在某个点上被精确实现。这是周期点刻画（有理旋转数 $\\iff$ 周期点存在）的核心，该二歧性（rational/irrational dichotomy）将圆周同胚的动力学完全分为截然不同的两类。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "**证法一（Birkhoff 遍历）**：取遍历 $f$-不变测度 $\\nu$，定义 $\\rho:=\\int\\Delta_{\\tilde f}\\,\\mathrm d\\nu$。由 Birkhoff 定理，存在 $x_0$ 使 $\\frac1n\\sum_{j=0}^{n-1}\\Delta_{\\tilde f}(f^j(x_0))\\to\\rho$。左端即 $(\\tilde f^n(\\tilde x_0)-\\tilde x_0)/n$。由振荡引理，$|(\\tilde f^n(\\tilde y)-\\tilde y)/n-(\\tilde f^n(\\tilde x_0)-\\tilde x_0)/n|\\leqslant 1/n$，故极限对一切 $x$ 一致成立。再由任意不变测度 $\\mu\\in\\mathfrak M(f)$ 的 Birkhoff 定理，$\\int\\Delta_{\\tilde f}\\,\\mathrm d\\mu=\\rho$ 对所有 $\\mu$ 成立。\n\n**证法二（子加性引理）**：令 $a_n:=\\Delta_{\\tilde f^n}(0)$。cocycle 恒等式给出 $|a_{m+n}-a_m-a_n|\\leqslant\\operatorname{osc}\\Delta_{\\tilde f^n}\\leqslant1$。子加性引理给出 $\\rho$ 使 $\\lim a_n/n=\\rho$ 且 $|a_n-n\\rho|\\leqslant1$。由振荡引理，$|\\tilde f^n(\\tilde x)-\\tilde x-a_n|\\leqslant 1$，故极限与 $x$ 无关且 $|\\tilde f^n(\\tilde x)-\\tilde x-n\\rho|\\leqslant 2$（精细版本 $\\leqslant1$ 由中间值性质得出）。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA, 2024.",
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026.",
+      "H. Poincaré, Mémoire sur les courbes définies par les équations différentielles I-VI, oeuvre I, Gauthier-Villar: Paris (1880), 375–422."
+    ]
+  }
+}

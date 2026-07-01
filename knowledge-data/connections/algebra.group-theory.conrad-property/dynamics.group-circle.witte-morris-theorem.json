@@ -1,0 +1,9 @@
+{
+  "from": "algebra.group-theory.conrad-property",
+  "to": "dynamics.group-circle.witte-morris-theorem",
+  "description": {
+    "zh": [
+      "右回复序（由 Poincaré 回复定理从顺从性得到）蕴含 Conrad 性质，从而动力学实现无交叉元素，进而得到 R 同态。"
+    ]
+  }
+}

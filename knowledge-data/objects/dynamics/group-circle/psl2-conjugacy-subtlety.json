@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.group-circle.psl2-conjugacy-subtlety",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "逐元 PSL(2,R) 共轭不等价于整体共轭",
+      "元素级共轭与子群级共轭的差异"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 且每个 $\\gamma\\in\\Gamma$ 均拓扑共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 中某元。这不一定意味着 $\\Gamma$ 整体共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群——即使 $\\Gamma$ 的轨道稠密且元素为实解析微分同胚。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "PSL(2,R)",
+      "反例",
+      "群作用",
+      "整体共轭",
+      "收敛性质"
+    ],
+    "article": [
+      {
+        "zh": "这是一个重要的微妙之处：虽然 $\\operatorname{PSL}(2,\\mathbb R)$ 的元素按不动点分类非常完美（椭圆/抛物/双曲），但整体嵌入与元素级嵌入有本质不同。考虑 $\\Gamma=\\mathbb Z^2$ 由两个可交换的 $\\operatorname{PSL}(2,\\mathbb R)$ 双曲元生成——这样的群是 $\\operatorname{PSL}(2,\\mathbb R)$ 中不可能存在的子群（$\\operatorname{PSL}(2,\\mathbb R)$ 中可交换的双曲元必共享不动点集，从而生成元只能为同一双曲元的幂次）。然而，我们可以用一对交换的 $C^\\infty$ 微分同胚 $f,g$ 忠实地作用在圆周上：一个旋转和一个恰当的扰动。每个 $f^n g^m$ 是 $C^\\infty$ 微分同胚（因此共轭于 Möbius 变换，这是 $C^{1+\\mathrm{Lip}}$ 圆周微分同胚的性质），但 $\\langle f,g\\rangle$ 不共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的任一子群。\n\n更系统地看，区分元素级和子群级共轭的障碍在于共轭函数 $h_\\gamma$ 依赖于 $\\gamma$。收敛性质定理的核心贡献正是给出了整体共轭的充要条件——「群 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 具有收敛性质」是「$\\Gamma$ 共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群」的充分必要条件。这一条件不要求逐个元素检查，而是通过序列的极限行为来刻画整体结构。\n\nNavas 书中指出了这一现象（§1.3.1）：即使每个元素都拓扑共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 中的某元，整体也未必共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群——即使轨道稠密且元素为实解析微分同胚[144][180]。这说明了收敛性质定理作为整体共轭充要条件的深刻性。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.3.1."
+    ]
+  }
+}

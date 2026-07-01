@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.bounded-euler-class",
+  "to": "dynamics.circle.rotation-number",
+  "description": {
+    "zh": [
+      "当 $\\Gamma=\\mathbb Z$ 时，$\\phi^*(eu)\\in H_b^2(\\mathbb Z,\\mathbb Z)\\cong\\mathbb R/\\mathbb Z$ 恰为 $\\phi(1)\\in\\operatorname{Homeo}_+(\\mathbb S^1)$ 的旋转数。"
+    ]
+  }
+}

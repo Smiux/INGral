@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.ergodic.mean-ergodic-theorem",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "von Neumann 均值遍历定理",
+      "平均遍历定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换。则对任意 $f\\in L^2(\\mu)$，时间平均在 $L^2$ 意义下收敛到 $f$ 在不变函数空间上的正交投影：\n$$\\frac1N\\sum_{k=0}^{N-1}f\\circ T^k\\xrightarrow[N\\to\\infty]{L^2}\\bar f,$$\n其中 $\\bar f$ 是 $T$-不变的。若 $T$ 遍历，则 $\\bar f=\\int f\\,d\\mu$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历定理",
+      "Hilbert 空间",
+      "von Neumann",
+      "正交投影",
+      "Koopman 算子"
+    ],
+    "article": [
+      {
+        "zh": "均值遍历定理是遍历理论中第一个严格的数学定理（von Neumann, 1932），早于 Birkhoff 的点态版本。其证明的核心思想是将 $L^2$ 分解为余边界（coboundary）的闭包与不变函数的正交和：$L^2=\\overline{\\{g-g\\circ T:g\\in L^2\\}}\\oplus\\{\\text{invariant functions}\\}$。\n\n在余边界的闭包上，时间平均趋于零；在不变函数空间上，时间平均就是函数本身。定理因此对任意 $L^2$ 函数成立。\n\n均值遍历定理只要求 $U_Tf=f\\circ T$ 是 $L^2$ 上的等距算子，事实上它对任意 Hilbert 空间上的压缩算子成立。这给出了遍历性与弱混合性的谱刻画基础。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "设 $\\mathcal C=\\{g-g\\circ T:g\\in L^2\\}$。对 $f=g-g\\circ T\\in\\mathcal C$，有 $\\|\\frac1N\\sum_{k=0}^{N-1}f\\circ T^k\\|_2=\\frac1N\\|g\\circ T^N-g\\|_2\\leq 2\\|g\\|_2/N\\to0$。\n\n若 $f\\perp\\overline{\\mathcal C}$，则 $\\|f-f\\circ T\\|_2^2=2\\|f\\|_2^2-2\\langle f,f\\rangle=0$，故 $f$ 不变。反之若 $f$ 不变则 $f\\perp\\mathcal C$。因此 $L^2=\\overline{\\mathcal C}\\oplus\\{\\text{invariant functions}\\}$。\n\n对一般 $f\\in L^2$，将其分解为余边界部分（其上时间平均趋于 0）和不变部分（其上时间平均等于自身），由此得收敛性和投影刻画。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.1.",
+      "J. von Neumann, Proof of the quasi-ergodic hypothesis, Proc. Nat. Acad. Sci. U.S.A. 18 (1932), 70-82."
+    ]
+  }
+}

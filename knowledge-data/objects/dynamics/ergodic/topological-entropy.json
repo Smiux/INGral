@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.topological-entropy",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "拓扑熵",
+      "topological entropy"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,d)$ 为紧度量空间，$T\\colon X\\to X$ 连续。对 $n\\in\\mathbb N$ 定义 $d_n(x,y)=\\max_{0\\le i<n}d(T^ix,T^iy)$。称 $E\\subset X$ 为 $(n,\\varepsilon)$-**张成的**，若 $X\\subset\\bigcup_{x\\in E}B_{d_n}(x,\\varepsilon)$。令 $s_n(T,\\varepsilon)$ 为最小 $(n,\\varepsilon)$-张成集的基数。拓扑熵定义为\n$$h_{\\mathrm{top}}(T)=\\lim_{\\varepsilon\\to0}\\limsup_{n\\to\\infty}\\frac1n\\log s_n(T,\\varepsilon).$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "拓扑动力学",
+      "复杂度",
+      "变分原理",
+      "Bowen"
+    ],
+    "article": [
+      {
+        "zh": "拓扑熵是度量熵的拓扑对应物，由 Adler、Konheim 和 McAndrew（1965）用开覆盖定义，Bowen（1971）给出了上述利用 $(n,\\varepsilon)$-张成集的等价定义，这在微分动力系统中更易使用。\n\n拓扑熵衡量系统在拓扑层面的轨道复杂度：它描述了不同轨道在有限时间窗口内能被区分的指数增长速率。$h_{\\mathrm{top}}(T)=0$ 的系统是拓扑可预测的（如无理旋转），$h_{\\mathrm{top}}(T)>0$ 则意味着某种拓扑混沌。\n\n变分原理建立了拓扑熵与度量熵之间的深层联系：\n$$h_{\\mathrm{top}}(T)=\\sup\\{h_\\mu(T):\\mu\\in\\mathfrak M(T)\\},$$\n其中 $\\mathfrak M(T)$ 是 $T$ 的所有不变 Borel 概率测度之集。这表明拓扑熵是所有可能不变测度下度量熵的上确界。达到该上确界的测度称为最大熵测度。\n\n典型例子：$d$-符号全移位的拓扑熵为 $\\log d$；扩张圆周映射 $E_d(x)=dx\\bmod1$ 的拓扑熵为 $\\log d$；无理旋转的拓扑熵为零。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §4.6."
+    ]
+  }
+}

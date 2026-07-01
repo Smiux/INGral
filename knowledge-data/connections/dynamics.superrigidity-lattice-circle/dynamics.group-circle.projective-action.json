@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.superrigidity-lattice-circle",
+  "to": "dynamics.group-circle.projective-action",
+  "description": {
+    "zh": [
+      "超刚性定理的结论之一给出共轭于 PSL(2,R) 在圆周上的射影作用。"
+    ]
+  }
+}

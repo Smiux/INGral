@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.furstenberg-kesten",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Furstenberg–Kesten 定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换，$A\\colon X\\to\\operatorname{GL}(d,\\mathbb R)$ 可测且满足 $\\log^+\\|A^{\\pm1}\\|\\in L^1(\\mu)$。令 $A_n(x):=A(T^{n-1}x)\\cdots A(x)$，则极限\n$$\\lim_{n\\to\\infty}\\frac1n\\log\\|A_n(x)\\|$$\n存在 $\\mu$-几乎处处，且为 $T$-不变函数。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "Lyapunov 指数",
+      "随机矩阵乘积",
+      "Oseledets",
+      "上循环"
+    ],
+    "article": [
+      {
+        "zh": "Furstenberg–Kesten 定理（1960）是关于随机矩阵乘积的指数增长率的第一个一般结果。它是 Kingman 子加性遍历定理的直接推论：$g^{(n)}(x)=\\log\\|A_n(x)\\|$ 满足子加性 $g^{(n+m)}\\le g^{(n)}+g^{(m)}\\circ T^n$，且 $g^{(1)}\\in L^1$。\n\n该定理的极限值 $\\lim_{n\\to\\infty}\\frac1n\\log\\|A_n(x)\\|$ 称为最上层 Lyapunov 指数（top Lyapunov exponent）。它在 Furstenberg 关于随机矩阵乘积的工作和随后 Oseledets 乘法遍历定理（给出所有 Lyapunov 指数）中起了奠基性作用。\n\n该定理的一个直接推论是：对可逆系统，$\\frac1n\\log\\|A_n\\circ T^{-n}\\|$ 的几乎处处极限与 $\\frac1n\\log\\|A_n\\|$ 的极限相同——这一事实对 Oseledets 定理的证明至关重要。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.5.",
+      "H. Furstenberg and H. Kesten, Products of random matrices, Ann. Math. Statist. 31 (1960), 457–469."
+    ]
+  }
+}

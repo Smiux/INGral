@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.mobius-transformation",
+  "to": "dynamics.topological-conjugacy",
+  "description": {
+    "zh": [
+      "椭圆型 Möbius 变换（$|\\operatorname{tr} A|<2$）展示了拓扑共轭的显式构造：复对角化 $z\\mapsto e^{2\\pi i\\rho}z$ 给出到旋转 $R_\\rho$ 的具体共轭映射，此时拓扑共轭的连续性由 Möbius 变换的全纯性自动保证。"
+    ]
+  }
+}

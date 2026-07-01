@@ -1,0 +1,31 @@
+{
+  "id": "dynamics.crossed-elements",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "交叉元素",
+      "crossed elements"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f,g\\in\\operatorname{Homeo}_+(\\mathbb R)$。称 $f$ 与 $g$ 是**交叉的**（crossed），若存在区间 $]a,b[$（允许 $a=-\\infty$ 或 $b=+\\infty$）使得 $f$ 固定 $a$ 和 $b$ 但不固定 $]a,b[$ 中任何其他点，而 $g$ 将 $a$ 或 $b$ 映入 $]a,b[$ 中。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "实直线作用",
+      "自由半群",
+      "Radon 测度",
+      "一维动力学"
+    ],
+    "article": [
+      {
+        "zh": "交叉元素刻画了实直线保向同胚群中形如 Smale 马蹄的一维复杂行为。若 $\\Gamma$ 包含交叉元素，则 $\\Gamma$ 含一个自由半群（正 Ping-Pong 引理）。这一事实为证明不含自由半群的群（如幂零群）必须保某个 Radon 测度提供了核心论证。\n\n在叶状结构理论中，交叉元素对应回复叶（feuille ressort）的概念。在微分动力学中，它是 Smale 马蹄的一维类比。\n\n无交叉元素的 $\\operatorname{Homeo}_+(\\mathbb R)$ 子群必有不变 Radon 测度（无交叉元素保测定理），该测度可用于定义平移数函数，进而导出群到 $(\\mathbb R,+)$ 的同态。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.5."
+    ]
+  }
+}

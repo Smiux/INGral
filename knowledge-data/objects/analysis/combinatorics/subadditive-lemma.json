@@ -1,0 +1,38 @@
+{
+  "id": "analysis.combinatorics.subadditive-lemma",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "子加性引理",
+      "次可加序列极限引理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设实数序列 $(a_n)_{n\\in\\mathbb N}$ 满足存在常数 $C>0$ 使\n$$|a_{m+n}-a_m-a_n|\\leqslant C,\\quad\\forall m,n\\in\\mathbb N.$$\n则极限 $\\rho:=\\lim_{n\\to+\\infty}a_n/n$ 存在，且\n$$|a_n-n\\rho|\\leqslant C,\\quad\\forall n\\in\\mathbb N.$$"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "分析",
+      "子加性序列",
+      "旋转数",
+      "渐近分析",
+      "上循环"
+    ],
+    "article": [
+      {
+        "zh": "子加性引理是渐近分析中处理「近似可加」序列的标准工具。经典的 Fekete 引理处理严格的子加性序列（$a_{m+n}\\leqslant a_m+a_n$），但旋转数证明中遇到的序列并非严格子加性——上循环恒等式（cocycle identity）给出的关系是 $|a_{m+n}-a_m-a_n|\\leqslant\\operatorname{osc}\\Delta_{\\tilde f}\\leqslant1$。该引理表明，有界误差 $C$ 足以保证极限的存在，且附带偏差估计 $|a_n-n\\rho|\\leqslant C$。\n\n证明的核心思想是：从 $\\liminf$ 出发，对任意 $\\varepsilon$ 选取 $k$ 使 $a_k/k<\\rho+\\varepsilon$，然后将任意 $n$ 分解为 $n=qk+r$，利用近似加性将 $a_n$ 放缩为 $\\leqslant q(C+a_k)+a_r+C$，最终得到 $\\limsup a_n/n\\leqslant C/k+\\rho$。令 $k\\to\\infty$ 即得 $\\limsup\\leqslant\\liminf$。\n\n该引理最经典的应用是 Poincaré 旋转数的存在性证明，其中 $a_n=\\tilde f^n(0)$。此外，在遍历论中的次可加遍历定理和双曲系统的指数增长率估计中也有广泛应用。"
+      }
+    ],
+    "proof": [
+      {
+        "zh": "定义 $\\rho:=\\liminf_{n\\to+\\infty}a_n/n$。给定 $\\varepsilon>0$，取 $k$ 使 $a_k/k<\\rho+\\varepsilon$。对任意 $n\\in\\mathbb N$，写 $n=qk+r$，$0\\leqslant r<k$。则\n$$a_n\\leqslant|a_n-a_{qk}-a_r|+a_{qk}+a_r\\leqslant C+\\sum_{j=0}^{q-1}|a_{(j+1)k}-a_{jk}-a_k|+qa_k+a_r\\leqslant C+qC+qa_k+a_r.$$\n故 $a_n/n\\leqslant q(C+a_k)/n+a_r/n+C/n\\to(C+a_k)/k<C/k+\\rho+\\varepsilon$。由 $\\varepsilon$ 任意，$\\limsup a_n/n\\leqslant C/k+\\rho$。再由 $k$ 的取法（$\\rho=\\liminf a_n/n$），令 $k\\to\\infty$ 得 $\\limsup a_n/n\\leqslant\\liminf a_n/n$，即极限存在且等于 $\\rho$。\n\n有界估计：由于 $\\rho=\\lim a_n/n$，存在 $N$ 使 $|a_n/n-\\rho|\\leqslant C/n$ 当 $n\\geqslant N$。由假设直接放缩对所有 $n$ 成立。"
+      }
+    ],
+    "references": [
+      "M. Gromov, Groups of polynomial growth and expanding maps, Publ. Math. IHES 53 (1981), 53-73.",
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026."
+    ]
+  }
+}

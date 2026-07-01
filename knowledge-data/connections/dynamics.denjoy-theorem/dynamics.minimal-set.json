@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.denjoy-theorem",
+  "to": "dynamics.minimal-set",
+  "description": {
+    "zh": [
+      "Denjoy 定理断言 $C^{1+\\mathrm{bv}}$ 微分同胚不可能有例外极小集（即同胚于 Cantor 集的极小集），从而排除了群作用分类中的例外情形。"
+    ]
+  }
+}

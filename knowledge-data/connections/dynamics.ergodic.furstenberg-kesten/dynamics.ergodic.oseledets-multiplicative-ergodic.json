@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.furstenberg-kesten",
+  "to": "dynamics.ergodic.oseledets-multiplicative-ergodic",
+  "description": {
+    "zh": [
+      "Furstenberg–Kesten 定理给出了最上层 Lyapunov 指数的存在性，Oseledets 定理将其推广到全部 Lyapunov 指数及其对应的子空间分解。"
+    ]
+  }
+}

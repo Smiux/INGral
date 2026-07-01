@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.lie-classification-1d",
+  "to": "dynamics.group-circle.homeomorphism-group",
+  "description": {
+    "zh": [
+      "该分类给出了 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 中所有可能的连通 Lie 子群的完全描述。"
+    ]
+  }
+}

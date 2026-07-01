@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.group-circle.left-orderable-group",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "左可序群",
+      "左序化群"
+    ]
+  },
+  "description": {
+    "zh": [
+      "群 $\\Gamma$ 称为**左可序**（left-orderable）的，若存在全序 $\\preceq$ 满足左平移不变性：$\\gamma_1\\preceq\\gamma_2\\implies\\gamma\\gamma_1\\preceq\\gamma\\gamma_2$ 对一切 $\\gamma,\\gamma_1,\\gamma_2\\in\\Gamma$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "序群",
+      "直线上的作用",
+      "忠实作用",
+      "Ghys 定理",
+      "保向同胚"
+    ],
+    "notes": [
+      {
+        "zh": "右可序性（$\\gamma_1\\preceq\\gamma_2\\implies\\gamma_1\\gamma\\preceq\\gamma_2\\gamma$）可类似定义。双向可序的群（如 $\\operatorname{PL}_+([0,1])$）还具有所有元素可比较且和自身逆可比的有趣性质。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "左可序群通过 Ghys 定理与 $\\mathbb R$ 上的保向同胚作用等价——可数群 $\\Gamma$ 左可序当且仅当 $\\Gamma$ 可忠实地通过保向同胚作用在 $\\mathbb R$ 上。这一等价将代数的序结构与动力学的保序作用联系起来，是理解 $\\mathbb R$ 上群作用的基本工具。\n\n$\\Gamma$ 在 $\\mathbb R$ 上的忠实作用可通过序构造如下：假设 $\\Gamma$ 可数。枚举元素 $\\gamma_i$，按序嵌入归纳地定义 $\\nu(\\gamma_i)\\in\\mathbb R$：如果 $\\gamma_{i+1}$ 比之前所有元素都大（或都小），取远离已有值的位置；否则在相邻元素间取中点。$\\nu(\\Gamma)$ 的闭包 $\\overline X\\subset\\mathbb R$ 是无界闭集，$\\Gamma$ 在 $\\overline X$ 上的左平移诱导的置换连续且可扩充到整个 $\\mathbb R$，从而得到一个忠实作用。\n\n作为例子，可数挠自由交换群（如 $\\mathbb Q$ 向量空间）是可序的；可解群或剩余可解群（当商群挠自由交换时）也保真作用在 $\\mathbb R$ 上。"
+      }
+    ],
+    "references": [
+      "P. Conrad, Right-ordered groups, Michigan Math. J. 6 (1959), 267-275.",
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
+    ]
+  }
+}

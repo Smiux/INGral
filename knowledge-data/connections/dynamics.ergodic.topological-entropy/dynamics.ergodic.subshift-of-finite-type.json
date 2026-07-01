@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.topological-entropy",
+  "to": "dynamics.ergodic.subshift-of-finite-type",
+  "description": {
+    "zh": [
+      "有限型子移位的拓扑熵等于 log λ，其中 λ 是转移矩阵的最大特征值。全移位的拓扑熵为 log|S|。"
+    ]
+  }
+}

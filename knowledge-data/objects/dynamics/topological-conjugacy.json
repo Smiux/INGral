@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.topological-conjugacy",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "拓扑共轭",
+      "$C^s$-共轭"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $M,N$ 为度量空间，$f\\colon M\\to M$ 与 $g\\colon N\\to N$ 连续。$f$ 与 $g$ 称为**拓扑共轭**的，若存在同胚 $h\\colon M\\to N$ 使 $h\\circ f = g\\circ h$。\n\n当 $M,N$ 是微分流形且 $f,g$ 是 $C^r$ 映射时，若 $h$ 可取为 $C^s$-微分同胚（$s\\leqslant r$），则称 $f$ 与 $g$ 是 $C^s$-共轭的。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "动力系统",
+      "等价",
+      "符号动力学"
+    ],
+    "article": [
+      {
+        "zh": "拓扑共轭是动力系统范畴中的同构概念：如果 $h\\circ f=g\\circ h$ 且 $h$ 是同胚，则 $f$ 和 $g$ 本质上可以视为同一系统的不同坐标表示。所有拓扑动力学性质——不动点和周期点的存在性及个数、拓扑传递性、极小性、拓扑熵（topological entropy）、链回归集——在共轭下均保持不变。\n\n共轭作为分类工具的价值在圆周向量场中已经体现——这正是旋转理论的前史。对无奇点的向量场 $X,Y$，它们 $C^{r+1}$-共轭（即存在微分同胚 $h$ 使 $h_\\star X=Y$）当且仅当它们的平均旋转速率 $\\rho_X=\\pm\\rho_Y$。二次族的正规化是另一个典型例子：给定 $f_{a,b,c}(x)=ax^2+bx+c$，假设 $a<0$ 且 $(b-1)^2-4ac\\geqslant0$。记最小不动点为 $p$，顶点为 $v=-b/(2a)$（满足 $p<v$）。通过仿射变换 $h(x)=\\alpha x+\\beta$ 使 $h(0)=p$ 和 $h(1/2)=v$，可得 $h\\circ f_{a,b,c}=Q_\\mu\\circ h$（$Q_\\mu(x)=\\mu x(1-x)$）。这一共轭将所有有不动点的抛物线族化为同一标准型 $Q_\\mu$。\n\n拓扑共轭还出现在结构稳定性定理中：Hartman-Grobman 定理断言双曲系统在其不动点附近与线性化系统拓扑共轭；圆周扩张映射的分类定理则表明所有度为 $d$ 的扩张映射均拓扑共轭于标准扩张 $E_d$。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §4.1, §4.2, §5.3.",
+      "P. Hartman, A lemma in the theory of structural stability of differential equations, Proc. AMS 11 (1960), 610-620.",
+      "D. Grobman, Homeomorphisms of systems of differential equations, Dokl. Akad. Nauk SSSR 128 (1959), 880-881."
+    ]
+  }
+}

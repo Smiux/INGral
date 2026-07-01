@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.ping-pong-lemma",
+  "to": "dynamics.group-circle.margulis-alternative",
+  "description": {
+    "zh": [
+      "乒乓引理是 Margulis 定理证明中构造自由子群的核心工具。"
+    ]
+  }
+}

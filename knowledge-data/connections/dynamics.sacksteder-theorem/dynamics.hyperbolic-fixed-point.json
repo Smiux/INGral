@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.sacksteder-theorem",
+  "to": "dynamics.hyperbolic-fixed-point",
+  "description": {
+    "zh": [
+      "Sacksteder 定理的结论是伪群中存在导数小于 $1$ 的不动点——即双曲排斥不动点，为双曲不动点概念提供了动力系统的具体出现。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.psl2-conjugacy-subtlety",
+  "to": "dynamics.group-circle.convergence-property",
+  "description": {
+    "zh": [
+      "收敛性质定理（Thm 1.3.8）给出了避免这一微妙性的整体可共轭充要条件。"
+    ]
+  }
+}

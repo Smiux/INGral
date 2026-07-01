@@ -1,0 +1,31 @@
+{
+  "id": "analysis.operator-theory.operator-spectrum",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "算子谱",
+      "谱半径"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $E$ 为 Banach 空间（$\\mathbb C$ 上），$A\\in\\mathcal L(E)$ 为有界线性算子。$A$ 的**谱**定义为\n$$\\sigma(A):=\\{\\lambda\\in\\mathbb C:A-\\lambda I\\text{ 不可逆}\\}.$$\n\n$\\sigma(A)$ 是 $\\mathbb C$ 中非空紧子集。$A$ 的**谱半径**为\n$$r(A):=\\max\\{|\\lambda|:\\lambda\\in\\sigma(A)\\}=\\lim_{n\\to+\\infty}\\|A^n\\|^{1/n}=\\inf_{n\\geqslant1}\\|A^n\\|^{1/n}.$$\n\n当 $E$ 为实 Banach 空间时，$\\sigma(A):=\\sigma(A_\\mathbb C)$，其中 $A_\\mathbb C$ 为 $A$ 在复化 $E_\\mathbb C$ 上诱导的算子。\n\n若 $A$ 可逆，则 $\\sigma(A^{-1})=\\{z^{-1}\\in\\mathbb C:z\\in\\sigma(A)\\}$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "泛函分析",
+      "Banach 空间",
+      "线性算子",
+      "双曲动力学"
+    ],
+    "article": [
+      {
+        "zh": "算子谱的概念将有限维线性代数中的特征值推广到无穷维，其核心是 $A-\\lambda I$ 的可逆性——而非像有限维那样考虑 $\\det(A-\\lambda I)=0$。在 Banach 空间上，$\\sigma(A)$ 总是非空紧集，这是 Liouville 型定理和谱半径公式的推论。谱半径 $r(A)=\\lim\\|A^n\\|^{1/n}$ 联系了算子的幂次增长与谱的几何分布。\n\n在双曲动力学中，谱条件是双曲性的定义基础。将 $\\sigma(A)$ 分解为 $\\sigma^s=\\sigma(A)\\cap\\{|z|<1\\}$ 和 $\\sigma^u=\\sigma(A)\\cap\\{|z|>1\\}$（若 $\\sigma(A)\\cap\\mathbb T=\\varnothing$），则谱分解定理给出 $E=E^s\\oplus E^u$ 的不变直和分解。由谱半径公式可得指数估计：存在 $C>0,\\lambda\\in(0,1)$ 使 $\\|A^n|_s\\|\\leq C\\lambda^n$ 和 $\\|A^{-n}|_u\\|\\leq C\\lambda^n$ 对所有 $n\\geq0$ 成立。这是稳定/不稳定流形定理中指数收缩/扩张估计的线性基础。\n\n对于实 Banach 空间，谱的复化处理（$\\sigma(A):=\\sigma(A_\\mathbb C)$）是技术上的必然——因为实算子可能没有实特征值（如旋转 $\\begin{pmatrix}0&-1\\\\1&0\\end{pmatrix}$），但仍可通过复化后谱的对称性（共轭对称）来处理。在动力系统应用中，通常关心的稳定谱 $\\sigma^s$ 可能包含共轭复数对，但这些对的模长条件决定了动力学的定性行为。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026."
+    ]
+  }
+}

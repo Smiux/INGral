@@ -1,0 +1,44 @@
+{
+  "id": "dynamics.group-circle.homeomorphism-group",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "保向圆周同胚群",
+      "Homeo₊(S¹)"
+    ]
+  },
+  "description": {
+    "zh": [
+      "$\\operatorname{Homeo}_+(\\mathbb S^1)$ 是圆周 $\\mathbb S^1$ 上所有保向同胚构成的群。其泛覆盖的提升群为\n$$\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1):=\\{\\tilde f\\in\\operatorname{Homeo}_+(\\mathbb R):\\tilde f(x+1)=\\tilde f(x)+1,\\ \\forall x\\in\\mathbb R\\}.$$\n\n有如下正合序列：$0\\to\\mathbb Z\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\operatorname{Homeo}_+(\\mathbb S^1)\\to 1$，其中 $\\mathbb Z$ 对应于整数平移。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "圆周同胚",
+      "变换群",
+      "拓扑群"
+    ],
+    "notes": [
+      {
+        "zh": "赋予一致收敛拓扑后，$\\operatorname{Homeo}_+(\\mathbb S^1)$ 和 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 均为拓扑群。"
+      },
+      {
+        "zh": "$\\operatorname{Homeo}_+(\\mathbb S^1)$ 的同伦型：嵌入 $\\operatorname{SO}(2,\\mathbb R)\\hookrightarrow\\operatorname{Homeo}_+(\\mathbb S^1)$ 是同伦等价，且 $\\operatorname{Homeo}_+(\\mathbb S^1)\\simeq\\operatorname{SO}(2,\\mathbb R)\\times$(凸集)。因而 $\\pi_1(\\operatorname{Homeo}_+(\\mathbb S^1))\\cong\\mathbb Z$。"
+      },
+      {
+        "zh": "$\\operatorname{Homeo}_+(\\mathbb S^1)$ 中关于任一对 $(f,g)$（在 Baire 意义下通有），它们生成的群是两生成元的自由群。该结论对任意维流形的同胚群同样成立。"
+      },
+      {
+        "zh": "中心扩张 $0\\to\\mathbb Z\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\operatorname{Homeo}_+(\\mathbb S^1)\\to 1$ 的 Euler 类生成 $H^2(\\operatorname{Homeo}_+(\\mathbb S^1),\\mathbb Z)\\cong\\mathbb Z$。通过拉回（pullback），任意作用 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 得 Euler 类 $eu(\\phi)\\in H^2(\\Gamma,\\mathbb Z)$。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "$\\operatorname{Homeo}_+(\\mathbb S^1)$ 是一个「群体极大的」拓扑群——其结构在保持方向的前提下囊括了圆周的所有可能连续扭曲。该群在结构上可以被视为 $\\operatorname{PSL}(2,\\mathbb R)$ 的无穷维类比：两者都有唯一的极大紧子群（$\\operatorname{SO}(2,\\mathbb R)$）、单性、基本群同构于 $\\mathbb Z$、且覆盖群具有相似的结构。\n\n$\\operatorname{Homeo}_+(\\mathbb S^1)$ 极大地超出了有限维 Lie 群的范畴。它不满足传统 Lie 群理论中「附近元素属于 1-参数子群」的性质。但这并未阻止其成为群作用理论的核心研究对象——它是所有圆周保向作用的「宿主」，每个群到圆周的嵌入都是一个 $\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 的同态。\n\n基本群 $\\pi_1(\\operatorname{Homeo}_+(\\mathbb S^1))\\cong\\mathbb Z$ 导致了连通覆盖族 $\\operatorname{Homeo}_{k,+}(\\mathbb S^1)$（$k\\geqslant1$），它们可以视为与 $k$ 阶旋转循环群交换的子群。类似地，$\\operatorname{PSL}_k(2,\\mathbb R)$ 是 $\\operatorname{PSL}(2,\\mathbb R)$ 的 $k$ 叶覆盖，可嵌入 $\\operatorname{Homeo}_{k,+}(\\mathbb S^1)$ 中但非 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
+    ]
+  }
+}

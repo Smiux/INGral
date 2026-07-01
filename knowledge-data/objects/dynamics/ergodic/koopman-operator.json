@@ -1,0 +1,32 @@
+{
+  "id": "dynamics.ergodic.koopman-operator",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Koopman 算子",
+      "Koopman–von Neumann 谱方法"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为保测变换。其 **Koopman 算子** $U_T$ 是 $L^2(X,\\mu)$ 上的酉算子（或等距算子，若 $T$ 不可逆），定义为 $U_Tf=f\\circ T$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "谱理论",
+      "不变量的构造",
+      "谱同构",
+      "本征函数"
+    ],
+    "article": [
+      {
+        "zh": "Koopman 算子将动力系统问题转化为 Hilbert 空间上的算子理论问题，是遍历理论中谱方法的基石。两个保测变换的 Koopman 算子若酉等价，则称它们谱同构——这比测度论同构更弱，但任何测度论同构必然诱导出谱同构。因此谱不变量（即酉等价下不变的量）自动是测度论同构的不变量。\n\n遍历性、混合性、弱混合性均可通过 Koopman 算子的谱性质刻画：遍历等价于不变函数空间维数为 1（即本征值 1 的几何重数为 1）；混合等价于对所有 $f,g$ 有 $\\langle U_T^n f,g\\rangle\\to\\langle f,1\\rangle\\overline{\\langle g,1\\rangle}$；弱混合等价于无非平凡本征函数（连续谱）。\n\n点谱（本征函数集）是基本的不变量：无理旋转 $R_\\alpha$ 具有离散谱 $\\{e^{2\\pi i k\\alpha}:k\\in\\mathbb Z\\}$，不同的 $\\alpha$ 给出不同的本征值群，因此不同角度的无理旋转非同构。离散谱定理断言：具有离散谱的两个保测变换同构当且仅当它们的本征值群相同。混合系统必然具有连续谱（无非平凡本征函数）。"
+      }
+    ],
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §3.1."
+    ]
+  }
+}

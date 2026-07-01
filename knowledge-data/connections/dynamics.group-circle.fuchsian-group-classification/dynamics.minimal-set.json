@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.fuchsian-group-classification",
+  "to": "dynamics.minimal-set",
+  "description": {
+    "zh": [
+      "Fuchs 群的三分类（初等/第一类/第二类）是 PSL(2,R) 离散子群在极小集理论中的标准分类结果。"
+    ]
+  }
+}

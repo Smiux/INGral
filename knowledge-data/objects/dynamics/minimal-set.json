@@ -1,0 +1,35 @@
+{
+  "id": "dynamics.minimal-set",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "极小集",
+      "极小不变集"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f\\colon X\\to X$ 为同胚，$X$ 为紧度量空间。非空闭 $f$-不变子集 $K\\subset X$ 称为 $f$ 的**极小集**，若 $K$ 不含真 $f$-不变闭子集——等价地，$K$ 中每点的轨道在 $K$ 中稠密。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "动力系统",
+      "拓扑动力系统",
+      "回归"
+    ],
+    "notes": [
+      {
+        "zh": "若 $f$ 可逆，$K$ 是极小集当且仅当 $K$ 中每点既是正回归又是负回归。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "极小集刻画了动力系统中「不可再约的回复运动」——一个集合中每点的轨道都在该集合中稠密，不存在更小的闭不变子集。在紧度量空间上，由 Zorn 引理可证非空紧 $f$-不变极小集的存在性（Exercise 3.1）。\n\n极小集的经典例子包括：无理旋转 $R_\\alpha$ 的整个圆周 $\\mathbb T$ 是极小集（Example 5.1）；对于旋转数为无理数的保向圆周同胚，存在唯一极小集 $K\\subset\\mathbb T$，$K$ 要么是 Cantor 集要么是整个圆周 $\\mathbb T$（Theorem 5.9）。"
+      }
+    ],
+    "references": [
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1, §5.1."
+    ]
+  }
+}

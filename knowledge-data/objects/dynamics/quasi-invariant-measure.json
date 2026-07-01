@@ -1,0 +1,31 @@
+{
+  "id": "dynamics.quasi-invariant-measure",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "拟不变测度",
+      "拟不变 Radon 测度"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 为 $\\operatorname{Homeo}_+(\\mathbb R)$ 子群，$\\nu$ 为 $\\mathbb R$ 上的 Radon 测度（紧集上有限的 Borel 测度）。称 $\\nu$ 关于 $\\Gamma$ **拟不变**，若对每个 $g\\in\\Gamma$ 存在正常数 $\\kappa(g)>0$ 使 $g^*\\nu=\\kappa(g)\\cdot\\nu$，即对每个 Borel 集 $A$ 有 $\\nu(g(A))=\\kappa(g)\\cdot\\nu(A)$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Radon 测度",
+      "实直线作用",
+      "仿射群",
+      "不变测度"
+    ],
+    "article": [
+      {
+        "zh": "拟不变测度 $\\nu(g(A))=\\kappa(g)\\nu(A)$ 是不变测度的自然推广——它允许群作用通过常数因子 $\\kappa(g)$ 拉伸或压缩测度，而非严格保持。因子 $\\kappa\\colon\\Gamma\\to\\mathbb R_{>0}$ 给出群同态，称为扩张因子（dilatation factor）。拟不变性在以下意义上比不变性更自然：Lebesgue 测度在 $\\mathbb R$ 的保向微分同胚下通常不是不变的（因为 $\\int_A (f^{-1})'\\,dx = \\int_{f^{-1}A}dx$），但它是拟不变的——实际上任何与 Lebesgue 测度等价的测度在 $C^1$ 微分同胚下都是拟不变的。\n\n在仿射群 $\\operatorname{Aff}_+(\\mathbb R)=\\{x\\mapsto\\lambda x+b:\\lambda>0,b\\in\\mathbb R\\}$ 的刻画中，拟不变测度起着分类作用：具有全支撑无原子的拟不变 Radon 测度的 $\\mathbb R$ 同胚群必共轭于仿射子群。这一结果的证明利用了交叉元素引理和 Ping-Pong 论证：如果群不是仿射的，就可以构造自由半群，而自由半群的存在排除了无原子的拟不变测度。\n\n对于无交叉元素的 $\\mathbb R$ 同胚群，拟不变测度的存在性弱于不变测度的存在性。无交叉元素保测定理给出的是不变 Radon 测度（更强的结论），而拟不变测度仅要求放射等价而非严格相等。两类测度的差异在平移数理论中体现：不变测度给出可加的平移数函数 $\\tau(g)=\\nu([x,g(x)[)$，而拟不变测度下平移数将不是严格可加的。"
+      }
+    ],
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.2."
+    ]
+  }
+}

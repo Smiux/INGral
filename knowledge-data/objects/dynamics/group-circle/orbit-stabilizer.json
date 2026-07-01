@@ -1,0 +1,38 @@
+{
+  "id": "dynamics.group-circle.orbit-stabilizer",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "轨道与稳定子",
+      "传递作用",
+      "自由作用"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 作用在 $\\mathbb S^1$ 上。点 $x\\in\\mathbb S^1$ 的**轨道**为 $\\mathcal O(x):=\\{\\gamma\\cdot x\\mid\\gamma\\in\\Gamma\\}\\subset\\mathbb S^1$。\n\n点 $x$ 的**稳定子**为 $\\operatorname{Stab}(x):=\\{\\gamma\\in\\Gamma\\mid\\gamma\\cdot x=x\\}\\subset\\Gamma$。轨道与稳定子之间有自然的双射 $\\Gamma/\\operatorname{Stab}(x)\\to\\mathcal O(x)$。\n\n- 作用称为**传递**（transitive）若仅有一条轨道，即 $\\mathcal O(x)=\\mathbb S^1$ 对某个（从而任意）$x$ 成立。此时 $\\mathbb S^1$ 称为 $\\Gamma$ 的齐性空间。\n- 作用称为**自由**（free）若每个点的稳定子平凡，即非平凡元无不动点。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "群作用",
+      "齐性空间",
+      "迷向子群",
+      "轨道空间",
+      "相空间"
+    ],
+    "notes": [
+      {
+        "zh": "稳定子 $\\operatorname{Stab}(x)$ 也称为**迷向子群**（isotropy subgroup）。不同点的稳定子在 $\\Gamma$ 中共轭：$\\operatorname{Stab}(\\gamma\\cdot x)=\\gamma\\operatorname{Stab}(x)\\gamma^{-1}$。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "轨道-稳定子关系是将代数结构（群）和几何结构（空间）联系起来的基本工具。在圆周 $\\mathbb S^1$ 上，这一关系特别丰富，因为圆周的维数为 1 且具有序结构，使得稳定子的代数组态直接决定作用的大尺度行为。\n\n一个根本的观察：$\\operatorname{Stab}(x)$ 的共轭类集合给出了群在圆周上「各点行为」的指纹。对于 Lie 群 $G$ 的传递作用，轨道映射 $G/\\operatorname{Stab}(x)\\to\\mathbb S^1$ 是同胚——这意味着稳定子必须是 $G$ 的余一维子群。例如，$\\operatorname{PSL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1$ 上的传递作用中，稳定子为 $\\operatorname{PGL}(2,\\mathbb R)$ 的 Borel 子群（三角矩阵群），其维度 $\\dim=2$ 比 $\\dim\\operatorname{PSL}(2,\\mathbb R)=3$ 少 1。\n\n稳定子的大小与作用的最小性密切相关。若所有稳定子都包含某个正规子群 $N$，则 $N$ 平凡地作用，作用退化到 $\\Gamma/N$ 上。传递作用中稳定子的正则性（如闭性、紧致性）决定了齐性空间的拓扑类型——这正是 Lie 分类定理（Euclid、仿射、射影三种几何）的基础。\n\n自由作用（$\\operatorname{Stab}(x)=\\{e\\}$ 对一切 $x$）是更精细的约束。Hölder 定理表明 $\\mathbb R$ 上的自由保向作用必交换，且半共轭于平移作用。圆周上的自由作用则必交换且半共轭于旋转作用——这一结论的证明依赖于轨道在覆叠空间上诱导的自由 $\\mathbb R$ 作用。"
+      }
+    ],
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
+    ]
+  }
+}
