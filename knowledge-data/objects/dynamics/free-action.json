@@ -3,13 +3,12 @@
   "type": "definition",
   "name": {
     "zh": [
-      "自由作用",
-      "自由群作用"
+      "自由作用"
     ]
   },
   "description": {
     "zh": [
-      "群 $\\Gamma$ 在空间 $M$ 上的作用称为**自由的**，若每个 $x\\in M$ 的稳定子群 $\\operatorname{Stab}(x)=\\{g\\in\\Gamma:g\\cdot x=x\\}$ 是平凡的——即对每个非平凡元 $g\\in\\Gamma\\setminus\\{{\\rm id}\\}$，$g$ 没有不动点。"
+      "群 $\\Gamma$ 在空间 $M$ 上的作用称为**自由的**，若每个 $x\\in M$ 的稳定子群 $\\operatorname{Stab}(x)=\\{g\\in\\Gamma:g\\cdot x=x\\}$ 是平凡的。"
     ]
   },
   "extension": {
@@ -20,9 +19,16 @@
     ],
     "article": [
       {
-        "zh": "自由作用要求每个非平凡群元完全没有不动点，这比忠实作用（仅要求不同群元给出不同映射）严格得多。自由性在动力系统分类中的力量体现在覆盖空间理论上：若 $\\Gamma$ 在流形 $M$ 上自由且真不连续地作用，则 $M/\\Gamma$ 是 $M$ 的覆盖空间——从而 $\\Gamma$ 同构于覆盖变换群。这一观察将群作用分类转化为覆盖空间分类问题。\n\n在圆周动力学中，自由作用与旋转数的概念密切相关。设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 自由作用，则旋转数映射 $\\rho\\colon\\Gamma\\to\\mathbb R/\\mathbb Z$ 是单射（因为 $\\rho(g)=0$ 意味着 $g$ 有不动点，与自由性矛盾）。因此自由作用的圆周同胚群同构于 $\\mathbb R/\\mathbb Z$ 的某个子群——从而必定是交换的。这一结论是 Hölder 定理的推论：$\\mathbb S^1$ 上的自由保向同胚群可共轭于旋转群。\n\n对于 $\\mathbb R$ 上的自由作用，情况更精细。自由 $\\operatorname{Homeo}_+(\\mathbb R)$ 子群同构于 $\\mathbb R$ 的加法子群（Hölder 定理）。结合了自由性与最小性（无真闭不变集）的作用进一步可共轭于平移群——这是实数直线上动力系统的完全分类。在 Plante 定理和交叉元素引理中，自由作用作为中间步骤出现：通过证明无交叉元素的有限生成群必定自由作用（或其极小集是离散的），从而推出 Radon 测度的存在性。"
+        "zh": "自由作用是最简单的群作用之一：每个非平凡群元都不能固定任何点。对于实直线上的保向同胚，这一条件迫使群的内在结构具有极强的刚性。\n\n## 从自由作用到序结构\n\n假定 $\\Gamma$ 在 $\\mathbb R$ 上的保向同胚作用是自由的。定义 $g\\prec h$ 当且仅当对某个 $x\\in\\mathbb R$ 有 $g(x)<h(x)$。自由性保证了这个定义与 $x$ 的选取无关：若存在 $x$ 使 $g(x)=h(x)$，则由自由性和连续性得 $g=h$。$\\prec$ 是一个全序，且由复合的单调性它既是左不变的也是右不变的。Archimedes 性质源于动力系统的长时行为：对任意非平凡正元 $f$ 和任意 $g$，总有 $n$ 使 $g\\prec f^n$。\n\n## Hölder 嵌入定理\n\n具有双向不变 Archimedes 序的群必同构于 $(\\mathbb R,+)$ 的子群。该同态 $\\phi$ 的像有两种可能。若 $\\phi(\\Gamma)\\cong\\mathbb Z$，则作用共轭于整数平移。若 $\\phi(\\Gamma)$ 在 $\\mathbb R$ 中稠密，则存在连续非降映射 $\\psi$ 满足 $\\psi(h(x))=\\psi(x)+\\phi(h)$，其定义为 $\\psi(x)=\\sup\\{\\phi(h):h(0)\\leq x\\}$。$\\phi(\\Gamma)$ 的稠密性保证了 $\\psi$ 的连续性——否则 $\\mathbb R\\setminus\\psi(\\mathbb R)$ 将是平移不变的非空开集。因此自由作用总是半共轭于平移作用的。\n\n## 圆周上的自由作用\n\n对于圆周上的自由作用，将 $\\Gamma$ 提升到 $\\operatorname{Homeo}_+(\\mathbb R)$ 中，以平移 $x\\mapsto x+1$ 为正元。上述构造给出提升群到 $(\\mathbb R,+)$ 子群的同构，该同构自然投影为原群到 $\\operatorname{SO}(2,\\mathbb R)$ 子群的同构。因此圆周上自由作用群同构于旋转群的子群，其作用半共轭于旋转作用。"
       }
     ],
+    "examples": {
+      "zh": [
+        "取 $\\Gamma=(\\mathbb R,+)$ 通过平移作用在 $\\mathbb R$ 上：$t\\cdot x=x+t$。对任意非零 $t$，方程 $t\\cdot x=x$ 无解，故作用自由。此时序 $g\\prec h$ 即通常实数大小关系，同态 $\\phi$ 为恒等映射，半共轭退化为共轭。",
+        "取 $\\Gamma=\\mathbb Z$ 通过整数平移作用在 $\\mathbb R$ 上：$n\\cdot x=x+n$。此作用自由，且 $\\phi(\\mathbb Z)=\\mathbb Z$。在此情形下存在同胚 $\\psi:\\mathbb R\\to\\mathbb R$ 使 $\\psi(n\\cdot x)=\\psi(x)+n$，$\\psi$ 可取为恒等映射——作用共轭于整数平移。",
+        "取 $\\Gamma=\\operatorname{SO}(2,\\mathbb R)$ 通过旋转作用在 $\\mathbb S^1$ 上。每个非平凡旋转没有不动点，故作用自由。将 $\\Gamma$ 提升为 $\\mathbb R$ 上的平移群 $\\tilde\\Gamma=\\{t\\cdot x+n:t\\in[0,1),n\\in\\mathbb Z\\}$，取 $f(x)=x+1$ 作为正元，则上述构造中的 $\\phi$ 将 $t$ 映为 $t$，给出 $\\Gamma$ 到 $\\operatorname{SO}(2,\\mathbb R)$ 的恒等同构。"
+      ]
+    },
     "references": [
       "É. Ghys, Groups Acting on the Circle, Enseign. Math. 47 (2001), §2."
     ]

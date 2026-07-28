@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.solvable-group-classification",
-  "to": "dynamics.plante-thurston-nilpotent",
-  "description": {
-    "zh": [
-      "可解群分类以幂零群分类（Plante–Thurston）为归纳基础——$\\mathcal R(1)$ 族对应 Hölder 定理中的平移群，$\\mathcal R(2)$ 以上族通过半直积递归构造。"
-    ]
-  }
-}

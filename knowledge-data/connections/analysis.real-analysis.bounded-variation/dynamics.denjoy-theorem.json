@@ -3,7 +3,7 @@
   "to": "dynamics.denjoy-theorem",
   "description": {
     "zh": [
-      "Denjoy 定理要求 $f\\in C^{1+\\mathrm{bv}}$，即 $\\log f'$ 有界变差。"
+      "有界变差限定了 $\\log f'$ 的振荡——这一正则性约束是 Denjoy 定理中阻止退化情形（例外极小集）出现的核心机制。"
     ]
   }
 }

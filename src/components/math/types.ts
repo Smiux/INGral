@@ -63,3 +63,11 @@ export const SHAPE_SYMBOLS: Record<number, string> = {
 };
 
 export const PRIMARY_LOCALE = 'zh';
+
+export const recentlyAdded: string[] = [
+  'dynamics.circle.lift',
+  'dynamics.circle.topological-degree',
+  'dynamics.circle.displacement-cocycle',
+  'dynamics.circle.oscillation-lemma',
+  'dynamics.circle.rotation-number'
+];

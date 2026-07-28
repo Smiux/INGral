@@ -3,13 +3,12 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "扩张圆周映射的拓扑共轭",
-      "扩张映射的分类定理"
+      "扩张圆周映射的拓扑共轭"
     ]
   },
   "description": {
     "zh": [
-      "设 $d\\in\\mathbb Z$，$|d|\\geqslant2$，$f\\in C^1_d(\\mathbb T)$ 为扩张映射。则存在 $h\\in\\operatorname{Homeo}_+(\\mathbb T)$ 使 $h\\circ f=E_d\\circ h$，其中 $E_d(x)\\equiv dx\\pmod{\\mathbb Z}$。\n\n系：扩张映射的集合 $\\mathcal E_d:=\\{f\\in C^1_d(\\mathbb T):f\\text{ 扩张}\\}$ 在 $C^1$ 拓扑下是开集，因此每个扩张映射是 $C^1$ 结构稳定的。"
+      "设 $d\\in\\mathbb Z$，$|d|\\geqslant2$，$f\\in C^1_d(\\mathbb T)$ 为扩张映射。则存在 $h\\in\\operatorname{Homeo}_+(\\mathbb T)$ 使 $h\\circ f=E_d\\circ h$，其中 $E_d(x)\\equiv dx\\pmod{\\mathbb Z}$。特别地，扩张映射的集合 $\\mathcal E_d:=\\{f\\in C^1_d(\\mathbb T):f\\text{ 扩张}\\}$ 在 $C^1$ 拓扑下是开集，因此每个扩张映射是 $C^1$ 结构稳定的。"
     ]
   },
   "extension": {
@@ -21,14 +20,20 @@
     ],
     "article": [
       {
-        "zh": "该定理给出了扩张圆周映射的完全分类：任意 $C^1$ 扩张映射 $f$（度 $|d|\\geqslant2$）在拓扑共轭的意义下唯一地由它的度决定。换句话说，扩张性 + 度完全确定了映射的拓扑共轭类——$f$ 的正则性（$C^1$）只用于确保扩张性，结论本身不依赖于 $f$ 的光滑程度。\n\n证明的构造方法极为巧妙——通过 Banach 不动点定理解函数方程。将问题写成 $\\tilde h\\circ\\tilde f = d\\,\\tilde h$，代入 $\\tilde f(\\tilde x)=d\\tilde x+\\Delta(\\tilde x)$ 和 $\\tilde h(\\tilde x)=\\tilde x+u(x)$ 得到函数方程 $u(x) = \\frac{1}{d}u(f(x)) + \\frac{1}{d}\\Delta(x)$。右端算子在 $C^0(\\mathbb T,\\mathbb R)$ 上关于一致范数是压缩的（压缩因子 $1/|d|\\leqslant 1/2$），因此存在唯一解。这一方法在动力系统中有广泛的应用：它本质上是一种「重整化」——$\\tilde h$ 将 $f$ 的动力学「缩放」为标准映射 $E_d$，而函数方程则是这种缩放的自洽性条件。\n\n单射性的证明同样精彩：若 $h$ 将两点映为同一点，则利用扩张性（$|Df^n|\\geqslant C\\lambda^n$）和 $\\tilde h$ 的拟等距性构造了一个矛盾——两点在 $\\tilde f$ 迭代下的距离呈指数增长，但 $\\tilde h$ 将它们的像「粘合」在一起，与 $\\tilde h$ 的线性增长矛盾。这个论证是双曲系统中「扩张性 ⇒ 单射性」的标准技巧，在一维以外的范围也适用。\n\n结构稳定性系是定理的直接推论：$C^1$ 小扰动不破坏扩张性（因为 $|Df^{n_0}(x)|>1$ 是 $C^1$ 开条件），因此每个扩张映射都在 $C^1$ 拓扑下有一个邻域，其中所有映射都拓扑共轭于 $E_d$。这意味著扩张映射在 $C^1$ 意义下没有分岔——这是双曲系统结构稳定性定理在一维中的最简单形式。"
+        "zh": "## 扩张映射的共轭分类\n\n一个度为 $d$（$|d|\\geqslant2$）的 $C^1$ 扩张圆周映射 $f$ 必然拓扑共轭于标准扩张 $E_d(x)=dx\\bmod\\mathbb Z$。这就是说，扩张性与度这两个数据就完全确定了 $f$ 的拓扑共轭类。在一维中扩张性的约束力足够强，以至于不存在同一度下互不共轭的扩张映射——而在更高维度的双曲系统中，即使同伦型相同的扩张映射也可能有无穷多个互不共轭的类。\n\n## 共轭映射的构造\n\n共轭 $h$ 的构造源于一个函数方程。取 $h$ 的提升形如 $\\tilde h(\\tilde x)=\\tilde x+u(x)$，其中 $u$ 是圆周上的连续函数。将 $\\tilde h\\circ\\tilde f = d\\cdot\\tilde h$ 展开后得到\n$$u(x)=\\frac1d u(f(x))+\\frac1d\\Delta(x),$$\n其中 $\\Delta(x)=\\tilde f(\\tilde x)-d\\tilde x$ 是 $f$ 的位移偏差。定义算子 $\\mathcal L(u)(x)=\\frac1d u(f(x))+\\frac1d\\Delta(x)$，它在一致范数下是压缩的（压缩比为 $|d|^{-1}\\leq 1/2$），因此有唯一不动点 $u$。这本质上是沿轨道逐步调整尺度——$h$ 相当于一个重整化过程，使 $f$ 的动力学习与线性模型 $E_d$ 对齐。\n\n$h$ 的同胚性依赖于扩张性。若 $h(x_1)=h(x_2)$ 但 $x_1\\neq x_2$，则扩张性使得 $f^n(x_1)$ 与 $f^n(x_2)$ 的距离指数增长，但共轭关系迫使 $h(f^n(x_1))=h(f^n(x_2))$ 对所有 $n$ 成立，而 $h$ 的拟等距性将距离的增长传回 $h$ 的像，导致矛盾。\n\n## 结构稳定性\n\n扩张性在 $C^1$ 拓扑下是开性质：取 $n_0$ 使 $|Df^{n_0}(x)|>1$，则该不等式在 $C^1$ 小扰动下保持，因此 $f$ 有一个 $C^1$ 邻域全部由扩张映射构成。结合共轭分类即知每个扩张映射在 $C^1$ 意义下是结构稳定的——小扰动不改变其拓扑共轭类。"
       }
     ],
-    "proof": [
-      {
-        "zh": "拓扑因子定理已给出存在连续满射 $h\\in C^0_1(\\mathbb T)$ 使 $h\\circ f=E_d\\circ h$，其构造使用 Banach 不动点定理由函数方程 $u(x)=\\frac1d u(f(x))+\\frac1d\\Delta(x)$ 解得唯一 $u\\in C^0(\\mathbb T,\\mathbb R)$，再令 $\\tilde h(\\tilde x):=\\tilde x+u(x)$。\n\n以下证明 $h$ 是单射：设 $\\tilde x_1,\\tilde x_2$ 为两不同提升满足 $h(\\tilde x_1)=h(\\tilde x_2)$ 即 $\\tilde h(\\tilde x_2)-\\tilde h(\\tilde x_1)=m\\in\\mathbb Z$。由 $f$ 扩张，$|\\tilde f^n(\\tilde x_1+m)-\\tilde f^n(\\tilde x_2)|\\geqslant C\\lambda^n|\\tilde x_1+m-\\tilde x_2|\\to\\infty$。另一方面 $\\tilde h$ 的拟等距性给出 $|\\tilde h(\\tilde f^n(\\tilde x_1+m))-\\tilde h(\\tilde f^n(\\tilde x_2))|\\geqslant L^{-1}|\\tilde f^n(\\tilde x_1+m)-\\tilde f^n(\\tilde x_2)|-L\\to\\infty$，与 $\\tilde h$ 的组合性矛盾。故 $h$ 是同胚。\n\n结构稳定性：若 $f$ 扩张，取 $n_0$ 使 $|Df^{n_0}(x)|>1$，由 $C^1$ 连续性存在邻域 $\\mathcal U$ 使 $|Dg^{n_0}(x)|>1$ 对一切 $g\\in\\mathcal U$ 成立，从而 $\\mathcal U\\subset\\mathcal E_d$。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "对整数 $d$ 满足 $|d|\\geqslant 2$，线性映射 $E_d(x)\\equiv dx\\pmod{\\mathbb Z}$ 是度为 $d$ 的扩张映射。其导数处处为 $d$，满足 $|E_d'(x)|=|d|\\geqslant 2>1$，因此它是扩张映射。该定理指出 $E_d$ 是其所在拓扑共轭类的标准代表元。",
+        "设 $f(x)=3x+\\varepsilon\\sin(2\\pi x)\\pmod{\\mathbb Z}$，其中 $\\varepsilon>0$ 满足 $3-2\\pi\\varepsilon>1$。求导得 $f'(x)=3+2\\pi\\varepsilon\\cos(2\\pi x)\\geqslant 3-2\\pi\\varepsilon>1$，故 $f$ 是 $C^\\infty$ 的度为 $3$ 的扩张映射。定理保证存在同胚 $h$ 使 $h\\circ f\\circ h^{-1}=E_3$。共轭 $h$ 由函数方程 $u(x)=u(f(x))/3+\\varepsilon\\sin(2\\pi x)/3$ 的唯一连续解 $u$ 构造，其中 $\\tilde h(\\tilde x)=\\tilde x+u(x)$。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "拓扑因子定理已给出存在连续满射 $h\\in C^0_1(\\mathbb T)$ 使 $h\\circ f=E_d\\circ h$，其构造使用 Banach 不动点定理由函数方程 $u(x)=\\frac1d u(f(x))+\\frac1d\\Delta(x)$ 解得唯一 $u\\in C^0(\\mathbb T,\\mathbb R)$，再令 $\\tilde h(\\tilde x):=\\tilde x+u(x)$。\n\n以下证明 $h$ 是单射。设 $x_1\\neq x_2\\in\\mathbb T$ 满足 $h(x_1)=h(x_2)$，取提升 $\\tilde x_1,\\tilde x_2$ 使 $\\tilde h(\\tilde x_2)-\\tilde h(\\tilde x_1)=m\\in\\mathbb Z$。由 $\\tilde h(\\tilde x+1)=\\tilde h(\\tilde x)+1$ 得 $\\tilde h(\\tilde x_1+m)=\\tilde h(\\tilde x_1)+m=\\tilde h(\\tilde x_2)$。由 $f$ 扩张，$|\\tilde f^n(\\tilde x_1+m)-\\tilde f^n(\\tilde x_2)|\\geq C\\lambda^n|\\tilde x_1+m-\\tilde x_2|\\to\\infty$。又 $\\tilde h$ 的拟等距性给出 $|\\tilde h(\\tilde f^n(\\tilde x_1+m))-\\tilde h(\\tilde f^n(\\tilde x_2))|\\geq L^{-1}|\\tilde f^n(\\tilde x_1+m)-\\tilde f^n(\\tilde x_2)|-L\\to\\infty$。但由共轭关系 $\\tilde h\\circ\\tilde f=d\\tilde h$ 得 $\\tilde h(\\tilde f^n(\\tilde x_1+m))=d^n\\tilde h(\\tilde x_1+m)=d^n\\tilde h(\\tilde x_2)=\\tilde h(\\tilde f^n(\\tilde x_2))$，故左端恒为零，矛盾。因此 $h$ 是同胚。\n\n结构稳定性：若 $f$ 扩张，取 $n_0$ 使 $|Df^{n_0}(x)|>1$，由 $C^1$ 连续性存在邻域 $\\mathcal U$ 使 $|Dg^{n_0}(x)|>1$ 对一切 $g\\in\\mathcal U$ 成立，从而 $\\mathcal U\\subset\\mathcal E_d$。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026.",
       "M. Shub & D. Sullivan, Expanding endomorphisms of the circle revisited, Erg. Th. Dyn. Syst. 5 (1985), 285-289."

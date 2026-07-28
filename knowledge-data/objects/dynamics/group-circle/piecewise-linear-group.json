@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "分段线性同胚群",
-      "PL⁺(S¹)"
+      "分段线性同胚群"
     ]
   },
   "description": {
@@ -27,9 +26,16 @@
     ],
     "article": [
       {
-        "zh": "$\\operatorname{PL}_+(\\mathbb S^1)$ 是 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 中一个极大且重要的子群，其正则性介于 $C^0$（连续）和 $C^1$（可微）之间。它的元素具有任意多的折点，这是与 $\\operatorname{PGL}(2,\\mathbb R)$（至多两个「隐式折点」，即导数为零的点）的本质区别。尽管两者都传递地作用在圆周上，$\\operatorname{PL}_+(\\mathbb S^1)$ 的代数结构远为复杂。\n\n一个深刻的事实：$\\operatorname{PL}_+([0,1])$ 不包含非交换自由子群（Brin-Squier 定理），但也不满足任何群律——对每个非平凡词 $w$，存在 $f,g\\in\\operatorname{PL}_+([0,1])$ 使 $w(f,g)\\neq\\mathrm{id}$。这意味著 $\\operatorname{PL}_+([0,1])$ 在组合群论意义下既不是虚拟可解的也不含自由子群——正好处于 Tits 交替的缝隙中。与之对比，$\\operatorname{PL}_+(\\mathbb S^1)$ 很容易包含自由子群（利用圆周的全局拓扑构造 Klein 乒乓）。\n\n$\\operatorname{PL}_+(\\mathbb S^1)$ 中最著名的子群是 Thompson 群 $G$：它是 $\\operatorname{PL}_+(\\mathbb S^1)$ 中折点在二进有理数、斜率是 $2$ 的幂的分段仿射同胚构成的子群。$G$ 是无限、有限表示、单群——一个非平凡的性质组合。类比关系如下：\n\n$$\\frac{\\text{Fuchs 群}}{\\operatorname{PSL}(2,\\mathbb R)}\\quad\\sim\\quad\\frac{\\text{Thompson 群 }G}{\\operatorname{PL}_+(\\mathbb S^1)}$$\n\n但两者的正则性决定了根本性差异——Fuchs 群是离散的，Thompson 群在 $\\operatorname{PL}_+(\\mathbb S^1)$ 中也是离散的，但由于 $\\operatorname{PL}_+(\\mathbb S^1)$ 本身不承载与 $\\operatorname{PSL}(2,\\mathbb R)$ 可比的拓扑群结构，这些「类比」的深层意义仍需探索。实际上，Thompson 群 $G$ 在 $\\operatorname{PL}_+(\\mathbb S^1)$ 中有无穷多个共轭类，这使得其表示空间极其丰富。"
+        "zh": "## 分段线性同胚群\n\n记 $\\operatorname{PL}_+(\\mathbb S^1)$ 为圆周上所有保向分段线性同胚构成的群。这里的「分段线性」系指提升到实直线后，存在一个发散的递增分点序列 $\\{x_i\\}$，使得在每个区间 $[x_i,x_{i+1}]$ 上同胚是仿射映射。这一群包含了 Thompson 群 $G$ 作为其可数子群，同时也包含了许多其他有趣的子群。\n\n## 自由子群问题\n\nBrin–Squier 发现了一个令人惊讶的事实：区间上的分段线性同胚群 $\\operatorname{PL}_+([0,1])$ 不包含任何非交换自由子群。证明的思路是利用空间中区间上的支撑结构：若 $f,g$ 生成自由群，则可以通过分析它们的支撑区间的个数和位置，构造一个支撑区间数更少的非平凡元素，导出矛盾。但 $\\operatorname{PL}_+([0,1])$ 也不满足任何律——对每个非平凡词 $w$，都可以找到 $f,g$ 使 $w(f,g)\\neq\\mathrm{id}$。这与 $\\operatorname{PL}_+(\\mathbb S^1)$ 形成鲜明对比：在圆周上通过 Klein 乒乓引理很容易找到两生成元自由子群。\n\n## 极小作用与遍历性\n\n对 $\\operatorname{PL}_+(\\mathbb S^1)$ 的子群的极小作用，遍历性的检验与导数增长率的分布密切相关。当群中含有具无理旋转数的元素时，遍历性已有定论。当每个元素都具有有理旋转数时，需要引入可扩张点（即存在群元素在该点导数大于 $1$ 的点）的概念。若指数集——导数沿群作用呈指数增长的点集——具有正 Lebesgue 测度，则极小作用必为遍历的。Thompson 群 $G$ 提供了一类边界案例：其指数集为零测度，但作用仍然是遍历的。\n\n## 例外极小集与 Markov 系统\n\n$\\operatorname{PL}_+(\\mathbb S^1)$ 的子群也可能出现例外极小集。通过 Markov 系统的方法可以刻画这种集合的结构：若一个例外极小集是 Markov 化的（即存在与极小集相交的开区间及其上的 Markov 系统，使得交集等于该系统的不变集），则其 Lebesgue 测度为零。在更强的正则性条件下（如生成元为 $C^{1+\\mathrm{Lip}}$ 微分同胚），其 Hausdorff 维数严格小于 $1$。"
       }
     ],
+    "examples": {
+      "zh": [
+        "以 Thompson 群 $G$ 的极小光滑作用为例。其指数集为零测度，但非可扩张点集是有限集。对每个非可扩张点 $y$，存在群元素 $g_+$ 以 $y$ 为右拓扑排斥不动点且在 $y$ 右侧无其他不动点。取 $y$ 右侧一点 $\\bar y$，记 $J_k=(g_+^{-k+1}(\\bar y),g_+^{-k}(\\bar y))$。存在 $k_0$ 使得对所有 $k\\ge k_0$ 和 $x\\in J_k$ 有 $(g_+^k)'(x)\\ge 2$。因此区间 $(y,g_+^{-k_0}(\\bar y))$ 中不含非可扩张点，故非可扩张点是孤立的，整个非可扩张点集有限。",
+        "扩张论证的基本思想如下。设 $A$ 为不变可测集且 Lebesgue 测度为正，$a$ 为 $A$ 的密度点且不属于任何非可扩张点的轨道。对任意 $\\varepsilon>0$，存在 $a$ 的一列邻域 $V_k$ 收敛到 $a$，以及群元素序列 $f_1,\\ldots,f_{n_k}$ 使得 $|f_{n_k}\\circ\\cdots\\circ f_1(V_k)|=\\varepsilon$ 且畸变系数不超过 $\\log 2$。由于 $a$ 是密度点，当 $k$ 充分大时 $V_k$ 中几乎全部点属于 $A$，由畸变控制知放大后的区间中几乎全部点也属于 $A$。由极小性，整个圆周可被形如 $f(V_k)$ 的区间覆盖，从而 $A$ 的测度为全测度。",
+        "设 $\\Gamma$ 为 $C^{1+\\mathrm{Lip}}$ 圆周微分同胚生成的伪群，$\\Lambda$ 为 $\\Gamma$ 的例外极小集。若存在开区间 $L$ 与 $\\Lambda$ 相交，且存在定义在 $L$ 上的 Markov 系统 $\\mathcal S=(\\{I_1,I_2\\},\\{g_1,g_2\\},P)$ 使得 $L\\cap\\Lambda$ 等于 $\\mathcal S$ 的不变集，则称 $\\Lambda$ 是 Markov 化的。此时 $\\Lambda$ 的 Lebesgue 测度为零。若 $g_1,g_2$ 可均匀可微压缩，则 $\\Lambda$ 的 Hausdorff 维数严格小于 $1$。"
+      ]
+    },
     "references": [
       "M. Brin & C. Squier, Groups of piecewise linear homeomorphisms of the real line, Invent. Math. 79 (1985), 485-498.",
       "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."

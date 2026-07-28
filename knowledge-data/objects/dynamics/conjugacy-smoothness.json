@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "共轭光滑性提升定理",
-      "共轭提升定理"
+      "共轭光滑性提升定理"
     ]
   },
   "description": {
@@ -20,14 +19,20 @@
     ],
     "article": [
       {
-        "zh": "共轭光滑性提升定理是回答以下问题的结果：如果两个圆周微分同胚群作用之间存在一个 $C^1$ 共轭，那么该共轭的真实光滑性是否由作用的光滑性决定？定理表明，只要作用是稠密轨道且不共轭于旋转，$C^1$ 共轭就自动「提升」为 $C^r$——即共轭的光滑性与作用本身的光滑性相同。\n\n证明的关键步是使用 Sacksteder 定理的推论找到 $\\Phi_1(\\Gamma)$ 中一个元 $g$ 和一个点 $x$ 使得 $\\Phi_1(g)(x)=x$ 且 $\\Phi_1(g)'(x)\\neq1$。在局部坐标下这给出了一个双曲胚。$\\varphi$ 将其共轭到另一个双曲胚，由 Sternberg 线性化定理的推论可知 $\\varphi$ 在 $x$ 附近是 $C^r$ 的。然后利用共轭关系 $\\varphi\\circ\\Phi_1(h)=\\Phi_2(h)\\circ\\varphi$，将 $C^r$ 性沿稠密轨道传播到整个圆周。\n\n定理对 $C^{1+\\tau}$ 和非交换极小作用也成立。对于 bi-Lipschitz 共轭，在遍历性假设下同样可以得到 $C^1$ 结论。"
+        "zh": "## $C^1$ 共轭的光滑性提升\n\n研究圆周微分同胚群作用时，常通过共轭对作用进行分类。若两个 $C^r$ 作用之间存在一个 $C^1$ 共轭，一个自然的问题是：该共轭的光滑性能否自动提升到 $C^r$？\n\n共轭光滑性提升定理给出了肯定的回答：只要作用具有稠密轨道且拓扑不共轭于旋转群，任意 $C^1$ 共轭都自动是 $C^r$ 微分同胚。\n\n证明的出发点是：稠密轨道且非旋转共轭的群作用必然包含一个具有双曲不动点的元素。在此不动点附近，Sternberg 线性化定理将 $C^r$ 双曲胚 $C^r$ 线性化。从该定理直接推出：$C^1$ 共轭在双曲不动点邻域内自动为 $C^r$ 光滑。共轭关系将这一局部光滑性沿轨道传递，而稠密轨道假设确保了整个圆周都被覆盖。\n\n## Bi-Lipschitz 情形\n\n若仅假设共轭是 bi-Lipschitz 的（而非 $C^1$），则需要额外的遍历性条件。此时 $\\log\\varphi'$ 属于 $L^\\infty$，共轭关系自然诱导出一个关于 $\\Phi_1$ 作用的余圈。等变 Gottschalk–Hedlund 引理表明，若作用是极小且遍历的，则该 $L^\\infty$ 函数几乎处处等于一个连续函数，从而 $\\varphi$ 为 $C^1$ 微分同胚。若进一步作用不共轭于旋转群，则可应用前述提升机制得到 $C^r$ 结论。\n\n## 非极小情形\n\n非极小作用的情形截然不同。存在 $C^{1+\\mathrm{Lip}}$ 群作用（其稳定子群平凡或无限循环）和 bi-Lipschitz 共轭，该共轭在每个非空开区间上均不可微。这说明稠密轨道条件在 bi-Lipschitz 情形下是最优的，而 $C^r$ 情形下的光滑性提升依赖于更精细的局部线性化机制。"
       }
     ],
-    "proof": [
-      {
-        "zh": "证明的关键步是使用 Sacksteder 定理的推论找到 $\\Phi_1(\\Gamma)$ 中一个元 $g$ 和一个点 $x$ 使得 $\\Phi_1(g)(x)=x$ 且 $\\Phi_1(g)'(x)\\neq1$。在局部坐标下这给出了一个双曲胚。$\\varphi$ 将其共轭到另一个双曲胚，由 Sternberg 线性化定理的推论可知 $\\varphi$ 在 $x$ 附近是 $C^r$ 的。然后利用共轭关系 $\\varphi\\circ\\Phi_1(h)=\\Phi_2(h)\\circ\\varphi$，将 $C^r$ 性沿稠密轨道传播到整个圆周。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "设 $0<a<1$，定义 $g(0)=0$，对 $x\\neq 0$ 设 $g(x)=ax(1-1/\\log x)$。$g$ 是原点附近的 $C^1$ 微分同胚胚，满足 $g'(0)=a$，因此是双曲的。但不存在 Lipschitz 同胚（从而不存在 $C^1$ 微分同胚）将 $g$ 线性化为 $x\\mapsto ax$。若存在 Lipschitz 共轭 $h$ 使得 $g=h\\circ M_a\\circ h^{-1}$，则 $g^k(x)/a^k = h(a^k h^{-1}(x))/a^k$ 应当有界；然而直接计算 $g^k(x)/a^k = x\\prod_{i=0}^{k-1}(1-1/\\log g^i(x))$ 表明该乘积发散，矛盾。此例说明 $C^1$ 双曲胚未必可 $C^1$ 线性化，故光滑性提升定理要求作用至少为 $C^2$（或 $C^{1+\\tau}$）。",
+        "设 $\\Gamma$ 为 $C^{1+\\mathrm{Lip}}$ 圆周微分同胚的有限生成群，其作用非极小。若 $\\Gamma$ 的每个区间稳定子群平凡或无限循环，则存在 bi-Lipschitz 同胚 $\\varphi$ 与 $\\Gamma$ 的所有元交换，且 $\\varphi$ 在每个非空开区间上均不可微。特别地，$\\varphi$ 是两个 $\\Gamma$ 作用之间的 bi-Lipschitz 共轭，但 $\\varphi$ 本身不是 $C^1$ 的。此构造表明最小性（或遍历性）假设在 bi-Lipschitz 共轭光滑性提升中的必要性。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "设 $\\Phi_1,\\Phi_2\\colon\\Gamma\\to\\operatorname{Diff}_+^r(\\mathbb S^1)$ 为两个表示，$2\\leqslant r\\leqslant\\infty$，$\\varphi$ 为 $C^1$ 共轭。由于 $\\Phi_1(\\Gamma)$ 轨道稠密且不共轭于旋转群，由 Sacksteder 定理的推论（或 $C^{1+\\mathrm{bv}}$ 版本中由无不变概率测度推出存在双曲不动点的结论），存在 $g\\in\\Gamma$ 和 $x\\in\\mathbb S^1$ 使得 $\\Phi_1(g)(x)=x$ 且 $|\\Phi_1(g)'(x)|\\neq1$。取局部坐标将 $x$ 映为 $0$，则 $\\Phi_1(g)$ 在 $0$ 附近诱导一个双曲胚 $\\tilde g(t)=g'(0)t+O(t^2)$。\n\n由 Sternberg 线性化定理，存在 $C^r$ 微分同胚 $\\psi$ 使得 $\\psi\\circ\\tilde g\\circ\\psi^{-1}(t)=g'(0)t$。$C^1$ 共轭 $\\varphi$ 将 $\\Phi_1(g)$ 的双曲不动点 $x$ 映为 $\\Phi_2(g)$ 的双曲不动点 $\\varphi(x)$。在两个不动点附近取 Sternberg 线性化坐标，比较可知 $\\varphi$ 在 $x$ 附近是 $C^r$ 的。\n\n对任意 $h\\in\\Gamma$，共轭关系 $\\varphi\\circ\\Phi_1(h)=\\Phi_2(h)\\circ\\varphi$ 将 $\\varphi$ 在 $x$ 附近的 $C^r$ 性传递到 $\\Phi_1(h)(x)$ 附近。由于 $\\Phi_1(\\Gamma)$ 的轨道在 $\\mathbb S^1$ 中稠密，$C^r$ 性在整个圆周上成立。$\\varphi^{-1}$ 的 $C^r$ 性由对称论证得到，故 $\\varphi$ 是 $C^r$ 微分同胚。"
+      ]
+    },
     "references": [
       "J. C. Yoccoz, Centralisateurs et conjugaison différentiable des difféomorphismes du cercle, Astérisque 231 (1995), 89-242.",
       "E. Ghys & T. Tsuboi, Différentiabilité des conjugaisons, Ann. Inst. Fourier 38 (1988), 215-244.",

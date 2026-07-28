@@ -3,7 +3,7 @@
   "to": "dynamics.circle.rotation-number-bounded-deviation",
   "description": {
     "zh": [
-      "有界偏差估计为 Gottschalk–Hedlund 定理在圆周动力学中的应用提供了触发条件：该估计保证了函数 $\\varphi=\\Delta_{\\tilde f}-\\rho(\\tilde f)$ 的 Birkhoff 和有界性，从而满足定理的前提。"
+      "有界偏差估计保证了函数 $\\varphi=\\Delta_{\\tilde f}-\\rho(\\tilde f)$ 的 Birkhoff 和有界性，从而为 Gottschalk–Hedlund 定理在圆周动力学中的应用提供了触发条件。"
     ]
   }
 }

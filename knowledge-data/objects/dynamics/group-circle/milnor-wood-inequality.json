@@ -17,22 +17,36 @@
       "曲面群",
       "Fuchs 群",
       "有界上同调",
-      "换位子乘积"
+      "换位子乘积",
+      "拟同态缺陷"
+    ],
+    "notes": [
+      {
+        "zh": "Eisenbud–Hirsch–Neumann 定理给出了 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 中元素可写为 $g$ 个换位子乘积的充要条件：$\\underline m(\\tilde f)<2g-1$ 且 $1-2g<\\overline m(\\tilde f)$，其中 $\\underline m(\\tilde f)=\\inf(\\tilde f(x)-x)$、$\\overline m(\\tilde f)=\\sup(\\tilde f(x)-x)$。该定理是 Milnor-Wood 不等式的精确版本。"
+      }
     ],
     "article": [
       {
-        "zh": "Milnor–Wood 不等式是 Euler 类在圆周群作用框架中的核心约束。其证明的核心思想是：Euler 数 $eu(\\phi)$ 可以通过提升到 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 的换位子乘积的平移数来计算。取曲面基本群的标准表示\n$$\\Gamma_g=\\langle a_1,b_1,\\ldots,a_g,b_g\\mid a_1b_1a_1^{-1}b_1^{-1}\\cdots a_gb_ga_g^{-1}b_g^{-1}=1\\rangle,$$\n选择 $\\phi(a_i),\\phi(b_i)$ 的提升 $\\tilde a_i,\\tilde b_i$，则乘积 $\\tilde a_1\\tilde b_1\\tilde a_1^{-1}\\tilde b_1^{-1}\\cdots\\tilde a_g\\tilde b_g\\tilde a_g^{-1}\\tilde b_g^{-1}$ 是恒等映射的提升，故为整数平移——这个整数就是 $eu(\\phi)$。\n\n由于平移数 $\\tau$ 是拟同态且满足 $\\tau(\\tilde f^{-1})=-\\tau(\\tilde f)$，我们可以用拟同态缺陷估计 $\\tau$ 在该换位子乘积上的值。粗糙版本给出 $|eu(\\phi)|\\leqslant (4g-1)D$，其中 $D$ 是 $\\tau$ 的缺陷。精确的上界 $2g-2$ 需要更精细的分析——这对应于有界 Euler 类在 $H_b^2(\\Gamma_g,\\mathbb R)$ 中的范数恰好为 $1/2$。\n\n当 $\\phi(\\Gamma_g)$ 是 Fuchs 群（即 $\\operatorname{PSL}(2,\\mathbb R)$ 中的离散子群）且对应双曲曲面的紧化嵌入时，$eu(\\phi)=\\pm(2g-2)$ 达到等号，这是 Milnor 原论文中的关键计算。"
+        "zh": "## 曲面群到圆周的表示\n\n亏格 $g$ 的闭定向曲面 $\\Sigma_g$ 的基本群具有标准表示\n$$\\Gamma_g=\\langle a_1,b_1,\\ldots,a_g,b_g\\mid\\prod_{i=1}^g[a_i,b_i]=1\\rangle.$$\n研究 $\\Gamma_g$ 到 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的同态是低维动力学与几何拓扑交叉的问题。这类同态携带一个数值不变量——Euler 数 $eu(\\phi)$——它度量了表示在圆周上的「扭曲」程度。\n\n## Euler 数的定义\n\nEuler 数的定义借助了覆盖群 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$。选取每个生成元的提升 $\\tilde a_i,\\tilde b_i\\in\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$，则换位子乘积 $\\prod_{i=1}^g[\\tilde a_i,\\tilde b_i]$ 是恒等映射的提升，因而是一个整数平移。这个整数就是 $eu(\\phi)$。它不依赖于提升的选取，因此是良定的。\n\n## 不等式及其紧致性\n\nMilnor–Wood 不等式断言 $|eu(\\phi)|\\leqslant 2g-2$。该上界是紧致的：当 $\\phi$ 的像落在 $\\operatorname{PSL}(2,\\mathbb R)$ 中且为双曲曲面 $\\Sigma_g$ 对应的 Fuchs 群嵌入时，$eu(\\phi)=\\pm(2g-2)$。此时 Euler 数的绝对值恰好等于曲面 Euler 示性数的绝对值 $|\\chi(\\Sigma_g)|=|2-2g|$。\n\n## 两种证明途径\n\n不等式可以通过两种途径理解。一种利用 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 上平移数的拟同态性质：平移数是一个拟同态，缺陷为 $1$。对每个换位子 $[\\tilde a_i,\\tilde b_i]$ 应用缺陷不等式可得 $|\\tau([\\tilde a_i,\\tilde b_i])|\\leqslant 3$，对 $g$ 个换位子的乘积进一步估计得 $|eu(\\phi)|\\leqslant 4g-1$——这是粗略估计。\n\n另一种从有界上同调入手，得到精确上界 $2g-2$。有界 Euler 类 $eu\\in H_b^2(\\operatorname{Homeo}_+(\\mathbb S^1),\\mathbb R)$ 的 Gromov 范数为 $\\|eu\\|_\\infty=1/2$。曲面群 $\\Gamma_g$ 的二阶上同调 $H^2(\\Gamma_g,\\mathbb R)\\cong\\mathbb R$ 中 Euler 类的范数由 $\\chi(\\Gamma_g)=2-2g$ 确定。$\\|eu\\|_\\infty=1/2$ 意味着 $|eu(\\phi)|\\leqslant \\frac12\\cdot|\\chi(\\Gamma_g)| = 2g-2$。这一途径揭示了 Milnor–Wood 不等式的本质：它是拓扑约束在动力学表示上的反映——表面基本群的 Euler 示性数限制了其到圆周同胚群的表示所能达到的扭曲程度。"
       }
     ],
-    "proof": [
-      {
-        "zh": "取曲面基本群的标准表示 $\\Gamma_g=\\langle a_1,b_1,\\ldots,a_g,b_g\\mid\\prod_{i=1}^g[a_i,b_i]=1\\rangle$。选择 $\\phi(a_i),\\phi(b_i)$ 的提升 $\\tilde a_i,\\tilde b_i\\in\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$。则乘积 $\\prod_{i=1}^g[\\tilde a_i,\\tilde b_i]$ 是恒等映射的提升，故为整数平移 $m$，且 $eu(\\phi)=m$。\n\n平移数 $\\tau$ 是拟同态，缺陷 $D=1$。估计 $\\tau$ 在换位子乘积上的值得 $|m|\\leqslant (4g-1)D$。精细分析利用有界上同调中 Euler 类的范数 $\\|eu\\|_\\infty=1/2$，可得最优上界 $|eu(\\phi)|\\leqslant 2g-2$。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "设 $g\\geqslant 2$，$\\Sigma_g$ 为亏格 $g$ 的闭双曲曲面。其万有覆盖为双曲平面 $\\mathbb H^2$，基本群 $\\Gamma_g$ 通过 Fuchs 群嵌入 $\\Gamma_g\\hookrightarrow\\operatorname{PSL}(2,\\mathbb R)\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 作用在圆周上。此时 $eu(\\phi)=2g-2$ 达到 Milnor–Wood 不等式的上界。该表示的 Euler 数的绝对值等于曲面 Euler 示性数的绝对值 $|2-2g|$。",
+        "考虑平凡表示 $\\phi\\colon\\Gamma_g\\to\\operatorname{Homeo}_+(\\mathbb S^1)$，即每个生成元都映为恒等映射。所有提升可取为恒等映射，因此换位子乘积的提升为零平移，$eu(\\phi)=0$。不等式 $0\\leqslant 2g-2$ 平凡成立。",
+        "设 $\\phi\\colon\\Gamma_g\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 的像落在旋转群 $\\operatorname{SO}(2)\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 中。旋转群是交换群，而 $\\Gamma_g$ 到交换群的任何同态必通过其 Abel 化 $H_1(\\Sigma_g,\\mathbb Z)\\cong\\mathbb Z^{2g}$ 分解。此时每个 $\\phi(a_i),\\phi(b_i)$ 可提升为 $\\mathbb R$ 中的平移，换位子乘积的提升恒为零，故 $eu(\\phi)=0$。这表明只要表示通过 Abel 化分解，Euler 数必为零。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "取曲面基本群的标准表示 $\\Gamma_g=\\langle a_1,b_1,\\ldots,a_g,b_g\\mid\\prod_{i=1}^g[a_i,b_i]=1\\rangle$。选择 $\\phi(a_i),\\phi(b_i)$ 的提升 $\\tilde a_i,\\tilde b_i\\in\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$。则乘积 $\\prod_{i=1}^g[\\tilde a_i,\\tilde b_i]$ 是恒等映射的提升，故为整数平移 $m$，且 $eu(\\phi)=m$。\n\n平移数 $\\tau$ 是拟同态，缺陷 $D=1$，即 $|\\tau(\\tilde f\\tilde g)-\\tau(\\tilde f)-\\tau(\\tilde g)|\\leqslant 1$，且 $\\tau(\\tilde f^{-1})=-\\tau(\\tilde f)$。对每个换位子 $[\\tilde a_i,\\tilde b_i]= \\tilde a_i\\tilde b_i\\tilde a_i^{-1}\\tilde b_i^{-1}$，反复应用缺陷不等式得\n$$|\\tau([\\tilde a_i,\\tilde b_i])| = |\\tau(\\tilde a_i\\tilde b_i\\tilde a_i^{-1}\\tilde b_i^{-1})| \\leqslant |\\tau(\\tilde a_i)+\\tau(\\tilde b_i)+\\tau(\\tilde a_i^{-1})+\\tau(\\tilde b_i^{-1})| + 3D = 0 + 3 = 3.$$\n对 $g$ 个换位子的乘积 $\\prod_{i=1}^g[\\tilde a_i,\\tilde b_i]$，进一步应用缺陷不等式得\n$$|eu(\\phi)| = |\\tau(\\prod_{i=1}^g[\\tilde a_i,\\tilde b_i])| \\leqslant \\sum_{i=1}^g |\\tau([\\tilde a_i,\\tilde b_i])| + (g-1)D \\leqslant 3g + (g-1) = 4g-1.$$\n\n精细上界 $2g-2$ 通过有界上同调的范数论证得到：有界 Euler 类 $eu\\in H_b^2(\\operatorname{Homeo}_+(\\mathbb S^1),\\mathbb R)$ 的 Gromov 范数为 $\\|eu\\|_\\infty=1/2$。对曲面群 $\\Gamma_g$，$H^2(\\Gamma_g,\\mathbb R)\\cong\\mathbb R$ 中的 Euler 类的范数为 $2g-2$（由 $\\Gamma_g$ 的 Euler 示性数确定）。$\\|eu\\|_\\infty=1/2$ 意味着 $|eu(\\phi)|\\leqslant \\frac12\\cdot\\chi(\\Gamma_g) = 2g-2$。"
+      ]
+    },
     "references": [
       "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
       "J. Milnor, On the existence of a connection with curvature zero, Comment. Math. Helv. 32 (1958), 215–223.",
-      "J. Wood, Bundles with totally disconnected structure group, Comment. Math. Helv. 46 (1971), 257–273."
+      "J. Wood, Bundles with totally disconnected structure group, Comment. Math. Helv. 46 (1971), 257–273.",
+      "D. Eisenbud, U. Hirsch, W. Neumann, Transverse foliations of Seifert bundles and self-homeomorphisms of the circle, Comment. Math. Helv. 56 (1981), 638–660."
     ]
   }
 }

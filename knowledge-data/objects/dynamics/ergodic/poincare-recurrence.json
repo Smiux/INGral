@@ -21,14 +21,20 @@
     ],
     "article": [
       {
-        "zh": "Poincaré 回复定理是遍历理论的第一个深刻结果，它断言：只要系统是保测的且总测度有限，几乎所有轨道都会无限次返回其出发点的任意邻域。\n\n证明的核心思想出奇简单：将那些永不返回 $\\varepsilon$-邻域的点 $(x\\in W)$ 分割为直径小于 $\\varepsilon$ 的小块 $W_i$，则 $\\{T^{-n}W_i\\}_{n\\ge1}$ 两两不交。由于测度有限，必有 $\\mu(W_i)=0$。\n\n该定理的直接推论是统计力学的基本图景：一个孤立力学系统的相空间轨道（在保测意义下）几乎必然无限次返回其初始状态的任意邻域。这为 Boltzmann 的遍历假设奠定了基础。\n\n注：回复定理对无限测度的保测变换一般不成立——例如 $\\mathbb R$ 上的平移 $T(x)=x+1$ 就没有回复性。"
+        "zh": "Poincaré 回复定理是遍历理论中最早的结论之一：对概率保测变换 $(X,\\mathcal B,\\mu,T)$，任意可测集 $E$ 中的几乎每个点都会无限多次返回 $E$。该证明仅依赖于有限测度下的测度保持性，不需要系统的具体形式。\n\n## 有限测度的必要性\n\n回复性成立的关键在于测度有限。整数集上的平移 $T(x)=x+1$ 保计数测度，但测度无穷，没有任何点能返回其初始位置。这说明有限测度条件不能省略。\n\n## 概率论视角\n\n将相空间视为样本空间、可测集视为事件、保测变换视为推移算子，则沿轨道取值的观测函数构成一个平稳随机过程。回复定理确保了该过程中事件无限多次发生的概率为 1。确定性系统在这一测度论框架下呈现出统计规律性。"
       }
     ],
-    "proof": [
-      {
-        "zh": "设 $W:=\\{x\\in X:\\forall n\\ge1,\\ d(T^n(x),x)>\\varepsilon\\}$。将 $W$ 分为有限个直径 $<\\varepsilon$ 的小块 $W_i$。对每个固定的 $i$，集合族 $\\{T^{-n}(W_i)\\}_{n\\ge1}$ 两两不交（否则若 $T^{-n}(W_i)\\cap T^{-(n+k)}(W_i)\\neq\\varnothing$，则 $W_i\\cap T^{-k}(W_i)\\neq\\varnothing$，存在 $x\\in W_i\\cap T^{-k}(W_i)$，一方面 $d(T^kx,x)<\\varepsilon$，另一方面 $x\\in W\\Rightarrow d(T^kx,x)>\\varepsilon$，矛盾）。\n\n由 $\\mu(T^{-n}W_i)=\\mu(W_i)$ 及有限性 $\\mu(X)<\\infty$，知 $\\mu(W_i)=0$。因此 $\\mu(W)=0$。取 $\\varepsilon=1/m$ 的序列即得所需结论。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "设 $X=[0,1)$，$\\mathcal B$ 为 Lebesgue 可测集族，$\\mu$ 为 Lebesgue 测度。对 $\\alpha\\in[0,1)$ 定义 $R_\\alpha(x)=x+\\alpha\\bmod 1$。Lebesgue 测度在平移下不变，故 $\\mu(R_\\alpha^{-1}E)=\\mu(E)$ 对所有 $E\\in\\mathcal B$ 成立，且 $\\mu(X)=1$，因此 $(X,\\mathcal B,\\mu,R_\\alpha)$ 是概率保测变换。Poincaré 回复定理保证：对任意 $E\\in\\mathcal B$，几乎每个 $x\\in E$ 都存在子列 $n_k\\to\\infty$ 使得 $R_\\alpha^{n_k}(x)\\in E$。取 $E$ 为一小区间即得具体的回复性实例。",
+        "设 $X=\\mathbb Z$，$\\mathcal B$ 为 $\\mathbb Z$ 的所有子集族，$\\mu$ 为计数测度，$T(x)=x+1$。由于 $\\mu(T^{-1}\\{x\\})=\\mu(\\{x-1\\})=1=\\mu(\\{x\\})$，$\\mu$ 在 $T$ 下不变。但 $\\mu(X)=\\infty$，故 $(X,\\mathcal B,\\mu,T)$ 不是概率保测变换，Poincaré 回复定理不适用。取 $E=\\{0\\}$，则对任意 $n\\ge1$ 有 $T^n(0)=n\\notin\\{0\\}$，即没有任何点返回 $E$。这说明定理的有限测度条件是必要的。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "设 $W:=\\{x\\in X:\\forall n\\ge1,\\ d(T^n(x),x)>\\varepsilon\\}$。将 $W$ 分为有限个直径 $<\\varepsilon$ 的小块 $W_i$。对每个固定的 $i$，集合族 $\\{T^{-n}(W_i)\\}_{n\\ge1}$ 两两不交（否则若 $T^{-n}(W_i)\\cap T^{-(n+k)}(W_i)\\neq\\varnothing$，则 $W_i\\cap T^{-k}(W_i)\\neq\\varnothing$，存在 $x\\in W_i\\cap T^{-k}(W_i)$，一方面 $d(T^kx,x)<\\varepsilon$，另一方面 $x\\in W\\Rightarrow d(T^kx,x)>\\varepsilon$，矛盾）。\n\n由 $\\mu(T^{-n}W_i)=\\mu(W_i)$ 及有限性 $\\mu(X)<\\infty$，知 $\\mu(W_i)=0$。因此 $\\mu(W)=0$。取 $\\varepsilon=1/m$ 的序列即得所需结论。"
+      ]
+    },
     "references": [
       "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.1–1.2.",
       "H. Poincaré, Sur le problème des trois corps et les équations de la dynamique, Acta Math. 13 (1890), 1-270."

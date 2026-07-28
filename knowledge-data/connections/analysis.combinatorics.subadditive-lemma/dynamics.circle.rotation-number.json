@@ -1,9 +1,0 @@
-{
-  "from": "analysis.combinatorics.subadditive-lemma",
-  "to": "dynamics.circle.rotation-number",
-  "description": {
-    "zh": [
-      "子加性引理为旋转数极限的存在性提供了分析框架：位移函数沿迭代的序列 $\\Delta_{\\tilde f^n}(0)$ 由上循环恒等式（cocycle identity）保证近似加性，引理由此直接推出极限的存在性和 $3$ 的偏差上界。"
-    ]
-  }
-}

@@ -1,0 +1,42 @@
+{
+  "id": "topology.group-actions.newman-lemma",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Newman 引理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $f$ 为 $\\mathbb S^n$ 上的非平凡有限阶保向同胚（$n\\geqslant1$），记 $\\mathbb S^n$ 的直径为 $1$。则存在 $i\\in\\mathbb N$ 使 $\\operatorname{dist}(f^i,\\mathrm{Id})>1/2$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "有限阶",
+      "同胚",
+      "球面",
+      "变换群"
+    ],
+    "article": [
+      {
+        "zh": "## 有限阶同胚的隔离\n\n球面 $\\mathbb S^n$（$n\\ge1$）上的恒等映射附近，是否存在非平凡有限阶保向同胚？Newman 引理对此给出了否定回答：若 $f$ 是 $\\mathbb S^n$ 上的非平凡有限阶保向同胚（直径规范化为 $1$），则存在 $i\\in\\mathbb N$ 使 $\\operatorname{dist}(f^i,\\mathrm{Id})>1/2$。换言之，有限阶同胚不能在 $C^0$ 度量下任意接近恒等映射。\n\n## 定量形式\n\n引理实际上可以强化为 $\\operatorname{dist}(f,\\mathrm{Id})>1/(2k)$，其中 $k$ 是 $f$ 的阶。对合（$k=2$）须满足 $\\operatorname{dist}(f,\\mathrm{Id})>1/4$，三阶元素须满足 $\\operatorname{dist}(f,\\mathrm{Id})>1/6$，依此类推。这些估计给出了有限阶元素在恒等映射附近的最小分离距离。\n\n## 证明思路\n\n用反证法。假设对所有 $i$ 有 $\\operatorname{dist}(f^i,\\mathrm{Id})\\le1/2$，则每个轨道含于某个半球面中。定义重心映射 $\\operatorname{bar}(x)$ 为轨道各点的重心，它是一个 $\\Gamma$-等变连续映射 $\\operatorname{bar}\\colon\\mathbb S^n\\to\\mathbb S^n$，满足 $\\operatorname{bar}(f(x))=\\operatorname{bar}(x)$。由此推出 $f$ 的阶整除其拓扑度。但 $f$ 同伦于恒等映射，拓扑度为 $1$，矛盾。\n\n## 应用\n\n在圆周同胚群中，Newman 引理可用于证明任何充分接近恒等映射的紧子群均为平凡群。这一结论在分析群作用的局部结构时提供了基本的工具。"
+      }
+    ],
+    "examples": {
+      "zh": [
+        "设 $f$ 为 $\\mathbb S^n$ 上阶为 $k$ 的非平凡有限阶保向同胚，球面直径规范化为 $1$。则 $\\operatorname{dist}(f,\\mathrm{Id})>1/(2k)$。若 $\\operatorname{dist}(f,\\mathrm{Id})\\le 1/(2k)$，则对 $i=1,\\dots,k-1$ 有 $\\operatorname{dist}(f^i,\\mathrm{Id})\\le i/(2k)<1/2$，且 $\\operatorname{dist}(f^k,\\mathrm{Id})=0$。于是全部迭代满足 $\\operatorname{dist}(f^i,\\mathrm{Id})\\le 1/2$，轨道含于半球的假设成立，重心映射及其导致的拓扑度矛盾同引理证明。因此假设不成立。",
+        "将 Newman 引理应用于 $\\mathbb S^1$（$n=1$）即得圆周情形。设 $f\\in\\mathrm{Homeo}_+(\\mathbb S^1)$ 为非平凡有限阶同胚，将圆周直径（弦距离的上确界）规范化为 $1$。由引理知存在 $i$ 使 $\\operatorname{dist}(f^i,\\mathrm{Id})>1/2$。进一步，若 $f$ 的阶为 $k$，则 $\\operatorname{dist}(f,\\mathrm{Id})>1/(2k)$。例如，对合（$k=2$）必须满足 $\\operatorname{dist}(f,\\mathrm{Id})>1/4$，三阶元素满足 $\\operatorname{dist}(f,\\mathrm{Id})>1/6$，依此类推。这些定量下界在分析圆周同胚群的局部结构时给出有限阶元素在恒等映射附近的最小分离距离。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "归谬法。假设对所有 $i$ 有 $\\operatorname{dist}(f^i,\\mathrm{Id})\\leq 1/2$，则每个轨道含于某个半球面中。定义重心映射 $\\operatorname{bar}(x)$ 为轨道各点的重心，其为 $\\Gamma$-等变连续映射 $\\operatorname{bar}\\colon\\mathbb S^n\\to\\mathbb S^n$ 且满足 $\\operatorname{bar}(f(x))=\\operatorname{bar}(x)$。由此推出 $f$ 的阶整除其拓扑度。但 $f$ 同伦于恒等映射故拓扑度为 $1$，矛盾。"
+      ]
+    },
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.4.",
+      "M. Newman, A theorem on periodic transformations on spaces, Quat. J. Math. 2 (1931), 1-8."
+    ]
+  }
+}

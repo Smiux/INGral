@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.left-orderable-group",
-  "to": "dynamics.group-circle.holder-theorem",
-  "description": {
-    "zh": [
-      "Hölder 定理刻画了左可序群中那些可自由作用在 $\\mathbb R$ 上的情况——必须交换且同构于 $\\mathbb R$ 的加法子群。"
-    ]
-  }
-}

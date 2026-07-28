@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.karlsson-margulis-ergodic",
+  "to": "dynamics.ergodic.oseledets-multiplicative-ergodic",
+  "description": {
+    "zh": [
+      "Karlsson–Margulis 定理应用于 $\\operatorname{Pos}_d(\\mathbb R)$ 配备 CAT(0) 度量和等距作用 $A\\cdot P = APA^t$，即给出 Oseledets 乘法遍历定理的几何证明。"
+    ]
+  }
+}

@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "Koopman 算子",
-      "Koopman–von Neumann 谱方法"
+      "Koopman 算子"
     ]
   },
   "description": {
@@ -18,15 +17,31 @@
       "谱理论",
       "不变量的构造",
       "谱同构",
-      "本征函数"
+      "本征函数",
+      "谱测度",
+      "Herglotz 定理",
+      "Lebesgue 谱",
+      "Fourier–Walsh 系统",
+      "K 性质"
     ],
     "article": [
       {
-        "zh": "Koopman 算子将动力系统问题转化为 Hilbert 空间上的算子理论问题，是遍历理论中谱方法的基石。两个保测变换的 Koopman 算子若酉等价，则称它们谱同构——这比测度论同构更弱，但任何测度论同构必然诱导出谱同构。因此谱不变量（即酉等价下不变的量）自动是测度论同构的不变量。\n\n遍历性、混合性、弱混合性均可通过 Koopman 算子的谱性质刻画：遍历等价于不变函数空间维数为 1（即本征值 1 的几何重数为 1）；混合等价于对所有 $f,g$ 有 $\\langle U_T^n f,g\\rangle\\to\\langle f,1\\rangle\\overline{\\langle g,1\\rangle}$；弱混合等价于无非平凡本征函数（连续谱）。\n\n点谱（本征函数集）是基本的不变量：无理旋转 $R_\\alpha$ 具有离散谱 $\\{e^{2\\pi i k\\alpha}:k\\in\\mathbb Z\\}$，不同的 $\\alpha$ 给出不同的本征值群，因此不同角度的无理旋转非同构。离散谱定理断言：具有离散谱的两个保测变换同构当且仅当它们的本征值群相同。混合系统必然具有连续谱（无非平凡本征函数）。"
+        "zh": "## 谱方法的思路\n\nKoopman 算子将保测变换的研究转化为 Hilbert 空间上的算子理论问题。对保测变换 $(X,\\mathcal B,\\mu,T)$，定义 $U_T:L^2(X,\\mu)\\to L^2(X,\\mu)$ 为 $U_Tf=f\\circ T$。$U_T$ 是等距算子（$T$ 可逆时为酉算子）。这一转化引入了一种比测度论同构更弱的等价关系——谱同构：两个保测变换的 Koopman 算子若酉等价，则称它们谱同构。测度论同构必然诱导出谱同构，反之不真。\n\n## 点谱\n\n本征值集 $H(T)=\\{\\lambda\\in\\mathbb C:\\exists f\\neq0,\\;f\\circ T=\\lambda f\\}$ 是一个谱不变量。对遍历系统，$H(T)$ 是 $S^1$ 的可数子群。若本征函数张成整个 $L^2$，称系统具有离散谱；若无非平凡本征函数，称具有连续谱。无理旋转 $R_\\alpha$ 具有离散谱 $H(R_\\alpha)=\\{e^{2\\pi i k\\alpha}:k\\in\\mathbb Z\\}$，不同 $\\alpha$ 给出不同的本征值群，因此不同角度的无理旋转不同构。离散谱定理断言，具有离散谱的两个保测变换同构当且仅当它们的本征值群相同。\n\n## 谱不变量\n\n遍历性、混合性、弱混合性均可通过 Koopman 算子的谱性质刻画，且均为谱不变量。遍历等价于 $\\dim\\{f:U_Tf=f\\}=1$。混合等价于 $\\langle U_T^n f,g\\rangle\\to\\langle f,1\\rangle\\overline{\\langle g,1\\rangle}$ 对所有 $f,g\\in L^2$ 成立。弱混合等价于无非平凡本征函数。混合变换必然具有连续谱，因为非平凡本征函数的存在会阻止相关性衰减至零。\n\n## 谱测度\n\n谱测度提供了更精细的谱不变量。对可逆保测变换和 $f\\in L^2\\setminus\\{0\\}$，序列 $r_n=\\langle U_T^n f,f\\rangle$ 是正定的。Herglotz 定理保证存在 $S^1$ 上唯一的有限测度 $\\nu_f$ 使 $r_n=\\int_{S^1}z^n\\,d\\nu_f(z)$，称为 $f$ 的谱测度。$U_T$ 在循环子空间 $H_f:=\\overline{\\operatorname{span}}\\{U_T^n f:n\\in\\mathbb Z\\}$ 上的限制酉等价于 $L^2(S^1,\\nu_f)$ 上的乘法算子 $g(z)\\mapsto zg(z)$。弱混合性等价于所有零均值函数的谱测度无原子。\n\n## Bernoulli 方案的谱\n\nBernoulli 方案的 Koopman 算子具有可数 Lebesgue 谱结构：$L^2$ 存在标准正交基 $\\{1\\}\\cup\\{f_{\\lambda,j}:\\lambda\\in\\Lambda,\\;j\\in\\mathbb Z\\}$ 使 $U_T f_{\\lambda,j}=f_{\\lambda,j+1}$。对 $(\\frac12,\\frac12)$-Bernoulli 方案，Fourier–Walsh 函数系 $\\varphi_A(\\underline x)=\\prod_{j\\in A}(-1)^{x_j}$（$A\\subset\\mathbb Z$ 有限非空）构成这样的基，且 $U_T\\varphi_A=\\varphi_{A+1}$。每个 $f_{\\lambda,j}$ 的谱测度正比于 $S^1$ 上的 Lebesgue 测度。更一般地，每个 Bernoulli 方案具有 K 性质，而非原子标准概率空间上的 K 自同构都具有可数 Lebesgue 谱。由于所有具有可数 Lebesgue 谱的系统酉等价，所有 Bernoulli 方案谱同构——这说明谱不变量不足以区分 Bernoulli 方案，需要熵等更精细的不变量。"
       }
     ],
+    "examples": {
+      "zh": [
+        "设 $R_\\alpha:\\mathbb S^1\\to\\mathbb S^1$ 为无理旋转 $R_\\alpha(x)=x+\\alpha\\pmod 1$（$\\alpha\\notin\\mathbb Q$）。其 Koopman 算子 $U_{R_\\alpha}$ 作用于 $L^2(\\mathbb S^1)$。函数 $\\varphi_k(x)=e^{2\\pi i kx}$（$k\\in\\mathbb Z$）满足 $U_{R_\\alpha}\\varphi_k=e^{2\\pi i k\\alpha}\\varphi_k$，故每个 $\\varphi_k$ 是本征函数，对应本征值 $e^{2\\pi i k\\alpha}$。Fourier 级数理论表明 $\\{\\varphi_k\\}_{k\\in\\mathbb Z}$ 构成 $L^2(\\mathbb S^1)$ 的标准正交基，因此 $R_\\alpha$ 具有离散谱。本征值集 $H(R_\\alpha)=\\{e^{2\\pi i k\\alpha}:k\\in\\mathbb Z\\}$ 是 $S^1$ 的可数子群。若 $\\alpha/\\beta\\notin\\mathbb Q$，则 $H(R_\\alpha)\\neq H(R_\\beta)$ 作为 $S^1$ 的子集，由离散谱定理知 $R_\\alpha$ 与 $R_\\beta$ 不同构。",
+        "设 $X=\\{0,1\\}^{\\mathbb Z}$，$T$ 为左移位，$\\mu$ 为 $(\\frac12,\\frac12)$-乘积测度。对有限非空子集 $A\\subset\\mathbb Z$，定义 $\\varphi_A(\\underline x)=\\prod_{j\\in A}(-1)^{x_j}$，并令 $\\varphi_\\varnothing\\equiv1$。直接验证：$A\\neq\\varnothing$ 时 $\\int\\varphi_A=0$；$A\\neq B$ 时 $\\langle\\varphi_A,\\varphi_B\\rangle=\\int\\varphi_{A\\triangle B}=0$；Stone–Weierstrass 定理保证 $\\{\\varphi_A\\}$ 张成的线性空间在 $L^2$ 中稠密。因此 $\\{\\varphi_A\\}$ 构成 $L^2$ 的标准正交基（Fourier–Walsh 函数系）。$U_T$ 的作用为 $U_T\\varphi_A=\\varphi_{A+1}$（$A+1=\\{a+1:a\\in A\\}$）。令 $\\Lambda$ 为 $\\mathbb Z$ 的有限子集在平移等价关系 $A\\sim B\\iff\\exists c,\\;A=c+B$ 下的等价类集，每类取代表元 $A_\\lambda$。则 $\\{1\\}\\cup\\{\\varphi_{A_\\lambda+n}:\\lambda\\in\\Lambda,\\;n\\in\\mathbb Z\\}$ 展示了可数 Lebesgue 谱结构：$U_T\\varphi_{A_\\lambda+n}=\\varphi_{A_\\lambda+n+1}$。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "**遍历性与混合性是谱不变量。** 设 $W:L^2(X)\\to L^2(Y)$ 为 $U_T$ 与 $U_S$ 之间的酉等价。\n\n遍历性：$T$ 遍历等价于 $\\dim\\{f:U_Tf=f\\}=1$。酉等价下 $\\{f:U_Tf=f\\}$ 与 $\\{g:U_Sg=g\\}$ 维数相同，因此若 $T$ 遍历则 $S$ 遍历。\n\n混合性：$T$ 混合等价于 $\\forall f,g\\in L^2(X),\\;\\langle f,U_T^n g\\rangle\\to\\langle f,1\\rangle\\overline{\\langle g,1\\rangle}$。对任意 $F,G\\in L^2(Y)$，取 $F=Wf,\\,G=Wg$，则 $\\langle F,U_S^n G\\rangle=\\langle Wf,WU_T^n g\\rangle=\\langle f,U_T^n g\\rangle\\to\\langle f,1\\rangle\\overline{\\langle g,1\\rangle}$。由于 $T$ 混合蕴含遍历，$\\dim\\{f:U_Tf=f\\}=1$，故 $W1=c1$ 且 $|c|=1$。从而 $\\langle f,1\\rangle\\overline{\\langle g,1\\rangle}=\\langle Wf,W1\\rangle\\overline{\\langle Wg,W1\\rangle}=\\langle F,1\\rangle\\overline{\\langle G,1\\rangle}$，即 $S$ 也满足混合条件。\n\n**谱测度的构造（Herglotz 定理）。** 对 $f\\in L^2\\setminus\\{0\\}$，令 $r_n=\\langle U_T^n f,f\\rangle$。$r_n$ 是正定序列：$\\sum_{n,m}r_{n-m}a_m\\bar a_n=\\|\\sum_n a_n U_T^n f\\|_2^2\\ge0$。Herglotz 定理断言，$\\{r_n\\}$ 是 $S^1$ 上某个唯一有限正测度 $\\nu_f$ 的 Fourier 系数：$r_n=\\int_{S^1}z^n\\,d\\nu_f(z)$。$\\nu_f$ 称为 $f$ 的谱测度。\n\n**循环子空间的酉等价。** 定义 $W:U_T^n f\\mapsto z^n$（$n\\in\\mathbb Z$）。对任意三角多项式有 $\\|\\sum_n a_n z^n\\|_{L^2(\\nu_f)}^2=\\sum_{n,m}a_n\\bar a_m r_{n-m}=\\|\\sum_n a_n U_T^n f\\|_{L^2(\\mu)}^2$，因此 $W$ 可延拓为 $H_f\\to L^2(S^1,\\nu_f)$ 的等距同构。由于 $WU_T(U_T^n f)=z\\cdot z^n=zW(U_T^n f)$，$W$ 实现了 $U_T|_{H_f}$ 与乘法算子 $g\\mapsto zg$ 的酉等价。"
+      ]
+    },
     "references": [
-      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §3.1."
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §3.1, §3.2, §3.3."
     ]
   }
 }

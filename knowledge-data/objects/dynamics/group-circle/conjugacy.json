@@ -21,9 +21,16 @@
     ],
     "article": [
       {
-        "zh": "群作用的共轭是分类的基本等价关系。它与单个映射的拓扑共轭的关键区别在于：$h$ 必须同时将所有 $\\gamma\\in\\Gamma$ 的作用「对角化」。因此存在两个作用每个元素逐一共轭、但整体不共轭的现象。在这一现象中最著名的例子是 $\\operatorname{PSL}(2,\\mathbb R)$ 的嵌入：一个由双曲元生成的 $\\mathbb Z$ 子群可以通过不同的 Fuchs 群嵌入在圆周上实现为不同的 Schottky 群，它们的元素同伦论共轭但整体不共轭。\n\n更精确地，两个嵌入 $\\phi_1,\\phi_2:\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 共轭当且仅当存在 $h\\in\\operatorname{Homeo}_+(\\mathbb S^1)$ 使 $\\phi_2(\\gamma)=h\\phi_1(\\gamma)h^{-1}$ 对所有 $\\gamma$ 成立。这意味着相应的 Euler 类 $eu(\\phi_1),eu(\\phi_2)\\in H^2(\\Gamma,\\mathbb Z)$ 相等——Euler 类是共轭不变的非平凡障碍。当 $\\Gamma$ 是曲面基本群 $\\Gamma_g$ 时，Milnor-Wood 不等式 $|eu(\\phi)|\\leqslant 2g-2$ 给出了 Euler 数的范围，不同的 Euler 数对应不同的共轭类。\n\n共轭问题与 $\\Gamma$ 到 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的表示空间的轨道空间分类等价。由于 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 不是代数群，此表示空间缺乏代数几何结构，因此分类通常借助不变量（Euler 类、旋转数、平移数）和刚性定理（如收敛群分类定理：满足收敛性质的群必共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群）来完成。"
+        "zh": "## 何时两个作用「相同」\n\n给定一个群 $\\Gamma$ 和两个圆周作用 $\\phi_1,\\phi_2$，一个自然的问题是：能否通过一个坐标变换将一个作用变为另一个？换句话说，是否存在一个圆周的同胚 $h$，使得将 $\\phi_1$ 中的点按 $h$ 重新标记后恰好得到 $\\phi_2$？若成立，则称两个作用共轭。共轭作用在动力学上不可区分——它们有相同的轨道结构、相同的旋转数集合、相同的不变测度。因此共轭是圆周作用分类中最基本的等价关系。\n\n## 共轭与表示论类比\n\n将 $\\Gamma$ 作用在圆周上等同于给出一个同态 $\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$。从这个角度看，共轭类似于线性表示论中通过共轭矩阵实现的等价——只不过这里的「矩阵」换成了同胚，「线性空间」换成了圆周。这并非偶然：圆周作用可以视为群表示论在非线性范畴中的对应物。然而两者之间存在一个差异：线性表示理论中分类问题相对可控（特征标、维数等不变量），圆周作用的共轭分类则困难得多，因为圆周同胚群的结构远比 $\\mathrm{GL}(n,\\mathbb R)$ 复杂。\n\n## 共轭何时不够用\n\n对于具有例外极小集的作用，共轭是一个过于精细的概念。设 $\\Lambda$ 是 $\\Gamma$ 作用的例外极小集，将 $\\Lambda$ 的补区间分别塌缩为一点，得到一个新的圆周和一个新的作用。原作用与新作用之间不存在共轭——塌缩丢失了例外集的精细结构，因此无法通过同胚恢复。但它们之间显然存在一种比共轭弱的等价关系：半共轭。半共轭允许中间映射不是同胚，而只是连续、保向、次数为 $1$ 的满射。此时原作用半共轭于商作用。\n\n利用半共轭，可以将带有例外极小集的作用约化到其「不可约成分」——一个轨道稠密的作用。这种约化保留了作用的代数结构（群本身不变）而简化了其动力学的空间实现。半共轭本身不是等价关系（它不对称），但由它生成的等价关系——单调等价——给出了圆周作用在更粗糙层次上的分类。"
       }
     ],
+    "examples": {
+      "zh": [
+        "取群 $\\Gamma = \\langle f,g \\mid g^2 = f^3 = \\mathrm{id}\\rangle$，即模群。在标准嵌入中，$f$ 为旋转 $R_{2\\pi/3}$，$g$ 为绕点 $(0,\\sqrt3-2)\\in\\mathbb D$ 的 $\\pi$ 旋转；此时 $\\Gamma$ 同构于 $\\operatorname{PSL}(2,\\mathbb Z)$，其在圆周上的作用是极小的。若将 $g$ 的中心选在离原点欧氏距离大于 $2-\\sqrt3$ 的点 $P\\in\\mathbb D$ 处（保持 $g$ 仍为椭圆元），则生成的群作用出现例外极小集。两种选择给出 $\\Gamma$ 到 $\\operatorname{PSL}(2,\\mathbb R)$ 的不同嵌入；这两个作用不共轭，因为例外极小集的存在与否是共轭不变的。",
+        "考虑如下构造的 $\\mathrm C^\\infty$ 圆周微分同胚 $h$：在 $[0,\\pi/6]$ 上 $h$ 为仿射映射且导数为 $3$，在 $[\\pi,3\\pi/2]$ 上导数为 $1/3$，在 $[\\pi/3,\\pi/2]$ 上 $h(x)=x+2\\pi/3$，在其他区间上使 $h$ 与 $\\pi$ 旋转 $g$ 满足 $(hg)^3=\\mathrm{id}$。令 $f=hg$，则 $f$ 和 $g$ 生成的群作用以三分 Cantor 集为例外极小集。",
+        "设 $g_0,g_1\\in\\operatorname{PSL}(2,\\mathbb R)$ 为双曲元，$\\mathbb S^1$ 上存在互不相交的区间 $I_0,I_1,J_0,J_1$ 使得 $g_i(I_i\\cup J_i\\cup J_{1-i})\\subset I_i$ 且 $g_i^{-1}(I_i\\cup I_{1-i}\\cup J_{1-i})\\subset J_i$（$i=0,1$）。由 $g_0,g_1$ 生成的自由群在圆周上的作用具有例外极小集 $\\Lambda = \\bigcap_{g\\in\\langle g_0,g_1\\rangle} g(\\overline{I_0}\\cup\\overline{I_1}\\cup\\overline{J_0}\\cup\\overline{J_1})$。"
+      ]
+    },
     "references": [
       "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
       "W. de Melo & S. van Strien, One-dimensional dynamics, Springer-Verlag (1993)."

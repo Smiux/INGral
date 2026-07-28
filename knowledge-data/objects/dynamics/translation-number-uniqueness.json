@@ -3,13 +3,12 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "不变测度平移数比例性与唯一性",
-      "Radon 保测作用的平移数比例关系"
+      "不变测度平移数唯一性"
     ]
   },
   "description": {
     "zh": [
-      "设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb R)$，$\\nu_1,\\nu_2$ 为 $\\Gamma$ 不变 Radon 测度。\n\n**比例性**：存在 $\\kappa>0$ 使平移数 $\\tau_{\\nu_1}=\\kappa\\,\\tau_{\\nu_2}$。\n\n**唯一定理**：若 $\\tau_{\\nu_1}(\\Gamma)$ 和 $\\tau_{\\nu_2}(\\Gamma)$ 均在 $\\mathbb R$ 中稠密，则 $\\nu_1=\\kappa\\,\\nu_2$（仅差一正标量常因子）。"
+      "设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb R)$，$\\nu_1,\\nu_2$ 为 $\\Gamma$ 不变 Radon 测度。则存在 $\\kappa>0$ 使平移数 $\\tau_{\\nu_1}=\\kappa\\,\\tau_{\\nu_2}$。若 $\\tau_{\\nu_1}(\\Gamma)$ 和 $\\tau_{\\nu_2}(\\Gamma)$ 均在 $\\mathbb R$ 中稠密，则 $\\nu_1=\\kappa\\,\\nu_2$（仅差一正标量常因子）。"
     ]
   },
   "extension": {
@@ -21,15 +20,22 @@
     ],
     "article": [
       {
-        "zh": "该定理回答了实直线上群作用的不变测度的唯一性问题。如果群 $\\Gamma$ 存在多个不变 Radon 测度，它们之间有何关系？比例性说所有不变 Radon 测度给出成比例的平移数——即任何两个不变测度对同一个群元分配的「平均位移」是常数倍的。唯一定理说，如果平移数像够大（在 $\\mathbb R$ 中稠密），则差一个常数倍之后测度本身也是唯一的。\n\n平移数是 $\\tau_\\nu(g)=\\nu([x,g(x)[)$（$x$ 任意，值与 $x$ 无关），它度量了群元 $g$ 相对于测度 $\\nu$ 的平均净位移。比例性的证明利用了 $\\Gamma/\\Gamma_0$（$\\Gamma_0$ 为有不动点的那些元）上的 Archimedes 序结构——该序来自 $\\Gamma$ 在实直线上的自由部分作用，它是一种全序且与实数的乘法兼容。平移数作为该序的保序同态，必须成比例。\n\n唯一定理给出了不变测度唯一的充要条件：平移数的像在 $\\mathbb R$ 中稠密。稠密性排除了原子质量（原子会导致平移数有正下界），进而迫使两测度的支撑集相同。然后通过平移数相等验证所有区间上的测度值相等。相反，当 $\\tau_\\nu(\\Gamma)$ 平凡或同构于 $\\mathbb Z$ 时——例如 $\\Gamma=\\mathbb Z$ 通过平移作用在 $\\mathbb R$ 上——不变测度不唯一（平移群 $\\mathbb Z$ 作用在 $\\mathbb R$ 上有无数不变 Radon 测度，如 Lebesgue 测度、Dirac-型组合等）。这表明平移数的像的大小直接控制着不变测度的唯一性程度——更大意味着更多的约束，更小意味着更大的自由度。"
+        "zh": "## 不变测度下的位移量\n\n若 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb R)$ 保持某个 Radon 测度 $\\nu$，则每个群元在 $\\nu$ 下的平均位移量不依赖于基点的选择。具体说，对 $g\\in\\Gamma$，定义 $\\tau_\\nu(g)=\\nu([x,g(x)))$（当 $g(x)>x$ 时），该值与 $x$ 无关，且 $\\tau_\\nu:\\Gamma\\to(\\mathbb R,+)$ 是群同态。$\\tau_\\nu(g)=0$ 当且仅当 $g$ 有不动点——此时 $\\nu$ 的支撑集完全落在 $g$ 的不动点集中。这个同态将不变测度的存在性转化为群到实数加法群的代数信息。\n\n## 两个不变测度之间的比例\n\n同一个群可能同时保持两个不同的 Radon 测度。它们给出的平移数同态之间是什么关系？设 $\\nu_1,\\nu_2$ 均为 $\\Gamma$-不变 Radon 测度，则存在 $\\kappa>0$ 使 $\\tau_{\\nu_1}=\\kappa\\,\\tau_{\\nu_2}$。比值的来源是商群 $\\Gamma/\\Gamma_0$（$\\Gamma_0$ 为有不动点的元素构成的子群）上的序结构：取 $x_0\\in\\operatorname{Fix}(\\Gamma_0)$，$\\Gamma/\\Gamma_0$ 在轨道 $\\Gamma(x_0)$ 上自由作用，从而诱导一个 Archimedes 全序——$g_1\\Gamma_0\\prec g_2\\Gamma_0$ 当且仅当 $g_1(x_0)<g_2(x_0)$。$\\tau_{\\nu_1},\\tau_{\\nu_2}$ 均保此序，于是在 $\\Gamma/\\Gamma_0$ 上的取值被它们在任一正元处的值决定，从而成比例。\n\n## 稠密像决定唯一性\n\n比例性不蕴含测度的唯一性。当 $\\tau_\\nu(\\Gamma)$ 平凡或同构于 $\\mathbb Z$ 时，存在大量互不成比例的 $\\Gamma$-不变 Radon 测度。唯一定理给出唯一性发生的条件：若 $\\tau_{\\nu_1}(\\Gamma)$ 和 $\\tau_{\\nu_2}(\\Gamma)$ 均在 $\\mathbb R$ 中稠密，则 $\\nu_1$ 与 $\\nu_2$ 相差一个正常数倍。稠密性在此起双重作用：它首先排除原子质量——有原子则平移数有正下界，与稠密性矛盾；其次迫使作用在测度的支撑上是极小的。这两点使两测度的支撑集必然重合，进而通过平移数的极限运算证明区间测度相等。\n\n不变测度的唯一性完全由群在同态 $\\tau_\\nu$ 下的像的代数性质控制。像在 $\\mathbb R$ 中稠密时测度至多差一个标量乘子；像退化为离散子群时测度的自由度骤然增大。"
       }
     ],
-    "proof": [
-      {
-        "zh": "**比例性**：设 $\\Gamma_0=\\{g:\\operatorname{Fix}(g)\\neq\\varnothing\\}$。由平移数的核性质知 $\\ker\\tau_{\\nu_1}=\\ker\\tau_{\\nu_2}=\\Gamma_0$，故 $\\tau_{\\nu_1},\\tau_{\\nu_2}$ 诱导出 $\\Gamma/\\Gamma_0$ 到 $(\\mathbb R,+)$ 的同态 $\\tau_1,\\tau_2$。取 $x_0\\in\\operatorname{Fix}(\\Gamma_0)$（由 $\\Gamma_0$ 中元有公共不动点的性质知存在），则 $\\Gamma/\\Gamma_0$ 在轨道 $\\Gamma(x_0)$ 上自由作用，从而具有 Archimedes 序：$g_1\\Gamma_0\\prec g_2\\Gamma_0$ 当且仅当 $g_1(x_0)<g_2(x_0)$。$\\tau_1,\\tau_2$ 均保此序。固定 $f\\in\\Gamma$ 使 $\\Gamma_0\\prec f\\Gamma_0$，则对任意 $g\\in\\Gamma$ 有\n\n$$\n\\tau_i(g\\Gamma_0)=\\tau_i(f\\Gamma_0)\\cdot\\lim_{p\\to\\infty}\\left\\{\\frac{q}{p}:f^q\\Gamma_0\\preceq g^p\\Gamma_0\\prec f^{q+1}\\Gamma_0\\right\\}.\n$$\n\n因此 $\\tau_2(f)\\tau_{\\nu_1}=\\tau_1(f)\\tau_{\\nu_2}$，即存在 $\\kappa>0$ 使 $\\tau_{\\nu_1}=\\kappa\\tau_{\\nu_2}$。\n\n**唯一定理**：归一化使 $\\tau_{\\nu_1}=\\tau_{\\nu_2}$，证明 $\\nu_1=\\nu_2$。首先 $\\nu_1,\\nu_2$ 均无原子——若有原子 $x_0$，则每个正元之平移数不小于 $\\nu_i(\\{x_0\\})>0$，与 $\\tau_{\\nu_i}(\\Gamma)$ 稠密矛盾。同理可证 $\\nu_i$ 在其支撑上的作用极小。其次证明支撑相等：若 $x\\in\\operatorname{supp}(\\nu_i)\\setminus\\operatorname{supp}(\\nu_{i+1})$，由极小性存在 $g\\in\\Gamma$ 使 $g(x)\\neq x$ 且区间 $(x,g(x))$ 关于 $\\nu_{i+1}$ 测度为零，则 $\\tau_{\\nu_{i+1}}(g)=0$ 但 $\\tau_{\\nu_i}(g)\\neq0$，矛盾。故支撑相等。最后证区间测度相等：对端点均在公共支撑中的区间 $[x,y]$，取 $g_n\\in\\Gamma$ 使 $g_n(x)\\to y$，则\n\n$$\n\\nu_1([x,y])=\\lim_{n\\to\\infty}\\nu_1([x,g_n(x)])=\\lim_{n\\to\\infty}\\tau_{\\nu_1}(g_n)=\\lim_{n\\to\\infty}\\tau_{\\nu_2}(g_n)=\\lim_{n\\to\\infty}\\nu_2([x,g_n(x)])=\\nu_2([x,y]).\n$$\n\n故 $\\nu_1=\\nu_2$。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "设 $\\Gamma=\\mathbb Z$ 由平移 $f(x)=x+1$ 生成，作用在 $\\mathbb R$ 上。Lebesgue 测度 $\\lambda$ 是 $\\Gamma$-不变的，$\\tau_\\lambda(f)=1$，故 $\\tau_\\lambda(\\Gamma)=\\mathbb Z$。取 $a\\in[0,1)$，定义 $\\mu_a=\\sum_{n\\in\\mathbb Z}\\delta_{n+a}$，则 $\\mu_a$ 也是 $\\Gamma$-不变的且 $\\tau_{\\mu_a}(f)=1$，故 $\\tau_{\\mu_a}=\\tau_\\lambda$。但 $\\lambda$ 与 $\\mu_a$ 不成比例（$\\lambda$ 无原子而 $\\mu_a$ 是纯原子的），且对 $a_1\\neq a_2$，$\\mu_{a_1}$ 与 $\\mu_{a_2}$ 也不成比例。这里 $\\tau_\\lambda(\\Gamma)=\\mathbb Z$ 在 $\\mathbb R$ 中不稠密，唯一定理的条件不成立，从而存在无穷多个互不成比例的 $\\Gamma$-不变 Radon 测度。",
+        "令 $\\Gamma=\\{f_q:x\\to x+q:q\\in\\mathbb Q\\}$ 为有理平移群作用在 $\\mathbb R$ 上。Lebesgue 测度 $\\lambda$ 是 $\\Gamma$-不变的，$\\tau_\\lambda(f_q)=q$，故 $\\tau_\\lambda(\\Gamma)=\\mathbb Q$ 在 $\\mathbb R$ 中稠密。设 $\\nu$ 是任一 $\\Gamma$-不变的 Radon 测度，由比例性知存在 $\\kappa>0$ 使 $\\tau_\\nu=\\kappa\\,\\tau_\\lambda$，因此 $\\tau_\\nu(\\Gamma)=\\kappa\\mathbb Q$ 仍在 $\\mathbb R$ 中稠密。唯一定理的条件满足，故 $\\nu=\\kappa\\lambda$。这意味着有理平移群在 $\\mathbb R$ 上的唯一不变 Radon 测度（至多差一个正常数倍）就是 Lebesgue 测度。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "**比例性**：设 $\\Gamma_0=\\{g:\\operatorname{Fix}(g)\\neq\\varnothing\\}$。由平移数的核性质知 $\\ker\\tau_{\\nu_1}=\\ker\\tau_{\\nu_2}=\\Gamma_0$，故 $\\tau_{\\nu_1},\\tau_{\\nu_2}$ 诱导出 $\\Gamma/\\Gamma_0$ 到 $(\\mathbb R,+)$ 的同态 $\\tau_1,\\tau_2$。取 $x_0\\in\\operatorname{Fix}(\\Gamma_0)$（由 $\\Gamma_0$ 中元有公共不动点的性质知存在），则 $\\Gamma/\\Gamma_0$ 在轨道 $\\Gamma(x_0)$ 上自由作用，从而具有 Archimedes 序：$g_1\\Gamma_0\\prec g_2\\Gamma_0$ 当且仅当 $g_1(x_0)<g_2(x_0)$。$\\tau_1,\\tau_2$ 均保此序。固定 $f\\in\\Gamma$ 使 $\\Gamma_0\\prec f\\Gamma_0$，则对任意 $g\\in\\Gamma$ 有\n\n$$\n\\tau_i(g\\Gamma_0)=\\tau_i(f\\Gamma_0)\\cdot\\lim_{p\\to\\infty}\\left\\{\\frac{q}{p}:f^q\\Gamma_0\\preceq g^p\\Gamma_0\\prec f^{q+1}\\Gamma_0\\right\\}.\n$$\n\n因此 $\\tau_2(f)\\tau_{\\nu_1}=\\tau_1(f)\\tau_{\\nu_2}$，即存在 $\\kappa>0$ 使 $\\tau_{\\nu_1}=\\kappa\\tau_{\\nu_2}$。\n\n**唯一定理**：归一化使 $\\tau_{\\nu_1}=\\tau_{\\nu_2}$，证明 $\\nu_1=\\nu_2$。首先 $\\nu_1,\\nu_2$ 均无原子——若有原子 $x_0$，则每个正元之平移数不小于 $\\nu_i(\\{x_0\\})>0$，与 $\\tau_{\\nu_i}(\\Gamma)$ 稠密矛盾。同理可证 $\\nu_i$ 在其支撑上的作用极小。其次证明支撑相等：若 $x\\in\\operatorname{supp}(\\nu_i)\\setminus\\operatorname{supp}(\\nu_{i+1})$，由极小性存在 $g\\in\\Gamma$ 使 $g(x)\\neq x$ 且区间 $(x,g(x))$ 关于 $\\nu_{i+1}$ 测度为零，则 $\\tau_{\\nu_{i+1}}(g)=0$ 但 $\\tau_{\\nu_i}(g)\\neq0$，矛盾。故支撑相等。最后证区间测度相等：对端点均在公共支撑中的区间 $[x,y]$，取 $g_n\\in\\Gamma$ 使 $g_n(x)\\to y$，则\n\n$$\n\\nu_1([x,y])=\\lim_{n\\to\\infty}\\nu_1([x,g_n(x)])=\\lim_{n\\to\\infty}\\tau_{\\nu_1}(g_n)=\\lim_{n\\to\\infty}\\tau_{\\nu_2}(g_n)=\\lim_{n\\to\\infty}\\nu_2([x,g_n(x)])=\\nu_2([x,y]).\n$$\n\n故 $\\nu_1=\\nu_2$。"
+      ]
+    },
     "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.5."
     ]
   }

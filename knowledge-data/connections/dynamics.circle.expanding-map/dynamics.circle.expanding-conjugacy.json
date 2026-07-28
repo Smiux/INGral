@@ -3,7 +3,7 @@
   "to": "dynamics.circle.expanding-conjugacy",
   "description": {
     "zh": [
-      "扩张映射的分类定理断言每个扩张映射 $f\\in C^1_d(\\mathbb T)$ 拓扑共轭于标准扩张 $E_d$。"
+      "扩张映射是扩张共轭定理的分类对象，该定理将所有扩张映射按拓扑共轭等价分类到标准扩张 $E_d$。"
     ]
   }
 }

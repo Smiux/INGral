@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.expanding-conjugacy",
+  "to": "dynamics.circle.expanding-map",
+  "description": {
+    "zh": [
+      "扩张共轭定理的分类对象正是扩张映射——该定理将每个 $C^1$ 扩张映射拓扑共轭于标准扩张 $E_d$，从而将扩张映射完全分类。"
+    ]
+  }
+}

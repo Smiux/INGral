@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.action",
+  "to": "dynamics.group-circle.thompson-group",
+  "description": {
+    "zh": [
+      "Thompson 群 $G$ 在圆周上的分段仿射作用是圆周群作用的一个具体例子，同时展示了有限展示单群可通过分段线性动力系统实现。"
+    ]
+  }
+}

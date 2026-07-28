@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "收敛性质",
-      "收敛性群"
+      "收敛性质"
     ]
   },
   "description": {
@@ -20,9 +19,16 @@
     ],
     "article": [
       {
-        "zh": "收敛性质是拓扑动力学中的一个重要条件，最初从 Fuchs 群（$\\operatorname{PSL}(2,\\mathbb R)$ 的离散子群）的动力学行为中抽象出来。该条件仅涉及同胚序列的极限行为：任意无穷序列要么在一致拓扑下收敛到某个同胚，要么存在一点 $a$ 使得序列在 $\\mathbb S^1\\setminus\\{a\\}$ 上逐点收敛到常值。\n\n具有收敛性质的子群包括所有离散的 $\\operatorname{PSL}(2,\\mathbb R)$ 子群、均匀拟对称群（uniformly quasisymmetric group）、以及保持满足特定缩放条件的测地线流（geodesic current）的群。反之，$\\operatorname{SO}(2,\\mathbb R)$ 的子群（旋转群）不具收敛性质——其元素序列虽可一致收敛，但逆序列不满足相应条件。\n\n在离散情形下，收敛性质等价于作用在圆周有序三元组空间 $\\Theta(\\mathbb S^1)$ 上的自由真不连续性。更具里程碑意义的是，收敛群分类定理（convergence group theorem）表明满足收敛性质的子群必共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群——这一纯动力学刻画完全不依赖于双曲几何或分式线性变换的语言。"
+        "zh": "## 极限行为的二分性\n\n$\\operatorname{PSL}(2,\\mathbb R)$ 中的元素序列表现出一种独特的极限行为：要么子序列一致收敛到某个 Möbius 变换，要么（除至多一个例外点外）逐点收敛到常值映射。收敛性质正是将这一二分性抽象为一般圆周同胚序列的定义。\n\n具体来说，一个圆周同胚序列称为具收敛性质，若它含子序列属于以下两种情形之一：要么一致收敛到某个圆周同胚（逆也一致收敛），要么在某点之外逐点收敛到常值（逆则在另一点之外逐点收敛到常值）。一个子群满足收敛性质，若其中每个无穷元素序列都具有上述性质。\n\n## 收敛性质与 PSL(2,R) 的对应\n\n收敛性质与 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群之间存在完整的对应：圆周同胚群的一个子群满足收敛性质当且仅当它拓扑共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的某个子群。这一刻画完全基于序列极限行为，无需借助双曲几何或分式线性变换的具体形式。对于离散子群，收敛性质还可等价地表述为 $\\Gamma$ 在圆周有序三元组空间 $\\Theta(\\mathbb S^1)$ 上的作用是自由且真不连续的。\n\n## 性质与推论\n\n收敛性质在拓扑共轭下保持不变。由定义可直接推知：若 $\\Gamma$ 满足收敛性质且某 $g\\in\\Gamma$ 固定圆周上三个不同点，则 $g$ 必为恒等映射。这反映了 $\\operatorname{PSL}(2,\\mathbb R)$ 中三重传递性在极限行为层面的推广。"
       }
     ],
+    "examples": {
+      "zh": [
+        "$\\operatorname{PSL}(2,\\mathbb R)$ 的所有子群都满足收敛性质。以 $\\operatorname{PSL}(2,\\mathbb R)$ 自身为例，其元素作为圆周上的 Möbius 变换，任意无穷序列必含子序列在一致拓扑下收敛到某 Möbius 变换或常值映射，且逆序列的极限行为与之对称。因此 $\\operatorname{PSL}(2,\\mathbb R)$ 的每个子群均继承此性质。",
+        "设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 为一致 $C$-拟对称子群，即存在常数 $C>0$ 使得对任意 $g\\in\\Gamma$ 及圆周上满足 $[a,b,c,d]=2$ 的四个点 $a<b<c<d<a$，有 $1/C\\le[g(a),g(b),g(c),g(d)]\\le C$（其中 $[\\cdot,\\cdot,\\cdot,\\cdot]$ 为交比）。则 $\\Gamma$ 满足收敛性质，从而拓扑共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的某个子群。",
+        "设 $L$ 为 $\\mathbb S^1$ 上的测地线流（geodesic current），满足 $L([a,a]\\times[b,c])=0$ 对任意 $a<b\\le c<a$，且 $L([a,b)\\times(b,c])=\\infty$ 对任意 $a<b<c<a$。记 $\\Gamma_L$ 为保持 $L$ 的圆周同胚构成的群。则 $\\Gamma_L$ 满足收敛性质。Liouville 测度是满足上述条件的测地线流的一个实例。"
+      ]
+    },
     "references": [
       "A. Casson–D. Jungreis, Convergence groups and Seifert fibered 3-manifolds, Invent. Math. 118 (1994), 441–456.",
       "D. Gabai, Convergence groups are Fuchsian groups, Ann. Math. 136 (1992), 447–510.",

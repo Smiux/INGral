@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.amenable-classification-sa",
-  "to": "dynamics.solvable-group-classification",
-  "description": {
-    "zh": [
-      "SA 群分类定理的证明基于可解群分类的归纳构造。"
-    ]
-  }
-}

@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "Neumann 群论引理",
-      "群不能表示为有限个无穷指标左陪集之并"
+      "Neumann 群论引理"
     ]
   },
   "description": {
@@ -20,14 +19,20 @@
     ],
     "article": [
       {
-        "zh": "该引理在 Margulis 定理的证明中用于选出将扩张极小作用中两特殊点同时移到它们之外的群元素。证明通过对陪集个数 $k$ 归纳进行：若 $S_1[g_1]\\neq\\Gamma$，取 $g\\in\\Gamma\\setminus S_1[g_1]$，利用 $g[g_1]\\cap S_1[g_1]=\\varnothing$ 将 $S_1[g_1]$ 合并到其他陪集中，归约为 $k-1$ 的情形。"
+        "zh": "## 陪集覆盖问题\n\n设有限个集合 $S_1[g_1],\\dots,S_k[g_k]$ 覆盖了整个群 $\\Gamma$，其中每个 $S_i$ 是有限集，$[g_i]$ 是某个子群（可随 $i$ 变化）的左陪集。问：能否断言至少有一个陪集对应的子群在 $\\Gamma$ 中具有有限指标？\n\n答案是肯定的。这并非显然：给定一个陪集 $gH$，$H$ 本身在 $\\Gamma$ 中的指标可以是无穷的，但加上有限个陪集后可能覆盖整个群；Neumann 引理表明这种覆盖不会发生在所有 $H_i$ 都是无限指标的情形——总有一个子群必须具有有限指标。\n\n## 在群作用中的应用\n\nNeumann 引理在群作用理论中的一个标准用法如下。设 $\\Gamma$ 作用于圆周，其作用极小（每条轨道稠密）。固定两点 $a,b\\in\\mathbb S^1$，考虑四个集合：$\\Gamma_{a,a}=\\operatorname{Stab}(a)$、$\\Gamma_{a,b}=\\{g:g(a)=b\\}$、$\\Gamma_{b,a}=\\{g:g(b)=a\\}$、$\\Gamma_{b,b}=\\operatorname{Stab}(b)$。每个非空者都是 $\\operatorname{Stab}(a)$ 或 $\\operatorname{Stab}(b)$ 的左陪集，且标记集为 $\\{\\mathrm{id}\\}$。由于作用极小，$\\operatorname{Stab}(a)$ 和 $\\operatorname{Stab}(b)$ 在 $\\Gamma$ 中均为无限指标。Neumann 引理意味着 $\\Gamma$ 不可能等于这四个陪集之并——否则存在有限指标子群，矛盾。因此存在 $f\\in\\Gamma$ 使得 $f(a),f(b)\\notin\\{a,b\\}$。这个元素的存在是 Ping-Pong 引理构造自由子群的第一步。"
       }
     ],
-    "proof": [
-      {
-        "zh": "对陪集个数 $k$ 归纳。$k=1$ 时结论平凡。假设结论对 $\\leq n$ 成立，考虑分解 $\\Gamma=S_1[g_1]\\cup\\dots\\cup S_{n+1}[g_{n+1}]$，其中每个 $S_i$ 有限，$[g_i]$ 是某子群的左陪集（子群可不同）。\n\n若 $S_1[g_1]=\\Gamma$ 则 $[g_1]$ 在 $\\Gamma$ 中有有限指标。否则取 $g\\in\\Gamma\\setminus S_1[g_1]$，则 $g[g_1]\\cap S_1[g_1]=\\varnothing$，$g[g_1]$ 含于 $S_2[g_2]\\cup\\dots\\cup S_{n+1}[g_{n+1}]$。于是\n\n$$\nS_1[g_1]\\subset T_2[g_2]\\cup\\dots\\cup T_{n+1}[g_{n+1}],\n$$\n\n其中 $T_i=\\{h_1g^{-1}h_i:h_1\\in S_1,h_i\\in S_i\\}$ 有限。从而\n\n$$\n\\Gamma=(T_2\\cup S_2)[g_2]\\cup\\dots\\cup(T_{n+1}\\cup S_{n+1})[g_{n+1}],\n$$\n\n归约为 $n$ 个陪集之并。由归纳假设存在 $j\\in\\{2,\\dots,n+1\\}$ 使 $[g_j]$ 在 $\\Gamma$ 中有有限指标。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "考虑 $3$ 次对称群 $S_3$ 及其子群 $H = \\{\\operatorname{id}, (12)\\}$（指标为 $3$）。将 $S_3$ 写为 $H$、$(13)H$、$(23)H$ 三个左陪集之并，令每个标记集 $S_i = \\{\\mathrm{id}\\}$。此时 $H$ 在 $S_3$ 中的指标为 $3$（有限），引理的结论成立。若取 $H = A_3$（指标为 $2$），则只需两个陪集即可覆盖 $S_3$，同样满足结论。在有限群中引理总是平凡的——因为任何子群在有限群中均有有限指标。",
+        "设 $\\Gamma$ 是圆周同胚群的一个子群，其在圆周上的作用极小（每条轨道稠密）。固定两点 $a, b \\in \\mathbb S^1$，考虑四个子集：$\\Gamma_{a,a} = \\operatorname{Stab}(a)$，$\\Gamma_{a,b} = \\{g \\in \\Gamma : g(a) = b\\}$，$\\Gamma_{b,a} = \\{g \\in \\Gamma : g(b) = a\\}$，$\\Gamma_{b,b} = \\operatorname{Stab}(b)$。每个 $\\Gamma_{c,c'}$ 要么为空集，要么是 $\\operatorname{Stab}(c')$ 的一个左陪集（若存在 $h \\in \\Gamma$ 使 $h(c) = c'$，则 $\\Gamma_{c,c'} = h \\cdot \\operatorname{Stab}(c')$）。因此四项均为稳定子群 $\\operatorname{Stab}(a)$ 或 $\\operatorname{Stab}(b)$ 的左陪集，标记集为 $\\{\\mathrm{id}\\}$。由于作用极小且圆周无限，非平凡点的轨道均无限，故 $\\operatorname{Stab}(a)$ 和 $\\operatorname{Stab}(b)$ 在 $\\Gamma$ 中均为无限指标子群。若 $\\Gamma$ 等于这四项之并，则 Neumann 引理将断言 $\\operatorname{Stab}(a)$ 或 $\\operatorname{Stab}(b)$ 具有有限指标，矛盾。因此 $\\Gamma$ 不等于这四个左陪集之并，即存在 $f \\in \\Gamma$ 使得 $f(a), f(b) \\notin \\{a, b\\}$。这一事实是 Ping-Pong 引理构造自由子群的第一步。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "对陪集个数 $k$ 归纳。$k=1$ 时结论平凡。假设结论对 $\\leq n$ 成立，考虑分解 $\\Gamma=S_1[g_1]\\cup\\dots\\cup S_{n+1}[g_{n+1}]$，其中每个 $S_i$ 有限，$[g_i]$ 是某子群的左陪集（子群可不同）。\n\n若 $S_1[g_1]=\\Gamma$ 则 $[g_1]$ 在 $\\Gamma$ 中有有限指标。否则取 $g\\in\\Gamma\\setminus S_1[g_1]$，则 $g[g_1]\\cap S_1[g_1]=\\varnothing$，$g[g_1]$ 含于 $S_2[g_2]\\cup\\dots\\cup S_{n+1}[g_{n+1}]$。于是\n\n$$\nS_1[g_1]\\subset T_2[g_2]\\cup\\dots\\cup T_{n+1}[g_{n+1}],\n$$\n\n其中 $T_i=\\{h_1g^{-1}h_i:h_1\\in S_1,h_i\\in S_i\\}$ 有限。从而\n\n$$\n\\Gamma=(T_2\\cup S_2)[g_2]\\cup\\dots\\cup(T_{n+1}\\cup S_{n+1})[g_{n+1}],\n$$\n\n归约为 $n$ 个陪集之并。由归纳假设存在 $j\\in\\{2,\\dots,n+1\\}$ 使 $[g_j]$ 在 $\\Gamma$ 中有有限指标。"
+      ]
+    },
     "references": [
       "B. H. Neumann, Groups covered by permutable subsets, J. London Math. Soc. 29 (1954), 236-248.",
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.3.1."

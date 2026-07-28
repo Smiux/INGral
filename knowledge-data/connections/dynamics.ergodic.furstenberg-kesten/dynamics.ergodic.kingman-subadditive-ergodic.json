@@ -3,7 +3,7 @@
   "to": "dynamics.ergodic.kingman-subadditive-ergodic",
   "description": {
     "zh": [
-      "Furstenberg–Kesten 定理是 Kingman 子加性遍历定理的直接应用：$g^{(n)}(x)=\\log\\|A_n(x)\\|$ 满足子加性条件 $g^{(n+m)}\\le g^{(n)}+g^{(m)}\\circ T^n$。"
+      "Furstenberg–Kesten 定理是 Kingman 子加性遍历定理的直接应用，其中 $g^{(n)}(x)=\\log\\|A_n(x)\\|$ 满足子加性条件 $g^{(n+m)}\\le g^{(n)}+g^{(m)}\\circ T^n$。"
     ]
   }
 }

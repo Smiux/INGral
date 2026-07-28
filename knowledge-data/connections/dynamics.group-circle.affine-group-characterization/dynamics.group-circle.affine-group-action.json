@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.affine-group-characterization",
-  "to": "dynamics.group-circle.affine-group-action",
-  "description": {
-    "zh": [
-      "该定理刻画了何时一个子群共轭于仿射群 $\\operatorname{Aff}_+(\\mathbb R)$：条件是无原子全支撑 Radon 测度的拟不变性。"
-    ]
-  }
-}

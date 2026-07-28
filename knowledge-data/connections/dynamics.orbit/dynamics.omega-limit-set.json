@@ -3,7 +3,7 @@
   "to": "dynamics.omega-limit-set",
   "description": {
     "zh": [
-      "omega-极限集 $\\omega_f(p)$ 是 $p$ 的轨道聚点的集合。"
+      "omega-极限集通过轨道的极限行为来定义——它收集轨道在正时间方向上的所有聚点。"
     ]
   }
 }

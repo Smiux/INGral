@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "Gottschalk–Hedlund 定理",
-      "上同调可解条件"
+      "Gottschalk–Hedlund 定理"
     ]
   },
   "description": {
@@ -21,14 +20,15 @@
     ],
     "article": [
       {
-        "zh": "Gottschalk–Hedlund 定理是动力系统中上同调方程可解性的刻画。它回答了这样一个问题：给定函数 $\\varphi$，何时可以写为 $u\\circ f-u$ 的形式（即一个 coboundary）？答案是当且仅当其 Birkhoff 和沿某条轨道一致有界。\n\n「极小性」假设是必不可少的。若 $f$ 不是极小的（即存在真闭不变子集），则函数 $\\varphi$ 可能在某条轨道上有界而在另一条上无界，定理无法统一地给出连续解。在极小系统上，函数的 Birkhoff 和要么在所有轨道上都有界（此时解存在），要么在所有轨道上都无界——不会有中间情况。\n\n在圆周同胚的无理旋转数情形中，该定理起着核心作用。令 $\\varphi=\\Delta_{\\tilde f}-\\rho(\\tilde f)$，由有界偏差估计知 $\\sup_n|\\sum_{i=0}^{n-1}\\varphi(f^i(x))|\\leqslant1$，故 Gottschalk–Hedlund 定理给出连续 $u$ 使 $\\varphi=u\\circ f-u$。将此 $u$ 代入 $\\tilde h(\\tilde x)=\\tilde x+u(x)$ 即得 $\\tilde h\\circ\\tilde f=R_{\\rho}\\circ\\tilde h$——这是无理旋转情形下半共轭的构造关键。"
+        "zh": "Gottschalk–Hedlund 定理处理的是极小系统上的一个上同调问题：给定一个紧度量空间 $M$ 和 $\\Gamma$ 在 $M$ 上的极小连续作用，何时一个连续函数 $c\\colon\\Gamma\\times M\\to\\mathbb R$ 可以写为某个连续函数 $\\phi$ 的差——即存在 $\\phi$ 使 $c(g,x)=\\phi(g\\cdot x)-\\phi(x)$ 对一切 $g,x$ 成立？满足该方程的 $\\phi$ 称为转移函数，此时 $c$ 称为余边界。\n\n## 从有界性到可解性\n\n定理给出的判别准则出人意料地简单：$c$ 是余边界当且仅当在某个轨道上余圈值一致有界。确切地说，若存在 $x_0\\in M$ 及常数 $C$ 使得对所有 $g\\in\\Gamma$ 有 $|c(g,x_0)|\\leq C$，则转移函数 $\\phi$ 存在且连续。反之，若 $\\phi$ 存在，其有界性直接给出该条件。\n\n极小性假设在此是不可或缺的。若作用非极小，存在真闭不变子集，则余圈可能在一条轨道上有界而在另一条上无界，局部有界性无法整合为全局有界性以构造连续解。在极小系统上，余圈的有界性呈现二歧性：要么在所有轨道上一致有界（此时为余边界），要么在每条轨道上都无界。\n\n## 可测版本\n\n定理有一个可测版本：若 $\\Gamma$ 的作用还是遍历的，余圈方程 $\\mu$-几乎处处被本质有界可测函数满足，则该可测函数可修正为连续函数使之处处满足方程。其证明先由几乎处处有界性导出某点处的逐点有界性，再应用上述连续版本。\n\n## 在一维动力系统中的应用\n\n在一维动力系统中，Gottschalk–Hedlund 定理出现在共轭问题的正则性提升步骤中：当两个圆周微分同胚群表示之间的偏差由一致有界的余圈表达时，定理提供了连续转移函数的存在性。"
       }
     ],
-    "proof": [
-      {
-        "zh": "充分性：若上同调方程有解 $u$，则 $\\sum_{i=0}^{n-1}\\varphi(f^i(x_0))=u(f^n(x_0))-u(x_0)$，Birkhoff 和一致有界。必要性：设 $\\sup_n|S_n\\varphi(x_0)|\\leqslant C$。定义 $u(x)=\\limsup_{n\\to\\infty}\\varphi(f^{-n}(x))+\\cdots+\\varphi(f^{-1}(x))$，利用极小性验证 $u$ 连续且满足 $u\\circ f-u=\\varphi$。核心是极小性保证 $u$ 的定义与轨道一致，且 $u$ 的有界性确保连续性。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "设 $M$ 为紧度量空间, $f\\colon M\\to M$ 为极小同胚, $\\phi\\colon M\\to\\mathbb R$ 为任意连续函数。定义余圈 $c(n,x)=\\phi(f^n(x))-\\phi(x)$（对应于 $\\Gamma=\\mathbb Z$）。则 $c$ 满足余圈恒等式 $c(m+n,x)=c(n,f^m(x))+c(m,x)$, 且对任意 $x_0\\in M$ 有 $|c(n,x_0)|\\leqslant 2\\|\\phi\\|_{C^0}$。由 Gottschalk–Hedlund 定理, 存在连续函数 $\\psi$ 使 $c(n,x)=\\psi(f^n(x))-\\psi(x)$; 在此情形下 $\\psi=\\phi$ 本身即满足要求, 验证了必要性方向。",
+        "设 $f\\colon\\mathbb S^1\\to\\mathbb S^1$ 为极小 $C^1$ 同胚, 旋转数为无理数 $\\alpha$。取 $f$ 的提升 $\\tilde f\\colon\\mathbb R\\to\\mathbb R$, 定义位移函数 $\\Delta(\\tilde x)=\\tilde f(\\tilde x)-\\tilde x$, 则 $\\Delta$ 以 $\\mathbb Z$ 为周期（相差整数）故可视为 $\\mathbb S^1$ 上的函数。令 $\\psi(x)=\\Delta(x)-\\alpha$。由旋转数性质, 对任意 $n\\in\\mathbb Z$ 和任意 $\\tilde x\\in\\mathbb R$ 有 $|\\tilde f^n(\\tilde x)-\\tilde x-n\\alpha|\\leqslant 1$。因此相应余圈 $c(n,x)=\\sum_{i=0}^{n-1}\\psi(f^i(x))$ 满足 $|c(n,x)|\\leqslant 1$ 对所有 $n$ 成立。由 Gottschalk–Hedlund 定理, 存在连续 $\\phi\\colon\\mathbb S^1\\to\\mathbb R$ 使 $\\psi(x)=\\phi(f(x))-\\phi(x)$。令 $\\tilde h(\\tilde x)=\\tilde x-\\phi(x)$, 则 $\\tilde h\\circ\\tilde f(\\tilde x)=\\tilde f(\\tilde x)-\\phi(f(x))=\\tilde x+\\Delta(\\tilde x)-\\phi(f(x))=\\tilde x+[\\alpha+\\phi(f(x))-\\phi(x)]-\\phi(f(x))=\\tilde x+\\alpha-\\phi(x)=\\tilde h(\\tilde x)+\\alpha$, 即 $\\tilde h$ 将 $\\tilde f$ 半共轭到平移 $t\\mapsto t+\\alpha$。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026."
     ]

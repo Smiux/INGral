@@ -3,7 +3,7 @@
   "to": "dynamics.group-circle.convergence-property",
   "description": {
     "zh": [
-      "收敛性质定理（Thm 1.3.8）给出了避免这一微妙性的整体可共轭充要条件。"
+      "收敛性质是 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的子群共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 子群的充要条件，正是它避免了元素级共轭无法保证整体共轭的微妙性。"
     ]
   }
 }

@@ -3,13 +3,12 @@
   "type": "definition",
   "name": {
     "zh": [
-      "斜积",
-      "skew product"
+      "斜积"
     ]
   },
   "description": {
     "zh": [
-      "设 $(X,\\mathcal B,\\mu,T)$ 为保测变换，$G$ 为 Polish 群，$f\\colon X\\to G$ 可测。斜积是 $X\\times G$ 上由 $T_f(x,g)=(Tx,\\,g\\cdot f(x))$ 定义的保测变换（测度为 $\\mu\\times m_G$，$m_G$ 为 $G$ 的 Haar 测度），$f$ 称为上循环。"
+      "设 $(X,\\mathcal B,\\mu,T)$ 为保测变换，$G$ 为局部紧 Polish 群，$f\\colon X\\to G$ 可测。斜积是 $X\\times G$ 上由 $T_f(x,g)=(Tx,\\,g\\cdot f(x))$ 定义的保测变换（测度为 $\\mu\\times m_G$，$m_G$ 为 $G$ 的 Haar 测度），$f$ 称为上循环。"
     ]
   },
   "extension": {
@@ -21,9 +20,20 @@
     ],
     "article": [
       {
-        "zh": "斜积是遍历理论中通过上循环「驱动」群作用的基本构造。其 $n$ 次迭代为 $T_f^n(x,g)=(T^nx,\\,g\\cdot f(x)f(Tx)\\cdots f(T^{n-1}x))$，第二坐标可视作以 $(X,\\mathcal B,\\mu,T)$ 为噪声源的 $G$-随机游走。\n\n当群 $G$ 进一步保测地作用在空间 $(Y,\\mathcal C,\\nu)$ 上时，可构造随机动力系统 $T_f(x,y)=(Tx,\\,T_{f(x)}y)$。\n\n重要的障碍：若上循环 $f$ 是算术的（存在非平凡特征 $\\gamma\\in\\widehat G$ 使 $\\gamma\\circ f = h/h\\circ T$），则斜积非遍历；若 $f$ 是周期的（$\\gamma\\circ f = \\lambda h/h\\circ T$），则斜积非混合。"
+        "zh": "## 随机游走的动力学实现\n\n斜积的出发点是随机游走的构造：将基空间视为噪声源，纤维上的运动由该噪声驱动。以 Bernoulli 移位 $X=\\{0,1\\}^{\\mathbb N}$ 配备 $(\\frac12,\\frac12)$-Bernoulli 测度 $\\mu$ 和左移位 $\\sigma$ 为基，取 $f(x)=(-1)^{x_0}$，则 $X\\times\\mathbb Z$ 上的映射 $T_f(x,k)=(\\sigma x,\\;k+f(x))$ 保无穷测度 $\\mu\\times m_{\\mathbb Z}$。$T_f^n(x,k)=(\\sigma^n x,\\;k+X_0+\\cdots+X_{n-1})$，其中 $X_i=(-1)^{x_i}$ 是独立同分布的 $\\{\\pm1\\}$-值随机变量，第二坐标的演变是 $\\mathbb Z$ 上的对称随机游走。\n\n## 抽象构造\n\n一般地，设 $(X,\\mathcal B,\\mu,T)$ 是保测变换，$G$ 是局部紧 Polish 群，$m_G$ 是其 Haar 测度。对可测函数 $f:X\\to G$（称为上循环），定义 $X\\times G$ 上的映射 $T_f(x,g)=(Tx,\\;g\\cdot f(x))$。$T_f$ 保测度 $\\mu\\times m_G$。$T_f^n(x,g)=(T^nx,\\;g\\cdot f(x)f(Tx)\\cdots f(T^{n-1}x))$，第二坐标是以基系统为噪声源的 $G$-值随机游走。\n\n若 $G$ 保测地作用在空间 $(Y,\\mathcal C,\\nu)$ 上，可得另一种构造：$T_f(x,y)=(Tx,\\;T_{f(x)}y)$，其中各 $T_{f(x)}:Y\\to Y$ 是保测变换。$n$ 次迭代为 $T_f^n(x,y)=(T^nx,\\;T_{f(T^{n-1}x)}\\cdots T_{f(x)}y)$。典型情形是 $X=\\{0,1\\}^{\\mathbb N}$ 且 $Y$ 上给定两个保测变换 $T_0,T_1$，此时 $T_f(x,y)=(\\sigma x,\\;T_{x_0}y)$ 的复合由噪声序列依次选择 $T_0$ 或 $T_1$ 决定。\n\n## 遍历性的障碍\n\n斜积的遍历性和混合性不是基系统相应性质的简单继承。上循环 $f$ 的算术性质构成了障碍。设 $\\widehat G$ 为 $G$ 的特征群（连续同态 $\\gamma:G\\to S^1$ 的全体）。称 $f$ 为算术的，若存在非常数 $\\gamma\\in\\widehat G$ 和可测函数 $h:X\\to S^1$ 使得 $\\gamma\\circ f = h/(h\\circ T)$ 几乎处处成立。此时函数 $F(x,g)=h(x)\\gamma(g)$ 是 $T_f$-不变的，故 $T_f$ 非遍历。称 $f$ 为周期的，若存在 $|\\lambda|=1$ 使 $\\gamma\\circ f = \\lambda\\,h/(h\\circ T)$ 几乎处处成立。此时 $F\\circ T_f = \\lambda F$，取子列 $\\lambda^{n_k}\\to1$ 可使协方差在 $k\\to\\infty$ 时趋于非零常数，故 $T_f$ 非混合。"
       }
     ],
+    "examples": {
+      "zh": [
+        "设 $X=\\{0,1\\}^{\\mathbb N}$ 配备 $(\\frac12,\\frac12)$-Bernoulli 测度 $\\mu$，$\\sigma$ 为左移位。定义 $f:X\\to\\mathbb Z$ 为 $f(x)=(-1)^{x_0}$。斜积 $T_f(x,k)=(\\sigma x,\\;k+f(x))$ 保测度 $\\mu\\times m_{\\mathbb Z}$，其中 $m_{\\mathbb Z}$ 为 $\\mathbb Z$ 上的计数测度。对任意 $(x,k)\\in X\\times\\mathbb Z$，$n$ 次迭代为 $T_f^n(x,k)=(\\sigma^n x,\\;k+X_0+\\cdots+X_{n-1})$，其中 $X_i=(-1)^{x_i}$。由于 $\\mu$ 是 Bernoulli 测度，$\\{X_i\\}$ 为独立同分布随机变量，各以概率 $\\frac12$ 取 $\\pm1$。因此第二坐标的轨迹 $(k+X_0+\\cdots+X_{n-1})_{n\\ge0}$ 是 $\\mathbb Z$ 上始于 $k$ 的简单对称随机游走。",
+        "设 $T_0,T_1$ 是同一测度空间 $(Y,\\mathcal C,\\nu)$ 上的两个保测变换，$(X,\\mathcal B,\\mu,\\sigma)$ 为 Bernoulli 移位。定义 $T_f(x,y)=(\\sigma x,\\;T_{x_0}y)$，则 $T_f$ 是 $X\\times Y$ 上保 $\\mu\\times\\nu$ 的变换。$n$ 次迭代为 $T_f^n(x,y)=(\\sigma^n x,\\;T_{x_{n-1}}\\cdots T_{x_0}y)$。这意味着纤维上的动力学由噪声序列 $(x_0,x_1,\\dots)$ 依次选择 $T_0$ 或 $T_1$ 复合而成。若 $T_0$ 和 $T_1$ 分别是圆周上的旋转 $R_\\alpha$ 和 $R_\\beta$，则该斜积的遍历性质取决于 $\\alpha,\\beta$ 与基旋转数之间的算术关系。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "**斜积遍历性的障碍。** 设 $T_f$ 为斜积。若 $f$ 是算术的，则 $F(x,g):=h(x)\\gamma(g)$ 满足\n$$F(Tx,g\\cdot f(x))=h(Tx)\\gamma(g)\\gamma(f(x))=h(Tx)\\gamma(g)\\frac{h(x)}{h(Tx)}=F(x,g),$$\n故 $F$ 为非平凡 $T_f$-不变函数，$T_f$ 非遍历。若 $f$ 是周期的，则 $F\\circ T_f=\\lambda F$。取子列 $n_k$ 使 $\\lambda^{n_k}\\to1$，则\n$$\\operatorname{Cov}(F,F\\circ T_f^{n_k})\\to\\int F^2-\\Bigl(\\int F\\Bigr)^2\\neq0,$$\n与混合性矛盾，故 $T_f$ 非混合。"
+      ]
+    },
     "references": [
       "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.6.1."
     ]

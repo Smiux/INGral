@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "可解群拟不变测度定理",
-      "可解子群拟不变 Radon 测度存在性"
+      "可解群拟不变测度定理"
     ]
   },
   "description": {
@@ -21,14 +20,20 @@
     ],
     "article": [
       {
-        "zh": "该定理将 Plante 定理（殆幂零群保 Radon 测度）从幂零群扩展到更大的可解群类。关键问题是：当交换性被放宽到可解性（群的多级交换扩张）时，实直线上的同胚作用是否仍然保持或拟保持某个 Radon 测度？答案是肯定的，但代价是从「不变」退化为「拟不变」。\n\n拟不变测度比不变测度弱：它要求 $\\nu(g(A))=0 \\iff \\nu(A)=0$（测度零集在群作用下不变），而不要求 $\\nu(g(A))=\\nu(A)$。这一放宽使得可解群也能获得某种「参考测度」，即使群的代数结构比 Abel 群复杂得多。从工程角度理解：拟不变测度就像一把尺子，虽然每个群元会拉伸尺子，但尺子的「零刻度」（测度零集）保持稳定。\n\n证明的归纳结构揭示了可解群的层次性与一维动力学的相互作用。归纳步骤的关键是：当缩放系数 $\\kappa(\\Gamma)=\\{1\\}$ 且 $\\Gamma/\\Gamma_0$ 顺从时，通过 $\\Gamma_0/\\Gamma_0^*$ 在中心中的位置和顺从性构造不变测度；当 $\\kappa(\\Gamma)\\neq\\{1\\}$ 时，通过平移数密度导出拟不变性。这种二分法（缩放系数是否平凡）在群作用测度论中反复出现，其物理直观是：$\\kappa(\\Gamma)\\neq\\{1\\}$ 意味著群中存在可检测的「伸缩」行为，这破坏了不变性但保留了拟不变性。"
+        "zh": "## 从不变到拟不变的退化\n\n有限生成幂零群在实直线上的保向同胚作用保持 Radon 测度，这是 Plante 定理的内容。但幂零性限制了群的增长速率；当放宽到可解群时，情况发生了变化。仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 是元交换群（可解度 2），它不保持任何 Radon 测度——平移和伸缩对测度的缩放要求相互冲突。但仿射群拟不变地保持 Lebesgue 测度：每个群元的非零常数导数保证零集映为零集。这说明可解群的情形下，不变性必须退化为拟不变性。\n\n## 沿子群链的归纳构造\n\n一般可解群的拟不变测度存在性由以下结论回答。设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb R)$ 为可解群，且存在子群链 $\\{{\\rm id}\\}=\\Gamma_n\\triangleleft\\Gamma_{n-1}\\triangleleft\\cdots\\triangleleft\\Gamma_0=\\Gamma$ 使每个 $\\Gamma_i$ 有限生成、每个商群 $\\Gamma_{i-1}/\\Gamma_i$ 交换。则 $\\Gamma$ 保持 $\\mathbb R$ 上的一个拟不变 Radon 测度。该条件对多循环群自动满足，因此多循环群是该结论最重要的应用对象。\n\n证明的核心是沿子群链向上归纳。设 $\\nu$ 为 $\\Gamma_k$ 的不变 Radon 测度，其平移数同态 $\\tau_\\nu(\\Gamma_k)$ 非平凡。对于含 $\\Gamma_k$ 为正规子群的父群 $\\Gamma_{k-1}$：若缩放系数 $\\kappa(\\Gamma_{k-1})=\\{1\\}$ 且 $\\Gamma_{k-1}/\\Gamma_k$ 顺从，则存在 $\\Gamma_{k-1}$-不变 Radon 测度；若 $\\kappa(\\Gamma_{k-1})\\neq\\{1\\}$，则 $\\nu$ 自身已是 $\\Gamma_{k-1}$-拟不变的。后一情形下，若进一步 $\\Gamma_{k-1}$ 中稳定 $\\nu$ 的子群 $\\Gamma_{k-1}^*$ 的平移数非平凡且 $\\kappa(\\Gamma_{k-1})\\neq\\{1\\}$，则拟不变性可继续向更高层传递。三条引理覆盖了归纳过程中的所有可能性，使拟不变性从链中某处出发后逐层向上传播至整个 $\\Gamma$。\n\n## 在分类中的角色\n\n该测度论结论在元交换群分类中起着约束作用。分类定理刻画了 $\\mathrm{Diff}_+^{1+\\mathrm{bv}}([0,1))$ 中无内部公共不动点的元交换子群的结构：它们要么共轭于仿射子群，要么是 $\\mathbb Z$ 与平移群可数乘积子群的半直积。证明中，当可解群通过拟不变测度诱导出仿射坐标系后，规范化子的结构可被精确确定。稠密平移子群的规范化子包含于仿射群（来自拟不变测度的唯一性），而 Abel 子群在无内部不动点时的规范化子则要么是仿射子群，要么等于该子群所嵌入的单参数子群本身。"
       }
     ],
-    "proof": [
-      {
-        "zh": "设 $\\Gamma$ 不保任何 Radon 测度，则 $\\operatorname{Fix}(\\Gamma)=\\varnothing$（否则 Dirac 测度为不变测度）。\n\n**第一步**：取最小指标 $j>0$ 使 $\\operatorname{Fix}(\\Gamma_j)\\neq\\varnothing$。Abel 有限生成群 $\\Gamma_{j-1}/\\Gamma_j$ 在闭无界集 $\\operatorname{Fix}(\\Gamma_j)$ 上通过保序同胚作用，类 Plante 论证（殆幂零群保测定理的推广，利用顺从性和有界生成性）给出该作用的一个不变 Radon 测度，诱导出 $\\mathbb R$ 上 $\\Gamma_{j-1}$-不变 Radon 测度 $\\nu$，且 $\\operatorname{supp}(\\nu)\\subset\\operatorname{Fix}(\\Gamma_j)$。由于 $\\operatorname{Fix}(\\Gamma_{j-1})=\\varnothing$，有 $\\tau_\\nu(\\Gamma_{j-1})\\neq\\{0\\}$。\n\n**第二步**：设 $k>0$ 为最小指标使 $\\Gamma_k$ 保 Radon 测度 $\\nu$。同上 $\\tau_\\nu(\\Gamma_k)\\neq\\{0\\}$。由系数缩放为 $1$ 且商群顺从时的测度存在性结果知 $\\kappa(\\Gamma_{k-1})\\neq\\{1\\}$。\n\n**第三步**：由缩放系数非平凡时诱导拟不变性的结论，$\\nu$ 拟不变于 $\\Gamma_{k-1}$。\n\n**第四步**：反复应用拟不变性提升结论——若某子群的平移数集非平凡且缩放系数非平凡，则拟不变性可向原链上方提升——通过归纳证明 $\\nu$ 拟不变于 $\\Gamma_{k-2},\\Gamma_{k-3},\\dots,\\Gamma_0=\\Gamma$。\n\n注：每个 $\\Gamma_i$ 的有限生成条件可弱化为有界生成动力学条件。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 由 $f(x)=x+1$ 和 $g(x)=2x$ 生成，可解度为 2。其导出链 $\\{{\\rm id}\\}\\triangleleft\\Gamma'\\triangleleft\\Gamma$ 满足定理条件。该群不保持 $\\mathbb R$ 上任何 Radon 测度——任何 $f$-不变 Radon 测度必为 Lebesgue 测度的倍数，而 $g_*(\\mathrm{Leb})=\\frac12\\mathrm{Leb}\\neq\\mathrm{Leb}$ 表明 Lebesgue 测度不被 $g$ 保持。但每个仿射变换的导数均为非零常数，因此 Lebesgue 测度在 $\\Gamma$ 作用下拟不变。这一例子说明了可解群情形下不变性退化为拟不变性的必然性。",
+        "设 $\\Gamma_0$ 为由 $x\\mapsto x+1$ 和 $x\\mapsto x+\\sqrt2$ 生成的平移子群，它是 $\\mathbb R$ 中的稠密子群。$\\Gamma_0$ 保持 Lebesgue 测度不变，其平移数同态 $\\tau_{\\mathrm{Leb}}(\\Gamma_0)$ 的值集 $\\mathbb Z+\\sqrt2\\,\\mathbb Z$ 在 $\\mathbb R$ 中稠密。取 $g(x)=2x$，令 $\\Gamma=\\langle\\Gamma_0,g\\rangle$。$\\Gamma_0$ 正规于 $\\Gamma$，$\\Gamma/\\Gamma_0\\cong\\mathbb Z$ 交换，故 $\\Gamma$ 为元交换群。由于 $g_*(\\mathrm{Leb})=\\frac12\\mathrm{Leb}$ 即缩放系数非平凡，拟不变性可通过归纳论证向上传递：$\\Gamma_0$ 的不变测度在父群缩放作用下成为 $\\Gamma$ 的拟不变测度。该例同时说明，即使正规子群的平移数取值稠密，拟不变性仍可由父群中一个缩放系数非平凡的元素确立。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "设 $\\Gamma$ 不保任何 Radon 测度，则 $\\operatorname{Fix}(\\Gamma)=\\varnothing$（否则 Dirac 测度为不变测度）。\n\n**第一步**：取最小指标 $j>0$ 使 $\\operatorname{Fix}(\\Gamma_j)\\neq\\varnothing$。Abel 有限生成群 $\\Gamma_{j-1}/\\Gamma_j$ 在闭无界集 $\\operatorname{Fix}(\\Gamma_j)$ 上通过保序同胚作用，类 Plante 论证（殆幂零群保测定理的推广，利用顺从性和有界生成性）给出该作用的一个不变 Radon 测度，诱导出 $\\mathbb R$ 上 $\\Gamma_{j-1}$-不变 Radon 测度 $\\nu$，且 $\\operatorname{supp}(\\nu)\\subset\\operatorname{Fix}(\\Gamma_j)$。由于 $\\operatorname{Fix}(\\Gamma_{j-1})=\\varnothing$，有 $\\tau_\\nu(\\Gamma_{j-1})\\neq\\{0\\}$。\n\n**第二步**：设 $k>0$ 为最小指标使 $\\Gamma_k$ 保 Radon 测度 $\\nu$。同上 $\\tau_\\nu(\\Gamma_k)\\neq\\{0\\}$。由系数缩放为 $1$ 且商群顺从时的测度存在性结果知 $\\kappa(\\Gamma_{k-1})\\neq\\{1\\}$。\n\n**第三步**：由缩放系数非平凡时诱导拟不变性的结论，$\\nu$ 拟不变于 $\\Gamma_{k-1}$。\n\n**第四步**：反复应用拟不变性提升结论——若某子群的平移数集非平凡且缩放系数非平凡，则拟不变性可向原链上方提升——通过归纳证明 $\\nu$ 拟不变于 $\\Gamma_{k-2},\\Gamma_{k-3},\\dots,\\Gamma_0=\\Gamma$。\n\n注：每个 $\\Gamma_i$ 的有限生成条件可弱化为有界生成动力学条件。"
+      ]
+    },
     "references": [
       "J. Plante, Solvable groups acting on the line, Trans. AMS 278 (1983), 401-414.",
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.5."

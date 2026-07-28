@@ -3,13 +3,12 @@
   "type": "definition",
   "name": {
     "zh": [
-      "仿射群作用",
-      "Aff₊(R) 在 R 上的作用"
+      "仿射群作用"
     ]
   },
   "description": {
     "zh": [
-      "仿射群 $\\operatorname{Aff}_+(\\mathbb R)=\\{x\\mapsto ax+b\\mid a>0,b\\in\\mathbb R\\}$ 是实数直线 $\\mathbb R$ 上保向仿射同胚的群。它在 $\\mathbb R$ 上的作用由 $x\\mapsto ax+b$ 给出。"
+      "仿射群 $\\operatorname{Aff}_+(\\mathbb R)=\\{x\\mapsto ax+b\\mid a>0,\\;b\\in\\mathbb R\\}$ 是实数直线 $\\mathbb R$ 上保向仿射同胚的群。它在 $\\mathbb R$ 上的作用由 $x\\mapsto ax+b$ 给出。"
     ]
   },
   "extension": {
@@ -23,9 +22,15 @@
     ],
     "article": [
       {
-        "zh": "$\\operatorname{Aff}_+(\\mathbb R)$ 在 $\\mathbb R$ 上的作用是 Lie 群作用分类（Euclid、仿射、射影）中仿射情形的标准代表。它与平移群的关系是：平移群是仿射群中 $a=1$ 的正规子群。该群的矩阵表示 $x\\mapsto ax+b$ 同构于 $\\begin{pmatrix}a&b\\\\0&1\\end{pmatrix}\\in\\operatorname{GL}_+(2,\\mathbb R)$。\n\n与旋转群的刻画——后者由无原子全支撑概率测度的保持来定义——类似，仿射群由 Radon 测度的拟不变性来刻画。当 Radon 测度的缩放系数 $\\kappa(g)\\equiv1$（即 $\\nu$ 实际上是平移不变的），则退化到平移作用的情形。这一测度论刻画将仿射群的作用与旋转群的作用统一到同一框架下：差别仅在于所保持的测度是有限（概率）还是无限（Radon）。\n\n在圆周动力学中，仿射群出现在 Lie 分类的非传递情形：圆周上具有不动点集的作用在不动点的补区间上可分解为传递作用——其结构要么是旋转（Euclid）要么是仿射。"
+        "zh": "## 仿射群在连通 Lie 群分类中的位置\n\n连通 Lie 群在一维流形上的传递作用有且仅有三种几何类型：Euclid 几何（平移群）、仿射几何（仿射群）和射影几何（Möbius 群）。仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 对应着中间的那一种——比平移群多了一个缩放自由度，又比射影群少了分式线性变换中 $c\\neq0$ 带来的非线性成分。\n\n## 代数结构\n\n仿射群的元素 $x\\mapsto ax+b$（$a>0$）可以自然地实现为 $2\\times2$ 矩阵群：$$g(x)=ax+b\\iff\\begin{pmatrix}a&b\\\\0&1\\end{pmatrix}\\in\\operatorname{GL}_+(2,\\mathbb R).$$ 平移子群 $\\{x\\mapsto x+b\\}$ 对应 $a=1$ 的情形，是仿射群的正规子群。实际上，任意仿射变换对平移的共轭 $g\\circ t\\circ g^{-1}$ 仍为平移——具体地，若 $g(x)=ax+b$ 而 $t(x)=x+c$，则 $g\\circ t\\circ g^{-1}(x)=x+ac$。\n\n## 测度刻画\n\n仿射群有一个与旋转群平行的刻画，区别在于测度的类型由有限变为无限。若 $\\mathbb R$ 上的一个保向同胚群具有一个无原子全支撑的 Radon 测度，且该测度在群作用下拟不变（即每个群元素将其变为一个正常数倍），则该群共轭于仿射群的一个子群。当拟不变的缩放系数恒为 $1$ 时，Radon 测度变为平移不变的，此时作用退化到平移群的情形。\n\n## 在圆周动力学分类中的角色\n\n圆周上具有不动点集的作用在每个不动点的补区间上可分解为传递作用，其结构由 Lie 群传递作用分类给出——仿射型是其中一种可能性。因此仿射群的作用不仅出现在 $\\mathbb R$ 上，也作为圆周作用的局部构件出现于需要同时处理多个区间的情形中。"
       }
     ],
+    "examples": {
+      "zh": [
+        "仿射群 $\\operatorname{Aff}_+(\\mathbb R)$ 在 $\\mathbb R$ 上的作用由 $x\\mapsto ax+b$（$a>0$，$b\\in\\mathbb R$）给出。平移子群 $\\{x\\mapsto x+b\\}$ 对应 $a=1$ 的情形，是正规子群：若 $g(x)=ax+b$ 而 $t(x)=x+c$，则 $g\\circ t\\circ g^{-1}(x)=x+ac$。该作用通过矩阵对应 $\\begin{pmatrix}a&b\\\\0&1\\end{pmatrix}$ 实现为 $\\operatorname{GL}_+(2,\\mathbb R)$ 的子群作用。",
+        "取 $f(x)=x+1$ 和 $g(x)=2x$，则 $f$ 和 $g$ 生成 $\\operatorname{Aff}_+(\\mathbb R)$ 的一个非交换子群。该子群在 $\\mathbb R$ 上不保持任何 Radon 测度：若某测度 $\\nu$ 同时为 $f$ 和 $g$ 所保持，则由 $f$ 的保持性知 $\\nu$ 必为 Lebesgue 测度的常数倍，但 $g$ 将 Lebesgue 测度缩放至 $1/2$ 倍，矛盾。不过 Lebesgue 测度在该子群作用下是拟不变的：$f^*(\\mathrm{Leb})=\\mathrm{Leb}$，$g^*(\\mathrm{Leb})=\\frac12\\mathrm{Leb}$。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.2.",
       "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.structural-stability",
+  "to": "dynamics.hyperbolic-linear-map",
+  "description": {
+    "zh": [
+      "双曲线性自同构是结构稳定性的线性原型——其在扰动下的谱保持和稳定/不稳定分裂为理解非线性系统的结构稳定性提供了基础模型。"
+    ]
+  }
+}

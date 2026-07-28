@@ -3,13 +3,12 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "SA 群分类定理",
-      "顺从群 SA 分类"
+      "SA 群分类定理"
     ]
   },
   "description": {
     "zh": [
-      "设 $\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}([0,1[)$ 属于有限序数 $\\alpha$ 对应的 SA$_\\alpha$ 族（SA 是顺从群中由亚指数增长群通过子群、商群、扩张和并集操作生成的子族）。则 $\\Gamma$ 可解，且可解度不超过 $\\alpha$。"
+      "设 $\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}([0,1))$ 属于有限序数 $\\alpha$ 对应的 SA$_\\alpha$ 族。则 $\\Gamma$ 可解，且可解度不超过 $\\alpha$。"
     ]
   },
   "extension": {
@@ -20,14 +19,20 @@
     ],
     "article": [
       {
-        "zh": "该定理的根本问题在于：顺从群在一维区间微分同胚中的全部可能性是什么？SA 族是顺从群中由亚指数增长群通过超限构造生成的一个子族——但更关键的问题是：SA 是否能覆盖全部可能性？答案是否定的。Thompson 群 $F$ 可忠实地 $C^\\infty$ 作用于区间（$F$ 由分段仿射变换生成，属最正则的微分同胚），但 $F$ 是否顺从是困扰动力系统与群论四十余年的公开问题。若 $F$ 顺从，则它将是一个不在 SA 中的 $C^\\infty$ 区间作用顺从群。\n\n这意味着 $C^{1+\\mathrm{bv}}$ 区间微分同胚中顺从群的分类远未完成。SA 族的可解性证明本质上将群论的组合结构（可解度）与一维微分约束（$C^{1+\\mathrm{bv}}$ 的导数畸变控制）联系起来——这是 Kopell 引理思想在可解群语境中的推广。在区间情形，无不动点元的存在与亚指数增长结合，通过导数畸变的有界性迫使换位子序列终止。\n\n一个更细微的观察：定理要求 $\\Gamma\\subset\\operatorname{Diff}_+^{1+\\mathrm{bv}}([0,1[)$ 而不要求 $\\Gamma$ 在 $]0,1[$ 中无不动点。换言之，即使 $\\Gamma$ 有全局不动点（如区间一端），定理仍然成立——但此时可解性来自平凡的动力学（任何元在固定端点处的导数行为受到 $C^{1+\\mathrm{bv}}$ 约束），而非来自轨道结构的复杂性。这表明 $C^{1+\\mathrm{bv}}$ 正则性本身已经隐含了群论的刚性。"
+        "zh": "## 顺从群与 SA 族\n\n顺从群在一维区间微分同胚中的分类面临一个已知障碍：Thompson 群 $F$ 可忠实地 $C^\\infty$ 作用于区间，但 $F$ 是否顺从是一个悬置三十余年未决的公开问题。完全的分类短期内难以实现，一个替代途径是转而研究顺从群中一个特殊子族——SA 族，它由所有亚指数增长群通过子群、商群、扩张和并集操作封闭生成。\n\n## SA 族的超限分层\n\n通过超限归纳可将 SA 族分层为 $\\mathrm{SA}_\\alpha$：\n- $\\mathrm{SA}_1$ 由所有有限生成子群皆亚指数增长的可数群构成；\n- 对后继序数 $\\alpha$，$\\mathrm{SA}_\\alpha$ 包含 $\\mathrm{SA}_{\\alpha-1}$ 中群的子群、商群和扩张；\n- 对极限序数 $\\alpha$，$\\mathrm{SA}_\\alpha$ 是更低各层的并集。\n\n一个群属于 SA 当且仅当它属于某层 $\\mathrm{SA}_\\alpha$。\n\n## SA 群在区间上的可解性\n\n对于 $C^{1+\\mathrm{bv}}$ 区间微分同胚群，属于有限层 $\\mathrm{SA}_\\alpha$ 的群可解且可解度不超过 $\\alpha$。这一事实源于亚指数增长群的导数畸变有界性——该有界性迫使换位子序列在有限步内终止，将 Kopell 引理的思想推广到了可解群的语境。定理不要求群在区间内部无不动点：即使存在全局不动点，$C^{1+\\mathrm{bv}}$ 正则性本身仍然对群的代数结构施加约束。\n\nSA 族严格小于全体顺从群。Thompson 群 $F$ 是否顺从直接关系到这一分类的边界：若 $F$ 顺从，则它将是 $C^\\infty$ 区间作用顺从群中不在 SA 内的实例，表明分类存在本质性的缺口。"
       }
     ],
-    "proof": [
-      {
-        "zh": "SA 族通过超限归纳定义：SA$_1$ 是所有有限生成子群皆亚指数增长的可数群；SA$_\\alpha$ 是 SA$_{\\alpha-1}$ 中群的子群、商群或扩张；极限序数情形取并集。属于有限层 SA$_\\alpha$ 的 $C^{1+\\mathrm{bv}}$ 区间微分同胚群可解性的证明如下。\n\n对 $\\alpha$ 进行超限归纳。$\\alpha=1$ 时，$\\Gamma\\in\\mathrm{SA}_1$ 的每个有限生成子群亚指数增长。由亚指数增长群在 $C^{1+\\mathrm{bv}}$ 区间作用下的性质（有界导数畸变控制），可证 $\\Gamma$ 的换位子序列终止于平凡群，即可解。\n\n归纳假设对 $\\beta<\\alpha$ 已证。$\\alpha$ 为后继序数 $\\beta+1$ 时，$\\Gamma\\in\\mathrm{SA}_{\\beta+1}$ 由 $\\mathrm{SA}_{\\beta}$ 中的群通过子群、商群或扩张操作得到：\n- **子群**：可解群的子群可解；\n- **商群**：可解群的商群可解；\n- **扩张**：若 $N\\triangleleft\\Gamma$ 且 $\\Gamma/N$ 可解，且 $N$ 可解，则 $\\Gamma$ 可解。\n\n$\\alpha$ 为极限序数时，$\\Gamma\\in\\mathrm{SA}_\\alpha = \\bigcup_{\\beta<\\alpha}\\mathrm{SA}_{\\beta}$，由归纳假设即得。\n\n在每一步中，$C^{1+\\mathrm{bv}}$ 正则性的关键作用在于控制导数畸变，使群的可解性与区间作用的几何约束一致。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "取 $a, c, d, b\\in(0,1)$ 满足 $a<c<d<b$。设 $f$ 为 $[a,b]$ 上的 $C^\\infty$ 微分同胚，在端点处无穷平坦于恒同映射，且满足 $f(c)=d$。将 $f$ 延拓至 $[0,1]$，规定在 $[a,b]$ 之外 $f(x)=x$。设 $g$ 为 $[0,1]$ 上的 $C^\\infty$ 微分同胚，在端点处无穷平坦于恒同映射，内部只有一个不动点，且满足 $g(c)=a$, $g(d)=b$。令 $\\Gamma$ 为由 $f$ 和 $g$ 生成的群。对每个 $n\\in\\mathbb N$，定义 $f_i=g^{-i}fg^i$，并令 $\\Gamma_n$ 为 $\\{f_i:|i|\\le n\\}$ 生成的子群，则 $\\Gamma_n$ 可解且可解度为 $2n+1$。子群 $\\Gamma^*=\\bigcup_{n\\in\\mathbb N}\\Gamma_n$ 在 $\\Gamma$ 中正规，商群 $\\Gamma/\\Gamma^*\\cong\\mathbb Z$。$\\Gamma$ 是有限生成非可解群，属于 $\\mathrm{SA}_{\\omega+1}$（$\\omega$ 为第一个无限序数），但不属于任何有限层 $\\mathrm{SA}_n$。",
+        "设 $f$ 为 $[0,1]$ 上的 $C^\\infty$ 微分同胚，在端点处无穷平坦于恒同映射，且在 $(0,1)$ 中满足 $f(x)>x$（即无不动点）。令 $\\Gamma$ 为由 $f$ 生成的循环群。$\\Gamma$ 的每个有限生成子群皆同构于 $\\mathbb Z$ 或平凡群，增长为线性（从而亚指数），故 $\\Gamma\\in\\mathrm{SA}_1$。由定理知 $\\Gamma$ 可解——循环群可解度为 $1$。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "SA 族通过超限归纳定义：SA$_1$ 是所有有限生成子群皆亚指数增长的可数群；SA$_\\alpha$ 是 SA$_{\\alpha-1}$ 中群的子群、商群或扩张；极限序数情形取并集。属于有限层 SA$_\\alpha$ 的 $C^{1+\\mathrm{bv}}$ 区间微分同胚群可解性的证明如下。\n\n对 $\\alpha$ 进行超限归纳。$\\alpha=1$ 时，$\\Gamma\\in\\mathrm{SA}_1$ 的每个有限生成子群亚指数增长。由亚指数增长群在 $C^{1+\\mathrm{bv}}$ 区间作用下的性质（有界导数畸变控制），可证 $\\Gamma$ 的换位子序列终止于平凡群，即可解。\n\n归纳假设对 $\\beta<\\alpha$ 已证。$\\alpha$ 为后继序数 $\\beta+1$ 时，$\\Gamma\\in\\mathrm{SA}_{\\beta+1}$ 由 $\\mathrm{SA}_{\\beta}$ 中的群通过子群、商群或扩张操作得到：\n- **子群**：可解群的子群可解；\n- **商群**：可解群的商群可解；\n- **扩张**：若 $N\\triangleleft\\Gamma$ 且 $\\Gamma/N$ 可解，且 $N$ 可解，则 $\\Gamma$ 可解。\n\n$\\alpha$ 为极限序数时，$\\Gamma\\in\\mathrm{SA}_\\alpha = \\bigcup_{\\beta<\\alpha}\\mathrm{SA}_{\\beta}$，由归纳假设即得。\n\n在每一步中，$C^{1+\\mathrm{bv}}$ 正则性的作用在于控制导数畸变，使群的可解性与区间作用的几何约束一致。"
+      ]
+    },
     "references": [
       "A. Navas, Quelques groupes moyennables de difféomorphismes de l'intervalle, Bol. Soc. Mat. Mexicana 10 (2004), 219-244.",
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §4.5."

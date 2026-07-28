@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "弱混合性",
-      "weak mixing"
+      "弱混合性"
     ]
   },
   "description": {
@@ -20,13 +19,34 @@
       "遍历理论",
       "连续谱",
       "Koopman 算子",
-      "本征函数"
+      "本征函数",
+      "谱测度",
+      "Koopman–von Neumann 引理",
+      "Chacon 例子",
+      "割切堆叠"
+    ],
+    "notes": [
+      {
+        "zh": "Chacon 例子的构造见相关文献。弱混合但不强混合的其他例子包括某些区间交换变换和秩一变换。"
+      }
     ],
     "article": [
       {
-        "zh": "弱混合性刻画了动力系统在「平均意义」上的不可分解性。与强混合要求 $\\mu(E\\cap T^{-n}F)$ 直接收敛到 $\\mu(E)\\mu(F)$ 不同，弱混合只要求其 Cesàro 平均趋于零。这一松弛恰好排除了混合性的唯一障碍——非平凡本征函数的存在。从谱的观点看，弱混合等价于 Koopman 算子具有连续谱，这解释了「弱混合」与「连续谱」两个术语的关联。\n\n四种等价刻画从不同角度揭示了弱混合的结构。本征函数条件是最简洁的谱刻画；平均协方差条件直接类比强混合但只要求平均收敛；零密度子集条件则揭示了「除去一个稀疏集合后」的混合行为；乘积系统条件 $T\\times T$ 的遍历性将弱混合归结为高维系统的不可分解性。强混合蕴含弱混合，弱混合蕴含遍历性，反之均不真。无理旋转 $R_\\alpha$（$\\alpha\\notin\\mathbb Q$）是遍历但不弱混合的例证——它有无穷多本征函数 $e^{2\\pi i k x}$。角加倍映射则是弱混合（实际是强混合）的例子。\n\n弱混合还有更精细的刻画：存在零密度子集 $\\mathcal N\\subset\\mathbb N$ 使沿 $\\mathcal N$ 补集有 $\\mu(E\\cap T^{-n}F)\\to\\mu(E)\\mu(F)$。这等价于平均协方差条件（Koopman–von Neumann 引理）。在谱理论层面，$T$ 弱混合当且仅当每个零均值 $f\\in L^2$ 的谱测度 $\\nu_f$ 都无非原子——这是连接动力学与调和分析的关键。"
+        "zh": "混合变换的 Koopman 算子没有非平凡本征函数——其谱是连续的。但反过来，连续谱并不蕴含混合性。这一缺口引出了弱混合性的概念：它等价于 Koopman 算子无非平凡本征函数，因此是谱意义下连续谱的精确刻画。\n\n## 等价条件\n\n弱混合性的定义（无非平凡本征函数）可以翻译为测度论语言。对可测集 $E,F$，条件\n$$\\frac1N\\sum_{n=0}^{N-1}|\\mu(E\\cap T^{-n}F)-\\mu(E)\\mu(F)|\\to0$$\n直接类比强混合条件 $\\mu(E\\cap T^{-n}F)\\to\\mu(E)\\mu(F)$，但将收敛性减弱为 Cesàro 平均收敛。Koopman–von Neumann 引理（有界非负数列 Cesàro 平均为零当且仅当其在某个零密度子集外收敛到零）进一步揭示 Cesàro 平均收敛等价于存在零密度集 $\\mathcal N\\subset\\mathbb N$ 使 $\\mu(E\\cap T^{-n}F)\\to\\mu(E)\\mu(F)$ 沿 $n\\notin\\mathcal N$ 成立。通过构造 $F(x,y)=f(x)\\overline{f(y)}$ 还可证明，弱混合等价于 $T\\times T$ 在乘积测度下的遍历性：若 $T$ 有非平凡本征函数 $f$（本征值 $\\lambda$），则 $F$ 是 $T\\times T$ 的非平凡不变函数，破坏其遍历性。\n\n## 谱测度视角\n\n对可逆概率保测变换和 $f\\in L^2\\setminus\\{0\\}$，序列 $\\langle U_T^n f,f\\rangle$ 具有正定性，由 Herglotz 定理存在 $S^1$ 上的有限测度 $\\nu_f$ 使\n$$\\langle U_T^n f,f\\rangle = \\int_{S^1} z^n\\,d\\nu_f(z).$$\nKoopman 算子在循环子空间 $H_f:=\\overline{\\operatorname{span}}\\{U_T^n f:n\\in\\mathbb Z\\}$ 上的作用酉等价于 $L^2(S^1,\\nu_f)$ 上的乘法算子 $g(z)\\mapsto zg(z)$。\n\n在这一框架下，弱混合性等价于每个零均值函数的谱测度均为非原子测度。若 $\\nu_f$ 在 $\\lambda\\in S^1$ 处有原子，则序列 $g_N:=\\frac1N\\sum_{n=0}^{N-1}\\lambda^{-n}U_T^n f$ 的弱极限给出本征值为 $\\lambda$ 的非平凡本征函数，与弱混合矛盾。谱测度方法还导出：若 $T$ 弱混合，则对实值 $f\\in L^2$ 有\n$$\\frac1N\\sum_{n=0}^{N-1}\\bigl|\\int f\\cdot f\\circ T^n\\,d\\mu-(\\int f\\,d\\mu)^2\\bigr|\\to0.$$\n该引理的证明利用谱测度的二重积分与 Koopman–von Neumann 引理。借助此引理和 $L^2$ 的正交分解，可从本征函数定义出发完成全部等价条件的闭环。对不可逆系统，可通过自然扩张将结论推广。\n\n## 层级中的位置\n\n强混合必定弱混合，弱混合必定遍历，反之均不成立。无理旋转遍历而非弱混合；角加倍映射是强混合的；Chacon 例子弱混合而非强混合。这些例子勾勒出弱混合性的边界：遍历性允许有非平凡本征函数（如无理旋转），弱混合性排除这些本征函数但仍允许在零密度子集上不收敛，强混合性则要求在任何子序列上都收敛。"
       }
     ],
+    "examples": {
+      "zh": [
+        "设 $Tx = 2x\\bmod 1$ 是单位区间上的 Lebesgue 测度保测变换，称为角加倍映射。对任意区间 $E,F\\subset[0,1)$，当 $n$ 足够大时 $T^{-n}F$ 由 $2^n$ 个长度为 $2^{-n}m(F)$ 的互不相交的区间组成，均匀分布在 $[0,1)$ 上，因此 $m(E\\cap T^{-n}F)\\to m(E)m(F)$。这说明角加倍映射是强混合的，从而是弱混合的。从谱论角度看，其 Koopman 算子的谱测度均为 Lebesgue 绝对连续测度，没有原子，因而不可能有非平凡本征函数。",
+        "Chacon 例子是弱混合而非强混合的保测变换，通过割切堆叠法（cutting and stacking）构造。从单位区间上的底层区间 $A_0$ 出发，每一步将当前柱体三等分，将左中两段上下堆叠，再从保留的水库区间中切取一段插入柱体中部。无限重复这一过程，得到一个定义在单位区间上的保 Lebesgue 测度的可逆变换 $T$。该变换的构造保证它没有非平凡本征函数，因此是弱混合的。另一方面，若记 $\\ell_n$ 为第 $n$ 步柱体的高度（层数），则对任意 $0\\le k\\le\\ell_{n-1}$ 有 $m(T^k A_n \\cap T^{k+\\ell_n} A_n) \\ge \\frac13 m(T^k A_n)$，其中 $A_n$ 是第 $n$ 步的底层区间。取 $E=T^k A_n$，则 $m(E\\cap T^{\\ell_n}E) \\ge \\frac13 m(E)$ 对所有 $n$ 成立，与强混合所需的条件 $m(E\\cap T^nE)\\to m(E)^2$ 矛盾，故 $T$ 非强混合。",
+        "设 $R_\\alpha: [x]\\mapsto[x+\\alpha]$ 为圆周 $\\mathbb S^1$ 上的旋转，其中 $\\alpha\\notin\\mathbb Q$。$R_\\alpha$ 保持 Lebesgue 测度，且由 Fourier 分析可知其 Koopman 算子有无穷多本征函数 $e^{2\\pi i k x}$（$k\\in\\mathbb Z$），对应的本征值为 $e^{2\\pi i k\\alpha}$。由于存在非平凡本征函数，$R_\\alpha$ 不是弱混合的。但其轨道稠密性——$\\alpha$ 为无理数时每个轨道在 $\\mathbb S^1$ 中稠密——又说明 $R_\\alpha$ 是遍历的。这一例子表明弱混合性严格强于遍历性。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "**弱混合 ⇒ 谱测度无原子。** 设 $T$ 为弱混合的可逆概率保测变换，$f\\in L^2$ 满足 $\\int f\\,d\\mu=0$。假设谱测度 $\\nu_f$ 在 $\\lambda\\in S^1$ 处有原子，即 $\\nu_f\\{\\lambda\\}>0$。构造序列 $g_N:=\\frac1N\\sum_{n=0}^{N-1}\\lambda^{-n}U_T^n f$。由于 $\\|g_N\\|_2$ 有界（由 $\\|f\\|_2$ 控制），$L^2$ 的可分性保证存在弱收敛子序列 $g_{N_k}\\xrightarrow{w} g$。对任意 $h\\in L^2$，\n$$\\langle U_T g,h\\rangle = \\lim_{k\\to\\infty}\\frac1{N_k}\\sum_{n=0}^{N_k-1}\\lambda^{-n}\\langle U_T^{n+1}f,h\\rangle = \\lambda\\langle g,h\\rangle,$$\n故 $U_T g=\\lambda g$，即 $g$ 是本征值为 $\\lambda$ 的本征函数。下证 $g$ 非平凡：\n$$\\langle g,f\\rangle = \\lim_{k\\to\\infty}\\frac1{N_k}\\sum_{n=0}^{N_k-1}\\lambda^{-n}\\langle U_T^n f,f\\rangle = \\lim_{k\\to\\infty}\\frac1{N_k}\\sum_{n=0}^{N_k-1}\\int_{S^1}\\lambda^{-n}z^n\\,d\\nu_f(z).$$\n将积分拆为 $\\lambda$ 处的原子部分和其余部分。原子部分贡献 $\\nu_f\\{\\lambda\\}$；其余部分被积函数 $\\frac1{N_k}\\frac{1-\\lambda^{-N_k}z^{N_k}}{1-\\lambda^{-1}z}$ 趋于零且有界，积分为零。故 $\\langle g,f\\rangle = \\nu_f\\{\\lambda\\}\\neq0$，从而 $g\\neq0$。$g$ 不能为常数函数，否则 $\\int g\\,d\\mu = \\langle g,1\\rangle = \\lim_{N_k}\\frac1{N_k}\\sum\\lambda^{-n}\\langle U_T^n f,1\\rangle = 0$（因为 $\\int f=0$ 且 $U_T$ 保积分），但 $\\langle g,f\\rangle\\neq0$ 说明 $g$ 与零均值函数 $f$ 相关。于是 $g$ 是非平凡本征函数，与弱混合性矛盾。\n\n**Koopman–von Neumann 引理。** 设 $\\{a_n\\}$ 为有界非负数列。则 $\\frac1N\\sum_{n=1}^N a_n\\to0$ 当且仅当存在零密度子集 $\\mathcal N\\subset\\mathbb N$（即 $|\\mathcal N\\cap[1,N]|/N\\to0$）使 $a_n\\xrightarrow[\\mathcal N\\not\\ni n\\to\\infty]{}0$。这一引理是连接 Cesàro 平均收敛与零密度子集收敛的桥梁，在弱混合的等价刻画中起到作用。"
+      ]
+    },
     "references": [
       "O. Sarig, Lecture Notes on Ergodic Theory (2023), §3.2."
     ]

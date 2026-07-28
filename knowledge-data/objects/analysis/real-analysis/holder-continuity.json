@@ -4,8 +4,7 @@
   "name": {
     "zh": [
       "Hölder 连续性",
-      "Hölder 条件",
-      "$C^{1+\\tau}$ 正则性"
+      "Hölder 条件"
     ]
   },
   "description": {
@@ -23,9 +22,15 @@
     ],
     "article": [
       {
-        "zh": "Hölder 连续性度量了映射在多大程度上可被幂函数控制——指数 $\\tau$ 越接近 $1$，映射越接近 Lipschitz，$\\tau>1$ 时非常数映射不存在（因为导数在任意点应为零）。在圆周微分同胚理论中，$\\tau$-Hölder 连续导数（记作 $C^{1+\\tau}$）是临界正则性阈值：Denjoy 定理在 $C^{1+\\mathrm{bv}}$（导数对数有界变差）下成立但在纯 $C^1$ 下失败；Sacksteder 定理在 $C^{1+\\mathrm{Lip}}$（$\\tau=1$）下成立但在 $C^{1-\\varepsilon}$ 下失败。\n\n$C^{1+\\tau}$ 类最重要的性质是闭包下的保持性：若 $f,g\\in C^{1+\\tau}(\\mathbb S^1)$ 是保向微分同胚，则 $f\\circ g$ 和 $f^{-1}$ 也属于 $C^{1+\\tau}$——这使得 $C^{1+\\tau}$ 微分同胚构成 $\\operatorname{Diff}_+^1(\\mathbb S^1)$ 的子群。导数计算的链式法则给出 $\\log(f\\circ g)' = (\\log f')\\circ g + \\log g'$，故 $C^{1+\\mathrm{bv}}$ 和 $C^{1+\\mathrm{Lip}}$ 也构成子群。\n\n这些正则性类之间的严格包含关系是：\n$$C^{1+\\mathrm{Lip}} \\subsetneq C^{1+\\mathrm{bv}} \\subsetneq \\bigcap_{\\tau<1} C^{1+\\tau} \\subsetneq C^1.$$\n每个严格包含都有动力学意义：$C^{1+\\mathrm{Lip}}$ 是 Sacksteder 定理的临界（最优）正则性，$C^{1+\\mathrm{bv}}$ 是 Denjoy 定理的临界正则性，$\\bigcap_{\\tau<1}C^{1+\\tau}$ 是 $C^1$ 中使 Denjoy 定理可能成立的「极大」类。"
+        "zh": "## 幂律控制的连续性\n\nLipschitz 条件是 $d(f(x),f(y))\\le C\\,d(x,y)$，即距离的线性控制。Hölder 连续性将此放宽为幂律控制：对指数 $\\tau>0$，存在常数 $C>0$ 使 $d(f(x),f(y))\\le C\\,d(x,y)^\\tau$。$\\tau=1$ 时即为 Lipschitz 连续；$\\tau>1$ 时非常数映射不可能存在，因为导数为零迫使映射局部常值。\n\n## $C^{1+\\tau}$ 微分同胚\n\n在圆周微分同胚理论中，Hölder 连续性以导数版本出现。一个 $C^1$ 保向圆周微分同胚 $f$ 称为 $C^{1+\\tau}$ 类的，若其导数 $f'$ 是 $\\tau$-Hölder 连续的，即\n\n$$\n|f'(x)-f'(y)|\\le C|x-y|^\\tau.\n$$\n\n全体 $C^{1+\\tau}$ 保向圆周微分同胚构成 $\\operatorname{Diff}_+^1(\\mathbb S^1)$ 的子群，因为复合与逆运算保持这种正则性。\n\n## 正则性的层级\n\n与 $C^{1+\\tau}$ 相关的另外两个正则性类是 $C^{1+\\mathrm{Lip}}$（导数 Lipschitz 连续）和 $C^{1+\\mathrm{bv}}$（对数导数有界变差）。$C^2$ 或 $C^{1+\\mathrm{Lip}}$ 微分同胚必属于 $C^{1+\\mathrm{bv}}$——对 $C^{1+\\mathrm{Lip}}$ 类，$f''/f'$ 几乎处处定义且本质有界，故对数导数的总变差有限。\n\n这些正则性类的动力学意义体现在它们作为定理条件的精确性上。Denjoy 定理在 $C^{1+\\mathrm{bv}}$ 类中成立：具有无理旋转数的 $C^{1+\\mathrm{bv}}$ 圆周微分同胚必拓扑共轭于旋转。但对 $C^{1+\\tau}$（$\\tau<1$）结论不再成立——对任意无理角度 $\\theta$ 和任意 $\\tau<1$，存在 $C^{1+\\tau}$ 圆周微分同胚以 $\\theta$ 为旋转数，任意接近 $R_\\theta$ 但不拓扑共轭于旋转。$C^{1+\\mathrm{Lip}}$ 则是 Sacksteder 定理的最优正则性假设。低于这些阈值时相应的动力学结论不再成立，这表明 Hölder 指数标记了动力系统行为的实质性分界线。"
       }
     ],
+    "examples": {
+      "zh": [
+        "旋转 $R_\\theta$ 是解析微分同胚，因而属于 $C^{1+\\tau}$ 对任意 $\\tau>0$。其导数恒为 $1$，Hölder 常数可取 $C=0$：$|R_\\theta'(x)-R_\\theta'(y)|=0\\leq 0\\cdot|x-y|^\\tau$。旋转同时也是 $C^{1+\\mathrm{Lip}}$ 的（Lipschitz 常数为 $0$）和 $C^{1+\\mathrm{bv}}$ 的（对数导数的总变分为零）。",
+        "对任意无理角度 $\\theta$ 和任意 $\\tau<1$，存在 $C^{1+\\tau}$ 圆周微分同胚具有旋转数 $\\theta$ 但不拓扑共轭于旋转。设 $\\omega_\\varepsilon(s)=s/[\\log(1/s)]^{1+\\varepsilon}$（$\\varepsilon>0$），取 $R_\\theta$ 的轨道点 $x_n$，将每个 $x_n$ 替换为长度为 $\\ell_n=1/((|n|+k)[\\log(|n|+k)]^{1+\\varepsilon/2})$ 的小区间 $I_n$（$k$ 充分大）。在相邻区间 $I_n$ 与 $I_{n+1}$ 之间用过渡映射 $\\varphi_{I_n,I_{n+1}}$ 连接，该映射的二阶导数满足 $|\\varphi_{a,b}''(x)|\\leq 6\\pi|b/a-1|/a$。所得同胚 $\\bar R_\\theta$ 在新圆周上是 $C^{1+\\omega_\\varepsilon}$ 的，经仿射标准化后得到单位圆周上的微分同胚 $f$。由于 $\\omega_\\varepsilon(s)=o(s^\\tau)$ 对任意 $\\tau<1$，$f$ 属于 $C^{1+\\tau}$。但 $f$ 保持一个 Cantor 型例外极小集，故不拓扑共轭于旋转。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), Notation."
     ]

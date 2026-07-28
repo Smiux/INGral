@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "Liouville 测地线流",
-      "Liouville 测度"
+      "Liouville 测地线流"
     ]
   },
   "description": {
@@ -22,9 +21,16 @@
     ],
     "article": [
       {
-        "zh": "测地线流的概念源于 Teichmüller 理论和双曲几何。Poincaré 圆盘中的每条测地线由其两个端点唯一决定，故测地线空间可等同于圆周上无序点对 $\\{(s,t):s\\neq t\\}/\\sim$ 之空间。其上的 Radon 测度称为测地线流。\n\nLiouville 测度是其中最自然的一个。它在 PSL(2,R) 的对角作用下不变，且满足一个交比恒等式——该性质可视为交比 $[e^{ia},e^{ib},e^{ic},e^{id}]$ 的测度论版本：$L_v([a,b]\\times[c,d])=\\log\\big([e^{ia},e^{ib},e^{ic},e^{id}]\\big)$。\n\n该性质在某种意义下**刻画**了 PSL(2,R)：若 $L$ 是满足上述恒等式的测地线流，则保持 $L$ 的同胚群 $\\Gamma_L$ 必共轭于 PSL(2,R)。这给出了 PSL(2,R) 的一个纯测度论刻画。"
+        "zh": "## 测地线的空间\n\nPoincaré 圆盘上的每条测地线由其在无穷远边界 $\\mathbb S^1$ 上的两个端点唯一确定。因此所有（无向）测地线构成的空间等同于圆周上无序点对的空间——即 $(\\mathbb S^1\\times\\mathbb S^1\\setminus\\Delta)/\\sim$，其中 $\\Delta$ 为对角线，$\\sim$ 交换两个坐标。\n\n## Liouville 测度\n\n在这个测地线空间上可以赋予各种 Radon 测度。其中有一个具有显式密度的特殊测度——Liouville 测度：\n\n$$\nL_v=\\frac{ds\\,dt}{4\\sin^2((s-t)/2)},\n$$\n\n这里 $ds,dt$ 是圆周上的 Lebesgue 测度。这个密度不是随意选取的：$L_v$ 与双曲几何的交比有直接联系。对圆周上循环有序的四点 $a<b<c<d<a$，$L_v$ 在矩形 $[a,b]\\times[c,d]$ 上的积分等于交比 $[e^{ia},e^{ib},e^{ic},e^{id}]$ 的对数。由于 $\\mathrm{PSL}(2,\\mathbb R)$ 在圆周上的作用保持交比，Liouville 测度在该群的对角作用下不变。\n\n## 特征恒等式\n\nLiouville 测度满足一个特征性的恒等式：对任意循环有序的四点 $a<b<c<d<a$，\n\n$$\ne^{-L_v([a,b]\\times[c,d])}+e^{-L_v([b,c]\\times[d,a])}=1.\n$$\n\n反之，若一个测地线流满足此恒等式，则保持它的圆周同胚群必共轭于 $\\mathrm{PSL}(2,\\mathbb R)$，且该共轭将该测度映为 Liouville 测度。因此这一恒等式完全刻画了 Liouville 测度。\n\n## 在刚性理论中的角色\n\n在高秩格点圆周作用的刚性理论中，Liouville 测度提供了一个技术工具：通过其密度函数，可以从圆周微分同胚的提升构造一个取值于 $L^2$ 空间的上循环。当微分同胚的正则性足够高时，该上循环落入 Liouville 测度的 $L^2$ 空间，从而允许 Kazhdan 性质 (T) 的刚性论证进入一维动力系统。"
       }
     ],
+    "examples": {
+      "zh": [
+        "设 $a<b<c<d<a$ 为圆周上循环有序的四点。Liouville 测度 $L_v$ 在矩形 $[a,b]\\times[c,d]$ 上的积分可显式计算如下：\n$$L_v([a,b]\\times[c,d])=\\int_c^d\\int_a^b\\frac{ds\\,dt}{4\\sin^2((s-t)/2)}$$\n$$\\qquad =\\int_c^d\\Big[\\frac{\\cot((a-t)/2)-\\cot((b-t)/2)}{2}\\Big]dt$$\n$$\\qquad =\\log\\Big|\\frac{\\sin((b-d)/2)\\sin((a-c)/2)}{\\sin((b-c)/2)\\sin((a-d)/2)}\\Big|.$$\n由于 $|\\sin((x-y)/2)|=|e^{ix}-e^{iy}|/2$，右端等于交比 $[e^{ia},e^{ib},e^{ic},e^{id}]$ 的对数。因此 Liouville 测度可视为交比的测度论实现。",
+        "对圆周上循环有序的四点 $a<b<c<d<a$，Liouville 测度满足恒等式 $e^{-L_v([a,b]\\times[c,d])}+e^{-L_v([b,c]\\times[d,a])}=1$。由前一例子，$L_v([a,b]\\times[c,d])=\\log[e^{ia},e^{ib},e^{ic},e^{id}]$，故 $e^{-L_v([a,b]\\times[c,d])}=1/[e^{ia},e^{ib},e^{ic},e^{id}]$。类似地 $e^{-L_v([b,c]\\times[d,a])}=1/[e^{ib},e^{ic},e^{id},e^{ia}]$。利用交比的代数恒等式\n$$\\frac{1}{[e^{ia},e^{ib},e^{ic},e^{id}]}+\\frac{1}{[e^{ib},e^{ic},e^{id},e^{ia}]}=1,$$\n即得所述恒等式。该恒等式是 Liouville 测度的特征性质。",
+        "设 $g\\in\\mathrm{PSL}(2,\\mathbb R)$ 为 Möbius 变换。对圆周上任意循环有序的四点 $a<b<c<d<a$，由于 Möbius 变换保持交比，有\n$$[g(e^{ia}),g(e^{ib}),g(e^{ic}),g(e^{id})]=[e^{ia},e^{ib},e^{ic},e^{id}].$$\n由 Liouville 测度与交比的关系，$L_v([g(a),g(b)]\\times[g(c),g(d)])=\\log[g(e^{ia}),g(e^{ib}),g(e^{ic}),g(e^{id})]=\\log[e^{ia},e^{ib},e^{ic},e^{id}]=L_v([a,b]\\times[c,d])$。由于矩形生成圆周上的 Borel $\\sigma$-代数，此即表明 $L_v$ 在 $g$ 的对角作用下不变。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.3.2."
     ]

@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "Abramov 公式",
-      "Abramov's formula"
+      "Abramov 公式"
     ]
   },
   "description": {
@@ -19,11 +18,26 @@
       "诱导变换",
       "Kac 公式"
     ],
-    "article": [
+    "notes": [
       {
-        "zh": "Abramov 公式给出了原系统与诱导系统之间熵的精确关系。这一公式与 Kac 公式存在深层类比：$\\int_A\\varphi_A\\,d\\mu_A=1/\\mu(A)$（首次返回时间的期望）与 $h_{\\mu_A}(T_A)=h_\\mu(T)/\\mu(A)$ 共享相同的分母 $\\mu(A)$。\n\n证明的关键是将原系统上的熵计算分解为诱导变换各次迭代的贡献。对张成集 $A$，任意 $x\\in X$ 的 $\\alpha$-航拍可通过 $A$ 的首次返回时间分段编码，从而利用基本恒等式 $H_\\mu(\\alpha\\vee\\beta)=H_\\mu(\\alpha)+H_\\mu(\\beta|\\alpha)$ 递推。\n\n该公式在计算非均匀系统的熵时非常有用——例如在区间映射和可数 Markov 移位的熵计算中常将系统诱导到某个特殊子集上再应用此公式。"
+        "zh": "Abramov 公式与 Kac 首次返回公式之间存在结构性的数值对应。Kac 公式断言首次返回时间 φ_A 在诱导测度 μ_A 下的期望为 ∫_A φ_A dμ_A = 1/μ(A)。Abramov 公式中的熵缩放因子恰好也是 1/μ(A)，这意味着诱导系统的熵与原系统熵之比精确等于首次返回时间的期望值。两者从不同角度（信息率与时间尺度）统一于同一测度因子。"
       }
     ],
+    "article": [
+      {
+        "zh": "## 诱导变换的熵\n\n把一个保测变换限制到某个子集上诱导出一个新的变换时，熵怎么变？Abramov 公式给出了精确的回答：对 Lebesgue 空间上的概率保测变换 $(X,\\mathcal B,\\mu,T)$，取张成可测集 $A$（即 $X=\\bigcup_{n\\ge0}T^{-n}A$ 模 $\\mu$），诱导系统 $(A,\\mathcal B_A,\\mu_A,T_A)$ 的熵满足\n\n$$h_{\\mu_A}(T_A)=\\frac{h_\\mu(T)}{\\mu(A)}.$$\n\n也就是说，熵按诱导集测度的倒数缩放。\n\n## 张成集条件\n\n张成条件 $X=\\bigcup_{n\\ge0}T^{-n}A$ 模 $\\mu$ 保证几乎每个轨道都会无穷多次访问 $A$，因此诱导变换在渐近意义下忠实反映了原系统的动力学。在遍历系统中，任何正测度集自动满足这一条件——这是遍历性的一个直接推论，所以公式的应用范围实际上很广。\n\n## 与 Kac 公式的结构对应\n\nAbramov 公式中的因子 $1/\\mu(A)$ 与 Kac 首次返回公式 $\\int_A\\varphi_A\\,d\\mu_A=1/\\mu(A)$ 完全相同。这不是巧合：子集的测度同时决定了返回时间的期望和熵的缩放比例。首次返回时间越长，每次返回携带的新信息越多，熵也按同样比例放大。\n\n## 应用\n\n在非一致双曲系统的研究中，一个标准的策略是选取适当的诱导集，使诱导变换具有更强的双曲性或更简单的符号结构，计算诱导系统的熵后再通过 Abramov 公式还原原系统的熵。"
+      }
+    ],
+    "examples": {
+      "zh": [
+        "设 (X, B, μ, T) 为 Lebesgue 空间上的概率保测变换，且 T 是遍历的。此时对任意正测度可测集 A，A 自动满足张成条件 X = ∪_{n≥0} T^{-n}A (mod μ)——这是因为遍历性保证几乎所有轨道都会进入任意正测度集。因此 Abramov 公式 h_{μ_A}(T_A) = h_μ(T)/μ(A) 对所有正测度诱导集均成立，公式的适用范围不受张成条件的额外限制。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "（Scheller 方法）先处理可逆情形，不可逆情形通过自然扩张化归。设 $\\alpha$ 为满足以下条件的可数可测划分：$H_\\mu(\\alpha)<\\infty$、$A^c\\in\\alpha$、且对所有 $n$ 有 $T_A[\\varphi_A=n]\\in\\sigma(\\alpha)$。令 $\\xi_A:=\\{A^c\\}\\cup T_A\\eta_A$，其中 $\\eta_A:=\\{[\\varphi_A=n]:n\\in\\mathbb N\\}$。由 Kac 公式 $\\int_A\\varphi_A\\,d\\mu_A=1/\\mu(A)$ 知 $H_\\mu(\\xi_A)<\\infty$。\n\n取 $\\alpha\\ge\\xi_A$。利用 $A,A^c,[\\varphi_A=n]\\in\\alpha_1^\\infty$，将 $h_\\mu(T,\\alpha)$ 表为条件熵：\n$$h_\\mu(T,\\alpha)=H_\\mu(\\alpha|\\alpha_1^\\infty)=\\mu(A)H_{\\mu_A}(A\\cap\\alpha|A\\cap\\alpha_1^\\infty).$$\n核心关系式 $A\\cap\\alpha_1^\\infty=\\bigvee_{i=1}^\\infty T_A^{-i}(A\\cap\\alpha)$（证明通过正反两方向的集合包含：$\\subseteq$ 方向将 $A\\cap\\bigcap_{j=1}^n T^{-j}A_j$ 用首次返回分段表示；$\\supseteq$ 方向由 $T_A^{-1}B=\\bigcup_{n=1}^\\infty T^{-n}(B\\cap T_A[\\varphi_A=n])$ 可得）。从而\n$$h_\\mu(T,\\alpha)=\\mu(A)h_{\\mu_A}(T_A,A\\cap\\alpha).$$\n\n对一切包含 $A^c$ 为原子的满足上述条件的 $\\alpha$ 取上确界，得到 $h_\\mu(T)=\\mu(A)h_{\\mu_A}(T_A)$，这正是 Abramov 公式。过渡的关键在于 $A$ 是张成集：$X=\\bigcup_{n\\ge0}T^{-n}A$ 模 $\\mu$，故 $\\sigma(\\bigcup\\{\\alpha_{-\\infty}^\\infty:A^c\\in\\alpha,\\,H_\\mu(\\alpha)<\\infty\\})=\\mathcal B$ 模 $\\mu$。"
+      ]
+    },
     "references": [
       "O. Sarig, Lecture Notes on Ergodic Theory (2023), §4.5."
     ]

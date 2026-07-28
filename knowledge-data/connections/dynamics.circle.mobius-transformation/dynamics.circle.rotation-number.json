@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.mobius-transformation",
-  "to": "dynamics.circle.rotation-number",
-  "description": {
-    "zh": [
-      "椭圆型 Möbius 变换为旋转数提供了精确可计算的实例族：由 $A$ 的特征值 $\\lambda=e^{\\pm2\\pi i\\rho}$ 可直接读出旋转数 $\\rho\\bmod\\mathbb Z$，无需通过极限或 Birkhoff 和的近似计算。"
-    ]
-  }
-}

@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "SL(n,Z) 不可序定理",
-      "高秩特殊线性群有限指数子群不可序"
+      "SL(n,Z) 不可序定理"
     ]
   },
   "description": {
@@ -22,14 +21,20 @@
     ],
     "article": [
       {
-        "zh": "该定理表明 $\\operatorname{SL}(n,\\mathbb Z)$（$n\\geqslant3$）的有限指数子群无法忠实地作用在实数直线上，因为可序性是有序直线作用的必要条件。\n\n该定理与 Witte-Morris 定理互为补充：Witte-Morris 定理指出可序顺从群必有到 $(\\mathbb R,+)$ 的非平凡同态，而本定理则指出高秩算术子群甚至根本不可序。两者的结合表明 $\\operatorname{SL}(n,\\mathbb Z)$（$n\\geqslant3$）的有限指数子群在 $\\mathbb R$ 上的任何保向同胚作用必是平凡的——若 $\\Gamma$ 有非平凡 $\\mathbb R$ 作用，则 $\\Gamma$ 可序，矛盾。这一结论揭示了高秩格点与一维动力学之间的刚性。"
+        "zh": "## 可序群与一维作用\n\n群能否在实直线上给出非平凡的保向同胚作用？一个必要条件是群必须是左可序的——即存在左不变全序。这一条件也是充分的：每个可数可序群都可以忠实地作用于实直线。因此判断一个群是否可序，是理解其能否产生非平凡一维动力行为的第一步。\n\n## 主要结论\n\n当 $n\\geqslant 3$ 时，$\\operatorname{SL}(n,\\mathbb Z)$ 的任何有限指数子群都不接受左不变全序。由于 $\\operatorname{SL}(3,\\mathbb Z)$ 可自然嵌入所有更高秩的 $\\operatorname{SL}(n,\\mathbb Z)$，只需证明 $n=3$ 的情形。证明采用反证法：假设存在左不变全序 $\\preceq$，利用 $\\operatorname{SL}(3,\\mathbb Z)$ 中六组特定矩阵元素之间的换位关系导出不等式矛盾。\n\n## 序刚性\n\n这一定理刻画了高秩算术子群的一种序刚性：$\\operatorname{SL}(n,\\mathbb Z)$（$n\\geqslant 3$）的有限指数子群完全排除了左不变全序的存在。由于可序性是群在实直线上产生非平凡保向同胚作用的必要前提，此类群在实直线上的每个保向同胚作用都必然是平凡的。"
       }
     ],
-    "proof": [
-      {
-        "zh": "1. 对 $n\\geqslant3$，$\\operatorname{SL}(3,\\mathbb Z)\\hookrightarrow\\operatorname{SL}(n,\\mathbb Z)$，故只需证 $n=3$。\n2. 设 $\\Gamma$ 是 $\\operatorname{SL}(3,\\mathbb Z)$ 的有限指数子群且有序 $\\preceq$。取充分大的 $k$ 使 $g_1,\\ldots,g_6\\in\\Gamma$，其中\n   $$g_1=\\begin{pmatrix}1&k&0\\\\0&1&0\\\\0&0&1\\end{pmatrix},\\quad g_2=\\begin{pmatrix}1&0&k\\\\0&1&0\\\\0&0&1\\end{pmatrix},\\ldots$$\n   它们满足 $g_i g_{i+1}=g_{i+1}g_i$ 且 $[g_{i-1},g_{i+1}]=g_i^k$。\n3. 对每个 $g$ 定义 $|g|=g$（若 $g\\succ id$）或 $|g|=g^{-1}$（若 $g\\prec id$）。$g\\gg h$ 意为 $g\\succ h^n$ 对所有 $n\\geqslant1$。\n4. 对固定 $i$，在 $\\langle g_{i-1},g_i,g_{i+1}\\rangle$ 中取正元 $a,b,c$ 满足 $ac=ca$, $bc=cb$, $aba^{-1}b^{-1}=c^{-1}$。\n5. 构造 $d_m=a^m b^m (a^{-1}c^n)^m (b^{-1}c^n)^m$。若同时 $c^n\\prec a$ 且 $c^n\\prec b$，则 $d_m$ 既为正又为 $c^{-m^2+2mn}\\prec id$（对充分大的 $m$），矛盾。故要么 $a\\gg c$ 要么 $b\\gg c$。\n6. 从而 $|g_i|\\ll|g_{i-1}|$ 或 $|g_i|\\ll|g_{i+1}|$。沿 $i=1\\to2\\to\\cdots\\to6\\to1$ 传递得 $|g_1|\\ll|g_1|$，矛盾。故 $\\Gamma$ 不可序。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "以 $\\operatorname{SL}(3,\\mathbb Z)$ 自身为例。取 $k=1$，六个矩阵为\n$$g_1=\\begin{pmatrix}1&1&0\\\\0&1&0\\\\0&0&1\\end{pmatrix},\\quad g_2=\\begin{pmatrix}1&0&1\\\\0&1&0\\\\0&0&1\\end{pmatrix},\\quad g_3=\\begin{pmatrix}1&0&0\\\\0&1&1\\\\0&0&1\\end{pmatrix},$$\n$$g_4=\\begin{pmatrix}1&0&0\\\\1&1&0\\\\0&0&1\\end{pmatrix},\\quad g_5=\\begin{pmatrix}1&0&0\\\\0&1&0\\\\1&0&1\\end{pmatrix},\\quad g_6=\\begin{pmatrix}1&0&0\\\\0&1&0\\\\0&1&1\\end{pmatrix}.$$\n它们均属于 $\\operatorname{SL}(3,\\mathbb Z)$。直接验证得 $g_i g_{i+1}=g_{i+1}g_i$ 及 $[g_{i-1},g_{i+1}]=g_i$，其中指标模 $6$。若 $\\operatorname{SL}(3,\\mathbb Z)$ 可序，则存在左不变全序 $\\preceq$。按照证明中的不等式论证，对各 $i$ 可得 $|g_i|\\ll|g_{i-1}|$ 或 $|g_i|\\ll|g_{i+1}|$。从 $|g_1|\\ll|g_2|$ 出发沿链传递（另一情形对称），导出 $|g_1|\\ll|g_2|\\ll\\cdots\\ll|g_6|\\ll|g_1|$ 的矛盾。故 $\\operatorname{SL}(3,\\mathbb Z)$ 不可序。",
+        "考虑 $\\operatorname{SL}(3,\\mathbb Z)$ 的主同余子群 $\\Gamma(N)=\\ker(\\operatorname{SL}(3,\\mathbb Z)\\to\\operatorname{SL}(3,\\mathbb Z/N\\mathbb Z))$，其中 $N\\geqslant2$。$\\Gamma(N)$ 在 $\\operatorname{SL}(3,\\mathbb Z)$ 中具有有限指数。取 $k=N$，则上述六个矩阵的所有非对角元均为 $N$ 的倍数，因此它们均属于 $\\Gamma(N)$。与前一例完全相同的论证表明 $\\Gamma(N)$ 不可序。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "由于 $\\operatorname{SL}(3,\\mathbb Z)$ 可嵌入任意 $n\\geqslant3$ 的 $\\operatorname{SL}(n,\\mathbb Z)$，只需证 $n=3$ 的情形。反证法。设 $\\Gamma$ 为 $\\operatorname{SL}(3,\\mathbb Z)$ 的有限指数子群且带左不变全序 $\\preceq$。取充分大的 $k$ 使下列矩阵属于 $\\Gamma$：\n$$g_1=\\begin{pmatrix}1&k&0\\\\0&1&0\\\\0&0&1\\end{pmatrix},\\quad g_2=\\begin{pmatrix}1&0&k\\\\0&1&0\\\\0&0&1\\end{pmatrix},\\quad g_3=\\begin{pmatrix}1&0&0\\\\0&1&k\\\\0&0&1\\end{pmatrix},$$\n$$g_4=\\begin{pmatrix}1&0&0\\\\k&1&0\\\\0&0&1\\end{pmatrix},\\quad g_5=\\begin{pmatrix}1&0&0\\\\0&1&0\\\\k&0&1\\end{pmatrix},\\quad g_6=\\begin{pmatrix}1&0&0\\\\0&1&0\\\\0&k&1\\end{pmatrix}.$$\n对模 $6$ 的指标 $i$，易验证\n$$g_i g_{i+1}=g_{i+1}g_i,\\qquad [g_{i-1},g_{i+1}]=g_i^k.$$\n对 $g\\in\\Gamma$，定义 $|g|=g$（若 $g\\succ id$）或 $|g|=g^{-1}$（若 $g\\prec id$）。记 $g\\gg h$ 若 $g\\succ h^n$ 对所有 $n\\geqslant1$ 成立。\n\n固定 $i$，考虑 $\\preceq$ 在子群 $\\langle g_{i-1},g_i,g_{i+1}\\rangle$ 上的限制。可选取三个关于 $\\preceq$ 的正元 $a,b,c$（各自取 $g_{i-1},g_{i+1},g_i$ 或其逆的某次幂），满足\n$$ac=ca,\\qquad bc=cb,\\qquad aba^{-1}b^{-1}=c^{-1}.$$\n断言 $a\\gg c$ 或 $b\\gg c$ 必居其一。否则存在 $n\\geqslant1$ 使得 $c^n\\succ a$ 且 $c^n\\succ b$。令\n$$d_m=a^m b^m (a^{-1}c^n)^m (b^{-1}c^n)^m.$$\n$d_m$ 为正元之积，故 $d_m\\succ id$。但直接计算可得 $d_m=c^{-m^2+2mn}$，当 $m$ 充分大时 $c^{-m^2+2mn}\\prec id$，矛盾。\n\n由断言得 $|g_i|\\ll|g_{i-1}|$ 或 $|g_i|\\ll|g_{i+1}|$。若 $|g_1|\\ll|g_2|$，则沿指标传递得\n$$|g_1|\\ll|g_2|\\ll|g_3|\\ll|g_4|\\ll|g_5|\\ll|g_6|\\ll|g_1|,$$\n矛盾。$|g_1|\\gg|g_2|$ 的情形对称。故 $\\Gamma$ 不可序。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.3.",
       "D. Witte-Morris, Amenable groups that act on the line, Algebr. Geom. Topol. 6 (2006), 2509–2518."

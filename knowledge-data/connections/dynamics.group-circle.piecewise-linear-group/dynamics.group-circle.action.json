@@ -3,7 +3,7 @@
   "to": "dynamics.group-circle.action",
   "description": {
     "zh": [
-      "$\\operatorname{PL}_+(\\mathbb S^1)$ 的具体构造（在二进有理分点之间由仿射映射 $x\\mapsto ax+b$ 拼接连接）为圆周上的群作用概念提供了可显式计算的第二个基本例子。"
+      "$\\operatorname{PL}_+(\\mathbb S^1)$ 的具体构造（在二进有理分点之间由仿射映射 $x\\mapsto ax+b$ 拼接连接）为圆周上的群作用概念提供了可显式计算的第二个例子。"
     ]
   }
 }

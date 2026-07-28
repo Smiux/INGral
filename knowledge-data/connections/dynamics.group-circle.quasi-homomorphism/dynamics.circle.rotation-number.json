@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.quasi-homomorphism",
-  "to": "dynamics.circle.rotation-number",
-  "description": {
-    "zh": [
-      "平移数 $T(\\tilde f)=\\tilde f(0)$ 是 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 上的拟同态，旋转数 $\\rho(f)$ 是其约化到 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的像。"
-    ]
-  }
-}

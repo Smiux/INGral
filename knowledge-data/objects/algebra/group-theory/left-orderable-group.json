@@ -1,0 +1,53 @@
+{
+  "id": "algebra.group-theory.left-orderable-group",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "左可序群",
+      "左序化群"
+    ]
+  },
+  "description": {
+    "zh": [
+      "群 $\\Gamma$ 称为**左可序**（left-orderable），若存在全序 $\\preceq$ 满足左平移不变性：$\\gamma_1\\preceq\\gamma_2\\implies\\gamma\\gamma_1\\preceq\\gamma\\gamma_2$ 对一切 $\\gamma,\\gamma_1,\\gamma_2\\in\\Gamma$。可数群 $\\Gamma$ 左可序当且仅当 $\\Gamma$ 可忠实地通过保向同胚作用在 $\\mathbb R$ 上。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "序群",
+      "直线上的作用",
+      "忠实作用",
+      "保向同胚",
+      "有界 Euler 类"
+    ],
+    "notes": [
+      {
+        "zh": "右可序性（$\\gamma_1\\preceq\\gamma_2\\implies\\gamma_1\\gamma\\preceq\\gamma_2\\gamma$）可类似定义。双向可序的群（如 $\\operatorname{PL}_+([0,1])$）还具有所有元素可比较且和自身逆可比的性质。"
+      },
+      {
+        "zh": "可数挠自由交换群（如 $\\mathbb Q$ 向量空间）是可序的；可解群或剩余可解群（当商群挠自由交换时）也忠实地作用在 $\\mathbb R$ 上。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "实数轴 $\\mathbb R$ 具有自然的全序结构。若一个群 $\\Gamma$ 通过保向同胚忠实地作用在 $\\mathbb R$ 上，则 $\\mathbb R$ 的序可通过作用拉回到群上：任取一点 $x_0$（稳定子平凡），定义 $\\gamma_1\\preceq\\gamma_2$ 当且仅当 $\\gamma_1(x_0)\\leq\\gamma_2(x_0)$。保向性保证了该关系在左平移下不变，因此 $\\Gamma$ 成为左可序群。即使没有稳定子平凡的点，利用 $\\mathbb R$ 中可数稠密集上的逐点比较也可构造同样的序。左可序性是群能忠实地作用于 $\\mathbb R$ 的必要条件。\n\n反之，每个可数左可序群都可以忠实地通过保向同胚作用在 $\\mathbb R$ 上。枚举群元素，按序的二分法递归地为每个元素分配一个实数——比所有已编号元素都大的取当前最大值加一，都小的取最小值减一，位于两个已有元素之间的取中点。左平移在该嵌入像上的作用可连续延拓到像集的闭包，再在每个补区间上仿射延拓到整个 $\\mathbb R$。这一构造不依赖于序的附加性质，且当群非平凡时所得作用无全局不动点。\n\n## 序群论与一维动力学的双向关系\n\n该等价关系建立了序群论与一维动力学之间的双向通道。从群论到动力学：给定群的代数性质，可通过构造合适的 $\\mathbb R$ 上的作用来揭示其序结构。从动力学到群论：$\\mathbb R$ 上作用的动力学性质可反映为群序的代数特征——例如，双不变序对应于作用中每个元素要么处处大于等于恒等映射、要么处处小于等于恒等映射。\n\n## 在圆周动力学中的应用\n\n$\\mathbb R$ 可视为去掉一点的圆周，因此 $\\mathbb R$ 上的作用等价于圆周上具有公共不动点的作用。群在圆周上的作用存在公共不动点当且仅当其有界 Euler 类为零，当且仅当该群左可序且该作用共轭于序的动力实现的适当变形。换言之，左可序性、有界上同调的平凡性和圆周作用的降维之间存在着内在联系。"
+      }
+    ],
+    "examples": {
+      "zh": [
+        "群 $\\mathbb Z^2$ 装备字典序是左可序群的具体实例。定义序关系 $(m_1,n_1)\\preceq(m_2,n_2)$ 当且仅当 $m_1<m_2$，或 $m_1=m_2$ 且 $n_1\\leq n_2$。容易验证该关系是左不变（加法平移保持序）的全序。由等价关系，$\\mathbb Z^2$ 可通过保向同胚忠实地作用在 $\\mathbb R$ 上；其动力实现给出的作用中每个非平凡元素要么处处大于恒等映射、要么处处小于恒等映射（因字典序实际上是双不变序）。",
+        "自由群 $\\mathbb F_2$ 是左可序的。考虑非交换形式幂级数环 $\\mathbb Z\\langle\\langle X,Y\\rangle\\rangle$，其乘法子群 $L=1+\\mathfrak o(1)$ 由常数项为 $1$ 的幂级数构成。将生成元 $a,b$ 分别映到 $1+X,1+Y$，该映射可唯一延拓为单同态 $\\varphi:\\mathbb F_2\\to L$。在 $L$ 上按幂级数首项系数的字典序定义全序，该序在 $L$ 的乘法下左不变。通过 $\\varphi$ 拉回即得 $\\mathbb F_2$ 上的左不变全序。该构造同时也证明 $\\mathbb F_2$ 是剩余幂零群。",
+        "$\\operatorname{SL}(3,\\mathbb Z)$ 的有限指数子群均不是左可序群。对任意有限指数子群 $\\Gamma\\leq\\operatorname{SL}(3,\\mathbb Z)$，存在充分大的 $k\\in\\mathbb N$ 使以下六个幂幺矩阵属于 $\\Gamma$：$$g_1=\\begin{pmatrix}1&k&0\\\\0&1&0\\\\0&0&1\\end{pmatrix},\\; g_2=\\begin{pmatrix}1&0&k\\\\0&1&0\\\\0&0&1\\end{pmatrix},\\; g_3=\\begin{pmatrix}1&0&0\\\\0&1&k\\\\0&0&1\\end{pmatrix},$$ $$g_4=\\begin{pmatrix}1&0&0\\\\k&1&0\\\\0&0&1\\end{pmatrix},\\; g_5=\\begin{pmatrix}1&0&0\\\\0&1&0\\\\k&0&1\\end{pmatrix},\\; g_6=\\begin{pmatrix}1&0&0\\\\0&1&0\\\\0&k&1\\end{pmatrix}.$$ 它们满足循环交换关系 $g_ig_{i+1}=g_{i+1}g_i$ 及 $[g_{i-1},g_{i+1}]=g_i^k$（指标模 $6$）。利用这些关系可证若 $\\Gamma$ 装备左不变全序，则 $|g_1|\\ll|g_2|\\ll\\cdots\\ll|g_6|\\ll|g_1|$ 构成循环矛盾（其中 $|g|$ 表示 $g$ 与其逆中正者，$\\ll$ 表压倒性大于关系）。因此 $\\operatorname{SL}(3,\\mathbb Z)$ 的有限指数子群不可序。由等价关系，这些群在圆周上的任何保向同胚作用像必有限。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "**（⇐）忠实作用 ⇒ 左可序：**\n设 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb R)$ 忠实。若存在 $x_0\\in\\mathbb R$ 使稳定子平凡，直接定义 $\\gamma_1\\preceq\\gamma_2\\iff\\phi(\\gamma_1)(x_0)\\leq\\phi(\\gamma_2)(x_0)$——左不变性由 $\\phi(\\gamma\\gamma_i)(x_0)=\\phi(\\gamma)(\\phi(\\gamma_i)(x_0))$ 及 $\\phi(\\gamma)$ 保向保证。若无这样的点，取可数稠密集 $\\{x_i\\}_{i\\in\\mathbb N}\\subset\\mathbb R$。对 $\\gamma_1\\neq\\gamma_2$，定义 $i(\\gamma_1,\\gamma_2)=\\min\\{i\\mid\\phi(\\gamma_1)(x_i)\\neq\\phi(\\gamma_2)(x_i)\\}$，令 $\\gamma_1\\preceq\\gamma_2$ 若 $\\phi(\\gamma_1)(x_{i(\\gamma_1,\\gamma_2)})<\\phi(\\gamma_2)(x_{i(\\gamma_1,\\gamma_2)})$。这是左不变的全序。\n\n**（⇒）左可序 ⇒ 忠实作用：**\n枚举 $\\Gamma=\\{\\gamma_0,\\gamma_1,\\dots\\}$。归纳构造 $\\nu\\colon\\Gamma\\to\\mathbb R$：\n- $\\nu(\\gamma_0)$ 任意。\n- 假设 $\\nu(\\gamma_0),\\dots,\\nu(\\gamma_i)$ 已定义。若 $\\gamma_{i+1}\\prec\\gamma_j$（或 $\\gamma_j\\prec\\gamma_{i+1}$）对所有 $j\\leq i$ 成立，取 $\\nu(\\gamma_{i+1})=\\min_{j\\leq i}\\nu(\\gamma_j)-1$（或 $=\\max_{j\\leq i}\\nu(\\gamma_j)+1$）。\n- 否则存在 $\\alpha,\\beta\\leq i$ 使 $\\gamma_\\alpha\\prec\\gamma_{i+1}\\prec\\gamma_\\beta$ 且 $\\gamma_\\alpha,\\gamma_{i+1},\\gamma_\\beta$ 之间无其他 $\\gamma_j$（$j\\leq i$），取 $\\nu(\\gamma_{i+1})=(\\nu(\\gamma_\\alpha)+\\nu(\\gamma_\\beta))/2$。\n\n令 $\\overline X=\\overline{\\nu(\\Gamma)}\\subset\\mathbb R$。$\\overline X$ 无界，其补的每个连通分支 $(a,b)$ 满足 $a,b\\in\\nu(\\Gamma)$。$\\Gamma$ 通过左平移作用于 $\\nu(\\Gamma)$：$\\phi(\\gamma)(\\nu(\\eta))=\\nu(\\gamma\\eta)$。该映射可连续延拓到 $\\overline X$：若 $x=\\lim_n\\nu(\\gamma_{i_n})=\\lim_m\\nu(\\gamma_{j_m})$（$\\gamma_{i_n}$ 递增，$\\gamma_{j_m}$ 递减），而 $\\lim_n\\nu(\\gamma\\gamma_{i_n})<\\lim_m\\nu(\\gamma\\gamma_{j_m})$，则两极限是 $\\overline X$ 的补区间的端点，应为 $\\nu$ 的像——左乘 $\\gamma^{-1}$ 后导出矛盾。最后将 $\\phi(\\gamma)$ 在 $\\overline X$ 的每个补区间上仿射延拓到全 $\\mathbb R$，即得忠实保向作用。"
+      ]
+    },
+    "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407, §6.5.",
+      "P. Conrad, Right-ordered groups, Michigan Math. J. 6 (1959), 267-275."
+    ]
+  }
+}

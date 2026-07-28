@@ -3,13 +3,12 @@
   "type": "definition",
   "name": {
     "zh": [
-      "拟不变测度",
-      "拟不变 Radon 测度"
+      "拟不变测度"
     ]
   },
   "description": {
     "zh": [
-      "设 $\\Gamma$ 为 $\\operatorname{Homeo}_+(\\mathbb R)$ 子群，$\\nu$ 为 $\\mathbb R$ 上的 Radon 测度（紧集上有限的 Borel 测度）。称 $\\nu$ 关于 $\\Gamma$ **拟不变**，若对每个 $g\\in\\Gamma$ 存在正常数 $\\kappa(g)>0$ 使 $g^*\\nu=\\kappa(g)\\cdot\\nu$，即对每个 Borel 集 $A$ 有 $\\nu(g(A))=\\kappa(g)\\cdot\\nu(A)$。"
+      "设 $\\Gamma$ 为 $\\operatorname{Homeo}_+(\\mathbb R)$ 子群，$\\nu$ 为 $\\mathbb R$ 上的 Radon 测度。称 $\\nu$ 关于 $\\Gamma$ **拟不变**，若对每个 $g\\in\\Gamma$ 存在正常数 $\\kappa(g)>0$ 使 $g^*\\nu=\\kappa(g)\\cdot\\nu$，即对每个 Borel 集 $A$ 有 $\\nu(g(A))=\\kappa(g)\\cdot\\nu(A)$。"
     ]
   },
   "extension": {
@@ -21,9 +20,16 @@
     ],
     "article": [
       {
-        "zh": "拟不变测度 $\\nu(g(A))=\\kappa(g)\\nu(A)$ 是不变测度的自然推广——它允许群作用通过常数因子 $\\kappa(g)$ 拉伸或压缩测度，而非严格保持。因子 $\\kappa\\colon\\Gamma\\to\\mathbb R_{>0}$ 给出群同态，称为扩张因子（dilatation factor）。拟不变性在以下意义上比不变性更自然：Lebesgue 测度在 $\\mathbb R$ 的保向微分同胚下通常不是不变的（因为 $\\int_A (f^{-1})'\\,dx = \\int_{f^{-1}A}dx$），但它是拟不变的——实际上任何与 Lebesgue 测度等价的测度在 $C^1$ 微分同胚下都是拟不变的。\n\n在仿射群 $\\operatorname{Aff}_+(\\mathbb R)=\\{x\\mapsto\\lambda x+b:\\lambda>0,b\\in\\mathbb R\\}$ 的刻画中，拟不变测度起着分类作用：具有全支撑无原子的拟不变 Radon 测度的 $\\mathbb R$ 同胚群必共轭于仿射子群。这一结果的证明利用了交叉元素引理和 Ping-Pong 论证：如果群不是仿射的，就可以构造自由半群，而自由半群的存在排除了无原子的拟不变测度。\n\n对于无交叉元素的 $\\mathbb R$ 同胚群，拟不变测度的存在性弱于不变测度的存在性。无交叉元素保测定理给出的是不变 Radon 测度（更强的结论），而拟不变测度仅要求放射等价而非严格相等。两类测度的差异在平移数理论中体现：不变测度给出可加的平移数函数 $\\tau(g)=\\nu([x,g(x)[)$，而拟不变测度下平移数将不是严格可加的。"
+        "zh": "## 不变性条件的放宽\n\n在实直线保向同胚群 $\\operatorname{Homeo}_+(\\mathbb R)$ 的研究中，不变 Radon 测度的存在性为群作用提供结构信息。但许多群——最典型的是仿射群 $\\operatorname{Aff}_+(\\mathbb R)$——不保持任何 Radon 测度。仿射群由平移 $f(x)=x+t$ 和伸缩 $g(x)=\\kappa x$ 生成，若它保持某个 Radon 测度 $\\nu$，则平移数的同态性质导出矛盾。但 $\\operatorname{Aff}_+(\\mathbb R)$ 的每个元都将 Lebesgue 测度变为自身的常数倍：$f^*\\mathrm{Leb}=\\mathrm{Leb}$ 而 $g^*\\mathrm{Leb}=\\kappa^{-1}\\mathrm{Leb}$。这说明不变性这个条件在某些自然出现的群作用中过强，需要放松为允许测度在群作用下乘以一个常数因子——这就是拟不变测度。\n\n## 定义与仿射刻画\n\n设 $\\nu$ 为 $\\mathbb R$ 上的 Radon 测度，$\\Gamma$ 为 $\\operatorname{Homeo}_+(\\mathbb R)$ 的子群。称 $\\nu$ 关于 $\\Gamma$ 拟不变，若对每个 $g\\in\\Gamma$ 存在正常数 $\\kappa(g)>0$ 使 $g^*\\nu=\\kappa(g)\\cdot\\nu$，即对任意 Borel 集 $A\\subseteq\\mathbb R$ 有 $\\nu(g(A))=\\kappa(g)\\cdot\\nu(A)$。映射 $\\kappa:\\Gamma\\to\\mathbb R_{>0}$ 是群同态，称为扩张因子。\n\n拟不变测度与仿射群之间有相互刻画：若存在全支撑且无原子的 Radon 测度关于 $\\Gamma$ 拟不变，则 $\\Gamma$ 共轭于 $\\operatorname{Aff}_+(\\mathbb R)$ 的子群。证明通过累积分布函数 $\\varphi(x)=\\nu([0,x])$（$x\\ge0$）将拟不变性转化为共轭后的仿射形式。\n\n## 可解群上的应用\n\n拟不变测度在一维动力学中的应用主要体现在可解群的分类。有限生成幂零群总保持 Radon 测度，但这不适用于可解群——仿射群就是反例。然而，通过正规子群链逐步传递测度性质的方法，可证明一大类可解群保持拟不变 Radon 测度。\n\n设 $\\Gamma$ 为 $\\operatorname{Homeo}_+(\\mathbb R)$ 的可解子群，且存在子群链 $\\{\\mathrm{id}\\}=\\Gamma_n\\triangleleft\\Gamma_{n-1}\\triangleleft\\cdots\\triangleleft\\Gamma_0=\\Gamma$，其中每个 $\\Gamma_i$ 有限生成、每个商 $\\Gamma_{i-1}/\\Gamma_i$ 为 Abel 群，则 $\\Gamma$ 保持拟不变 Radon 测度。证明机制如下：若正规子群 $\\Gamma_0\\triangleleft\\Gamma$ 保持不变测度 $\\nu$ 且 $\\tau_\\nu(\\Gamma_0)\\neq\\{0\\}$，则当存在元素改变 $\\nu$ 的尺度（即 $\\kappa(\\Gamma)\\neq\\{1\\}$）时 $\\nu$ 关于 $\\Gamma$ 拟不变；反之若 $\\kappa(\\Gamma)=\\{1\\}$ 且 $\\Gamma/\\Gamma_0$ 顺从，则 $\\nu$ 可扩张为 $\\Gamma$ 上的不变测度。借助这一机制可沿子群链将拟不变性从低层传递至整个群。该定理的条件对多循环群自动满足。"
       }
     ],
+    "examples": {
+      "zh": [
+        "设 $\\Gamma$ 为 $\\operatorname{Aff}_+(\\mathbb R)$ 中由 $f(x)=x+1$ 和 $g(x)=2x$ 生成的子群。若 $\\Gamma$ 保持 Radon 测度 $\\nu$，则 $\\tau_\\nu(f)=1\\neq0$。由于 $\\tau_\\nu$ 是同态，$\\tau_\\nu(gfg^{-1})=\\tau_\\nu(f)=1$；但直接计算得 $gfg^{-1}(x)=x+2=f^2(x)$，故 $\\tau_\\nu(gfg^{-1})=2\\tau_\\nu(f)=2$，矛盾。因此 $\\Gamma$ 无不变 Radon 测度。然而 Lebesgue 测度满足 $g^*\\mathrm{Leb}=2^{-1}\\mathrm{Leb}$ 和 $f^*\\mathrm{Leb}=\\mathrm{Leb}$，故 $\\mathrm{Leb}$ 关于 $\\Gamma$ 拟不变，扩张因子 $\\kappa(f)=1$、$\\kappa(g)=2^{-1}$。",
+        "平移数 $\\tau_\\nu$ 的核给出 $\\Gamma$ 中有不动点的元素子群。考虑整数平移群 $\\Gamma=\\{x\\mapsto x+n:n\\in\\mathbb Z\\}$ 和 Lebesgue 测度 $\\mathrm{Leb}$。对 $n>0$ 有 $\\tau_{\\mathrm{Leb}}(x\\mapsto x+n)=\\mathrm{Leb}([x,x+n))=n$；对 $n<0$ 取负值；$n=0$ 时平移数为 $0$。因此 $\\tau_{\\mathrm{Leb}}$ 是从 $\\Gamma$ 到 $(\\mathbb R,+)$ 的嵌入同态，核为 $\\{\\mathrm{id}\\}$——恰对应恒等映射是唯一有不动点的元素。此时平移数像 $\\mathbb Z\\subset\\mathbb R$ 是离散的，$\\Gamma$ 的不变测度不唯一：任何形如 $c\\cdot\\mathrm{Leb}$ 的测度均为不变。",
+        "当平移数像稠密时不变测度唯一。设 $\\Gamma$ 为所有平移 $\\{x\\mapsto x+t:t\\in\\mathbb R\\}$，$\\mathrm{Leb}$ 为 Lebesgue 测度。则 $\\tau_{\\mathrm{Leb}}(x\\mapsto x+t)=t$，像为 $\\mathbb R$ 从而在 $\\mathbb R$ 中稠密。由唯一性，$\\mathrm{Leb}$ 是 $\\Gamma$ 上唯一的不变 Radon 测度（不计常数倍数）。此外 $\\mathrm{Leb}$ 无原子，$\\Gamma$ 在其支撑 $\\mathbb R$ 上的作用极小。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.2."
     ]

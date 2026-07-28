@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.holder-theorem",
+  "to": "dynamics.group-circle.semi-conjugacy",
+  "description": {
+    "zh": [
+      "Hölder 定理的结论之一是自由作用半共轭于平移作用——半共轭映射的构造是该定理证明的关键步骤。"
+    ]
+  }
+}

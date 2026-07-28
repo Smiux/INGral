@@ -1,0 +1,9 @@
+{
+  "from": "algebra.group-theory.tararin-classification",
+  "to": "algebra.group-theory.left-orderable-group",
+  "description": {
+    "zh": [
+      "Tararin 分类描述了可序群上左不变全序空间 $\\mathcal O(\\Gamma)$ 的拓扑结构——该结构决定了群是否具有非平凡左序（即左可序性）。"
+    ]
+  }
+}

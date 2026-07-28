@@ -3,7 +3,7 @@
   "to": "dynamics.conley-theorem",
   "description": {
     "zh": [
-      "Conley 定理的证明以吸引子-排斥子对为基本构件：陷阱区域族诱导的吸引子-排斥子对将链回归集分层，从而构造完全 Lyapunov 函数。"
+      "Conley 定理的证明以吸引子-排斥子对为基本构件，通过陷阱区域族诱导的吸引子-排斥子对将链回归集分层，从而构造完全 Lyapunov 函数。"
     ]
   }
 }

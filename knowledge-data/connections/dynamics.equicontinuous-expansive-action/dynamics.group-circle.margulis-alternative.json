@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.equicontinuous-expansive-action",
-  "to": "dynamics.group-circle.margulis-alternative",
-  "description": {
-    "zh": [
-      "等度连续/扩张二分是 Margulis 定理证明中将极小作用分情形处理的基本划分。"
-    ]
-  }
-}

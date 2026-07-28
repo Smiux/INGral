@@ -22,9 +22,15 @@
     ],
     "article": [
       {
-        "zh": "Schwarzian 导数是 $C^3$ 微分同胚的一个二阶微分不变量，具有两个关键性质：$S(f)\\equiv0$ 当且仅当 $f$ 是 Möbius 变换（$\\frac{ax+b}{cx+d}$），且满足上循环关系 $S(f\\circ g)=S(g)+(g')^2\\cdot S(f)\\circ g$。后一性质意味着 $S(f)$ 在坐标变换下像二次微分式（quadratic differential）一样变换——这使得它可以被解释为射影结构上的一个 2-上循环。\n\n从动力系统的角度看，$S(f)=0$ 刻画了射影作用（Möbius 变换），正如 $f''=0$ 刻画了仿射作用（$x\\mapsto ax+b$）。这对应 Lie 分类中射影几何和仿射几何的区分。在圆周动力学中，若一个群 $\\Gamma$ 共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群，则在适当的坐标系下共轭映射的 Schwarzian 导数为零。\n\n一个深刻的应用：$S(f)$ 的正负性在区间动力学中决定了映射的扩张性。对于 $C^3$ 区间映射，若 $S(f)<0$（称为负 Schwarzian 导数），则 $f$ 具有良好的扩张性质和单峰性——这是生成混沌（拓扑传递、敏感依赖性）的充分条件。在圆周上，这个条件也出现在区间映射的 Milnor-Thurston  kneading 理论中。\n\nSchwarzian 导数与复分析的联系：全纯函数的 Schwarzian 导数 $S(f)$ 与施图姆-刘维尔方程 $u''+\\frac12S(f)u=0$ 的解空间有关。若 $f$ 全纯且 $S(f)\\equiv0$，则 $f$ 是 Möbius 变换——这是经典 Liouville 定理的 Scharzian 类比。Navas 的书指出，$S(f)$ 在圆周射影结构理论中扮演的角色类似于曲率在 Riemann 几何中的角色。"
+        "zh": "## 偏离 Möbius 变换的度量\n\nMöbius 变换 $x\\mapsto(ax+b)/(cx+d)$（$ad-bc\\neq0$）是复平面上最基本的共形映射。一个 $C^3$ 微分同胚在多大程度上偏离了 Möbius 变换？Schwarzian 导数给出了一个精确的量化。对 $\\mathbb R$（或 $\\mathbb C$）上 $C^3$ 微分同胚 $f$，其 Schwarzian 导数为\n\n$$\nS(f)=\\frac{f'''}{f'}-\\frac32\\left(\\frac{f''}{f'}\\right)^2.\n$$\n\n$S(f)\\equiv0$ 当且仅当 $f$ 是 Möbius 变换。因此 Schwarzian 导数同时涉及 $f$ 的一阶、二阶和三阶导数，无法由低阶信息单独决定——这与曲率需用到二阶导数以上才能刻画是类似的。\n\n## 上循环与二次微分式\n\nSchwarzian 导数满足一个上循环关系：\n\n$$\nS(f\\circ g)=S(g)+(g')^2\\cdot S(f)\\circ g.\n$$\n\n这一关系使得 Schwarzian 导数在坐标变换下具有类似二次微分式的行为。在圆周上给定一个射影结构——即一组局部坐标，其坐标变换限制为 Möbius 变换——Schwarzian 导数在该结构下可被良定义为一个二次微分式。在不同射影坐标卡下计算的 Schwarzian 导数相差一个由坐标变换导数的平方决定的因子，这恰是二次微分式在坐标变换下的行为。\n\n## 等价形式\n\nSchwarzian 导数有几种等价的解析表达。一种是极限形式：\n\n$$\nS(g)(y)=6\\lim_{x\\to y}\\left[\\frac{g'(x)g'(y)}{(g(x)-g(y))^2}-\\frac1{(x-y)^2}\\right],\n$$\n\n将 Schwarzian 导数与交叉比联系起来。另一种是通过二阶微分算子作用于 $1/\\sqrt{g'}$：\n\n$$\n-\\frac1{2\\sqrt{g'}}S(g)=\\frac{d^2}{dx^2}\\left(\\frac1{\\sqrt{g'}}\\right),\n$$\n\n揭示出它与二阶线性微分方程之间的自然关联。\n\n## 零点个数的下界\n\n在配备了标准射影结构的圆周上，每个微分同胚至少存在四个点使其 Schwarzian 导数为零。这是 Sturm–Liouville 理论的一个推论，也是 Schwarzian 导数零点分布问题的基础结论。"
       }
     ],
+    "examples": {
+      "zh": [
+        "Möbius 变换的 Schwarzian 导数为零。取 $f(x)=(ax+b)/(cx+d)$，其中 $ad-bc\\neq0$。计算得 $f'(x)=(ad-bc)/(cx+d)^2$，$f''(x)=-2c(ad-bc)/(cx+d)^3$，$f'''(x)=6c^2(ad-bc)/(cx+d)^4$。代入定义式有 $f'''/f'=6c^2/(cx+d)^2$，而 $(f''/f')^2=4c^2/(cx+d)^2$。因此\n\n$$\nS(f)=\\frac{6c^2}{(cx+d)^2}-\\frac32\\cdot\\frac{4c^2}{(cx+d)^2}=0。\n$$\n\n反之，若一个 $C^3$ 微分同胚的 Schwarzian 导数恒为零，则该微分同胚必为 Möbius 变换。这说明 Möbius 变换恰是 Schwarzian 导数为零的微分同胚。",
+        "Schwarzian 导数在标准射影结构下作为二次微分式是良定义的。圆周 $\\mathbb S^1$ 上的标准射影结构由两套局部坐标给出：坐标 $\\varphi_1$ 的逆映射为 $\\alpha\\mapsto\\tan\\alpha$（$\\alpha\\in(0,\\pi)$），坐标 $\\varphi_2$ 的逆映射为 $\\alpha\\mapsto\\operatorname{ctg}\\alpha$（$\\alpha\\in(-\\pi/2,\\pi/2)$）。两套坐标之间的变换 $\\varphi_2^{-1}\\circ\\varphi_1(t)=1/t$ 是 Möbius 变换。设 $f\\colon\\mathbb S^1\\to\\mathbb S^1$ 是一个微分同胚，在 $\\varphi_1$ 坐标下的局部表示为 $f_1=\\varphi_1^{-1}\\circ f\\circ\\varphi_1$，在 $\\varphi_2$ 坐标下的局部表示为 $f_2=\\varphi_2^{-1}\\circ f\\circ\\varphi_2$。根据上循环关系，有\n\n$$\nS(f_2)(x)=((\\varphi_2^{-1}\\circ\\varphi_1)')^2\\cdot S(f_1)(\\varphi_2^{-1}\\circ\\varphi_1(x))。\n$$\n\n由于 $(\\varphi_2^{-1}\\circ\\varphi_1)'$ 处处非零，Schwarzian 导数的零点集与坐标选取无关，它在射影结构下构成一个良定义的二次微分式。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.3.1."
     ]

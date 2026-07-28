@@ -3,13 +3,12 @@
   "type": "definition",
   "name": {
     "zh": [
-      "Thompson 群",
-      "Thompson 的 $G$ 群"
+      "Thompson 群"
     ]
   },
   "description": {
     "zh": [
-      "Thompson 群 $G$ 是 $\\operatorname{PL}_+(\\mathbb S^1)$ 中由满足以下条件的同胚生成的子群：\n(i) 单调递增，连续，分段仿射（每段形如 $x\\mapsto 2^mx+r$，$m,r\\in\\mathbb Z$）；\n(ii) 仅有限个间断点，且间断点在 $\\mathbb Z[1/2]$ 中；\n(iii) 分段间的连接点为二进有理数。"
+      "Thompson 群 $G$ 是 $\\operatorname{PL}_+(\\mathbb S^1)$ 的可数子群，其提升 $\\widetilde G\\subset\\widetilde{\\operatorname{Homeo}}_+(\\mathbb R)$ 的元素 $\\tilde f$ 满足以下条件：\n(i) 存在递增序列 $x_i\\in\\mathbb Z[1/2]$，$\\lim_{\\pm\\infty}x_i=\\pm\\infty$，使 $\\tilde f$ 在每个区间 $[x_i,x_{i+1}]$ 上是仿射映射；\n(ii) $\\tilde f(x_i)\\in\\mathbb Z[1/2]$（特别是 $\\tilde f$ 保持二进有理数集）；\n(iii) $\\tilde f$ 在各区间上的斜率为 $2$ 的整数次幂；\n(iv) $\\tilde f(x+1)=\\tilde f(x)+1$ 对一切 $x\\in\\mathbb R$。\n\n$G$ 由 $\\widetilde G$ 中元素通过商映射 $\\mathbb R\\to\\mathbb R/\\mathbb Z$ 诱导。"
     ]
   },
   "extension": {
@@ -21,14 +20,21 @@
     ],
     "notes": [
       {
-        "zh": "Thompson 群 $G$ 不包含非交换自由子群，但也不是虚拟可解群——因此它展示了 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的子群可以超出 Tits 交替（虚拟可解 $\\mapsto$ 非交换自由）的范畴。"
+        "zh": "Thompson 群 $F$（$G$ 的区间版本）可忠实地 $C^\\infty$ 作用于 $[0,1]$。"
       }
     ],
     "article": [
       {
-        "zh": "Thompson 群 $G$ 是组合群论和动力系统交汇处的卓越研究对象。它通过分式线性变换与模群 $\\operatorname{PSL}(2,\\mathbb Z)$ 有着惊人的联系：将 $\\mathbb R/\\mathbb Z$ 中的二进有理点映到 $\\mathbb{RP}^1$ 中的有理点的同胚将 $G$ 共轭到 $\\mathbb{RP}^1$ 上的分段 $\\operatorname{PSL}(2,\\mathbb Z)$ 同胚群。\n\n$G$ 的重要性体现在多个层面。它是 $\\operatorname{PL}_+(\\mathbb S^1)$ 中 Fuchs 群的类比——正如 Fuchs 群是 $\\operatorname{PSL}(2,\\mathbb R)$ 的离散子群，$G$ 是 $\\operatorname{PL}_+(\\mathbb S^1)$ 的可数子群。同时，$G$ 是无限有限表示单群。此外，$G$ 是各类反例构造的丰富来源。\n\n$G$ 的一个惊人性质是它具有 $\\mathrm C^{\\infty}$ 光滑实现，由 Ghys 与 Sergiescu 给出。该构造将每个满足 $H(x+1)=H(x)+2$ 和 $H(0)=0$ 的同胚 $H\\colon\\mathbb R\\to\\mathbb R$ 对应到 $G$ 的表示 $\\Phi_H$。当 $H$ 是 $\\mathrm C^r$ 微分同胚且其 $0$ 处 Taylor 展开至 $r$ 阶与恒等映射重合时，$\\Phi_H(G)$ 为 $\\mathrm C^r$ 圆周微分同胚群。标准例子 $H(x)=2x$ 给出分段仿射作用。此外，通过 Thurston 的 Farey 序列构造，$G$ 还有 $\\mathrm C^{1+\\mathrm{Lip}}$ 实现——分点为有理数，区间间映射为 $\\operatorname{PSL}(2,\\mathbb Z)$ 元素的限制。\n\n一个值得注意的动力系统结果是：当构造中的同胚 $H$ 至少有两个不动点时，$\\Phi_H(G)$ 的作用具有例外极小集。这表明即使对无限可微的群作用，例外极小集的出现仍然是可能的，而并非光滑性本身可排除的现象。"
+        "zh": "## 第一个无限有限表示单群\n\n1960 年代，Richard Thompson 在寻找同时满足三条性质的群——无限、有限表示且单（无非平凡正规子群）——时，构造了一族群。其中的成员 $G$ 是首个满足这三条性质的已知例子。Thompson 群 $F$（$G$ 的区间版本）后来在多个数学分支中被深入研究：它的顺从性问题已悬置数十年。\n\n## 构造：二进有理数与 2 的幂\n\nThompson 群 $G$ 是 $\\operatorname{PL}_+(\\mathbb S^1)$ 的一个可数子群。考虑实直线上的分段线性同胚 $\\tilde f$，要求：分段点取在二进有理数（形如 $p/2^q$ 的有理数）上；$\\tilde f$ 保持二进有理数集；在每个线性分段上的斜率为 $2$ 的整数次幂；且 $\\tilde f(x+1)=\\tilde f(x)+1$。这些条件保证了 $\\tilde f$ 诱导一个圆周同胚，所有这样的圆周同胚构成 $G$。\n\n区间版 $F$ 是 $G$ 限制在 $[0,1]$ 上并固定端点的分段线性同胚构成的群。$F$ 有有限表示，由两个生成元和两个关系刻画。$F$ 无挠，其 Abel 化同构于 $\\mathbb Z\\times\\mathbb Z$，导群 $[F,F]$ 是单群。\n\n## 与模群的惊人联系\n\n$G$ 与模群 $\\operatorname{PSL}(2,\\mathbb Z)$ 之间存在一个出人意料的联系：存在一个同胚将 $\\mathbb R/\\mathbb Z$ 映到 $\\mathbb{RP}^1$，将二进有理数映到有理射影点，并将 $G$ 共轭为 $\\mathbb{RP}^1$ 上分段 $\\operatorname{PSL}(2,\\mathbb Z)$ 映射构成的群。这一联系说明 $G$ 在 $\\operatorname{PL}_+(\\mathbb S^1)$ 中的地位类似于 Fuchs 群在 $\\operatorname{PSL}(2,\\mathbb R)$ 中的地位。\n\n## 动力学性质\n\n$G$ 在圆周上具有光滑极小作用——所有轨道稠密，且可实现为 $C^\\infty$ 微分同胚（Ghys–Sergiescu 定理）。$G$ 在动力学上表现出若干微妙的现象。其指数集（导数沿随机游走呈正指数增长率的点集）的 Lebesgue 测度为零，说明正指数增长率不是遍历性的必要条件。然而对任意有限支集概率分布，$G$ 的平稳测度关于 Lebesgue 测度奇异，且支撑在指数集上。$G$ 作用中的不可扩张点集有限，各不可扩张点为某元素的孤立不动点。\n\n$G$ 不包含二元生成自由子群——这与 Brin–Squier 定理一致——但也不满足任何律。这一性质在光滑性光谱的末端解析作用中不可能出现，表明光滑性约束对圆周上的群作用施加了严格的限制。"
       }
     ],
+    "examples": {
+      "zh": [
+        "设 $G$ 的光滑极小作用由有限对称生成元集 $\\mathcal G$ 生成。对 $x\\in\\mathbb S^1$ 定义 $\\lambda(x)=\\limsup_{n\\to\\infty}\\max_{h\\in B_{\\mathcal G}(n)}\\log(h'(x))/n$，其中 $B_{\\mathcal G}(n)$ 是由 $\\mathcal G$ 中至多 $n$ 个元素乘积组成的集合。指数集 $E(G)=\\bigcup_{\\lambda>0}E_\\lambda(G)$，其中 $E_\\lambda(G)=\\{x\\in\\mathbb S^1:\\lambda(x)\\ge\\lambda\\}$。$E(G)$ 是 $G$-不变 Borel 集，且 $\\operatorname{Leb}(E(G))=0$。",
+        "对 $G$ 的极小作用上任意有限支集概率分布 $\\nu$，存在唯一的 $\\nu$-平稳测度 $\\mu$。该测度满足 $\\mu(E(G))=1$ 而 $\\operatorname{Leb}(E(G))=0$，故 $\\mu$ 与 Lebesgue 测度相互奇异。这意味着沿 $G$ 作用导数具有正指数增长率的点在平稳测度意义下是典型的，但在 Lebesgue 测度意义下是零测的。",
+        "$G$ 的极小作用中的不可扩张点集是有限的。对每个不可扩张点 $y$，存在 $g_+,g_-\\in G$ 满足 $g_\\pm(y)=y$，且 $g_+$ 在 $(y,y+\\varepsilon)$ 中无其他不动点，$g_-$ 在 $(y-\\varepsilon,y)$ 中无其他不动点。因此 $y$ 是 $g_+$ 的右侧拓扑排斥不动点。"
+      ]
+    },
     "references": [
       "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
       "R. Thompson, unpublished manuscript, 1965.",

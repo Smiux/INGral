@@ -3,7 +3,7 @@
   "to": "dynamics.conley-theorem",
   "description": {
     "zh": [
-      "Conley 定理断言存在一个完全 Lyapunov 函数，其在链回归集上为常数，在其余地方严格下降。"
+      "完全 Lyapunov 函数是 Lyapunov 函数在动力系统全局分析中的推广，Conley 定理保证其在每个离散动力系统中存在。"
     ]
   }
 }

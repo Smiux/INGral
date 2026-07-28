@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "Conrad 性质",
-      "C-可序群"
+      "Conrad 性质"
     ]
   },
   "description": {
@@ -17,7 +16,7 @@
       "可序群",
       "序空间",
       "实直线作用",
-      "Conrad"
+      "右回复序"
     ],
     "notes": [
       {
@@ -26,9 +25,15 @@
     ],
     "article": [
       {
-        "zh": "Conrad 性质是可序群理论中的一个精细条件，其动力学意义在于：具有 Conrad 性质的序的动力学实现恰好是无交叉元素（crossed elements）的忠实 $\\operatorname{Homeo}_+(\\mathbb R)$ 作用。换言之，Conrad 性质是「群可忠实地无交叉元素作用在 $\\mathbb R$ 上」的代数等价描述。\n\n右回复序（right-recurrent ordering）要求 $\\forall f\\succ{\\rm id},\\forall h,\\exists n$ 使 $fh^n\\succ h^n$——比 Conrad 性质更强。Poincaré 回复定理证明顺从可序群存在右回复序。\n\n一个非右回复但 Conrad 的例子是 Klein 四元群 $\\langle f,g\\mid fgf^{-1}=g^{-1}\\rangle$。"
+        "zh": "## 起源\n\n考虑群 $\\Gamma$ 上的一个左不变全序 $\\preceq$。称正元 $f\\in\\Gamma$（即 $f\\succ\\mathrm{id}$）关于另一正元 $h$ 是 **Conrad 的**，若存在 $n\\in\\mathbb N$ 使 $fh^n\\succ h$。这看起来是一个相当弱的条件——它只要求 $f$ 不能无限地「小于」$h$ 以致于乘 $h$ 的任意次幂后仍被 $h$ 压制。然而这个条件在一维动力系统中扮演着关键角色。\n\n这个条件最初在对右回复序（right-recurrent ordering）的动力学分析中被提取出来。在证明右回复序的动力学实现不含交叉元素时，实际使用的条件比右回复性更弱——正是上述 Conrad 条件。\n\n## 动力学刻画\n\n$\\operatorname{Homeo}_+(\\mathbb R)$ 的子群中的交叉元素指的是这样一种配对：若序的动力学实现中出现了交叉元素，则该序不可能由无交叉的 $\\mathbb R$ 作用诱导出来。具有 Conrad 性质的序的动力学实现——通过稠密点列的字典序构造的忠实作用——恰好不含交叉元素。反之，若 $\\operatorname{Homeo}_+(\\mathbb R)$ 的子群没有交叉元素，则同一构造诱导的群序满足 Conrad 条件。因此 Conrad 性质给出了「群可忠实地无交叉元素作用在 $\\mathbb R$ 上」的纯代数描述。\n\n## 群论刻画\n\n从群论角度看，C-可序性精确刻画了局部可指示群（locally indicable groups）：其每个有限生成子群都存在到 $(\\mathbb R,+)$ 的非平凡同态。这一定义不需要任何动力系统的语言。\n\n## 序谱系中的位置\n\n在左不变全序的谱系中，双不变序是最强的条件——它在左右两边都平移不变。右回复序弱于双不变序。Conrad 性质又弱于右回复序。两类蕴涵都是严格的：存在右回复序但非双不变的群，也存在 Conrad 序但无右回复序的群。"
       }
     ],
+    "examples": {
+      "zh": [
+        "Klein 瓶群 $\\Gamma=\\langle f,g\\mid fgf^{-1}=g^{-1}\\rangle$ 不是双可序的，但接受右回复序。由于右回复性蕴涵 Conrad 性质——对任意正元 $f,h$ 存在 $n$ 使 $fh^n\\succ h^n$，而 $h^n\\succ h$，故 $fh^n\\succ h$——Klein 瓶群是 C-可序的。",
+        "Baumslag-Solitar 群 $\\mathrm{BS}(1,2)=\\langle f,g\\mid fgf^{-1}=g^2\\rangle$ 可忠实地嵌入仿射群：令 $f$ 对应 $x\\mapsto 2x$，$g$ 对应 $x\\mapsto x+1$。此 $\\mathbb R$ 上的仿射作用无交叉元素。取 $\\mathbb R$ 中稠密点列按字典序诱导的群序满足 Conrad 条件，故 $\\mathrm{BS}(1,2)$ 是 C-可序的。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.6.",
       "P. Conrad, Right-ordered groups, Michigan Math. J. 6 (1959), 267-275."

@@ -1,9 +1,0 @@
-{
-  "from": "algebra.group-theory.tararin-classification",
-  "to": "dynamics.group-circle.left-orderable-group",
-  "description": {
-    "zh": [
-      "Tararin 分类完全刻画了可序群上左不变全序的拓扑结构。"
-    ]
-  }
-}

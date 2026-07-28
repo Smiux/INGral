@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.thurston-stability",
+  "to": "algebra.group-theory.left-orderable-group",
+  "description": {
+    "zh": [
+      "Thurston 稳定性定理的一个推论是：每个可数的 $C^1$ 区间微分同胚群是局部可指示的（locally indicable），从而是 C-可序群。该 C-序的动力学实现给出 $\\operatorname{Homeo}_+(\\mathbb R)$ 中无交叉元素的子群。"
+    ]
+  }
+}

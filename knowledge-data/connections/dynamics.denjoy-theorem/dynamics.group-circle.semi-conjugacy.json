@@ -3,7 +3,7 @@
   "to": "dynamics.group-circle.semi-conjugacy",
   "description": {
     "zh": [
-      "Denjoy 定理的证明使用半共轭将微分同胚化归为旋转：由无理旋转数的分类已存在半共轭，进一步证明此半共轭在 $C^{1+\\mathrm{bv}}$ 下必为同胚。"
+      "半共轭是 Denjoy 定理证明中的化归工具，它将微分同胚的动力学约化为刚性旋转，再在 $C^{1+\\mathrm{bv}}$ 条件下证明此半共轭自动为同胚。"
     ]
   }
 }

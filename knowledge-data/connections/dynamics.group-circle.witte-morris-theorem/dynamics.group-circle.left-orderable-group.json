@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.witte-morris-theorem",
-  "to": "dynamics.group-circle.left-orderable-group",
-  "description": {
-    "zh": [
-      "Witte-Morris 定理的适用前提是 $\\Gamma$ 可序，即可作用于 $\\mathbb R$。"
-    ]
-  }
-}

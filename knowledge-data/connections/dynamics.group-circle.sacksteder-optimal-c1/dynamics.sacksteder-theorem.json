@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.sacksteder-optimal-c1",
-  "to": "dynamics.sacksteder-theorem",
-  "description": {
-    "zh": [
-      "Sacksteder 定理在 $C^1$ 下的最优推广，结论从存在双曲不动点增强到存在 $2d(\\Gamma)$ 个双曲不动点。"
-    ]
-  }
-}

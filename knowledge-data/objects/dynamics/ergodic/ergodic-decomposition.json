@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "遍历分解定理",
-      "ergodic decomposition"
+      "遍历分解定理"
     ]
   },
   "description": {
@@ -22,9 +21,20 @@
     ],
     "article": [
       {
-        "zh": "遍历分解定理将任意不变测度表示为遍历测度的凸组合（或积分）。这对应于 Choquet 分解的观点：$\\mathfrak M(T)$（不变概率测度之集）的极值点恰为遍历测度，且每个不变测度可唯一表示为遍历测度的凸组合。\n\n证明的关键是使用条件期望 $\\mathbb E(f|\\operatorname{Inv}(T))$ 和 Birkhoff 遍历定理。对每个 $f$，条件期望 $\\mathbb E(f|\\operatorname{Inv}(T))(x)$ 就是 $f$ 沿 $x$ 轨道的时均极限。令 $\\mu_x$ 为 $\\mathbb E(\\cdot|\\operatorname{Inv}(T))(x)$ 对应的测度（由 Dunford–Pettis 定理或 Radon–Nikodym 导子得到），则 $\\mu=\\int\\mu_x\\,d\\mu(x)$，且 $\\mu_x$ 几乎必然是遍历的。\n\n该定理在应用中的意义是：要研究一个不变测度 $\\mu$ 的渐近性质，只需研究其遍历分量 $\\mu_x$——每个分量对应系统在 $x$ 所在「递推分量」上的不可分解统计行为。"
+        "zh": "## 从 Birkhoff 定理出发\n\nBirkhoff 遍历定理给出了非遍历情形下时均极限的精确描述。对 $f\\in L^1$，极限\n$$\\bar f(x)=\\lim_{N\\to\\infty}\\frac1N\\sum_{k=0}^{N-1} f\\circ T^k(x)$$\n几乎处处存在，且等于 $f$ 关于不变 $\\sigma$-代数 $\\operatorname{Inv}(T)$ 的条件期望 $\\mathbb E(f|\\operatorname{Inv}(T))$。后者是 Radon-Nikodym 导数 $\\frac{d\\nu_f}{d\\mu}|_{\\operatorname{Inv}(T)}$，其中 $\\nu_f(E)=\\int_E f\\,d\\mu$。这个条件期望是在仅知不变集信息时对 $f$ 的最佳估计——当 $T$ 遍历时 $\\operatorname{Inv}(T)$ 为平凡 $\\sigma$-代数，条件期望退化为全局平均 $\\int f\\,d\\mu$；非遍历时 $\\operatorname{Inv}(T)$ 含有更多信息，条件期望也相应更加精细。\n\n## 条件概率\n\n在标准概率空间上，条件期望可以提升为条件概率。存在一族 Borel 概率测度 $\\{\\mu_x\\}_{x\\in X}$ 满足：$x\\mapsto\\mu_x(E)$ 关于 $\\operatorname{Inv}(T)$ 可测，且对任意 $f\\in L^1$ 有\n$$\\int f\\,d\\mu_x = \\mathbb E(f|\\operatorname{Inv}(T))(x)$$\n$\\mu$-几乎处处成立。这族测度将不变 $\\sigma$-代数上的条件期望具体化为概率核。\n\n## 遍历分解\n\n遍历分解定理证明，$\\{\\mu_x\\}$ 几乎处处具有 $T$-不变性和遍历性。因此任意 $T$-不变概率测度 $\\mu$ 可以表示为遍历测度的积分：\n$$\\mu = \\int_X \\mu_x\\,d\\mu(x).$$\n对 $\\mu$-几乎每个 $x$，$\\mu_x$ 描述了系统从 $x$ 出发时统计意义上的不可分解行为，$\\mu$ 的整体性质是这些分量按权重 $\\mu$ 的混合。\n\n## 极值点观点\n\n设 $\\mathfrak M(T)$ 为 $T$ 的不变概率测度之集。$\\mathfrak M(T)$ 是凸集，其极值点恰为遍历测度：若 $\\mu$ 非遍历，取不变集 $E$ 满足 $0<\\mu(E)<1$，则 $\\mu=\\mu(E)\\,\\mu(\\cdot|E)+\\mu(E^c)\\,\\mu(\\cdot|E^c)$，故 $\\mu$ 非极值点。反之，若 $\\mu$ 遍历且 $\\mu = t\\mu_1+(1-t)\\mu_2$，则 $\\mu_i\\ll\\mu$，由遍历定理得 $\\mu_i=\\mu$。遍历分解定理中的积分表示正是 $\\mu$ 作为极值点 Choquet 积分的具体形式。"
       }
     ],
+    "examples": {
+      "zh": [
+        "遍历测度恰为不变概率测度集的极值点。设 $\\mathfrak M(T)$ 为 $T$ 的不变 Borel 概率测度之集。若 $\\mu\\in\\mathfrak M(T)$ 非遍历，则存在不变集 $E$ 满足 $0<\\mu(E)<1$，此时 $\\mu(\\cdot|E)$ 与 $\\mu(\\cdot|E^c)$ 是 $\\mathfrak M(T)$ 中不同的元，且 $\\mu = \\mu(E)\\,\\mu(\\cdot|E) + \\mu(E^c)\\,\\mu(\\cdot|E^c)$，故 $\\mu$ 非极值点。反之，若 $\\mu$ 遍历且 $\\mu = t\\mu_1 + (1-t)\\mu_2$（$0<t<1$，$\\mu_1,\\mu_2\\in\\mathfrak M(T)$），则 $\\mu_i\\ll\\mu$；由遍历定理，对任意 $E\\in\\mathcal B$ 有 $\\mu_i(E)=\\mu(E)$，故 $\\mu_1=\\mu_2=\\mu$，因此 $\\mu$ 是极值点。这一等价关系将遍历性重新刻画为凸结构中的不可分解性，与遍历分解定理中「不变测度可表为遍历测度积分」的结论一致。",
+        "同一变换的不同遍历不变概率测度必相互奇异。设 $\\mu\\neq\\nu$ 均为 $T$ 的遍历不变概率测度。由遍历定理，对任意 $f\\in L^1$ 有\n\\[ \\lim_{N\\to\\infty}\\frac1N\\sum_{k=0}^{N-1}f(T^kx)=\\int f\\,d\\mu\\quad\\mu\\text{-a.e.},\\qquad \\lim_{N\\to\\infty}\\frac1N\\sum_{k=0}^{N-1}f(T^kx)=\\int f\\,d\\nu\\quad\\nu\\text{-a.e.} \\]\n取 $f$ 为使得 $\\int f\\,d\\mu\\neq\\int f\\,d\\nu$ 的函数，则上述极限在 $\\mu$-几乎处处的点上等于 $\\int f\\,d\\mu$，在 $\\nu$-几乎处处的点上等于 $\\int f\\,d\\nu$。若 $\\mu$ 与 $\\nu$ 不相互奇异，则存在正测度集使两极限同时存在且相等，与 $\\int f\\,d\\mu\\neq\\int f\\,d\\nu$ 矛盾。故 $\\mu\\perp\\nu$。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "由标准概率空间的同构定理，可设 $X$ 为紧度量空间，$\\mathcal B$ 为其 Borel $\\sigma$-代数。令 $\\{\\mu_x\\}_{x\\in X}$ 为关于不变 $\\sigma$-代数 $\\operatorname{Inv}(T)$ 的条件概率。对任意 $f\\in L^1$，有\n$$\\int f\\,d\\mu=\\int\\mathbb E(f|\\operatorname{Inv}(T))\\,d\\mu=\\int_X\\int_X f\\,d\\mu_x\\,d\\mu(x),$$\n此即 (1)。\n\n**不变性。** 取可数稠密集 $\\{f_n\\}\\subset C(X)$。由 Birkhoff 遍历定理，存在全测集 $\\Omega$ 使对所有 $x\\in\\Omega$ 及 $n$ 有\n$$\\int f_n\\,d\\mu_x=\\lim_{N\\to\\infty}\\frac1N\\sum_{k=0}^{N-1}f_n(T^kx).$$\n则\n$$\\int f_n\\circ T\\,d\\mu_x=\\lim_{N\\to\\infty}\\frac1N\\sum_{k=0}^{N-1}f_n(T^{k+1}x)=\\int f_n\\,d\\mu_x,$$\n故 $\\mu_x\\circ T^{-1}=\\mu_x$。\n\n**遍历性。** 令 $\\Omega''$ 为 $\\Omega$ 中使对所有 $k$ 有 $\\lim_{n\\to\\infty}\\frac1n\\sum_{i=0}^{n-1}f_k(T^ix)=\\int f_k\\,d\\mu_x$ 的点集（全测）。由 $L^1$ 收敛和 Fatou 引理得\n$$0=\\liminf_{n\\to\\infty}\\bigg\\|\\frac1n\\sum_{k=0}^{n-1}f_k\\circ T^k-\\int f_k\\,d\\mu_x\\bigg\\|_{L^1(\\mu_x)}\\quad\\mu\\text{-a.e.}$$\n因 $\\{f_n\\}$ 在 $L^1(\\mu_x)$ 中稠密，上式对一切 $f\\in L^1(\\mu_x)$ 成立。从而每个 $\\mu_x$-几乎处处 $T$-不变函数必为常数，即 $\\mu_x$ 遍历。"
+      ]
+    },
     "references": [
       "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.3.3."
     ]

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.ruelle-inequality",
+  "to": "dynamics.ergodic.metric-entropy",
+  "description": {
+    "zh": [
+      "Ruelle 不等式给出了度量熵的上界：$h_\\mu(f)\\le(\\ln2)^{-1}\\int\\sum_{\\chi_i>0}\\chi_i\\,d\\mu$，将信息产生率与 Lyapunov 指数联系起来。"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.metric-entropy",
+  "to": "dynamics.ergodic.sinai-generator-theorem",
+  "description": {
+    "zh": [
+      "度量熵的定义要求在所有划分上取上确界，Sinai 生成子定理保证了只需考虑生成子划分，使熵的实际计算得以实现。"
+    ]
+  }
+}

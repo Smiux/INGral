@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.sacksteder-theorem",
-  "to": "dynamics.group-circle.margulis-alternative",
-  "description": {
-    "zh": [
-      "Sacksteder 定理与 Margulis 交替互补，前者在光滑性下给出双曲不动点作为无不变测度的证据，后者在 $C^0$ 下给出自由子群或不变测度的二分。"
-    ]
-  }
-}

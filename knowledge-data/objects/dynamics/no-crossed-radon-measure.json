@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "无交叉元素保测定理",
-      "无交叉 Homeo+(R) 子群保 Radon 测度"
+      "无交叉元素保测定理"
     ]
   },
   "description": {
@@ -26,16 +25,23 @@
     ],
     "article": [
       {
-        "zh": "该定理是无交叉元素直线群作用结构的核心结论，其证明基于极小集的三分类。当极小集为离散情形时，极小集是孤立点列 $\\{y_n\\}_{n\\in\\mathbb Z}$，此时 $\\sum\\delta_{y_n}$ 构成 $\\Gamma$ 不变的 Radon 测度。当极小集稠密（最小情形）时，先证明 $\\Gamma$ 自由作用：若 $f$ 在 $]u,v[$ 上无不动点而 $f$ 固定端点，则因最小性存在 $g$ 将 $u$ 或 $v$ 移入 $]u,v[$，构成交叉；故 $\\Gamma$ 自由作用，由 Hölder 定理得 $\\Gamma$ 共轭于平移子群，拉回 Lebesgue 测度即得不变 Radon 测度。当极小集为局部 Cantor 情形时，塌缩补区间得到商线上的最小自由作用，同上理由得不变测度后再拉回。"
+        "zh": "## 交叉元素\n\n实直线保向同胚群中有一个区分动力学复杂性的局部格局。设 $f,g$ 是两个同胚，若存在区间 $(a,b)$ 使 $f$ 以 $a,b$ 为仅有的不动点（即 $f$ 在 $(a,b)$ 上无不动点），而 $g$ 将 $a$ 或 $b$ 映入 $(a,b)$ 内部，则称 $f,g$ 在 $(a,b)$ 上交叉。交叉元素的存在迫使群包含一个二元生成的自由半群——这一结论将交叉性从动力学的局部现象转化为群的代数结构限制。\n\n## 不存在交叉元素时的测度\n\n实直线保向同胚群上的不变 Radon 测度问题与交叉性紧密相连。群只要有交叉元素，不仅包含自由半群，而且往往不保持任何 Radon 测度。反过来，如果群有限生成且不含交叉元素，则一定保持某个 Radon 测度。幂零群的情形是此结论的特例：幂零群不含自由半群，从而无交叉元素，故保持 Radon 测度。\n\n## 极小不变闭集的三种形态\n\n证明需要分析极小不变闭集 $\\Lambda$ 的可能拓扑结构。$\\Lambda$ 只能是三种情形之一：离散点列、全空间（即作用极小）或局部 Cantor 集。离散情形下各点 Dirac 测度之和即为不变 Radon 测度。极小情形下须先证明作用自由——若非自由，极小性导出交叉元素，与假设矛盾。自由作用配以 Hölder 定理表明群共轭于平移子群，Lebesgue 测度经共轭拉回即得不变测度。局部 Cantor 情形将补区间闭包塌缩为点，将半共轭作用化为自由作用，再由拉回构造不变测度。\n\n## 有限生成的意义\n\n有限生成条件保证了极小不变闭集的存在性。若已知存在无不动点的元素，该条件可略去。但有限生成性本身不可削弱——存在可数无穷生成的 Abel 子群不含交叉元素，却不保持任何 Radon 测度。"
       }
     ],
-    "proof": [
-      {
-        "zh": "若 $\\Gamma$ 有全局不动点则 Dirac 测度为不变测度。下设无全局不动点。因 $\\Gamma$ 有限生成，$\\Gamma$ 保持非空极小闭集 $\\Lambda$，分三种情形。\n\n**情形 (i)** $\\Lambda'=\\varnothing$（离散）：$\\Lambda$ 为递增点列 $\\{y_n\\}_{n\\in\\mathbb Z}$ 且无聚点，$\\sum_{n\\in\\mathbb Z}\\delta_{y_n}$ 为 $\\Gamma$-不变 Radon 测度。\n\n**情形 (ii)** $\\partial\\Lambda=\\varnothing$（稠密/最小）：证 $\\Gamma$ 自由作用——若 $f$ 在 $]u,v[$ 上无不动点但固定端点 $u,v$，由极小性存在 $h\\in\\Gamma$ 将 $u$ 或 $v$ 移入 $]u,v[$，构成交叉元素，矛盾。自由作用结合 Hölder 定理给出 $\\Gamma$ 拓扑共轭于平移子群，拉回 Lebesgue 测度即得不变 Radon 测度。\n\n**情形 (iii)** $\\partial\\Lambda=\\Lambda'=\\Lambda$（局部 Cantor）：将 $\\Lambda$ 之补区间的闭包塌缩为点，得到一条拓扑直线及 $\\Gamma$ 的半共轭作用。此诱导作用自由（同情形 ii），故保 Radon 测度，通过半共轭拉回即得原作用的不变 Radon 测度。\n\n注：有限生成条件仅用于保证极小闭集存在，若无不动点元条件可替代之。有限生成性不可去（存在反例表明有限生成性不可削弱）。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "设 $f(x)=x+1$ 为单位平移，$\\Gamma=\\langle f\\rangle$ 为由 $f$ 生成的群。$\\Gamma$ 有限生成且不含交叉元素。其极小不变闭集为 $\\Lambda=\\mathbb Z$，是离散点列。测度 $\\nu=\\sum_{n\\in\\mathbb Z}\\delta_n$ 赋予每个整数单位质量，且对任意 $k\\in\\mathbb Z$ 满足 $f^k_*(\\nu)=\\nu$，因而是 $\\Gamma$ 不变的 Radon 测度。",
+        "设 $\\Gamma$ 为由 $f(x)=x+1$ 与 $g(x)=x+\\sqrt2$ 生成的群。$\\Gamma$ 是交换群，有限生成，不含交叉元素。其作用极小——每个轨道在 $\\mathbb R$ 中稠密。由于 $\\Gamma$ 的作用自由（平移作用无不动点），Hölder 定理表明 $\\Gamma$ 拓扑共轭于平移子群。Lebesgue 测度在共轭下拉回即为 $\\Gamma$ 的不变 Radon 测度。",
+        "存在可数无穷生成的 Abel 子群 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb R)$，其中任意两个元素交换，故不含交叉元素，但 $\\Gamma$ 不保持 $\\mathbb R$ 上任何 Radon 测度。这表明定理中的有限生成条件是必要的，不可削弱为可数生成。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "若 $\\Gamma$ 有全局不动点则 Dirac 测度为不变测度。下设无全局不动点。因 $\\Gamma$ 有限生成，$\\Gamma$ 保持非空极小闭集 $\\Lambda$，分三种情形。\n\n**情形 (i)** $\\Lambda'=\\varnothing$（离散）：$\\Lambda$ 为递增点列 $\\{y_n\\}_{n\\in\\mathbb Z}$ 且无聚点，$\\sum_{n\\in\\mathbb Z}\\delta_{y_n}$ 为 $\\Gamma$-不变 Radon 测度。\n\n**情形 (ii)** $\\partial\\Lambda=\\varnothing$（稠密/最小）：证 $\\Gamma$ 自由作用——若 $f$ 在 $(u,v)$ 上无不动点但固定端点 $u,v$，由极小性存在 $h\\in\\Gamma$ 将 $u$ 或 $v$ 移入 $(u,v)$，构成交叉元素，矛盾。自由作用结合 Hölder 定理给出 $\\Gamma$ 拓扑共轭于平移子群，拉回 Lebesgue 测度即得不变 Radon 测度。\n\n**情形 (iii)** $\\partial\\Lambda=\\Lambda'=\\Lambda$（局部 Cantor）：将 $\\Lambda$ 之补区间的闭包塌缩为点，得到一条拓扑直线及 $\\Gamma$ 的半共轭作用。此诱导作用自由（同情形 ii），故保 Radon 测度，通过半共轭拉回即得原作用的不变 Radon 测度。"
+      ]
+    },
     "references": [
-      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.5."
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007)."
     ]
   }
 }

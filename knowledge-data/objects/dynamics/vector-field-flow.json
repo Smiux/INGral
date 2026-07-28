@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "向量场及其流",
-      "圆周上的向量场所生成的流"
+      "向量场的流"
     ]
   },
   "description": {
@@ -22,11 +21,17 @@
     ],
     "article": [
       {
-        "zh": "向量场 $X$ 与其生成流 $\\Phi_X$ 的关系可以理解为「无穷小生成元」与「整体演化」之间的双向通道：$(\\partial_t\\Phi_X^t)|_{t=0}=X$ 将流微分得到场，而 $\\Phi_X$ 是 $X$ 的积分曲线族——因此研究 $\\Phi_X$ 等价于解常微分方程 $\\dot x = X(x)$。这一双向通道使得动力系统理论可以交替使用微分几何的工具（研究 $X$ 的奇点、散度、旋度）和拓扑动力学的工具（研究 $\\Phi_X$ 的极限集、回复性、遍历性）。\n\n圆周上的向量场提供了这一框架的最纯净案例。奇点集 $\\operatorname{Sing}(X)=X^{-1}(0)$ 分裂了可能的行为：有奇点时，每点的轨道收敛于某个奇点（梯度状行为）；无奇点时，流是周期的——这由 $\\mathbb T$ 是一维紧流形的拓扑事实保证：一维紧流形上的流要么有奇点，要么全局周期。\n\n无奇点情形下，周期 $T=\\int_{\\mathbb T}dx/X(x)$（严格正且有限）是最小正周期，其倒数 $\\rho_X=1/T$ 是向量场的旋转数。存在 $C^{r+1}$ 共轭 $h$ 使 $h_*X\\equiv\\rho_X$（即 $Dh(X(x))=\\rho_X$）——也就是说，每个无奇点向量场 $C^{r+1}$ 共轭于常向量场。这一共轭的构造是显式的：$h(x)=\\rho_X\\int_0^x dt/X(t)$。由此可推知，$\\Phi_X$ 的 $\\omega$-极限集等于整个 $\\mathbb T$（没有真吸引子），且所有点都是回复的。\n\n有奇点情形则完全相反。$\\operatorname{Sing}(X)\\neq\\varnothing$ 时，每点的 $\\omega$-极限集退化为某个奇点的单点集。因此圆周向量场给出了一个二分法：要么所有点回复且全空间是极小集（无奇点），要么所有轨道收敛到奇点（有奇点）——一维紧流形上不可能存在「既有非平凡回复轨道又有收敛轨道」的混合行为。"
+        "zh": "## 流与向量场的对应\n\n设 $M$ 是可微闭流形，$\\Phi\\colon\\mathbb R\\times M\\to M$ 是 $C^2$ 流。对每个 $p\\in M$，在 $t=0$ 处对时间求导得到切向量\n$$X(p)=\\left.\\partial_t\\Phi(t,p)\\right|_{t=0}\\in T_pM,$$\n称为 $\\Phi$ 的无穷小生成元。$X$ 是 $M$ 上的 $C^1$ 向量场。\n\n反之，给定 $M$ 上的向量场 $X$，考虑常微分方程的初值问题\n$$\\dot x(t)=X(x(t)),\\quad x(0)=x_0,$$\n其唯一解记作 $\\Phi(t,x_0)$。$\\Phi$ 满足流条件，称为 $X$ 生成的流。\n\n## 两种视角\n\n这种双向对应建立了连续时间动力系统研究的双重视角。每个光滑流关联一个向量场（微分），每个足够正则的向量场决定一个流（积分）。轨道 $\\mathcal O_\\Phi(x)=\\{\\Phi(t,x):t\\in\\mathbb R\\}$ 既是流 $\\Phi$ 的轨线，也是向量场 $X$ 过点 $x$ 的积分曲线。向量场提供局部信息（每点处的瞬时变化率），流提供全局信息（轨道在全体时间上的形状与渐近行为）。两种语言互为补充——局部计算从向量场入手更为直接，全局结构的分析则依赖流的整体性质。\n\n## 奇点与周期\n\n向量场 $X$ 的零点称为流 $\\Phi$ 的奇点，记作 $\\operatorname{Sing}(X)=X^{-1}(0)$。奇点处 $\\Phi^t(p)=p$ 对所有 $t$ 成立，轨道退化为一个点。取圆周 $M=\\mathbb T$ 为例。若 $\\operatorname{Sing}(X)\\neq\\varnothing$，则每点沿流趋于某个奇点，轨道结构由奇点的位置和类型决定。若 $\\operatorname{Sing}(X)=\\varnothing$，则 $X$ 处处非零，此时 $\\Phi$ 的所有轨道都是周期的——这是一维情形下无奇点向量场之流的最简单形态。\n\n## 梯度流\n\n梯度流是向量场流的一类例子。设 $M$ 为紧致 Riemann 流形，$L\\colon M\\to\\mathbb R$ 为光滑函数。向量场 $X=-\\nabla L$ 生成的流满足\n$$\\left.\\frac{d}{dt}(L\\circ\\Phi^t)(p)\\right|_{t=0}=-\\|\\nabla L(p)\\|^2\\leqslant0,$$\n故 $L$ 沿轨道不增，且在 $L$ 的正则点处严格递减。若 $L$ 只有有限个临界点，则对任意 $p\\in M$，存在临界点 $\\alpha_p,\\omega_p\\in M$ 使得 $\\Phi^{-t}(p)\\to\\alpha_p$、$\\Phi^t(p)\\to\\omega_p$ 当 $t\\to+\\infty$。梯度流的轨道始终从函数的一个临界点流向另一个临界点，这为构造 Lyapunov 函数提供了范本。"
       }
     ],
+    "examples": {
+      "zh": [
+        "取圆周 $M=\\mathbb T=\\mathbb R/\\mathbb Z$ 上的常向量场 $X\\equiv c$（$c\\neq0$）。对应微分方程 $\\dot x=c$ 在初值 $x(0)=x_0$ 下的唯一解为 $x(t)=x_0+ct$，模 $1$ 后即得流 $\\Phi^t(x_0)=x_0+ct\\pmod 1$。$\\operatorname{Sing}(X)=\\varnothing$，所有轨道都是周期为 $1/|c|$ 的周期轨。该例展示了一维情形下无奇点向量场之流的最简单形态。",
+        "设 $(\\mathbb S^2,\\langle\\cdot,\\cdot\\rangle)$ 为标准 Riemann 球面，$L(x,y,z)=-z$。向量场 $X=-\\nabla L$ 由条件 $\\langle\\nabla L,Y\\rangle=dL(Y)$（对所有向量场 $Y$）唯一确定。$X$ 的奇点集 $\\operatorname{Sing}(X)$ 恰为 $L$ 的临界点集 $\\{(0,0,-1),(0,0,1)\\}$。对任意 $v\\in\\mathbb S^2\\setminus\\{(0,0,\\pm1)\\}$，其轨道满足\n$$\\Phi^t(v)\\to(0,0,-1)\\quad(t\\to+\\infty),\\qquad\\Phi^{-t}(v)\\to(0,0,1)\\quad(t\\to+\\infty).$$\n沿非常值轨道有 $\\left.d(L\\circ\\Phi^t)/dt\\right|_{t=0}=-\\|\\nabla L(v)\\|^2<0$，故 $L$ 严格递减。该例表明梯度向量场的流将点从函数的一个临界点推向另一个临界点。"
+      ]
+    },
     "references": [
-      "A. Kocsard, Lecture Notes on Rotation Theory, IMPA."
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §1."
     ]
   }
 }

@@ -3,7 +3,7 @@
   "to": "dynamics.ergodic.birkhoff-ergodic",
   "description": {
     "zh": [
-      "Kingman 子加性遍历定理是 Birkhoff 定理的非可加推广：子加性上循环的时间平均几乎处处收敛。"
+      "Kingman 子加性遍历定理是 Birkhoff 定理的非可加推广，它断言子加性上循环的时间平均几乎处处收敛。"
     ]
   }
 }

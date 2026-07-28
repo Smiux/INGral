@@ -3,7 +3,7 @@
   "to": "dynamics.group-circle.homeomorphism-group",
   "description": {
     "zh": [
-      "单性定理是作用于 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 结构本身的代数结论：该群不包含非平凡正规子群，支撑区间上的换位子论证和三区间覆盖技术是此结论的证明核心。"
+      "单性定理断言 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 是单群，即该群没有非平凡的正规子群。"
     ]
   }
 }

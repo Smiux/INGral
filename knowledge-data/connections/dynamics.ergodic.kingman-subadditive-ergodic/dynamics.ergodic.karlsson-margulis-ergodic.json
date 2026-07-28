@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.kingman-subadditive-ergodic",
+  "to": "dynamics.ergodic.karlsson-margulis-ergodic",
+  "description": {
+    "zh": [
+      "直接概念引用：Kingman 子加性遍历定理在 Karlsson–Margulis 定理的证明中用于建立渐近速度 $s$ 的存在性以及 $\\inf\\frac1n\\int d(x_0,f_n(\\omega)x_0)\\,d\\mu = s$。"
+    ]
+  }
+}

@@ -3,7 +3,7 @@
   "to": "dynamics.ergodic.mixing",
   "description": {
     "zh": [
-      "正熵测度通常与混合性、混沌行为相关联；零熵系统（如无理旋转）具有可预测性。Ruelle 不等式给出 Lyapunov 指数对熵的上界。"
+      "Kolmogorov–Sinai 熵的正性为系统提供了与混合性互补的复杂性指标：正熵系统在信息论意义下不可预测，而混合性在统计意义下刻画渐近独立性。"
     ]
   }
 }

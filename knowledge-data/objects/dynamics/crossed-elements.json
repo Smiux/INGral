@@ -3,13 +3,12 @@
   "type": "definition",
   "name": {
     "zh": [
-      "交叉元素",
-      "crossed elements"
+      "交叉元素"
     ]
   },
   "description": {
     "zh": [
-      "设 $f,g\\in\\operatorname{Homeo}_+(\\mathbb R)$。称 $f$ 与 $g$ 是**交叉的**（crossed），若存在区间 $]a,b[$（允许 $a=-\\infty$ 或 $b=+\\infty$）使得 $f$ 固定 $a$ 和 $b$ 但不固定 $]a,b[$ 中任何其他点，而 $g$ 将 $a$ 或 $b$ 映入 $]a,b[$ 中。"
+      "设 $f,g\\in\\operatorname{Homeo}_+(\\mathbb R)$。称 $f$ 与 $g$ 是**交叉的**（crossed），若存在区间 $(a,b)$（允许 $a=-\\infty$ 或 $b=+\\infty$）使得 $f$ 固定 $a$ 和 $b$ 但不固定 $(a,b)$ 中任何其他点，而 $g$ 将 $a$ 或 $b$ 映入 $(a,b)$ 中。"
     ]
   },
   "extension": {
@@ -21,9 +20,15 @@
     ],
     "article": [
       {
-        "zh": "交叉元素刻画了实直线保向同胚群中形如 Smale 马蹄的一维复杂行为。若 $\\Gamma$ 包含交叉元素，则 $\\Gamma$ 含一个自由半群（正 Ping-Pong 引理）。这一事实为证明不含自由半群的群（如幂零群）必须保某个 Radon 测度提供了核心论证。\n\n在叶状结构理论中，交叉元素对应回复叶（feuille ressort）的概念。在微分动力学中，它是 Smale 马蹄的一维类比。\n\n无交叉元素的 $\\operatorname{Homeo}_+(\\mathbb R)$ 子群必有不变 Radon 测度（无交叉元素保测定理），该测度可用于定义平移数函数，进而导出群到 $(\\mathbb R,+)$ 的同态。"
+        "zh": "## 检测自由半群的几何条件\n\n$\\operatorname{Homeo}_+(\\mathbb R)$ 是巨大的群，其中许多子群含有非 Abel 自由子群。但如何判断一个给定的子群是否有自由子群？交叉元素提供了一种纯几何的条件。\n\n## 交叉元素的定义\n\n设 $f,g\\in\\operatorname{Homeo}_+(\\mathbb R)$。若存在开区间 $(a,b)$（允许 $a=-\\infty$ 或 $b=+\\infty$），使得 $f$ 恰好固定 $a$ 和 $b$ 但不固定 $(a,b)$ 中任何其他点，而 $g$ 将 $a$ 或 $b$ 映入 $(a,b)$ 中，则称 $f$ 与 $g$ 在 $(a,b)$ 上是交叉的。$f$ 在区间内部形成单向屏障——它在 $(a,b)$ 中要么处处向左移动要么处处向右移动——而 $g$ 通过跨越该屏障将一个端点送入内部，从而打破了这一结构。\n\n## 交叉元素生成自由半群\n\n交叉元素的存在直接导致自由半群。设 $f$ 与 $g$ 在 $[a,b]$ 上交叉，其中 $\\operatorname{Fix}(f)\\cap[a,b]=\\{a,b\\}$ 且 $g(a)\\in(a,b)$。通过调整 $f$ 的逆可设对所有 $x\\in(a,b)$ 有 $f(x)<x$。取 $c=g(a)$。对足够大的 $n$，$gf^n$ 在 $(a,b)$ 中有不动点。记 $d$ 为 $gf^n$ 在 $(a,b)$ 中不动点的下确界，再取足够大的 $m$ 使 $f^m(d)<c$。此时 $f^m$ 与 $gf^n$ 限制在 $[a,b]$ 上满足正 Ping-Pong 引理的条件，由此生成自由半群。\n\n## 无交叉元素则保测\n\n反之，若一个有限生成的子群 $\\Gamma\\subseteq\\operatorname{Homeo}_+(\\mathbb R)$ 不含交叉元素，则 $\\Gamma$ 保持 $\\mathbb R$ 上的某个 Radon 测度。证明依赖于极小不变集的分类。设 $\\Lambda$ 为 $\\Gamma$ 的极小不变闭集。若 $\\Lambda$ 的各连通分支的边界为空，则 $\\Gamma$ 的作用极小。此时若作用非自由，则存在元素 $g$ 固定某区间 $[u,v]$ 的端点但不固定内部点，而极小性保证存在 $h\\in\\Gamma$ 将 $u$ 或 $v$ 送入 $(u,v)$，这与无交叉元素的假设矛盾。因此作用必自由，Hölder 定理将其共轭为平移群，从而拉回 Lebesgue 测度即得不变 Radon 测度。当 $\\Lambda$ 为离散点集或类 Cantor 集时，分别通过 Dirac 求和或坍缩半共轭归约到前一种情形。该不变测度上的平移数函数给出 $\\Gamma$ 到 $(\\mathbb R,+)$ 的同态，且该同态非平凡当且仅当 $\\Gamma$ 无全局不动点。\n\n交叉元素的缺失与否在实直线作用的分类中具有分水岭意义。在叶状结构理论中，交叉元素对应于回复叶概念。在微分动力学中，它可视为 Smale 马蹄的一维类比。在有序群理论中，Conrad 性质是交叉元素缺失在群的序结构上的代数刻画。"
       }
     ],
+    "examples": {
+      "zh": [
+        "Thompson 群 $G$ 在 $\\operatorname{Homeo}_+(\\mathbb R)$ 中的原像 $\\tilde G$ 是完美群，即它等于自己的换位子群。对 $\\tilde G$ 在 $\\mathbb R$ 上的任何非平凡保向同胚作用，若该作用不含交叉元素，则根据无交叉元素保测定理，它保持某个 Radon 测度，平移数函数给出 $\\tilde G$ 到 $(\\mathbb R,+)$ 的非平凡同态。但完美群到 Abel 群的每个同态都是平凡的，矛盾。因此 $\\tilde G$ 的每个非平凡作用必然包含交叉元素。",
+        "有限生成幂零群在 $\\mathbb R$ 上的任何保向同胚作用都不含交叉元素。幂零群不包含二元生成自由半群（可通过 nilpotence degree 归纳证明），而交叉元素的存在将迫使群包含自由半群。因此幂零群必然无交叉元素。特别地，根据无交叉元素保测定理，幂零群在 $\\mathbb R$ 上的保向同胚作用保持某个 Radon 测度，平移数函数给出该幂零群到 $(\\mathbb R,+)$ 的同态。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.5."
     ]

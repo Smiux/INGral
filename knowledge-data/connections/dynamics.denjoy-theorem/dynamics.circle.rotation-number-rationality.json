@@ -3,7 +3,7 @@
   "to": "dynamics.circle.rotation-number-rationality",
   "description": {
     "zh": [
-      "Denjoy 定理是有理/无理二分法在光滑情形的深化：无理旋转数一侧，$C^{1+\\mathrm{bv}}$ 微分同胚必然共轭于旋转。"
+      "Denjoy 定理在 $C^{1+\\mathrm{bv}}$ 正则性下将旋转数有理/无理二分法加强为共轭与非共轭的分类。"
     ]
   }
 }

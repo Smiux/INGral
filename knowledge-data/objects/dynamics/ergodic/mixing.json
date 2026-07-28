@@ -4,7 +4,6 @@
   "name": {
     "zh": [
       "混合性",
-      "strong mixing",
       "强混合性"
     ]
   },
@@ -22,11 +21,22 @@
     ],
     "article": [
       {
-        "zh": "混合性比遍历性更强：它要求事件 $F$ 经过长时间演化后与另一事件 $E$「渐近独立」。用概率论的语言，$\\mu(T^{-n}F)$ 作为随机事件与 $E$ 的相关系数趋于零。\n\n等价地，对任意 $f,g\\in L^2(\\mu)$ 有 $\\int f\\cdot g\\circ T^n\\,d\\mu\\to\\int f\\,d\\mu\\int g\\,d\\mu$，即协方差 $\\operatorname{Cov}(f,g\\circ T^n)\\to 0$。\n\n强混合 $\\Rightarrow$ 遍历（取 $E$ 为不变集即得），但反之不真——无理旋转是遍历但不混合的典型例子。\n\n角加倍映射、Bernoulli 移位、不可约非周期 Markov 链都是混合的。两个混合系统的乘积仍然是混合的。"
+        "zh": "对于一个概率保测变换 $(X,\\mathcal B,\\mu,T)$，事件 $F$ 被演化 $n$ 步后与事件 $E$ 之间的相关性用 $\\mu(E\\cap T^{-n}F)-\\mu(E)\\mu(F)$ 度量。混合性要求这一相关性随 $n\\to\\infty$ 趋于零——也就是说，$T^{-n}F$ 与 $E$ 渐近独立。这一条件比遍历性更强：遍历性只要求时间平均收敛到空间平均，而混合性要求逐点的、不依赖于平均操作的渐近独立性。\n\n## $L^2$ 与谱表述\n\n混合性等价于对任意 $f,g\\in L^2$ 有 $\\operatorname{Cov}(f,g\\circ T^n)\\to0$。通过示性函数到有限线性组合再到一般 $L^2$ 函数的标准逼近即可证明。这一 $L^2$ 刻画的谱含义是：Koopman 算子 $U_T$ 没有非平凡本征函数。设有本征函数 $f\\circ T=\\lambda f$，取 $g=f$ 得 $\\operatorname{Cov}(f,f\\circ T^n)=\\|f-\\int f\\|_2^2(\\lambda^n-1)$，除非 $\\lambda=1$ 或 $f$ 为常数，否则该序列不趋于零。因此混合系统的谱是连续的。\n\n## 构造的保持性\n\n自然延拓完整保持混合性：$T$ 混合当且仅当其自然延拓 $\\widetilde T$ 混合。证明在圆柱集上直接验证混合条件后通过标准逼近推广。由于 $\\widetilde T$ 是可逆的，这一结论使仅对可逆系统有效的谱方法可应用于非可逆系统。两个混合系统的乘积也是混合的：对矩形柱集 $A_1\\times B_1,\\,A_2\\times B_2$ 有 $\\mu((A_1\\times B_1)\\cap S^{-n}(A_2\\times B_2))=\\mu_1(A_1\\cap T_1^{-n}A_2)\\mu_2(B_1\\cap T_2^{-n}B_2)\\to\\mu(E_1)\\mu(E_2)$。因子单向继承混合性。\n\n诱导变换不保持混合性。设 $\\Sigma^+$ 为状态空间 $\\{a,1,2,b\\}$ 上由 $a\\to1,\\;1\\to1,b,\\;b\\to2,\\;2\\to a$ 定义的子移位有限型，$\\mu$ 为任一不可约非周期随机矩阵对应的 Markov 测度——转移矩阵不可约且非周期，因此移位 $\\sigma$ 在 $\\mu$ 下是混合的。取 $A$ 为所有以 $a$ 或 $b$ 开头的序列的集合，则诱导变换 $\\sigma_A$ 满足 $\\sigma_A[a]=[b],\\,\\sigma_A[b]=[a]$，故 $[a]\\cap\\sigma_A^{-n}[a]=\\varnothing$ 对所有奇数 $n$ 成立，破坏混合性。\n\n斜积 $T_f(x,y)=(Tx,f(x)y)$ 的混合性取决于 $T$ 和余循环 $f:X\\to G$ 的相互作用。若存在非平凡特征 $\\gamma\\in\\widehat G$ 和 $\\lambda\\in S^1$ 使得 $\\gamma\\circ f=\\lambda\\cdot h/h\\circ T$——即余循环是周期的——则 $\\gamma$ 给出 $T_f$ 的非平凡本征函数，故 $T_f$ 不混合。$T$ 混合是 $T_f$ 混合的必要条件而非充分条件。\n\n## Markov 链的指数混合速率\n\n在不可约非周期 Markov 链的情形下，混合速率是可量化的。Perron–Frobenius 定理保证转移矩阵的特征值 $1$ 是单重的，其余特征值位于开单位圆盘内。这一谱隙导致转移概率 $p_{ab}^{(n)}$ 以指数速度收敛到平稳分布 $p_b$：存在 $C>0,\\;0<\\rho<1$ 使 $|p_{ab}^{(n)}-p_b|\\le C\\rho^n$，从而混合性以指数速率实现。"
       }
     ],
+    "examples": {
+      "zh": [
+        "设 $\\Sigma^+$ 为状态空间 $\\{a,1,2,b\\}$ 上由转移规则 $a\\to1$、$1\\to1,b$、$b\\to2$、$2\\to a$ 定义的子移位有限型，$\\mu$ 为任一不可约非周期随机矩阵对应的移位不变 Markov 测度。由于转移矩阵不可约且非周期，移位映射 $\\sigma$ 在 $\\mu$ 下是混合的。令 $A=\\{\\underline x\\in\\Sigma^+:x_0=a\\text{ 或 }b\\}$，则诱导变换 $\\sigma_A$ 不是混合的：柱集 $[a]$ 与 $[b]$ 满足 $\\sigma_A[a]=[b]$、$\\sigma_A[b]=[a]$，从而对任意奇数 $n$ 有 $[a]\\cap\\sigma_A^{-n}[a]=\\varnothing$，故 $\\mu_A([a]\\cap\\sigma_A^{-n}[a])=0$ 不收敛于 $\\mu_A([a])^2>0$。",
+        "设 $P=(p_{ab})_{S\\times S}$ 为不可约非周期随机矩阵，$\\boldsymbol p=(p_a)_{a\\in S}$ 为其平稳分布。Perron–Frobenius 定理断言 $P$ 的特征值 $1$ 是单重的，其余特征值位于以原点为中心、半径小于 $1$ 的圆盘内。这一谱隙导致转移概率 $p_{ab}^{(n)}$ 以指数速度收敛到 $p_b$：存在常数 $C>0$ 和 $0<\\rho<1$ 使得 $|p_{ab}^{(n)}-p_b|\\le C\\rho^n$ 对一切 $a,b\\in S$ 成立。这一指数收敛意味着 $\\mu([a]\\cap\\sigma^{-n}[b])\\to\\mu([a])\\mu([b])$ 的收敛速率是可量化的。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "**混合蕴含遍历。** 设 $E$ 为 $T$-不变集（$T^{-1}E=E$）。由混合定义，$\\mu(E)=\\mu(E\\cap T^{-n}E)\\to\\mu(E)^2$，故 $\\mu(E)=\\mu(E)^2$，解得 $\\mu(E)=0$ 或 $1$。\n\n**$L^2$ 刻画。** 若 $\\operatorname{Cov}(f,g\\circ T^n)\\to0$ 对一切 $f,g\\in L^2$ 成立，取 $f=\\mathbf 1_E,\\,g=\\mathbf 1_F$ 即得混合性。反之，设 $T$ 混合。先对示性函数成立；由协方差的线性得对有限线性组合也成立。对一般 $f,g\\in L^2$，取有限线性组合 $f_\\varepsilon,g_\\varepsilon$ 满足 $\\|f-f_\\varepsilon\\|_2,\\|g-g_\\varepsilon\\|_2<\\varepsilon$，则\n$$\\begin{aligned}|\\operatorname{Cov}(f,g\\circ T^n)|&\\le|\\operatorname{Cov}(f-f_\\varepsilon,g\\circ T^n)|+|\\operatorname{Cov}(f_\\varepsilon,g_\\varepsilon\\circ T^n)|+|\\operatorname{Cov}(f_\\varepsilon,(g-g_\\varepsilon)\\circ T^n)|\\\\ &\\le 4\\varepsilon\\|g\\|_2+o(1)+4(\\|f\\|_2+\\varepsilon)\\varepsilon,\\quad n\\to\\infty.\\end{aligned}$$\n令 $\\varepsilon\\to0$ 即得 $\\operatorname{Cov}(f,g\\circ T^n)\\to0$。\n\n**混合的乘积保持性。** 设 $\\mu=\\mu_1\\times\\mu_2$，$S=T_1\\times T_2$。对 $E_1=A_1\\times B_1,\\,E_2=A_2\\times B_2$，\n$$\\mu(E_1\\cap S^{-n}E_2)=\\mu_1(A_1\\cap T_1^{-n}A_2)\\mu_2(B_1\\cap T_2^{-n}B_2)\\to\\mu_1(A_1)\\mu_2(B_1)\\mu_1(A_2)\\mu_2(B_2)=\\mu(E_1)\\mu(E_2).$$\n矩形柱集构成半代数，通过标准逼近论证推广至全体可测集。"
+      ]
+    },
     "references": [
-      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.4."
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.4, §1.5.4, §1.6 (Products, Skew-products, Induced transformations)."
     ]
   }
 }

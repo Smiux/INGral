@@ -4,10 +4,7 @@
   "name": {
     "zh": [
       "回复点",
-      "正回复点",
-      "递归点",
-      "正回归点",
-      "正向回复点"
+      "递归点"
     ]
   },
   "description": {
@@ -24,14 +21,20 @@
     ],
     "notes": [
       {
-        "zh": "$\\operatorname{Rec}^+(f)\\cap\\operatorname{Rec}^-(f)\\neq\\varnothing$。事实上，由 Zorn 引理可证存在极小集，而极小集中每点既是正回归又是负回归。"
+        "zh": "$\\operatorname{Rec}^+(f)\\cap\\operatorname{Rec}^-(f)\\neq\\varnothing$。由 Zorn 引理可证存在极小集，而极小集中每点既是正回归又是负回归。"
       }
     ],
     "article": [
       {
-        "zh": "回复点比周期点更弱：回复点只需轨道无穷多次回到自身附近，而非精确经过自身。\n\n回复性层级：$\\operatorname{Fix}(f)\\subset\\operatorname{Per}(f)\\subset\\operatorname{Rec}^+(f)\\subset L(f)\\subset\\Omega(f)\\subset\\mathcal R(f)$。\n\n正回归是回复性层级中的关键一环：固定点必然回归，周期点必然回归，但回归点不一定是周期的——无理旋转下每点都是回归的但无周期点。与 $\\omega$-极限集的关系：$\\operatorname{Rec}^+(f)\\subset L(f)$（因为正回归点 $p$ 必然在其自身的 $\\omega$-极限集中）。\n\n在 Conley 理论的框架下，正回归点构成了 Lyapunov 函数严格下降性的最终障碍之一。任何 Lyapunov 函数在回归点处不能严格下降，因为轨道不断返回该点附近，$L$ 的值沿该轨道收敛于某个常数。完全 Lyapunov 函数在 $\\operatorname{Rec}^+(f)$ 上必然为常数。"
+        "zh": "回复点放宽了周期点的条件：点不必在有限步后精确回到自身，只需轨道在无穷步后有一个子列趋于自身。这相当于要求该点属于自己的 $\\omega$-极限集。\n\n## 定义与基本性质\n\n设 $f\\colon M\\to M$ 是连续映射。点 $p\\in M$ 称为 $f$ 的正回复点，若存在严格递增的自然数列 $n_j\\uparrow+\\infty$ 使得 $f^{n_j}(p)\\to p$。当 $f$ 可逆时，还可定义负回复点：$p$ 是 $f$ 的负回复点当且仅当它是 $f^{-1}$ 的正回复点。正回复点集 $\\operatorname{Rec}^+(f)$ 是  $f$-不变的。\n\n若 $p$ 是正回复点，则 $p\\in\\omega_f(p)$，从而 $p$ 属于正极限集 $L^+(f)$。不动点与周期点都是正回复点：周期点满足 $f^n(p)=p$，取 $n_j=jn$ 即得。\n\n## 回复性层级\n\n不同强度的回复性概念构成一个嵌套层级：$\\operatorname{Fix}(f)\\subset\\operatorname{Per}(f)\\subset\\operatorname{Rec}^+(f)\\subset L(f)\\subset\\Omega(f)\\subset\\mathcal R(f)$。每个包含关系都是严格的。\n\n## Lyapunov 函数下的角色\n\n正回复点在 Lyapunov 函数理论中扮演特殊角色。若 $L\\colon M\\to\\mathbb R$ 是 Lyapunov 函数（即 $L(f(x))\\le L(x)$），且 $p\\in\\operatorname{Rec}^+(f)$，则必有 $L(f(p))=L(p)$。这是因为沿回复轨道 $L$ 的值构成单调递减序列，而轨道不断返回 $p$ 附近迫使该序列的极限为 $L(p)$。完全 Lyapunov 函数在链回复集上为常数，从而在正回复点集上也必为常数。"
       }
     ],
+    "examples": {
+      "zh": [
+        "不动点与周期点都是正回复点。设 $p$ 是 $f$ 的周期点，即存在 $n\\ge 1$ 使得 $f^n(p)=p$。取递增序列 $n_j=jn$，则 $f^{n_j}(p)=p$ 对所有 $j$ 成立，极限为 $p$，故 $p\\in\\operatorname{Rec}^+(f)$。不动点（周期 $1$ 的特殊情形）同样满足此条件。因此有包含关系 $\\operatorname{Fix}(f)\\subset\\operatorname{Per}(f)\\subset\\operatorname{Rec}^+(f)$。",
+        "对紧致度量空间上的同胚 $f\\colon M\\to M$，可以证明存在非空紧致 $f$-不变的极小集 $K$，即 $K$ 不含真紧致 $f$-不变子集。对 $K$ 中任意一点 $p$，其正轨道在 $K$ 中稠密，故存在序列 $n_j\\uparrow+\\infty$ 使得 $f^{n_j}(p)\\to p$，即 $p\\in\\operatorname{Rec}^+(f)$；同理 $p\\in\\operatorname{Rec}^-(f)$。因此 $\\operatorname{Rec}^+(f)\\cap\\operatorname{Rec}^-(f)\\neq\\varnothing$。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1."
     ]

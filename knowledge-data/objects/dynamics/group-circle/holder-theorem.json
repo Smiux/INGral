@@ -3,37 +3,34 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "Hölder 定理",
-      "自由作用在 $\\mathbf R$ 上的群结构"
+      "Hölder 定理"
     ]
   },
   "description": {
     "zh": [
-      "设群 $\\Gamma$ 通过保向同胚**自由作用**（free action）在 $\\mathbb R$ 上（即非平凡元无不动点）。则 $\\Gamma$ 交换，同构于 $\\mathbb R$ 的某个加法子群，且该作用半共轭于平移作用。\n\n同样地，若 $\\Gamma$ 自由作用在 $\\mathbb S^1$ 上，则 $\\Gamma$ 交换，同构于 $\\operatorname{SO}(2)$ 的某个子群，且半共轭于旋转作用。"
+      "设 $\\Gamma$ 通过保向同胚自由地作用于实直线 $\\mathbb R$（即每个非平凡元无不动点）。则 $\\Gamma$ 是交换群，同构于 $(\\mathbb R,+)$ 的一个子群，且作用半共轭于平移作用：存在连续单调不减满射 $h\\colon\\mathbb R\\to\\mathbb R$ 及单同态 $\\phi\\colon\\Gamma\\to(\\mathbb R,+)$ 使 $h(\\gamma(x))=h(x)+\\phi(\\gamma)$ 对一切 $\\gamma\\in\\Gamma$、$x\\in\\mathbb R$ 成立。\n\n对圆周 $\\mathbb S^1$ 上的自由作用，相同的结论成立：$\\Gamma$ 是交换群，同构于 $\\operatorname{SO}(2,\\mathbb R)$ 的一个子群，且作用半共轭于旋转作用。"
     ]
   },
   "extension": {
     "tags": [
-      "实数直线",
-      "交换",
-      "平移",
-      "自由群作用",
-      "全序群"
+      "自由作用",
+      "实直线作用",
+      "圆周作用",
+      "Archimedes 序",
+      "半共轭"
     ],
     "article": [
       {
-        "zh": "Hölder 定理是理解 $\\mathbb R$ 上自由群作用的基石。自由作用意味着非平凡元 $\\phi(\\gamma)$ 在实数直线上没有不动点——这意味着要么 $\\phi(\\gamma)(x)>x$ 对所有 $x$ 成立，要么 $\\phi(\\gamma)(x)<x$ 对所有 $x$ 成立。这一定义了一个双向不变的全体序：$\\gamma\\preceq\\gamma'\\iff\\phi(\\gamma)(0)\\leq\\phi(\\gamma')(0)$。\n\n这个序具有 Archimedes 性质：对任意非平凡元素 $\\gamma,\\gamma'$（均大于单位元），存在正整数 $n$ 使 $\\gamma'\\preceq\\gamma^n$。原因在于 $\\phi(\\gamma)^n(0)\\to\\pm\\infty$——否则其极限将是 $\\phi(\\gamma)$ 的不动点。通过 Archimedes 序可以构造一个整值拟同态 $\\Phi(\\gamma)$（最小的整数 $k$ 使 $\\gamma\\preceq\\gamma_0^k$），其齐次化极限 $\\phi(\\gamma)=\\lim_{n\\to\\infty}\\Phi(\\gamma^n)/n$ 给出了一个纯同态 $\\phi\\colon\\Gamma\\to\\mathbb R$，且是单射。\n\n最后，半共轭于平移作用：映射 $h(x)=\\sup\\{\\phi(\\gamma)\\mid\\gamma(0)\\leq x\\}$ 满足 $h(\\gamma(x))=h(x)+\\phi(\\gamma)$，且 $h$ 连续——若 $h$ 在某点跳跃，由此产生的空隙将是 $\\phi(\\Gamma)$-平移不变的，与 $\\phi(\\Gamma)$ 稠密（当 $\\Gamma\\not\\cong\\mathbb Z$ 时）矛盾。"
+        "zh": "## 自由作用与交换性的根源\n\n一个群通过保向同胚作用在 $\\mathbb R$ 上，如果每个非平凡元素都没有不动点，那么这个群必然是交换群。Hölder 定理揭示的正是这一现象：自由性——一个看似温和的拓扑条件——迫使其代数结构退化为实数加法群的子群。\n\n## 序结构的出现\n\n自由作用首先在群上诱导出一个全序。对任意 $\\gamma,\\gamma'\\in\\Gamma$，按 $\\gamma(x)<\\gamma'(x)$ 定义顺序——由于自由性，若对某个 $x$ 有 $\\gamma(x)=\\gamma'(x)$ 则 $\\gamma=\\gamma'$，因此该定义不依赖 $x$ 的选择。保向性保证了这个序是左不变的。有趣的是，它同时还是右不变的：因为 $\\gamma\\eta(\\cdot)=\\gamma(\\eta(\\cdot))$ 与 $\\gamma$ 保向的复合关系也保持了右乘下的序关系。\n\n## Archimedes 性质\n\n这个序的核心特征是 Archimedes 性质：对任意大于恒等映射的 $\\gamma,\\gamma'$，存在正整数 $n$ 使 $\\gamma'\\prec\\gamma^n$。原因在于 $\\gamma^n(0)$ 必须趋于无穷——若它有上界，极限点将构成 $\\gamma$ 的一个不动点，与自由性矛盾。因此对足够大的 $n$ 必然有 $\\gamma'(0)<\\gamma^n(0)$。\n\n## 嵌入实数加法群\n\n具有双不变 Archimedes 全序的群必同构于 $(\\mathbb R,+)$ 的子群。固定一个正元 $\\gamma_0$，对每个 $\\gamma$ 定义 $\\Phi(\\gamma)$ 为满足 $\\gamma\\preceq\\gamma_0^k$ 的最小整数 $k$。$\\Phi$ 是拟同态，满足 $\\Phi(\\gamma)+\\Phi(\\gamma')-1<\\Phi(\\gamma\\gamma')\\leq\\Phi(\\gamma)+\\Phi(\\gamma')$。由此极限 $\\phi(\\gamma)=\\lim_{n\\to\\infty}\\Phi(\\gamma^n)/n$ 存在，且 $\\phi$ 是保序的群同态——利用 $\\Phi(\\gamma^n)+\\Phi(\\gamma'^n)-1\\leq\\Phi((\\gamma\\gamma')^n)\\leq\\Phi(\\gamma^n)+\\Phi(\\gamma'^n)$ 除以 $n$ 取极限即得加性。Archimedes 性质保证了 $\\phi$ 的单性：若 $\\gamma\\succ\\mathrm{id}$，存在 $k$ 使 $\\gamma_0\\prec\\gamma^k$，故 $1\\leq k\\phi(\\gamma)$，$\\phi(\\gamma)\\neq0$。\n\n## 圆周情形的对应\n\n圆周上的自由作用可以通过万有覆盖提升为 $\\mathbb R$ 上的自由作用。提升后的群包含整数平移 $x\\mapsto x+1$ 作为一个子群，因此嵌入 $(\\mathbb R,+)$ 后该整数平移对应于 $1\\in\\mathbb R$。投影回圆周即得 $\\Gamma$ 同构于 $\\operatorname{SO}(2,\\mathbb R)$ 的子群，作用半共轭于旋转。"
       }
     ],
-    "proof": [
-      {
-        "zh": "自由作用定义了一个双向不变的全体序：$\\gamma\\preceq\\gamma'\\iff\\phi(\\gamma)(0)\\leq\\phi(\\gamma')(0)$。该序具有 Archimedes 性质：对非平凡正元 $\\gamma,\\gamma'$，$\\phi(\\gamma)^n(0)\\to\\pm\\infty$ 保证存在 $n$ 使 $\\gamma'\\preceq\\gamma^n$。\n\n构造整值拟同态 $\\Phi(\\gamma)=\\min\\{k\\in\\mathbb Z\\mid\\gamma\\preceq\\gamma_0^k\\}$（$\\gamma_0$ 为某固定正元），其齐次化 $\\phi(\\gamma)=\\lim_{n\\to\\infty}\\Phi(\\gamma^n)/n$ 是单同态 $\\Gamma\\to(\\mathbb R,+)$。\n\n半共轭：$h(x)=\\sup\\{\\phi(\\gamma)\\mid\\gamma(0)\\leq x\\}$ 满足 $h(\\gamma(x))=h(x)+\\phi(\\gamma)$ 且连续。$\\mathbb S^1$ 情形同理，通过覆叠空间论证。"
-      }
-    ],
+    "proof": {
+      "zh": [
+        "设 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb R)$ 为忠实的自由作用。\n\n**第一步：诱导序结构。** 对 $\\gamma\\neq\\gamma'$，取可数稠密集 $(x_i)$。令 $i(\\gamma,\\gamma')=\\min\\{i\\mid\\phi(\\gamma)(x_i)\\neq\\phi(\\gamma')(x_i)\\}$。定义 $\\gamma\\prec\\gamma'$ 若 $\\phi(\\gamma)(x_{i(\\gamma,\\gamma')})<\\phi(\\gamma')(x_{i(\\gamma,\\gamma')})$。自由性保证定义不依赖稠密点的选择——若对某个 $x$ 有 $\\phi(\\gamma)(x)=\\phi(\\gamma')(x)$ 则 $\\gamma=\\gamma'$。该序是左不变的；由 $\\phi(\\gamma\\eta)(x)=\\phi(\\gamma)(\\phi(\\eta)(x))$ 及保向性同时可得右不变性。\n\n**第二步：Archimedes 性质。** 取 $\\gamma,\\gamma'\\succ\\mathrm{id}$。序列 $\\gamma^n(0)$ 严格递增。若它有上界，极限点 $p=\\lim\\gamma^n(0)$ 满足 $\\gamma(p)=p$，与自由性矛盾。故 $\\gamma^n(0)\\to\\infty$，存在 $n$ 使 $\\gamma'(0)<\\gamma^n(0)$，即 $\\gamma'\\prec\\gamma^n$。\n\n**第三步：嵌入 $\\Gamma\\hookrightarrow\\mathbb R$。** 固定 $\\gamma_0\\succ\\mathrm{id}$。对 $\\gamma\\succ\\mathrm{id}$，定义 $\\Phi(\\gamma)=\\min\\{k\\in\\mathbb N:\\gamma\\preceq\\gamma_0^k\\}$；若 $\\gamma^{-1}\\succ\\mathrm{id}$ 则 $\\Phi(\\gamma)=-\\Phi(\\gamma^{-1})$；$\\Phi(\\mathrm{id})=0$。由序的双不变性可证\n\n$$\\Phi(\\gamma)+\\Phi(\\gamma')-1<\\Phi(\\gamma\\gamma')\\leq\\Phi(\\gamma)+\\Phi(\\gamma').$$\n\n令 $\\phi(\\gamma)=\\lim_{n\\to\\infty}\\Phi(\\gamma^n)/n$。该极限存在，$\\phi(\\gamma^n)=n\\phi(\\gamma)$，且保序。\n\n**第四步：$\\phi$ 是同态且单。** 由\n\n$$\\Phi(\\gamma^n)+\\Phi(\\gamma'^n)-1\\leq\\Phi((\\gamma\\gamma')^n)\\leq\\Phi(\\gamma^n)+\\Phi(\\gamma'^n)$$\n\n除以 $n$ 取极限得 $\\phi(\\gamma\\gamma')=\\phi(\\gamma)+\\phi(\\gamma')$。若 $\\gamma\\succ\\mathrm{id}$，存在 $k$ 使 $\\gamma_0\\prec\\gamma^k$，故 $1\\leq\\phi(\\gamma^k)=k\\phi(\\gamma)$，$\\phi(\\gamma)\\neq0$。因此 $\\phi$ 是单同态。\n\n**第五步：构造半共轭。** 当 $\\phi(\\Gamma)$ 在 $\\mathbb R$ 中稠密时，定义 $h(x)=\\sup\\{\\phi(\\gamma):\\gamma(0)\\leq x\\}$。$h$ 单调不减，$h(\\gamma(x))=h(x)+\\phi(\\gamma)$。连续性：若 $h$ 在某点不连续，则 $\\mathbb R\\setminus h(\\mathbb R)$ 的内部非空且平移不变，与 $\\phi(\\Gamma)$ 的稠密性矛盾。故 $h$ 为连续满射。当 $\\phi(\\Gamma)\\cong\\mathbb Z$ 时 $h$ 可取为同胚。\n\n**第六步：圆周情形。** 设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 自由作用。其逆像 $\\tilde\\Gamma\\subset\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 自由作用于 $\\mathbb R$。取 $\\gamma_0(x)=x+1$ 作为正元，重复上述构造得 $\\tilde\\Gamma\\hookrightarrow\\mathbb R$。该嵌入将 $\\gamma_0$ 映为 $1$，诱导 $\\Gamma\\to\\operatorname{SO}(2,\\mathbb R)$ 的单同态。"
+      ]
+    },
     "references": [
-      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
-      "O. Hölder, Die Axiome der Quantität, Ber. Sächs. Ges. Wiss. 53 (1901).",
-      "O. Hölder, Die Axiome der Quantität und die Lehre vom Mass, Ber. Verh. Sächs. Ges. Wiss. Leipzig 53 (1901), 1-64."
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407, §6.5."
     ]
   }
 }

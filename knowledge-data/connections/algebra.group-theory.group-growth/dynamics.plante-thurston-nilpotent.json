@@ -1,9 +1,0 @@
-{
-  "from": "algebra.group-theory.group-growth",
-  "to": "dynamics.plante-thurston-nilpotent",
-  "description": {
-    "zh": [
-      "幂零微分同胚群是 Abelian 的，其增长性质由 Plante-Thurston 定理刻画。"
-    ]
-  }
-}

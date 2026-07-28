@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.denjoy-theorem",
-  "to": "dynamics.circle.rotation-number",
-  "description": {
-    "zh": [
-      "Denjoy 定理以无理旋转数为前提条件：旋转数的无理性是结论的必要输入。"
-    ]
-  }
-}

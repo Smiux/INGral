@@ -3,13 +3,12 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "Sacksteder 定理最优 $C^1$ 版本",
-      "无不变测度 $C^1$ 群作用的双曲不动点结构"
+      "Sacksteder 定理 (C¹ 版本)"
     ]
   },
   "description": {
     "zh": [
-      "设 $\\Gamma$ 为 $\\operatorname{Diff}_+^1(\\mathbb S^1)$ 的有限生成子群且无不变概率测度。则 $\\Gamma$ 含有具有 $2d(\\Gamma)$ 个不动点的元素，所有不动点皆为双曲的（一半收缩、一半扩张）。这里 $d(\\Gamma)$ 是 $\\Gamma$ 的度（见强扩张作用条目）。"
+      "设 $\\Gamma$ 为 $\\operatorname{Diff}_+^1(\\mathbb S^1)$ 的有限生成子群且无不变概率测度。则 $\\Gamma$ 含有具有 $2d(\\Gamma)$ 个不动点的元素，所有不动点皆为双曲的（一半收缩、一半扩张）。这里 $d(\\Gamma)$ 是 $\\Gamma$ 的度。"
     ]
   },
   "extension": {
@@ -22,14 +21,14 @@
     ],
     "article": [
       {
-        "zh": "该定理是 Sacksteder 定理理论发展的最终形式之一，涉及 $C^1$ 群作用与不变测度之间的深刻对立。经典 $C^{1+\\mathrm{Lip}}$ 版本（Sacksteder 1965）证明：若 $C^{1+\\mathrm{Lip}}$ 叶状族群无不变测度，则存在某个群元素具有双曲不动点。将正则性降到 $C^1$ 且结论从「一个双曲不动点」增强到「$2d(\\Gamma)$ 个双曲不动点」是 Navas 等人的贡献。\n\n证明的核心突破在于使用 Lyapunov 指数工具（Pesin 理论的叶状版本）。无不变概率测度时，随机游走在圆周上诱导的平稳测度是**非原子**的。对此测度应用 Oseledets 乘法遍历定理的叶状版本，得到沿随机轨道的正 Lyapunov 指数。正 Lyapunov 指数意味着轨道邻域在某个方向指数拉伸，结合 Newman 引理（圆周上 $C^1$ 微分同胚的扩张区间结构引理），可构造一个群元素恰好有 $2d(\\Gamma)$ 个双曲不动点，其中 $d(\\Gamma)$ 是强扩张作用理论中定义的「度」。\n\n度 $d(\\Gamma)$ 的动力学意义：它度量了群作用在圆周上「扩张」的程度。$d(\\Gamma)=1$ 对应强扩张作用——即存在某个元素将整个圆周拉长到超过其长度。$d(\\Gamma)>1$ 时，作用具有更复杂的扩张结构，对应定理中 $2d(\\Gamma)$ 个交错排列的双曲不动点（一半收缩、一半扩张），这些不动点恰好构成了作用在圆周上的一个周期轨道骨架。\n\n这一结果深刻之处在于：$C^1$ 正则性是最优的——对 $C^{1-\\varepsilon}$ 正则性（即导数仅 Hölder 连续但指数 $<1$），结论不再成立，因为存在 $C^{1-\\varepsilon}$ 的圆周微分同胚群在不具有不变测度时也没有任何双曲不动点。"
+        "zh": "圆周微分同胚群中有一个基本问题：当作用没有不变概率测度时，能否在群中找到具有双曲不动点的元素？Sacksteder 定理对 $C^1$ 微分同胚给出了肯定回答，且确定了不动点的个数。\n\nSacksteder (1965) 最初证明的是 $C^{1+\\mathrm{Lip}}$ 版本：若一个 $C^{1+\\mathrm{Lip}}$ 叶状族群没有不变测度，则存在某个群元素具有双曲不动点。此后将正则性降至 $C^1$ 并将结论从「存在一个双曲不动点」增强到「存在 $2d(\\Gamma)$ 个双曲不动点」，是 Lyapunov 指数方法在一维动力系统中的直接应用。\n\n## Lyapunov 指数方法\n\n设 $\\Gamma\\subset\\operatorname{Diff}_+^1(\\mathbb S^1)$ 有限生成且无不变概率测度。赋予 $\\Gamma$ 一个非退化有限支撑概率测度 $p$，则 $\\Gamma$ 在圆周上诱导一个平稳测度 $\\mu$。$\\mu$ 必为非原子的——若 $\\mu$ 有原子，该原子的 $\\Gamma$-轨道将是有限集，从而 $\\Gamma$ 存在不变概率测度，与假设矛盾。\n\n考虑斜积 $T(\\omega,x)=(\\sigma(\\omega),\\omega_1(x))$，其中 $\\Omega=\\Gamma^{\\mathbb N}$ 为符号空间，$\\sigma$ 为左移位，$\\omega_1$ 是 $\\omega$ 的第一个坐标。$T$ 保持概率测度 $\\mathbb P\\times\\mu$（$\\mathbb P=p^{\\mathbb N}$）。对几乎每个点，沿随机轨道的 Lyapunov 指数\n$$\\lambda(\\omega,x)=\\lim_{n\\to\\infty}\\frac1n\\log\\|(\\omega_n\\cdots\\omega_1)'(x)\\|$$\n存在（Oseledets 乘法遍历定理的叶状版本）。$\\mu$ 的非原子性保证了在一个正测度集上 $\\lambda>0$，即沿随机轨道存在指数拉伸。\n\n## 度与双曲不动点结构\n\n正 Lyapunov 指数结合 Newman 引理（刻画 $C^1$ 微分同胚扩张区间结构的引理），可在 $\\Gamma$ 中构造一个元素 $f$，其不动点恰好有 $2d(\\Gamma)$ 个，且全部双曲。其中 $d(\\Gamma)$ 个为收缩型（导数绝对值 $<1$），$d(\\Gamma)$ 个为扩张型（导数绝对值 $>1$），交错排列。$d(\\Gamma)$ 称为 $\\Gamma$ 的度，它度量了作用在圆周上的扩张程度，等于 $\\Gamma$ 的某个极小 Cantor 集的势。\n\n$C^1$ 正则性对此定理的结论是最优的：$C^{1-\\varepsilon}$ 情形存在无不变测度且无任何双曲不动点的群作用例子。"
       }
     ],
-    "proof": [
-      {
-        "zh": "使用 Lyapunov 指数方法（Pesin 理论的叶状版）。无不变概率测度时，随机游走的平稳测度导出沿随机轨道的正 Lyapunov 指数。结合 Newman 引理构造具有 $2d(\\Gamma)$ 个双曲不动点的元素：其中一半为收缩型（导数为负对数），另一半为扩张型。"
-      }
-    ],
+    "proof": {
+      "zh": [
+        "设 $\\Gamma$ 为 $\\operatorname{Diff}_+^1(\\mathbb S^1)$ 的有限生成子群，无不变概率测度。赋予 $\\Gamma$ 一个非退化有限支撑的概率测度 $p$，令 $\\mu$ 为其在 $\\mathbb S^1$ 上的平稳测度（存在性由 Krylov–Bogolioubov 型论证保证）。\n\n考虑斜积 $T(\\omega,x)=(\\sigma(\\omega),h_1(\\omega)(x))$，其中 $\\Omega=\\Gamma^{\\mathbb N}$ 为单边符号空间，$\\sigma$ 为左移位，$h_n(\\omega)=\\omega_n\\cdots\\omega_1$。$T$ 保 $\\mathbb P\\times\\mu$（$\\mathbb P=p^{\\mathbb N}$）。由叶状版本的 Oseledets 乘法遍历定理，对 $\\mu$-几乎所有的 $x$ 和 $\\mathbb P$-几乎所有的 $\\omega$，Lyapunov 指数\n$$\\lambda(\\omega,x)=\\lim_{n\\to\\infty}\\frac1n\\log h_n(\\omega)'(x)$$\n存在。由 $\\mu$ 非原子（$\\Gamma$ 无不变概率测度），可证 $\\lambda>0$ 在正测度集上成立。\n\n正 Lyapunov 指数意味着沿随机轨道存在指数拉伸。运用 Kakutani 随机遍历定理和 Newman 引理（$C^1$ 微分同胚在扩张区间上的结构引理），可构造 $\\Gamma$ 中的元素 $f$ 恰好具有 $2d(\\Gamma)$ 个双曲不动点：其中 $d(\\Gamma)$ 个为收缩型（导数绝对值 $<1$），$d(\\Gamma)$ 个为扩张型（导数绝对值 $>1$），交错排列。$d(\\Gamma)$ 是 $\\Gamma$ 的度——它度量了作用在圆周上的扩张程度，其值等于 $\\Gamma$ 的某个极小 Cantor 集的势。\n\n$C^1$ 正则性是最优的：$C^{1-\\varepsilon}$ 情形存在无不变测度且无任何双曲不动点的例子。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.2.3.",
       "R. Sacksteder, Foliations and pseudogroups, Amer. J. Math. 87 (1965), 79-102."

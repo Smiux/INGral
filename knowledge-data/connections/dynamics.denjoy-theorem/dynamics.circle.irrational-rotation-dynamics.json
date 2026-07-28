@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.denjoy-theorem",
-  "to": "dynamics.circle.irrational-rotation-dynamics",
-  "description": {
-    "zh": [
-      "Denjoy 定理确保在 $C^{1+\\mathrm{bv}}$ 正则性下，无理旋转数同胚拓扑共轭于刚性旋转——此时定理第 (5) 条中的 $K=\\mathbb T$ 自动成立。"
-    ]
-  }
-}

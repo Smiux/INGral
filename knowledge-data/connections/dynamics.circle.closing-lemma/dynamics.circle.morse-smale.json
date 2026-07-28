@@ -3,7 +3,7 @@
   "to": "dynamics.circle.morse-smale",
   "description": {
     "zh": [
-      "C∞-closing 引理是 Morse-Smale 定理证明的第一步：将无理旋转数扰动为有理旋转数，使系统获得周期点。"
+      "C∞-closing 引理是 Morse-Smale 定理证明的第一步，用于将无理旋转数扰动为有理旋转数，使系统获得周期点。"
     ]
   }
 }

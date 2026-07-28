@@ -3,13 +3,12 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "Thurston 稳定性定理",
-      "Thurston 区间作用平凡性定理"
+      "Thurston 稳定性定理"
     ]
   },
   "description": {
     "zh": [
-      "设 $\\Gamma$ 为有限生成群。若 $\\Gamma$ 没有非平凡的同态映到 $(\\mathbb R,+)$，则每个表示 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^1([0,1[)$ 都是平凡表示（即每个元都作用为恒等映射）。"
+      "设 $\\Gamma$ 为有限生成群。若 $\\Gamma$ 没有非平凡的同态映到 $(\\mathbb R,+)$，则每个表示 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^1([0,1))$ 都是平凡表示。"
     ]
   },
   "extension": {
@@ -21,17 +20,25 @@
     ],
     "article": [
       {
-        "zh": "Thurston 稳定性定理是微分动力系统中 Reeb 稳定性定理在群作用语境下的版本。它的大致含义是：对区间进行微分同胚作用需要群具有向 $(\\mathbb R,+)$ 的非平凡同态——即群需要有「平移自由度」。如果一个有限生成群的所有同态到可加实数群都是平凡的，那么它无法产生区间上的非平凡 $C^1$ 作用。\n\n证明使用近似同态（$\\varepsilon$-homomorphism）方法：给定有限对称生成集 $\\mathcal G$，考虑 $\\Gamma$ 在区间端点附近的近似同态。基本事实是：若对每个 $k$ 都存在 $(B_{\\mathcal G}(k),1/k)$-同态，则存在一非平凡同态 $\\Gamma\\to\\mathbb R$。如果 $\\Phi$ 非平凡且所有 $\\Phi(g)'(x)=1$（在端点处的导数为 1），则可以构造这样的近似同态序列，从而导出非平凡实数同态，矛盾。如果某些 $\\Phi(g)'(x)\\neq1$，则可以通过考虑导数本身构造同态。\n\n这一定理与 Reeb 稳定性定理的联系源于叶状结构理论：$C^1$ 叶状结构的局部稳定性问题可以化归为和乐群在横截区间上的作用问题。Thurston 定理实际上表明，如果和乐群没有到 $\\mathbb R$ 的非平凡同态，则叶状结构在紧叶附近是稳定的。"
+        "zh": "Thurston 稳定性定理起源于叶状结构理论：在余维 $1$ 的 $C^1$ 叶状结构中，紧叶附近的局部稳定性问题可化归为其和乐群在横截区间上的 $C^1$ 作用。若和乐群在该区间上的作用平凡，则紧叶在叶状结构中是稳定的。将这个几何条件翻译成群论的语言，就得到了下面的定理。\n\n## 定理的叙述\n\n设 $\\Gamma$ 是有限生成群，且 $\\Gamma$ 没有非平凡的同态到 $(\\mathbb R,+)$。则每个表示 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^1([0,1))$ 都是平凡表示。换言之，区间上非平凡的 $C^1$ 微分同胚作用要求群具有某种平移自由度——必须存在向可加实数系的非平凡同态。\n\n## 近似同态方法\n\n证明的核心是近似同态（$\\varepsilon$-同态）方法。固定 $\\Gamma$ 的有限对称生成集 $\\mathcal G$，记 $B_{\\mathcal G}(n)$ 为其中长度不超过 $n$ 的乘积的集合。考虑从 $B_{\\mathcal G}(n)$ 到 $\\mathbb R$ 的归一化 $(B_{\\mathcal G}(n),\\varepsilon)$-同态，它近似满足加法性。若对每个 $k$ 都存在归一化 $(B_{\\mathcal G}(k),1/k)$-同态，则通过对角线法取子列可得一个非平凡同态 $\\Gamma\\to\\mathbb R$。\n\n假设 $\\Phi$ 非平凡，取 $\\Gamma$ 的不动点集的边界点 $x$。导数 $g\\mapsto\\log\\Phi(g)'(x)$ 给出 $\\Gamma\\to\\mathbb R$ 的同态，由假设它必须平凡，故 $\\Phi(g)'(x)=1$ 对所有 $g$ 成立。对每个 $y$ 充分接近 $x$，将位移 $[\\Phi(g)(y)-y]$ 用 $C(y)=\\max_{g\\in\\mathcal G}|\\Phi(g)(y)-y|$ 归一化后，利用 $\\Phi(g)'(x)=1$ 和 $C^1$ 性可验证该归一化函数在 $B_{\\mathcal G}(n)$ 上是近似同态。取一列趋近 $x$ 的 $y_k$，得到一列归一化 $(B_{\\mathcal G}(k),1/k)$-同态，由前述引理即得非平凡同态 $\\Gamma\\to\\mathbb R$，与假设矛盾。\n\n## 条件本质性\n\n定理对光滑性高度敏感。存在有限生成完美群（如 $(2,3,7)$-三角群）在区间上的忠实同胚作用——该群等于其换位子子群，故无到 $(\\mathbb R,+)$ 的非平凡同态——但其作用非 $C^1$，不与定理矛盾。有限生成条件也是必要的：Thompson 群 $F$ 的导群 $F'$ 在区间上有非平凡 $C^\\infty$ 作用，但 $F'$ 不是有限生成的。"
       }
     ],
-    "proof": [
-      {
-        "zh": "使用近似同态（$\\varepsilon$-homomorphism）方法。给定有限对称生成集 $\\mathcal G$，考虑 $\\Gamma$ 在区间端点附近的近似同态。基本事实：若对每个 $k$ 都存在 $(B_{\\mathcal G}(k),1/k)$-同态，则存在非平凡同态 $\\Gamma\\to\\mathbb R$。若 $\\Phi$ 非平凡且所有 $\\Phi(g)'(x)=1$（端点处导数为 1），则可构造这样的近似同态序列，导出非平凡实数同态，矛盾。若某些 $\\Phi(g)'(x)\\neq1$，则通过考虑导数本身构造同态。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "完美群 $\\tilde G=\\langle f,g,h\\mid f^2=g^3=h^7=fgh\\rangle$ 是 Thurston 稳定性定理光滑性条件必要性的实例。该群同构于 $\\widetilde{\\operatorname{PSL}}(2,\\mathbb R)$ 中保持庞加莱圆盘上 $(2,3,7)$-双曲三角形镶嵌的子群。$\\tilde G$ 是完美群——其换位子子群等于自身——因此不存在非平凡同态 $\\tilde G\\to(\\mathbb R,+)$。若 $\\tilde G$ 在 $[0,1]$ 上有 $C^1$ 微分同胚作用，定理将迫使该作用平凡。然而，$\\widetilde{\\operatorname{PSL}}(2,\\mathbb R)$ 在 $\\mathbb R$ 上的自然作用给出 $\\tilde G$ 在 $[0,1]$ 上的忠实同胚作用：该作用在端点附近丧失光滑性，从而绕过了定理的 $C^1$ 条件。这确认了定理不能从 $C^1$ 推广到同胚范畴。",
+        "Thompson 群 $F$ 的导群 $\\mathrm F'=[F,F]$ 说明 Thurston 稳定性定理的有限生成条件不可去除。$\\mathrm F'$ 是无限单群，其 Abel 化平凡，故无非平凡同态到 $(\\mathbb R,+)$。若定理对 $\\mathrm F'$ 适用，则其在 $[0,1]$ 上的每个 $C^1$ 作用都须平凡。但 $\\mathrm F'$ 继承自 $F$ 的分段仿射作用可光滑化为 $C^\\infty$ 微分同胚作用，且该作用非平凡。由于 $\\mathrm F'$ 不是有限生成的，这不与定理矛盾，但表明有限生成性是证明中的关键假设——缺少它时结论不再成立。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "设 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^1([0,1))$ 为非平凡表示。令 $x\\in[0,1)$ 为 $\\Gamma$ 不动点集的边界点。函数 $g\\mapsto\\log\\Phi(g)'(x)$ 是 $\\Gamma$ 到 $(\\mathbb R,+)$ 的同态；由假设它必须平凡，故 $\\Phi(g)'(x)=1$ 对所有 $g\\in\\Gamma$ 成立。\n\n**Step 1：近似同态与极限构造。** 对有限对称生成集 $\\mathcal G$，定义 $(B,\\varepsilon)$-同态 $\\phi\\colon B\\to\\mathbb R$ 为对任意满足 $gh\\in B$ 的 $g,h\\in B$ 有 $|\\phi(g)+\\phi(h)-\\phi(gh)|\\leq\\varepsilon$。若 $\\phi$ 在 $\\mathcal G$ 上归一化（$\\max_{g\\in\\mathcal G}|\\phi(g)|=1$），则对每个 $k$ 上的 $(B_{\\mathcal G}(k),1/k)$-同态序列（近似同态的极限引理），通过取逐次子列（对角线法）可逐点收敛到一个同态 $\\phi\\colon\\Gamma\\to\\mathbb R$，且因归一化保证非平凡。\n\n**Step 2：从作用构造近似同态。** 对非平凡表示 $\\Phi$，令 $C(y)=\\max_{g\\in\\mathcal G}|\\Phi(g)(y)-y|$，定义\n$$\\phi_y(g)=\\frac{1}{C(y)}\\big[\\Phi(g)(y)-y\\big].$$\n由 $\\Phi(g)'(x)=1$ 和 $\\Phi(g)$ 的 $C^1$ 性，对任意 $n$ 和 $\\varepsilon>0$ 存在 $\\delta>0$ 使 $|x-y|<\\delta$ 时 $\\phi_y|_{B_{\\mathcal G}(n)}$ 是归一化 $(B_{\\mathcal G}(n),\\varepsilon)$-同态（作用产生的近似同态）。\n\n证明的关键计算：设 $\\lambda_0(0,\\varepsilon')=0$，$\\lambda_0(k+1,\\varepsilon')=1+\\lambda_0(k,\\varepsilon')(1+\\varepsilon')$。取 $\\varepsilon'$ 足够小使 $\\varepsilon'\\lambda_0(n,\\varepsilon')\\leq\\varepsilon$。取 $\\delta'>0$ 使 $|\\Phi(g)'(y)-1|\\leq\\varepsilon'$ 对所有 $g\\in B_{\\mathcal G}(n)$ 和 $|x-y|\\leq\\delta'$ 成立。取 $\\delta<\\delta'$ 使 $|x-y|\\leq\\delta$ 时 $|\\Phi(g)(y)-x|\\leq\\delta'$ 对所有 $g\\in B_{\\mathcal G}(n)$ 成立。\n\n对 $g\\in B_{\\mathcal G}(i+1)$ 分解 $g=h_1h_2$（$h_1\\in\\mathcal G$，$h_2\\in B_{\\mathcal G}(i)$），利用积分恒等式\n$$\\Phi(h_1)\\Phi(h_2)(y)-\\Phi(h_2)(y)=\\int_y^{\\Phi(h_2)(y)}[\\Phi(h_1)'(s)-1]ds+[\\Phi(h_1)(y)-y]$$\n可归纳证明 $|\\phi_y(g)|\\leq\\lambda_0(i,\\varepsilon')$。对 $\\nabla\\phi_y(h_1,h_2)=\\phi_y(h_1)+\\phi_y(h_2)-\\phi_y(h_1h_2)$ 的估计为\n$$|\\nabla\\phi_y(h_1,h_2)|\\leq\\frac{1}{C(y)}\\left|\\int_y^{\\Phi(h_2)(y)}[\\Phi(h_1)'(s)-1]ds\\right|\\leq\\lambda_0(n,\\varepsilon')\\varepsilon'\\leq\\varepsilon,$$\n故 $\\phi_y|_{B_{\\mathcal G}(n)}$ 是归一化 $(B_{\\mathcal G}(n),\\varepsilon)$-同态。\n\n**Step 3：导出矛盾。** 由 Step 2，对每个 $k\\in\\mathbb N$ 可取 $y_k$ 充分接近 $x$ 使 $\\phi_{y_k}$ 是归一化 $(B_{\\mathcal G}(k),1/k)$-同态。Step 1 保证存在子列逐点收敛到非平凡同态 $\\Gamma\\to\\mathbb R$，与假设矛盾。故 $\\Phi$ 必须平凡。"
+      ]
+    },
     "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §5.1.",
-      "W. Thurston, A generalization of the Reeb stability theorem, Topology 13 (1974), 347-352."
+      "W. Thurston, A generalization of the Reeb stability theorem, Topology 13 (1974), 347-352.",
+      "G. Bergman, Right-orderable groups which are not locally indicable, Pacific J. Math. 147 (1991), 243-248."
     ]
   }
 }

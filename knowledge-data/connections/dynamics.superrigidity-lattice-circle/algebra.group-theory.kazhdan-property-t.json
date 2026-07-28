@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.superrigidity-lattice-circle",
+  "to": "algebra.group-theory.kazhdan-property-t",
+  "description": {
+    "zh": [
+      "Ghys 定理中标准高秩单 Lie 群（SL($n$,R)、Sp($2r$,R)、SO($2,q$)、SU($2,q$)）的情形依赖于其不可约格点具有性质 (T)，从而由 Kazhdan 圆周作用有限性定理得像有限。"
+    ]
+  }
+}

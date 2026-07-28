@@ -1,0 +1,37 @@
+{
+  "id": "dynamics.ergodic.tempelman-zd-ergodic",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Tempelman $\\mathbb Z^d$ 遍历定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $T_1,\\dots,T_d$ 为概率空间 $(\\Omega,\\mathcal F,\\mu)$ 上 $d$ 个两两交换的保测变换，$\\{I_r\\}_{r\\ge1}$ 为递增的 $d$ 维方体序列且 $\\bigcup_{r\\ge1}I_r=\\mathbb Z_+^d$。则对任意 $f\\in L^1$ 有\n$$\\frac1{|I_r|}\\sum_{\\underline n\\in I_r}f\\circ T^{\\underline n}\\xrightarrow[r\\to\\infty]{}\\mathbb E(f\\mid\\mathfrak{Inv}(T_1)\\cap\\cdots\\cap\\mathfrak{Inv}(T_d))$$\n几乎处处成立，其中 $T^{\\underline n}=T_1^{n_1}\\circ\\cdots\\circ T_d^{n_d}$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历定理",
+      "$\\mathbb Z^d$ 作用",
+      "交换保测变换",
+      "方体平均",
+      "Tempelman"
+    ],
+    "article": [
+      {
+        "zh": "Birkhoff 点态遍历定理处理单个保测变换沿正半轴的轨道平均。当系统中有 $d$ 个两两交换的保测变换 $T_1,\\dots,T_d$ 时，需要考虑 $\\mathbb Z_+^d$ 作用下的多重轨道平均。一个自然的问题是：沿什么样的 $\\mathbb Z_+^d$ 子集序列取平均能保证几乎处处收敛？\n\nTempelman 定理回答了这个问题：对任意递增的 $d$ 维方体序列 $\\{I_r\\}$（即形如 $[\\underline n,\\underline m)=\\{\\underline k=(k_1,\\dots,k_d):n_i\\le k_i<m_i\\}$ 的集合，满足 $I_r\\subset I_{r+1}$ 且 $\\cup I_r=\\mathbb Z_+^d$），Birkhoff 型的时间平均仍几乎处处收敛，极限为 $f$ 关于所有 $\\mathfrak{Inv}(T_i)$ 之交的条件期望。在 $\\mathbb Z_+^d$ 作用遍历的情形下，极限退化为 $\\int f\\,d\\mu$。\n\n证明的策略沿袭 Birkhoff 定理的核心思路——正交分解与极大不等式。首先在 $L^2$ 中将 $f$ 分解为 $h$（对所有 $T_i$ 不变）与 $\\varphi$（与不变函数空间正交）之和，再将 $\\varphi$ 逼近为 $\\sum_i(g_i-g_i\\circ T_i)$ 与一个 $L^1$ 小量之和。对余边界项，方体 $I_r$ 与平移 $I_r+\\underline e_i$ 的对称差体积比 $|I_r\\triangle(I_r+\\underline e_i)|/|I_r|=2/\\ell_i(r)\\to0$，因此其平均随 $r\\to\\infty$ 趋于零。不变部分的平均保持自身不变，因此极限存在。\n\n极大不等式的证明采用贪婪算法选择不相交子方体：自大至小依次取极大不相交子族，利用方体的自差性质 $|I-I|=2^d|I|$ 得到常数 $2^d$。这一论证继承并推广了 Birkhoff 定理中的涂色思想——在 $\\mathbb Z^d$ 情形下等价于用给定大小的方体去覆盖所有“好”点，覆盖效率由 $2^d$ 控制。\n\nTempelman 定理对更一般的正则方体序列也成立。序列 $\\{I_r\\}$ 称为正则的（常数为 $C$），若存在递增的方体序列 $\\{I_r'\\}$ 使得 $|I_r|\\le C|I_r'|$ 对所有 $r$ 成立。上述收敛性在正则序列上仍成立，极大不等式中常数 $2^d$ 变为 $C\\cdot2^d$。例如一维情形下 $I_r=[r,r+r^2]$ 是正则的，其上的平均也几乎处处收敛。"
+      }
+    ],
+    "proof": {
+      "zh": [
+        "固定 $f\\in L^1$。先处理两种特殊情形。\n\n**不变函数：** 若 $f\\circ T_i=f$ 对所有 $i$ 成立，则 $(1/|I_r|)S_{I_r}f=f$，极限存在且等于 $f$。\n\n**余边界：** 设 $f=g-g\\circ T_i$ 对某个有界 $g$ 和某 $i$ 成立。记 $\\underline e_i$ 为 $\\mathbb R^d$ 第 $i$ 个标准基向量，则\n$$\\left|\\frac1{|I_r|}S_{I_r}f\\right|=\\frac1{|I_r|}\\left|S_{I_r}g-S_{I_r+\\underline e_i}g\\right|\\le\\frac{|I_r\\triangle(I_r+\\underline e_i)|}{|I_r|}\\|g\\|_\\infty=\\frac2{\\ell_i(r)}\\|g\\|_\\infty\\xrightarrow[r\\to\\infty]{}0,$$\n其中 $\\ell_i(r)$ 是方体 $I_r$ 在第 $i$ 个方向上的边长。\n\n**一般 $f\\in L^1$ 的分解。** 由 $L^2$ 的正交分解知\n$$L^2=\\{f:f\\circ T_i=f\\,\\forall i\\}\\oplus\\overline{\\operatorname{span}}\\{g-g\\circ T_i:g\\in L^2,1\\le i\\le d\\}.$$\n因此对任意 $f'\\in L^2$ 和 $\\varepsilon>0$，存在 $g_i\\in L^\\infty$、$h\\in L^2$（各 $T_i$-不变）和 $\\varphi\\in L^2$ 使 $f'=\\sum_{i=1}^d(g_i-g_i\\circ T_i)+h+\\varphi$，且 $\\|\\varphi\\|_2<\\varepsilon/2$，故 $\\|\\varphi\\|_1<\\varepsilon/2$。对一般 $f\\in L^1$，取 $f'\\in L^2$ 使 $\\|f-f'\\|_1<\\varepsilon/2$ 后应用上述分解。\n\n**极大不等式。** 对非负 $\\varphi\\in L^1$ 和 $t>0$，有\n$$\\mu\\left[\\sup_r\\frac1{|I_r|}S_{I_r}\\varphi>t\\right]\\le\\frac{2^d\\|\\varphi\\|_1}{t}.$$\n证明采用贪婪覆盖：固定 $N$，定义 $E_N(\\alpha):=\\{\\omega:\\max_{1\\le k\\le N}(1/|I_k|)S_{I_k}\\varphi>\\alpha\\}$。取大盒子 $I$，对每个 $\\underline n\\in I$ 满足 $T^{\\underline n}\\omega\\in E_N(\\alpha)$，存在 $k(\\underline n)\\le N$ 使 $(S_{I_{k(\\underline n)}+\\underline n}\\varphi)(\\omega)>\\alpha|I_{k(\\underline n)}|$。从 $I_N$ 到 $I_1$ 依次取极大不相交子族 $\\mathcal M_N,\\dots,\\mathcal M_1$。记 $A'(\\omega)$ 为被选中的 $\\underline n$ 之集，则 $A(\\omega)\\subseteq\\bigcup_{\\underline n\\in A'(\\omega)}(\\underline n+I_{k(\\underline n)}-I_{k(\\underline n)})$。由于 $d$ 维方体满足 $|I-I|=2^d|I|$，得 $|A(\\omega)|\\le\\sum_{\\underline n\\in A'(\\omega)}2^d|I_{k(\\underline n)}|$。将 $S_{I_{k(\\underline n)}+\\underline n}\\varphi$ 的下界代入积分即得极大不等式。\n\n**证明收敛性。** 定义 $\\Delta(f):=\\limsup_r(1/|I_r|)S_{I_r}f-\\liminf_r(1/|I_r|)S_{I_r}f$。利用分解 $f=\\sum_i(g_i-g_i\\circ T_i)+h+\\varphi$ 得 $\\Delta(f)\\le\\Delta(\\varphi)$。由极大不等式，对任意 $\\delta>0$ 有 $\\mu[\\Delta(f)>\\delta]\\le\\mu[2\\sup_r(1/|I_r|)S_{I_r}|\\varphi|>\\delta]\\le2^{d+1}\\|\\varphi\\|_1/\\delta$。取 $\\delta=\\sqrt\\varepsilon$ 得 $\\mu[\\Delta(f)>\\sqrt\\varepsilon]<2^{d+1}\\sqrt\\varepsilon$，故 $\\Delta(f)=0$ 几乎处处。极限函数为 $h$，进而可识别为条件期望 $\\mathbb E(f\\mid\\cap_i\\mathfrak{Inv}(T_i))$。"
+      ]
+    },
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.4.",
+      "R. Tempelman, Ergodic theorems for group actions, Litovsk. Mat. Sb. 12 (1972), 103–108."
+    ]
+  }
+}

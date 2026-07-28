@@ -3,7 +3,7 @@
   "to": "dynamics.group-circle.thompson-group",
   "description": {
     "zh": [
-      "Thompson 群 $G$（以及 $F$）可嵌入 $\\operatorname{Diff}_+^\\infty([0,1])$，其顺从性（$F$ 是否顺从）是著名的公开问题，表明 SA 分类不覆盖全体顺从群。"
+      "Thompson 群 $F$ 是否顺从是未决问题——若 $F$ 顺从，则 SA 分类定理不覆盖全体 $C^{1+\\mathrm{bv}}$ 区间作用顺从群。"
     ]
   }
 }

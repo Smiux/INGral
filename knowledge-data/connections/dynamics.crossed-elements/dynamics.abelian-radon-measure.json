@@ -3,7 +3,7 @@
   "to": "dynamics.abelian-radon-measure",
   "description": {
     "zh": [
-      "Abel 群自动无交叉元素，从而 Abel 群保测定理可直接由无交叉元素保测定理推出。"
+      "交叉元素的不存在性可由 Abel 群保 Radon 测度定理直接推出——Abel 群中不存在交叉元素，故满足无交叉元素保测定理的条件。"
     ]
   }
 }

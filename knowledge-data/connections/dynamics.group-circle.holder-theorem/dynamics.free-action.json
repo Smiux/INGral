@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.group-circle.holder-theorem",
+  "to": "dynamics.free-action",
+  "description": {
+    "zh": [
+      "Hölder 定理完整刻画了直线上自由作用的保向同胚群的代数结构——它们必交换且嵌入 $(\\mathbb R,+)$。"
+    ]
+  }
+}

@@ -3,7 +3,7 @@
   "to": "dynamics.kazhdan-circle-rigidity",
   "description": {
     "zh": [
-      "Kazhdan 圆刚性定理要求 $C^{1+\\tau}$（$\\tau>1/2$）正则性。"
+      "Hölder 连续性条件 $C^{1+\\tau}$（$\\tau>1/2$）是 Kazhdan 圆刚性定理中上同调消没论证可行所需的正则性门槛。"
     ]
   }
 }

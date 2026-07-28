@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.periodic-point",
+  "to": "dynamics.recurrent-point",
+  "description": {
+    "zh": [
+      "周期点必为正回复点：取 $n_j$ 为周期的整数倍即得 $f^{n_j}(p)\\to p$，故 $\\operatorname{Per}(f)\\subset\\operatorname{Rec}^+(f)$。"
+    ]
+  }
+}

@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.oscillation-lemma",
-  "to": "dynamics.circle.rotation-number",
-  "description": {
-    "zh": [
-      "振荡引理的界 $\\operatorname{osc}\\Delta_{\\tilde f^n}\\leqslant 1$ 保证了旋转数极限与点无关且一致收敛。"
-    ]
-  }
-}

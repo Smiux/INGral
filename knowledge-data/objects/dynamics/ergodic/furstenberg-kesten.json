@@ -21,9 +21,20 @@
     ],
     "article": [
       {
-        "zh": "Furstenberg–Kesten 定理（1960）是关于随机矩阵乘积的指数增长率的第一个一般结果。它是 Kingman 子加性遍历定理的直接推论：$g^{(n)}(x)=\\log\\|A_n(x)\\|$ 满足子加性 $g^{(n+m)}\\le g^{(n)}+g^{(m)}\\circ T^n$，且 $g^{(1)}\\in L^1$。\n\n该定理的极限值 $\\lim_{n\\to\\infty}\\frac1n\\log\\|A_n(x)\\|$ 称为最上层 Lyapunov 指数（top Lyapunov exponent）。它在 Furstenberg 关于随机矩阵乘积的工作和随后 Oseledets 乘法遍历定理（给出所有 Lyapunov 指数）中起了奠基性作用。\n\n该定理的一个直接推论是：对可逆系统，$\\frac1n\\log\\|A_n\\circ T^{-n}\\|$ 的几乎处处极限与 $\\frac1n\\log\\|A_n\\|$ 的极限相同——这一事实对 Oseledets 定理的证明至关重要。"
+        "zh": "设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换，$A:X\\to\\operatorname{GL}(d,\\mathbb R)$ 可测且满足 $\\log^+\\|A^{\\pm1}\\|\\in L^1(\\mu)$。记 $A_n(x):=A(T^{n-1}x)\\cdots A(x)$。算子范数的次乘性 $\\|AB\\|\\le\\|A\\|\\|B\\|$ 使 $g^{(n)}(x):=\\log\\|A_n(x)\\|$ 满足子加性条件 $g^{(n+m)}\\le g^{(n)}+g^{(m)}\\circ T^n$。结合 $g^{(1)}\\in L^1$，Kingman 子加性遍历定理给出极限 $\\displaystyle\\lim_{n\\to\\infty}\\frac1n\\log\\|A_n(x)\\|$ 的几乎处处存在性。\n\n## 最上层 Lyapunov 指数\n\n该极限值 $\\lambda(x)$ 称为最上层 Lyapunov 指数（top Lyapunov exponent），反映矩阵乘积序列在范数意义下的指数增长速率。由于极限是 $T$-不变的，在遍历系统中 $\\lambda(x)$ 几乎处处等于同一常数。\n\n## 可逆系统的处理\n\n对可逆系统，反向乘积 $A(T^{-n}x)\\cdots A(T^{-1}x)$ 的指数增长率与正向乘积相同。$g^{(n)}\\circ T^{-n}$ 也满足子加性，通过遍历分解可知其几乎处处极限与 $g^{(n)}$ 的极限一致。这一事实在 Oseledets 定理的证明中用于处理可逆上循环。\n\nFurstenberg–Kesten 定理是随机矩阵乘积指数收敛性的第一个严格证明。Oseledets 定理进一步给出了全部 Lyapunov 指数（矩阵乘积在各方向上的指数增长率）的存在性，而前者提供了其中最上层指数存在的证明。"
       }
     ],
+    "examples": {
+      "zh": [
+        "当 $A(x)$ 取常值矩阵 $M\\in\\operatorname{GL}(d,\\mathbb R)$ 时，$A_n(x)=M^n$ 与 $x$ 无关。Furstenberg–Kesten 定理断言极限 $\\lim_{n\\to\\infty}\\frac1n\\log\\|M^n\\|$ 存在。由 Gelfand 公式，该极限等于 $\\log\\rho(M)$，其中 $\\rho(M)$ 为 $M$ 的谱半径。若 $M$ 的特征值模长均不相同，则 $\\|M^n\\|$ 的指数增长率由模最大的特征值决定。",
+        "设 $d=1$，此时 $\\operatorname{GL}(1,\\mathbb R)=\\mathbb R\\setminus\\{0\\}$ 为乘法群，矩阵乘积退化为标量乘积。令 $a:X\\to\\mathbb R\\setminus\\{0\\}$ 满足 $\\log|a^{\\pm1}|\\in L^1(\\mu)$，则 $A_n(x)=a(T^{n-1}x)\\cdots a(x)$ 的范数即绝对值。Furstenberg–Kesten 定理保证极限 $\\lim_{n\\to\\infty}\\frac1n\\sum_{k=0}^{n-1}\\log|a(T^kx)|$ 几乎处处存在。当 $T$ 遍历时，Birkhoff 遍历定理给出该极限等于 $\\int\\log|a|\\,d\\mu$。此时最上层 Lyapunov 指数即为该积分值，且由于 $d=1$，该指数是唯一的 Lyapunov 指数。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "Furstenberg–Kesten 定理是 Kingman 子加性遍历定理的直接推论。定义\n$$g^{(n)}(x):=\\log\\|A_n(x)\\|=\\log\\|A(T^{n-1}x)\\cdots A(x)\\|.$$\n由算子范数的次乘性 $\\|AB\\|\\le\\|A\\|\\|B\\|$ 得\n$$g^{(n+m)}(x)\\le g^{(n)}(x)+g^{(m)}(T^nx),$$\n即 $\\{g^{(n)}\\}$ 为子加性上循环。条件 $\\log^+\\|A^{\\pm1}\\|\\in L^1$ 保证了 $g^{(1)}(x)=\\log\\|A(x)\\||\\in L^1$。\n\n由 Kingman 定理，极限 $g(x):=\\lim_{n\\to\\infty}\\frac1n\\log\\|A_n(x)\\|$ 几乎处处存在且为 $T$-不变函数。\n\n对可逆系统，$\\{g^{(n)}\\circ T^{-n}\\}$ 也满足子加性：\n$$g^{(n+m)}\\circ T^{-(n+m)}\\le g^{(n)}\\circ T^{-n}+[g^{(m)}\\circ T^{-m}]\\circ T^{-n}.$$\n其极限与 $g^{(n)}$ 相同——通过遍历分解可证：对每个遍历分量 $m_y$，$\\lim g^{(n)}\\circ T^{-n}/n = \\inf\\frac1n\\int g^{(n)}\\circ T^{-n}\\,dm_y = \\inf\\frac1n\\int g^{(n)}\\,dm_y = \\lim g^{(n)}/n$。这一事实在 Oseledets 定理可逆情形的证明中用于处理负向乘积。"
+      ]
+    },
     "references": [
       "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.5.",
       "H. Furstenberg and H. Kesten, Products of random matrices, Ann. Math. Statist. 31 (1960), 457–469."

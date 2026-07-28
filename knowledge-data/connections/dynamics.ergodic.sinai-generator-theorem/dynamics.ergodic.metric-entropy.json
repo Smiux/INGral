@@ -3,7 +3,7 @@
   "to": "dynamics.ergodic.metric-entropy",
   "description": {
     "zh": [
-      "Sinai 生成子定理提供了计算度量熵的实际方法：只需计算 $h_\\mu(T,\\alpha)$ 对一个生成子 $\\alpha$ 的值，无需取上确界。"
+      "Sinai 生成子定理将度量熵的计算从所有划分的上确界缩减至单个生成子划分的熵，使熵成为可计算的量。"
     ]
   }
 }

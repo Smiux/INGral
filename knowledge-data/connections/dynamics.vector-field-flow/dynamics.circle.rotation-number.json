@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.vector-field-flow",
-  "to": "dynamics.circle.rotation-number",
-  "description": {
-    "zh": [
-      "向量场的旋转数 $\\rho_X$ 是离散旋转数 $\\rho(\\tilde f)$ 的连续时间原型。"
-    ]
-  }
-}

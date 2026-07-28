@@ -3,13 +3,12 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "Herman 反例",
-      "Denjoy 定理在 $C^{1+\\tau}$（$\\tau<1$）下的最优性"
+      "Herman 反例"
     ]
   },
   "description": {
     "zh": [
-      "对任意无理角 $\\theta$ 和任意 $\\tau<1$，在 $\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$ 中旋转 $R_\\theta$ 的任意邻域内，存在旋转数为 $\\theta$ 但不拓扑共轭于 $R_\\theta$ 的微分同胚。"
+      "对任意无理角 $\\theta$ 和任意 $\\tau<1$，在 $\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$ 中存在旋转数为 $\\theta$ 但不拓扑共轭于 $R_\\theta$ 的微分同胚。"
     ]
   },
   "extension": {
@@ -20,18 +19,29 @@
       "反例",
       "Herman"
     ],
+    "notes": [
+      {
+        "zh": "$C^{1+\\mathrm{bv}}$ 是确保 Denjoy 定理成立的临界正则性。$C^{1+\\mathrm{Lip}}$ 和 $C^2$ 都是 $C^{1+\\mathrm{bv}}$ 的子类，因此自动继承 Denjoy 结论。"
+      }
+    ],
     "article": [
       {
-        "zh": "Herman 反例是 Denjoy 理论中一个关键的「负结果」：它精确刻画了 Denjoy 定理的边界。Denjoy 定理说 $C^{1+\\mathrm{bv}}$ 无理旋转微分同胚必共轭于旋转（即没有例外极小集）。Herman 的反例证明这一条件不可改进到 $C^{1+\\tau}$（$\\tau<1$）。\n\n构造的几何思想：在圆周上取一个 Cantor 集 $K$，令微分同胚 $f$ 在 $K$ 上的导数恒为 $1$——在 $K$ 上 $f$ 恰好是刚性旋转。在补区间上，调整导数使得区间长度在迭代下以可控速率收缩（扩张），同时控制 $C^{1+\\tau}$ 范数。粗略地说，补区间越窄，需要的导数变化越剧烈——而 $C^{1+\\tau}$ 限制了这种变化的「尖峰」程度。$C^{1+\\mathrm{bv}}$ 限制导数对数全变差之和有限（$\\sum|\\log Df|$ 收敛），这是 Denjoy 证明中控制畸变的关键。$C^{1+\\tau}$ 条件比 $C^{1+\\mathrm{bv}}$ 弱：全变差有界要求导数的振荡在整体上可和，而 Hölder 条件只限制了局部的振荡「率」。因此 $C^{1+\\tau}$ 允许 Cantor 集上的导数恒为 $1$ 但在补区间上积累任意大的总畸变——只要每次振荡的「量」不超过 Hölder 条件允许的范围。\n\n从等距嵌入理论的视角看，Herman 反例揭示了 $C^{1+\\mathrm{bv}}$ 是 $C^{1+\\tau}$ 谱系中唯一的正则性临界点：$C^{1+\\mathrm{Lip}}$ 和 $C^2$ 都是 $C^{1+\\mathrm{bv}}$ 的子类，因此它们自动继承 Denjoy 定理的结论。$C^{1+\\mathrm{bv}}$ 因此在 $C^1$ 与 $C^2$ 之间划出了一条精确的界线——这正是 Denjoy 原始证明中的有界变差条件所确定的界线。"
+        "zh": "Denjoy 定理表明，$C^{1+\\mathrm{bv}}$ 的保向圆周微分同胚若旋转数为无理数，则必拓扑共轭于无理旋转。Herman 反例揭示了这一正则性条件的边界：一旦正则性低于 $C^{1+\\mathrm{bv}}$，Denjoy 结论便不再普遍成立。\n\n## 对任意 $\\tau<1$ 的反例\n\n对任意无理角 $\\theta$ 和任意 $\\tau<1$，在 $\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$ 中都存在以 $\\theta$ 为旋转数但不拓扑共轭于 $R_\\theta$ 的微分同胚。其构造分为两步。\n\n## 等变族的构造\n\n第一步是引入一族等变的区间之间的同胚。所谓等变族 $\\{\\varphi_{a,b}:[0,a]\\to[0,b]\\}$，是指满足 $\\varphi_{b,c}\\circ\\varphi_{a,b}=\\varphi_{a,c}$ 对一切 $a,b,c>0$ 成立的映射族。给定等变族后，对任意区间 $I=[x_1,x_2]$ 和 $J=[y_1,y_2]$ 可定义 $\\varphi(I,J)(x)=\\varphi_{x_2-x_1,y_2-y_1}(x-x_1)+y_1$。一种具体的等变族由 $\\varphi_a(x)=-(1/a)\\cot(\\pi x/a)$ 导出，其元素在端点处与恒等映射 $C^1$ 相切，且二阶导数满足 $|\\varphi_{a,b}''(x)|\\leq 6\\pi|b/a-1|/a$。通过这些估计可将区间长度之比的控制转化为导数 $C^\\omega$ 模的控制。\n\n## 反例的具体实现\n\n第二步是具体的构造。选定无理角 $\\theta$，考虑旋转 $R_\\theta$ 的轨道 $\\{x_n=R_\\theta^n(x_0)\\}$。将每个轨道点 $x_n$ 替换为区间 $I_n$，其长度取为 $\\ell_n=1/((|n|+k)[\\log(|n|+k)]^{1+\\varepsilon/2})$。利用等变族 $\\varphi(I_n,I_{n+1})$ 定义新圆周上的同胚 $\\bar R_\\theta$：$\\bar R_\\theta$ 在 $I_n$ 上的限制恰为 $\\varphi(I_n,I_{n+1})$。通过估计 $|\\ell_{n+1}/\\ell_n-1|/\\omega_\\varepsilon(\\ell_n)$ 的上界（其中 $\\omega_\\varepsilon(s)=s[\\log(1/s)]^{1+\\varepsilon}$），并应用导数 $C^\\omega$ 模的控制引理，可知 $\\bar R_\\theta$ 是 $C^{1+\\omega_\\varepsilon}$ 微分同胚。归一化到单位圆周后，其导数 $C^{\\omega_\\varepsilon}$ 模不超过 $2/[\\log(k)]^{\\varepsilon/2}$。随 $k\\to\\infty$，这些微分同胚在 $C^{1+\\omega_\\varepsilon}$ 拓扑下收敛到旋转 $R_\\theta$，但每个微分同胚都保持一个例外极小集作为不变集，因此不拓扑共轭于旋转。\n\n## 高秩推广\n\n该构造可以推广到高秩自由 Abel 群。对任意 $\\varepsilon>0$ 和正整数 $d$，存在自由 $\\mathbb Z^d$ 作用，由 $C^{1+1/d-\\varepsilon}$ 圆周微分同胚生成且具有例外极小集。构造思路类似：将 $\\mathbb Z^d$ 作用中每个轨道点替换为长度为 $\\ell_{(i_1,\\ldots,i_d)}=1/((|i_1|+\\cdots+|i_d|+m)^d[\\log(\\cdots)]^{1+\\varepsilon})$ 的区间，并使用等变族粘合各生成元。此正则性上界已被证明为最优。"
       }
     ],
-    "proof": [
-      {
-        "zh": "对任意 $\\tau<1$，选定无理旋转数 $\\theta$，取快速逼近有理数列 $p_n/q_n$。在圆周上构造 Cantor 集 $K$，在 $K$ 上令导数为 $1$；在补区间上构造适当的扩张/收缩比，使总 $C^{1+\\tau}$ 范数可控。通过控制 Kolmogorov-Sinai 熵或由 Denjoy 不等式证明 $f$ 不共轭于旋转。关键：在 $C^{1+\\tau}$ 但非 $C^{1+\\mathrm{bv}}$ 的边界上恰好破坏 Denjoy 条件。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "对无理角 $\\theta$ 和 $\\varepsilon>0$，取 $k\\in\\mathbb N$ 并定义 $\\ell_n=1/((|n|+k)[\\log(|n|+k)]^{1+\\varepsilon/2})$。将旋转 $R_\\theta$ 的轨道点 $x_n=R_\\theta^n(x_0)$ 替换为长度为 $\\ell_n$ 的区间 $I_n$，并用等变族 $\\varphi(I_n,I_{n+1})$ 粘合，得到新圆周上的同胚 $\\bar R_\\theta$。由估计 $|\\ell_{n+1}/\\ell_n-1|/\\omega_\\varepsilon(\\ell_n)\\leq2/[\\log(n+k)]^{\\varepsilon/2}$ 和控制导数 $C^\\omega$ 模的引理（其中 $\\omega_\\varepsilon(s)=s[\\log(1/s)]^{1+\\varepsilon}$），可知 $\\bar R_\\theta$ 为 $C^{1+\\omega_\\varepsilon}$ 微分同胚。归一化到单位圆周后，其导数 $C^{\\omega_\\varepsilon}$ 模不超过 $2/[\\log(k)]^{\\varepsilon/2}$。该微分同胚保持一个例外极小集不变，因而不拓扑共轭于旋转 $R_\\theta$。由于 $\\omega_\\varepsilon$ 弱于 Lipschitz 模且强于任意 $\\tau$-Hölder 模（$\\tau<1$），该构造对任意 $\\tau<1$ 均给出 $C^{1+\\tau}$ 反例。",
+        "对 $d\\geq2$ 和 $\\varepsilon>0$，取 $m\\geq d-1$ 并定义 $\\ell_{(i_1,\\ldots,i_d)}=1/((|i_1|+\\cdots+|i_d|+m)^d[\\log(|i_1|+\\cdots+|i_d|+m)]^{1+\\varepsilon})$。将自由 $\\mathbb Z^d$ 作用每个轨道点替换为相应长度的区间，并用等变族定义各生成元 $f_j$，使得 $f_j$ 将区间 $I_{(i_1,\\ldots,i_j,\\ldots,i_d)}$ 映为 $I_{(i_1,\\ldots,i_j+1,\\ldots,i_d)}$。生成的 $\\mathbb Z^d$ 作用为 $C^{1+\\omega}$ 类，其中 $\\omega(s)=s^{1/d}[\\log(1/s)]^{1/d+\\varepsilon}$，因此属于 $C^{1+1/d-\\varepsilon}$。该作用具有例外极小集，故不拓扑共轭于旋转作用。此正则性上界 $C^{1+1/d}$ 为最优。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "选定无理旋转数 $\\theta$。构造等变族 $\\{\\varphi_{a,b}\\}$（Yoccoz 族），其元素在端点处与恒等相切且满足估计 $|\\varphi_{a,b}''(x)|\\leq6\\pi|b/a-1|/a$。对 $k\\in\\mathbb N$，将轨道 $R_\\theta^n(x_0)$ 上每点替换为区间 $I_n$（长度 $\\ell_n=\\frac1{(|n|+k)[\\log(|n|+k)]^{1+\\varepsilon/2}}$），并用 $\\varphi(I_n,I_{n+1})$ 定义新圆周上的同胚 $\\bar R_\\theta$。通过估计 $|\\ell_{n+1}/\\ell_n-1|\\cdot\\frac{\\ell_n}{\\omega_\\varepsilon(\\ell_n)}\\leq\\frac2{[\\log(n+k)]^{\\varepsilon/2}}$ 和一个关于导数 $C^\\omega$ 模的控制引理来控制导数 $C^\\omega$ 模。归一化后得到单位圆周上的 $C^{1+\\omega_\\varepsilon}$ 微分同胚，其导数 $C^{\\omega_\\varepsilon}$ 模 $\\leq2/[\\log(k)]^{\\varepsilon/2}$。该微分同胚具有例外极小集，因而不拓扑共轭于旋转。"
+      ]
+    },
     "references": [
-      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.1.",
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §4.1.4.",
       "M. Herman, Sur la conjugaison différentiable des difféomorphismes du cercle à des rotations, Publ. Math. de l'IHES 49 (1979), 5-234."
     ]
   }

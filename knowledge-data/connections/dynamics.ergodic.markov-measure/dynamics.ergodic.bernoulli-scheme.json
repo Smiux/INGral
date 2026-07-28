@@ -3,7 +3,7 @@
   "to": "dynamics.ergodic.bernoulli-scheme",
   "description": {
     "zh": [
-      "Bernoulli 方案是转移概率 p_{ab}=p_b（不依赖于前态）的特殊 Markov 测度，Markov 测度允许一步相关性。"
+      "Markov 测度允许一步转移概率依赖于当前状态，是 Bernoulli 方案的无记忆独立性假设的推广。"
     ]
   }
 }

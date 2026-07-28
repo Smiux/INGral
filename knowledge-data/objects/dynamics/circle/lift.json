@@ -3,13 +3,12 @@
   "type": "definition",
   "name": {
     "zh": [
-      "提升",
-      "提升映射"
+      "圆周提升映射"
     ]
   },
   "description": {
     "zh": [
-      "设 $\\pi:\\mathbb R\\to\\mathbb T=\\mathbb R/\\mathbb Z$ 为自然商映射。对连续映射 $f:\\mathbb T\\to\\mathbb T$，其**提升**是连续映射 $\\tilde f:\\mathbb R\\to\\mathbb R$ 满足 $\\pi\\circ\\tilde f = f\\circ\\pi$。"
+      "设 $\\pi:\\mathbb R\\to\\mathbb T=\\mathbb R/\\mathbb Z$ 为自然商映射。对连续映射 $f:\\mathbb T\\to\\mathbb T$，其**提升**是连续映射 $\\tilde f:\\mathbb R\\to\\mathbb R$ 满足 $\\pi\\circ\\tilde f = f\\circ\\pi$。给定 $x_0\\in\\mathbb T$、其提升 $\\tilde x_0\\in\\pi^{-1}(x_0)$ 及 $\\tilde y_0\\in\\pi^{-1}(f(x_0))$，存在唯一的连续提升 $\\tilde f:\\mathbb R\\to\\mathbb R$ 满足 $\\pi\\circ\\tilde f=f\\circ\\pi$ 且 $\\tilde f(\\tilde x_0)=\\tilde y_0$。若 $f$ 是同胚，则 $\\tilde f$ 也是同胚。"
     ]
   },
   "extension": {
@@ -20,16 +19,17 @@
       "动力学",
       "Poincaré"
     ],
-    "notes": [
-      {
-        "zh": "若 $\\tilde f$ 是 $f$ 的提升，则对任意 $k\\in\\mathbb Z$，$\\tilde f + k$ 也是 $f$ 的提升。因此提升在相差一个整数平移的意义下唯一。由此可定义度：$\\deg(f):=\\tilde f(\\tilde x+1)-\\tilde f(\\tilde x)$，该值与提升及 $\\tilde x$ 的选择无关。"
-      }
-    ],
     "article": [
       {
-        "zh": "将圆周映射提升到万有覆盖 $\\mathbb R$ 上是圆周动力学的核心技巧，其根源来自向量场理论。对于 $\\mathbb T$ 上的无奇点向量场 $X$，其提升 $\\tilde X$ 是 $\\mathbb R$ 上的 $\\mathbb Z$-周期向量场，流 $\\Phi_{\\tilde X}^t$ 满足 $\\Phi_{\\tilde X}^t(\\tilde x+1)=\\Phi_{\\tilde X}^t(\\tilde x)+1$——这正是提升的周期平移性质。事实上，若定义映射 $\\tilde h(\\tilde x)=\\rho_X\\int_0^{\\tilde x}\\frac{dt}{X(\\pi(t))}$（其中 $\\rho_X=(\\int_{\\mathbb T} dx/X)^{-1}$ 为该向量场的平均速度），则 $\\tilde h$ 是提升且是 $C^{r+1}$ 微分同胚，且将 $X$ 推前为常向量场 $\\rho_X$。这一构造本质上将任意无奇点向量场化归为常数场——即刚性旋转的无穷小生成元。\n\n然而 Poincaré 的关键发现是：并非所有圆周同胚都可以写为某个向量场的时间-$t$ 流映射。一旦脱离向量场框架，单纯说「角速度」已无意义——圆周上全序和信息丢失。但提升仍然有效：通过万有覆盖 $\\pi:\\mathbb R\\to\\mathbb R/\\mathbb Z$，我们可以将 $\\mathbb T$（一维紧流形）上的同胚提升到 $\\mathbb R$（一维非紧流形）上的同胚，从而利用 $\\mathbb R$ 的序结构（$\\tilde f$ 严格单调）和度量来定义旋转数、位移函数等不变量。这意谓提升法是从向量场到同胚的自然推广——它用覆盖空间的拓扑替代了微分方程的分析。\n\n提升群 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb T)$ 由所有保向圆周同胚的提升组成：其中每个元素都是 $\\mathbb R$ 上严格递增的同胚，且 $\\tilde f-\\operatorname{id}_{\\mathbb R}$ 是 $\\mathbb Z$-周期的。后者正是位移函数（displacement cocycle）的定义基础，前者则使得旋转数可以通过序论证（子加性引理）或遍历论证（Birkhoff 定理）来定义。"
+        "zh": "研究圆周映射时，将问题提升到实直线上的覆叠空间是一种基本方法。圆周 $\\mathbb T=\\mathbb R/\\mathbb Z$ 可看作实直线在整数平移群作用下的商空间，投影 $\\pi:\\mathbb R\\to\\mathbb T$ 是万有覆叠。圆周上的连续映射 $f$ 可提升为实直线上的连续映射 $\\tilde f$，使 $\\pi\\circ\\tilde f=f\\circ\\pi$ 成立。\n\n## 存在性与自由度\n\n提升的存在唯一性由覆叠空间的基本性质保证：固定一点 $x_0\\in\\mathbb T$ 及其提升 $\\tilde x_0\\in\\pi^{-1}(x_0)$，再选取 $f(x_0)$ 的一个提升 $\\tilde y_0\\in\\pi^{-1}(f(x_0))$，则存在唯一的连续提升 $\\tilde f$ 满足 $\\tilde f(\\tilde x_0)=\\tilde y_0$。若 $f$ 是同胚，$\\tilde f$ 也是同胚。\n\n若 $\\tilde f_1,\\tilde f_2$ 是同一映射 $f$ 的两个提升，则存在整数 $k\\in\\mathbb Z$ 使 $\\tilde f_1=\\tilde f_2+k$。这个整数平移自由度导出了度的概念：差 $\\tilde f(\\tilde x+1)-\\tilde f(\\tilde x)$ 是与 $\\tilde x$ 和提升选择无关的整数，称为 $f$ 的度 $\\deg(f)$。$f$ 是同胚时 $\\deg(f)=\\pm 1$。$\\deg(f)=1$ 的映射称为保向的，其提升严格递增且满足 $\\tilde f(\\tilde x+1)=\\tilde f(\\tilde x)+1$，进而与整数平移可交换：$\\tilde f\\circ T_m=T_m\\circ\\tilde f$ 对一切 $m\\in\\mathbb Z$ 成立，其中 $T_m(x)=x+m$。$\\deg(f)=-1$ 的映射称为反向的，其提升严格递减。\n\n## 位移函数与旋转数\n\n在保向情况下，位移函数 $\\Delta_{\\tilde f}=\\tilde f-\\operatorname{id}_{\\mathbb R}$ 是 $\\mathbb Z$-周期的连续函数，因此可视为 $\\mathbb T$ 上的函数。它满足 $\\Delta_{\\tilde f^n}=\\sum_{j=0}^{n-1}\\Delta_{\\tilde f}\\circ f^j$，这一上循环恒等式将迭代的总位移分解为单步位移沿轨道的累加。由此引出的旋转数\n$$\\rho(\\tilde f)=\\lim_{n\\to\\infty}\\frac{\\tilde f^n(\\tilde x)-\\tilde x}{n}$$\n是圆周动力学最基本的共轭不变量。\n\n## 半共轭的构造\n\n当 $f$ 具有无理旋转数时，借助 Gottschalk–Hedlund 定理可从位移函数构造 $f$ 到无理旋转的半共轭映射。具体地，考虑函数 $\\varphi(x)=\\Delta_{\\tilde f}(\\tilde x)-\\rho(\\tilde f)$，在 $f$-极小集 $K$ 上存在连续函数 $u$ 使 $\\varphi=u\\circ f-u$。定义 $\\tilde h(\\tilde x)=\\tilde x+u(x)$，则 $\\tilde h$ 满足 $\\tilde h\\circ\\tilde f=\\tilde R_{\\rho}\\circ\\tilde h$，投影得到 $h\\circ f=R_\\rho\\circ h$。这一构造依赖于将问题提升到实直线上的做法——$\\tilde h$ 直接作用于 $\\mathbb R$，而 $\\mathbb Z$-周期性保证了其投影良定义。"
       }
     ],
+    "examples": {
+      "zh": [
+        "将圆周参数化为 $[0,1)$。设 $f=R_\\alpha$ 为旋转 $\\alpha\\in(0,1)$。对任意整数 $k$，映射 $F_k(x)=x+\\alpha+k$ 是 $f$ 的一个提升。$F_k$ 严格递增，且满足 $F_k(x+1)=F_k(x)+1$。满足 $F_k(0)\\in[0,1)$ 的规范提升对应 $k=0$。不同 $k$ 给出的提升相差整数平移，反映覆盖变换群为 $\\mathbb Z$。位移函数 $F_k(x)-x=\\alpha+k$ 为常数，因此旋转数 $\\rho(f)=\\alpha\\bmod 1$ 与提升选择无关。",
+        "设 $f$ 为具有例外极小集 $\\Lambda$（Cantor 集）的圆周同胚。将 $\\mathbb S^1\\setminus\\Lambda$ 的各连通分支坍缩为点得到商圆周 $\\mathbb S^1_\\Lambda$ 及诱导极小同胚 $g$。商映射 $\\varphi:\\mathbb S^1\\to\\mathbb S^1_\\Lambda$ 是连续度-1 映射，其提升 $\\tilde\\varphi:\\mathbb R\\to\\mathbb R$ 是非降函数。在对应 $\\Lambda$ 的提升集上 $\\tilde\\varphi$ 严格递增，而在对应坍缩区间的提升开区间上 $\\tilde\\varphi$ 取常值。这体现了半共轭映射的提升与同胚的提升之间的区别：后者处处严格递增，而前者可在坍缩段上保持常值。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Rotation Theory, IMPA, 2024.",
       "M. Hirsch, Differential topology, GTM 33, Springer (1976)."

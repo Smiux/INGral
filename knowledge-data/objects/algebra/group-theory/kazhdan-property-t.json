@@ -8,7 +8,6 @@
   },
   "description": {
     "zh": [
-      "拓扑群 $G$ 具有 **Kazhdan 性质 (T)**，若 $G$ 在 Hilbert 空间上的每个连续酉表示若几乎有不变向量则必有非零不变向量。\n\n等价地，$G$ 的平凡表示是其他所有不可约酉表示分离的孤立点（在 Fell 拓扑下）。",
       "可数群 $\\Gamma$ 称为具有 Kazhdan 性质 (T)，若对每个酉表示 $\\Psi\\colon\\Gamma\\to U(\\mathcal H)$，其第一次上同调群 $H^1(\\Gamma,\\Psi)$ 平凡——即每个 cocycle $c\\colon\\Gamma\\to\\mathcal H$ 都是上边界。等价地，$\\Gamma$ 的每个仿射等距作用在 Hilbert 空间上都有全局不动点。"
     ]
   },
@@ -19,14 +18,20 @@
       "Haagerup 性质",
       "格子",
       "不可约表示",
-      "cocycle",
       "第一次上同调"
     ],
     "article": [
       {
-        "zh": "性质 (T) 由 Kazhdan 在 1967 年引入，最初用于研究高秩 Lie 群的离散子群（如格子）的有限生成性。原始定义涉及拓扑群在 Hilbert 空间上的连续酉表示中几乎不变向量与不变向量的关系（紧生成拓扑群的情形）；对于可数群，上同调定义更为便捷：可数群 $\\Gamma$ 具有性质 (T) 当且仅当其每个酉表示 $\\Psi$ 的第一次上同调群 $H^1(\\Gamma,\\Psi)$ 平凡，等价地，$\\Gamma$ 的每个仿射等距作用在 Hilbert 空间上都有全局不动点。\n\n该性质是群论中最重要的刚性性质之一，与调和分析及群作用紧密相关：具有性质 (T) 的群到可换群的同态必然有有限像（因此到 $(\\mathbb R,+)$ 的同态平凡）；性质 (T) 在有限指标子群、有限扩张和商群下保持。\n\n典型例子：$\\operatorname{SL}(n,\\mathbb Z)$（$n\\geqslant3$）及更一般的秩 $\\geqslant2$ 的不可约格点具有性质 (T)，而 $\\operatorname{SL}(2,\\mathbb Z)$ 没有。性质 (T) 与 Haagerup 性质（a-T-可均性）互为对偶。\n\n在一维动力系统中，性质 (T) 起到关键作用：具有性质 (T) 的群在 $C^{1+\\tau}$（$\\tau>0$）圆周微分同胚群中的作用必然是有限的、可测的（适合刚性定理）；当 $\\tau>1/2$ 时，这样的群必然本身为有限群。"
+        "zh": "## 上同调定义\n\nKazhdan 性质 (T) 是群表示论中的一种刚性条件。对可数群 $\\Gamma$，它有简洁的上同调刻画。设 $\\Psi\\colon\\Gamma\\to U(\\mathcal H)$ 是 Hilbert 空间上的酉表示。满足\n$$\nc(g_1g_2)=c(g_1)+\\Psi(g_1)c(g_2)\n$$\n的映射 $c\\colon\\Gamma\\to\\mathcal H$ 称为关于 $\\Psi$ 的上循环。若存在 $K\\in\\mathcal H$ 使得 $c(g)=K-\\Psi(g)K$ 对一切 $g\\in\\Gamma$ 成立，则称 $c$ 为上边界。上循环空间模上边界空间就是第一次上同调群 $H^1(\\Gamma,\\Psi)$。群 $\\Gamma$ 具有性质 (T) 当且仅当对每个酉表示 $\\Psi$ 皆有 $H^1(\\Gamma,\\Psi)=0$。\n\n## 几何等价条件\n\n该定义有直接的几何解释。Hilbert 空间的每个等距映射可唯一分解为一个酉变换与一个平移的复合，因此等距群同构于半直积 $U(\\mathcal H)\\ltimes\\mathcal H$。给定酉表示 $\\Psi$ 和映射 $c\\colon\\Gamma\\to\\mathcal H$，定义 $A(g)=\\Psi(g)+c(g)$。则 $A$ 是等距作用当且仅当 $c$ 是上循环；$A$ 有不动点当且仅当 $c$ 是上边界。因此性质 (T) 等价于：$\\Gamma$ 在 Hilbert 空间上的每个等距作用都有不动点。借助 Tits 中心引理——等距作用有不动点当且仅当所有轨道有界——性质 (T) 也等价于每个等距作用的轨道有界。\n\n## 与顺从性的关系\n\n性质 (T) 与顺从性之间存在对偶：同时具有两者的群必为有限群。顺从群满足 Haagerup 性质（亦称 a-T-可均性），即存在 Hilbert 空间上的真性等距作用——群元长度趋于无穷时其对应平移的范数也趋于无穷。这种作用不可能有有界轨道，因而与性质 (T) 互斥。\n\n## 主要来源\n\n非平凡性质 (T) 群的主要来源是高秩 Lie 群中的格子。若连通单 Lie 群 $G$ 的实秩大于 $1$——即其极大可交换子代数的 $\\mathbb R$-可对角化维数大于 $1$——且 $\\Gamma$ 是 $G$ 的格子（离散子群使得商空间有有限 Haar 测度），则 $\\Gamma$ 具有性质 (T)。例如 $\\operatorname{SL}(3,\\mathbb Z)$ 作为秩 $2$ 的 $\\operatorname{SL}(3,\\mathbb R)$ 的格子即属此类。Gromov 的随机群理论表明「大多数」有限表示群具有性质 (T)，在这个意义上性质 (T) 是群的典型行为。不具有性质 (T) 的群包括 $\\operatorname{SL}(2,\\mathbb Z)$ 及 Thompson 群 $G$——后者具有 Haagerup 性质。\n\n## 在一维动力系统中的表现\n\n在一维动力系统中，性质 (T) 的刚性表现为多个层面。性质 (T) 群到可换群（特别地到 $(\\mathbb R,+)$）的同态像必为有限群，因此平凡。这意味着具有性质 (T) 的群自动满足 Thurston 稳定性定理的条件。在单纯树上的等距作用中，性质 (T) 保证存在全局不动点。圆周上，高秩 Lie 群中格子的 $C^1$ 微分同胚表示的像必为有限群。关于直线上的作用，是否存在非平凡性质 (T) 群的作用仍是未决问题——这等价于是否存在非平凡且可序的性质 (T) 群。"
       }
     ],
+    "examples": {
+      "zh": [
+        "有限群具有 Kazhdan 性质 (T)。设 $\\Gamma$ 为有限群，$A$ 为 $\\Gamma$ 在 Hilbert 空间 $\\mathcal H$ 上的等距作用。任取 $x\\in\\mathcal H$，考虑其轨道的平均向量 $K=|\\Gamma|^{-1}\\sum_{g\\in\\Gamma}A(g)x$。对任意 $h\\in\\Gamma$，由 $A$ 的等距线性性，$A(h)K=|\\Gamma|^{-1}\\sum_{g\\in\\Gamma}A(h)A(g)x=|\\Gamma|^{-1}\\sum_{g\\in\\Gamma}A(hg)x=K$。因此 $K$ 是 $\\Gamma$ 在 $\\mathcal H$ 中的全局不动点。由性质 (T) 的几何等价条件——Hilbert 空间上的每个等距作用都有不动点——$\\Gamma$ 具有性质 (T)。",
+        "$\\operatorname{SL}(3,\\mathbb Z)$ 是 Kazhdan 群的非平凡例子。实 Lie 群 $\\operatorname{SL}(3,\\mathbb R)$ 的（实）秩为 $2$，即其极大可交换子代数可在 $\\mathbb R$ 上对角化的维数为 $2$。$\\operatorname{SL}(3,\\mathbb Z)$ 是 $\\operatorname{SL}(3,\\mathbb R)$ 的离散子群，且商空间 $\\operatorname{SL}(3,\\mathbb R)/\\operatorname{SL}(3,\\mathbb Z)$ 具有有限 Haar 测度，因而是 $\\operatorname{SL}(3,\\mathbb R)$ 中的格子。秩大于 $1$ 的连通单 Lie 群的格子均具有性质 (T)，故 $\\operatorname{SL}(3,\\mathbb Z)$ 具有性质 (T)。",
+        "Thompson 群 $G$ 不具有性质 (T)，其 Farley 论证验证了 Haagerup 性质。记 $G_0$ 为 $G$ 中在子区间 $[0,1/2]\\subset\\mathbb S^1$ 上恒同的元构成的子群。考虑 Hilbert 空间 $\\mathcal H=\\ell^2(G/G_0)$，$G$ 通过左乘作用于其上：$\\Psi(g)K([h])=K([g^{-1}h])$。对每个 dyadic 区间 $I\\subset\\mathbb S^1$，取 $g_I\\in G$ 将 $[0,1/2]$ 仿射地映到 $I$，则陪集 $[g_I]\\in G/G_0$ 与 $g_I$ 的选取无关。定义 $c(g)=\\sum_I(\\delta_{[g_I]}-\\delta_{[gg_I]})$，其中和式取遍所有 dyadic 区间 $I$，$\\delta$ 为 Dirac 函数。对每个 $g\\in G$，当 $I$ 充分小时 $g$ 在 $I$ 上为仿射且 $g(I)$ 仍为 dyadic 区间，故上述和式中只有有限项非零，从而 $c(g)\\in\\mathcal H$。直接验证可知 $c$ 满足上循环恒等式。进一步的计算表明 $\\|c(g)\\|^2$ 等于使得 $g$ 在 $I$ 上非仿射或 $g(I)$ 非 dyadic 区间的 $I$ 的个数的两倍，因此 $\\|c(g)\\|$ 随 $g$ 的长度趋于无穷而趋于无穷。这给出了 $G$ 的一个几何真性的 Hilbert 空间等距作用，故 $G$ 具有 Haagerup 性质，从而不具有性质 (T)。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §5.2.1.",
       "B. Bekka, P. de la Harpe, A. Valette, Kazhdan's Property (T), Cambridge Univ. Press, 2008."

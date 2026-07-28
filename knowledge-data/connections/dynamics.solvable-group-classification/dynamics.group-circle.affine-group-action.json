@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.solvable-group-classification",
-  "to": "dynamics.group-circle.affine-group-action",
-  "description": {
-    "zh": [
-      "仿射群出现在 $\\mathcal R(2)$ 族中——非交换亚交换可解子群共轭于仿射群子群。"
-    ]
-  }
-}

@@ -3,13 +3,12 @@
   "type": "definition",
   "name": {
     "zh": [
-      "动力系统",
-      "自治确定型动力系统"
+      "动力系统"
     ]
   },
   "description": {
     "zh": [
-      "一个**自治确定型动力系统**由三要素构成：**相空间** $M$（系统可能状态之集合）、**时间集** $\\mathbb T\\subset\\mathbb R$（通常为 $\\mathbb N_0$ 或 $\\mathbb R_{\\geqslant0}$）、**演化规律** $\\Phi\\colon\\mathbb T\\times M\\to M$，满足流条件\n$$\\Phi(t+s,x)=\\Phi(t,\\Phi(s,x)),\\quad\\forall t,s\\in\\mathbb T,\\forall x\\in M.$$\n\n离散时间系统由迭代 $\\Phi(n,x)=f^n(x)$ 生成；连续时间系统由向量场 $X(p)=\\partial_t\\Phi(t,p)|_{t=0}$ 生成。"
+      "一个**自治确定型动力系统**由三要素构成：**相空间** $M$、**时间集** $\\mathbb T\\subset\\mathbb R$（通常为 $\\mathbb N_0$ 或 $\\mathbb R_{\\geqslant0}$，可逆系统可取 $\\mathbb Z$ 或 $\\mathbb R$）、**演化规律** $\\Phi\\colon\\mathbb T\\times M\\to M$，满足流条件\n$$\\Phi(t+s,x)=\\Phi(t,\\Phi(s,x)),\\quad\\forall t,s\\in\\mathbb T,\\forall x\\in M.$$\n\n离散时间系统由迭代 $\\Phi(n,x)=f^n(x)$ 生成；连续时间系统由向量场 $X(p)=\\partial_t\\Phi(t,p)|_{t=0}$ 生成。系统可逆当且仅当离散情形下 $f$ 双射。"
     ]
   },
   "extension": {
@@ -22,9 +21,15 @@
     ],
     "article": [
       {
-        "zh": "动力系统的数学定义——相空间 $M$、时间集 $\\mathbb T$、演化规律 $\\Phi$ 满足流条件——是自 Newton 以来对「确定性演化」的数学形式化。动力系统理论的发展经历了三个历史阶段。\n\nNewton 时代的目标是求解微分方程（求积法），如限制性二体问题的解是圆锥曲线（直线、椭圆、抛物线或双曲线）。Poincaré 时代认识到许多微分方程（如 $n\\geqslant3$ 体问题）无法用求积法求解，于是转向定性理论——描述解的几何性质而非写出显式解。Smale 和 Andronov 时代进一步关注参数扰动下轨道几何性质的稳健性（鲁棒性）——微小参数变化可能导致解的定性行为彻底改变。这三个阶段被 Étienne Ghys 精辟地概括为：Newton 时代给你一个 ODE，要求找到解；Poincaré 时代给你一个 ODE，要求阐明其解的几何性质；Smale 时代根本不给你 ODE，却要求说出有趣的东西。\n\n流条件 $\\Phi(t+s,x)=\\Phi(t,\\Phi(s,x))$ 是系统自治性的数学表达。离散时间系统由单映射 $f$ 的迭代生成：$\\Phi(n,x)=f^n(x)$；连续时间系统由向量场 $X(p)=\\partial_t\\Phi(t,p)|_{t=0}$ 生成。研究的主要目标是描述轨道的渐近行为。"
+        "zh": "## 系统三要素\n\n一个自治确定型动力系统由三个成分构成：相空间 $M$（系统可能状态的集合）、时间集 $\\mathbb T\\subset\\mathbb R$（通常取 $\\mathbb N_0$ 或 $\\mathbb R_{\\geqslant0}$，可逆系统可取 $\\mathbb Z$ 或 $\\mathbb R$）、以及演化规律 $\\Phi\\colon\\mathbb T\\times M\\to M$。三者满足流条件\n$$\\Phi(t+s,x)=\\Phi(t,\\Phi(s,x)),\\quad\\forall t,s\\in\\mathbb T,\\forall x\\in M,$$\n这称为系统的自治性——演化 $t+s$ 时间的结果等于先演化 $s$ 时间再演化 $t$ 时间，即演化律则不随时间改变。\n\n## 离散时间与连续时间\n\n时间集的选择决定了两大类系统。离散时间系统 $\\mathbb T=\\mathbb N_0$ 由单个映射的迭代生成：存在 $f\\colon M\\to M$ 使 $\\Phi(n,x)=f^n(x)$。系统可逆当且仅当 $f$ 是双射，此时时间集可延拓为 $\\mathbb Z$。连续时间系统 $\\mathbb T=\\mathbb R_{\\geqslant0}$ 在光滑情形下由向量场生成。若相空间 $M$ 是可微闭流形且 $\\Phi$ 为 $C^2$ 映射，则\n$$X(p)=\\left.\\partial_t\\Phi(t,p)\\right|_{t=0}\\in T_pM$$\n是 $M$ 上的向量场，而 $\\Phi(\\cdot,x_0)$ 是初值问题 $\\dot x(t)=X(x(t))$、$x(0)=x_0$ 的唯一解。$X$ 称为 $\\Phi$ 的无穷小生成元。\n\n## 轨道与理论任务\n\n动力系统理论的基本研究对象是轨道\n$$\\mathcal O_\\Phi(x)=\\{\\Phi(t,x):t\\in\\mathbb T\\}$$\n及其渐近行为。对这一问题的处理经历了三个阶段。Newton 时代通过解微分方程获得轨道的显式表达式（求积法），二体问题是这一方法的经典成果。Poincaré 认识到许多系统（如三体问题）无法用求积法求解，转而发展定性理论——不求出显式解，而是直接描述轨道的几何性质。Smale 学派进一步追问：参数发生微小扰动时，哪些几何性质保持不变？这引出了结构稳定性等概念。三阶段的演进对应着从求积到定性再到稳健性的范式转移。"
       }
     ],
+    "examples": {
+      "zh": [
+        "取 $M=\\mathbb R$，$\\mathbb T=\\mathbb N_0$，对任意 $a,b\\in\\mathbb R$ 定义 $f_{a,b}(x)=ax+b$ 及 $\\Phi(n,x)=f_{a,b}^n(x)$。由 $f^{n+m}=f^n\\circ f^m$ 知 $\\Phi$ 满足流条件，故 $(\\mathbb R,\\mathbb N_0,\\Phi)$ 是一个离散时间动力系统。其轨道结构由参数 $a$ 决定：若 $|a|<1$，则存在唯一不动点 $p=-b/(a-1)$，且对所有 $x\\in\\mathbb R$ 有 $f_{a,b}^n(x)\\to p$；若 $|a|>1$，则除不动点外所有轨道发散至无穷；若 $a=1$ 且 $b\\neq0$，轨道单调趋于 $\\pm\\infty$；若 $a=-1$，每个点都是周期点（周期至多 $2$）。",
+        "设 $M$ 是紧致可微流形，赋予 Riemann 度量，$L\\colon M\\to\\mathbb R$ 是光滑函数。定义向量场 $X=-\\nabla L$，其中 $\\nabla L$ 由 $\\langle\\nabla L,Y\\rangle=dL(Y)$ 对所有向量场 $Y$ 唯一确定。由 $X$ 生成的流 $\\Phi\\colon\\mathbb R\\times M\\to M$ 是一个连续时间动力系统。沿轨道的计算表明\n$$\\left.\\frac{d}{dt}(L\\circ\\Phi^t)(p)\\right|_{t=0}=-\\|\\nabla L(p)\\|^2\\leq0,$$\n故 $L$ 沿轨道不增，且在 $L$ 的正则点处严格递减。若 $L$ 只有有限个临界点，则对任意 $p\\in M$，存在临界点 $\\alpha_p,\\omega_p\\in M$ 使得 $\\Phi^{-t}(p)\\to\\alpha_p$、$\\Phi^t(p)\\to\\omega_p$ 当 $t\\to+\\infty$。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §1."
     ]

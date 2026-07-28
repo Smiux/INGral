@@ -1,10 +1,9 @@
 {
   "id": "dynamics.group-circle.psl2-conjugacy-subtlety",
-  "type": "definition",
+  "type": "theorem",
   "name": {
     "zh": [
-      "逐元 PSL(2,R) 共轭不等价于整体共轭",
-      "元素级共轭与子群级共轭的差异"
+      "PSL(2,R) 共轭精细结构"
     ]
   },
   "description": {
@@ -22,9 +21,17 @@
     ],
     "article": [
       {
-        "zh": "这是一个重要的微妙之处：虽然 $\\operatorname{PSL}(2,\\mathbb R)$ 的元素按不动点分类非常完美（椭圆/抛物/双曲），但整体嵌入与元素级嵌入有本质不同。考虑 $\\Gamma=\\mathbb Z^2$ 由两个可交换的 $\\operatorname{PSL}(2,\\mathbb R)$ 双曲元生成——这样的群是 $\\operatorname{PSL}(2,\\mathbb R)$ 中不可能存在的子群（$\\operatorname{PSL}(2,\\mathbb R)$ 中可交换的双曲元必共享不动点集，从而生成元只能为同一双曲元的幂次）。然而，我们可以用一对交换的 $C^\\infty$ 微分同胚 $f,g$ 忠实地作用在圆周上：一个旋转和一个恰当的扰动。每个 $f^n g^m$ 是 $C^\\infty$ 微分同胚（因此共轭于 Möbius 变换，这是 $C^{1+\\mathrm{Lip}}$ 圆周微分同胚的性质），但 $\\langle f,g\\rangle$ 不共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的任一子群。\n\n更系统地看，区分元素级和子群级共轭的障碍在于共轭函数 $h_\\gamma$ 依赖于 $\\gamma$。收敛性质定理的核心贡献正是给出了整体共轭的充要条件——「群 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 具有收敛性质」是「$\\Gamma$ 共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群」的充分必要条件。这一条件不要求逐个元素检查，而是通过序列的极限行为来刻画整体结构。\n\nNavas 书中指出了这一现象（§1.3.1）：即使每个元素都拓扑共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 中的某元，整体也未必共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群——即使轨道稠密且元素为实解析微分同胚[144][180]。这说明了收敛性质定理作为整体共轭充要条件的深刻性。"
+        "zh": "## 元素级共轭与整体共轭的差距\n\n$\\operatorname{PSL}(2,\\mathbb R)$ 的元素按不动点个数可分为椭圆、抛物、双曲三类，其个体动力学完全由迹的绝对值决定，结构相当简单。然而，一个由圆周同胚构成的群能否整体共轭嵌入 $\\operatorname{PSL}(2,\\mathbb R)$，并不由其中每个元素是否分别共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 中的某元所决定。\n\n假设 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 中每个 $\\gamma$ 都拓扑共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 中的某元。每个元素各有一个共轭映射 $h_\\gamma$，但这些 $h_\\gamma$ 互不相容，无法拼合为一个统一的同胚将整个群映到 $\\operatorname{PSL}(2,\\mathbb R)$。这一不相容性是结构性的：即使 $\\Gamma$ 的轨道在圆周上稠密、即使每个元素都是实解析微分同胚，元素级共轭仍不足以推出整体共轭。\n\n## 弥合差距：收敛性质\n\n弥合元素级与整体级之间差距的是收敛性质。一个群 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 称为具有收敛性质，若其中任意序列都含有一子序列在某点之外逐点收敛到常值，或一致收敛到某同胚，且逆序列也相应收敛。收敛性质在拓扑共轭下保持不变；它完全刻画了 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群：$\\Gamma$ 拓扑共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群当且仅当 $\\Gamma$ 具有收敛性质。这一条件不依赖逐个元素的共轭性检查，而是通过群作用在圆周上的极限行为来检测整体结构。"
       }
     ],
+    "examples": {
+      "zh": [
+        "$\\operatorname{PSL}(2,\\mathbb R)$ 中所有双曲元彼此拓扑共轭。设 $g_1,g_2\\in\\operatorname{PSL}(2,\\mathbb R)$ 均为双曲元，分别具有不动点对 $(a_1,b_1)$ 与 $(a_2,b_2)$，其中 $a_i$ 为排斥点、$b_i$ 为吸引点。由 $\\operatorname{PSL}(2,\\mathbb R)$ 在圆周上的三重传递性，存在 $h\\in\\operatorname{PSL}(2,\\mathbb R)$ 使 $h(a_1)=a_2$、$h(b_1)=b_2$。双曲元的动力学由不动点对唯一决定，故 $h g_1 h^{-1}=g_2$。",
+        "$\\operatorname{PSL}(2,\\mathbb R)$ 中所有抛物元也彼此拓扑共轭。抛物元在圆周上有唯一不动点。对任意两个抛物元 $g_1,g_2$，分别以 $p_1,p_2$ 为其不动点。取 $h\\in\\operatorname{PSL}(2,\\mathbb R)$ 使 $h(p_1)=p_2$，则 $h g_1 h^{-1}$ 与 $g_2$ 同为以 $p_2$ 为不动点的抛物元，而抛物元由其不动点和在不动点附近的局部动力学唯一确定，故 $h g_1 h^{-1}=g_2$。",
+        "椭圆元则不然。椭圆元共轭于旋转，而旋转角（模 $2\\pi$）是拓扑共轭的不变量。设 $g_1,g_2\\in\\operatorname{PSL}(2,\\mathbb R)$ 为椭圆元，对应的旋转角分别为 $\\alpha$ 与 $\\beta$。$g_1$ 与 $g_2$ 拓扑共轭当且仅当 $\\alpha=\\beta$。因此旋转角不同的椭圆元属于不同的共轭类。",
+        "存在群 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 使每个元素都拓扑共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 中的某元，但 $\\Gamma$ 本身不共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的任何子群。这种反例的构造利用了各元素各自共轭映射的不相容性：每个 $\\gamma\\in\\Gamma$ 有专属的共轭同胚 $h_\\gamma$，所有 $h_\\gamma$ 无法统一为一个公共同胚。即使 $\\Gamma$ 的轨道在圆周上稠密、即使每个元素都是实解析微分同胚，这样的现象仍然可以出现。这说明整体共轭的障碍是结构性的，而非正则性或轨道类型所能检测。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §1.3.1."
     ]

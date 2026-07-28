@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.relative-property-t",
-  "to": "dynamics.kazhdan-circle-rigidity",
-  "description": {
-    "zh": [
-      "相对性质 (T) 是 Kazhdan 性质 (T) 的弱化，Navas 的圆周作用有限性定理对相对性质 (T) 也有类似结论。"
-    ]
-  }
-}

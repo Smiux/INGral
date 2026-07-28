@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import type {
-  KnowledgeObject,
-  KnowledgeConnection,
-  KnowledgeManifest
+import {
+  type KnowledgeObject,
+  type KnowledgeConnection,
+  type KnowledgeManifest,
+  recentlyAdded
 } from '@/components/math/types';
 import {
   Search,
@@ -13,7 +14,8 @@ import {
   GitBranch,
   ChevronLeft,
   ChevronRight,
-  List
+  List,
+  Clock
 } from 'lucide-react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
@@ -25,23 +27,10 @@ function escapeHtml (s: string): string {
     .replace(/>/g, '&gt;');
 }
 
-function renderMath (text: string): string {
-  // 展示模式 $$...$$（先处理，避免与行内 $ 冲突）
-  const withDisplay = text.replace(
-    /\$\$([\s\S]*?)\$\$/g,
-    function (_m, code) {
-      try {
-        return '<div class="katex-display">' +
-          katex.renderToString(code.trim(), { 'throwOnError': false, 'displayMode': true }) +
-          '</div>';
-      } catch {
-        return '<code class="katex-error">' + escapeHtml(code.trim()) + '</code>';
-      }
-    }
-  );
-
-  // 行内模式 $...$
-  return withDisplay.replace(
+/** Render inline math $...$, then bold **...**, then newlines */
+function renderInline (text: string): string {
+  // 1. inline math $...$
+  const withMath = text.replace(
     /\$([\s\S]*?)\$/g,
     function (_m, code) {
       try {
@@ -51,6 +40,52 @@ function renderMath (text: string): string {
       }
     }
   );
+
+  // 2. bold **...**
+  const withBold = withMath.replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>');
+
+  // 3. single newline → <br>
+  return withBold.replace(/\n/g, '<br>');
+}
+
+function renderMath (text: string): string {
+  // 0. Placeholder for display math, to keep it out of paragraph splitting
+  const placeholders: string[] = [];
+  let idx = 0;
+  const withPlaceholder = text.replace(
+    /\$\$([\s\S]*?)\$\$/g,
+    function (_m, code) {
+      const id = '%%MATH_DISPLAY_' + idx + '%%';
+      idx += 1;
+      let rendered: string;
+      try {
+        rendered = katex.renderToString(code.trim(), { 'throwOnError': false, 'displayMode': true });
+      } catch {
+        rendered = '<code class="katex-error">' + escapeHtml(code.trim()) + '</code>';
+      }
+      placeholders.push(rendered);
+      return id;
+    }
+  );
+
+  // 1. Split by double newlines (paragraphs)
+  const parts = withPlaceholder.split(/\n\n+/);
+  const paragraphs = parts.map(function (p) {
+    const trimmed = p.trim();
+    if (!trimmed) {
+      return '';
+    }
+    const inner = renderInline(trimmed);
+    return '<p>' + inner + '</p>';
+  });
+
+  // 2. Join paragraphs
+  const joined = paragraphs.filter(Boolean).join('\n');
+
+  // 3. Restore display math placeholders
+  return joined.replace(/%%MATH_DISPLAY_(\d+)%%/g, function (_m, id) {
+    return '<div class="katex-display">' + placeholders[parseInt(id, 10)] + '</div>';
+  });
 }
 
 /** 返回包含搜索高亮的 HTML 片段 */
@@ -72,17 +107,52 @@ function highlightMatch (text: string, query: string): string {
 
 function ExtField ({
   fieldKey,
-  value,
-  lang
+  value
 }: {
   fieldKey: string;
   value: unknown;
-  lang: string;
 }) {
-  const arr = value as unknown[];
-  if (!arr || arr.length === 0) {
+  // proof 格式: { "zh": string[] } —— 语言键 → 字符串数组
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>;
+    const zhArr = obj.zh;
+    if (Array.isArray(zhArr)) {
+      return (
+        <div>
+          <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+            {fieldKey}
+          </span>
+          <div className="space-y-1 mt-1">
+            {zhArr.map(function (item, i) {
+              if (typeof item !== 'string') {
+                return null;
+              }
+              return (
+                <div
+                  key={i}
+                  className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed math-content"
+                  dangerouslySetInnerHTML={{ '__html': renderMath(item) }}
+                />
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+    // Fallback: unknown object → JSON
+    return (
+      <div>
+        <span className="text-xs font-medium text-slate-400 dark:text-slate-500">{fieldKey}</span>
+        <div className="text-xs text-slate-400 mt-1 font-mono">{JSON.stringify(value)}</div>
+      </div>
+    );
+  }
+
+  // tags / references / article / notes: 数组
+  if (!Array.isArray(value)) {
     return null;
   }
+  const arr = value;
 
   return (
     <div>
@@ -127,8 +197,7 @@ function ExtField ({
             }
             if (item && typeof item === 'object') {
               const obj = item as Record<string, string>;
-              const content =
-                obj[lang] || obj.zh || obj.en || Object.values(obj)[0];
+              const content = obj.zh;
               return (
                 <div
                   key={i}
@@ -161,13 +230,11 @@ function ExtField ({
 function ConnectionRow ({
   conn,
   objectMap,
-  lang,
   direction,
   onNavigate
 }: {
   conn: KnowledgeConnection;
   objectMap: Map<string, KnowledgeObject>;
-  lang: string;
   direction: 'out' | 'in';
   onNavigate: (id: string) => void;
 }) {
@@ -212,11 +279,11 @@ function ConnectionRow ({
           )}
         {other && (
           <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate ml-auto shrink-0">
-            {other.name[lang]?.[0] || other.name.en?.[0] || ''}
+            {other.name.zh?.[0] || ''}
           </span>
         )}
       </div>
-      {conn.description[lang]?.map(function (d, i) {
+      {conn.description.zh?.map(function (d, i) {
         return (
           <div
             key={i}
@@ -235,7 +302,6 @@ export default function TestPage () {
   const [fetchError, setError] = useState<string | null>(null);
   const [searchId, setSearchId] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [lang, setLang] = useState<'zh' | 'en'>('zh');
   const [page, setPage] = useState(0);
   const [filter, setFilter] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -423,7 +489,7 @@ export default function TestPage () {
             {searchResults.map(function (id) {
               const obj = objectMap.get(id);
               const name = obj
-                ? (obj.name[lang]?.[0] || obj.name.en?.[0] || '')
+                ? (obj.name.zh?.[0] || '')
                 : '';
               return (
                 <button
@@ -482,6 +548,45 @@ export default function TestPage () {
               </span>
             </div>
 
+            {/* ── Recent section ── */}
+            <div className="border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-1.5 px-4 pt-3 pb-1">
+                <Clock className="w-3 h-3 text-slate-400" />
+                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+                  最近添加
+                </span>
+              </div>
+              <div className="max-h-32 overflow-y-auto">
+                {recentlyAdded.map(function (id) {
+                  const obj = objectMap.get(id);
+                  const name = obj ? (obj.name.zh?.[0] || '') : '';
+                  return (
+                    <button
+                      key={id}
+                      onClick={function () {
+                        handleSelectId(id);
+                      }}
+                      className={
+                        'w-full text-left px-4 py-1.5 border-b border-slate-100 dark:border-slate-700/50 transition-colors ' +
+                        (id === selectedId
+                          ? 'bg-amber-50 dark:bg-amber-900/20'
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-700/30')
+                      }
+                    >
+                      <div className="text-[11px] font-mono text-slate-600 dark:text-slate-400 truncate">
+                        {id}
+                      </div>
+                      {name && (
+                        <div className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                          {name}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="p-3 border-b border-slate-200 dark:border-slate-700">
               <input
                 type="text"
@@ -496,7 +601,7 @@ export default function TestPage () {
               {pageIds.map(function (id) {
                 const obj = objectMap.get(id);
                 const name = obj
-                  ? (obj.name[lang]?.[0] || obj.name.en?.[0] || '')
+                  ? (obj.name.zh?.[0] || '')
                   : '';
                 const isSelected = id === selectedId;
                 return (
@@ -565,38 +670,6 @@ export default function TestPage () {
         {/* ── Main Content ── */}
         <div className="flex-1 min-w-0">
           {selected && (
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xs text-slate-500 dark:text-slate-400">语言：</span>
-              <button
-                onClick={function () {
-                  setLang('zh');
-                }}
-                className={
-                  'px-3 py-1 rounded text-xs font-medium transition-colors ' +
-                  (lang === 'zh'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300')
-                }
-              >
-                中文
-              </button>
-              <button
-                onClick={function () {
-                  setLang('en');
-                }}
-                className={
-                  'px-3 py-1 rounded text-xs font-medium transition-colors ' +
-                  (lang === 'en'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300')
-                }
-              >
-                English
-              </button>
-            </div>
-          )}
-
-          {selected && (
             <div className="space-y-6"><div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
               <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80">
                 <FileJson className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -639,7 +712,7 @@ export default function TestPage () {
                   <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                       name
                   </span>
-                  {selected.name[lang]?.map(function (n, i) {
+                  {selected.name.zh?.map(function (n, i) {
                     return (
                       <div key={i} className="mt-0.5 text-slate-800 dark:text-slate-200">
                         {i > 0 && <span className="text-xs text-slate-400 mr-1">(别名) </span>}
@@ -647,23 +720,23 @@ export default function TestPage () {
                       </div>
                     );
                   })}
-                  {!selected.name[lang] && (
+                  {!selected.name.zh && (
                     <div className="mt-0.5 text-slate-400 italic text-xs">
-                        无 {lang} 名称
+                         无名称
                     </div>
                   )}
                 </div>
 
                 <div>
                   <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
-                      description
+                       description
                   </span>
-                  {selected.description[lang]?.map(function (d, i) {
+                  {selected.description.zh?.map(function (d, i) {
                     return (
                       <div key={i} className="mt-0.5 text-slate-700 dark:text-slate-300 leading-relaxed">
                         {i > 0 && (
                           <div className="text-xs text-slate-400 mb-1">
-                              (等价描述 {i + 1})
+                               (等价描述 {i + 1})
                           </div>
                         )}
                         <div
@@ -673,9 +746,9 @@ export default function TestPage () {
                       </div>
                     );
                   })}
-                  {!selected.description[lang] && (
+                  {!selected.description.zh && (
                     <div className="mt-0.5 text-slate-400 italic text-xs">
-                        无 {lang} 描述
+                         无描述
                     </div>
                   )}
                 </div>
@@ -692,7 +765,6 @@ export default function TestPage () {
                             key={key}
                             fieldKey={key}
                             value={value}
-                            lang={lang}
                           />
                         );
                       })}
@@ -726,7 +798,6 @@ export default function TestPage () {
                             key={i}
                             conn={c}
                             objectMap={objectMap}
-                            lang={lang}
                             direction="out"
                             onNavigate={handleSelectId}
                           />
@@ -748,7 +819,6 @@ export default function TestPage () {
                             key={i}
                             conn={c}
                             objectMap={objectMap}
-                            lang={lang}
                             direction="in"
                             onNavigate={handleSelectId}
                           />

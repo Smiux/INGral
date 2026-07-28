@@ -8,7 +8,7 @@
   },
   "description": {
     "zh": [
-      "群 $\\Gamma$ 在空间 $M$ 上的作用称为**忠实的**，若作用同态 $\\Phi\\colon\\Gamma\\to\\operatorname{Homeo}(M)$ 是单射——即对每个非平凡元 $\\gamma\\neq\\operatorname{id}_{\\Gamma}$，映射 $\\Phi(\\gamma)\\colon M\\to M$ 不是恒等映射。"
+      "群 $\\Gamma$ 在空间 $M$ 上的作用称为**忠实的**，若作用同态 $\\Phi\\colon\\Gamma\\to\\operatorname{Homeo}(M)$ 是单射。"
     ]
   },
   "extension": {
@@ -18,11 +18,27 @@
       "直线作用",
       "圆周作用"
     ],
-    "article": [
+    "notes": [
       {
-        "zh": "忠实作用将群嵌入到变换群中——可以说，群的代数结构被实现为具体的几何对称。对于一维流形（直线、区间、圆周）上的作用，忠实作用的存在性完全由群的可序性刻画。\n\n可数群 $\\Gamma$ 在 $\\mathbb R$ 上存在保向同胚的忠实作用，当且仅当 $\\Gamma$ 是可序群（即 admit 左不变全序）。\n\n$\\Rightarrow$ 方向通过作用构造全序：取稠密序列 $(x_n)\\subset\\mathbb R$，定义 $g\\prec h$ 若最小的使 $g(x_n)\\neq h(x_n)$ 的下标 $n$ 满足 $g(x_n)<h(x_n)$。$\\Leftarrow$ 方向通过群的序构造作用：将 $\\Gamma$ 嵌入 $\\operatorname{Homeo}_+(\\mathbb R)$，每个 $\\gamma$ 通过序的「动力学实现」（将正锥对应于向右平移）给出同胚。\n\n在圆周上，忠实作用的存在性有更丰富的结构。对 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$，若作用忠实且极小的，则要么 $\\Gamma$ 共轭于旋转群的离散子群，要么作用含有自由子群（Margulis 定理的推论）。"
+        "zh": "非忠实作用可通过商掉核转化为忠实作用：若 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}(M)$ 有核 $\\ker\\phi$，则 $\\Gamma/\\ker\\phi$ 忠实地作用在 $M$ 上。"
       }
     ],
+    "article": [
+      {
+        "zh": "一个可数群 $\\Gamma$ 能否在实直线上通过保向同胚忠实地作用？答案完全由 $\\Gamma$ 自身的序结构决定。\n\n## 序的语言\n\n假定 $\\Gamma$ 已经在 $\\mathbb R$ 上给出了一个保向同胚的忠实作用。能否从其作用中读出 $\\Gamma$ 上的一个全序？通过在 $\\mathbb R$ 中固定一个稠密序列 $(x_n)$，可以对 $\\Gamma$ 的元素按作用在该序列上的字典序排序：$g\\prec h$ 当第一个使 $g(x_n)\\neq h(x_n)$ 的 $n$ 满足 $g(x_n)<h(x_n)$。忠实性保证了这个定义有意义——若 $g\\neq h$，它们不可能在所有 $x_n$ 上都相等。此时 $\\prec$ 是一个左不变全序。\n\n反向的构造——从左不变全序到忠实作用——称为序的动力学实现。将 $\\Gamma$ 的元素按序嵌入 $\\mathbb R$ 后，通过在 $\\Gamma$ 轨道之间做仿射插值，就得到 $\\Gamma$ 在 $\\mathbb R$ 上的保向同胚作用。若 $\\Gamma$ 非平凡，该作用没有全局不动点。若序还是双不变的，则每个元素要么处处不小于恒等映射，要么处处不大于恒等映射。\n\n## 可序性的代数后果\n\n左不变全序的存在对群的代数结构施加了强制性的约束：可序群必然无挠。但反过来不成立——无挠不足以刻画可序性。例如，$\\operatorname{SL}(n,\\mathbb Z)$ 在 $n\\ge 3$ 时的有限指数子群都不是可序的，这些子群在直线上也就没有非平凡的保向同胚作用。"
+      }
+    ],
+    "examples": {
+      "zh": [
+        "整数格点群 $\\mathbb Z^2$ 上的字典序是一个左不变全序。其正锥为 $\\{(m,n)\\in\\mathbb Z^2: m>0$，或 $m=0$ 且 $n>0\\}$。该序的全序性源于整数的自然序：对任意两个不同的整数对，第一个非零的坐标差决定了序关系。由于加法保持字典序，该序是左不变的。因此 $\\mathbb Z^2$ 是可序群，从而在 $\\mathbb R$ 上存在保向同胚的忠实作用。",
+        "自由群 $\\mathbb F_2$ 是双可序的。Magnus 嵌入将生成元 $f,g$ 分别映到形式幂级数环 $\\mathbb Z\\langle X,Y\\rangle$ 的子群 $L=1+\\mathfrak o(1)$ 中的元素 $1+X$ 和 $1+Y$，该同态是单射。在 $L$ 上定义字典序型的全序：比较两个级数时取第一个系数不同的项，若该项系数为正则对应级数较大。该序在 $L$ 的乘法下是双不变的。通过 Magnus 嵌入拉回此序，$\\mathbb F_2$ 获得一个双不变全序，从而在 $\\mathbb R$ 上存在忠实作用。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "（可数左序群 $\\Gamma$ 在 $\\mathbb R$ 上忠实作用的构造）将 $\\Gamma$ 的元素编号为 $g_0,g_1,\\ldots$。令 $t(g_0)=0$。对 $i\\ge 0$，已定义 $t(g_0),\\ldots,t(g_i)$。对于 $g_{i+1}$，若它在序中大于所有 $g_0,\\ldots,g_i$，则令 $t(g_{i+1})$ 比当前最大值大 $1$；若小于所有，则比最小值小 $1$；若介于某 $g_m$ 与 $g_n$ 之间且其间无其他已编号元素，则取 $t(g_m)$ 与 $t(g_n)$ 的中点。这给出了 $\\Gamma$ 到 $\\mathbb R$ 的一个嵌入 $t$。群作用由 $g(t(g_i))=t(gg_i)$ 定义，先延拓到 $t(\\Gamma)$ 的闭包，再在每个补区间上通过仿射插值延拓到整个直线。连续性的验证用到此构造中补区间端点均落在 $t(\\Gamma)$ 中的事实。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.2.3."
     ]

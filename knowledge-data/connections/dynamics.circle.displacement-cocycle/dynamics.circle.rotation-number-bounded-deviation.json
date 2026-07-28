@@ -3,7 +3,7 @@
   "to": "dynamics.circle.rotation-number-bounded-deviation",
   "description": {
     "zh": [
-      "证明的核心步骤利用上循环恒等式（cocycle identity） $\\Delta_{\\tilde f^n}=\\sum_{j=0}^{n-1}\\Delta_{\\tilde f}\\circ f^j$ 将 $\\tilde f^n(z)-z$ 与 $n\\rho$ 的差转化为位移函数取值之差。"
+      "位移上循环的上循环恒等式（cocycle identity）是有界偏差估计推导中的代数工具，它将 $n$ 步迭代的偏差归结为单步位移函数取值之差。"
     ]
   }
 }

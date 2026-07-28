@@ -3,7 +3,7 @@
   "to": "algebra.group-theory.conrad-property",
   "description": {
     "zh": [
-      "Tararin 分类刻画了可序群上序空间 $\\mathcal O(\\Gamma)$ 的拓扑结构，其中 Conrad 性质是序空间理论中的重要精细条件。"
+      "Tararin 分类刻画了可序群上序空间 $\\mathcal O(\\Gamma)$ 的拓扑结构，Conrad 性质是该空间中对个别序的精细条件。"
     ]
   }
 }

@@ -4,8 +4,7 @@
   "name": {
     "zh": [
       "Conley 完全 Lyapunov 函数定理",
-      "Conley 定理",
-      "基本定理"
+      "Conley 定理"
     ]
   },
   "description": {
@@ -21,14 +20,20 @@
     ],
     "article": [
       {
-        "zh": "Conley 定理常被称为「动力系统基本定理」，其根本原因在于：**它补全了 Lyapunov 函数理论的最一般形式**。梯度流的例子告诉我们，借助势函数 $L$ 可以将全局动力学压缩到实轴上——$L$ 严格下降的部分对应系统的梯度状行为，$L$ 保持常值的部分对应回复性运动。但梯度流只能处理向量场情形，Conley 定理将这一图景扩展到了任意紧度量空间上的同胚：任何同胚都存在一个**完全的** Lyapunov 函数 $L$，它恰好把系统分解为两个互补层面。\n\n第一层面：**链回归部分** $\\mathcal R(f)$。$L$ 在 $\\mathcal R(f)$ 上为常数当且仅当沿轨道不变——意即，$L$ 不能区分沿同一链回归类运动的轨道。$\\mathcal R(f)$ 在此函数下的像 $L(\\mathcal R(f))$ 是紧全不连通集：它不含开区间，因而在每个区间中跳跃。这意味著 $\\mathcal R(f)$ 的结构本质上是不连通的——它的连通分支是单点。\n\n第二层面：**梯度状部分** $M\\setminus\\mathcal R(f)$。在这部分上 $L$ 严格下降：$L(f(x))<L(x)$。这正好对应了动力系统中「不稳定」「逃逸」「趋向于极限集」的行为。$L$ 的值从高到低的排列构成了一个「势能图」（Hasse 图），其节点是链回归类。\n\n该定理的证明本身就是一个构造性的三步骤。首先，从 $\\varepsilon$-链构造陷阱区域 $\\mathcal R_f(p,\\varepsilon)$，这是开集且满足 $f(\\overline{\\mathcal R_f(p,\\varepsilon)})\\subset\\mathcal R_f(p,\\varepsilon)$。每个陷阱区域给出吸引子-排斥子对 $(A_U^+,A_U^-)$，且 $\\mathcal R(f)\\subset A_U^+\\sqcup A_U^-$。陷阱区域族至多可数，这一事实使我们可以通过归纳构造出所需的 $L$：每个吸引子-排斥子对贡献一个「比较器」，对所有比较器求和即得 $L$，而不同链回归类在这组比较器下的行为不同，故 $L$ 在不同类上取值不同。\n\n该定理的深度在于它统一了在此之前分散的各种回复性概念——不动点、周期点、回归点、极限点、非游荡点不再是孤立的定义，而是链回归这一最弱回复性概念的逐步逼近过程中的中间站。链等价关系将 $\\mathcal R(f)$ 划分为链回归类，这些类的偏序结构（由 $L$ 值诱导）完全刻画了系统的全局动力学形态。"
+        "zh": "在紧微分流形上，梯度流的势函数沿非临界轨道严格下降、在临界点处保持常值。这引出一个一般性问题：对任意紧度量空间上的同胚 $f$，是否存在一个连续函数 $L\\colon M\\to\\mathbb R$ 使其沿轨道不增，且严格下降的区域恰好对应系统的非回复性运动？Conley 的完全 Lyapunov 函数定理对这一问题给出了肯定回答。\n\n## 链回归集与链回归类\n\n要构造这样的函数，首先必须确定哪些点会阻止 $L$ 严格下降。不动点和周期点是最显然的障碍——若 $f(p)=p$，则 $L(f(p))=L(p)$ 必然成立。但还不止这些。即使轨道仅近似返回自身附近——即对任意 $\\varepsilon>0$ 存在一条以该点为起点和终点的 $\\varepsilon$-伪轨（相邻点距离小于 $\\varepsilon$ 的有限序列）——同样会阻止严格下降。满足这一条件的点称为链回归点，其全体记作 $\\mathcal R(f)$。链回归集包含不动点、周期点、非游荡点等所有传统回复性集，是其中最广的概念。\n\n链回归点之间可以建立等价关系：$x,y\\in\\mathcal R(f)$ 称为链等价，若对任意 $\\varepsilon>0$ 存在 $\\varepsilon$-伪轨从 $x$ 到 $y$ 以及从 $y$ 到 $x$。等价类称为链回归类。完全 Lyapunov 函数必须在同一链回归类内保持常值，在不同类之间严格下降。\n\n## 陷阱区域与函数构造\n\n构造 $L$ 的基本工具是陷阱区域——满足 $f(\\overline U)\\subset U$ 的开集 $U$。每个陷阱区域 $U$ 确定一对不相交的紧 $f$-不变集，即吸引子 $A_U^+$ 与排斥子 $A_U^-$。链回归集的每一点必然落在某个吸引子或排斥子中。紧度量空间中这样的陷阱区域族至多可数。\n\n对每个陷阱区域 $U_n$，构造连续函数 $\\tilde{\\varphi}_n\\colon M\\to[0,1]$ 使其在 $A_{U_n}^+$ 上为 $1$、在 $A_{U_n}^-$ 上为 $0$ 且沿轨道不增。令 $L(x):=\\sum_{n=1}^\\infty 2^{-n}\\tilde{\\varphi}_n(x)$。$L$ 是连续的且沿轨道不增。$L(f(x))=L(x)$ 当且仅当每个 $\\tilde{\\varphi}_n$ 沿轨道不变，这等价于 $x$ 不被任何陷阱区域的二分所分离，即 $x\\in\\mathcal R(f)$。不同链回归类在某个陷阱区域的二分中表现不同，故 $L$ 在不同类上取值不同。$L(\\mathcal R(f))$ 的全不连通性由 $\\{0,1\\}^{\\mathbb N}$ 的 Cantor 结构保证。\n\n这一构造将任意同胚的动力学分解为两个层面：链回归集上的轨道呈回复性运动，其上 $L$ 为常值；补集 $M\\setminus\\mathcal R(f)$ 上的轨道沿 $L$ 下降方向移动，最终趋向于某个链回归类。"
       }
     ],
-    "proof": [
-      {
-        "zh": "证明基于以下步骤：\n\n1. 对任意 $p\\in M$ 和 $\\varepsilon>0$，$\\varepsilon$-链通集 $\\mathcal R_f(p,\\varepsilon)$ 是 $f$ 的陷阱区域（开集且 $f(\\overline{\\mathcal R_f(p,\\varepsilon)})\\subset\\mathcal R_f(p,\\varepsilon)$）。\n\n2. 每个陷阱区域 $U$ 给出吸引子-排斥子对 $(A_U^+,A_U^-)$，其中 $A_U^+=\\bigcap_{n\\geqslant0}f^n(\\overline U)$，$A_U^-=\\bigcap_{n\\geqslant0}f^{-n}(M\\setminus U)$。于是 $\\mathcal R(f)\\subset A_U^+\\sqcup A_U^-$。\n\n3. 陷阱区域族至多可数（紧度量空间中球的分离性），枚举为 $\\{U_n\\}_{n\\in\\mathbb N}$。对每个 $U_n$，定义函数 $\\varphi_n(x)=1$ 若 $x\\in A_{U_n}^+$，$\\varphi_n(x)=0$ 若 $x\\in A_{U_n}^-$。将 $\\varphi_n$ 延拓为连续函数 $\\tilde{\\varphi}_n\\colon M\\to[0,1]$ 使其在 $A_{U_n}^+$ 上为 $1$，在 $A_{U_n}^-$ 上为 $0$，且满足 $\\tilde{\\varphi}_n(f(x))\\leqslant\\tilde{\\varphi}_n(x)$。令 $L(x):=\\sum_{n=1}^\\infty 2^{-n}\\tilde{\\varphi}_n(x)$。则 $L(f(x))\\leqslant L(x)$。由构造，$L(f(x))=L(x)$ 当且仅当每个 $\\tilde{\\varphi}_n$ 沿轨道不变，这等价于 $x$ 不被任何陷阱区域的二分所分离，即 $x\\in\\mathcal R(f)$。不同链回归类在某个 $U_n$ 上的 $\\varphi_n$ 值不同，故 $L$ 在不同类上取值不同。$L(\\mathcal R(f))$ 的全不连通性由 $\\{0,1\\}^{\\mathbb N}$ 的 Cantor 结构保证。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "**例 1（球面上的梯度流）.** 设 $M=\\mathbb S^2$ 为单位球面，$L(x,y,z)=-z$，向量场 $X=-\\nabla L$ 生成流 $\\Phi^t$。$L$ 的临界点仅有两极 $(0,0,-1)$ 和 $(0,0,1)$，此即 $\\Phi$ 的全部不动点。对任意 $v\\in\\mathbb S^2\\setminus\\{(0,0,\\pm1)\\}$，$L$ 沿轨道严格下降：$\\frac{d}{dt}L(\\Phi^t(v))=-\\|\\nabla L(\\Phi^t(v))\\|^2<0$；当 $t\\to+\\infty$ 时 $\\Phi^t(v)\\to(0,0,-1)$，$L$ 趋于最小值 $-1$；当 $t\\to-\\infty$ 时 $\\Phi^t(v)\\to(0,0,1)$，$L$ 趋于最大值 $1$。此处链回归集 $\\mathcal R(\\Phi)=\\{(0,0,-1),(0,0,1)\\}$ 仅含两个不动点，$L$ 在其上为常值（分别为 $-1$ 和 $1$）。$L$ 满足完全 Lyapunov 函数的全部条件。",
+        "**例 2（无理旋转）.** 设 $R_\\alpha\\colon\\mathbb T\\to\\mathbb T$ 为圆周上的无理旋转（$\\alpha\\in\\mathbb R\\setminus\\mathbb Q$），即 $R_\\alpha([x])=[x+\\alpha]$。此时每个点都是链回归点（$\\mathcal R(R_\\alpha)=\\mathbb T$），且整个圆周构成唯一的链回归类。任何完全 Lyapunov 函数 $L\\colon\\mathbb T\\to\\mathbb R$ 必须在该类上取常值，故 $L$ 只能是常数函数。常数函数确实满足 $L(R_\\alpha(x))=L(x)$ 对一切 $x\\in\\mathbb T$ 成立，且 $L(\\mathcal R(R_\\alpha))$ 为单点集，是紧全不连通的。此例展示了链回归集充满整个相空间时的情形。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "证明基于以下步骤：\n\n1. 对任意 $p\\in M$ 和 $\\varepsilon>0$，$\\varepsilon$-链通集 $\\mathcal R_f(p,\\varepsilon)$ 是 $f$ 的陷阱区域（开集且 $f(\\overline{\\mathcal R_f(p,\\varepsilon)})\\subset\\mathcal R_f(p,\\varepsilon)$）。\n\n2. 每个陷阱区域 $U$ 给出吸引子-排斥子对 $(A_U^+,A_U^-)$，其中 $A_U^+=\\bigcap_{n\\geqslant0}f^n(\\overline U)$，$A_U^-=\\bigcap_{n\\geqslant0}f^{-n}(M\\setminus U)$。于是 $\\mathcal R(f)\\subset A_U^+\\sqcup A_U^-$。\n\n3. 陷阱区域族至多可数（紧度量空间中球的分离性），枚举为 $\\{U_n\\}_{n\\in\\mathbb N}$。对每个 $U_n$，定义函数 $\\varphi_n(x)=1$ 若 $x\\in A_{U_n}^+$，$\\varphi_n(x)=0$ 若 $x\\in A_{U_n}^-$。将 $\\varphi_n$ 延拓为连续函数 $\\tilde{\\varphi}_n\\colon M\\to[0,1]$ 使其在 $A_{U_n}^+$ 上为 $1$，在 $A_{U_n}^-$ 上为 $0$，且满足 $\\tilde{\\varphi}_n(f(x))\\leqslant\\tilde{\\varphi}_n(x)$。令 $L(x):=\\sum_{n=1}^\\infty 2^{-n}\\tilde{\\varphi}_n(x)$。则 $L(f(x))\\leqslant L(x)$。由构造，$L(f(x))=L(x)$ 当且仅当每个 $\\tilde{\\varphi}_n$ 沿轨道不变，这等价于 $x$ 不被任何陷阱区域的二分所分离，即 $x\\in\\mathcal R(f)$。不同链回归类在某个 $U_n$ 上的 $\\varphi_n$ 值不同，故 $L$ 在不同类上取值不同。$L(\\mathcal R(f))$ 的全不连通性由 $\\{0,1\\}^{\\mathbb N}$ 的 Cantor 结构保证。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1.",
       "C. Conley, Isolated invariant sets and the Morse index, CBMS 38, AMS (1978)."

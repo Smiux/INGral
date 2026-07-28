@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.plante-radon-measure",
-  "to": "dynamics.plante-thurston-nilpotent",
-  "description": {
-    "zh": [
-      "Plante 定理为 $\\operatorname{Homeo}_+(\\mathbb R)$ 的殆幂零子群提供保测结构，而 Plante–Thurston 幂零群交换性定理进一步在 $C^{1+\\mathrm{bv}}$ 光滑性下将幂零子群约化为交换群。"
-    ]
-  }
-}

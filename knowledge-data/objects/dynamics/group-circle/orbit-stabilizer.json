@@ -3,9 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "轨道与稳定子",
-      "传递作用",
-      "自由作用"
+      "轨道与稳定子"
     ]
   },
   "description": {
@@ -23,14 +21,21 @@
     ],
     "notes": [
       {
-        "zh": "稳定子 $\\operatorname{Stab}(x)$ 也称为**迷向子群**（isotropy subgroup）。不同点的稳定子在 $\\Gamma$ 中共轭：$\\operatorname{Stab}(\\gamma\\cdot x)=\\gamma\\operatorname{Stab}(x)\\gamma^{-1}$。"
+        "zh": "稳定子 $\\operatorname{Stab}(x)$ 即**迷向子群**（isotropy subgroup）。不同点的稳定子在 $\\Gamma$ 中共轭：$\\operatorname{Stab}(\\gamma\\cdot x)=\\gamma\\operatorname{Stab}(x)\\gamma^{-1}$。"
       }
     ],
     "article": [
       {
-        "zh": "轨道-稳定子关系是将代数结构（群）和几何结构（空间）联系起来的基本工具。在圆周 $\\mathbb S^1$ 上，这一关系特别丰富，因为圆周的维数为 1 且具有序结构，使得稳定子的代数组态直接决定作用的大尺度行为。\n\n一个根本的观察：$\\operatorname{Stab}(x)$ 的共轭类集合给出了群在圆周上「各点行为」的指纹。对于 Lie 群 $G$ 的传递作用，轨道映射 $G/\\operatorname{Stab}(x)\\to\\mathbb S^1$ 是同胚——这意味着稳定子必须是 $G$ 的余一维子群。例如，$\\operatorname{PSL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1$ 上的传递作用中，稳定子为 $\\operatorname{PGL}(2,\\mathbb R)$ 的 Borel 子群（三角矩阵群），其维度 $\\dim=2$ 比 $\\dim\\operatorname{PSL}(2,\\mathbb R)=3$ 少 1。\n\n稳定子的大小与作用的最小性密切相关。若所有稳定子都包含某个正规子群 $N$，则 $N$ 平凡地作用，作用退化到 $\\Gamma/N$ 上。传递作用中稳定子的正则性（如闭性、紧致性）决定了齐性空间的拓扑类型——这正是 Lie 分类定理（Euclid、仿射、射影三种几何）的基础。\n\n自由作用（$\\operatorname{Stab}(x)=\\{e\\}$ 对一切 $x$）是更精细的约束。Hölder 定理表明 $\\mathbb R$ 上的自由保向作用必交换，且半共轭于平移作用。圆周上的自由作用则必交换且半共轭于旋转作用——这一结论的证明依赖于轨道在覆叠空间上诱导的自由 $\\mathbb R$ 作用。"
+        "zh": "## 从代数到几何：轨道-稳定子关系\n\n给定群 $\\Gamma$ 在圆周上的作用，轨道-稳定子定理建立了代数和几何之间的基本桥梁。对任意点 $x$，其稳定子 $\\operatorname{Stab}(x)\\subset\\Gamma$ 是一个子群，轨道 $\\mathcal O(x)\\subset\\mathbb S^1$ 是 $x$ 在群作用下所能到达的全部位置。陪集空间 $\\Gamma/\\operatorname{Stab}(x)$ 与轨道 $\\mathcal O(x)$ 之间的自然双射意味着，轨道的代数复杂性（陪集数量）直接反映了其几何规模——轨道是有限集、可数集还是不可数集，对应于稳定子群的指标是有限、可数还是不可数。不同点的稳定子互为共轭，这反映了轨道的齐次性：同一条轨道中点的稳定子虽有差异（共轭），但具有相同的代数结构。\n\n## 轨道闭包的三种可能\n\n对于保向圆周同胚子群 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$，轨道闭包的可能类型更为精细。使用 Zorn 引理在非空闭 $\\Gamma$-不变子集的族中取极小元 $\\Lambda$，分析 $\\Lambda$ 的导集和拓扑边界即得三种互斥情形。\n\n第一种情形：$\\Lambda$ 为有限集，此时存在有限轨道。该轨道上每点的稳定子是 $\\Gamma$ 的有限指标子群，且所有有限轨道具有相同的基数。\n\n第二种情形：$\\Lambda=\\mathbb S^1$，每条轨道在圆周中稠密。此时作用称为极小作用。若再附加等度连续性条件，作用共轭于旋转子群，每条轨道均匀地覆盖整个圆周。\n\n第三种情形：$\\Lambda$ 是无内点且无孤立点的闭集，同胚于 Cantor 集。此时 $\\Lambda$ 称为例外极小集。例外极小集必包含于每条 $\\Gamma$-轨道的极限点集中，且唯一。这是三种情形中最具结构趣味的一种。\n\n## 例外极小集与半共轭\n\n例外极小集的存在导致了作用的分层结构。将 $\\mathbb S^1\\setminus\\Lambda$ 的每个连通分支的闭包塌缩为一点，得到的商空间仍同胚于圆周。原始作用通过塌缩映射半共轭于 $\\Gamma$ 在商圆周上的诱导作用，后者是极小的。这一构造说明具有例外极小集的作用不能通过坐标变换（即共轭）化为极小作用——塌缩丢失了 $\\Lambda$ 的精细结构。例外极小集情形下的稳定子结构也更为复杂：稳定子未必平凡，但不同点的稳定子之间通过群的共轭作用相互联系。\n\n## 实直线上的差异\n\n实直线 $\\mathbb R$ 上的情形与圆周不同。对于 $\\mathbb R$ 上保向同胚群，极小不变闭集不一定总是存在——仅有限生成子群才保证存在非空极小不变闭集。可能的类型包括离散不动点集、全直线（极小作用）和局部 Cantor 型集。与圆周的区别在于，后一类在 $\\mathbb R$ 上不一定唯一。"
       }
     ],
+    "examples": {
+      "zh": [
+        "模群 $\\Gamma=\\langle f,g\\mid g^2=f^3=\\mathrm{id}\\rangle$ 通过标准嵌入 $\\Gamma\\hookrightarrow\\operatorname{PSL}(2,\\mathbb R)$ 作用在 $\\mathbb S^1$ 上，其中 $f$ 对应旋转 $R_{2\\pi/3}$，$g$ 对应绕过点 $P\\in\\mathbb D$ 的 $\\pi$ 旋转。该作用中每条轨道在 $\\mathbb S^1$ 中稠密（即作用是极小的），且所有稳定子平凡。轨道-稳定子双射 $\\Gamma/\\{\\mathrm{id}\\}\\to\\mathcal O(x)$ 将 $\\Gamma$ 的每个元素映到某点的轨道上，从而每条轨道与整个群等势。",
+        "对双曲元 $g_0,g_1\\in\\operatorname{PSL}(2,\\mathbb R)$，若存在不交开区间 $I_0,I_1,J_0,J_1\\subset\\mathbb S^1$ 使得 $g_i(I_i\\cup J_i\\cup J_{1-i})\\subset I_i$ 及 $g_i^{-1}(I_i\\cup I_{1-i}\\cup J_{1-i})\\subset J_i$（$i=0,1$），则自由群 $\\langle g_0,g_1\\rangle$ 在 $\\mathbb S^1$ 上保留一个例外极小集 $\\Lambda=\\bigcap_{g\\in\\langle g_0,g_1\\rangle}g(\\overline I_0\\cup\\overline I_1\\cup\\overline J_0\\cup\\overline J_1)$。该作用中所有稳定子平凡，但轨道不稠密——每条轨道的聚点集恰为 $\\Lambda$。将 $\\mathbb S^1\\setminus\\Lambda$ 各分支压为一点后得到诱导的极小作用。",
+        "设 $h$ 是圆周上的 $\\mathrm C^\\infty$ 微分同胚，其在 $[0,\\pi/6]$ 上的导数为 $3$，在 $[\\pi,3\\pi/2]$ 上的导数为 $1/3$，在 $[\\pi/3,\\pi/2]$ 上满足 $h(x)=x+2\\pi/3$，且其余区间上的定义使得 $(hg)^3=\\mathrm{id}$，其中 $g$ 为 $\\pi$ 旋转。令 $f=hg$，则 $\\langle f,g\\rangle$ 的作用保留三分 Cantor 集作为例外极小集。该作用中所有稳定子平凡，轨道非稠密但聚积于该 Cantor 集上。"
+      ]
+    },
     "references": [
       "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
     ]

@@ -1,10 +1,9 @@
 {
   "id": "dynamics.circle.mobius-transformation",
-  "type": "theorem",
+  "type": "definition",
   "name": {
     "zh": [
-      "Möbius 变换",
-      "Möbius 变换的动力学分类"
+      "Möbius 变换"
     ]
   },
   "description": {
@@ -28,14 +27,21 @@
     ],
     "article": [
       {
-        "zh": "Möbius 变换是圆周微分同胚的一种重要具体例子，通过射影线 $\\mathbb{RP}^1$ 与圆周 $\\mathbb T$ 的等同获得。$\\mathrm{SL}_2(\\mathbb R)$ 的每个矩阵通过射影作用在 $\\mathbb{RP}^1$ 上，$D$ 将这一作用传递到 $\\mathbb T$。\n\n迹的分类刻画了 Möbius 变换的全部面貌。椭圆情形（$|\\operatorname{tr} A|<2$）中，$h_A$ 共轭于刚体旋转，因此具有有理/无理旋转数的全部性质。双曲情形（$|\\operatorname{tr} A|>2$）中，$h_A$ 恰有两个双曲不动点——一个吸引子与一个排斥子，这是 Morse 与 Smale 系统最简单的例子。抛物情形（$|\\operatorname{tr} A|=2$ 且 $A\\neq\\pm I$）是临界情形，恰有一个非双曲（抛物）不动点。\n\nMöbius 变换的重要性在于它们用一个参数族统一展示了旋转数、双曲性和退化临界行为——这些是圆周动力学中分散在不同章节中的核心概念。在 $|\\operatorname{tr} A|<2$ 的情形，旋转数 $\\rho$ 由 $A$ 的特征值决定（$\\lambda=e^{\\pm 2\\pi i\\rho}$），这为旋转数的概念提供了一个群论的来源。"
+        "zh": "Möbius 变换的起源在双曲几何：$\\mathrm{PSL}_2(\\mathbb R)$ 是 Poincaré 圆盘上保持定向的等距同构群，其作用自然延拓到边界圆周 $\\mathbb S^1$。通过 Cayley 变换，Poincaré 圆盘共形等价于上半平面，此时群作用化为线性分式变换，矩阵表示 $(a_1,a_2;a_3,a_4)\\in\\mathrm{SL}_2(\\mathbb R)$ 建立了 Möbius 群与 $\\mathrm{PSL}_2(\\mathbb R)$ 之间的自然等同（$A$ 与 $-A$ 对应同一元素）。\n\n## 动力学分类\n\nMöbius 变换的动力学由对应矩阵的迹完全刻画，该分类对应于 $\\mathrm{SL}_2(\\mathbb R)$ 元素的特征值配置。当 $|\\operatorname{tr} A|<2$ 时，$A$ 有一对共轭复特征值 $e^{\\pm 2\\pi i\\alpha}$，$h_A$ 拓扑共轭于刚体旋转 $R_\\alpha$，旋转数由特征值的幅角给出。当 $|\\operatorname{tr} A|>2$ 时，$A$ 有两个绝对值不同的实特征值 $\\lambda,\\lambda^{-1}$（$|\\lambda|>1$），对应 $\\mathbb{RP}^1$ 中两个不同的特征方向，形成 $h_A$ 的两个双曲不动点——一个吸引子与一个排斥子。当 $|\\operatorname{tr} A|=2$ 且 $A\\neq\\pm I$ 时，$A$ 不可对角化，Jordan 标准型为 $\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}$，$h_A$ 恰有一个抛物不动点，这是椭圆与双曲两种类型之间的临界情形。$A=\\pm I$ 时 $h_A$ 为恒等映射。\n\n## 群作用与个体动力学的差异\n\nMöbius 群在圆周上的作用是严格三传递的：对圆周上任意两组按循环顺序排列的三元组，存在唯一群元素将一组映为另一组。因此非平凡 Möbius 变换若固定三个不同点则必为恒等映射。单个 $\\mathrm{PSL}_2(\\mathbb R)$ 元素的动力学完全清楚，但子群的整体结构并不由个体动力学决定。存在圆周微分同胚群，其中每个元素都拓扑共轭于某个 Möbius 变换，但整个群本身不共轭于 $\\mathrm{PSL}_2(\\mathbb R)$ 的子群。这组例子说明 Möbius 变换在圆周动力学中既提供可显式计算的具体模型，也揭示了群作用中个体与整体之间的微妙差异。"
       }
     ],
-    "proof": [
-      {
-        "zh": "设 $A\\in\\mathrm{SL}_2(\\mathbb R)$。$f_A([v])=[Av]$ 在 $\\mathbb{RP}^1$ 上的射影作用通过 $D$ 传递到 $\\mathbb T$。\n\n- 若 $|\\operatorname{tr}A|<2$，$A$ 有复特征值 $\\lambda=e^{\\pm 2\\pi i\\alpha}$（$\\alpha\\in(0,1/2]$）。$A$ 在 $\\mathbb C$ 上共轭于旋转矩阵，从而 $f_A$ 在 $\\mathbb{RP}^1$ 上共轭于旋转 $R_\\alpha$，故 $h_A$ 共轭于 $R_\\alpha$。\n- 若 $|\\operatorname{tr}A|>2$，$A$ 有实特征值 $\\lambda,\\lambda^{-1}$（$|\\lambda|>1$），对应两个不同的一维特征方向。此二方向在 $\\mathbb{RP}^1$ 上给出两个不动点，$|\\lambda|>1$ 对应扩张方向（排斥子），$|\\lambda^{-1}|<1$ 对应收缩方向（吸引子）。\n- 若 $|\\operatorname{tr}A|=2$ 且 $A\\neq\\pm I$，$A$ 不可对角化，Jordan 标准型为 $\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}$，恰有一个特征方向，对应一个抛物不动点。\n- $A=\\pm I$ 时 $f_A=\\mathrm{id}_{\\mathbb{RP}^1}$，故 $h_A=\\mathrm{id}_{\\mathbb T}$。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "取 $A=\\begin{pmatrix}2&0\\\\0&1/2\\end{pmatrix}\\in\\mathrm{SL}_2(\\mathbb R)$，则 $|\\operatorname{tr}A|=2.5>2$，对应双曲型。$A$ 的特征值 $2$ 和 $1/2$ 分别对应 $\\mathbb{RP}^1$ 中的特征方向 $[1:0]$（角度 $0$）和 $[0:1]$（角度 $\\pi/2$），此二方向即为射影映射 $f_A$ 的两个不动点。由于 $|2|>1$，$2$ 对应的方向为扩张方向（排斥子）；$|1/2|<1$ 对应的方向为收缩方向（吸引子）。通过等同 $D$ 传递到圆周后，$h_A$ 恰有两个双曲不动点。",
+        "取 $A=\\begin{pmatrix}\\cos\\alpha&-\\sin\\alpha\\\\\\sin\\alpha&\\cos\\alpha\\end{pmatrix}$，其中 $\\alpha\\notin\\pi\\mathbb Z$。此时 $|\\operatorname{tr}A|=2|\\cos\\alpha|<2$，对应椭圆型。$A$ 在 $\\mathbb C$ 上的特征值为 $e^{\\pm i\\alpha}$，其作用将 $\\mathbb{RP}^1$ 中角度为 $\\theta$ 的直线映为角度 $\\theta+\\alpha$ 的直线，故 $f_A$ 即为旋转 $R_\\alpha$，$h_A$ 拓扑共轭于刚体旋转 $R_\\alpha$。旋转数 $\\rho$ 满足 $\\rho\\equiv\\alpha/(2\\pi)\\pmod{\\mathbb Z}$。",
+        "取 $A=\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}\\in\\mathrm{SL}_2(\\mathbb R)$，则 $|\\operatorname{tr}A|=2$ 且 $A\\neq\\pm I$，对应抛物型。$A$ 的 Jordan 标准型为 $\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}$，仅有一个特征方向 $[1:0]$。射影映射 $f_A$ 在 $\\mathbb{RP}^1$ 上以 $[1:0]$ 为唯一不动点，该不动点处导数为 $1$，属于非双曲的抛物不动点。通过等同 $D$ 传递到圆周后，$h_A$ 恰有一个抛物不动点。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "设 $A\\in\\mathrm{SL}_2(\\mathbb R)$。$f_A([v])=[Av]$ 在 $\\mathbb{RP}^1$ 上的射影作用通过 $D$ 传递到 $\\mathbb T$。\n\n- 若 $|\\operatorname{tr}A|<2$，$A$ 有复特征值 $\\lambda=e^{\\pm 2\\pi i\\alpha}$（$\\alpha\\in(0,1/2]$）。$A$ 在 $\\mathbb C$ 上共轭于旋转矩阵，从而 $f_A$ 在 $\\mathbb{RP}^1$ 上共轭于旋转 $R_\\alpha$，故 $h_A$ 共轭于 $R_\\alpha$。\n- 若 $|\\operatorname{tr}A|>2$，$A$ 有实特征值 $\\lambda,\\lambda^{-1}$（$|\\lambda|>1$），对应两个不同的一维特征方向。此二方向在 $\\mathbb{RP}^1$ 上给出两个不动点，$|\\lambda|>1$ 对应扩张方向（排斥子），$|\\lambda^{-1}|<1$ 对应收缩方向（吸引子）。\n- 若 $|\\operatorname{tr}A|=2$ 且 $A\\neq\\pm I$，$A$ 不可对角化，Jordan 标准型为 $\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}$，恰有一个特征方向，对应一个抛物不动点。\n- $A=\\pm I$ 时 $f_A=\\mathrm{id}_{\\mathbb{RP}^1}$，故 $h_A=\\mathrm{id}_{\\mathbb T}$。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Rotation Theory, IMPA, 2024.",
       "A. Katok & B. Hasselblatt, Introduction to the modern theory of dynamical systems, Cambridge University Press (1995)."

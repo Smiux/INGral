@@ -1,0 +1,48 @@
+{
+  "id": "dynamics.ergodic.karlsson-margulis-ergodic",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "Karlsson–Margulis 遍历定理"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,d)$ 为完备的 CAT(0) 测地空间，$x_0\\in X$。设 $(\\Omega,\\mathcal F,\\mu,T)$ 为概率保测变换，$f:\\Omega\\to\\operatorname{Isom}(X)$ 为可测映射且满足 $\\int_\\Omega d(x_0,f(\\omega)x_0)\\,d\\mu<\\infty$。令 $f_n(\\omega)=f(\\omega)\\circ f(T\\omega)\\circ\\cdots\\circ f(T^{n-1}\\omega)$，则对 $\\mu$-几乎每个 $\\omega$，存在从 $x_0$ 出发的测地射线 $\\gamma_\\omega$ 使得\n$$\\frac1n\\,d\\bigl(f_n(\\omega)x_0,\\gamma_\\omega(n s(\\omega))\\bigr)\\xrightarrow[n\\to\\infty]{}0,$$\n其中 $s(\\omega):=\\lim_{n\\to\\infty}\\frac1n d(x_0,f_n(\\omega)x_0)$ 为渐近速率。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历定理",
+      "CAT(0) 空间",
+      "等距作用",
+      "测地射线",
+      "Karlsson–Margulis",
+      "horofunction",
+      "子加性遍历定理"
+    ],
+    "notes": [
+      {
+        "zh": "Karlsson–Margulis 定理的一个直接推论是 Oseledets 乘法遍历定理：将 $\\operatorname{Pos}_d(\\mathbb R)$ 配备 CAT(0) 度量（Bridson–Haefliger 度量），取原点 $x_0=I$，等距作用 $A\\cdot P=APA^t$，则 Karlsson–Margulis 定理断言存在测地射线 $\\gamma_\\omega(t)=\\exp(tS(\\omega))$ 使得 $d(A_n(\\omega)\\cdot I,\\exp(nsS(\\omega)))=o(n)$。由此可得 $(A_nA_n^t)^{1/2n}\\to\\Lambda:=\\exp(\\frac12 sS)$，且 $\\frac1n\\log\\|A_n\\Lambda^{-n}\\|\\to0$ 几乎处处。"
+      },
+      {
+        "zh": "该定理是 Birkhoff 遍历定理在 CAT(0) 空间上的精确类比：Birkhoff 定理给出渐近速度（位移的平均），Karlsson–Margulis 定理进一步给出渐近方向（测地射线）。在 Euclid 空间中两者一致——测地射线退化为直线，方向为平均位移向量的方向。"
+      }
+    ],
+    "article": [
+      {
+        "zh": "## 从 Birkhoff 到 Karlsson–Margulis\n\nBirkhoff 点态遍历定理处理的是 Euclid 空间上的平移作用：给定保测变换 $T$ 和可测函数 $\\tilde f:\\Omega\\to\\mathbb R^d$，令 $f_n(\\omega)=\\tilde f(\\omega)+\\tilde f(T\\omega)+\\cdots+\\tilde f(T^{n-1}\\omega)$，则 $\\frac1n f_n(\\omega)$ 几乎处处收敛到 $\\int\\tilde f\\,d\\mu$。此时渐近方向就是积分向量的方向，渐近速率就是积分向量的长度。然而一旦将底空间换成弯曲的度量空间，平移作用不再有意义，线性结构也消失了：等距变换的复合仍然给出等距，但「方向」这个概念本身需要重新定义。\n\n## CAT(0) 空间上的等距作用\n\nKarlsson–Margulis 定理适用的空间是完备的 CAT(0) 测地空间。这类空间的曲率非正，测地线唯一且以凸的方式依赖端点。Euclid 空间 $\\mathbb R^d$、Hilbert 空间、Hadamard 流形（如正定对称矩阵空间 $\\operatorname{Pos}_d(\\mathbb R)$ 配备的负曲率度量），以及 Bruhat–Tits 建筑物都在此列。给定这样的空间 $X$，固定基点 $x_0\\in X$，每个等距映射 $\\varphi$ 在 $X$ 上作用，但不像平移那样有「位移向量」——位移 $d(x_0,\\varphi x_0)$ 只是一个数，而非向量。\n\n## horofunction 边界\n\n为了在 CAT(0) 空间中定义渐近方向，借助 horofunction 紧化。将每个点 $x\\in X$ 嵌入到连续函数空间 $C(X)$ 中，映为函数\n$$D_x(z)=d(z,x)-d(x_0,x).$$\n等度连续性保证了 $\\iota(X)$ 的预紧性，其闭包 $\\widehat X$ 是紧度量空间。边界 $\\partial X=\\widehat X\\setminus\\iota(X)$ 称为 horofunction 边界。对 CAT(0) 空间，边界上的每个点唯一对应一条从 $x_0$ 出发的测地射线 $\\gamma$，具体由\n$$B_\\gamma(z;x_0)=\\lim_{t\\to\\infty}[d(\\gamma(t),z)-d(\\gamma(t),x_0)]$$\n给出。换言之，horofunction 就是测地射线的「方向」。\n\n## 变分构造与扩展动力系统\n\n给定概率保测变换 $(\\Omega,\\mathcal F,\\mu,T)$ 和可测映射 $f:\\Omega\\to\\operatorname{Isom}(X)$，令 $f_n(\\omega)=f(\\omega)\\circ f(T\\omega)\\circ\\cdots\\circ f(T^{n-1}\\omega)$。子加性遍历定理保证 $s(\\omega)=\\lim_{n\\to\\infty}\\frac1n d(x_0,f_n(\\omega)x_0)$ 几乎处处存在。定理的目标是证明几乎每个 $\\omega$ 都存在测地射线 $\\gamma_\\omega$，使得\n$$\\frac1n d(f_n(\\omega)x_0,\\gamma_\\omega(ns))=o(n).$$\n\n为找到这条射线，在扩展相空间 $\\Omega\\times\\partial X$ 上构造一个动力系统。等距在 horofunction 上的作用定义为\n$$(\\varphi\\cdot D)(z)=D(\\varphi^{-1}z)-D(\\varphi^{-1}x_0),$$\n这给出了一个 $S$ 不变性：$S(\\omega,D)=(T\\omega,\\,f(\\omega)^{-1}\\cdot D)$。关键等式\n$$\\sum_{k=0}^{n-1}F\\circ S^k(\\omega,D)=D(f_n(\\omega)x_0)$$\n将 $f_n(\\omega)x_0$ 的位移转化为 $F(\\omega,D)=D(f(\\omega)x_0)$ 的 Birkhoff 和。于是寻找方向等价于构造 $S$-不变遍历测度 $\\widehat\\mu_0$，使得 $-\\int F\\,d\\widehat\\mu_0=s$。这一极值测度可通过经验测度 $\\widehat\\eta_n=\\int_\\Omega\\delta_{(\\omega,D_{f_n(\\omega)x_0})}\\,d\\mu(\\omega)$ 及其 $S$-平均的弱-star 聚点获得，再经遍历分解得到所需对象。Birkhoff 定理在 $\\Omega\\times\\partial X$ 上给出 $\\frac1n D(f_n(\\omega)x_0)\\to -s$，从而 $D\\in\\partial X$，即该 $D$ 对应于一条测地射线。\n\n## 与经典遍历定理的关系\n\nKarlsson–Margulis 定理统一了两类经典遍历定理。在 Euclid 空间 $\\mathbb R^d$ 上，测地射线退化为直线，定理退化为 Birkhoff 遍历定理：方向即平均位移向量的方向。将 $\\operatorname{Pos}_d(\\mathbb R)$ 配备 CAT(0) 度量并取原点 $x_0=I$，等距作用 $A\\cdot P=APA^t$ 上的 Karlsson–Margulis 定理等价于 Oseledets 乘法遍历定理。此时测地射线 $\\gamma_\\omega(t)=\\exp(tS(\\omega))$，极限矩阵 $\\Lambda(\\omega)=\\exp(\\frac12 s(\\omega)S(\\omega))$ 给出了 $(A_nA_n^t)^{1/2n}\\to\\Lambda$ 的几乎处处收敛。"
+      }
+    ],
+    "proof": {
+      "zh": [
+        "**准备工作。** 设 $\\mu$ 遍历（否则对其遍历分量处理），此时 $s(\\omega)=s$ 为常数。设 $s>0$（否则定理平凡成立）。由 Proposition 2.6，只需找到 $D_\\omega\\in\\partial X$ 使 $\\lim_{n\\to\\infty}D_\\omega(f_n(\\omega)x_0)/n=-s$。\n\n**等距作用在 $\\widehat X$ 上的提升。** 对等距映射 $\\varphi$，定义其在 $\\widehat X$ 上的作用为\n$$(\\varphi\\cdot D)(z):=D(\\varphi^{-1}z)-D(\\varphi^{-1}x_0).$$\n该作用保持 $\\partial X$（因为 $\\inf D=-\\infty$ 当且仅当 $\\inf\\varphi\\cdot D=-\\infty$）。\n\n**扩展动力系统。** 定义 $S(\\omega,D):=(T\\omega,\\,f(\\omega)^{-1}\\cdot D)$。则 $S^k(\\omega,D)=(T^k\\omega,\\,f_k(\\omega)^{-1}\\cdot D)$。定义 $F(\\omega,D):=D(f(\\omega)x_0)\\in L^1(\\Omega,C(\\widehat X))$。\n\n验证关键等式：$(F\\circ S^k)(\\omega,D)=D(f_{k+1}(\\omega)x_0)-D(f_k(\\omega)x_0)$，故\n$$\\sum_{k=0}^{n-1}F\\circ S^k(\\omega,D)=D(f_n(\\omega)x_0).$$\n\n**构造 $S$-不变遍历测度 $\\widehat\\mu_0$。**\n\n对任意 $S$-不变且投影到 $\\mu$ 的测度 $\\widehat\\nu$，由 $D(z)\\ge-d(x_0,z)$ 得\n$$-\\int F\\,d\\widehat\\nu=-\\frac1n\\int D(f_n(\\omega)x_0)\\,d\\widehat\\nu\\le\\frac1n\\int d(x_0,f_n(\\omega)x_0)\\,d\\mu.$$\n由子加性遍历定理，$\\inf_n\\frac1n\\int d(x_0,f_n(\\omega)x_0)\\,d\\mu=s$，故 $-\\int F\\,d\\widehat\\nu\\le s$。\n\n构造经验测度 $\\widehat\\eta_n:=\\int_\\Omega\\delta_{(\\omega,D_{f_n(\\omega)x_0})}\\,d\\mu(\\omega)$，其 $S$-平均\n$$\\widehat\\mu_n:=\\frac1n\\sum_{k=0}^{n-1}\\widehat\\eta_n\\circ S^{-k}$$\n投影到 $\\mu$ 且满足 $-\\int F\\,d\\widehat\\mu_n\\ge s$（因为 $D_{f_n(\\omega)x_0}(f_n(\\omega)x_0)=-d(x_0,f_n(\\omega)x_0)$）。\n\n将 $\\widehat\\mu_n$ 视为 $L^1(\\Omega,C(\\widehat X))^*$ 中的单位正泛函。由 Banach–Alaoglu 定理，存在子列 $\\widehat\\mu_{n_k}$ 弱-star 收敛到 $\\widehat\\mu$。易验证 $\\widehat\\mu$ 是 $S$-不变的、投影到 $\\mu$、且 $\\widehat\\mu(-F)=s$。\n\n取 $\\widehat\\mu$ 的遍历分解 $\\widehat\\mu=\\int\\widehat\\mu_{(\\omega,D)}\\,d\\widehat\\mu$。对 $\\widehat\\mu$-几乎每个 $(\\omega,D)$，$\\widehat\\mu_{(\\omega,D)}$ 是 $S$-遍历不变的，投影到 $\\mu$，且满足 $-\\int F\\,d\\widehat\\mu_{(\\omega,D)}=s$（否则若在正测度集上 $-\\int F\\,d\\widehat\\mu_{(\\omega,D)}<s$，则 $\\widehat\\mu(-F)<s$，矛盾）。任取一个这样的 $\\widehat\\mu_0$，其支撑在 $\\Omega\\times\\partial X$ 上（因为 $\\frac1n D\\to-s<0$ 迫使 $\\inf D=-\\infty$）。\n\n**应用 Birkhoff 定理。** 由 Birkhoff 点态遍历定理，对 $\\widehat\\mu_0$-几乎每个 $(\\omega,D)$ 有\n$$\\frac1n D(f_n(\\omega)x_0)=\\frac1n\\sum_{k=0}^{n-1}F\\circ S^k(\\omega,D)\\xrightarrow[n\\to\\infty]{}\\int F\\,d\\widehat\\mu_0=-s.$$\n故对 $\\mu$-几乎每个 $\\omega$，存在 $D_\\omega\\in\\partial X$ 使该极限成立。由 Proposition 2.6，存在测地射线 $\\gamma_\\omega$（对应于 $D_\\omega$）使得 $d(f_n(\\omega)x_0,\\gamma_\\omega(ns))=o(n)$ 几乎处处成立。"
+      ]
+    },
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.7.",
+      "A. Karlsson and G. Margulis, A multiplicative ergodic theorem and nonpositively curved spaces, Comm. Math. Phys. 208 (1999), 107–123.",
+      "M. R. Bridson and A. Haefliger, Metric Spaces of Non-positive Curvature, Springer 1999."
+    ]
+  }
+}

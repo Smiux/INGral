@@ -3,9 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "保测变换",
-      "measure preserving transformation",
-      "mpt"
+      "保测变换"
     ]
   },
   "description": {
@@ -22,9 +20,16 @@
     ],
     "article": [
       {
-        "zh": "保测变换是遍历理论的基本研究对象。其核心思想是：在「几乎处处」的意义下，系统的统计行为不随时间改变。Poincaré 回复定理是这一设定的第一个深刻推论——若 $\\mu$ 是有限测度，则几乎所有点都会无限次返回其初始位置的任意邻域。\n\n保测变换的概念比微分动力系统中的光滑映射更一般：它不要求任何微分结构或拓扑结构，只要求可测性和测度保持性。这种极简假设正好是经典力学中 Liouville 定理的抽象版本——Hamilton 相流保持 Lebesgue 测度。\n\n保测变换的 Koopman 算子 $U_Tf=f\\circ T$ 将问题转化为 Hilbert 空间 $L^2(\\mu)$ 上的等距算子，从而可以引入谱方法。遍历性、混合性等动力学性质均可通过 Koopman 算子的谱性质刻画。\n\n典型例子包括：圆周旋转（Lebesgue 测度保测）、角加倍映射（Lebesgue 测度保测）、Bernoulli 移位（Bernoulli 测度保测）、Markov 链（平稳 Markov 测度保测）。"
+        "zh": "保测变换是遍历理论的基本对象，其来源是经典力学中 Hamilton 相流的 Liouville 定理：Hamilton 方程确定的相流保持相空间上的 Lebesgue 测度。Poincaré 发现，仅凭这一测度保持性质——不需要任何微分结构或运动方程的具体了解——就足以证明回复性质。在有限测度下，几乎所有点都会无限次返回其初始位置的任意邻域。系统的统计行为在几乎处处的意义下不随时间改变。\n\n## 抽象设定\n\n这一结论促使了遍历理论的抽象框架：一个保测变换（mpt）是一个四元组 $(X,\\mathcal B,\\mu,T)$，其中 $(X,\\mathcal B,\\mu)$ 是测度空间，$T:X\\to X$ 是可测映射且满足 $\\mu(T^{-1}E)=\\mu(E)$ 对一切 $E\\in\\mathcal B$ 成立。若 $\\mu(X)=1$ 则为概率保测变换（ppt）。该框架不要求任何微分结构或拓扑结构，只保留可测性和测度保持性。\n\n为避免测度论中的病态情形，通常要求 $(X,\\mathcal B,\\mu)$ 是标准测度空间的完备化：$X$ 为完备可分度量空间，$\\mathcal B$ 为其 Borel $\\sigma$-代数。这样的空间称为 Lebesgue 空间，同构于一个区间（带 Lebesgue 测度）与至多可数个原子的并集。\n\n## Poincaré 回复定理\n\n保测变换的第一个结论是 Poincaré 回复定理：对概率保测变换和可测集 $E$，几乎每个 $x\\in E$ 都存在 $n_k\\to\\infty$ 使 $T^{n_k}(x)\\in E$。将 $E$ 中永不返回的点集 $W$ 分割为直径足够小的片 $W_i$，则 $T^{-n}(W_i)$ 两两不交且测度相等，有限测度迫使 $W_i$ 为零测集。这在无穷测度下不成立：$T(x)=x+1$ 在 $\\mathbb Z$ 上是保测变换，但没有任何点能返回其初始位置。\n\n## 同构与 Koopman 算子\n\n两个保测变换称为测度论同构，若存在满测度子集间的可测双射 $\\pi$（具可测逆）使 $\\mu_1\\circ\\pi^{-1}=\\mu_2$ 且 $\\pi\\circ T_1=T_2\\circ\\pi$。遍历理论的目标之一是判别两个保测变换是否同构。Koopman 算子 $U_Tf=f\\circ T$ 将问题转化为 Hilbert 空间 $L^2(\\mu)$ 上的等距算子，从而引入谱方法。遍历性、混合性等动力学性质均可通过 Koopman 算子的谱性质刻画。"
       }
     ],
+    "examples": {
+      "zh": [
+        "圆周旋转是全测度空间中保测变换的典型例子。设 $\\mathbb T=[0,1)$ 配备 Lebesgue 测度 $m$，对 $\\alpha\\in[0,1)$ 定义 $R_\\alpha(x)=x+\\alpha\\bmod 1$。对任意区间 $I\\subset[0,1)$ 有 $m(R_\\alpha^{-1}I)=m(I)$，故集合 $\\mathcal M=\\{E\\in\\mathcal B:m(R_\\alpha^{-1}E)=m(E)\\}$ 包含有限个不交区间的并构成的代数。$\\mathcal M$ 是单调类，由单调类定理知 $\\mathcal M$ 包含所有 Borel 集；又 $\\mathcal M$ 包含所有零测集，故 $\\mathcal M$ 包含一切 Lebesgue 可测集。因此 $R_\\alpha$ 对任意 $\\alpha$ 保测。",
+        "角加倍映射是概率保测变换的又一基本例子。在 $\\mathbb T=[0,1)$ 上配备 Lebesgue 测度 $m$，定义 $T(x)=2x\\bmod 1$。采用二进制展开 $x=0.d_1d_2d_3\\cdots$（$d_i\\in\\{0,1\\}$），则 $T$ 表现为左移位 $T(0.d_1d_2\\cdots)=0.d_2d_3\\cdots$。对柱集 $[d_1,\\dots,d_n]=\\{x:x=0.d_1\\cdots d_n\\varepsilon_1\\varepsilon_2\\cdots\\}$（长度为 $2^{-n}$）有 $T^{-1}[d_1,\\dots,d_n]=[0,d_1,\\dots,d_n]\\cup[1,d_1,\\dots,d_n]$，故 $m(T^{-1}[d_1,\\dots,d_n])=2\\cdot2^{-(n+1)}=2^{-n}=m[d_1,\\dots,d_n]$。由于柱集生成 Borel $\\sigma$-代数且使得 $T$ 保测的集合类构成单调类，$T$ 保测 Lebesgue 测度。",
+        "Bernoulli 方案是符号动力系统中保测变换的典型构造。设 $S$ 为有限集（字母表），$X=S^{\\mathbb N}$ 为单侧无穷序列空间，$\\sigma$ 为左移位。取概率向量 $\\underline p=(p_a)_{a\\in S}$（$p_a>0$，$\\sum p_a=1$），Bernoulli 测度 $\\mu$ 由 $\\mu[a_0,\\dots,a_{n-1}]=p_{a_0}\\cdots p_{a_{n-1}}$ 定义于柱集上。由于 $\\mu[\\ast,b_0,\\dots,b_{m-1}]=\\sum_{a\\in S}p_ap_{b_0}\\cdots p_{b_{m-1}}=p_{b_0}\\cdots p_{b_{m-1}}=\\mu[b_0,\\dots,b_{m-1}]$，左移位 $\\sigma$ 保持 $\\mu$。测度的存在性由 Carathéodory 扩张定理保证：柱集构成半代数，$\\mu$ 在其上 $\\sigma$-可加，从而唯一延拓为 $X$ 上的 Borel 概率测度。"
+      ]
+    },
     "references": [
       "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.2."
     ]

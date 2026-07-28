@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "保向圆周同胚群",
-      "Homeo₊(S¹)"
+      "保向圆周同胚群"
     ]
   },
   "description": {
@@ -23,20 +22,27 @@
         "zh": "赋予一致收敛拓扑后，$\\operatorname{Homeo}_+(\\mathbb S^1)$ 和 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 均为拓扑群。"
       },
       {
-        "zh": "$\\operatorname{Homeo}_+(\\mathbb S^1)$ 的同伦型：嵌入 $\\operatorname{SO}(2,\\mathbb R)\\hookrightarrow\\operatorname{Homeo}_+(\\mathbb S^1)$ 是同伦等价，且 $\\operatorname{Homeo}_+(\\mathbb S^1)\\simeq\\operatorname{SO}(2,\\mathbb R)\\times$(凸集)。因而 $\\pi_1(\\operatorname{Homeo}_+(\\mathbb S^1))\\cong\\mathbb Z$。"
+        "zh": "**极大紧子群**：$\\operatorname{Homeo}_+(\\mathbb S^1)$ 的极大紧子群在共轭意义下唯一，就是旋转群 $\\operatorname{SO}(2,\\mathbb R)$。证明要点：对任意紧子群 $K$，取其 Haar 概率测度在 Lebesgue 测度上的平均得到 $K$-不变概率测度 $\\mu$；$\\mu$ 无原子且在开集上非零，故存在 $h\\in\\operatorname{Homeo}_+(\\mathbb S^1)$ 将 $\\mu$ 映为 Lebesgue 测度，从而 $hKh^{-1}\\subset\\operatorname{SO}(2,\\mathbb R)$。"
+      },
+      {
+        "zh": "**同伦型**：嵌入 $\\operatorname{SO}(2,\\mathbb R)\\hookrightarrow\\operatorname{Homeo}_+(\\mathbb S^1)$ 是同伦等价。$\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 中元素 $\\tilde f(x)=x+t(x)$（$t$ 为 $\\mathbb Z$-周期函数）可写为 $\\tilde f_s(x)=x+c_0+(1-s)t_0(x)$，其中 $c_0$ 为 $t$ 的均值、$t_0$ 为零均值周期函数。$s$ 从 $0$ 到 $1$ 给出从 $\\tilde f$ 到平移的连续收缩，且与整数平移相容。因此 $\\operatorname{Homeo}_+(\\mathbb S^1)\\cong\\operatorname{SO}(2,\\mathbb R)\\times$(凸集)，从而 $\\pi_1(\\operatorname{Homeo}_+(\\mathbb S^1))\\cong\\mathbb Z$。"
       },
       {
         "zh": "$\\operatorname{Homeo}_+(\\mathbb S^1)$ 中关于任一对 $(f,g)$（在 Baire 意义下通有），它们生成的群是两生成元的自由群。该结论对任意维流形的同胚群同样成立。"
-      },
-      {
-        "zh": "中心扩张 $0\\to\\mathbb Z\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\operatorname{Homeo}_+(\\mathbb S^1)\\to 1$ 的 Euler 类生成 $H^2(\\operatorname{Homeo}_+(\\mathbb S^1),\\mathbb Z)\\cong\\mathbb Z$。通过拉回（pullback），任意作用 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 得 Euler 类 $eu(\\phi)\\in H^2(\\Gamma,\\mathbb Z)$。"
       }
     ],
     "article": [
       {
-        "zh": "$\\operatorname{Homeo}_+(\\mathbb S^1)$ 是一个「群体极大的」拓扑群——其结构在保持方向的前提下囊括了圆周的所有可能连续扭曲。该群在结构上可以被视为 $\\operatorname{PSL}(2,\\mathbb R)$ 的无穷维类比：两者都有唯一的极大紧子群（$\\operatorname{SO}(2,\\mathbb R)$）、单性、基本群同构于 $\\mathbb Z$、且覆盖群具有相似的结构。\n\n$\\operatorname{Homeo}_+(\\mathbb S^1)$ 极大地超出了有限维 Lie 群的范畴。它不满足传统 Lie 群理论中「附近元素属于 1-参数子群」的性质。但这并未阻止其成为群作用理论的核心研究对象——它是所有圆周保向作用的「宿主」，每个群到圆周的嵌入都是一个 $\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 的同态。\n\n基本群 $\\pi_1(\\operatorname{Homeo}_+(\\mathbb S^1))\\cong\\mathbb Z$ 导致了连通覆盖族 $\\operatorname{Homeo}_{k,+}(\\mathbb S^1)$（$k\\geqslant1$），它们可以视为与 $k$ 阶旋转循环群交换的子群。类似地，$\\operatorname{PSL}_k(2,\\mathbb R)$ 是 $\\operatorname{PSL}(2,\\mathbb R)$ 的 $k$ 叶覆盖，可嵌入 $\\operatorname{Homeo}_{k,+}(\\mathbb S^1)$ 中但非 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群。"
+        "zh": "## 圆周恒向同胚群的结构\n\n记 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 为圆周上所有保向同胚构成的群。将 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 视为拓扑群（赋予一致收敛拓扑）后，它展现出一些与有限维 Lie 群相似的轮廓：它的极大紧子群在共轭意义下唯一，即旋转群 $\\operatorname{SO}(2,\\mathbb R)$；从 $\\operatorname{SO}(2,\\mathbb R)$ 到 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的含入是同伦等价；它的基本群是 $\\mathbb Z$，因此对每个整数 $k\\ge 1$ 存在唯一的 $k$ 重连通覆盖 $\\operatorname{Homeo}_{k,+}(\\mathbb S^1)$。这些性质与 $\\operatorname{PSL}(2,\\mathbb R)$ 惊人地相似——$\\operatorname{PSL}(2,\\mathbb R)$ 也有唯一极大紧子群 $\\operatorname{SO}(2,\\mathbb R)/\\{\\pm\\mathrm{id}\\}$，其基本群也是 $\\mathbb Z$，覆盖群 $\\operatorname{PSL}_k(2,\\mathbb R)$ 同样可嵌入 $\\operatorname{Homeo}_{k,+}(\\mathbb S^1)$。\n\n## 万有覆盖与提升\n\n每个保向圆周同胚 $f$ 可以提升到实直线上的一个同胚 $\\tilde f$，满足 $\\tilde f(x+1)=\\tilde f(x)+1$。所有这样的提升构成群 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$，它通过商映射 $\\tilde f\\mapsto f$ 覆盖 $\\operatorname{Homeo}_+(\\mathbb S^1)$，核为整数平移群 $\\mathbb Z$。这一正合列 $0\\to\\mathbb Z\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\operatorname{Homeo}_+(\\mathbb S^1)\\to1$ 是理解旋转数、平移数和 Euler 类等不变量代数结构的基础。\n\n## 轨道结构的三分性\n\n$\\operatorname{Homeo}_+(\\mathbb S^1)$ 的子群在轨道层面必然呈现三种互斥的可能。这一结论源于极小不变集的性质：考虑 $\\mathbb S^1$ 中所有非空闭 $\\Gamma$-不变子集，Zorn 引理保证极小元 $\\Lambda$ 的存在。分析 $\\Lambda$ 的导集和拓扑边界——两者都是闭不变集——即得三种情形：$\\Lambda$ 为有限集（有限轨道）、$\\Lambda=\\mathbb S^1$（全轨道稠密）、或 $\\Lambda$ 是无内点无孤立点的闭集（例外极小集，同胚于 Cantor 集）。例外极小集是三种情形中最精细的一种：它包含于每条 $\\Gamma$-轨道的极限点集中，且唯一。\n\n## 通有自由子群\n\n$\\operatorname{Homeo}_+(\\mathbb S^1)$ 在群论层面上还有一个出人意料的性质：在 Baire 范畴意义下，通有的一对元素 $(f,g)$ 生成一个两生成元的自由群。这个结论虽然与 $\\operatorname{SL}(2,\\mathbb R)$ 中类似结果平行，但其证明大不相同——$\\operatorname{Homeo}_+(\\mathbb S^1)$ 不是代数群，不能使用代数几何中的 Zariski 开集论证，而需要利用其在乘积空间上的 Baire 范畴结构。"
       }
     ],
+    "examples": {
+      "zh": [
+        "例 1（椭圆 Möbius 变换生成的例外极小集）。取两个椭圆 Möbius 变换：$f$ 为绕原点旋转 $2\\pi/3$，$g$ 为绕某点 $P\\in\\mathbb D$ 旋转 $\\pi$，其中 $P$ 与原点 $O$ 的 Euclidean 距离大于 $2-\\sqrt3$。群 $\\langle f,g\\rangle$ 呈示为 $\\langle f,g\\mid g^2=f^3=\\mathrm{id}\\rangle$，同构于模群 $\\operatorname{PSL}(2,\\mathbb Z)$。该作用具有例外极小集。",
+        "例 2（$\\mathrm C^\\infty$ 微分同胚的 triadic Cantor 例外极小集）。对例 1 作分段仿射修正可得 $\\mathrm C^\\infty$ 微分同胚作用，其例外极小集为 triadic Cantor 集。构造如下：取 $\\mathrm C^\\infty$ 微分同胚 $h$，满足 $h$ 在 $[0,\\pi/6]$ 上仿射且导数为 $3$，在 $[\\pi,3\\pi/2]$ 上仿射且导数为 $1/3$，在 $[\\pi/3,\\pi/2]$ 上为平移 $x+2\\pi/3$；在剩余区间上适当延拓使 $(hg)^3=\\mathrm{id}$，其中 $g$ 为 $\\pi$ 旋转。令 $f=hg$ 即得。",
+        "例 3（Schottky 群）。设 $g_0,g_1\\in\\operatorname{PSL}(2,\\mathbb R)$ 为两个双曲元素。若存在 $\\mathbb S^1$ 上两两不交的区间 $I_0,I_1,J_0,J_1$ 使得\n$$g_i(I_i\\cup J_i\\cup J_{1-i})\\subset I_i,\\qquad g_i^{-1}(I_i\\cup I_{1-i}\\cup J_{1-i})\\subset J_i\\quad(i\\in\\{0,1\\}),$$\n则 $\\langle g_0,g_1\\rangle$ 称为 Schottky 群。此时交集\n$$\\Lambda=\\bigcap_{g\\in\\langle g_0,g_1\\rangle}g(\\overline{I_0}\\cup\\overline{I_1}\\cup\\overline{J_0}\\cup\\overline{J_1})$$\n是非空的例外极小集，且 $\\langle g_0,g_1\\rangle$ 是自由群。"
+      ]
+    },
     "references": [
       "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
     ]

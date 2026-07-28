@@ -1,0 +1,9 @@
+{
+  "from": "algebra.group-theory.left-orderable-group",
+  "to": "dynamics.faithful-action",
+  "description": {
+    "zh": [
+      "左可序性是可数群能否保向忠实地作用在 $\\mathbb R$ 上的代数刻画（Ghys 定理）。"
+    ]
+  }
+}

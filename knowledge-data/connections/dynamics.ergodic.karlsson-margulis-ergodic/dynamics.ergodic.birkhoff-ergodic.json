@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.karlsson-margulis-ergodic",
+  "to": "dynamics.ergodic.birkhoff-ergodic",
+  "description": {
+    "zh": [
+      "Karlsson–Margulis 定理是 Birkhoff 遍历定理在 CAT(0) 空间等距作用下的推广：Birkhoff 定理给出平移作用的渐近速度（位移平均），Karlsson–Margulis 进一步给出渐近方向（测地射线），且在 Euclid 空间中两者一致。"
+    ]
+  }
+}

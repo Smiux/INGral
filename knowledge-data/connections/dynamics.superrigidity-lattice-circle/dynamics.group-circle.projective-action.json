@@ -3,7 +3,7 @@
   "to": "dynamics.group-circle.projective-action",
   "description": {
     "zh": [
-      "超刚性定理的结论之一给出共轭于 PSL(2,R) 在圆周上的射影作用。"
+      "射影作用是超刚性定理中高秩格点圆周作用的标准目标形式。"
     ]
   }
 }

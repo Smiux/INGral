@@ -3,7 +3,7 @@
   "to": "dynamics.group-circle.action",
   "description": {
     "zh": [
-      "射影作用是圆周群作用的基本例子之一，由 $\\operatorname{PGL}(2,\\mathbb R)\\to\\operatorname{Homeo}(\\mathbb S^1)$ 的同态给出。"
+      "射影作用是圆周群作用的例子之一，由 $\\operatorname{PGL}(2,\\mathbb R)\\to\\operatorname{Homeo}(\\mathbb S^1)$ 的同态给出。"
     ]
   }
 }

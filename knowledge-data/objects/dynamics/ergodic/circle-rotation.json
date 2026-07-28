@@ -1,0 +1,42 @@
+{
+  "id": "dynamics.ergodic.circle-rotation",
+  "type": "theorem",
+  "name": {
+    "zh": [
+      "圆周旋转的遍历性质"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\mathbb T=[0,1)$ 配备 Lebesgue 测度 $m$，$R_\\alpha(x)=x+\\alpha\\pmod 1$（$\\alpha\\in[0,1)$）。\n1. $R_\\alpha$ 对任意 $\\alpha$ 保测；\n2. $R_\\alpha$ 遍历当且仅当 $\\alpha\\notin\\mathbb Q$；\n3. $R_\\alpha$ 永不强混合。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "圆周映射",
+      "无理旋转",
+      "保测变换",
+      "Fourier 分析"
+    ],
+    "article": [
+      {
+        "zh": "取圆周 $\\mathbb T=[0,1)$ 配备 Lebesgue 测度 $m$。对 $\\alpha\\in[0,1)$，旋转 $R_\\alpha(x)=x+\\alpha\\pmod 1$ 是 $\\mathbb T$ 上的保测变换：对任意区间 $I$ 有 $m(R_\\alpha^{-1}I)=m(I)$，由单调类定理知此保测性对全体可测集成立。\n\n## 遍历性的 Fourier 分析判定\n\n旋转的遍历性完全由 $\\alpha$ 的算术性质决定。设 $\\alpha\\notin\\mathbb Q$。若 $E$ 为 $R_\\alpha$-不变集，其示性函数 $f=1_E$ 满足 $f\\circ R_\\alpha=f$。将 $f$ 展开为 Fourier 级数 $f(t)=\\sum_{n\\in\\mathbb Z}\\hat f(n)e^{2\\pi i n t}$（$L^2$ 收敛），则 $\\hat f(n)=\\hat f(n)e^{2\\pi i n\\alpha}$。$\\alpha\\notin\\mathbb Q$ 时 $e^{2\\pi i n\\alpha}\\neq1$（$n\\neq0$），故 $\\hat f(n)=0$。因此 $f=\\hat f(0)=m(E)$ 几乎处处成立，$m(E)=0$ 或 $1$。\n\n若 $\\alpha\\in\\mathbb Q$，设 $\\alpha=p/q$。取 $x_0\\in[0,1)$ 和充分小的 $\\varepsilon>0$ 使得 $x_0,x_0+\\alpha,\\dots,x_0+(q-1)\\alpha$ 的 $\\varepsilon$-邻域互不相交。这些邻域的并集是 $R_\\alpha$-不变集，其测度 $q\\cdot2\\varepsilon$ 在 $\\varepsilon$ 适当选取下严格介于 $0$ 与 $1$ 之间，故 $R_\\alpha$ 非遍历。\n\n## 非混合性\n\n无理旋转虽然遍历，但永远达不到混合的程度。取 $f(x)=e^{2\\pi i x}$，则 $f\\circ R_\\alpha=e^{2\\pi i\\alpha}f$，即 $e^{2\\pi i\\alpha}$ 是 Koopman 算子的本征值。由 Dirichlet 逼近定理，存在子列 $n_k\\to\\infty$ 使 $e^{2\\pi i n_k\\alpha}\\to1$。令 $F(x)=\\cos(2\\pi x)=\\operatorname{Re}(f)$，则 $\\|F\\circ R_\\alpha^{n_k}-F\\|_2\\to0$，$\\int F\\cdot F\\circ R_\\alpha^{n_k}\\to\\int F^2>(\\int F)^2$，与混合性矛盾。"
+      }
+    ],
+    "examples": {
+      "zh": [
+        "设 $\\alpha=p/q\\in\\mathbb Q$（$p,q$ 互素）。取 $x_0\\in[0,1)$，其轨道 $\\{x_0,x_0+\\alpha,\\dots,x_0+(q-1)\\alpha\\}$ 恰含 $q$ 个点。令 $\\varepsilon$ 充分小使得这些点的 $\\varepsilon$-邻域互不相交，则这些邻域的并集是 $R_\\alpha$-不变集，其测度为 $q\\cdot2\\varepsilon$，在 $\\varepsilon$ 适当选取下严格介于 $0$ 和 $1$ 之间——直接表明有理旋转非遍历。",
+        "设 $\\alpha\\notin\\mathbb Q$。$R_\\alpha$ 是遍历的但非混合。取 $f(x)=e^{2\\pi i x}$，则 $f\\circ R_\\alpha=e^{2\\pi i\\alpha}f$，故 $f$ 为本征函数。由 Dirichlet 逼近定理，存在 $n_k\\to\\infty$ 使 $e^{2\\pi i n_k\\alpha}\\to1$。令 $F(x)=\\cos(2\\pi x)=\\operatorname{Re}(f)$，则 $\\|F\\circ R_\\alpha^{n_k}-F\\|_2\\to0$，故 $\\int F\\cdot F\\circ R_\\alpha^{n_k}\\to\\int F^2>(\\int F)^2$，与混合性矛盾。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "**保测性。** 对任意区间 $I\\subset[0,1)$ 有 $m(R_\\alpha^{-1}I)=m(I)$。令 $\\mathcal M:=\\{E\\in\\mathcal B:m(R_\\alpha^{-1}E)=m(E)\\}$。$\\mathcal M$ 包含有限个不交区间的并构成的代数，且 $\\mathcal M$ 是单调类，由单调类定理知 $\\mathcal M$ 包含所有 Borel 集。由于 $\\mathcal M$ 也包含所有零测集，故 $\\mathcal M$ 包含所有 Lebesgue 可测集。\n\n**遍历性**（$\\alpha\\notin\\mathbb Q$）。设 $E$ 为不变集，$f=1_E$。将 $f$ 展开为 Fourier 级数 $f(t)=\\sum_{n\\in\\mathbb Z}\\hat f(n)e^{2\\pi i n t}$（$L^2$ 收敛）。由 $f=f\\circ R_\\alpha$ 得 $\\hat f(n)=\\hat f(n)e^{2\\pi i n\\alpha}$。对 $n\\neq0$，$\\alpha\\notin\\mathbb Q$ 意味着 $e^{2\\pi i n\\alpha}\\neq1$，故 $\\hat f(n)=0$。因此 $f=\\hat f(0)=m(E)$ a.e.，故 $m(E)=0$ 或 $1$。\n\n**非遍历性**（$\\alpha\\in\\mathbb Q$）。设 $\\alpha=p/q$。取 $x_0\\in[0,1)$，令 $\\varepsilon$ 充分小使得 $x_0,x_0+\\alpha,\\dots,x_0+(q-1)\\alpha$ 的 $\\varepsilon$-邻域两两不交，则这些邻域的并集为 $R_\\alpha$-不变集，其测度 $q\\cdot2\\varepsilon$ 对适当 $\\varepsilon$ 严格介于 $0$ 与 $1$ 之间。\n\n**非混合性。** 设 $\\lambda=e^{2\\pi i\\alpha}$。由 Dirichlet 定理，存在子列 $n_k\\to\\infty$ 使 $\\lambda^{n_k}\\to1$。取 $f(x)=e^{2\\pi i x}$，则 $f\\circ R_\\alpha^{n_k}=\\lambda^{n_k}f$，故 $\\|f\\circ R_\\alpha^{n_k}-f\\|_2=|\\lambda^{n_k}-1|\\to0$。令 $F(x)=\\cos(2\\pi x)=\\operatorname{Re}(f)$，则 $\\|F\\circ R_\\alpha^{n_k}-F\\|_2\\to0$，于是\n$$\\int F\\cdot F\\circ R_\\alpha^{n_k}\\,dm\\to\\int F^2\\,dm>(\\int F\\,dm)^2,$$\n故 $R_\\alpha$ 不是混合的。"
+      ]
+    },
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.5.1."
+    ]
+  }
+}

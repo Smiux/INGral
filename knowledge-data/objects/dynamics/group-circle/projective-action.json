@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "射影群在圆周上的作用",
-      "PGL(2,R) 在 RP¹ 上的作用"
+      "射影群作用"
     ]
   },
   "description": {
@@ -19,21 +18,29 @@
       "Möbius 变换",
       "双曲几何",
       "Fuchs 群",
-      "测地线流"
+      "测地线流",
+      "收敛性质"
     ],
     "notes": [
       {
-        "zh": "$\\operatorname{PSL}(2,\\mathbb R)$ 与 $\\operatorname{SO}(3,\\mathbb R)$ 是仅有的三维单 Lie 群。这解释了为何 $\\operatorname{PSL}(2,\\mathbb R)$ 以多种形式出现在数学中。"
+        "zh": "$\\operatorname{PSL}(2,\\mathbb R)$ 与 $\\operatorname{SO}(3,\\mathbb R)$ 是仅有的三维单 Lie 群。"
       },
       {
-        "zh": "Fuchs 群是指 $\\operatorname{PSL}(2,\\mathbb R)$ 的离散子群。最著名的例子是模群 $\\operatorname{PSL}(2,\\mathbb Z)$，它可能是数学史上第一个被研究的非交换群。"
+        "zh": "$\\operatorname{PSL}(2,\\mathbb R)$ 的子群都具有收敛性质——任意元素序列都包含一个子列要么逐点收敛到常值映射，要么一致收敛到某个同胚。反之，满足收敛性质的圆周同胚群必拓扑共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群。"
       }
     ],
     "article": [
       {
-        "zh": "$\\operatorname{PGL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1$ 上的射影作用是圆周上最重要的群作用之一，其根源可追溯到 Gauss 对二次型的研究和 Poincaré 对 Fuchs 群的分析。该作用与双曲几何有着内在联系：$\\operatorname{PSL}(2,\\mathbb R)$ 在上半平面 $\\mathcal H$（赋予 Poincaré 度量）上的作用兼是全纯和等距的，且 $\\mathcal H$ 的边界 $\\mathbb{RP}^1$ 恰好是 $\\operatorname{PSL}(2,\\mathbb R)$ 在无穷远处的几何边界。\n\n该作用还是**传递**的：$\\operatorname{PGL}(2,\\mathbb R)$ 可将其上任一点映到任意另一点。从 Lie 群角度，$\\mathbb{RP}^1$ 可视为 $\\operatorname{PGL}(2,\\mathbb R)$ 模去 $x=\\infty$ 处的稳定子（Borel 子群）的商空间。\n\n与该作用紧密相关的离散子群（Fuchs 群）是双曲几何和数论的交叉点。特别地，$\\operatorname{PSL}(2,\\mathbb Z)$ 在 $\\mathbb{RP}^1$ 上的作用展示了旋转数与连分数的关系。\n\nLiouville 测地线流（Liouville geodesic current）是该作用的一个深刻不变量：它是双曲盘测地线空间上在 $\\operatorname{PSL}(2,\\mathbb R)$ 对角作用下唯一（至多差常数倍）不变的测地线流。其密度 $Lv = ds\\,dt/4\\sin^2\\big((s-t)/2\\big)$ 满足恒等式 $e^{-Lv([a,b]\\times[c,d])}+e^{-Lv([b,c]\\times[d,a])}=1$，这一性质刻画了它的唯一性。保持该测地线流的圆周同胚群恰为 $\\operatorname{PSL}(2,\\mathbb R)$，从而给出了与旋转群、仿射群平行的测度论刻画。\n\n$\\operatorname{PSL}(2,\\mathbb R)$ 作用还可用收敛性质（convergence property）纯动力学刻画：$\\operatorname{Homeo}_+(\\mathbb S^1)$ 的子群共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群当且仅当其具有收敛性质。"
+        "zh": "## 分式线性变换与群作用\n\n$\\operatorname{PGL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1$ 上的作用由分式线性变换 $$\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}\\cdot x=\\frac{ax+b}{cx+d}$$ 给出，其中 $x\\in\\mathbb R\\cup\\{\\infty\\}$。该群的行列式符号决定元素是否保持圆周定向；单位连通分支 $\\operatorname{PSL}(2,\\mathbb R)=\\operatorname{SL}(2,\\mathbb R)/\\{\\pm I\\}$ 对应保向的 Möbius 变换。\n\n$\\operatorname{PSL}(2,\\mathbb R)$ 可通过多种等价的方式出现在数学中。它既是 Poincaré 上半平面 $\\mathbb H$ 的等距自同构群（在 Poincaré 度量下），也是单位圆盘 $\\mathbb D$ 的共形自同构群在边界 $\\partial\\mathbb D\\cong\\mathbb S^1$ 上的诱导作用。通过 Cayley 变换，这两种观点是共轭的。\n\n## 三重传递性\n\n$\\operatorname{PSL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1\\cong\\mathbb S^1$ 上的作用具有三重传递性：对圆周上任意两个按循环序排列的三元组，存在唯一的群元素将前者映为后者。这意味着若一个元素固定了三个不同点，则它必为恒等映射。这一高度传递性使 $\\operatorname{PSL}(2,\\mathbb R)$ 成为圆周上最紧凑的变换群之一——没有更大的连通 Lie 群能更自由地作用于圆周。\n\n## 元素分类\n\n$\\operatorname{PSL}(2,\\mathbb R)$ 的元素按其迹的绝对值可分为三类。(i) $|\\mathrm{tr}|<2$ 时为**椭圆型**，共轭于旋转，在圆周上无不动点。(ii) $|\\mathrm{tr}|=2$ 时为**抛物型**，在圆周上有唯一不动点——平移 $z\\mapsto z+1$ 是最简单的例子。(iii) $|\\mathrm{tr}|>2$ 时为**双曲型**，有两个不动点（一个吸引、一个排斥），缩放 $z\\mapsto\\lambda z$（$\\lambda>1$）是典型代表。\n\n## 多种实现\n\n$\\operatorname{PSL}(2,\\mathbb R)$ 还可以通过 $\\mathbb{RP}^1$ 的直线参数化来理解：$\\mathbb{RP}^1$ 是 $\\mathbb R^2$ 中过原点的直线的集合，由角度 $\\alpha\\in[0,\\pi[$ 参数化。矩阵 $\\begin{pmatrix}a_1&a_2\\\\a_3&a_4\\end{pmatrix}\\in\\operatorname{SL}(2,\\mathbb R)$ 在该参数下的作用为 $s\\mapsto(a_1s+a_2)/(a_3s+a_4)$，其中 $s=\\cot\\alpha$。另一种等价观点来自 Lorentz 群 $\\operatorname{O}(2,1)$：二次型 $x_1^2+x_2^2-x_3^2$ 的等距群在 $\\mathbb{RP}^2$ 中的零锥上的作用也给出了相同的射影作用。"
       }
     ],
+    "examples": {
+      "zh": [
+        "模群 $\\operatorname{PSL}(2,\\mathbb Z)$ 是 $\\operatorname{PSL}(2,\\mathbb R)$ 的离散子群，由矩阵 $S=\\begin{pmatrix}0&-1\\\\1&0\\end{pmatrix}$ 和 $T=\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}$ 生成，满足关系 $S^2=(ST)^3=I$。$S$ 是椭圆型元素（阶为 $2$），$T$ 是抛物型元素。$\\operatorname{PSL}(2,\\mathbb Z)$ 的轨道与连分数展开有密切联系——$T$ 的作用对应于连分数中的取整操作，而 $S$ 的作用对应于取倒数。",
+        "矩阵 $A=\\begin{pmatrix}0&-1\\\\1&0\\end{pmatrix}$ 的迹为 $0$，对应椭圆型元素 $z\\mapsto -1/z$，在圆周上无不动点（在圆盘内部固定原点 $0$）。矩阵 $B=\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}$ 的迹为 $2$，对应抛物型元素 $z\\mapsto z+1$，唯一不动点为 $\\infty$。矩阵 $C=\\begin{pmatrix}2&1\\\\1&1\\end{pmatrix}$ 的迹为 $3$，对应双曲型元素，在圆周上有两个不动点 $(-1\\pm\\sqrt5)/2$，其中一个是吸引的，另一个是排斥的。",
+        "所有形如 $x\\mapsto ax+b$（$a>0$）的仿射变换构成 $\\operatorname{PSL}(2,\\mathbb R)$ 的一个子群，同构于 $\\operatorname{Aff}_+(\\mathbb R)$。在该子群中，当 $a=1$ 时得到平移（抛物型元素），当 $a\\neq1$ 时得到缩放（双曲型元素）。仿射子群在 $\\mathbb{RP}^1$ 上的作用固定点 $\\infty$，因此可视为 $\\mathbb R$ 上的仿射作用向 $\\mathbb{RP}^1$ 的自然延拓。"
+      ]
+    },
     "references": [
       "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407."
     ]

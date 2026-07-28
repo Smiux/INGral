@@ -3,7 +3,7 @@
   "to": "dynamics.ergodic.ergodicity",
   "description": {
     "zh": [
-      "SMB 定理要求系统是遍历的——遍历性保证了柱集概率的几乎处处极限存在且为常数。"
+      "Shannon 划分熵的渐近行为由 Shannon–McMillan–Breiman 定理描述，该定理需要遍历性假设以保证柱集概率的几乎处处极限为常数。"
     ]
   }
 }

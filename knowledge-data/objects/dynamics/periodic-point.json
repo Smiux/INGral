@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "周期点",
-      "周期轨"
+      "周期点"
     ]
   },
   "description": {
@@ -20,9 +19,17 @@
     ],
     "article": [
       {
-        "zh": "周期点 $f^n(p)=p$ 将不动点的精确回复从一步推广为 $n$ 步。但这一推广带来的不是量的扩展而是质的飞跃——周期点的存在性与系统的复杂性密切相关。不动点数通常有限且容易计算；周期点数则可能随周期 $n$ 指数增长。\n\n圆周同胚理论给出了周期点存在性的最精确刻画。设 $f\\in\\operatorname{Homeo}_+(\\mathbb S^1)$，则 $f$ 有周期点当且仅当其旋转数 $\\rho(f)$ 为有理数。具体地，若 $\\rho(f)=p/q$（既约），则 $f$ 有 $q$-周期点且最小周期为 $q$。当 $\\rho(f)$ 为无理数时，$f$ 无周期点——实际上每点都是回归的但无一周期。这一简单而优美的二分法建立了代数（$\\mathbb Q$ vs $\\mathbb R\\setminus\\mathbb Q$）与动力学（存在周期点 vs 无周期点）之间的精确对应。\n\n对圆周 $C^{1+\\mathrm{bv}}$ 微分同胚，Denjoy 定理进一步表明：若 $\\rho(f)$ 无理，则 $f$ 拓扑共轭于无理旋转，从而所有轨道都稠密。这意味着对于足够光滑的圆周微分同胚，周期点的存在性等价于旋转数的有理性——这是一种完全的信息。"
+        "zh": "周期点将不动点的条件从一步放松到有限步：$p$ 在 $n$ 次迭代后返回自身。周期点集 $\\operatorname{Per}(f)=\\bigcup_{n\\ge1}\\operatorname{Fix}(f^n)$ 包含不动点集，但两者之间的差距可以很大。\n\n## 仿射映射族的例证\n\n实直线上的仿射映射族 $f_{a,b}(x)=ax+b$ 的参数化形式精确地展示了这种差距的各种可能性。当 $a=1$ 时映射退化为平移。若 $b=0$，则 $f_{1,0}=\\mathrm{id}$，不动点集与周期点集均为整个实数轴。若 $b\\neq0$，则 $f_{1,b}^n(x)=x+nb$ 对所有 $n\\ge1$ 均不等于 $x$，故 $\\operatorname{Per}(f_{1,b})=\\varnothing$——平移运动中不存在任何形式的精确回复。当 $a\\neq1$ 时映射有唯一不动点 $p_{a,b}=-b/(a-1)$，该不动点也是唯一的周期点。$a=-1$ 的情形则展示了相反的方向：$f_{-1,b}$ 的不动点集仅为 $\\{p_{-1,b}\\}$，但 $f_{-1,b}^2=\\mathrm{id}$，因此 $\\operatorname{Per}(f_{-1,b})=\\mathbb R$——每个实数都是 $2$-周期点。不动点数量少并不意味着周期点数量少：一个不动点的系统也可以让整个相空间由周期轨道所充满。"
       }
     ],
+    "examples": {
+      "zh": [
+        "恒等映射 $\\mathrm{id}_{\\mathbb R}(x)=x$ 的每一点都是不动点，满足 $\\operatorname{Fix}(\\mathrm{id}_{\\mathbb R})=\\operatorname{Per}(\\mathrm{id}_{\\mathbb R})=\\mathbb R$，所有点的最小周期均为 $1$。",
+        "非零平移映射 $f(x)=x+b$（$b\\neq0$）在实直线上没有周期点。对任意 $x\\in\\mathbb R$ 和 $n\\ge1$，有 $f^n(x)=x+nb\\neq x$，故 $\\operatorname{Per}(f)=\\varnothing$。",
+        "压缩映射 $f(x)=\\frac12 x$ 有唯一不动点 $0$。对任意 $x\\neq0$，$f^n(x)=x/2^n$ 严格收敛到 $0$，不存在 $n\\ge1$ 使 $f^n(x)=x$。因此 $\\operatorname{Fix}(f)=\\operatorname{Per}(f)=\\{0\\}$。",
+        "映射 $f(x)=-x+1$ 满足 $f^2(x)=x$ 对一切 $x\\in\\mathbb R$ 成立。其不动点方程 $f(x)=x$ 给出唯一解 $x=1/2$，但 $f^2=\\mathrm{id}$ 意味着整个实数轴上的每个点都是周期点——非不动点 $x\\neq1/2$ 的最小周期恰为 $2$。故 $\\operatorname{Fix}(f)=\\{1/2\\}$ 而 $\\operatorname{Per}(f)=\\mathbb R$。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1."
     ]

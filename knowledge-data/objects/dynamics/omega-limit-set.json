@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "$\\omega$-极限集",
-      "$\\alpha$-极限集",
+      "ω-极限集",
       "极限集"
     ]
   },
@@ -28,9 +27,15 @@
     ],
     "article": [
       {
-        "zh": "$\\omega$-极限集的概念承载了动力系统最根本的问题：一个点的轨道最终去向何处？从 Newton 的求积法（解出整个轨道）到 Poincaré 的定性理论（描述解的几何性质），这一转变的核心就是认识到：即使无法显式表达轨道 $\\{f^n(p)\\}_{n\\geqslant0}$，我们仍然可以描述它的**极限点的集合**——这正是 $\\omega_f(p)$ 的价值。\n\n当 $M$ 紧时，$\\omega_f(p)$ 非空、闭、$f$-不变，且 $f(\\omega_f(p))=\\omega_f(p)$。在梯度流（gradient flow）中，$\\omega_f(p)$ 是唯一的临界点（$L$ 的最小点）；在无理旋转中，$\\omega_f(p)=\\mathbb T$（全空间）；在 Banach 压缩映射中，$\\omega_f(p)=\\{p^*\\}$（唯一不动点）。因此 $\\omega$-极限集可以是从单点集到整个空间之间的任何闭不变集，其拓扑复杂度直接反映了系统的动力学复杂度。\n\n$f$ 的正向极限集 $L^+(f)=\\bigcup_p\\omega_f(p)$ 和极限集 $L(f)=\\bigcup_p(\\alpha_f(p)\\cup\\omega_f(p))$ 位于回复性层级（recurrence hierarchy）的中间层：$\\operatorname{Fix}(f)\\subset\\operatorname{Per}(f)\\subset\\operatorname{Rec}^+(f)\\subset L(f)\\subset\\Omega(f)$。这意味着极限集对 Lyapunov 函数的严格下降性构成障碍——若 $p\\in L(f)$，则任何 Lyapunov 函数 $L$ 在 $p$ 处不可能严格下降（因为存在某个点 $q$ 沿其轨道趋近 $p$，使得 $L$ 的值沿该轨道单调收敛）。Conley 定理的证明中，极限集 $L(f)$ 是连接回复点（$\\operatorname{Rec}^+$）与非游荡集（$\\Omega(f)$）的关键一环：$L(f)\\subset\\Omega(f)\\subset\\mathcal R(f)$，而完全的 Lyapunov 函数仅在 $\\mathcal R(f)$ 上为常数。"
+        "zh": "给定一个动力系统和一个初始点，轨道的渐近行为是最终被吸引向某个集合，还是在极限点集之间来回游荡？$\\omega$-极限集从这一角度回答了轨道的极限形态问题。\n\n## 定义与基本性质\n\n设 $f\\colon M\\to M$ 为度量空间上的连续映射。点 $p\\in M$ 的 $\\omega$-极限集定义为\n$$\\omega_f(p):=\\{x\\in M:\\exists n_j\\uparrow+\\infty,\\ f^{n_j}(p)\\to x\\}.$$\n当 $M$ 紧致时，$\\omega_f(p)$ 非空、闭且 $f$-不变。这些性质使它成为紧 $f$-不变集，反映了轨道在无穷远处的极限形态。\n\n对于同胚可对称地定义 $\\alpha$-极限集 $\\alpha_f(p):=\\omega_{f^{-1}}(p)$，它刻画向后轨道的极限行为。全体 $\\omega$-极限集与 $\\alpha$-极限集之并称为 $f$ 的极限集，记作 $L(f)$。\n\n## 在回复性层级中的位置\n\n回复性的各种形式——不动点、周期点、回复点、极限点、非游荡点、链回归点——构成一个包含层级：\n$$\\operatorname{Fix}(f)\\subset\\operatorname{Per}(f)\\subset\\operatorname{Rec}^+(f)\\subset L(f)\\subset\\Omega(f)\\subset\\mathcal R(f).$$\n\n极限集 $L(f)$ 处于这一层级的中央。它包含了所有正向或负向轨道极限点，因此比周期点和回复点集更广，但被非游荡集所包含。\n\n## 与 Lyapunov 函数的关系\n\n$\\omega$-极限集与 Lyapunov 函数之间存在本质联系。若 $L$ 是 $f$ 的 Lyapunov 函数且 $p\\in\\Omega(f)$（从而也属于 $L(f)$），则 $L(f(p))=L(p)$。这意味着 Lyapunov 函数沿轨道严格下降的可能性仅在极限集之外存在。在 Conley 的完全 Lyapunov 函数定理中，极限集作为链回归集 $\\mathcal R(f)$ 的子集，被映为一个全不连通紧集中的点。"
       }
     ],
+    "examples": {
+      "zh": [
+        "设 $R_\\alpha\\colon\\mathbb T\\to\\mathbb T$ 为圆周旋转 $R_\\alpha([x])=[x+\\alpha]$。若 $\\alpha=p/q\\in\\mathbb Q$（既约分数），则 $R_\\alpha^q=\\operatorname{id}_{\\mathbb T}$，故每点均为周期点，周期为 $q$，从而 $\\omega_{R_\\alpha}(x)=\\{R_\\alpha^n(x):n=0,1,\\dots,q-1\\}$ 为 $q$ 个点的有限集。若 $\\alpha\\notin\\mathbb Q$，则每点的向前轨道在 $\\mathbb T$ 中稠密，故 $\\omega_{R_\\alpha}(x)=\\mathbb T$ 对一切 $x\\in\\mathbb T$ 成立。",
+        "设 $(M,d)$ 为完备度量空间，$f\\colon M\\to M$ 满足 $d(f(x),f(y))\\le\\lambda d(x,y)$ 对某 $\\lambda\\in(0,1)$ 及一切 $x,y\\in M$ 成立。则 $f$ 有唯一不动点 $p$，且对任意 $x\\in M$ 有 $f^n(x)\\to p$，故 $\\omega_f(x)=\\{p\\}$。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1."
     ]

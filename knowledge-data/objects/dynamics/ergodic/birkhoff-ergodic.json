@@ -9,7 +9,7 @@
   },
   "description": {
     "zh": [
-      "设 $(X,\\mathcal B,\\mu)$ 为概率测度空间，$T\\colon X\\to X$ 保测。则对任意 $\\varphi\\in L^1(X,\\mu)$，极限\n$$\\lim_{n\\to\\infty}\\frac1n\\sum_{j=0}^{n-1}\\varphi(T^j(x))$$\n存在 $\\mu$-几乎处处，记作 $\\overline\\varphi(x)$。$\\overline\\varphi$ 为 $T$-不变的，且满足 $\\int\\overline\\varphi\\,d\\mu = \\int\\varphi\\,d\\mu$。\n\n若 $\\mu$ 还是遍历的，则 $\\overline\\varphi$ $\\mu$-几乎处处等于 $\\int\\varphi\\,d\\mu$。\n\n在非遍历情形下，$\\overline\\varphi=\\mathbb E(\\varphi|\\mathfrak{Inv}(T))$，即 $\\varphi$ 关于 $T$-不变 $\\sigma$-代数的条件期望。"
+      "设 $(X,\\mathcal B,\\mu)$ 为概率测度空间，$T\\colon X\\to X$ 保测。则对任意 $\\varphi\\in L^1(X,\\mu)$，极限\n$$\\lim_{n\\to\\infty}\\frac1n\\sum_{j=0}^{n-1}\\varphi(T^j(x))$$\n存在 $\\mu$-几乎处处，记作 $\\overline\\varphi(x)$。$\\overline\\varphi$ 为 $T$-不变的，且满足 $\\int\\overline\\varphi\\,d\\mu = \\int\\varphi\\,d\\mu$。\n\n若 $\\mu$ 还是遍历的，则 $\\overline\\varphi$ $\\mu$-几乎处处等于 $\\int\\varphi\\,d\\mu$。\n\n在非遍历情形下，$\\overline\\varphi=\\mathbb E(\\varphi|\\mathfrak{Inv}(T))$。"
     ]
   },
   "extension": {
@@ -22,14 +22,21 @@
     ],
     "article": [
       {
-        "zh": "Birkhoff 遍历定理是遍历论的基本定理之一，断言保测变换沿轨道的时间平均几乎处处收敛到空间平均（在遍历条件下相等）。定理的证明将非负函数的时间平均分解为极限上确界和极限下确界两部分，通过构造首次进入时刻作为停时来「涂色」时间区间，分别用不等式估计上极限和下极限的积分，从而迫使两者几乎处处相等。\n\n在非遍历情形下，极限 $\\overline\\varphi$ 是条件期望 $\\mathbb E(\\varphi|\\mathfrak{Inv}(T))$，即 $\\varphi$ 在不变 $\\sigma$-代数上的平均。这给出了遍历分解定理的另一种视角：将 $\\mu$ 分解为遍历分量，$\\overline\\varphi$ 等于 $\\varphi$ 在各遍历分量上的空间平均的再平均。\n\n在旋转数理论中，Birkhoff 遍历定理用于证明旋转数 $\\rho(\\tilde f)$ 可表示为 $\\int_{\\mathbb T}\\Delta_{\\tilde f}d\\mu$ 对任意不变测度 $\\mu$ 成立——由定理的 $\\mu$-几乎处处收敛与振荡引理结合得出对所有点一致收敛。"
+        "zh": "遍历定理的动机来自统计力学中的遍历假说：对处于平衡态的系统，物理量沿轨道的时间平均应等于其在相空间上的系综平均。Birkhoff 遍历定理给出了这一假说成立的确切条件——概率保测变换和可积函数——并证明了时间平均的几乎处处收敛性。\n\n## 定理的含义\n\n设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换，$\\varphi\\in L^1(X,\\mu)$。时间平均 $$\\overline\\varphi(x)=\\lim_{n\\to\\infty}\\frac1n\\sum_{k=0}^{n-1}\\varphi(T^kx)$$ 对几乎每个 $x$ 存在。极限函数 $\\overline\\varphi$ 是 $T$-不变的，且满足 $\\int\\overline\\varphi\\,d\\mu=\\int\\varphi\\,d\\mu$。当 $T$ 遍历时 $\\overline\\varphi$ 几乎处处等于常数 $\\int\\varphi\\,d\\mu$。这意味着在遍历系统中，Boltzmann 假说成立：沿几乎每条轨道的时间平均等于全空间的系综平均。\n\n证明的构造是将时间平均分解为极限上确界和极限下确界，通过停时涂色论证（将时间轴划分为好段和坏段）分别估计积分贡献，迫使上确界与下确界几乎处处相等。\n\n## 非遍历情形\n\n一般情形下，极限函数 $\\overline\\varphi$ 是 $\\varphi$ 关于不变 $\\sigma$-代数 $\\mathfrak{Inv}(T)$ 的条件期望 $\\mathbb E(\\varphi\\mid\\mathfrak{Inv}(T))$。因为 $\\overline\\varphi$ 是 $T$-不变的，对任意 $T$-不变有界函数 $\\psi$ 有 $\\int\\psi\\overline\\varphi\\,d\\mu=\\int\\psi\\varphi\\,d\\mu$，这正是条件期望的定义性质。进一步地，这导出遍历分解：不变测度 $\\mu$ 可分解为遍历概率测度 $\\mu_x$ 的积分，且 $\\overline\\varphi(x)=\\int\\varphi\\,d\\mu_x$ 几乎处处成立——极限函数在 $x$ 处等于 $\\varphi$ 在 $x$ 所属遍历分量上的空间平均。\n\n## 推广\n\nBirkhoff 定理是各类遍历定理推广的起点。Kingman 子加性遍历定理的证明中，加性退化情形归结到 Birkhoff 定理。$\\mathbb Z^d$ 作用的点态遍历定理继承了涂色论证的思想。Karlsson–Margulis 遍历定理将 Birkhoff 定理视为平移作用 $f(\\omega)\\cdot v=v+f(\\omega)$ 的特例。"
       }
     ],
-    "proof": [
-      {
-        "zh": "设 $M=\\limsup_n S_n(\\varphi)/n$，其中 $S_n(\\varphi)=\\sum_{j=0}^{n-1}\\varphi\\circ T^j$。对任意 $\\varepsilon>0$，存在可测集 $D$ 使 $M\\leq \\int_D\\varphi d\\mu+\\varepsilon$ 且 $T$-回复性质给出覆盖。构造 $\\varphi_\\alpha=\\varphi-\\alpha$，利用极大遍历定理 $\\int_{\\{M_\\alpha>0\\}}\\varphi_\\alpha d\\mu\\geq 0$。推出 $\\int M d\\mu = \\int \\varphi d\\mu$ 且 $M$ 是 $T$-不变的。由 $M$ 的定义对称性得到 $M = \\liminf_n S_n(\\varphi)/n$ 几乎处处，从而极限存在。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "例 1（无理旋转）：设 $R_\\alpha(x)=x+\\alpha\\pmod 1$ 为圆周 $\\mathbb T=[0,1)$ 上的旋转，$\\alpha\\notin\\mathbb Q$，$m$ 为 Lebesgue 测度。无理旋转关于 $m$ 是遍历的。Birkhoff 遍历定理因此给出：对任意 $\\varphi\\in L^1(\\mathbb T,m)$，时间平均 $\\frac1n\\sum_{k=0}^{n-1}\\varphi(R_\\alpha^k x)$ 几乎处处收敛到空间平均 $\\int_\\mathbb T\\varphi\\,dm$。取 $\\varphi$ 为区间 $I$ 的指示函数，得无理旋转的轨道落入 $I$ 的频率几乎处处等于 $m(I)$——这是均匀分布的一维表现。",
+        "例 2（有理旋转）：设 $R_{p/q}$ 为圆周旋转，其中 $p,q$ 为互质正整数。此时 $R_{p/q}^q=\\mathrm{id}$，系统不遍历。Birkhoff 定理仍然给出时间平均的几乎处处收敛，但极限依赖于初始点 $x$。由于轨道是周期为 $q$ 的有限集 $\\{x,x+p/q,\\dots,x+(q-1)p/q\\}$，时间平均等于 $\\frac1q\\sum_{k=0}^{q-1}\\varphi(x+kp/q)$，一般不等于 $\\int_\\mathbb T\\varphi\\,dm$。这正是非遍历情形下极限函数为条件期望的体现：$R_{p/q}$ 的不变 $\\sigma$-代数将圆周划分为 $q$ 个互不相交的平移轨道之并，条件期望 $\\mathbb E(\\varphi\\mid\\mathfrak{Inv}(R_{p/q}))(x)$ 恰好是 $\\varphi$ 在 $x$ 所在轨道上的平均。",
+        "例 3（倍角映射）：设 $T(x)=2x\\pmod 1$ 为 $\\mathbb T=[0,1)$ 上的倍角映射，$m$ 为 Lebesgue 测度。利用二进制展开 $x=0.d_1d_2d_3\\dots$，$T$ 可视为左移位 $T(0.d_1d_2d_3\\dots)=0.d_2d_3\\dots$。倍角映射是强混合的，从而是遍历的。Birkhoff 定理给出：对任意 $\\varphi\\in L^1(\\mathbb T,m)$，$\\frac1n\\sum_{k=0}^{n-1}\\varphi(2^kx\\bmod 1)\\to\\int_\\mathbb T\\varphi\\,dm$ 几乎处处成立。取 $\\varphi=\\mathbf 1_{[0,1/2)}$ 为区间 $[0,1/2)$ 的指示函数，时间平均收敛到 $1/2$——即二进制展开中首位数字为 $0$ 的频率几乎处处为 $1/2$。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "设 $f\\ge 0$（一般情形通过 $f=f^+-f^-$ 化归）。定义\n$$A_n(x):=\\frac1n\\sum_{k=0}^{n-1}f(T^kx),\\quad \\overline A(x):=\\limsup_{n\\to\\infty}A_n(x),\\quad \\underline A(x):=\\liminf_{n\\to\\infty}A_n(x).$$\n$\\overline A,\\underline A$ 均为 $T$-不变（由 $A_n(x)=\\frac{n-1}{n}A_{n-1}(Tx)+\\frac1n f(x)$ 取极限即得）。\n\n**步骤 1：$\\int f\\,d\\mu\\ge\\int\\overline A\\,d\\mu$。** 固定 $\\varepsilon,L,M>0$，令 $\\overline A_L:=\\min\\{\\overline A,L\\}$（不变函数）。定义停时\n$$\\tau_L(x):=\\min\\{n>0:A_n(x)>\\overline A_L(x)-\\varepsilon\\}.$$\n对给定的 $N$，将时间区间 $\\{0,1,\\dots,N-1\\}$「涂色」如下：从 $k=0$ 开始，若 $\\tau_L(T^kx)>M$ 则将 $k$ 染红；否则将接下来的 $\\tau_L(T^kx)$ 个时刻染蓝，然后移动到第一个未染色的时刻继续。红色段对应「坏」时刻（停时过长），蓝色段对应「好」段（其上平均接近 $\\overline A_L$）。\n\n蓝色段上的 $f$ 平均 $\\ge\\overline A_L(x)-\\varepsilon$，故蓝色部分的总和 $\\ge$（蓝色长度）$\\times(\\overline A_L-\\varepsilon)$。红色时刻的指标函数之和恰为 $\\sum_{k=0}^{N-1}1_{[\\tau_L>M]}(T^kx)$。结合两者得\n$$\\sum_{k=0}^{N-1}(f+\\overline A_L\\cdot1_{[\\tau_L>M]})(T^kx)\\ge(N-M)(\\overline A_L(x)-\\varepsilon).$$\n除以 $N$、积分、利用 $\\mu$ 的 $T$-不变性，得\n$$\\int f\\,d\\mu+\\int_{[\\tau_L>M]}\\overline A_L\\,d\\mu\\ge\\left(1-\\frac MN\\right)\\left(\\int\\overline A_L\\,d\\mu-\\varepsilon\\right).$$\n依次取 $N\\to\\infty$、$M\\to\\infty$、$L\\to\\infty$、$\\varepsilon\\to0$（单调收敛定理），即得 $\\int f\\ge\\int\\overline A$。\n\n**步骤 2：$\\int f\\,d\\mu\\le\\int\\underline A\\,d\\mu$。** 由 Fatou 引理得 $\\int\\underline A\\le\\|f\\|_1<\\infty$。对 $\\varepsilon>0$，定义停时 $\\theta(x):=\\min\\{n>0:A_n(x)<\\underline A(x)+\\varepsilon\\}$。重复步骤 1 的涂色论证（将 $\\tau$ 换为 $\\theta$、$\\overline A_L$ 换为 $\\underline A$），可得相反的不等式。\n\n**步骤 3：极限几乎处处存在。** 步骤 1 和 2 联合给出 $\\int(\\overline A-\\underline A)\\,d\\mu\\le0$。但 $\\overline A\\ge\\underline A$，故 $\\overline A=\\underline A$ 几乎处处，即极限\n$$\\bar f(x):=\\lim_{n\\to\\infty}\\frac1n\\sum_{k=0}^{n-1}f(T^kx)$$\n几乎处处存在。\n\n**步骤 4：极限的性质。** $\\bar f$ 的 $T$-不变性由 $A_n$ 的递推关系取极限即得。$L^1$ 收敛性可通过 $L^\\infty$ 逼近得到：对 $\\varepsilon>0$ 取 $\\varphi\\in L^\\infty$ 使 $\\|f-\\varphi\\|_1<\\varepsilon$，利用有界收敛定理和 Fatou 引理估计 $\\|\\frac1n\\sum f\\circ T^k-\\bar f\\|_1$。由 $\\int\\bar f\\,d\\mu=\\int f\\,d\\mu$ 及 $\\bar f$ 的 $T$-不变性，在遍历情形下 $\\bar f$ 为常数，从而 $\\bar f=\\int f\\,d\\mu$ 几乎处处。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Rotation Theory, IMPA.",
       "O. Sarig, Lecture Notes on Ergodic Theory (2023), §2.2."

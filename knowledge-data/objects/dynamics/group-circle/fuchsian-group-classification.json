@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "Fuchs 群圆周动力学分类",
-      "第一类与第二类 Fuchs 群"
+      "Fuchs 群圆周动力学分类"
     ]
   },
   "description": {
@@ -22,9 +21,16 @@
     ],
     "article": [
       {
-        "zh": "Fuchs 群的这种三角分类源于 $\\operatorname{PSL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1$ 上的动力学，并与双曲几何深刻对应。初等群存在有限轨道——它们恰好是 $\\operatorname{PSL}(2,\\mathbb R)$ 中有限子群（椭圆元生成的循环群）或含抛物元/双曲元但不是 Schottky 型的群。第一类群对应双曲曲面的 Fuchs 群表示，其极限集为整个圆周，意味着它们在动力学上是混沌的（每个轨道稠密）。第二类群（也称退化群）的极限集是真子集——Cantor 集，对应双曲曲面上的「孔洞」结构。\n\n第二类群的一个典型例子是 Schottky 群：由两个双曲元 $g_0,g_1$ 生成，在圆周上存在互不相交的区间 $I_0,I_1,J_0,J_1$ 使得 $g_i(I_i\\cup J_i\\cup J_{1-i})\\subset I_i$ 且 $g_i^{-1}(I_i\\cup I_{1-i}\\cup J_{1-i})\\subset J_i$。这种 ping-pong 配置在其极限集上产生标准的 Cantor 动力学，与符号空间 $\\{0,1\\}^{\\mathbb N}$ 上的移位映射共轭。\n\n该分类与圆周群作用的一般理论相联系：圆周上任意保向同胚子群的作用可分为三类——有限轨道、稠密轨道和例外极小集（Cantor 集），Fuchs 群的分类是此一般分类在 $\\operatorname{PSL}(2,\\mathbb R)$ 离散子群上的具体化。特别是，例外极小集的出现刻画了第二类 Fuchs 群，而稠密轨道（即极限集为整个 $\\mathbb{RP}^1$）刻画了第一类群。\n\n收敛群分类定理的重要推论：若 $\\Gamma\\subset\\operatorname{Homeo}_+(\\mathbb S^1)$ 具有收敛性质且无有限轨道，则 $\\Gamma$ 必然是第一类或第二类 Fuchs 群——即每个满足收敛性质的无穷群都是 Fuchs 群。这给出 Fuchs 群的纯动力学刻画。"
+        "zh": "## 从双曲几何到圆周动力学\n\nFuchs 群是 $\\operatorname{PSL}(2,\\mathbb R)$ 的离散子群。它们因出现在双曲几何中而长期被研究——每个 Fuchs 群 $\\Gamma$ 通过其在上半平面 $\\mathcal H$ 上的不连续作用定义了一个 Riemann 面 $\\mathcal H/\\Gamma$，而 $\\Gamma$ 在边界圆周 $\\mathbb{RP}^1$ 上的极限集 $\\Lambda(\\Gamma)$ 描述了 Riemann 面的理想边界结构。将 Fuchs 群视为作用于圆周的群，其动力学行为由极限集 $\\Lambda(\\Gamma)$ 决定——$\\Lambda(\\Gamma)$ 是 $\\Gamma$ 任意轨道在 $\\mathbb{RP}^1$ 上的聚点集，也是 $\\Gamma$ 的非游荡集的闭包。\n\n## 三类 Fuchs 群\n\n按极限集的规模，Fuchs 群分为三类。\n\n当 $\\Lambda(\\Gamma)$ 为有限集时，$\\Gamma$ 称为初等群。初等群的结构比较简单：要么是有限循环群（由椭圆元生成），要么是无限循环群（由双曲元或抛物元生成），要么是这些群的某种有限扩张。它们的动力学退化——存在有限轨道，即某些点在圆周上周期性地循环。\n\n当 $\\Lambda(\\Gamma)=\\mathbb{RP}^1$ 时，$\\Gamma$ 称为第一类 Fuchs 群。此时每条 $\\Gamma$-轨道在 $\\mathbb{RP}^1$ 中稠密，作用为极小。典型的例子包括紧双曲曲面的基本群通过 Fuchs 嵌入在边界圆周上的作用，其极限集就是整个圆周。\n\n当 $\\Lambda(\\Gamma)$ 是 $\\mathbb{RP}^1$ 的真闭子集且为 Cantor 集时，$\\Gamma$ 称为第二类 Fuchs 群。第二类群的极限集具有分形结构，其 Hausdorff 维数严格小于 $1$。Schottky 群给出了典型构造：取两对互不相交的区间，每个双曲生成元将一段区间映为另一段，反复迭代产生的无穷缩并形成 Cantor 型极限集。\n\n## 与圆周动力学三分性的对应\n\n这种分类与保向圆周同胚作用的三分法（有限轨道、稠密轨道、例外极小集）精确对应。初等群对应有限轨道情形，第一类群对应稠密轨道情形，第二类群对应例外极小集情形。这一对应表明，Fuchs 群的传统分类可以自然地纳入圆周动力学的统一框架中——极限集的拓扑结构完全决定了 $\\Gamma$ 作为圆周同胚群的动力学行为。"
       }
     ],
+    "examples": {
+      "zh": [
+        "旋转 $R_{2\\pi/3}\\in\\operatorname{PSL}(2,\\mathbb R)$ 为椭圆元，其生成的循环群 $\\langle R_{2\\pi/3}\\rangle$ 阶为 $3$。该群在 $\\mathbb{RP}^1$ 上的每条轨道恰含三个点，满足有限轨道条件，故为初等 Fuchs 群。",
+        "模群 $\\operatorname{PSL}(2,\\mathbb Z)$ 通过标准嵌入成为 Fuchs 群，生成元可取为 $f=R_{2\\pi/3}$（椭圆元，$f^3=\\mathrm{id}$）和 $g$（绕点 $(0,\\sqrt3-2)\\in\\mathbb D$ 的 $\\pi$ 旋转，$g^2=\\mathrm{id}$）。$\\operatorname{PSL}(2,\\mathbb Z)$ 在 $\\mathbb{RP}^1$ 上的作用是极小的——每条轨道稠密——因此属于第一类 Fuchs 群。",
+        "设 $g_0,g_1\\in\\operatorname{PSL}(2,\\mathbb R)$ 为双曲元，存在圆周上互不相交的区间 $I_0,I_1,J_0,J_1$ 使得 $g_i(I_i\\cup J_i\\cup J_{1-i})\\subset I_i$ 且 $g_i^{-1}(I_i\\cup I_{1-i}\\cup J_{1-i})\\subset J_i$（$i\\in\\{0,1\\}$）。则 $\\langle g_0,g_1\\rangle$ 的极限集 $\\Lambda=\\bigcap_{g\\in\\langle g_0,g_1\\rangle}g(\\overline{I_0}\\cup\\overline{I_1}\\cup\\overline{J_0}\\cup\\overline{J_1})$ 为 Cantor 集，该群为第二类 Fuchs 群且为自由群。"
+      ]
+    },
     "references": [
       "L. Ahlfors, Finitely generated Kleinian groups, Amer. J. Math. 86 (1964), 413-429.",
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §2.1.1."

@@ -3,7 +3,7 @@
   "to": "dynamics.group-circle.conjugacy",
   "description": {
     "zh": [
-      "半共轭是共轭的弱化版本：$h$ 为连续满射而非同胚。"
+      "半共轭是共轭的弱化版本，其间映射 $h$ 为连续满射而非同胚。"
     ]
   }
 }

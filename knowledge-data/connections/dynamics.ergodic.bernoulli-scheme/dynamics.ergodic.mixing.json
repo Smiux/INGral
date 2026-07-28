@@ -3,7 +3,7 @@
   "to": "dynamics.ergodic.mixing",
   "description": {
     "zh": [
-      "每个 Bernoulli 方案都是强混合的（从而遍历），这是独立同分布序列的渐近独立性的直接推论。"
+      "Bernoulli 方案为强混合性提供了基本例子，其独立同分布结构保证了强混合条件自动满足。"
     ]
   }
 }

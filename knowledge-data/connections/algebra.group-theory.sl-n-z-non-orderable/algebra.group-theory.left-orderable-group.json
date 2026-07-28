@@ -1,0 +1,9 @@
+{
+  "from": "algebra.group-theory.sl-n-z-non-orderable",
+  "to": "algebra.group-theory.left-orderable-group",
+  "description": {
+    "zh": [
+      "SL(n,Z) 有限指数子群不可序，因此不能忠实地作用在实直线上。"
+    ]
+  }
+}

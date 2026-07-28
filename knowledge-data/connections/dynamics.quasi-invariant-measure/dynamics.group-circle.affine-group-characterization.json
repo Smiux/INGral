@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.quasi-invariant-measure",
-  "to": "dynamics.group-circle.affine-group-characterization",
-  "description": {
-    "zh": [
-      "拟不变 Radon 测度的存在性刻画了仿射子群。"
-    ]
-  }
-}

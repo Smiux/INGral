@@ -9,7 +9,7 @@
   },
   "description": {
     "zh": [
-      "(i) 设 $G$ 为秩 $\\geqslant2$ 的（连通）半单 Lie 群，$\\Gamma$ 为 $G$ 的不可约格点。则任意同态 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^1(\\mathbb S^1)$ 要么具有有限像，要么半共轭于某 PSL(2,$\\mathbb R$) 射影作用的有限覆叠。\n\n(ii) 设 $G=G_1\\times\\cdots\\times G_k$（$k\\geqslant2$），$\\Gamma$ 为 $G$ 的有限生成余紧格点，且 $\\Gamma$ 在各因子中的投影稠密。若 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$（$\\tau>1/2$）且 $\\Phi(\\Gamma)$ 不保持任何概率测度，则要么 $\\Phi(\\Gamma)$ 共轭于 PSL(2,$\\mathbb R$) 的子群，要么 $\\Phi$ 半共轭于某一 $G_i$ 的圆周作用的有限覆叠。"
+      "**定理 A（Ghys）。** 设 $G$ 为秩 $\\geqslant2$ 的（连通）半单 Lie 群，$\\Gamma$ 为 $G$ 的不可约格点。则任意同态 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^1(\\mathbb S^1)$ 要么具有有限像，要么半共轭于某 $\\operatorname{PSL}(2,\\mathbb R)$ 射影作用的有限覆叠。\n\n**定理 B（Navas）。** 设 $G=G_1\\times\\cdots\\times G_k$（$k\\geqslant2$），$\\Gamma$ 为 $G$ 的有限生成余紧格点，且 $\\Gamma$ 在各因子中的投影稠密。若 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$（$\\tau>1/2$）且 $\\Phi(\\Gamma)$ 不保持任何概率测度，则要么 $\\Phi(\\Gamma)$ 共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群，要么 $\\Phi$ 半共轭于某一 $G_i$ 的圆周作用的有限覆叠。"
     ]
   },
   "extension": {
@@ -23,18 +23,25 @@
     ],
     "article": [
       {
-        "zh": "高秩格点的圆周作用超刚性定理是 Margulis 超刚性思想和 Zimmer 纲领在一维动力系统中的体现。定理表明：秩 $\\geqslant2$ 的不可约格点在圆周上的 $C^1$ 微分同胚作用要么平凡（有限像），要么本质上来自 PSL(2,$\\mathbb R$) 的射影作用。PSL(2,$\\mathbb R$) 本身秩为 1——因此第二种情形本质上是格点通过商同态「降低秩」到秩 1 后的自然作用。\n\n证明分两步。首先研究标准高秩半单 Lie 群（SL($n$,R)、Sp($2r$,R)、SO($2,q$)、SU($2,q$)）的情形——这些群具有性质 (T)，因此由圆周作用有限性定理知作用为有限像。然后处理更有趣的 PSL(2,R)×PSL(2,R) 情形——该方法利用乘积结构的分解，证明任何同态要么平凡，要么通过投影到某个因子后由 PSL(2,R) 的射影作用给出。最后利用半单 Lie 群的分类覆盖一般情形。\n\n更一般的情形中（乘积群中的格点），结论给出完整的二分类：保测情形有限，不保测情形共轭于 PSL(2,R) 子群或因子分解。"
+        "zh": "高秩半单 Lie 群中的不可约格点能否非线性地作用在圆周上？答案是肯定的，但超刚性定理精确刻画了所有可能的作用——它们只能源于 $\\operatorname{PSL}(2,\\mathbb R)$ 的射影作用及其有限覆叠，或平凡作用。\n\n## 单 Lie 群中的格点\n\n设 $G$ 为秩不小于 $2$ 的连通半单 Lie 群，$\\Gamma$ 为 $G$ 的不可约格点。对 $\\Gamma$ 的 $C^1$ 圆周微分同胚作用 $\\Phi$，结论是：$\\Phi(\\Gamma)$ 要么有限，要么半共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 射影作用的某个有限覆叠。\n\n证明的思路分三步。先处理标准高秩单 Lie 群——如 $\\operatorname{SL}(n,\\mathbb R)$、$\\operatorname{Sp}(2r,\\mathbb R)$、$\\operatorname{SO}(2,q)$、$\\operatorname{SU}(2,q)$——这些群的格点具有 Kazhdan 性质 (T)，故 $\\Phi(\\Gamma)$ 必有限。然后处理动力学上有趣的情形 $\\operatorname{PSL}(2,\\mathbb R)\\times\\operatorname{PSL}(2,\\mathbb R)$，证明作用要么平凡，要么透过投影到某个因子后由 $\\operatorname{PSL}(2,\\mathbb R)$ 的射影作用给出。最后利用半单 Lie 群的分类覆盖一般情形。\n\n## 乘积群与更高正则性\n\n将正则性提高到 $C^{1+\\tau}$（$\\tau>1/2$）并将设定推广到乘积群，可以做得更细。设 $G=G_1\\times\\cdots\\times G_k$（$k\\geq2$）是局部紧紧生成拓扑群，$\\Gamma\\subset G$ 是有限生成余紧格点，且 $\\Gamma$ 在各因子中的投影稠密。若 $\\Phi(\\Gamma)$ 不保持任何概率测度，则要么 $\\Phi(\\Gamma)$ 共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群，要么 $\\Phi$ 半共轭于某个 $G_i$ 的圆周作用的有限覆叠。这里的关键工具是 Liouville 余圈与上同调超刚性的结合：由导数对数差诱导的余圈要么是几乎余边界（从而 $\\Phi(\\Gamma)$ 保持某测度），要么由 Shalom 的上同调超刚性定理可分解为各因子上的余圈之和。\n\n## 精细结构\n\n结合 $\\operatorname{PSL}(2,\\mathbb R)$ 的圆周作用分类，可得到更精细的版本。若作用核有限且轨道稠密，或作用为实解析，则像无限时 $\\Phi(\\Gamma)$ 必半共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的非亚交换子群。"
       }
     ],
-    "proof": [
-      {
-        "zh": "分两步。第一步：研究标准高秩半单 Lie 群（$\\operatorname{SL}(n,\\mathbb R)$、$\\operatorname{Sp}(2r,\\mathbb R)$、$\\operatorname{SO}(2,q)$、$\\operatorname{SU}(2,q)$）的情形——这些群具有性质 (T)，由圆周作用有限性定理知作用为有限像。第二步：处理 $\\operatorname{PSL}(2,\\mathbb R)\\times\\operatorname{PSL}(2,\\mathbb R)$ 情形——利用乘积结构的分解，证明任何同态要么平凡，要么通过投影到某因子后由 $\\operatorname{PSL}(2,\\mathbb R)$ 的射影作用给出。最后利用半单 Lie 群的分类覆盖一般情形。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "$\\operatorname{PSL}(2,\\mathbb Z(\\sqrt2))$ 通过 Galois 共轭嵌入 $\\operatorname{PSL}(2,\\mathbb R)\\times\\operatorname{PSL}(2,\\mathbb R)$ 作为不可约格点，是理解上述定理的基本实例。矩阵 $\\begin{pmatrix}a_1+b_1\\sqrt2 & a_2+b_2\\sqrt2 \\\\ a_3+b_3\\sqrt2 & a_4+b_4\\sqrt2\\end{pmatrix}$ 映到有序对 $\\big(\\begin{pmatrix}a_1+b_1\\sqrt2 & a_2+b_2\\sqrt2 \\\\ a_3+b_3\\sqrt2 & a_4+b_4\\sqrt2\\end{pmatrix},\\;\\begin{pmatrix}a_1-b_1\\sqrt2 & a_2-b_2\\sqrt2 \\\\ a_3-b_3\\sqrt2 & a_4-b_4\\sqrt2\\end{pmatrix}\\big)$。该嵌入的像在 $\\operatorname{PSL}(2,\\mathbb R)\\times\\operatorname{PSL}(2,\\mathbb R)$ 中为不可约格点，其在第一个因子上的投影即为 $\\operatorname{PSL}(2,\\mathbb Z(\\sqrt2))$ 在圆周上的通常射影作用。若将圆周作用取为第一个因子的射影作用，则该作用半共轭于第二个因子的平凡作用——这正是超刚性定理中作用透过某个因子分解的体现。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "**高秩单 Lie 群情形（定理 A 第一部分）。** 研究标准高秩单 Lie 群 $\\operatorname{SL}(n,\\mathbb R)$、$\\operatorname{Sp}(2r,\\mathbb R)$、$\\operatorname{SO}(2,q)$、$\\operatorname{SU}(2,q)$。这些群具有性质 (T)，其不可约格点亦然。由 Kazhdan 圆周作用有限性定理，$\\Phi(\\Gamma)$ 有限。\n\n**$\\operatorname{PSL}(2,\\mathbb R)\\times\\operatorname{PSL}(2,\\mathbb R)$ 情形（定理 A 第二部分）。** 设 $\\Phi$ 为 $\\Gamma$ 的 $\\operatorname{Diff}_+^1(\\mathbb S^1)$-表示。利用乘积结构证明 $\\Phi$ 要么平凡，要么通过投影到某个因子后由 $\\operatorname{PSL}(2,\\mathbb R)$ 的射影作用给出。\n\n**一般半单 Lie 群（定理 A 第三部分）。** 代入半单 Lie 群的分类，覆盖所有连通秩 $\\geqslant2$ 的半单 Lie 群。\n\n**定理 B 的证明。** 设 $\\Phi\\colon\\Gamma\\to\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$ 且 $\\Phi(\\Gamma)$ 不保持任何概率测度。考虑由导数对数差 $c(g)=\\log\\Phi(g^{-1})'$ 诱导的 Liouville 余圈 $c\\colon\\Gamma\\to\\mathcal H$（其中 $\\mathcal H=\\mathcal L_{\\mathbb R}^{2,\\Delta}(\\mathbb S^1\\times\\mathbb S^1,Lv)$）。\n\n由关于几乎余边界的引理，若 $c$ 是几乎余边界但不是余边界，则 $\\Phi(\\Gamma)$ 保持概率测度，矛盾。因此 $c$ 不是几乎余边界。\n\n若 $\\Phi(\\Gamma)$ 不共轭于 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群，则 $c$ 也不是余边界（否则由相关结论结合可得共轭性）。\n\n取 $\\Gamma\\subset G=G_1\\times\\cdots\\times G_k$ 满足一般设定条件。令 $\\Psi$ 为 $\\Gamma$ 在 $\\mathcal H$ 上的酉表示。由 $c$ 不是几乎余边界且 $\\Psi$ 几乎不含不变向量，Shalom 的上同调超刚性定理给出 $\\Psi(\\Gamma)$-不变子空间 $\\mathcal H_1,\\ldots,\\mathcal H_k$ 及余圈 $c_i\\colon\\Gamma\\to\\mathcal H_i$，使得至少一个 $c_i$ 非零，且相应的仿射等距作用连续延拓到 $G$ 并通过 $G_i$ 分解。\n\n取 $\\mathcal H_i\\neq\\{0\\}$。利用 prob 映射 $\\operatorname{prob}(K)=\\mu_K$（其中 $\\mu_K(A)=\\int_{\\mathbb S^1}\\int_A K(x,y)^2\\,dLv$）将 $\\mathcal H_i$ 中的函数映到 $\\mathbb S^1$ 上的概率测度。由于 $\\Phi(\\Gamma)$ 不保测度，$\\operatorname{prob}$ 的像包含至少两个不同的测度。选取 $\\mathcal H_i$ 的一组标准正交基构造 $K$ 使 $\\mu_K$ 具有最大支撑，记 $\\Lambda=\\operatorname{supp}\\mu_K$。$\\Lambda$ 是 $\\Gamma$-不变的紧无孤立点子集，且由于 $\\Phi(\\Gamma)$ 无不变测度，$\\Lambda$ 非有限个区间的并。\n\n若 $\\Lambda\\neq\\mathbb S^1$，将 $\\mathbb S^1\\setminus\\Lambda$ 的各连通分量的闭包塌缩为点，得到商圆周 $\\mathbb S^1_\\Lambda$ 及诱导作用 $\\Phi_\\Lambda$。若 $\\Lambda=\\mathbb S^1$ 则令 $\\mathbb S^1_\\Lambda=\\mathbb S^1$。\n\n选取 $K'\\in\\mathcal H_i$ 使 $\\mu_{K'}\\neq\\mu_K$。对任意使 $pr_i(g_n)\\to id_{G_i}$ 的序列 $(g_n)$，$(\\Phi_\\Lambda(g_n))$ 的聚点全部落在旋转群 $\\Gamma_{\\mu_K}\\cap\\Gamma_{\\mu_{K'}}$ 中，该交集是和旋转群的真闭子群，从而是有限循环群 $H=\\mathbb Z/d\\mathbb Z$。\n\n$H$ 中心化 $\\Phi_\\Lambda(\\Gamma)$。考虑商圆周 $\\mathbb S^1_\\Lambda/\\!\\sim$（将 $H$-轨道塌缩），$\\Phi_\\Lambda$ 诱导出 $\\tilde\\Phi\\colon\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1_\\Lambda/\\!\\sim)$ 使得对 $pr_i(g_n)\\to id_{G_i}$ 有 $\\tilde\\Phi(g_n)\\to id$。由群作用延拓引理，$\\tilde\\Phi$ 延拓为连续同态 $\\hat\\Phi\\colon G\\to\\operatorname{Homeo}_+(\\mathbb S^1_\\Lambda/\\!\\sim)$ 且通过 $G_i$ 分解。此即所需的半共轭和有限覆叠构造。"
+      ]
+    },
     "references": [
+      "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
       "E. Ghys, Actions des réseaux sur le cercle, Invent. Math. 137 (1999), 199-231.",
-      "R. Zimmer, Ergodic theory of semisimple groups, Birkhäuser (1984).",
-      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §5.3."
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §5.3.",
+      "Y. Shalom, Rigidity of commensurators and irreducible lattices, Invent. Math. 141 (2000), 1-54.",
+      "R. Zimmer, Ergodic theory of semisimple groups, Birkhäuser (1984)."
     ]
   }
 }

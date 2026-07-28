@@ -3,9 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "有界变差函数",
-      "有界变差",
-      "总变差"
+      "有界变差函数"
     ]
   },
   "description": {
@@ -23,9 +21,16 @@
     ],
     "article": [
       {
-        "zh": "有界变差函数是分析学中最有用的函数类之一，介于 $C^0$ 和绝对连续之间。其核心性质——可分解为两个单调函数的差——是 Jordan 分解定理的内容。这一分解使得变差函数的几乎所有问题都可化归为单调函数情形。\n\n在圆周微分同胚的 Denjoy 理论中，$C^{1+\\mathrm{bv}}$ 类指导数对数有界变差的 $C^1$ 微分同胚：$V(f)=\\operatorname{var}(\\log f';\\mathbb S^1)<\\infty$。Denjoy 定理断言：$C^{1+\\mathrm{bv}}$ 保向圆周微分同胚若无周期点则必与无理旋转拓扑共轭。这一定理在纯 $C^1$ 类中不成立（Denjoy 反例），故 $C^{1+\\mathrm{bv}}$ 是 Denjoy 定理的最优正则性条件。\n\n$C^{1+\\mathrm{bv}}$ 在动力系统中的应用依赖于以下事实：$\\log f'$ 的有界变差等价于 $f'$ 的乘性振荡受控。这一性质在以下推理中起关键作用：假设 $f$ 无周期点且共轭于旋转 $R_\\alpha$，则半共轭函数 $h$ 的连续性可由 $\\log f'$ 的有界变差保证——这是 Denjoy 经典证明的核心。\n\n有界变差函数本身还有以下重要性质：(i) 几乎处处可导且 $f'\\in L^1$；(ii) 变差函数的次可加性 $\\operatorname{var}(f;[a,c])\\leq\\operatorname{var}(f;[a,b])+\\operatorname{var}(f;[b,c])$；(iii) 跳跃点至多可数；(iv) 绝对连续函数 $\\subset$ 有界变差函数 $\\subset$ 可微几乎处处函数。"
+        "zh": "## 总变差\n\n给定闭区间 $[a,b]$ 上的实值函数 $f$，其总变差衡量的是 $f$ 在区间上振荡的总量。取分划 $a=t_0<\\cdots<t_n=b$，计算相邻函数值之差的绝对值之和；所有可能分划下该和的上确界就是 $f$ 在 $[a,b]$ 上的总变差。这个值为有限时，称 $f$ 在该区间上有界变差。\n\n## Jordan 分解\n\n有界变差与单调函数之间存在一个基本联系。Jordan 分解定理说：$f$ 有界变差当且仅当它可以写成两个单调增函数之差。由此可推出有界变差函数几乎处处可导且导数 $L^1$ 可积，总变差满足次可加性 $\\operatorname{var}(f;[a,c])\\le\\operatorname{var}(f;[a,b])+\\operatorname{var}(f;[b,c])$，且跳跃点至多可数。\n\n## 圆周微分同胚中的 $C^{1+\\mathrm{bv}}$ 类\n\n在圆周微分同胚理论中，有界变差以一种间接但关键的方式出现。一个 $C^1$ 保向圆周微分同胚 $f$ 称为 $C^{1+\\mathrm{bv}}$ 类的，若 $\\log f'$ 在圆周上的总变差 $V(f)=\\operatorname{var}(\\log f';\\mathbb S^1)$ 有限。$C^2$ 和 $C^{1+\\mathrm{Lip}}$ 微分同胚均属于此类；此时 $V(f)$ 可通过积分 $\\int_{\\mathbb S^1}|f''(s)/f'(s)|\\,\\mathrm ds$ 计算。\n\n$C^{1+\\mathrm{bv}}$ 是 Denjoy 定理成立的最优正则性条件：该类中旋转数为无理数的圆周微分同胚必拓扑共轭于旋转。证明的核心是利用 $\\log f'$ 的有界变差控制轨道上的导数畸变，将导数比值的对数分解为沿渐近分数的差之和，再由 $f^k(I)$ 两两不交推出矛盾。\n\n## Denjoy–Koksma 不等式\n\nDenjoy–Koksma 不等式是有界变差在遍历和控制中的应用。设 $\\psi$ 是圆周上总变差有限的函数，$f$ 是旋转数为无理数 $\\theta$ 的圆周同胚。则对每对互质整数 $p,q$（$|\\theta-p/q|\\le 1/q^2$）和每个 $x$，\n\n$$\n\\bigg|\\sum_{i=0}^{q-1}\\psi(f^i(x))-q\\int_{\\mathbb S^1}\\psi\\,\\mathrm d\\mu\\bigg|\\le\\operatorname{var}(\\psi;\\mathbb S^1),\n$$\n\n其中 $\\mu$ 为 $f$ 的唯一不变概率测度。取 $\\psi=\\log f'$ 并结合 $\\int\\log f'\\,\\mathrm d\\mu=0$，得到 Denjoy 不等式\n\n$$\n\\exp(-V(f))\\le(f^{q_n})'(x)\\le\\exp(V(f)).\n$$"
       }
     ],
+    "examples": {
+      "zh": [
+        "单调函数是 $[a,b]$ 上的有界变差函数。设 $f\\colon[a,b]\\to\\mathbb R$ 单调增，则对任意分划 $a=t_0<\\cdots<t_n=b$，和式 $\\sum_{i=0}^{n-1}|f(t_{i+1})-f(t_i)|=f(b)-f(a)$ 与分划无关，故总变差恰为 $\\operatorname{var}(f;[a,b])=f(b)-f(a)$。Jordan 分解定理反之断言每个有界变差函数可表为两个单调增函数之差。",
+        "圆周上的旋转 $R_\\alpha(x)=x+\\alpha\\pmod 1$ 的导数恒为 $1$，故 $\\log R_\\alpha'=0$，从而 $V(R_\\alpha)=0$。旋转属于 $C^{1+\\mathrm{bv}}$ 类，且 $R_\\alpha$ 自身已是旋转。",
+        "$C^2$ 微分同胚属于 $C^{1+\\mathrm{bv}}$ 类。设 $f\\in\\mathrm{Diff}_+^2(\\mathbb S^1)$，则 $\\log f'$ 连续可微，其总变差可通过积分\n$$\nV(f)=\\int_{\\mathbb S^1}\\frac{|f''(s)|}{f'(s)}\\,\\mathrm ds\n$$\n计算，该积分值有限。$C^{1+\\mathrm{Lip}}$ 类（导数 Lipschitz 连续）同样包含于 $C^{1+\\mathrm{bv}}$，因为闭区间上的 Lipschitz 函数自动有界变差。"
+      ]
+    },
     "references": [
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.1."
     ]

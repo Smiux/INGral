@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.faithful-action",
+  "to": "algebra.group-theory.left-orderable-group",
+  "description": {
+    "zh": [
+      "可数群在 $\\mathbb R$ 上有忠实保向同胚作用当且仅当该群可序。这建立了忠实作用存在性与代数可序性之间的等价关系。"
+    ]
+  }
+}

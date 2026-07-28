@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.translation-number",
-  "to": "dynamics.circle.rotation-number",
-  "description": {
-    "zh": [
-      "平移数是旋转数在直线上的类比：旋转数模 $\\mathbb Z$ 取值（因为提升相差整数平移），平移数直接取实数值；旋转数可视为提升的平移数。"
-    ]
-  }
-}

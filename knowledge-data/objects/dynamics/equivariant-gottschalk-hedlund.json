@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "等变 Gottschalk–Hedlund 引理",
-      "群作用上同调方程可解性"
+      "等变 Gottschalk–Hedlund 引理"
     ]
   },
   "description": {
@@ -15,20 +14,20 @@
   "extension": {
     "tags": [
       "上同调方程",
-      "cocycle",
+      "余圈",
       "群作用",
       "极小作用"
     ],
     "article": [
       {
-        "zh": "该引理回答了上同调方程何时可解的问题：给定群作用上的 cocycle $c$，何时存在 $\\phi$ 使得 $c(f,x)=\\phi(f(x))-\\phi(x)$？方程的解 $\\phi$ 称为「上边界」——$c$ 可被视为「$\\phi$ 的一阶差分」。经典 Gottschalk–Hedlund 定理处理一个同胚 $f$ 的情形：若函数 $\\varphi$ 的 Birkhoff 和一致有界，则 $\\varphi$ 是 $f$-上边界。等变版本将单个同胚推广到群作用，将函数推广到 cocycle。\n\n证明的几何构造极其精妙：将 cocycle $c$ 编码为群在纤维丛 $M\\times\\mathbb R$ 上的对角作用 $\\hat f(x,t)=(f(x),t+c(f,x))$。如果 $c$ 在某个点 $x_0$ 处有界，则该点的 $\\hat\\Gamma$-轨道保持在带状区域 $M\\times[-C_0,C_0]$ 中。Zorn 引理取出极小紧不变集 $\\Lambda$。若 $\\Lambda$ 在某根纤维 $\\{x\\}\\times\\mathbb R$ 上包含两个不同高度的点，则高度差 $t$ 给出了 $\\Lambda$ 的一个平移对称性：$\\Lambda + t = \\Lambda$。迭代得 $\\Lambda + nt = \\Lambda$ 对所有 $n\\in\\mathbb Z$ 成立，但 $\\Lambda$ 的紧致性迫使 $t=0$。因此 $\\Lambda$ 必为某个连续函数 $\\phi$ 的图像——这正是所要的解。\n\n这个「Zorn + 平移压缩」的论证模式在动力系统中反复出现（如 Aubry–Mather 理论、不变环面存在性），其本质是通过最简系统的对称性破缺来构造解。上同调方程的可解性是许多更深层次结果的基础：旋转数的积分表示、共轭光滑性提升中 $C^r$ 性的传播，以及无理旋转动力学中半共轭的构造都依赖于此。"
+        "zh": "## 上同调方程何时可解\n\n给定群作用上的 cocycle $c$，何时存在连续函数 $\\phi$ 使得 $c(f,x)=\\phi(f(x))-\\phi(x)$？这个方程被称为上同调方程——它的解 $\\phi$ 称为上边界，而 $c$ 可视为 $\\phi$ 沿群作用方向的一阶差分。经典 Gottschalk–Hedlund 定理处理单个同胚 $f$ 的情形：若函数 $\\varphi$ 的 Birkhoff 和一致有界，则 $\\varphi$ 是 $f$-上边界。等变版本将单个同胚推广到群作用，将函数推广到 cocycle。\n\n## Zorn 引理与纤维丛构造\n\n证明的构造将 cocycle $c$ 编码为群在纤维丛 $M\\times\\mathbb R$ 上的对角作用\n$$\\hat f(x,t)=(f(x),t+c(f,x)).$$\n如果 $c$ 在某个点 $x_0$ 处有界（条件 (i)），则该点的 $\\hat\\Gamma$-轨道保持在带状区域 $M\\times[-C_0,C_0]$ 中。Zorn 引理给出非空极小紧不变集 $\\Lambda\\subset M\\times\\mathbb R$。\n\n## 平移对称性破缺\n\n若 $\\Lambda$ 在某根纤维 $\\{x\\}\\times\\mathbb R$ 上包含两个不同高度的点 $(x,t_1)$ 和 $(x,t_2)$，则高度差 $t=t_2-t_1$ 给出了 $\\Lambda$ 的一个平移对称性：定义 $\\Lambda_t:=\\{(x,s+t):(x,s)\\in\\Lambda\\}$，则 $\\Lambda_t$ 也是 $\\Gamma$-不变的。由极小性得 $\\Lambda=\\Lambda_t=\\Lambda_{2t}=\\cdots$。迭代得 $\\Lambda+nt=\\Lambda$ 对所有 $n\\in\\mathbb Z$ 成立，但 $\\Lambda$ 的紧致性迫使 $t=0$。因此每个纤维上只能有一个交点。\n\n## 解的构造\n\n于是 $\\Lambda$ 必为某个连续函数 $\\phi$ 的图像：对每个 $x\\in M$，$\\Lambda$ 恰含一点 $(x,\\phi(x))$。$\\phi$ 的连续性来自 $\\Lambda$ 的紧性，而 cocycle 的作用定义又给出 $c(f,x)=\\phi(f(x))-\\phi(x)$。\n\n这个「Zorn + 平移压缩」的论证模式在动力系统中反复出现——Aubry–Mather 理论、不变环面存在性等问题都使用了类似的思想。其本质是通过最简系统的对称性破缺来构造解。上同调方程的可解性是许多后续结果的基础：旋转数的积分表示、共轭光滑性提升中 $C^r$ 性的传播，以及无理旋转动力学中半共轭的构造都依赖于此。"
       }
     ],
-    "proof": [
-      {
-        "zh": "构造 $M\\times\\mathbb R$ 上的对角作用 $\\hat f(x,t)=(f(x),t+c(f,x))$。考虑 $M\\times\\mathbb R$ 上所有 $\\Gamma$-不变紧子集的族，由 Zorn 引理取极小元 $\\Lambda$。核心论证：若 $\\Lambda$ 包含两点 $(\\bar x,t_1)$ 和 $(\\bar x,t_2)$ 且 $t_1\\neq t_2$，则平移 $t=t_2-t_1$ 保持 $\\Lambda$ 不变，从而 $\\Lambda=\\Lambda_t=\\Lambda_{2t}=\\ldots$，由紧致性推出矛盾。因此 $\\Lambda$ 是某个连续函数 $\\phi$ 的图像，$c$ 即为 $\\phi$ 的上边界 $c(f,x)=\\phi(f(x))-\\phi(x)$。"
-      }
-    ],
+    "proof": {
+      "zh": [
+        "充分性：若存在连续 $\\phi$ 使 $c(f,x)=\\phi(f(x))-\\phi(x)$，则 $|c(f,x_0)|\\leq|\\phi(f(x_0))|+|\\phi(x_0)|\\leq2\\|\\phi\\|_{C^0}$，故 (i) 成立。\n\n必要性：定义 $M\\times\\mathbb R$ 上的对角作用 $\\hat f(x,t)=(f(x),t+c(f,x))$。cocycle 恒等式保证这定义了 $\\Gamma$ 在 $M\\times\\mathbb R$ 上的作用。条件 (i) 意味着点 $(x_0,0)$ 的轨道有界，其闭包是非空紧不变集。由 Zorn 引理，存在非空极小紧不变子集 $\\Lambda\\subset M\\times\\mathbb R$。\n\n断言 $\\Lambda$ 是某个连续函数的图。首先，$\\Gamma$ 在 $M$ 上的作用极小，故 $\\Lambda$ 到 $M$ 的投影为整个 $M$。若存在 $\\bar x\\in M$ 和 $t_1\\neq t_2$ 使 $(\\bar x,t_1),(\\bar x,t_2)\\in\\Lambda$，令 $t=t_2-t_1$，则平移映射 $(x,s)\\mapsto(x,s+t)$ 与 $\\Gamma$ 作用可交换，故 $\\Lambda_t:=\\{(x,s+t):(x,s)\\in\\Lambda\\}$ 也是 $\\Gamma$-不变的。$\\Lambda\\cap\\Lambda_t\\neq\\varnothing$，由极小性得 $\\Lambda=\\Lambda_t=\\Lambda_{2t}=\\cdots$，这与 $\\Lambda$ 的紧致性矛盾（$t\\neq0$）。因此对每个 $x\\in M$，$\\Lambda$ 恰含一点 $(x,\\phi(x))$。定义 $\\phi(x)=t$，则 $\\phi$ 连续（其图 $\\Lambda$ 紧），且 $c(f,x)=\\phi(f(x))-\\phi(x)$。"
+      ]
+    },
     "references": [
       "W. Gottschalk & G. Hedlund, Topological dynamics, AMS Colloquium Publications 36 (1955).",
       "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §3.6.2, Lemma 3.6.10."

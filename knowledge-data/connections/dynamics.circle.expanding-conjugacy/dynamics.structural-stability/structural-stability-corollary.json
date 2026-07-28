@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.circle.expanding-conjugacy",
+  "to": "dynamics.structural-stability",
+  "description": {
+    "zh": [
+      "扩张共轭定理的直接推论是扩张映射的 $C^1$ 结构稳定性——扩张性在 $C^1$ 拓扑下保持为开性质，因此每个扩张映射都存在 $C^1$ 邻域，其中所有映射拓扑共轭于同一标准扩张。"
+    ]
+  }
+}

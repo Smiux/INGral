@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.faithful-action",
-  "to": "dynamics.group-circle.holder-theorem",
-  "description": {
-    "zh": [
-      "Hölder 定理刻画了圆周或区间上的自由作用：自由作用必然是忠实的，但忠实作用不一定自由。Hölder 定理给出了自由作用（无不动点）下的刚性结论。"
-    ]
-  }
-}

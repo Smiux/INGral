@@ -3,7 +3,7 @@
   "to": "dynamics.conley-theorem",
   "description": {
     "zh": [
-      "Conley 定理的结论涉及链回归集 $\\mathcal R(f)$：完全 Lyapunov 函数在 $\\mathcal R(f)$ 上的限制取值为一个紧全不连通集，$\\mathcal R(f)$ 的连通分量为链回归类。"
+      "链回归集是 Conley 定理中完全 Lyapunov 函数分解的基本对象，其连通分量定义了链回归类——Conley 理论的核心概念。"
     ]
   }
 }

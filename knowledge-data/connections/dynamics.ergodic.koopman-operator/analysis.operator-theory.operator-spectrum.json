@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.koopman-operator",
+  "to": "analysis.operator-theory.operator-spectrum",
+  "description": {
+    "zh": [
+      "Koopman 算子的谱理论（点谱、离散谱、连续谱、谱测度）是算子谱理论在动力系统背景下的特例。"
+    ]
+  }
+}

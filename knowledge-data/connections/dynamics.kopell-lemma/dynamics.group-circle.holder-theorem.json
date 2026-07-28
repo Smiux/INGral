@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.kopell-lemma",
-  "to": "dynamics.group-circle.holder-theorem",
-  "description": {
-    "zh": [
-      "Kopell 引理推论中，$C^{1+\\mathrm{bv}}$ 无不动点区间微分同胚的中心化子通过 Hölder 定理半共轭于平移群。"
-    ]
-  }
-}

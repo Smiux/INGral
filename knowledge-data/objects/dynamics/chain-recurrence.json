@@ -3,9 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "链回归",
-      "链回归点",
-      "$\\varepsilon$-链"
+      "链回归"
     ]
   },
   "description": {
@@ -23,9 +21,15 @@
     ],
     "article": [
       {
-        "zh": "链回归是 Conley 在回复性概念轴上走得最远的一步。前几层回复性——不动点、周期点、回归点、极限点、非游荡点——都刻画了「某条轨道能够返回自身附近」的程度。但所有这些概念都有一个共同弱点：它们对扰动敏感。若轨道计算存在微小误差 $\\varepsilon$（在数值模拟中不可避免），这些回复性就可能丧失。链回归的概念正是为了消除这种敏感性：它允许轨道在每一步承受 $\\varepsilon$ 的跳跃，于是「在 $\\varepsilon$ 精度下存在周期伪轨」就成为一种在扰动下保持的回复性——即使真实轨道被噪声干扰，$\\varepsilon$-链仍然可以回环。\n\n从 $\\varepsilon$-链构造链回归集的过程分两步。首先，对任意点 $p$ 和 $\\varepsilon>0$，定义 $\\varepsilon$-链通集 $\\mathcal R_f(p,\\varepsilon)=\\{x\\in M:\\text{存在有限 }\\varepsilon\\text{-链从 }p\\text{ 到 }x\\}$；取所有 $\\varepsilon>0$ 的交得 $\\mathcal R_f(p)=\\bigcap_{\\varepsilon>0}\\mathcal R_f(p,\\varepsilon)$。则 $p$ 是链回归点当且仅当 $p\\in\\mathcal R_f(p)$。$\\mathcal R(f)$ 是紧的 $f$-不变集，且对逆对称：$\\mathcal R(f)=\\mathcal R(f^{-1})$。\n\n链回归集上存在一个与 Lyapunov 函数直接对应的等价关系：$x,y\\in\\mathcal R(f)$ 称为**链等价**（用 $\\mathcal R_f(x)$ 和 $\\mathcal R_f(y)$ 的相互含入定义）。该等价关系的等价类称为**链回归类**，每个类紧且 $f$-不变。链回归类的关键特征是：$x,y$ 在同一类中当且仅当对每个陷阱区域 $U$，它们要么都属于吸引子 $A_U^+$，要么都属于排斥子 $A_U^-$。这意味着链回归类是「所有陷阱区域对偶分类的最大一致精细」——它们恰好是 Conley 完全 Lyapunov 函数的常值水平集，而链回归类的偏序（沿 Lyapunov 函数值的升降）就是整个系统的「势能图」（Hasse 图）。"
+        "zh": "不动点、周期点、回复点、非游荡点——这些概念从不同角度刻画了轨道返回自身附近的现象。但它们有一个共同缺陷：对扰动敏感。若轨道计算中存在微小误差，这些回复性可能完全丧失。链回归的概念消除了这种敏感性，允许轨道在每一步有不超过 $\\varepsilon$ 的跳跃，从而在扰动下仍能保持回复性。\n\n## 伪轨与链回归点\n\n给定紧度量空间 $M$ 上的同胚 $f$，对 $\\varepsilon>0$，称双向序列 $(x_n)\\subset M$ 为 $\\varepsilon$-链（或 $\\varepsilon$-伪轨），若 $d(f(x_i),x_{i+1})<\\varepsilon$ 对所有 $i$ 成立。点 $p$ 称为链回归点，若对任意 $\\varepsilon>0$ 都存在以 $p=x_0$ 的周期 $\\varepsilon$-链。链回归点的全体记作 $\\mathcal R(f)$。\n\n对任意 $p\\in M$ 和 $\\varepsilon>0$，记 $\\mathcal R_f(p,\\varepsilon)$ 为所有可通过有限 $\\varepsilon$-链从 $p$ 到达的点之集；取所有 $\\varepsilon>0$ 的交得 $\\mathcal R_f(p)=\\bigcap_{\\varepsilon>0}\\mathcal R_f(p,\\varepsilon)$。$p\\in\\mathcal R(f)$ 当且仅当 $p\\in\\mathcal R_f(p)$。$\\mathcal R(f)$ 是紧的 $f$-不变集，且满足 $\\Omega(f)\\subset\\mathcal R(f)=\\mathcal R(f^{-1})$。\n\n## 链回归类\n\n链回归集上存在自然的等价关系：$x,y\\in\\mathcal R(f)$ 称为链等价，若 $y\\in\\mathcal R_f(x)$ 且 $x\\in\\mathcal R_f(y)$——即彼此 $\\varepsilon$-链互通。链等价将 $\\mathcal R(f)$ 划分为链回归类，每个类紧且 $f$-不变。\n\n链回归类与陷阱区域 $U$（开集且 $f(\\overline U)\\subset U$）之间存在精确对应。每个陷阱区域 $U$ 定义一对不相交的紧 $f$-不变集：吸引子 $A_U^+=\\bigcap_{n\\ge 0}f^n(\\overline U)$ 与排斥子 $A_U^-=\\bigcap_{n\\ge 0}f^{-n}(M\\setminus U)$。两个链回归点属于同一类当且仅当对每个陷阱区域 $U$，它们要么同时属于 $A_U^+$，要么同时属于 $A_U^-$。换言之，链回归类是陷阱区域对偶分类的最精细一致划分。\n\n## 完全 Lyapunov 函数\n\n链回归类之间沿 Lyapunov 函数值递降的顺序构成了系统的全局势能结构。完全 Lyapunov 函数 $L\\colon M\\to\\mathbb R$ 连续且沿轨道不增，等号成立当且仅当 $x\\in\\mathcal R(f)$；$L$ 在链回归集上于各链回归类内取常值，其值集为紧全不连通集。这相当于将链回归的偏序编码为一个实值函数。"
       }
     ],
+    "examples": {
+      "zh": [
+        "不动点与周期点都是链回归点。若 $p\\in\\operatorname{Fix}(f)$，则对任意 $\\varepsilon>0$，常数列 $(p)$ 自身即为一条周期 $\\varepsilon$-链，故 $p\\in\\mathcal R(f)$。若 $p\\in\\operatorname{Per}(f)$，即存在 $n\\ge 1$ 使得 $f^n(p)=p$，则有限段 $p,f(p),\\dots,f^{n-1}(p)$ 的循环重复构成周期 $\\varepsilon$-链。因此 $\\operatorname{Fix}(f)\\subset\\operatorname{Per}(f)\\subset\\mathcal R(f)$。",
+        "对任意点 $p\\in M$ 和 $\\varepsilon>0$，$\\varepsilon$-链通集 $\\mathcal R_f(p,\\varepsilon)$ 是一个陷阱区域。可将其构造为开球序列的并：令 $U_1=B_\\varepsilon(p)$，递推定义 $U_n=\\bigcup_{x\\in U_{n-1}}B_\\varepsilon(f(x))$。每个 $U_n$ 为开集，且 $\\mathcal R_f(p,\\varepsilon)=\\bigcup_{n\\ge 1}U_n$ 为开。由 $\\varepsilon$-链的定义得 $f(\\mathcal R_f(p,\\varepsilon))\\subset\\mathcal R_f(p,\\varepsilon)$；利用 $f$ 的连续性可进一步证明 $f(\\overline{\\mathcal R_f(p,\\varepsilon)})\\subset\\mathcal R_f(p,\\varepsilon)$。故 $\\mathcal R_f(p,\\varepsilon)$ 满足陷阱区域的全部条件。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §3.1.",
       "C. Conley, Isolated invariant sets and the Morse index, CBMS 38, AMS (1978)."

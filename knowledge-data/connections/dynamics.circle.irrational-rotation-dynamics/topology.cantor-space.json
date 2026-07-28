@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.irrational-rotation-dynamics",
-  "to": "topology.cantor-space",
-  "description": {
-    "zh": [
-      "无理旋转数同胚的唯一极小集要么是整个圆周，要么是 Cantor 空间——后者由极小集的无孤立点和全不连通性保证。"
-    ]
-  }
-}

@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "谱分解定理",
-      "谱集的不变子空间分解"
+      "谱分解定理"
     ]
   },
   "description": {
@@ -22,14 +21,20 @@
     ],
     "article": [
       {
-        "zh": "谱分解定理是将算子的谱分解为不交子集后，将整个空间相应地分解为不变子空间的直和。在双曲动力学中，将谱分为 $K^s=\\sigma(A)\\cap\\{|z|<1\\}$（稳定部分）和 $K^u=\\sigma(A)\\cap\\{|z|>1\\}$（不稳定部分）后，定理给出 $E=E_A^s\\oplus E_A^u$。这一分解是稳定/不稳定流形定理的线性基础——它保证了双曲不动点附近存在切于 $E_A^s$ 和 $E_A^u$ 的 $f$-不变流形。\n\n该定理的证明依赖于 Riesz 投影算子 $P_i:=\\frac1{2\\pi i}\\int_{\\gamma_i}(\\zeta I-A)^{-1}\\mathrm d\\zeta$，其中 $\\gamma_i$ 是围绕 $K_i$ 的 Jordan 曲线。"
+        "zh": "## 谱分割与空间分解\n\n算子的谱是一个紧集。当谱可以分割成两个不交的紧片时，Banach 空间本身也随之分裂：每个谱片对应一个闭不变子空间，算子限制在该子空间上的谱恰好就是那个谱片。具体地说，设 $E$ 为 Banach 空间，$A\\in\\mathcal L(E)$ 为有界算子。若 $\\sigma(A)=K_1\\sqcup K_2$，$K_1,K_2$ 均为非空紧集，则存在闭子空间 $E_1,E_2\\subset E$ 使得 $E=E_1\\oplus E_2$，$A(E_i)\\subset E_i$，且 $\\sigma(A|_{E_i})=K_i$。\n\n## 构造方法：Riesz 投影\n\n分解的构造借助了复分析的工具。对每个 $K_i$，取一条环绕它但不含 $K_j$（$j\\neq i$）的 Jordan 曲线 $\\gamma_i$。Riesz 投影\n\n$$\nP_i=\\frac1{2\\pi i}\\int_{\\gamma_i}(\\zeta I-A)^{-1}\\mathrm d\\zeta\n$$\n\n是 $E$ 上的有界线性投影，满足 $P_1+P_2=I$，$P_1P_2=0$。令 $E_i=P_i(E)$，$E_i$ 即为所求的不变子空间。\n\n## 双曲情形的应用\n\n谱分解定理在双曲动力学中提供了一个基本的构造。设 $A$ 是 Banach 空间上的双曲线性同构，即 $\\sigma(A)$ 与单位圆周不交。将谱划分为 $K^s=\\sigma(A)\\cap\\{|z|<1\\}$（稳定部分）和 $K^u=\\sigma(A)\\cap\\{|z|>1\\}$（不稳定部分），则 $E=E_A^s\\oplus E_A^u$。$A$ 在 $E_A^s$ 上的限制的谱全在单位圆内，在 $E_A^u$ 上的限制的谱全在单位圆外。这一直和分解是稳定/不稳定流形定理的线性基础——双曲不动点附近的局部不变流形分别切于这两个子空间。\n\n## 遍历论中的角色\n\n在遍历论的谱方法中，谱分解定理为 Koopman 算子 $U_Tf=f\\circ T$ 的分析提供了空间分解的依据。当 $U_T$ 同时有点谱（本征值）和连续谱时，$L^2$ 可分解为两个 $U_T$-不变子空间的直和，分别承载离散谱和连续谱分量。遍历系统的谱类型（离散、连续或混合）由此获得一个自然的刻画框架。"
       }
     ],
-    "proof": [
-      {
-        "zh": "设 $\\gamma_i$ 为 $\\mathbb C$ 中围绕 $K_i$ 的 Jordan 曲线，$\\gamma_1\\cap\\gamma_2=\\varnothing$。定义 Riesz 投影算子\n$$P_i:=\\frac1{2\\pi i}\\int_{\\gamma_i}(\\zeta I-A)^{-1}\\,\\mathrm d\\zeta\\in\\mathcal L(E).$$\n\n由 Dunford 积分性质，$P_i$ 为投影且 $P_1+P_2=I$、$P_1P_2=P_2P_1=0$。令 $E_i:=P_i(E)$，则 $E=E_1\\oplus E_2$。因 $A$ 与 $P_i$ 可交换，$E_i$ 为 $A$-不变子空间。\n\n由谱映射定理，$\\sigma(A|_{E_i})=\\sigma(A)\\cap K_i=K_i$。具体地，对 $\\lambda\\in K_i$，$A|_{E_i}-\\lambda I|_{E_i}$ 不可逆因其逆若存在则可通过 $P_i$ 延拓为 $(A-\\lambda I)^{-1}$，矛盾。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "考虑对角矩阵 $A = \\operatorname{diag}(2, 1/2, 3) \\in M_3(\\mathbb C)$. 谱 $\\sigma(A) = \\{1/2, 2, 3\\}$. 将谱划分为 $K_1 = \\{1/2\\}$ 与 $K_2 = \\{2, 3\\}$. 取以 $1/2$ 为心、半径 $1/4$ 的圆周 $\\gamma_1$，则 $\\gamma_1$ 环绕 $K_1$ 且与 $K_2$ 分离。计算 Riesz 投影：\n\n$$P_1 = \\frac1{2\\pi i}\\int_{\\gamma_1}(\\zeta I-A)^{-1}d\\zeta = \\operatorname{diag}(0,1,0),$$\n\n故 $E_1 = \\{(0,y,0): y\\in\\mathbb C\\}$ 是对应特征值 $1/2$ 的一维不变子空间，$E_2 = \\{(x,0,z): x,z\\in\\mathbb C\\}$ 是对应特征值 $2,3$ 的二维不变子空间。$A|_{E_1}$ 的谱为 $\\{1/2\\}$，$A|_{E_2}$ 的谱为 $\\{2,3\\}$.",
+        "设 $A = \\begin{pmatrix}2 & 1 \\\\ 1 & 1\\end{pmatrix} \\in GL(2,\\mathbb Z)$，其特征值为 $\\lambda = (3+\\sqrt{5})/2 > 1$ 与 $\\lambda^{-1} = (3-\\sqrt{5})/2 < 1$. 将谱划分为 $K^s = \\{\\lambda^{-1}\\}$（单位圆内）与 $K^u = \\{\\lambda\\}$（单位圆外），谱分解定理给出 $\\mathbb R^2 = E^s \\oplus E^u$，其中 $E^s$ 是 $\\lambda^{-1}$ 的特征方向，$E^u$ 是 $\\lambda$ 的特征方向。$A$ 在 $E^u$ 上的限制的谱为 $\\{\\lambda\\}$，在 $E^s$ 上的限制的谱为 $\\{\\lambda^{-1}\\}$. 在动力系统中，$A$ 诱导环面自同构 $f_A: \\mathbb T^2 \\to \\mathbb T^2$，原点为 $f_A$ 的双曲不动点；$E^s$ 中的向量在正向迭代下指数收缩，$E^u$ 中的向量指数扩张。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "设 $\\gamma_i$ 为 $\\mathbb C$ 中围绕 $K_i$ 的 Jordan 曲线，$\\gamma_1\\cap\\gamma_2=\\varnothing$。定义 Riesz 投影算子\n$$P_i:=\\frac1{2\\pi i}\\int_{\\gamma_i}(\\zeta I-A)^{-1}\\,\\mathrm d\\zeta\\in\\mathcal L(E).$$\n\n由 Dunford 积分性质，$P_i$ 为投影且 $P_1+P_2=I$、$P_1P_2=P_2P_1=0$。令 $E_i:=P_i(E)$，则 $E=E_1\\oplus E_2$。因 $A$ 与 $P_i$ 可交换，$E_i$ 为 $A$-不变子空间。\n\n由谱映射定理，$\\sigma(A|_{E_i})=\\sigma(A)\\cap K_i=K_i$。具体地，对 $\\lambda\\in K_i$，$A|_{E_i}-\\lambda I|_{E_i}$ 不可逆因其逆若存在则可通过 $P_i$ 延拓为 $(A-\\lambda I)^{-1}$，矛盾。"
+      ]
+    },
     "references": [
       "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026."
     ]

@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.oseledets-multiplicative-ergodic",
+  "to": "dynamics.ergodic.karlsson-margulis-ergodic",
+  "description": {
+    "zh": [
+      "直接概念引用：Oseledets 定理可由 Karlsson–Margulis 定理通过 CAT(0) 空间的几何方法重新证明，见 Sarig 讲义 §2.7.3。"
+    ]
+  }
+}

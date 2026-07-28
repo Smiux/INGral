@@ -3,13 +3,12 @@
   "type": "definition",
   "name": {
     "zh": [
-      "有界 Euler 类",
-      "圆周群作用的有界 Euler 类"
+      "有界 Euler 类"
     ]
   },
   "description": {
     "zh": [
-      "设 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 为同态。中心扩张 $0\\to\\mathbb Z\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\operatorname{Homeo}_+(\\mathbb S^1)\\to 1$ 通过 $\\phi$ 拉回得到 $\\Gamma$ 的中心扩张，其 Euler 类 $eu(\\phi)\\in H^2(\\Gamma,\\mathbb Z)$。\n\n取规范截面 $\\sigma(f)\\in\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 使 $\\sigma(f)(0)\\in[0,1[$，则相应的 2-上循环 $\\bar c(f_1,f_2)=\\sigma(f_1f_2)^{-1}\\sigma(f_1)\\sigma(f_2)$ 仅取值 $0$ 或 $1$，从而给出了 $H_b^2(\\Gamma,\\mathbb Z)$ 中的一个类——即 $\\phi$ 的**有界 Euler 类**（bounded Euler class）。"
+      "设 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$ 为同态。中心扩张 $0\\to\\mathbb Z\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\operatorname{Homeo}_+(\\mathbb S^1)\\to 1$ 通过 $\\phi$ 拉回得到 $\\Gamma$ 的中心扩张，其 Euler 类 $eu(\\phi)\\in H^2(\\Gamma,\\mathbb Z)$。\n\n取规范截面 $\\sigma(f)\\in\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 使 $\\sigma(f)(0)\\in[0,1)$，则相应的 2-上循环 $\\bar c(f_1,f_2)=\\sigma(f_1f_2)^{-1}\\sigma(f_1)\\sigma(f_2)$ 仅取值 $0$ 或 $1$，从而给出了 $H_b^2(\\Gamma,\\mathbb Z)$ 中的一个类——即 $\\phi$ 的**有界 Euler 类**（bounded Euler class）。"
     ]
   },
   "extension": {
@@ -18,16 +17,37 @@
       "圆周上的群作用",
       "中心扩张",
       "上循环",
-      "旋转数"
+      "旋转数",
+      "Milnor-Wood 不等式"
+    ],
+    "notes": [
+      {
+        "zh": "有界 Euler 类在 $H_b^2(\\mathbb Z,\\mathbb Z)\\cong\\mathbb R/\\mathbb Z$ 中的像就是旋转数。具体地，$H_b^2(\\mathbb Z,\\mathbb Z)$ 的类 $c_\\tau(n_1,n_2)=[(n_1-n_2)\\tau]$ 对应于旋转数为 $\\tau\\bmod\\mathbb Z$ 的作用。"
+      },
+      {
+        "zh": "可数群 $\\Gamma$ 的类 $c\\in H_b^2(\\Gamma,\\mathbb Z)$ 来自某个圆周作用当且仅当 $c$ 可由一个仅取值 $0,1$ 的上循环表示。"
+      }
     ],
     "article": [
       {
-        "zh": "有界 Euler 类将旋转数、Euler 类和上同调统一在一个框架中。它的构造依赖于中心扩张 $0\\to\\mathbb Z\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\operatorname{Homeo}_+(\\mathbb S^1)\\to 1$ 的一个特殊截面 $\\sigma$：$\\sigma(f)$ 是 $f$ 的满足 $\\sigma(f)(0)\\in[0,1[$ 的唯一提升。由此得到的 2-上循环 $\\overline c(f_1,f_2)$ 有界（取值 0 或 1），从而属于有界上同调。\n\n这一不变量包含了经典 Euler 类（遗忘有界性后）和旋转数（$\\Gamma=\\mathbb Z$ 时）的信息。对一般群 $\\Gamma$，Milnor-Wood 不等式（$|eu(\\phi)|\\leqslant 2g-2$ 对曲面群 $\\Gamma_g$）给出了有界 Euler 类的具体界限。\n\n完整的分类定理表明：有界 Euler 类从本质上区分了圆周上的群作用——有理类对应有限轨道，无理类对应最小作用在共轭意义下的分类。当有界 Euler 类为 0 时，作用有公共不动点，等价于 $\\phi$ 可提升至 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 的同态。"
+        "zh": "## 从中心扩张到有界上循环\n\n圆周保向同胚群 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 有一个自然的中心扩张：\n\n$$0\\to\\mathbb Z\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)\\to\\operatorname{Homeo}_+(\\mathbb S^1)\\to 1,$$\n\n其中 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 是 $\\mathbb R$ 上满足 $\\tilde f(x+1)=\\tilde f(x)+1$ 的保向同胚群，核为整数平移。这个扩张的 Euler 类位于 $H^2(\\operatorname{Homeo}_+(\\mathbb S^1),\\mathbb Z)\\cong\\mathbb Z$ 中。\n\n现在取一个规范截面 $\\sigma$：对每个 $f\\in\\operatorname{Homeo}_+(\\mathbb S^1)$，$\\sigma(f)$ 是 $f$ 的唯一满足 $\\sigma(f)(0)\\in[0,1)$ 的提升。于是 $$\\overline c(f_1,f_2)=\\sigma(f_1f_2)^{-1}\\sigma(f_1)\\sigma(f_2)$$ 是一个 $2$-上循环。关键是 $\\overline c$ 的取值只能是 $0$ 或 $1$——因为 $\\sigma(f_2)(0)\\in[0,1)$，$\\sigma(f_1)\\sigma(f_2)(0)\\in[\\sigma(f_1)(0),\\sigma(f_1)(0)+1[\\subset[0,2)$，而 $\\sigma(f_1f_2)(0)\\in[0,1)$，故两者的差只能是平移 $0$ 或 $1$。\n\n这个有界性使得 $\\overline c$ 定义了有界上同调群 $H_b^2(\\operatorname{Homeo}_+(\\mathbb S^1),\\mathbb Z)$ 中的一个类，称为有界 Euler 类。对任意同态 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$，沿 $\\phi$ 拉回即得群 $\\Gamma$ 的有界 Euler 类 $eu_b(\\phi)\\in H_b^2(\\Gamma,\\mathbb Z)$。\n\n## 分类意义\n\n有界 Euler 类与旋转数之间的关系通过 $\\Gamma=\\mathbb Z$ 的情形看得最清楚：此时 $H_b^2(\\mathbb Z,\\mathbb Z)\\cong\\mathbb R/\\mathbb Z$，而有界 Euler 类在该同构下的像恰好是 $\\phi(1)$ 的旋转数。\n\n更一般地，有界 Euler 类为零当且仅当 $\\phi$ 可提升至 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 的同态，这等价于 $\\Gamma$ 在圆周上的作用存在公共不动点。此时将公共不动点切开即得一个区间上的作用——有界 Euler 类相当于将圆周作用「降维」为区间作用的障碍。\n\n对有界 Euler 类非零的轨道稠密作用，该类充当完全不变量：两个作用共轭当且仅当它们的有界 Euler 类相等。若两个作用的有界 Euler 类相等且为有理类（在某有限指数子群上拉回平凡），则两作用的有限轨道具有相同的循环结构；若为无理类，则约化后的极小作用共轭。"
       }
     ],
+    "examples": {
+      "zh": [
+        "设 $\\Gamma=\\mathbb Z$，同态 $\\phi(n)=R_{n\\alpha}$ 为旋转 $R_{n\\alpha}(z)=e^{2\\pi i n\\alpha}z$。取规范截面 $\\sigma(R_{n\\alpha})$ 满足 $\\sigma(R_{n\\alpha})(0)=\\{n\\alpha\\}$（小数部分）。则 $\\overline c(R_{m\\alpha},R_{n\\alpha})$ 的值由 $\\{m\\alpha\\}+\\{n\\alpha\\}$ 是否超过 $1$ 决定：小于 $1$ 时取 $0$，否则取 $1$。该上循环在 $H_b^2(\\mathbb Z,\\mathbb Z)\\cong\\mathbb R/\\mathbb Z$ 中的像为 $\\alpha\\bmod\\mathbb Z$，即旋转数。当 $\\alpha\\in\\mathbb Q$ 时该上同调类为有理类，每点为有限轨道；当 $\\alpha\\notin\\mathbb Q$ 时为无理类，轨道稠密。",
+        "设 $\\Gamma$ 为 $\\operatorname{Diff}^{1+\\mathrm{bv}}_+([0,1))$ 的子群且以 $0$ 为公共不动点。将区间端点粘合为圆周 $\\mathbb S^1$ 即得同态 $\\phi\\colon\\Gamma\\to\\operatorname{Homeo}_+(\\mathbb S^1)$。由于 $0$ 是 $\\Gamma$ 的公共不动点，可取提升 $\\tilde\\phi(\\gamma)$ 为 $\\gamma$ 的满足 $\\tilde\\phi(\\gamma)(0)=0$ 的平凡提升，这定义了 $\\Gamma$ 到 $\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 的同态，因此 $eu_b(\\phi)=0$。该例说明有界 Euler 类消失的圆周作用对应于区间上具有公共不动点的作用——此类作用可通过切开公共不动点还原为区间作用，从而纳入区间分类理论的框架。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "**有界 Euler 类构造。** 设 $\\sigma\\colon\\operatorname{Homeo}_+(\\mathbb S^1)\\to\\widetilde{\\operatorname{Homeo}}_+(\\mathbb S^1)$ 为满足 $\\sigma(f)(0)\\in[0,1)$ 的唯一截面。对 $f_1,f_2\\in\\operatorname{Homeo}_+(\\mathbb S^1)$，定义\n$$\\overline c(f_1,f_2)=\\sigma(f_1f_2)^{-1}\\sigma(f_1)\\sigma(f_2).$$\n由于 $\\sigma(f_2)(0)\\in[0,1)$，$\\sigma(f_1)\\sigma(f_2)(0)\\in[\\sigma(f_1)(0),\\sigma(f_1)(0)+1[\\subset[0,2)$。而 $\\sigma(f_1f_2)(0)\\in[0,1)$，故 $\\overline c(f_1,f_2)$ 是平移 $0$ 或 $1$。因此 $\\overline c$ 是取值 $\\{0,1\\}$ 的有界 $2$-上循环，对应类 $eu\\in H_b^2(\\operatorname{Homeo}_+(\\mathbb S^1),\\mathbb Z)$。"
+      ]
+    },
     "references": [
       "É. Ghys, Groups acting on the circle, Enseign. Math. 47 (2001), 329–407.",
-      "D. Eisenbud, U. Hirsch, W. Neumann, Transverse foliations, Invent. Math. 45 (1977)."
+      "D. Eisenbud, U. Hirsch, W. Neumann, Transverse foliations, Invent. Math. 45 (1977).",
+      "É. Ghys, Groupes d'homéomorphismes du cercle et cohomologie bornée, Contemp. Math. 58 III (1987), 81–106."
     ]
   }
 }

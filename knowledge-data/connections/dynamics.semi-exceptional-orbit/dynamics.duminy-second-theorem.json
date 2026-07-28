@@ -3,7 +3,7 @@
   "to": "dynamics.duminy-second-theorem",
   "description": {
     "zh": [
-      "Duminy 第二定理以半例外轨道为核心研究对象，断言每个 $C^{1+\\mathrm{Lip}}$ 半例外轨道有无穷多端。"
+      "半例外轨道是 Duminy 第二定理的核心研究对象，该定理刻画了 $C^{1+\\mathrm{Lip}}$ 半例外轨道的端结构，断言其必有无穷多端。"
     ]
   }
 }

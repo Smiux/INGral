@@ -1,9 +1,0 @@
-{
-  "from": "algebra.group-theory.sl-n-z-non-orderable",
-  "to": "dynamics.group-circle.witte-morris-theorem",
-  "description": {
-    "zh": [
-      "两者同为 Witte-Morris 关于可序群的重要结果——一个从正面（可序顺从到 R 同态），一个从负面（SL(n,Z) 有限指数子群不可序）。"
-    ]
-  }
-}

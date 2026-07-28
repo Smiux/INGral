@@ -3,7 +3,7 @@
   "to": "dynamics.plante-radon-measure",
   "description": {
     "zh": [
-      "殆幂零群不含自由半群，从而不可能有交叉元素，因此必保 Radon 测度。"
+      "交叉元素的不存在性（殆幂零群无自由半群故无交叉元素）是 Plante 保 Radon 测度定理的根本原因。"
     ]
   }
 }

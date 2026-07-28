@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.hyperbolic-linear-map",
+  "to": "analysis.operator-theory.operator-spectrum",
+  "description": {
+    "zh": [
+      "双曲线性自同构的定义完全基于算子谱：$A\\in GL(E)$ 是双曲的当且仅当其谱与单位圆不相交。谱的紧致性保证了双曲常数的存在。"
+    ]
+  }
+}

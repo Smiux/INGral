@@ -3,8 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "拓扑共轭",
-      "$C^s$-共轭"
+      "拓扑共轭"
     ]
   },
   "description": {
@@ -20,13 +19,17 @@
     ],
     "article": [
       {
-        "zh": "拓扑共轭是动力系统范畴中的同构概念：如果 $h\\circ f=g\\circ h$ 且 $h$ 是同胚，则 $f$ 和 $g$ 本质上可以视为同一系统的不同坐标表示。所有拓扑动力学性质——不动点和周期点的存在性及个数、拓扑传递性、极小性、拓扑熵（topological entropy）、链回归集——在共轭下均保持不变。\n\n共轭作为分类工具的价值在圆周向量场中已经体现——这正是旋转理论的前史。对无奇点的向量场 $X,Y$，它们 $C^{r+1}$-共轭（即存在微分同胚 $h$ 使 $h_\\star X=Y$）当且仅当它们的平均旋转速率 $\\rho_X=\\pm\\rho_Y$。二次族的正规化是另一个典型例子：给定 $f_{a,b,c}(x)=ax^2+bx+c$，假设 $a<0$ 且 $(b-1)^2-4ac\\geqslant0$。记最小不动点为 $p$，顶点为 $v=-b/(2a)$（满足 $p<v$）。通过仿射变换 $h(x)=\\alpha x+\\beta$ 使 $h(0)=p$ 和 $h(1/2)=v$，可得 $h\\circ f_{a,b,c}=Q_\\mu\\circ h$（$Q_\\mu(x)=\\mu x(1-x)$）。这一共轭将所有有不动点的抛物线族化为同一标准型 $Q_\\mu$。\n\n拓扑共轭还出现在结构稳定性定理中：Hartman-Grobman 定理断言双曲系统在其不动点附近与线性化系统拓扑共轭；圆周扩张映射的分类定理则表明所有度为 $d$ 的扩张映射均拓扑共轭于标准扩张 $E_d$。"
+        "zh": "## 动力系统范畴中的同构\n\n拓扑共轭是动力系统之间的等价关系：若存在同胚 $h\\colon M\\to N$ 使 $h\\circ f=g\\circ h$，则 $f$ 与 $g$ 可视为同一动力系统在不同坐标下的表示。所有以拓扑语言刻画的动力学性质——不动点与周期点的存在性及个数、拓扑传递性、极小性、链回归集——在共轭下均保持不变。因此共轭提供了分类框架：两个系统若拓扑共轭，它们的拓扑动力学性质完全相同。\n\n## 二次族的标准化\n\n共轭的一个具体运用是将一般二次映射标准化。考虑 $f_{a,b,c}(x)=ax^2+bx+c$，假设 $a<0$ 且存在不动点（即 $(b-1)^2-4ac\\geqslant0$）。取仿射变换 $h(x)=\\alpha x+\\beta$ 将 $0$ 和 $1/2$ 分别映到最小不动点和顶点。则存在 $\\mu>0$ 使 $h\\circ f_{a,b,c}=Q_\\mu\\circ h$，其中 $Q_\\mu(x)=\\mu x(1-x)$ 即 logistic 映射。若 $a>0$，可先通过 $h(x)=-x$ 将 $a$ 变为负值。这一共轭将所有有不动点的二次映射归入单参数族 $Q_\\mu$。\n\n## 扩张映射的分类\n\n在圆周上，共轭给出了扩张映射的完整分类。对任意整数 $d$（$|d|\\geqslant2$），每个 $C^1$ 扩张映射 $f\\colon\\mathbb T\\to\\mathbb T$（度为 $d$）均拓扑共轭于标准扩张 $E_d(z)=z^d$。扩张映射的集合 $\\mathcal E_d$ 在 $C_d^1(\\mathbb T)$ 中是 $C^1$-开集，因此每个 $f\\in\\mathcal E_d$ 存在 $C^1$ 邻域，其中所有映射仍是扩张映射，从而与 $f$ 拓扑共轭。这意味着扩张映射的动力学性质在 $C^1$ 扰动下保持稳定，即结构稳定性。"
       }
     ],
+    "examples": {
+      "zh": [
+        "设 $f_{a,b,c}(x)=ax^2+bx+c$ 满足 $(b-1)^2-4ac\\geqslant 0$。若 $a>0$，令 $\\phi(x)=-x$，则 $\\phi\\circ f_{a,b,c}=f_{-a,b,-c}\\circ\\phi$，故不妨设 $a<0$。此时 $v=-b/(2a)$ 为顶点，且 $f_{a,b,c}$ 有最小不动点 $p<v$。确定 $\\alpha,\\beta$ 使 $h(x)=\\alpha x+\\beta$ 满足 $h(0)=p$ 和 $h(1/2)=v$。存在 $\\mu>0$ 使 $h\\circ f_{a,b,c}=Q_\\mu\\circ h$，其中 $Q_\\mu(x)=\\mu x(1-x)$。即每个有不动点的二次映射仿射共轭于 logistic 映射 $Q_\\mu$。",
+        "设 $f\\in C_d^1(\\mathbb T)$ 为扩张映射（$|d|\\geqslant 2$），即存在 $C>0$、$\\lambda>1$ 使 $|Df^n(x)|\\geqslant C\\lambda^n$ 对所有 $x\\in\\mathbb T$、$n\\in\\mathbb N$ 成立。标准扩张 $E_d(z)=z^d$ 是扩张映射的基本例子：其周期点集在 $\\mathbb T$ 中稠密，且对任意非空开集 $U\\subset\\mathbb T$ 存在 $n\\in\\mathbb N$ 使 $E_d^n(U)=\\mathbb T$。拓扑共轭定理断言存在同胚 $h\\colon\\mathbb T\\to\\mathbb T$ 使 $h\\circ f=E_d\\circ h$，因此 $f$ 继承 $E_d$ 的全部拓扑动力学性质。进而，扩张映射集 $\\mathcal E_d$ 在 $C_d^1(\\mathbb T)$ 中是 $C^1$-开集，故若 $g$ 在 $C^1$ 拓扑下充分接近 $f$，则 $g$ 仍是扩张映射，从而与 $f$ 拓扑共轭。"
+      ]
+    },
     "references": [
-      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §4.1, §4.2, §5.3.",
-      "P. Hartman, A lemma in the theory of structural stability of differential equations, Proc. AMS 11 (1960), 610-620.",
-      "D. Grobman, Homeomorphisms of systems of differential equations, Dokl. Akad. Nauk SSSR 128 (1959), 880-881."
+      "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026, §4.1, §4.2, §5.3."
     ]
   }
 }

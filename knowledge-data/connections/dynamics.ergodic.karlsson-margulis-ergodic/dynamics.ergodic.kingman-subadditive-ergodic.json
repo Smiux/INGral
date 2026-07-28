@@ -1,0 +1,9 @@
+{
+  "from": "dynamics.ergodic.karlsson-margulis-ergodic",
+  "to": "dynamics.ergodic.kingman-subadditive-ergodic",
+  "description": {
+    "zh": [
+      "Karlsson–Margulis 定理中渐近速度 $s(\\omega)=\\lim (1/n)d(x_0,f_n(\\omega)x_0)$ 的存在性由 Kingman 子加性遍历定理保证，因为 $g^{(n)}(\\omega)=d(x_0,f_n(\\omega)x_0)$ 构成子加性上循环。"
+    ]
+  }
+}

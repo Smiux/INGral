@@ -3,8 +3,7 @@
   "type": "theorem",
   "name": {
     "zh": [
-      "子加性引理",
-      "次可加序列极限引理"
+      "子加性引理"
     ]
   },
   "description": {
@@ -22,14 +21,14 @@
     ],
     "article": [
       {
-        "zh": "子加性引理是渐近分析中处理「近似可加」序列的标准工具。经典的 Fekete 引理处理严格的子加性序列（$a_{m+n}\\leqslant a_m+a_n$），但旋转数证明中遇到的序列并非严格子加性——上循环恒等式（cocycle identity）给出的关系是 $|a_{m+n}-a_m-a_n|\\leqslant\\operatorname{osc}\\Delta_{\\tilde f}\\leqslant1$。该引理表明，有界误差 $C$ 足以保证极限的存在，且附带偏差估计 $|a_n-n\\rho|\\leqslant C$。\n\n证明的核心思想是：从 $\\liminf$ 出发，对任意 $\\varepsilon$ 选取 $k$ 使 $a_k/k<\\rho+\\varepsilon$，然后将任意 $n$ 分解为 $n=qk+r$，利用近似加性将 $a_n$ 放缩为 $\\leqslant q(C+a_k)+a_r+C$，最终得到 $\\limsup a_n/n\\leqslant C/k+\\rho$。令 $k\\to\\infty$ 即得 $\\limsup\\leqslant\\liminf$。\n\n该引理最经典的应用是 Poincaré 旋转数的存在性证明，其中 $a_n=\\tilde f^n(0)$。此外，在遍历论中的次可加遍历定理和双曲系统的指数增长率估计中也有广泛应用。"
+        "zh": "## 近似可加性的极限\n\n设 $(a_n)$ 是一个实数序列。若 $a_{m+n}=a_m+a_n$ 精确成立，则 $a_n=n a_1$，极限 $\\lim a_n/n$ 平凡存在。但许多自然出现的序列只满足带误差的近似可加性。以圆周同胚的旋转数为例：取保向圆周同胚的提升 $\\tilde f$，令 $a_n=\\tilde f^n(x)$。位移函数 $\\Delta_{\\tilde f^n}=\\tilde f^n-\\mathrm{id}$ 是周期函数且振幅有界，故\n\n$$\n|a_{m+n}-a_m-a_n|\\le 1.\n$$\n\n这里误差有界但不趋于零。问题在于：仅有界误差的近似可加性能否保证 $\\lim a_n/n$ 存在？\n\n## 引理\n\n子加性引理对此给出肯定回答。设实数序列 $(a_n)$ 满足 $|a_{m+n}-a_m-a_n|\\le C$ 对一切 $m,n$ 成立，则极限 $\\rho=\\lim a_n/n$ 存在，且 $|a_n-n\\rho|\\le C$ 对一切 $n$ 成立。该引理的要点在于，有界常数 $C$ 不仅是极限存在的保证，还以同一常数控制序列偏离线性增长的程度——这一误差估计在应用中直接给出收敛速度。\n\n## 在旋转数中的应用\n\n在旋转数的标准证明中，取 $a_n=\\tilde f^n(0)$。由位移函数的周期性验证条件成立，于是 $\\rho(\\tilde f)=\\lim\\tilde f^n(0)/n$ 存在。再利用同一振幅估计，该极限对一切 $x$ 一致收敛，因此 $\\rho(\\tilde f)$ 完全由 $\\tilde f$ 决定而不依赖于基点的选择。"
       }
     ],
-    "proof": [
-      {
-        "zh": "定义 $\\rho:=\\liminf_{n\\to+\\infty}a_n/n$。给定 $\\varepsilon>0$，取 $k$ 使 $a_k/k<\\rho+\\varepsilon$。对任意 $n\\in\\mathbb N$，写 $n=qk+r$，$0\\leqslant r<k$。则\n$$a_n\\leqslant|a_n-a_{qk}-a_r|+a_{qk}+a_r\\leqslant C+\\sum_{j=0}^{q-1}|a_{(j+1)k}-a_{jk}-a_k|+qa_k+a_r\\leqslant C+qC+qa_k+a_r.$$\n故 $a_n/n\\leqslant q(C+a_k)/n+a_r/n+C/n\\to(C+a_k)/k<C/k+\\rho+\\varepsilon$。由 $\\varepsilon$ 任意，$\\limsup a_n/n\\leqslant C/k+\\rho$。再由 $k$ 的取法（$\\rho=\\liminf a_n/n$），令 $k\\to\\infty$ 得 $\\limsup a_n/n\\leqslant\\liminf a_n/n$，即极限存在且等于 $\\rho$。\n\n有界估计：由于 $\\rho=\\lim a_n/n$，存在 $N$ 使 $|a_n/n-\\rho|\\leqslant C/n$ 当 $n\\geqslant N$。由假设直接放缩对所有 $n$ 成立。"
-      }
-    ],
+    "examples": {
+      "zh": [
+        "设 $f$ 是保向圆周同胚，$\\tilde f$ 为其一提升。取 $a_n = \\tilde f^n(0)$，则 $(a_n)$ 满足子加性引理的条件（$C=1$）。验证如下：由位移函数 $\\Delta_{\\tilde f^n} = \\tilde f^n - \\mathrm{id}$ 的 $\\mathbb Z$-周期性和振幅至多为 $1$ 可知，对任意 $m,n$，\n$$\n|a_{m+n} - a_m - a_n| = |\\tilde f^{m+n}(0) - \\tilde f^m(0) - \\tilde f^n(0)|\n= |\\Delta_{\\tilde f^n}(\\tilde f^m(0)) - \\Delta_{\\tilde f^n}(0)| \\leqslant 1.\n$$\n因此极限 $\\rho = \\lim_{n\\to+\\infty} \\tilde f^n(0)/n$ 存在，且 $|\\tilde f^n(0) - n\\rho| \\leqslant 1$ 对一切 $n$ 成立。该极限称为旋转数。"
+      ]
+    },
     "references": [
       "M. Gromov, Groups of polynomial growth and expanding maps, Publ. Math. IHES 53 (1981), 53-73.",
       "A. Kocsard, Lecture Notes on Dynamics I, IMPA, 2026."

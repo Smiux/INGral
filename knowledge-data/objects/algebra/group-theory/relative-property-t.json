@@ -1,0 +1,42 @@
+{
+  "id": "algebra.group-theory.relative-property-t",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "相对性质 (T)"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $\\Gamma$ 为局部紧群，$\\Gamma_0$ 为 $\\Gamma$ 的子群。称对 $(\\Gamma,\\Gamma_0)$ 具有**相对性质 (T)**，若对每个 $\\Gamma$ 在 Hilbert 空间上的等距表示（连续），存在 $\\Gamma_0$ 不变的向量。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "Kazhdan",
+      "性质 (T)",
+      "相对性质",
+      "单一性"
+    ],
+    "article": [
+      {
+        "zh": "## 定义\n\n相对性质 (T) 是性质 (T) 的弱化，适用于那些整体上不满足性质 (T)、但仍有某种刚性约束的群。对局部紧群 $\\Gamma$ 及其子群 $\\Gamma_0$，称对 $(\\Gamma,\\Gamma_0)$ 具有相对性质 (T)，若 $\\Gamma$ 在 Hilbert 空间上的每个连续等距表示都存在 $\\Gamma_0$-不变向量。该定义将性质 (T) 的要求从整个群放宽到指定的子群。\n\n## 典型例子\n\n标准例子是 $(\\operatorname{SL}(2,\\mathbb Z)\\ltimes\\mathbb Z^2,\\mathbb Z^2)$。$\\operatorname{SL}(2,\\mathbb Z)$ 本身不具有性质 (T)——它含有自由子群 $F_2$——但 $\\operatorname{SL}(2,\\mathbb Z)$ 与 $\\mathbb Z^2$ 的半直积对 $\\mathbb Z^2$ 具有相对性质 (T)。换一种表述：$\\operatorname{SL}(2,\\mathbb Z)\\ltimes\\mathbb Z^2$ 不满足性质 (T)，但任何在 Hilbert 空间上的等距作用中，$\\mathbb Z^2$ 因子总有一个不变向量。\n\n## 刚性分类\n\n若 $\\Gamma$ 与 $\\Gamma_0$ 均不具有性质 (T)，则 $\\Gamma_0$ 通常被取为 $\\Gamma$ 的正规子群。在这一条件下，相对性质 (T) 对圆周微分同胚群产生如下分类：设 $\\Gamma$ 是 $\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$ 的子群（$\\tau>1/2$），且 $\\Gamma$ 包含正规子群 $\\Gamma_0$ 使得 $(\\Gamma,\\Gamma_0)$ 具有相对性质 (T)。则要么 $\\Gamma$ 拓扑共轭于旋转群的子群，要么 $\\Gamma_0$ 有限。\n\n## 非光滑化构造\n\n该定理不能推广到同胚群：$\\operatorname{SL}(2,\\mathbb Z)\\ltimes\\mathbb Z^2$ 可以忠实地通过圆周同胚作用。构造从 $\\operatorname{PSL}(2,\\mathbb R)$ 在圆周上的标准作用出发，选取一个在 $\\operatorname{SL}(2,\\mathbb Z)$ 作用下稳定子平凡的点，将该点轨道中的每一点替换为小区间，在这些区间上通过仿射变换扩展 $\\operatorname{SL}(2,\\mathbb Z)$ 的作用，再引入 $\\mathbb Z^2$ 因子作为区间上的平移流。该构造不是 $\\mathrm C^1$ 可光滑化的。对 $\\operatorname{SL}(2,\\mathbb Z)$ 的任何非可解子群 $H$，半直积 $H\\ltimes\\mathbb Z^2$ 都不能嵌入 $\\operatorname{Diff}_+^1(\\mathbb S^1)$ 或 $\\operatorname{Diff}_+^1(\\mathbb R)$。\n\n若 $\\mathbb F_2$ 是 $\\operatorname{SL}(2,\\mathbb Z)$ 中有限指数的自由子群，则对 $(\\mathbb F_2\\times\\mathbb Z^2,\\mathbb Z^2)$ 仍具有相对性质 (T)。$\\mathbb F_2\\times\\mathbb Z^2$ 是可序群（实际是局部可指示的），因而可以忠实地作用于区间，但同样不能实现为 $\\mathrm C^1$ 微分同胚。这表明相对性质 (T) 本身不排除一维保向同胚作用的存在性，但光滑性要求会引入额外的障碍。"
+      }
+    ],
+    "examples": {
+      "zh": [
+        "设 $\\Gamma=\\operatorname{SL}(2,\\mathbb Z)\\ltimes\\mathbb Z^2$，其中半直积由 $\\operatorname{SL}(2,\\mathbb Z)$ 在 $\\mathbb Z^2$ 上的自然作用定义。取 $\\Gamma_0=\\mathbb Z^2$ 为 $\\Gamma$ 的正规子群。则对 $(\\Gamma,\\Gamma_0)$ 具有相对性质 (T)：对 $\\Gamma$ 在 Hilbert 空间上的每个连续等距表示，存在非零向量被 $\\Gamma_0$ 固定。该例子中 $\\Gamma$ 与 $\\Gamma_0$ 均不具有性质 (T)，但两者间的相对关系仍提供了足够强的刚性。",
+        "设 $\\mathbb F_2$ 是 $\\operatorname{SL}(2,\\mathbb Z)$ 中有限指数的自由子群，考虑群 $\\Gamma=\\mathbb F_2\\times\\mathbb Z^2$ 及其正规子群 $\\Gamma_0=\\mathbb Z^2$。则对 $(\\Gamma,\\Gamma_0)$ 具有相对性质 (T)。此外，$\\mathbb F_2\\times\\mathbb Z^2$ 是可序群（实际上是局部可指示的），因而可以通过区间同胚忠实地作用。该作用不能由 $\\operatorname{SL}(2,\\mathbb Z)\\ltimes\\mathbb Z^2$ 在圆周上的作用限制得到，但可通过类似构造实现。"
+      ]
+    },
+    "proof": {
+      "zh": [
+        "设 $\\Phi:\\Gamma\\to\\operatorname{Diff}_+^{1+\\tau}(\\mathbb S^1)$ 为表示。考虑与 $\\Phi$ 相伴的余圈及其在空间 $\\mathcal L_{\\mathbb R}^{2,\\Delta}(\\mathbb S^1\\times\\mathbb S^1,Lv)$ 上的表示。由相对性质 (T) 知该表示存在 $\\Gamma_0$-不变向量，进而由稳定测地流的性质可知 $\\Gamma_0$ 拓扑共轭于 Möbius 群 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群。利用相对性质 (T) 在有限中心扩张下的稳定性，通过对 $\\operatorname{PSL}(2,\\mathbb R)$ 的三重覆盖技巧，可将 $\\Gamma_0$ 进一步共轭为旋转群 $\\operatorname{SO}(2,\\mathbb R)$ 的子群。若 $\\Gamma_0$ 无限，则它共轭于 $\\operatorname{SO}(2,\\mathbb R)$ 的稠密子群。由于 $\\operatorname{SO}(2,\\mathbb R)$ 的每个稠密子群在 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 中的正规化子都是 $\\operatorname{SO}(2,\\mathbb R)$ 自身，故 $\\Gamma$ 共轭于 $\\operatorname{SO}(2,\\mathbb R)$ 的子群。"
+      ]
+    },
+    "references": [
+      "A. Navas, Groups of Circle Diffeomorphisms, Ensaios Matemáticos 13 (2007), §5.2.4.",
+      "Y. de Cornulier, Relative Kazhdan property, Annales Sci. ENS 39 (2006), 301-333."
+    ]
+  }
+}

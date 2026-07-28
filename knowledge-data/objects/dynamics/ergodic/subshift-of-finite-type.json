@@ -3,9 +3,7 @@
   "type": "definition",
   "name": {
     "zh": [
-      "有限型子移位",
-      "SFT",
-      "subshift of finite type"
+      "有限型子移位"
     ]
   },
   "description": {
@@ -22,11 +20,18 @@
     ],
     "article": [
       {
-        "zh": "有限型子移位是符号动力学的基本对象。它可想象为一个有向图上的所有无穷路径——顶点为 $S$，边由 $A$ 中的 $1$ 定义。左移位沿路径前移一步。\n\n子移位的测度论性质由转移矩阵 $A$ 和其上的 Markov 测度（即平稳概率向量 $\\underline p$ 与转移概率矩阵 $P$ 兼容）决定。当 $P$ 不可约时 Markov 测度是遍历的；当 $P$ 不可约且非周期时是混合的。\n\n典型的例子包括：全移位（$A$ 全 $1$ 矩阵，即 Bernoulli 方案），以及排除某些禁止字的限制性子移位。"
+        "zh": "## 符号编码的起源\n\n符号动力系统的出发点是：用状态空间的有限划分将轨道编码为符号序列。以二次映射 $Q_\\mu$（$\\mu>\\sqrt5+2$）为例，其不变集 $\\Lambda_\\mu$ 由两个不相交的闭区间 $I_\\mu^1,I_\\mu^2$ 覆盖。每条轨道依次落入哪个区间就对应一个二元符号序列，游历映射 $\\Lambda_\\mu\\to\\{1,2\\}^{\\mathbb N}$ 将 $Q_\\mu$ 共轭于左移位。\n\n## 全移位空间\n\n一般地，取有限字母集 $S=\\{1,\\dots,k\\}$，在 $S^{\\mathbb N}$ 上赋予乘积拓扑。该拓扑由度量 $d(x,y)=2^{-\\min\\{n:x_n\\neq y_n\\}}$ 诱导，在此度量下 $S^{\\mathbb N}$ 是紧致的，柱集同时开且闭。左移位 $\\sigma(x_0x_1x_2\\ldots)=x_1x_2\\ldots$ 是连续满射，周期点稠密，满足强拓扑混合。当 $k\\ge2$ 时 $S^{\\mathbb N}$ 是 Cantor 空间。\n\n## 转移约束\n\n有限型子移位（SFT）在全移位基础上加入转移约束。给定 $S\\times S$ 上的 $0$-$1$ 矩阵 $A=(t_{ab})$（无全零行或列），定义\n\n$$\\Sigma_A^+=\\{x\\in S^{\\mathbb N}:t_{x_ix_{i+1}}=1,\\ \\forall i\\}.$$\n\n图论解释：以 $S$ 为顶点集、$t_{ab}=1$ 定义有向边，则 $\\Sigma_A^+$ 中的序列对应于图上的无穷路径，左移位将路径前移一步。$\\Sigma_A^+$ 是 $S^{\\mathbb N}$ 的闭子集，继承同样的度量和紧致性。全移位对应 $A$ 全为 $1$ 的情形。\n\n## 测度论\n\n子移位上可配备与 $A$ 兼容的 Markov 测度：取平稳概率向量 $\\underline p$ 与转移矩阵 $P$，满足 $A_{ab}=0\\Rightarrow P_{ab}=0$。$P$ 不可约时测度遍历，不可约且非周期时测度混合。$A$ 的组合结构完全决定了对应 Markov 测度的遍历和混合性质。"
       }
     ],
+    "examples": {
+      "zh": [
+        "取字母集 $S=\\{1,\\dots,k\\}$，令转移矩阵 $A$ 的所有元素均为 $1$，则 $\\Sigma_A^+=S^{\\mathbb N}$ 为 $k$ 符号全移位。任意符号之后可跟随任意符号，无任何转移约束。移位映射 $\\sigma$ 在此情形下具有以下性质：周期点（即由有限词重复构成的序列）在 $S^{\\mathbb N}$ 中稠密；$\\sigma$ 是拓扑传递的——存在一条轨道在 $S^{\\mathbb N}$ 中稠密；且对任意非空开集 $U$ 存在 $n$ 使得 $\\sigma^n(U)=S^{\\mathbb N}$。度量 $d(x,y)=2^{-\\min\\{n:x_n\\neq y_n\\}}$ 下的柱集构成 $S^{\\mathbb N}$ 的拓扑基，$S^{\\mathbb N}$ 在此度量下是一个 Cantor 空间。",
+        "取 $\\mu>\\sqrt5+2$，考虑二次映射 $Q_\\mu(x)=\\mu x(1-x)$。此时 $\\Lambda_\\mu=\\bigcap_{n\\ge0}Q_\\mu^{-n}([0,1])$ 是 $Q_\\mu$ 的紧致完全不变量集，由两个不相交的闭区间 $I_\\mu^1=[0,r_\\mu]$ 和 $I_\\mu^2=[s_\\mu,1]$ 之并组成（$r_\\mu<1/2<s_\\mu$ 满足 $Q_\\mu(r_\\mu)=Q_\\mu(s_\\mu)=1$）。定义游历映射 $h:\\Lambda_\\mu\\to\\{1,2\\}^{\\mathbb N}$ 为 $h(x)_n=1$ 当 $Q_\\mu^n(x)\\in I_\\mu^1$，$h(x)_n=2$ 当 $Q_\\mu^n(x)\\in I_\\mu^2$。由于 $\\mu>\\sqrt5+2$ 保证存在 $\\lambda>1$ 使得 $|Q_\\mu'(x)|>\\lambda$ 在 $I_\\mu^1\\cup I_\\mu^2$ 上一致成立，$h$ 是连续单射。另一方面，对每个符号序列 $(i_n)\\in\\{1,2\\}^{\\mathbb N}$，利用局部逆映射 $g_i:[0,1]\\to I_\\mu^i$ 构造 $x=\\bigcap_{n\\ge0}g_{i_0}\\circ\\cdots\\circ g_{i_n}([0,1])$，则 $h(x)=(i_n)$，故 $h$ 满射。因此 $h$ 是同胚且满足 $h\\circ Q_\\mu=\\sigma\\circ h$，即 $Q_\\mu$ 在 $\\Lambda_\\mu$ 上的限制共轭于二元全移位。"
+      ]
+    },
     "references": [
-      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.5.4."
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.5.4.",
+      "A. Kocsard, Lecture Notes on Dynamics I (2026), §4.2."
     ]
   }
 }

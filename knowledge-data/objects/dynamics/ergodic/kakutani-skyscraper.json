@@ -1,0 +1,36 @@
+{
+  "id": "dynamics.ergodic.kakutani-skyscraper",
+  "type": "definition",
+  "name": {
+    "zh": [
+      "Kakutani 摩天楼"
+    ]
+  },
+  "description": {
+    "zh": [
+      "设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换，$r:X\\to\\mathbb N$ 为可积可测函数。Kakutani 摩天楼是系统 $(X_r,\\mathcal B(X_r),\\nu,S)$，其中\n1. $X_r:=\\{(x,n):x\\in X,\\,0\\le n\\le r(x)-1\\}$；\n2. $\\mathcal B(X_r):=\\{E\\in\\mathcal B(X)\\otimes\\mathcal B(\\mathbb N):E\\subseteq X_r\\}$；\n3. $\\nu(B\\times\\{k\\}):=\\mu(B)/\\int r\\,d\\mu$；\n4. $S(x,n):=\\begin{cases}(x,n+1),&n<r(x)-1\\\\(Tx,0),&n=r(x)-1\\end{cases}$。"
+    ]
+  },
+  "extension": {
+    "tags": [
+      "遍历理论",
+      "诱导变换",
+      "悬挂流",
+      "回复时间",
+      "Abramov 公式"
+    ],
+    "article": [
+      {
+        "zh": "## 从诱导到扩张\n\n诱导变换从给定系统中提取一个子集上的首次返回映射，Kakutani 摩天楼则走相反的方向：从一个基系统和一个高度函数出发，构造一个更大的系统，使得该基系统恰好是底层集上的诱导变换。\n\n## 构造\n\n设 $(X,\\mathcal B,\\mu,T)$ 为概率保测变换，$r:X\\to\\mathbb N$ 为可积可测函数。直观图像是每一点 $x\\in X$ 上方竖起一座高度为 $r(x)$ 的摩天楼，楼内各层编号为 $0,1,\\dots,r(x)-1$。变换 $S$ 沿楼层逐层上升：$S(x,n)=(x,n+1)$，到达顶层 $n=r(x)-1$ 时跃迁到 $(Tx,0)$。相空间为\n$$X_r:=\\{(x,n):x\\in X,\\,0\\le n\\le r(x)-1\\},$$\n其上的不变概率测度 $\\nu$ 按 $\\nu(B\\times\\{k\\})=\\mu(B)/\\int r\\,d\\mu$ 分配。\n\n## 与诱导变换的关系\n\n取底层集 $A=\\{(x,0):x\\in X\\}$，其 $\\nu$-测度为 $1/\\int r\\,d\\mu$。对 $A$ 进行诱导，首次返回时间为 $r(x)$，返回位置为 $(Tx,0)$，故诱导变换 $S_A$ 与 $(X,\\mathcal B,\\mu,T)$ 同构。\n\n## 性质的继承\n\n若基系统遍历，则 Kakutani 摩天楼也遍历。混合性则不一定继承——基系统混合时，摩天楼可能因楼层结构的存在而阻止充分混合。"
+      }
+    ],
+    "proof": {
+      "zh": [
+        "**摩天楼的保测性。** 直接验证 $\\nu\\circ S^{-1}=\\nu$ 即可：对 $B\\times\\{k\\}$（$k<r(x)-1$），$S^{-1}(B\\times\\{k\\})=B\\times\\{k-1\\}$，故 $\\nu(S^{-1}(B\\times\\{k\\}))=\\mu(B)/\\int r\\,d\\mu=\\nu(B\\times\\{k\\})$。对顶层 $(B\\times\\{r(x)-1\\})$，$S^{-1}(B\\times\\{0\\})=T^{-1}B\\times\\{r(x)-1\\}$，由 $\\mu$ 的 $T$-不变性得 $\\nu(S^{-1}(B\\times\\{0\\}))=\\mu(T^{-1}B)/\\int r\\,d\\mu=\\mu(B)/\\int r\\,d\\mu=\\nu(B\\times\\{0\\})$。\n\n**诱导变换关系。** 对底层集 $A=\\{(x,0):x\\in X\\}$ 进行诱导，首次返回时间为 $\\varphi_A(x,0)=r(x)$，返回位置为 $(Tx,0)$。因此诱导变换 $S_A$ 满足 $S_A(x,0)=(Tx,0)$，与基系统 $(X,\\mathcal B,\\mu,T)$ 同构。"
+      ]
+    },
+    "references": [
+      "O. Sarig, Lecture Notes on Ergodic Theory (2023), §1.6.5."
+    ]
+  }
+}
