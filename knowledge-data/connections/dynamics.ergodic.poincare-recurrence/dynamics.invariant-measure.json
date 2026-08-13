@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.poincare-recurrence",
-  "to": "dynamics.invariant-measure",
-  "description": {
-    "zh": [
-      "Poincaré 回复定理的证明建立在保测变换的测度保持性质上，是不变测度存在性的直接推论。"
-    ]
-  }
-}

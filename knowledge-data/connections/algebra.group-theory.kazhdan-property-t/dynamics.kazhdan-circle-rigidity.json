@@ -1,9 +1,0 @@
-{
-  "from": "algebra.group-theory.kazhdan-property-t",
-  "to": "dynamics.kazhdan-circle-rigidity",
-  "description": {
-    "zh": [
-      "Kazhdan 圆刚性定理依赖性质 (T) 的上同调方法。"
-    ]
-  }
-}

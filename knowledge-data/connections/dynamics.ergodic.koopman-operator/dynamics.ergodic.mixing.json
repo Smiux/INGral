@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.koopman-operator",
-  "to": "dynamics.ergodic.mixing",
-  "description": {
-    "zh": [
-      "混合性等价于 Koopman 算子的相关系数衰减：$\\langle U_T^n f,g\\rangle\\to\\langle f,1\\rangle\\overline{\\langle g,1\\rangle}$。"
-    ]
-  }
-}

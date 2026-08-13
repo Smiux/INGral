@@ -12,13 +12,8 @@ build
 docs/
 src/brainstorm/content/
 
-# AI 代理相关文件
-agents.md
-.agents/
-
 # IDE 和编辑器配置
 .vscode/
-.reasonix/
 
 # 脚本目录
 scripts/
@@ -26,4 +21,3 @@ scripts/
 # 原始数据目录
 public/data/raw/
 public/data/mathlib/
-pdf/

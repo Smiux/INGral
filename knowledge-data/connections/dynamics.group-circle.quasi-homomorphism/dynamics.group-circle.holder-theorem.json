@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.quasi-homomorphism",
-  "to": "dynamics.group-circle.holder-theorem",
-  "description": {
-    "zh": [
-      "拟同态是 Hölder 定理证明中从序结构提取群同态 $\\phi$ 的关键工具。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.translation-number-uniqueness",
-  "to": "dynamics.no-crossed-radon-measure",
-  "description": {
-    "zh": [
-      "无交叉元素保测定理保证 Radon 测度存在，平移数比例性和唯一性给出该测度的结构性质。"
-    ]
-  }
-}

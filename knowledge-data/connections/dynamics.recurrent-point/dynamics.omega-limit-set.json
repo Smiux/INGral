@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.recurrent-point",
-  "to": "dynamics.omega-limit-set",
-  "description": {
-    "zh": [
-      "正回归集是极限集的子集：$\\operatorname{Rec}^+(f)\\subset L(f)$。正回归点 $p$ 必然落在其自身的 $\\omega$-极限集中。"
-    ]
-  }
-}

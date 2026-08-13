@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.periodic-point",
-  "to": "dynamics.circle.rotation-number-rationality",
-  "description": {
-    "zh": [
-      "圆周同胚的周期点存在性由旋转数的有理性格刻画。"
-    ]
-  }
-}

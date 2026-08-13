@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.lie-classification-1d",
-  "to": "dynamics.group-circle.projective-action",
-  "description": {
-    "zh": [
-      "$\\operatorname{PSL}_k(2,\\mathbb R)$ 的射影作用是分类中仅有的两种圆周上传递忠实 Lie 群作用之一。"
-    ]
-  }
-}

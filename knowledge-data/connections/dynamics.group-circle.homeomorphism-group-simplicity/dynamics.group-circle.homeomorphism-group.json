@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.homeomorphism-group-simplicity",
-  "to": "dynamics.group-circle.homeomorphism-group",
-  "description": {
-    "zh": [
-      "单性定理断言 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 是单群，即该群没有非平凡的正规子群。"
-    ]
-  }
-}

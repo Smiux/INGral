@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.mobius-transformation",
-  "to": "dynamics.hyperbolic-fixed-point",
-  "description": {
-    "zh": [
-      "双曲型 Möbius 变换（$|\\operatorname{tr} A|>2$）为双曲不动点概念提供了参数化实例族，其特征值 $\\lambda,\\lambda^{-1}\\in\\mathbb R$ 对应的两个不动点分别具有导数 $\\lambda^2$（排斥）和 $\\lambda^{-2}$（吸引），展示了双曲不动点的完整行为。"
-    ]
-  }
-}

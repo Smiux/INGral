@@ -1,9 +1,0 @@
-{
-  "from": "analysis.combinatorics.subadditive-lemma",
-  "to": "dynamics.ergodic.kingman-subadditive-ergodic",
-  "description": {
-    "zh": [
-      "子加性引理是组合版本的实数列极限存在性结果，Kingman 定理是其在测度论框架中关于上循环的推广。"
-    ]
-  }
-}

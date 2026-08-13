@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.metric-entropy",
-  "to": "dynamics.ergodic.bernoulli-scheme",
-  "description": {
-    "zh": [
-      "度量熵最初由 Kolmogorov 和 Sinai 为区分谱同构的 Bernoulli 方案而引入。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.dynamical-system",
-  "to": "dynamics.orbit",
-  "description": {
-    "zh": [
-      "轨道的概念将动力系统的抽象定义与相空间上的具体动力学行为联系起来。"
-    ]
-  }
-}

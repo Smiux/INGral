@@ -1,9 +1,0 @@
-{
-  "from": "analysis.operator-theory.operator-spectrum",
-  "to": "analysis.operator-theory.spectral-decomposition",
-  "description": {
-    "zh": [
-      "谱分解定理将算子的谱分割转化为空间的结构分解——闭 $A$-不变子空间的直和分解对应于谱集的不交划分，每个子空间上的谱恰为该划分的对应部分。"
-    ]
-  }
-}

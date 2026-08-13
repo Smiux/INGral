@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.topological-factor",
-  "to": "dynamics.topological-conjugacy",
-  "description": {
-    "zh": [
-      "拓扑因子通过连续满射 $h$ 与原系统建立半共轭关系；半共轭是拓扑共轭在 $h$ 仅为连续满射（而非同胚）时的弱化版本，其交换关系 $h\\circ f=g\\circ h$ 成立。"
-    ]
-  }
-}

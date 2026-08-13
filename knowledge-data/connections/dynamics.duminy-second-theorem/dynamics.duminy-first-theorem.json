@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.duminy-second-theorem",
-  "to": "dynamics.duminy-first-theorem",
-  "description": {
-    "zh": [
-      "Duminy 第二定理将第一定理对例外极小集的存在性判定推进到半例外轨道结构的精确刻画，是同一研究方向上的深化。"
-    ]
-  }
-}

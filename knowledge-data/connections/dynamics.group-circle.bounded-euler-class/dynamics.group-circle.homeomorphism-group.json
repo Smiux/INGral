@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.bounded-euler-class",
-  "to": "dynamics.group-circle.homeomorphism-group",
-  "description": {
-    "zh": [
-      "有界 Euler 类定义在 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的中心扩张上，揭示了该群上同调结构的重要信息。"
-    ]
-  }
-}

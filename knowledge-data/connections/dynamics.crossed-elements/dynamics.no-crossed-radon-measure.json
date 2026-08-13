@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.crossed-elements",
-  "to": "dynamics.no-crossed-radon-measure",
-  "description": {
-    "zh": [
-      "交叉元素的存在导致自由半群的产生从而破坏保 Radon 测度的可能性——这是无交叉元素保测定理的逆否方向。"
-    ]
-  }
-}

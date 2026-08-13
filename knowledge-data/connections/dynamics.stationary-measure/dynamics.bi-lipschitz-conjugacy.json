@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.stationary-measure",
-  "to": "dynamics.bi-lipschitz-conjugacy",
-  "description": {
-    "zh": [
-      "平稳测度是 Bi-Lipschitz 共轭定理证明的核心工具。"
-    ]
-  }
-}

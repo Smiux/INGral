@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.shadowing-lemma",
-  "to": "dynamics.circle.expanding-map",
-  "description": {
-    "zh": [
-      "影子引理的适用范围是扩张映射——其证明依赖于扩张映射的导数一致指数增长，由此得的局部逆和回溯构造保证了每条伪轨被唯一真实轨道跟踪。"
-    ]
-  }
-}

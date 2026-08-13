@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.translation-number-uniqueness",
-  "to": "dynamics.translation-number",
-  "description": {
-    "zh": [
-      "平移数的比例性和唯一性刻画了不变 Radon 测度的结构。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "analysis.geometric-function-theory.liouville-geodesic-current",
-  "to": "dynamics.group-circle.projective-action",
-  "description": {
-    "zh": [
-      "Liouville 测地线流是 PSL(2,R) 射影作用的不变量，且其唯一性刻画了 PSL(2,R)。"
-    ]
-  }
-}

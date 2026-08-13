@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.structural-stability",
-  "to": "dynamics.circle.expanding-conjugacy",
-  "description": {
-    "zh": [
-      "圆周扩张映射为结构稳定性提供了具体实例：扩张共轭定理的推论表明每个 $C^1$ 扩张映射是 $C^1$ 结构稳定的。"
-    ]
-  }
-}

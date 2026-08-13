@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.orbit-stabilizer",
-  "to": "dynamics.group-circle.action",
-  "description": {
-    "zh": [
-      "轨道和稳定子建立在作用 $\\Gamma\\times\\mathbb S^1\\to\\mathbb S^1$ 之上——轨道 $\\Gamma\\cdot x$ 刻画了 $\\Gamma$ 的轨迹分布，稳定子 $\\operatorname{Stab}(x)$ 刻画了 $\\Gamma$ 在点 $x$ 处的局部对称性。"
-    ]
-  }
-}

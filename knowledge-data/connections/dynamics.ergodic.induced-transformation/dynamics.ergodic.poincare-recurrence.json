@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.induced-transformation",
-  "to": "dynamics.ergodic.poincare-recurrence",
-  "description": {
-    "zh": [
-      "诱导变换的良好定义依赖于 Poincaré 回复定理，该定理保证几乎所有点 x∈A 都会返回 A，故首次返回时间几乎处处有限。"
-    ]
-  }
-}

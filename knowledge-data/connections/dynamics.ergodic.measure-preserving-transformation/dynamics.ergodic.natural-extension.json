@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.measure-preserving-transformation",
-  "to": "dynamics.ergodic.natural-extension",
-  "description": {
-    "zh": [
-      "自然延拓为不可逆保测变换提供了逆极限构造的可逆延拓，使不可逆系统的研究可以借由可逆系统进行。"
-    ]
-  }
-}

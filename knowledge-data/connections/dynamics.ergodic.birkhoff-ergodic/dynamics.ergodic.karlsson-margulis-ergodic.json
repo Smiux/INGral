@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.birkhoff-ergodic",
-  "to": "dynamics.ergodic.karlsson-margulis-ergodic",
-  "description": {
-    "zh": [
-      "Birkhoff 遍历定理在 $\\mathbb R^d$ 平移作用 $f(\\omega)\\cdot v=v+\\tilde f(\\omega)$ 的特例下，是 Karlsson–Margulis 定理在 Euclid 空间（CAT(0) 空间）中的退化形式。"
-    ]
-  }
-}

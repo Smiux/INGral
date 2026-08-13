@@ -1,9 +1,0 @@
-{
-  "from": "algebra.group-theory.left-orderable-group",
-  "to": "dynamics.group-circle.holder-theorem",
-  "description": {
-    "zh": [
-      "Hölder 定理从左可序群中分离出满足 Archimedes 性质的精细子类。"
-    ]
-  }
-}

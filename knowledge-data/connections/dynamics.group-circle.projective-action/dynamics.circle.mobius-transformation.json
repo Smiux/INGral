@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.projective-action",
-  "to": "dynamics.circle.mobius-transformation",
-  "description": {
-    "zh": [
-      "射影作用通过矩阵 $A\\in\\operatorname{PGL}(2,\\mathbb R)$ 诱导的 Möbius 变换 $x\\mapsto (ax+b)/(cx+d)$ 显式实现，Möbius 变换是该作用在 $\\mathbb{RP}^1$ 坐标下的解析表示。"
-    ]
-  }
-}

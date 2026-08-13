@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.induced-transformation",
-  "to": "dynamics.ergodic.measure-preserving-transformation",
-  "description": {
-    "zh": [
-      "诱导变换将原系统的保测结构继承到正测度子集上，是限制子集上的保测变换构造。"
-    ]
-  }
-}

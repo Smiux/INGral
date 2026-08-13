@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.fixed-point",
-  "to": "dynamics.periodic-point",
-  "description": {
-    "zh": [
-      "不动点是周期为 1 的周期点，即 $\\operatorname{Fix}(f)\\subset\\operatorname{Per}(f)$。"
-    ]
-  }
-}

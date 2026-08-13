@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.action",
-  "to": "dynamics.group-circle.affine-group-action",
-  "description": {
-    "zh": [
-      "圆周群作用在有全局不动点时可在补区间上分解为传递成分，其中仿射情形对应 $\\operatorname{Aff}_+(\\mathbb R)$ 在 $\\mathbb R$ 上的作用。"
-    ]
-  }
-}

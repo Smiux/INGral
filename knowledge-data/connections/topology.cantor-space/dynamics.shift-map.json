@@ -1,9 +1,0 @@
-{
-  "from": "topology.cantor-space",
-  "to": "dynamics.shift-map",
-  "description": {
-    "zh": [
-      "符号空间 $[[k]]^{\\mathbb N_0}$ 是 Cantor 空间的原型例子，移位映射 $\\sigma$ 定义在其上。"
-    ]
-  }
-}

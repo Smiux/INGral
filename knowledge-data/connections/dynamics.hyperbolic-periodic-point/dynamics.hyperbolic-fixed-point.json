@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.hyperbolic-periodic-point",
-  "to": "dynamics.hyperbolic-fixed-point",
-  "description": {
-    "zh": [
-      "$n=1$ 时双曲周期点的定义与双曲不动点完全一致：$|Df(p)|\\neq1$。"
-    ]
-  }
-}

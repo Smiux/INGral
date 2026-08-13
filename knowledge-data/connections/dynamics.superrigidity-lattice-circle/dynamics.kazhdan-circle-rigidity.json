@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.superrigidity-lattice-circle",
-  "to": "dynamics.kazhdan-circle-rigidity",
-  "description": {
-    "zh": [
-      "具有性质 (T) 的高秩单 Lie 群格点的情形直接由 Kazhdan 圆周作用有限性定理处理。"
-    ]
-  }
-}

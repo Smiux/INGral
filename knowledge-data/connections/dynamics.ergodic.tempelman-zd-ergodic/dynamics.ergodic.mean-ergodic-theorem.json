@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.tempelman-zd-ergodic",
-  "to": "dynamics.ergodic.mean-ergodic-theorem",
-  "description": {
-    "zh": [
-      "Tempelman 定理的证明使用 $L^2$ 正交分解将函数分解为余边界和与不变函数之和，这一分解直接来源于均值遍历定理的等距算子处理。"
-    ]
-  }
-}

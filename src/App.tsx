@@ -5,8 +5,6 @@ import { NavigatorProvider, NavigatorTrigger, NavigatorSidebar, NavigatorCacheMa
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import SubjectVisualization from './components/graph/SubjectVisualization';
-import MathGallery from './components/math/MathGallery';
-import TestPage from './components/math/TestPage';
 import { ArticleViewer, ArticleEditor } from './components/articles';
 import GraphVisualization from './components/graph/GraphVisualization';
 import { BrainstormPage } from './brainstorm/BrainstormPage';
@@ -264,8 +262,6 @@ function AppContent () {
             <Route path="/articles/:slug" element={<CachedArticleViewer />} />
             <Route path="/articles/create" element={<CachedRoute cacheKey="/articles/create"><ArticleEditor /></CachedRoute>} />
             <Route path="/articles/:slug/edit" element={<CachedArticleEditor />} />
-            <Route path="/mathgallery/test" element={<TestPage />} />
-            <Route path="/mathgallery" element={<MathGallery />} />
             <Route path="/graphs/create" element={<CachedRoute cacheKey="/graphs/create"><GraphVisualization /></CachedRoute>} />
             <Route path="/graphs/subject-visualization" element={<SubjectVisualization />} />
             <Route path="/graphs/subject-visualization/:subject" element={<SubjectVisualization />} />

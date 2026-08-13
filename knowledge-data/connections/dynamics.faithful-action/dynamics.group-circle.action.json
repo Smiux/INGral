@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.faithful-action",
-  "to": "dynamics.group-circle.action",
-  "description": {
-    "zh": [
-      "忠实作用是对群作用附加单射条件 $\\Gamma\\hookrightarrow\\operatorname{Homeo}_+(\\mathbb S^1)$ 的细化。"
-    ]
-  }
-}

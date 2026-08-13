@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.superrigidity-lattice-circle",
-  "to": "dynamics.group-circle.semi-conjugacy",
-  "description": {
-    "zh": [
-      "定理的结论使用半共轭来表述——作用半共轭于某个 PSL(2,R) 射影作用的有限覆叠。"
-    ]
-  }
-}

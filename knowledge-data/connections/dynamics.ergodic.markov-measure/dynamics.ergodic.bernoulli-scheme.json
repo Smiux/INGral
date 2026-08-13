@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.markov-measure",
-  "to": "dynamics.ergodic.bernoulli-scheme",
-  "description": {
-    "zh": [
-      "Markov 测度允许一步转移概率依赖于当前状态，是 Bernoulli 方案的无记忆独立性假设的推广。"
-    ]
-  }
-}

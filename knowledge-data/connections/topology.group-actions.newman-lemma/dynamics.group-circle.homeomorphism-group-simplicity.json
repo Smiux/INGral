@@ -1,9 +1,0 @@
-{
-  "from": "topology.group-actions.newman-lemma",
-  "to": "dynamics.group-circle.homeomorphism-group-simplicity",
-  "description": {
-    "zh": [
-      "Newman 引理可用于证明 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的紧子群平凡，是单性证明的技术工具。"
-    ]
-  }
-}

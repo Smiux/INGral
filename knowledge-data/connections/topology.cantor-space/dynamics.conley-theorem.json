@@ -1,9 +1,0 @@
-{
-  "from": "topology.cantor-space",
-  "to": "dynamics.conley-theorem",
-  "description": {
-    "zh": [
-      "Conley 完全 Lyapunov 函数定理中 $L(\\mathcal R(f))$ 是紧全不连通集，即与 Cantor 空间同胚，这直接由 Cantor 空间的性质保证。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.koopman-operator",
-  "to": "dynamics.ergodic.weak-mixing",
-  "description": {
-    "zh": [
-      "弱混合性等价于 Koopman 算子无非平凡本征函数——即具有连续谱。该刻画将动力学性质与谱论联系起来。"
-    ]
-  }
-}

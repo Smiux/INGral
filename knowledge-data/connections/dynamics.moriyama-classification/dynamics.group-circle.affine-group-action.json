@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.moriyama-classification",
-  "to": "dynamics.group-circle.affine-group-action",
-  "description": {
-    "zh": [
-      "仿射群作用是 Moriyama 分类中情形 (i) 所描述的作用类型，是该分类框架的基本构成之一。"
-    ]
-  }
-}

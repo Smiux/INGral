@@ -1,9 +1,0 @@
-{
-  "from": "analysis.geometric-function-theory.liouville-geodesic-current",
-  "to": "dynamics.group-circle.convergence-group-theorem",
-  "description": {
-    "zh": [
-      "Liouville 测地线流在 PSL(2,R) 下的不变性给出了收敛性质定理的测度论侧面。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.holder-theorem",
-  "to": "dynamics.translation-number",
-  "description": {
-    "zh": [
-      "Hölder 定理构造的同态 $\\phi$ 与平移数共享相同的拟同态-同态构造方法：均从自由作用的位移中提取到 $\\mathbb R$ 的群同态。"
-    ]
-  }
-}

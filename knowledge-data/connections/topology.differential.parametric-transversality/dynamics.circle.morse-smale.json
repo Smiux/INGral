@@ -1,9 +1,0 @@
-{
-  "from": "topology.differential.parametric-transversality",
-  "to": "dynamics.circle.morse-smale",
-  "description": {
-    "zh": [
-      "Morse-Smale 圆周微分同胚的 $C^r$-稠密性证明中，参数横截性定理用于将以有理旋转数且有简单周期点的系统扰动为所有周期点均为双曲的系统。"
-    ]
-  }
-}

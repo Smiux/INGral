@@ -1,9 +1,0 @@
-{
-  "from": "algebra.group-theory.kazhdan-property-t",
-  "to": "dynamics.superrigidity-lattice-circle",
-  "description": {
-    "zh": [
-      "性质 (T) 是高秩格点圆周作用超刚性定理中处理标准高秩单 Lie 群情形的关键输入——由 Kazhdan 圆周作用有限性定理导出像有限。"
-    ]
-  }
-}

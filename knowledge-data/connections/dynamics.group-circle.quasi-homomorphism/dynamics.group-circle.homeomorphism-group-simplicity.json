@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.quasi-homomorphism",
-  "to": "dynamics.group-circle.homeomorphism-group-simplicity",
-  "description": {
-    "zh": [
-      "平移数拟同态的唯一性依赖于 $\\operatorname{Homeo}_+(\\mathbb S^1)$ 的完全性（每个元素可表为换位子之积），该性质正是单性定理证明的前提。"
-    ]
-  }
-}

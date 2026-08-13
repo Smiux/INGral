@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.szekeres-theorem",
-  "to": "dynamics.kopell-lemma",
-  "description": {
-    "zh": [
-      "Szekeres 定理给出了 Kopell 引理中中心化子结构的更强结论——$C^2$ 无不动点 $f$ 的中心化子恰为其流。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.shannon-entropy-partition",
-  "to": "dynamics.ergodic.ergodicity",
-  "description": {
-    "zh": [
-      "Shannon 划分熵的渐近行为由 Shannon–McMillan–Breiman 定理描述，该定理需要遍历性假设以保证柱集概率的几乎处处极限为常数。"
-    ]
-  }
-}

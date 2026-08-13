@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.bernoulli-scheme",
-  "to": "dynamics.ergodic.mixing",
-  "description": {
-    "zh": [
-      "Bernoulli 方案为强混合性提供了基本例子，其独立同分布结构保证了强混合条件自动满足。"
-    ]
-  }
-}

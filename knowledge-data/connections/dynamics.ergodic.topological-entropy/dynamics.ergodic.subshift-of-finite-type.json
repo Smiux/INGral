@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.topological-entropy",
-  "to": "dynamics.ergodic.subshift-of-finite-type",
-  "description": {
-    "zh": [
-      "拓扑熵在有限型子移位上可显式计算为邻接矩阵谱半径的对数，是拓扑熵在符号动力系统中最基本的计算实例。"
-    ]
-  }
-}

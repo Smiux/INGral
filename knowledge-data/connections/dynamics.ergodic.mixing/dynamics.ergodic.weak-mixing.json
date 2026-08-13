@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.mixing",
-  "to": "dynamics.ergodic.weak-mixing",
-  "description": {
-    "zh": [
-      "强混合 ⇒ 弱混合：强混合的协方差收敛蕴含平均意义下的协方差收敛，而无本征函数是弱混合的定义。"
-    ]
-  }
-}

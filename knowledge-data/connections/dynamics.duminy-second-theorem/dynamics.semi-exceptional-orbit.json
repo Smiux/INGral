@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.duminy-second-theorem",
-  "to": "dynamics.semi-exceptional-orbit",
-  "description": {
-    "zh": [
-      "Duminy 第二定理以无穷多端性刻画了半例外轨道的结构特征，将其从一般的递归行为中区分出来。"
-    ]
-  }
-}

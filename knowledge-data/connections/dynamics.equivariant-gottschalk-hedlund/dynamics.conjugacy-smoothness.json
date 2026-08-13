@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.equivariant-gottschalk-hedlund",
-  "to": "dynamics.conjugacy-smoothness",
-  "description": {
-    "zh": [
-      "等变 Gottschalk–Hedlund 引理将经典 Gottschalk–Hedlund 定理（单个同胚的上同调方程可解性）推广到群作用和上循环语境，为共轭光滑性提升提供了将局部 C^r 扩散到整体的工具。"
-    ]
-  }
-}

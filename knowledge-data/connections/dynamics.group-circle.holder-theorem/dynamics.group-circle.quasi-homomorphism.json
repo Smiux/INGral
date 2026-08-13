@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.holder-theorem",
-  "to": "dynamics.group-circle.quasi-homomorphism",
-  "description": {
-    "zh": [
-      "Hölder 定理的证明中构造的 $\\Phi$ 是拟同态，其齐次化极限 $\\phi$ 给出群到 $\\mathbb R$ 的同态嵌入。"
-    ]
-  }
-}

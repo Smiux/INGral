@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.bernoulli-scheme",
-  "to": "dynamics.shift-map",
-  "description": {
-    "zh": [
-      "Bernoulli 方案是移位映射在 Bernoulli 测度下的保测变换版本，是符号动力学在测度论框架中的实现。"
-    ]
-  }
-}

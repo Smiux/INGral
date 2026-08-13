@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.stable-unstable-splitting",
-  "to": "dynamics.hyperbolic-fixed-point",
-  "description": {
-    "zh": [
-      "双曲不动点的稳定/不稳定分裂将其邻域内的轨道分解为沿不同指数收缩/扩张方向的子流形。"
-    ]
-  }
-}

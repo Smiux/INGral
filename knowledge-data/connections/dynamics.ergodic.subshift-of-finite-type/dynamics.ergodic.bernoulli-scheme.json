@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.subshift-of-finite-type",
-  "to": "dynamics.ergodic.bernoulli-scheme",
-  "description": {
-    "zh": [
-      "全移位（A 全 1 矩阵）是 Bernoulli 方案在符号动力学中的拓扑对应，SFT 是限制转移规则的推广。"
-    ]
-  }
-}

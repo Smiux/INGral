@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.tempelman-zd-ergodic",
-  "to": "dynamics.ergodic.birkhoff-ergodic",
-  "description": {
-    "zh": [
-      "Tempelman $\\mathbb Z^d$ 遍历定理是 Birkhoff 点态遍历定理到 $\\mathbb Z^d$ 作用的直接推广：当 $d=1$ 时前者退化为后者，且证明中的涂色/贪婪覆盖思想沿袭自 Birkhoff 定理的经典论证。"
-    ]
-  }
-}

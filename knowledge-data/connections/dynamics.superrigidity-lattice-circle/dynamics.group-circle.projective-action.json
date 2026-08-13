@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.superrigidity-lattice-circle",
-  "to": "dynamics.group-circle.projective-action",
-  "description": {
-    "zh": [
-      "射影作用是超刚性定理中高秩格点圆周作用的标准目标形式。"
-    ]
-  }
-}

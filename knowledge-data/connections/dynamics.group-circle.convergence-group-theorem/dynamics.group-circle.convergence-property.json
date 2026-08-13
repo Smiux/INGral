@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.convergence-group-theorem",
-  "to": "dynamics.group-circle.convergence-property",
-  "description": {
-    "zh": [
-      "该定理以收敛性质的定义为前提，其结论是收敛性质完全刻画了 $\\operatorname{PSL}(2,\\mathbb R)$ 的子群。"
-    ]
-  }
-}

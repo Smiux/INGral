@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.metric-entropy",
-  "to": "dynamics.ergodic.mixing",
-  "description": {
-    "zh": [
-      "Kolmogorov–Sinai 熵的正性为系统提供了与混合性互补的复杂性指标：正熵系统在信息论意义下不可预测，而混合性在统计意义下刻画渐近独立性。"
-    ]
-  }
-}

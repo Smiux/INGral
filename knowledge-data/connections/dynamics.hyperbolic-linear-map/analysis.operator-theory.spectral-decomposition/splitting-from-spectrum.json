@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.hyperbolic-linear-map",
-  "to": "analysis.operator-theory.spectral-decomposition",
-  "description": {
-    "zh": [
-      "双曲线性自同构的稳定/不稳定分裂是谱分解定理的直接应用：将谱划分为单位圆内部 $K^s$ 和外部 $K^u$，谱分解保证存在不变子空间直和分解 $E=E_A^s\\oplus E_A^u$ 分别承载这两个谱部分。"
-    ]
-  }
-}

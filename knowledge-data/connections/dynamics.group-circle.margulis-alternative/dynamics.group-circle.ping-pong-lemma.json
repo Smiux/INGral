@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.margulis-alternative",
-  "to": "dynamics.group-circle.ping-pong-lemma",
-  "description": {
-    "zh": [
-      "Margulis 定理的证明在非等度连续情形使用乒乓引理构造自由子群。"
-    ]
-  }
-}

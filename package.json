@@ -11,10 +11,7 @@
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint",
-    "check:fix": "npm run typecheck && npm run lint:fix",
-    "knowledge:validate": "node scripts/validate-knowledge.mjs",
-    "knowledge:lint": "node scripts/lint-knowledge.mjs",
-    "knowledge:build": "node scripts/build-knowledge-manifest.mjs"
+    "check:fix": "npm run typecheck && npm run lint:fix"
   },
   "config": {
     "commitizen": {

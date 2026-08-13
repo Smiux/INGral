@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.structural-stability",
-  "to": "dynamics.topological-conjugacy",
-  "description": {
-    "zh": [
-      "拓扑共轭是结构稳定性的定义中用于比较相邻系统的基本工具。"
-    ]
-  }
-}

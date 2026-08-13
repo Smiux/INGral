@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.minimal-set",
-  "to": "dynamics.recurrent-point",
-  "description": {
-    "zh": [
-      "极小集中的每点既是正回归又是负回归。反之，$\\operatorname{Rec}^+(f)\\cap\\operatorname{Rec}^-(f)\\neq\\varnothing$ 的证明通过构造极小集实现。"
-    ]
-  }
-}

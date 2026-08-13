@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.hyperbolic-fixed-point",
-  "to": "dynamics.real-line.affine-map",
-  "description": {
-    "zh": [
-      "仿射映射提供了一维双曲不动点的例子，其动力学分类由导数 $a$ 的模长决定。"
-    ]
-  }
-}

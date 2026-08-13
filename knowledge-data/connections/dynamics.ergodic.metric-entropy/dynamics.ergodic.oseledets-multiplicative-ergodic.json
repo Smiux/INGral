@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.metric-entropy",
-  "to": "dynamics.ergodic.oseledets-multiplicative-ergodic",
-  "description": {
-    "zh": [
-      "Ruelle 不等式将度量熵受限于最大 Lyapunov 指数之和，建立了熵与微分动力学中指数级扩张率的联系。"
-    ]
-  }
-}

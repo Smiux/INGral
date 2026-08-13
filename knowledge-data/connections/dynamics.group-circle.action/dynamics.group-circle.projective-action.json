@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.action",
-  "to": "dynamics.group-circle.projective-action",
-  "description": {
-    "zh": [
-      "$\\operatorname{PGL}(2,\\mathbb R)$ 在 $\\mathbb{RP}^1$ 上的射影作用是圆周上群作用的标准例子之一——它提供了 $3$-可递解析作用的原型，且其 Liouville 测地线流刻画了 $\\operatorname{PSL}(2,\\mathbb R)$。"
-    ]
-  }
-}

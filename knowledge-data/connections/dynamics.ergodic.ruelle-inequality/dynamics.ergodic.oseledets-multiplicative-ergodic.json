@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.ruelle-inequality",
-  "to": "dynamics.ergodic.oseledets-multiplicative-ergodic",
-  "description": {
-    "zh": [
-      "Ruelle 不等式的证明需要乘法遍历定理以将奇异值的对数增长率转化为 Lyapunov 指数。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.itinerary-map",
-  "to": "topology.cantor-space",
-  "description": {
-    "zh": [
-      "航拍映射将二次族的极限集 $\\Lambda_\\mu$ 同胚地映到 Cantor 空间上。"
-    ]
-  }
-}

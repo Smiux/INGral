@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.natural-extension",
-  "to": "dynamics.ergodic.factor",
-  "description": {
-    "zh": [
-      "自然延拓是原系统的一个可逆扩张，原系统是自然延拓的因子（投影 π(x̃)=x₀ 是因子映射）。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.fixed-point",
-  "to": "dynamics.hyperbolic-fixed-point",
-  "description": {
-    "zh": [
-      "双曲不动点是不动点在导数判据下的精细结构分类。"
-    ]
-  }
-}

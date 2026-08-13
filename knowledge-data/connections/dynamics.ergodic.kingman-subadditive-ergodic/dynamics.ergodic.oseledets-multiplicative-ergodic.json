@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.kingman-subadditive-ergodic",
-  "to": "dynamics.ergodic.oseledets-multiplicative-ergodic",
-  "description": {
-    "zh": [
-      "Oseledets 定理的证明使用外幂范数的子加性，即 g_i^{(n)}(x)=log‖A_n^{∧i}(x)‖ 是子加性上循环，由 Kingman 定理给出极限存在性。"
-    ]
-  }
-}

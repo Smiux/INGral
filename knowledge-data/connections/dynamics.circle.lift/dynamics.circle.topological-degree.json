@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.lift",
-  "to": "dynamics.circle.topological-degree",
-  "description": {
-    "zh": [
-      "拓扑度通过提升在整数平移下的行为 $\\deg(f)=\\tilde f(\\tilde x+1)-\\tilde f(\\tilde x)$ 来定义，其良定义性和保向/反向的区分均以提升构造为基础。"
-    ]
-  }
-}

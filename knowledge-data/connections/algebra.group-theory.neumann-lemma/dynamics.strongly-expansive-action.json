@@ -1,9 +1,0 @@
-{
-  "from": "algebra.group-theory.neumann-lemma",
-  "to": "dynamics.strongly-expansive-action",
-  "description": {
-    "zh": [
-      "Neumann 引理在强扩张作用的自由群构造中用于选择将 a,b 同时移出 {a,b} 的群元素。"
-    ]
-  }
-}

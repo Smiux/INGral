@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.non-wandering-set",
-  "to": "dynamics.chain-recurrence",
-  "description": {
-    "zh": [
-      "非游荡集 $\\Omega(f)$ 是链回归集 $\\mathcal R(f)$ 的子集：$\\Omega(f)\\subset\\mathcal R(f)$，因此非游荡性是比链回归更强的回复性条件。"
-    ]
-  }
-}

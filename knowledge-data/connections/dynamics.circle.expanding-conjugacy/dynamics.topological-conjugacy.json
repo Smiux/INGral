@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.expanding-conjugacy",
-  "to": "dynamics.topological-conjugacy",
-  "description": {
-    "zh": [
-      "拓扑共轭为扩张共轭定理提供了分类等价关系，该定理将每个扩张映射拓扑共轭到标准扩张 $E_d$，从而将扩张映射的分类归结为拓扑共轭等价类。"
-    ]
-  }
-}

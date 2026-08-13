@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.invariant-set",
-  "to": "dynamics.minimal-set",
-  "description": {
-    "zh": [
-      "最小集是在不变集的基础上附加极小性条件得到的特殊不变集。"
-    ]
-  }
-}

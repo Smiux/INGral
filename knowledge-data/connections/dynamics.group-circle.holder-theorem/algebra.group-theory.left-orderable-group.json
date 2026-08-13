@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.holder-theorem",
-  "to": "algebra.group-theory.left-orderable-group",
-  "description": {
-    "zh": [
-      "Hölder 定理表明，直线上自由作用的群具有双不变 Archimedes 全序，因而同构于 $(\\mathbb R,+)$ 的子群——这是左可序群中 Archimedes 序情形下的精细刻画。"
-    ]
-  }
-}

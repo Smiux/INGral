@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.amenable-classification-sa",
-  "to": "dynamics.group-circle.thompson-group",
-  "description": {
-    "zh": [
-      "Thompson 群 $F$ 是否顺从是未决问题——若 $F$ 顺从，则 SA 分类定理不覆盖全体 $C^{1+\\mathrm{bv}}$ 区间作用顺从群。"
-    ]
-  }
-}

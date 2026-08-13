@@ -1,9 +1,0 @@
-{
-  "from": "analysis.real-analysis.bounded-variation",
-  "to": "dynamics.denjoy-theorem",
-  "description": {
-    "zh": [
-      "有界变差限定了 $\\log f'$ 的振荡——这一正则性约束是 Denjoy 定理中阻止退化情形（例外极小集）出现的核心机制。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.stationary-measure",
-  "to": "dynamics.group-circle.margulis-alternative",
-  "description": {
-    "zh": [
-      "平稳测度方法为 Margulis 定理提供了概率论视角的另一种证明框架。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.topological-factor",
-  "to": "dynamics.circle.expanding-conjugacy",
-  "description": {
-    "zh": [
-      "拓扑因子构造为扩张共轭定理提供了半共轭基础：对任意度 $d$ 的连续映射存在到 $E_d$ 的连续满射，当 $f$ 为扩张映射时该满射自动为单射从而成为拓扑共轭。"
-    ]
-  }
-}

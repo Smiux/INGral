@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.ergodic-decomposition",
-  "to": "dynamics.invariant-measure",
-  "description": {
-    "zh": [
-      "遍历分解定理将不变测度空间 $M(T)$ 的极值点刻画为遍历测度，从而把不变测度的研究归结为遍历测度的凸组合。"
-    ]
-  }
-}

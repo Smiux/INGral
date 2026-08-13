@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.group-circle.fuchsian-group-classification",
-  "to": "dynamics.minimal-set",
-  "description": {
-    "zh": [
-      "Fuchs 群分类中第一类与第二类的区分标准是该群在 $\\mathbb S^1$ 上的极限集（即极小集）是否为全圆周。"
-    ]
-  }
-}

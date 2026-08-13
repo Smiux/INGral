@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.hyperbolic-fixed-point",
-  "to": "dynamics.shift-map",
-  "description": {
-    "zh": [
-      "双曲排斥不动点的出现（$\\mu>3$）是二次族向移位映射进行符号编码的必要前提条件——当参数进一步增大至 $\\mu>\\sqrt5+2$ 时，极大不变集上的完整动力学通过航拍映射编码为二符号移位。"
-    ]
-  }
-}

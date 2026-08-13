@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.topological-entropy",
-  "to": "dynamics.ergodic.metric-entropy",
-  "description": {
-    "zh": [
-      "变分原理表明拓扑熵等于所有不变测度下度量熵的上确界，从而建立了拓扑熵与度量熵之间的联系。"
-    ]
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "from": "algebra.group-theory.conrad-property",
-  "to": "dynamics.faithful-action",
-  "description": {
-    "zh": [
-      "具有 Conrad 性质的序的动力学实现给出了无交叉元素的忠实 R 作用。"
-    ]
-  }
-}

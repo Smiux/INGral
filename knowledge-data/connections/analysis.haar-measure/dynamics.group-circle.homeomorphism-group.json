@@ -1,9 +1,0 @@
-{
-  "from": "analysis.haar-measure",
-  "to": "dynamics.group-circle.homeomorphism-group",
-  "description": {
-    "zh": [
-      "Haar 测度可用于构造紧子群的不变概率测度，从而证明紧子群共轭于旋转子群。"
-    ]
-  }
-}

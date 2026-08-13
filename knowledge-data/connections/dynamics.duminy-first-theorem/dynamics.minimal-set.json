@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.duminy-first-theorem",
-  "to": "dynamics.minimal-set",
-  "description": {
-    "zh": [
-      "Duminy 第一定理给出了群作用不包含例外极小集的充分条件，将例外极小集的存在性与生成元的旋转逼近程度联系起来。"
-    ]
-  }
-}

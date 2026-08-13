@@ -1,9 +1,0 @@
-{
-  "from": "algebra.group-theory.relative-property-t",
-  "to": "dynamics.kazhdan-circle-rigidity",
-  "description": {
-    "zh": [
-      "Navas 将 Kazhdan 圆周作用有限性定理推广到具有相对性质 (T) 的群，在 $C^{1+\\tau}$（$\\tau>1/2$）光滑性下得到类似的有限性结论。"
-    ]
-  }
-}

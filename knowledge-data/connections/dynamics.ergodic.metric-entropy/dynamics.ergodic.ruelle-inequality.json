@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.metric-entropy",
-  "to": "dynamics.ergodic.ruelle-inequality",
-  "description": {
-    "zh": [
-      "度量熵通过 Ruelle 不等式与正 Lyapunov 指数之和相关联，后者为前者提供了上界。"
-    ]
-  }
-}

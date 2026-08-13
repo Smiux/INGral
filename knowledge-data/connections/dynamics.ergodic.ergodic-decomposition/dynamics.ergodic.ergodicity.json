@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.ergodic-decomposition",
-  "to": "dynamics.ergodic.ergodicity",
-  "description": {
-    "zh": [
-      "遍历分解定理表明任意不变测度可分解为遍历测度，揭示了遍历性作为系统不可分解基本单元的刻画角色。"
-    ]
-  }
-}

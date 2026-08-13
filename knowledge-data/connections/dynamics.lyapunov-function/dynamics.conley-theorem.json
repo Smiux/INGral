@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.lyapunov-function",
-  "to": "dynamics.conley-theorem",
-  "description": {
-    "zh": [
-      "完全 Lyapunov 函数是 Lyapunov 函数在动力系统全局分析中的推广，Conley 定理保证其在每个离散动力系统中存在。"
-    ]
-  }
-}

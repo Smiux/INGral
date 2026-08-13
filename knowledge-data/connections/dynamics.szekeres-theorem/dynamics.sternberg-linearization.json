@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.szekeres-theorem",
-  "to": "dynamics.sternberg-linearization",
-  "description": {
-    "zh": [
-      "Szekeres 定理在非双曲情形下与 Sternberg 线性化互补；在双曲情形下 Sternberg 定理已经提供了嵌入流的可能。"
-    ]
-  }
-}

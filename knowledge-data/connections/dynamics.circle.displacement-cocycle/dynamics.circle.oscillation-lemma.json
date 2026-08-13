@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.displacement-cocycle",
-  "to": "dynamics.circle.oscillation-lemma",
-  "description": {
-    "zh": [
-      "位移上循环 $\\Delta_{\\tilde f}$ 是振荡引理的分析对象，该引理对其振荡幅度的上界估计是后续旋转数一致收敛论证的基础。"
-    ]
-  }
-}

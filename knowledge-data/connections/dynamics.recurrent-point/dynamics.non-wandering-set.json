@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.recurrent-point",
-  "to": "dynamics.non-wandering-set",
-  "description": {
-    "zh": [
-      "正回归集是非游荡集的子集：$\\operatorname{Rec}^+(f)\\subset\\Omega(f)$。这是回复性层级中间环节。"
-    ]
-  }
-}

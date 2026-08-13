@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.sinai-generator-theorem",
-  "to": "dynamics.ergodic.metric-entropy",
-  "description": {
-    "zh": [
-      "Sinai 生成子定理将度量熵的计算从所有划分的上确界缩减至单个生成子划分的熵，使熵成为可计算的量。"
-    ]
-  }
-}

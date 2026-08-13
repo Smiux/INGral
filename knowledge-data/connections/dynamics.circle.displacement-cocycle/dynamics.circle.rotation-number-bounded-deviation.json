@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.displacement-cocycle",
-  "to": "dynamics.circle.rotation-number-bounded-deviation",
-  "description": {
-    "zh": [
-      "位移上循环的上循环恒等式（cocycle identity）是有界偏差估计推导中的代数工具，它将 $n$ 步迭代的偏差归结为单步位移函数取值之差。"
-    ]
-  }
-}

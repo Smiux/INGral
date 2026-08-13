@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.ergodic.koopman-operator",
-  "to": "dynamics.ergodic.bernoulli-scheme",
-  "description": {
-    "zh": [
-      "Bernoulli 方案的 Koopman 算子具有可数 Lebesgue 谱，其 $L^2$ 空间可分解为 $\\{1\\}\\oplus\\bigoplus_{\\lambda\\in\\Lambda}\\bigoplus_{n\\in\\mathbb Z}\\mathbb C\\varphi_{A_\\lambda+n}$。"
-    ]
-  }
-}

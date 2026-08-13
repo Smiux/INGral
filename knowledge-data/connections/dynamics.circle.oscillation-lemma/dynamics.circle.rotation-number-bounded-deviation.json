@@ -1,9 +1,0 @@
-{
-  "from": "dynamics.circle.oscillation-lemma",
-  "to": "dynamics.circle.rotation-number-bounded-deviation",
-  "description": {
-    "zh": [
-      "有界偏差估计的论证以振荡引理为关键工具，其对 $\\operatorname{osc}\\Delta_{\\tilde f^n}$ 的控制将 $\\tilde f^n(z)-z$ 与 $n\\rho$ 的偏差缩小至位移函数的单次振荡范围内。"
-    ]
-  }
-}
