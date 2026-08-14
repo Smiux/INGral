@@ -1,5 +1,6 @@
-import React, { useCallback, memo, useState } from 'react';
+import React, { useCallback, memo, useState, useRef, useEffect } from 'react';
 import type { Editor } from '@tiptap/react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Bold, Italic, Code, List, Heading1,
   Undo, Redo,
@@ -517,3 +518,64 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
 };
 
 export const EditorToolbar = memo(EditorToolbarInner);
+
+interface HoverToolbarProps {
+  children: React.ReactNode;
+}
+
+export const HoverToolbar: React.FC<HoverToolbarProps> = ({ children }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const collapseTimerRef = useRef<number | null>(null);
+
+  const handleMouseEnter = useCallback(() => {
+    if (collapseTimerRef.current !== null) {
+      window.clearTimeout(collapseTimerRef.current);
+      collapseTimerRef.current = null;
+    }
+    setIsExpanded(true);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    collapseTimerRef.current = window.setTimeout(() => {
+      setIsExpanded(false);
+    }, 300);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (collapseTimerRef.current !== null) {
+        window.clearTimeout(collapseTimerRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="relative"
+    >
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            key="hover-toolbar-content"
+            initial={{ 'height': 0, 'opacity': 0 }}
+            animate={{ 'height': 'auto', 'opacity': 1 }}
+            exit={{ 'height': 0, 'opacity': 0 }}
+            transition={{ 'duration': 0.25, 'ease': 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div
+        className={`flex items-center justify-center transition-all duration-300 ease-in-out ${
+          isExpanded ? 'h-0 opacity-0' : 'h-7 opacity-100'
+        }`}
+      >
+        <div className="w-14 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+      </div>
+    </div>
+  );
+};

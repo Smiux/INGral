@@ -52,9 +52,6 @@ function getTabInfo (pathname: string): { 'title': string; 'icon': string } {
   if (pathname === '/articles/create') {
     return { 'title': '创建文章', 'icon': 'article' };
   }
-  if (pathname.match(/^\/articles\/[^/]+\/edit$/)) {
-    return { 'title': '编辑文章', 'icon': 'article' };
-  }
   if (pathname.match(/^\/articles\/[^/]+$/)) {
     return { 'title': '文章', 'icon': 'article' };
   }
@@ -300,16 +297,6 @@ export function NavigatorProvider ({ children }: { children: ReactNode }) {
       if (article) {
         updateTabTitle(tabId, article.title);
         updateHistoryTitle(pathname, article.title);
-      }
-      return;
-    }
-
-    const articleEditMatch = pathname.match(/^\/articles\/([^/]+)\/edit$/);
-    if (articleEditMatch && articleEditMatch[1]) {
-      const article = await getArticleBySlug(articleEditMatch[1]);
-      if (article) {
-        updateTabTitle(tabId, `编辑: ${article.title}`);
-        updateHistoryTitle(pathname, `编辑: ${article.title}`);
       }
       return;
     }

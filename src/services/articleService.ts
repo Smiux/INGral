@@ -132,10 +132,6 @@ async function getArticleByField (
   return article;
 }
 
-export async function getArticleById (articleId: string): Promise<Article | null> {
-  return getArticleByField('id', articleId);
-}
-
 export async function getArticleBySlug (slug: string): Promise<Article | null> {
   return getArticleByField('slug', slug);
 }

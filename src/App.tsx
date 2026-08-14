@@ -5,7 +5,7 @@ import { NavigatorProvider, NavigatorTrigger, NavigatorSidebar, NavigatorCacheMa
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import SubjectVisualization from './components/graph/SubjectVisualization';
-import { ArticleViewer, ArticleEditor } from './components/articles';
+import { ArticleViewer } from './components/articles';
 import GraphVisualization from './components/graph/GraphVisualization';
 import { BrainstormPage } from './brainstorm/BrainstormPage';
 import { CollaborationProvider, useCollaboration, CollaborationPanel, Features } from './components/collaboration';
@@ -84,16 +84,6 @@ function CachedArticleViewer () {
   );
 }
 
-function CachedArticleEditor () {
-  const { slug } = useParams<{ 'slug': string }>();
-  const cacheKey = `/articles/${slug ?? ''}/edit`;
-  return (
-    <CachedRoute cacheKey={cacheKey}>
-      <ArticleEditor />
-    </CachedRoute>
-  );
-}
-
 interface ErrorBoundaryProps {
   children: ReactNode;
 }
@@ -162,16 +152,6 @@ function useMetaTags (): void {
       return;
     }
 
-    const articleEditMatch = path.match(/^\/articles\/([^/]+)\/edit$/);
-    if (articleEditMatch) {
-      updateMetaTags({
-        'title': '编辑文章',
-        'description': '文章编辑器',
-        'type': 'website'
-      });
-      return;
-    }
-
     const articleMatch = path.match(/^\/articles\/([^/]+)$/);
     if (articleMatch && articleMatch[1]) {
       const slug = articleMatch[1];
@@ -234,7 +214,7 @@ function AppContent () {
 
   const showNavigatorTrigger = pathname === '/' ||
     pathname === '/articles' ||
-    (pathname.startsWith('/articles/') && pathname !== '/articles/create' && !pathname.endsWith('/edit'));
+    pathname.startsWith('/articles/');
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -250,8 +230,7 @@ function AppContent () {
             <Route path="/" element={<CachedRoute cacheKey="/"><HomePage /></CachedRoute>} />
             <Route path="/articles" element={<CachedRoute cacheKey="/articles"><ArticlesPage /></CachedRoute>} />
             <Route path="/articles/:slug" element={<CachedArticleViewer />} />
-            <Route path="/articles/create" element={<CachedRoute cacheKey="/articles/create"><ArticleEditor /></CachedRoute>} />
-            <Route path="/articles/:slug/edit" element={<CachedArticleEditor />} />
+            <Route path="/articles/create" element={<CachedRoute cacheKey="/articles/create"><ArticleViewer /></CachedRoute>} />
             <Route path="/graphs/create" element={<CachedRoute cacheKey="/graphs/create"><GraphVisualization /></CachedRoute>} />
             <Route path="/graphs/subject-visualization" element={<SubjectVisualization />} />
             <Route path="/graphs/subject-visualization/:subject" element={<SubjectVisualization />} />

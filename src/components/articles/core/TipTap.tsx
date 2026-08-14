@@ -274,6 +274,12 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   }), [editor]);
 
   React.useEffect(() => {
+    if (editor) {
+      editor.setEditable(editable);
+    }
+  }, [editor, editable]);
+
+  React.useEffect(() => {
     if (editor && onEditorReady) {
       onEditorReady(editor);
     }
