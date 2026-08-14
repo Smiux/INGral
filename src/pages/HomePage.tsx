@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ChevronDown, Tag } from 'lucide-react';
-import { getAllArticles, type ArticleListItem } from '../services/articleService';
+import { ArrowRight, ChevronDown } from 'lucide-react';
+import { getArticlesPaginated, type Article } from '../services/articleService';
+import { getContentExcerpt } from '../components/articles/utils/htmlToText';
 
 export function HomePage () {
-  const [articles, setArticles] = useState<ArticleListItem[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [excerptMap, setExcerptMap] = useState<Map<string, string>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -13,8 +15,15 @@ export function HomePage () {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const data = await getAllArticles();
-        setArticles(data.slice(0, 12));
+        const result = await getArticlesPaginated(1, 12);
+        const recentArticles = result.articles;
+        setArticles(recentArticles);
+
+        const excerpts = new Map<string, string>();
+        recentArticles.forEach(article => {
+          excerpts.set(article.id, getContentExcerpt(article.content, article.cover_image ? 100 : 170));
+        });
+        setExcerptMap(excerpts);
       } finally {
         setIsLoading(false);
       }
@@ -104,48 +113,40 @@ export function HomePage () {
             )}
 
             {!isLoading && articles.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
+              <div className="columns-1 md:columns-2 xl:columns-3 gap-5">
                 {articles.map((article) => {
                   const coverUrl = article.cover_image;
-                  return (
+                  const excerpt = excerptMap.get(article.id) || '';
+                  return coverUrl ? (
                     <Link
                       key={article.id}
                       to={`/articles/${article.slug}`}
-                      className="group bg-slate-100/40 dark:bg-slate-800 rounded border border-slate-200/60 dark:border-slate-700/60 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-300 transform hover:-translate-y-1 flex flex-col overflow-hidden"
+                      className="group block bg-slate-100/40 dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-300 overflow-hidden break-inside-avoid mb-5 hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-slate-950/50"
                     >
                       <div className="aspect-video bg-slate-200/40 dark:bg-slate-700 relative overflow-hidden">
-                        {coverUrl ? (
-                          <img
-                            src={coverUrl}
-                            alt={article.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-4xl font-bold text-slate-300 dark:text-slate-600">
-                              {article.title.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                        )}
+                        <img
+                          src={coverUrl}
+                          alt={article.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
                       </div>
-                      <div className="p-4 flex flex-col flex-1">
-                        <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors mb-2 line-clamp-2">
+                      <div className="p-4">
+                        <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
                           {article.title}
                         </h3>
-                        {article.summary && (
-                          <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-3 flex-1">
-                            {article.summary}
+                        {excerpt && (
+                          <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mt-1.5 mb-3">
+                            {excerpt}
                           </p>
                         )}
                         {article.tags && article.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-3">
+                          <div className="flex flex-wrap gap-1 mb-2.5">
                             {article.tags.slice(0, 3).map((tag, index) => (
                               <span
                                 key={index}
                                 title={tag}
                                 className="inline-flex items-center px-2 py-0.5 bg-sky-100/30 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-full text-xs"
                               >
-                                <Tag className="w-2.5 h-2.5 mr-1" />
                                 <span className="truncate max-w-[80px]">{tag}</span>
                               </span>
                             ))}
@@ -156,7 +157,7 @@ export function HomePage () {
                             )}
                           </div>
                         )}
-                        <div className="text-xs text-slate-400 dark:text-slate-500 mt-auto">
+                        <div className="text-xs text-slate-400 dark:text-slate-500">
                           {article.updated_at ? new Date(article.updated_at).toLocaleString('zh-CN', {
                             'year': 'numeric',
                             'month': 'long',
@@ -166,6 +167,49 @@ export function HomePage () {
                             'second': '2-digit'
                           }) : 'N/A'}
                         </div>
+                      </div>
+                    </Link>
+                  ) : (
+                    <Link
+                      key={article.id}
+                      to={`/articles/${article.slug}`}
+                      className="group block bg-slate-100/40 dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-300 p-5 break-inside-avoid mb-5 hover:bg-slate-100/70 dark:hover:bg-slate-800/80"
+                    >
+                      <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
+                        {article.title}
+                      </h3>
+                      {excerpt && (
+                        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mt-2 mb-3 leading-relaxed">
+                          {excerpt}
+                        </p>
+                      )}
+                      {article.tags && article.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-2.5">
+                          {article.tags.slice(0, 3).map((tag, index) => (
+                            <span
+                              key={index}
+                              title={tag}
+                              className="inline-flex items-center px-2 py-0.5 bg-sky-100/30 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-full text-xs"
+                            >
+                              <span className="truncate max-w-[80px]">{tag}</span>
+                            </span>
+                          ))}
+                          {article.tags.length > 3 && (
+                            <span className="text-xs text-slate-400 dark:text-slate-500">
+                              +{article.tags.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <div className="text-xs text-slate-400 dark:text-slate-500">
+                        {article.updated_at ? new Date(article.updated_at).toLocaleString('zh-CN', {
+                          'year': 'numeric',
+                          'month': 'long',
+                          'day': 'numeric',
+                          'hour': '2-digit',
+                          'minute': '2-digit',
+                          'second': '2-digit'
+                        }) : 'N/A'}
                       </div>
                     </Link>
                   );

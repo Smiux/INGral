@@ -179,7 +179,7 @@ function useMetaTags (): void {
       if (article) {
         const metaTags: MetaTags = {
           'title': article.title,
-          'description': article.summary || `阅读文章：${article.title}`,
+          'description': `阅读文章：${article.title}`,
           'type': 'article'
         };
         if (article.cover_image) {
@@ -193,15 +193,6 @@ function useMetaTags (): void {
           'type': 'website'
         });
       }
-      return;
-    }
-
-    if (path === '/mathgallery') {
-      updateMetaTags({
-        'title': '数学地图',
-        'description': 'Mathlib 知识图谱可视化',
-        'type': 'website'
-      });
       return;
     }
 
@@ -243,8 +234,7 @@ function AppContent () {
 
   const showNavigatorTrigger = pathname === '/' ||
     pathname === '/articles' ||
-    (pathname.startsWith('/articles/') && pathname !== '/articles/create' && !pathname.endsWith('/edit')) ||
-    pathname === '/mathgallery';
+    (pathname.startsWith('/articles/') && pathname !== '/articles/create' && !pathname.endsWith('/edit'));
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900">

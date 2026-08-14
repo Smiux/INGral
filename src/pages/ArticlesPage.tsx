@@ -1,25 +1,21 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, Fragment } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Tag, Layout, List, AlignJustify, ChevronLeft, ChevronRight, X, Search } from 'lucide-react';
+import { Plus, Tag, ChevronLeft, ChevronRight, X, Search } from 'lucide-react';
 import {
   getArticlesPaginated,
   getAllArticles,
-  getArticlesContentBatch,
-  type ArticleListItem,
-  type ArticleWithContent
+  type Article
 } from '../services/articleService';
+import { getContentExcerpt } from '../components/articles/utils/htmlToText';
 
 interface SearchResult {
-  article: ArticleWithContent;
+  article: Article;
   matchedFields: string[];
-  highlightedTitle: string;
-  highlightedSummary: string;
   contentMatches: ContentMatch[];
 }
 
 interface ContentMatch {
   context: string;
-  highlightedContext: string;
   position: number;
   plainText: string;
 }
@@ -35,49 +31,6 @@ function escapeRegExp (str: string): string {
 
 function stripHtmlTags (html: string): string {
   return html.replace(/<[^>]*>/g, '');
-}
-
-function highlightText (text: string, query: string): string {
-  if (!query.trim()) {
-    return text;
-  }
-
-  const escapedQuery = escapeRegExp(query);
-  const regex = new RegExp(`(${escapedQuery})`, 'gi');
-
-  return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-600 text-inherit rounded px-0.5">$1</mark>');
-}
-
-function highlightSingleMatch (text: string, query: string, targetPosition: number): string {
-  if (!query.trim()) {
-    return text;
-  }
-
-  const escapedQuery = escapeRegExp(query);
-  const regex = new RegExp(escapedQuery, 'gi');
-
-  let result = text;
-  let offset = 0;
-
-  let match: RegExpExecArray | null = regex.exec(text);
-
-  while (match !== null) {
-    const matchStart = match.index;
-    const matchEnd = matchStart + match[0].length;
-
-    if (matchStart <= targetPosition && targetPosition < matchEnd) {
-      const beforeMatch = result.slice(0, matchStart + offset);
-      const matchText = match[0];
-      const afterMatch = result.slice(matchEnd + offset);
-
-      result = `${beforeMatch}<mark class="bg-yellow-200 dark:bg-yellow-600 text-inherit rounded px-0.5">${matchText}</mark>${afterMatch}`;
-      offset += '<mark class="bg-yellow-200 dark:bg-yellow-600 text-inherit rounded px-0.5">'.length + '</mark>'.length;
-    }
-
-    match = regex.exec(text);
-  }
-
-  return result;
 }
 
 function extractContentContext (content: string, query: string, contextLength: number = 100): ContentMatch[] {
@@ -113,11 +66,8 @@ function extractContentContext (content: string, query: string, contextLength: n
         context = `${context}...`;
       }
 
-      const highlightedContext = highlightSingleMatch(context, query, matchIndex - start + (start > 0 ? 3 : 0));
-
       matches.push({
         context,
-        highlightedContext,
         'position': matchIndex,
         plainText
       });
@@ -156,19 +106,15 @@ function matchExactTag (tags: string[] | null | undefined, tagQuery: string): bo
   return tags.some((tag) => tag.toLowerCase() === lowerTagQuery);
 }
 
-function articleMatchesTags (article: ArticleWithContent, tags: string[]): boolean {
+function articleMatchesTags (article: Article, tags: string[]): boolean {
   return tags.every((tag) => matchExactTag(article.tags, tag));
 }
 
-function getMatchedFields (article: ArticleWithContent, query: string): string[] {
+function getMatchedFields (article: Article, query: string): string[] {
   const fields: string[] = [];
 
   if (matchInText(article.title, query)) {
     fields.push('title');
-  }
-
-  if (matchInText(article.summary, query)) {
-    fields.push('summary');
   }
 
   if (matchInArray(article.tags, query)) {
@@ -183,7 +129,7 @@ function getMatchedFields (article: ArticleWithContent, query: string): string[]
 }
 
 function searchArticles (
-  articles: ArticleWithContent[],
+  articles: Article[],
   filters: SearchFilters
 ): SearchResult[] {
   const { query, tags } = filters;
@@ -194,8 +140,6 @@ function searchArticles (
     return articles.map((article) => ({
       article,
       'matchedFields': [],
-      'highlightedTitle': article.title,
-      'highlightedSummary': article.summary || '',
       'contentMatches': []
     }));
   }
@@ -229,8 +173,6 @@ function searchArticles (
     results.push({
       article,
       matchedFields,
-      'highlightedTitle': hasQuery ? highlightText(article.title, query) : article.title,
-      'highlightedSummary': hasQuery && article.summary ? highlightText(article.summary, query) : (article.summary || ''),
       contentMatches
     });
   });
@@ -253,8 +195,6 @@ function formatDate (dateStr: string | null | undefined): string {
   };
   return date.toLocaleString('zh-CN', options);
 }
-
-type LayoutMode = 'comfortable' | 'compact' | 'dense';
 
 interface TagClickHandlerProps {
   tag: string;
@@ -280,8 +220,23 @@ function TagWithClick ({ tag, onTagClick }: TagClickHandlerProps): JSX.Element {
   );
 }
 
-function HighlightedText ({ html }: { html: string }): JSX.Element {
-  return <span dangerouslySetInnerHTML={{ '__html': html }} />;
+function HighlightedText ({ text, query }: { text: string; query: string }): JSX.Element {
+  if (!query.trim()) {
+    return <>{text}</>;
+  }
+
+  const escapedQuery = escapeRegExp(query);
+  const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+
+  return (
+    <>
+      {parts.map((part, index) => (
+        index % 2 === 1
+          ? <mark key={index} className="bg-yellow-200 dark:bg-yellow-600 text-inherit rounded px-0.5">{part}</mark>
+          : <Fragment key={index}>{part}</Fragment>
+      ))}
+    </>
+  );
 }
 
 function ContentMatchPreview ({ matches, articleSlug, onMatchClick, searchQuery }: {
@@ -307,14 +262,14 @@ function ContentMatchPreview ({ matches, articleSlug, onMatchClick, searchQuery 
           }}
           className="text-sm text-slate-500 dark:text-slate-400 bg-slate-100/50 dark:bg-slate-900/50 p-2 rounded border-l-2 border-sky-400 cursor-pointer hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-colors"
         >
-          <HighlightedText html={match.highlightedContext} />
+          <HighlightedText text={match.context} query={searchQuery} />
         </div>
       ))}
     </div>
   );
 }
 
-const ComfortableArticleCard = ({
+const CoveredArticleCard = ({
   result,
   onTagClick,
   onMatchClick,
@@ -325,176 +280,67 @@ const ComfortableArticleCard = ({
   onMatchClick: (url: string) => void;
   searchQuery: string;
 }): JSX.Element => {
-  const { article, highlightedTitle, highlightedSummary, contentMatches, matchedFields } = result;
+  const { article, contentMatches, matchedFields } = result;
   const coverUrl = article.cover_image;
   const hasContentMatches = matchedFields.length > 0 && matchedFields.includes('content');
+  const excerpt = getContentExcerpt(article.content, 170);
 
   return (
     <Link
       key={article.id}
       to={`/articles/${article.slug}`}
-      className="block bg-slate-100/80 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-300 group overflow-hidden transform hover:-translate-y-1"
+      className="block bg-slate-100/80 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-lg hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-300 group overflow-hidden break-inside-avoid mb-5 hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-slate-950/50"
     >
-      <div className="flex flex-col">
-        <div className="flex flex-col md:flex-row">
-          <div className="w-full md:w-72 lg:w-80 flex-shrink-0">
-            <div className="aspect-video md:aspect-[4/3] bg-slate-200/80 dark:bg-slate-700 relative overflow-hidden">
-              {coverUrl ? (
-                <img
-                  src={coverUrl}
-                  alt={article.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-5xl font-bold text-slate-300 dark:text-slate-600">
-                    {article.title.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex-1 p-6 flex flex-col">
-            <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-300 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors mb-3">
-              <HighlightedText html={highlightedTitle} />
-              {hasContentMatches && (
-                <span className="ml-2 text-xs font-normal text-sky-500 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30 px-2 py-0.5 rounded">
-                  内容匹配
-                </span>
-              )}
-            </h2>
-            {highlightedSummary && (
-              <p className="text-slate-500 dark:text-slate-400 mb-4 flex-1 line-clamp-3">
-                <HighlightedText html={highlightedSummary} />
-              </p>
+      <div className="aspect-[4/3] bg-slate-200/80 dark:bg-slate-700 relative overflow-hidden">
+        <img
+          src={coverUrl || undefined}
+          alt={article.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      </div>
+      <div className="p-5">
+        <h2 className="text-xl font-bold text-slate-700 dark:text-slate-300 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
+          <HighlightedText text={article.title} query={searchQuery} />
+          {hasContentMatches && (
+            <span className="ml-2 text-xs font-normal text-sky-500 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30 px-2 py-0.5 rounded align-middle">
+              内容匹配
+            </span>
+          )}
+        </h2>
+        {excerpt && (
+          <p className="text-slate-500 dark:text-slate-400 line-clamp-3 mt-2 mb-4 leading-relaxed">
+            <HighlightedText text={excerpt} query={searchQuery} />
+          </p>
+        )}
+        {article.tags && article.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {article.tags.slice(0, 4).map((tag, index) => (
+              <TagWithClick key={index} tag={tag} onTagClick={onTagClick} />
+            ))}
+            {article.tags.length > 4 && (
+              <span className="text-xs text-slate-400 dark:text-slate-500">
+                +{article.tags.length - 4}
+              </span>
             )}
-            {article.tags && article.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-4">
-                {article.tags.slice(0, 3).map((tag, index) => (
-                  <TagWithClick key={index} tag={tag} onTagClick={onTagClick} />
-                ))}
-                {article.tags.length > 3 && (
-                  <span className="text-xs text-slate-400 dark:text-slate-500">
-                    +{article.tags.length - 3}
-                  </span>
-                )}
-              </div>
-            )}
-            <div className="text-sm text-slate-400 dark:text-slate-500 mt-auto">
-              更新于 {formatDate(article.updated_at)}
-            </div>
-          </div>
-        </div>
-        {hasContentMatches && contentMatches.length > 0 && (
-          <div className="px-6 pb-6 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
-            <div className="text-xs text-slate-400 dark:text-slate-500 mb-2">
-              内容匹配 ({contentMatches.length} 处):
-            </div>
-            <ContentMatchPreview
-              matches={contentMatches}
-              articleSlug={article.slug}
-              onMatchClick={onMatchClick}
-              searchQuery={searchQuery}
-            />
           </div>
         )}
-      </div>
-    </Link>
-  );
-};
-
-const CompactArticleCard = ({
-  result,
-  onTagClick,
-  onMatchClick,
-  searchQuery
-}: {
-  result: SearchResult;
-  onTagClick: (tag: string) => void;
-  onMatchClick: (url: string) => void;
-  searchQuery: string;
-}): JSX.Element => {
-  const { article, highlightedTitle, highlightedSummary, contentMatches, matchedFields } = result;
-  const coverUrl = article.cover_image;
-  const hasContentMatches = matchedFields.length > 0 && matchedFields.includes('content');
-
-  return (
-    <Link
-      key={article.id}
-      to={`/articles/${article.slug}`}
-      className="block bg-slate-100/40 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-300 group overflow-hidden"
-    >
-      <div className="flex flex-col">
-        <div className="w-full h-[75vh] bg-slate-200/40 dark:bg-slate-700 relative overflow-hidden">
-          {coverUrl ? (
-            <img
-              src={coverUrl}
-              alt={article.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-5xl font-bold text-slate-300 dark:text-slate-600">
-                {article.title.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
+        <div className="text-sm text-slate-400 dark:text-slate-500">
+          更新于 {formatDate(article.updated_at)}
         </div>
-        <div className="p-6">
-          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-300 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors mb-3">
-            <HighlightedText html={highlightedTitle} />
-            {hasContentMatches && (
-              <span className="ml-2 text-xs font-normal text-sky-500 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30 px-2 py-0.5 rounded">
-                内容匹配 ({contentMatches.length} 处)
-              </span>
-            )}
-          </h2>
-          {highlightedSummary && (
-            <p className="text-slate-500 dark:text-slate-400 mb-4 line-clamp-3">
-              <HighlightedText html={highlightedSummary} />
-            </p>
-          )}
-          <div className="flex items-center gap-4 text-sm text-slate-400 dark:text-slate-500 mb-4">
-            <span>{formatDate(article.updated_at)}</span>
+      </div>
+      {hasContentMatches && contentMatches.length > 0 && (
+        <div className="px-5 pb-5 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+          <div className="text-xs text-slate-400 dark:text-slate-500 mb-2">
+            内容匹配 ({contentMatches.length} 处):
           </div>
-          {article.tags && article.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {article.tags.slice(0, 5).map((tag, index) => (
-                <span
-                  key={index}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onTagClick(tag);
-                  }}
-                  title={`搜索标签: ${tag}`}
-                  className="px-3 py-1 rounded-full text-xs font-medium cursor-pointer bg-sky-100/30 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-100/60 dark:hover:bg-sky-500/20 transition-colors"
-                >
-                  {tag}
-                </span>
-              ))}
-              {article.tags.length > 5 && (
-                <span className="text-xs text-slate-400 dark:text-slate-500">
-                  +{article.tags.length - 5}
-                </span>
-              )}
-            </div>
-          )}
-          {hasContentMatches && contentMatches.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-700/60">
-              <div className="text-xs text-slate-400 dark:text-slate-500 mb-2">
-                内容匹配:
-              </div>
-              <ContentMatchPreview
-                matches={contentMatches}
-                articleSlug={article.slug}
-                onMatchClick={onMatchClick}
-                searchQuery={searchQuery}
-              />
-            </div>
-          )}
+          <ContentMatchPreview
+            matches={contentMatches}
+            articleSlug={article.slug}
+            onMatchClick={onMatchClick}
+            searchQuery={searchQuery}
+          />
         </div>
-      </div>
+      )}
     </Link>
   );
 };
@@ -510,68 +356,65 @@ const DenseArticleCard = ({
   onMatchClick: (url: string) => void;
   searchQuery: string;
 }): JSX.Element => {
-  const { article, highlightedTitle, highlightedSummary, contentMatches, matchedFields } = result;
+  const { article, contentMatches, matchedFields } = result;
   const hasContentMatches = matchedFields.length > 0 && matchedFields.includes('content');
+  const excerpt = getContentExcerpt(article.content, 170);
 
   return (
     <Link
       key={article.id}
       to={`/articles/${article.slug}`}
-      className="block bg-slate-100/40 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-300 group p-4"
+      className="block bg-slate-100/40 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-lg hover:border-sky-300 dark:hover:border-sky-600 transition-all duration-300 group p-5 break-inside-avoid mb-5 hover:bg-slate-100/70 dark:hover:bg-slate-800/80"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors mb-1 truncate" title={article.title}>
-            <HighlightedText html={highlightedTitle} />
-            {hasContentMatches && (
-              <span className="ml-2 text-xs font-normal text-sky-500 dark:text-sky-400">
-                [内容匹配 {contentMatches.length} 处]
-              </span>
-            )}
-          </h2>
-          {highlightedSummary && (
-            <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">
-              <HighlightedText html={highlightedSummary} />
-            </p>
-          )}
-          {article.tags && article.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {article.tags.slice(0, 3).map((tag, index) => (
-                <span
-                  key={index}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onTagClick(tag);
-                  }}
-                  title={`搜索标签: ${tag}`}
-                  className="inline-flex items-center px-1.5 py-0.5 bg-sky-100/30 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-full text-xs cursor-pointer hover:bg-sky-100/60 dark:hover:bg-sky-500/20 transition-colors"
-                >
-                  <span className="truncate max-w-[50px]">{tag}</span>
-                </span>
-              ))}
-              {article.tags.length > 3 && (
-                <span className="text-xs text-slate-400 dark:text-slate-500">
-                  +{article.tags.length - 3}
-                </span>
-              )}
-            </div>
-          )}
-          {hasContentMatches && contentMatches.length > 0 && (
-            <div className="mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
-              <ContentMatchPreview
-                matches={contentMatches}
-                articleSlug={article.slug}
-                onMatchClick={onMatchClick}
-                searchQuery={searchQuery}
-              />
-            </div>
+      <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-300 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
+        <HighlightedText text={article.title} query={searchQuery} />
+        {hasContentMatches && (
+          <span className="ml-2 text-xs font-normal text-sky-500 dark:text-sky-400">
+            [内容匹配 {contentMatches.length} 处]
+          </span>
+        )}
+      </h2>
+      {excerpt && (
+        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mt-2 mb-3 leading-relaxed">
+          <HighlightedText text={excerpt} query={searchQuery} />
+        </p>
+      )}
+      {article.tags && article.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {article.tags.slice(0, 3).map((tag, index) => (
+            <span
+              key={index}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onTagClick(tag);
+              }}
+              title={`搜索标签: ${tag}`}
+              className="inline-flex items-center px-1.5 py-0.5 bg-sky-100/30 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-full text-xs cursor-pointer hover:bg-sky-100/60 dark:hover:bg-sky-500/20 transition-colors"
+            >
+              <span className="truncate max-w-[50px]">{tag}</span>
+            </span>
+          ))}
+          {article.tags.length > 3 && (
+            <span className="text-xs text-slate-400 dark:text-slate-500">
+              +{article.tags.length - 3}
+            </span>
           )}
         </div>
-        <div className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0 whitespace-nowrap">
-          {formatDate(article.updated_at)}
-        </div>
+      )}
+      <div className="text-xs text-slate-400 dark:text-slate-500">
+        更新于 {formatDate(article.updated_at)}
       </div>
+      {hasContentMatches && contentMatches.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-700/60">
+          <ContentMatchPreview
+            matches={contentMatches}
+            articleSlug={article.slug}
+            onMatchClick={onMatchClick}
+            searchQuery={searchQuery}
+          />
+        </div>
+      )}
     </Link>
   );
 };
@@ -580,9 +423,8 @@ const ARTICLES_PER_PAGE = 20;
 
 export function ArticlesPage (): JSX.Element {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [articles, setArticles] = useState<ArticleListItem[]>([]);
-  const [allArticlesForSearch, setAllArticlesForSearch] = useState<ArticleListItem[]>([]);
-  const [articlesWithContent, setArticlesWithContent] = useState<Map<string, string>>(new Map());
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [allArticlesForSearch, setAllArticlesForSearch] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingAllArticles, setIsLoadingAllArticles] = useState(false);
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
@@ -590,13 +432,11 @@ export function ArticlesPage (): JSX.Element {
     const tagsParam = searchParams.get('tags');
     return tagsParam ? tagsParam.split(',').filter(Boolean) : [];
   });
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('comfortable');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalArticles, setTotalArticles] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [jumpPageInput, setJumpPageInput] = useState('');
   const [tagSearchQuery, setTagSearchQuery] = useState('');
-  const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [allTags, setAllTags] = useState<string[]>([]);
 
   const loadArticles = useCallback(async (page: number) => {
@@ -666,48 +506,22 @@ export function ArticlesPage (): JSX.Element {
 
   const displayTags = filteredTags.slice(0, 20);
 
-  const loadContentForSearch = useCallback(async (query: string) => {
-    if (!query.trim()) {
-      return;
-    }
-
-    setIsLoadingContent(true);
-    try {
-      const articleIds = allArticlesForSearch.map(a => a.id);
-      const contentMap = await getArticlesContentBatch(articleIds);
-      setArticlesWithContent(contentMap);
-    } finally {
-      setIsLoadingContent(false);
-    }
-  }, [allArticlesForSearch]);
-
   useEffect(() => {
     if (searchQuery.trim() || selectedTags.length > 0) {
       loadAllArticlesForSearch();
     }
   }, [searchQuery, selectedTags, loadAllArticlesForSearch]);
 
-  useEffect(() => {
-    if (searchQuery.trim() && allArticlesForSearch.length > 0) {
-      loadContentForSearch(searchQuery);
-    }
-  }, [searchQuery, allArticlesForSearch.length, loadContentForSearch]);
-
   const searchResults = useMemo(() => {
     if (allArticlesForSearch.length === 0) {
       return [];
     }
 
-    const articlesWithContentLoaded = allArticlesForSearch.map(article => ({
-      ...article,
-      'content': articlesWithContent.get(article.id) || ''
-    }));
-
-    return searchArticles(articlesWithContentLoaded, {
+    return searchArticles(allArticlesForSearch, {
       'query': searchQuery,
       'tags': selectedTags
     });
-  }, [allArticlesForSearch, articlesWithContent, searchQuery, selectedTags]);
+  }, [allArticlesForSearch, searchQuery, selectedTags]);
 
   const isSearchMode = searchQuery.trim() || selectedTags.length > 0;
 
@@ -721,19 +535,14 @@ export function ArticlesPage (): JSX.Element {
   const currentResults: SearchResult[] = isSearchMode
     ? searchResults.slice(startIndex, endIndex)
     : articles.map(article => ({
-      'article': { ...article, 'content': '' },
+      article,
       'matchedFields': [],
-      'highlightedTitle': article.title,
-      'highlightedSummary': article.summary || '',
       'contentMatches': []
     }));
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
-    if (!e.target.value.trim()) {
-      setArticlesWithContent(new Map());
-    }
   };
 
   const handleTagClick = useCallback((tag: string) => {
@@ -769,7 +578,6 @@ export function ArticlesPage (): JSX.Element {
     setSelectedTags([]);
     setSearchQuery('');
     setCurrentPage(1);
-    setArticlesWithContent(new Map());
   }, []);
 
   const handleJumpToPage = useCallback(() => {
@@ -787,16 +595,10 @@ export function ArticlesPage (): JSX.Element {
   }, [handleJumpToPage]);
 
   const renderArticle = (result: SearchResult) => {
-    switch (layoutMode) {
-      case 'comfortable':
-        return <ComfortableArticleCard key={result.article.id} result={result} onTagClick={handleTagClick} onMatchClick={handleMatchClick} searchQuery={searchQuery} />;
-      case 'compact':
-        return <CompactArticleCard key={result.article.id} result={result} onTagClick={handleTagClick} onMatchClick={handleMatchClick} searchQuery={searchQuery} />;
-      case 'dense':
-        return <DenseArticleCard key={result.article.id} result={result} onTagClick={handleTagClick} onMatchClick={handleMatchClick} searchQuery={searchQuery} />;
-      default:
-        return <ComfortableArticleCard key={result.article.id} result={result} onTagClick={handleTagClick} onMatchClick={handleMatchClick} searchQuery={searchQuery} />;
+    if (result.article.cover_image) {
+      return <CoveredArticleCard key={result.article.id} result={result} onTagClick={handleTagClick} onMatchClick={handleMatchClick} searchQuery={searchQuery} />;
     }
+    return <DenseArticleCard key={result.article.id} result={result} onTagClick={handleTagClick} onMatchClick={handleMatchClick} searchQuery={searchQuery} />;
   };
 
   const renderPagination = () => {
@@ -828,9 +630,6 @@ export function ArticlesPage (): JSX.Element {
           })()}
           {isLoadingAllArticles && (
             <span className="ml-2 text-sky-500">(正在加载所有文章进行搜索...)</span>
-          )}
-          {isLoadingContent && !isLoadingAllArticles && (
-            <span className="ml-2 text-sky-500">(正在加载文章内容...)</span>
           )}
         </div>
 
@@ -932,7 +731,7 @@ export function ArticlesPage (): JSX.Element {
     if (currentResults.length > 0) {
       return (
         <>
-          <div className={layoutMode === 'dense' ? 'space-y-3' : 'space-y-6'}>
+          <div className="columns-1 md:columns-2 gap-5">
             {currentResults.map(renderArticle)}
           </div>
           {displayTotalPages > 1 && renderPagination()}
@@ -953,50 +752,13 @@ export function ArticlesPage (): JSX.Element {
     <div className="max-w-6xl mx-auto px-4 py-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
       <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
         <h1 className="text-3xl font-bold text-slate-700 dark:text-slate-300">所有文章</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center bg-slate-100/50 dark:bg-slate-800/50 rounded p-0.5">
-            <button
-              onClick={() => setLayoutMode('compact')}
-              className={`p-2 rounded transition-all duration-200 ${
-                layoutMode === 'compact'
-                  ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400'
-                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
-              }`}
-              title="大图模式"
-            >
-              <Layout className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setLayoutMode('comfortable')}
-              className={`p-2 rounded transition-all duration-200 ${
-                layoutMode === 'comfortable'
-                  ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400'
-                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
-              }`}
-              title="标准模式"
-            >
-              <List className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setLayoutMode('dense')}
-              className={`p-2 rounded transition-all duration-200 ${
-                layoutMode === 'dense'
-                  ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400'
-                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
-              }`}
-              title="紧凑模式"
-            >
-              <AlignJustify className="w-4 h-4" />
-            </button>
-          </div>
-          <Link
-            to="/articles/create"
-            className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 px-6 py-2 rounded hover:bg-sky-100/80 hover:border-sky-300 hover:text-sky-600 dark:hover:bg-sky-900/30 dark:hover:border-sky-700 dark:hover:text-sky-400 transition-all duration-200 font-medium text-slate-500 dark:text-slate-400"
-          >
-            <Plus className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400" />
-            创建文章
-          </Link>
-        </div>
+        <Link
+          to="/articles/create"
+          className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 px-6 py-2 rounded hover:bg-sky-100/80 hover:border-sky-300 hover:text-sky-600 dark:hover:bg-sky-900/30 dark:hover:border-sky-700 dark:hover:text-sky-400 transition-all duration-200 font-medium text-slate-500 dark:text-slate-400"
+        >
+          <Plus className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400" />
+          创建文章
+        </Link>
       </div>
 
       <div className="mb-6">

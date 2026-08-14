@@ -3,14 +3,12 @@ import type { ArticleMetadataMaps } from '../types';
 
 interface ArticleMetadata {
   title: string;
-  summary: string;
   tags: string[];
   coverImage: string | null;
 }
 
 interface ArticleMetadataActions {
   setTitle: (title: string) => void;
-  setSummary: (summary: string) => void;
   addTag: (tag: string) => void;
   removeTag: (tag: string) => void;
   setCoverImage: (coverImage: string | null) => void;
@@ -29,14 +27,12 @@ export function useArticleMetadata (
   initialData?: Partial<ArticleMetadata>
 ): [ArticleMetadata, ArticleMetadataActions, boolean] {
   const [title, setTitleState] = useState(initialData?.title ?? '');
-  const [summary, setSummaryState] = useState(initialData?.summary ?? '');
   const [tags, setTagsState] = useState<string[]>(initialData?.tags ?? []);
   const [coverImage, setCoverImageState] = useState<string | null>(initialData?.coverImage ?? null);
   const [isSynced, setIsSynced] = useState(false);
 
   const localChangeRef = useRef(false);
   const titleRef = useRef(title);
-  const summaryRef = useRef(summary);
   const tagsRef = useRef(tags);
   const coverImageRef = useRef(coverImage);
   const isMountedRef = useRef(false);
@@ -44,10 +40,6 @@ export function useArticleMetadata (
   useEffect(() => {
     titleRef.current = title;
   }, [title]);
-
-  useEffect(() => {
-    summaryRef.current = summary;
-  }, [summary]);
 
   useEffect(() => {
     tagsRef.current = tags;
@@ -70,7 +62,6 @@ export function useArticleMetadata (
     isMountedRef.current = true;
 
     const metaTitle = metadata.title;
-    const metaSummary = metadata.summary;
     const metaTags = metadata.tags;
     const metaCoverImage = metadata.coverImage;
 
@@ -80,18 +71,12 @@ export function useArticleMetadata (
       }
 
       const remoteTitle = metaTitle.get('value');
-      const remoteSummary = metaSummary.get('value');
       const remoteTags = metaTags.toArray();
       const remoteCoverImage = metaCoverImage.get('value');
 
       if (remoteTitle !== undefined && remoteTitle !== titleRef.current) {
         localChangeRef.current = true;
         setTitleState(remoteTitle);
-      }
-
-      if (remoteSummary !== undefined && remoteSummary !== summaryRef.current) {
-        localChangeRef.current = true;
-        setSummaryState(remoteSummary);
       }
 
       const remoteTagsStr = JSON.stringify(remoteTags);
@@ -118,20 +103,6 @@ export function useArticleMetadata (
       const remoteTitle = metaTitle.get('value');
       if (remoteTitle !== undefined && remoteTitle !== titleRef.current) {
         setTitleState(remoteTitle);
-      }
-    };
-
-    const summaryObserver = () => {
-      if (localChangeRef.current) {
-        localChangeRef.current = false;
-        return;
-      }
-      if (!isMountedRef.current) {
-        return;
-      }
-      const remoteSummary = metaSummary.get('value');
-      if (remoteSummary !== undefined && remoteSummary !== summaryRef.current) {
-        setSummaryState(remoteSummary);
       }
     };
 
@@ -166,7 +137,6 @@ export function useArticleMetadata (
     };
 
     metaTitle.observe(titleObserver);
-    metaSummary.observe(summaryObserver);
     metaTags.observe(tagsObserver);
     metaCoverImage.observe(coverImageObserver);
 
@@ -209,7 +179,6 @@ export function useArticleMetadata (
     return () => {
       isMountedRef.current = false;
       metaTitle.unobserve(titleObserver);
-      metaSummary.unobserve(summaryObserver);
       metaTags.unobserve(tagsObserver);
       metaCoverImage.unobserve(coverImageObserver);
 
@@ -229,13 +198,6 @@ export function useArticleMetadata (
     setTitleState(newTitle);
     if (metadata?.title) {
       metadata.title.set('value', newTitle);
-    }
-  }, [metadata]);
-
-  const setSummary = useCallback((newSummary: string) => {
-    setSummaryState(newSummary);
-    if (metadata?.summary) {
-      metadata.summary.set('value', newSummary);
     }
   }, [metadata]);
 
@@ -284,16 +246,12 @@ export function useArticleMetadata (
 
   const clearAll = useCallback(() => {
     setTitleState('');
-    setSummaryState('');
     setTagsState([]);
     setCoverImageState(null);
 
     if (metadata) {
       if (metadata.title) {
         metadata.title.set('value', '');
-      }
-      if (metadata.summary) {
-        metadata.summary.set('value', '');
       }
       if (metadata.tags) {
         metadata.tags.delete(0, metadata.tags.length);
@@ -305,8 +263,8 @@ export function useArticleMetadata (
   }, [metadata]);
 
   return [
-    { title, summary, tags, coverImage },
-    { setTitle, setSummary, addTag, removeTag, setCoverImage, clearAll },
+    { title, tags, coverImage },
+    { setTitle, addTag, removeTag, setCoverImage, clearAll },
     isSynced
   ];
 }

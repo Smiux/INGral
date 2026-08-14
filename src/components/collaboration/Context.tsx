@@ -173,13 +173,11 @@ function CollaborationRoomInner ({
       setDoc(yDoc);
 
       const titleMap = yDoc.getMap<string>('article-title');
-      const summaryMap = yDoc.getMap<string>('article-summary');
       const tagsArray = yDoc.getArray<string>('article-tags');
       const coverImageMap = yDoc.getMap<string | null>('article-coverImage');
 
       setArticleMetadata({
         'title': titleMap,
-        'summary': summaryMap,
         'tags': tagsArray,
         'coverImage': coverImageMap
       });
@@ -387,7 +385,6 @@ export function CollaborationProvider ({ children }: CollaborationProviderProps)
         'pinnedMessages': new LiveList([]),
         'articleMetadata': new LiveObject({
           'title': '',
-          'summary': '',
           'tags': [],
           'coverImage': null
         }),

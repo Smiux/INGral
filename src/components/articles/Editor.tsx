@@ -5,23 +5,15 @@ import { createArticle, getArticleBySlug, updateArticle } from '../../services/a
 import { LatexEditor } from './managers/Latex';
 import { TiptapEditor, TiptapEditorRef, type CollaborationProvider } from './core/TipTap';
 import { EditorToolbar } from './core/Toolbar';
-import { DraftManager } from './managers/Draft';
 import { CoverManager } from './managers/Cover';
-import {
-  useCollaboration
-} from '../collaboration';
+import { useCollaboration } from '../collaboration';
 import { useArticleMetadata } from '../collaboration/internal/useArticleMetadata';
 
-import { createDraft, updateDraft, getDraftById, type ArticleDraft } from './utils/draft';
 import type { Editor } from '@tiptap/react';
 import {
   Save,
   MessageCircle,
-  FileText,
-  FolderOpen,
   Image,
-  ChevronDown,
-  ChevronUp,
   Plus,
   X,
   Tag,
@@ -68,9 +60,6 @@ export const ArticleEditor: React.FC = () => {
   const [quoteBgColor, setQuoteBgColor] = useState('#f1f5f9');
   const [quoteBorderColor, setQuoteBorderColor] = useState('#64748b');
 
-  const [showLinkDialog, setShowLinkDialog] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
-
   const [showIframeDialog, setShowIframeDialog] = useState(false);
   const [iframeSrc, setIframeSrc] = useState('');
   const [iframeWidthInput, setIframeWidthInput] = useState('640');
@@ -78,8 +67,6 @@ export const ArticleEditor: React.FC = () => {
 
   const [characterCount, setCharacterCount] = useState(0);
 
-  const [showDraftManager, setShowDraftManager] = useState(false);
-  const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
   const editorRef = useRef<TiptapEditorRef | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -90,8 +77,6 @@ export const ArticleEditor: React.FC = () => {
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [originalCoverImage, setOriginalCoverImage] = useState<string | null>(null);
   const [coverImageModified, setCoverImageModified] = useState(false);
-
-  const [showSummaryInput, setShowSummaryInput] = useState(false);
 
   const collaboration = useCollaboration();
 
@@ -157,7 +142,6 @@ export const ArticleEditor: React.FC = () => {
         if (article) {
           setState(prev => ({ ...prev, 'title': article.title }));
           articleMetadataActions.setTitle(article.title);
-          articleMetadataActions.setSummary(article.summary || '');
           article.tags?.forEach(tag => articleMetadataActions.addTag(tag));
           setExistingArticleId(article.id);
           setOriginalCoverImage(article.cover_image);
@@ -201,7 +185,6 @@ export const ArticleEditor: React.FC = () => {
           'content': editor.getHTML(),
           coverImage,
           coverImageModified,
-          'summary': articleMetadata.summary.trim() || undefined,
           'tags': articleMetadata.tags.length > 0 ? articleMetadata.tags : undefined
         });
 
@@ -213,7 +196,6 @@ export const ArticleEditor: React.FC = () => {
           'title': state.title,
           'content': editor.getHTML(),
           coverImage,
-          'summary': articleMetadata.summary.trim() || undefined,
           'tags': articleMetadata.tags.length > 0 ? articleMetadata.tags : undefined
         });
 
@@ -258,29 +240,6 @@ export const ArticleEditor: React.FC = () => {
       .run();
     setShowLatexEditor(false);
   }, [mathType, editor]);
-
-  const handleLink = useCallback(() => {
-    const previousUrl = editor?.getAttributes('link').href || '';
-    setLinkUrl(previousUrl);
-    setShowLinkDialog(true);
-  }, [editor]);
-
-  const handleLinkSubmit = useCallback(() => {
-    if (!editor) {
-      return;
-    }
-
-    if (linkUrl) {
-      editor.chain().focus()
-        .setLink({ 'href': linkUrl })
-        .run();
-    } else {
-      editor.chain().focus()
-        .unsetLink()
-        .run();
-    }
-    setShowLinkDialog(false);
-  }, [linkUrl, editor]);
 
   const handleTocClick = (itemId: string) => {
     const element = editor?.view.dom.querySelector(`[data-toc-id="${itemId}"]`);
@@ -344,68 +303,6 @@ export const ArticleEditor: React.FC = () => {
     setEditor(editorInstance);
   }, []);
 
-  const handleCreateNewDraft = useCallback(() => {
-    const draft = createDraft({ 'title': state.title, 'content': editor?.getHTML() || '', 'summary': articleMetadata.summary, 'tags': articleMetadata.tags });
-    setCurrentDraftId(draft.id);
-    setShowDraftManager(false);
-  }, [state.title, editor, articleMetadata]);
-
-  const handleLoadDraft = useCallback((draft: ArticleDraft) => {
-    setState(prev => ({ ...prev, 'title': draft.title }));
-    articleMetadataActions.setTitle(draft.title);
-    articleMetadataActions.setSummary(draft.summary || '');
-    draft.tags?.forEach(tag => articleMetadataActions.addTag(tag));
-    setCurrentDraftId(draft.id);
-    if (draft.coverImageDataUrl) {
-      setCoverImage(draft.coverImageDataUrl);
-      articleMetadataActions.setCoverImage(draft.coverImageDataUrl);
-      setCoverImageModified(true);
-    } else {
-      setCoverImage(null);
-      articleMetadataActions.setCoverImage(null);
-      setCoverImageModified(false);
-    }
-    if (editor) {
-      editor.commands.setContent(draft.content);
-    }
-  }, [editor, articleMetadataActions]);
-
-  const handleOpenDraftManager = useCallback(() => {
-    setShowDraftManager(true);
-  }, []);
-
-  const handleSaveDraft = useCallback(() => {
-    if (currentDraftId) {
-      const existingDraft = getDraftById(currentDraftId);
-      const draft: ArticleDraft = {
-        'id': currentDraftId,
-        'title': state.title,
-        'content': editor?.getHTML() || '',
-        'createdAt': existingDraft?.createdAt || new Date().toISOString(),
-        'lastSaved': new Date().toISOString()
-      };
-      if (articleMetadata.summary) {
-        draft.summary = articleMetadata.summary;
-      }
-      if (articleMetadata.tags.length > 0) {
-        draft.tags = articleMetadata.tags;
-      }
-      if (coverImage) {
-        draft.coverImageDataUrl = coverImage;
-      }
-      updateDraft(draft);
-    } else {
-      const draft = createDraft({
-        'title': state.title,
-        'content': editor?.getHTML() || '',
-        ...(articleMetadata.summary ? { 'summary': articleMetadata.summary } : {}),
-        ...(articleMetadata.tags.length > 0 ? { 'tags': articleMetadata.tags } : {}),
-        ...(coverImage ? { 'coverImageDataUrl': coverImage } : {})
-      });
-      setCurrentDraftId(draft.id);
-    }
-  }, [currentDraftId, state.title, editor, articleMetadata, coverImage]);
-
   const handleOpenCoverManager = useCallback(() => {
     setShowCoverManager(true);
   }, []);
@@ -449,41 +346,6 @@ export const ArticleEditor: React.FC = () => {
       {isLoadingArticle && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400" />
-        </div>
-      )}
-
-      {showLinkDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setShowLinkDialog(false)} />
-          <div className="bg-slate-50/90 dark:bg-slate-900/90 rounded border border-slate-200/60 dark:border-slate-700/60 p-4 relative z-10 min-w-[400px] max-w-md">
-            <h3 className="text-lg font-semibold mb-4 text-slate-700 dark:text-slate-300">添加链接</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">链接地址</label>
-                <input
-                  type="text"
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  placeholder="https://example.com"
-                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => setShowLinkDialog(false)}
-                  className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 bg-slate-200/50 dark:bg-slate-800/80 hover:bg-slate-300/80 dark:hover:bg-slate-700/80 rounded transition-colors"
-                >
-                  取消
-                </button>
-                <button
-                  onClick={handleLinkSubmit}
-                  className="px-4 py-2 text-sm text-white bg-sky-500 hover:bg-sky-600 rounded transition-colors"
-                >
-                  确定
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
 
@@ -617,14 +479,6 @@ export const ArticleEditor: React.FC = () => {
         </div>
       )}
 
-      <DraftManager
-        key={showDraftManager ? 'open' : 'closed'}
-        isOpen={showDraftManager}
-        onClose={() => setShowDraftManager(false)}
-        onLoadDraft={handleLoadDraft}
-        onCreateNewDraft={handleCreateNewDraft}
-      />
-
       <CoverManager
         isOpen={showCoverManager}
         onClose={() => setShowCoverManager(false)}
@@ -650,20 +504,6 @@ export const ArticleEditor: React.FC = () => {
               >
                 <Image size={16} className="mr-2 text-slate-500 dark:text-slate-400" />
                 封面
-              </button>
-              <button
-                onClick={handleOpenDraftManager}
-                className="inline-flex items-center px-3 py-2 border border-slate-200/60 dark:border-slate-700/60 text-sm font-medium rounded text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100/80 dark:hover:bg-sky-500/15 hover:border-sky-400 dark:hover:border-sky-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
-              >
-                <FolderOpen size={16} className="mr-2 text-slate-500 dark:text-slate-400" />
-                草稿
-              </button>
-              <button
-                onClick={handleSaveDraft}
-                className="inline-flex items-center px-3 py-2 border border-slate-200/60 dark:border-slate-700/60 text-sm font-medium rounded text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100/80 dark:hover:bg-sky-500/15 hover:border-sky-400 dark:hover:border-sky-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-all duration-200"
-              >
-                <FileText size={16} className="mr-2 text-slate-500 dark:text-slate-400" />
-                保存草稿
               </button>
               <button
                 onClick={handleClearArticle}
@@ -731,13 +571,6 @@ export const ArticleEditor: React.FC = () => {
                 <span className="text-sm text-slate-500 dark:text-slate-400">{characterCount} 个字符</span>
               </div>
               <button
-                onClick={() => setShowSummaryInput(!showSummaryInput)}
-                className="flex items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
-              >
-                <span>文章简介</span>
-                {showSummaryInput ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-              <button
                 onClick={() => {
                   setShowTagInput(!showTagInput);
                   if (!showTagInput) {
@@ -750,27 +583,6 @@ export const ArticleEditor: React.FC = () => {
                 <span>添加标签</span>
                 <Plus className="w-4 h-4" />
               </button>
-            </div>
-
-            <div
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                showSummaryInput ? 'max-h-40 opacity-100 mt-4' : 'max-h-0 opacity-0'
-              }`}
-            >
-              <div>
-                <textarea
-                  value={articleMetadata.summary}
-                  onChange={(e) => {
-                    articleMetadataActions.setSummary(e.target.value);
-                  }}
-                  placeholder="输入文章简介..."
-                  rows={3}
-                  className="w-full px-3 py-2 border border-slate-300/80 dark:border-slate-600/80 rounded bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-400 transition-all transition-300 resize-none text-sm"
-                />
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-right">
-                  {articleMetadata.summary.length}
-                </div>
-              </div>
             </div>
 
             <div
@@ -845,7 +657,6 @@ export const ArticleEditor: React.FC = () => {
                 setQuoteBgColor={setQuoteBgColor}
                 quoteBorderColor={quoteBorderColor}
                 setQuoteBorderColor={setQuoteBorderColor}
-                onLinkClick={handleLink}
                 onMathClick={handleMathClick}
                 onIframeClick={handleIframe}
                 onFootnoteClick={handleFootnoteClick}
@@ -858,7 +669,6 @@ export const ArticleEditor: React.FC = () => {
               onTableOfContentsChange={handleTableOfContentsChange}
               onEditorReady={handleEditorReady}
               collaboration={collaborationConfig}
-              onLinkClick={handleLink}
               onMathClick={handleMathClick}
               onIframeClick={handleIframe}
               onFootnoteClick={handleFootnoteClick}

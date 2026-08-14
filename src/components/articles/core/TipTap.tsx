@@ -7,8 +7,6 @@ import { Audio } from '../extensions/Audio';
 import FileHandler from '@tiptap/extension-file-handler';
 import { TableKit } from '@tiptap/extension-table';
 import { TextAlign } from '@tiptap/extension-text-align';
-import SubscriptTiptap from '@tiptap/extension-subscript';
-import SuperscriptTiptap from '@tiptap/extension-superscript';
 import CharacterCount from '@tiptap/extension-character-count';
 import Typography from '@tiptap/extension-typography';
 import InvisibleCharacters from '@tiptap/extension-invisible-characters';
@@ -119,7 +117,6 @@ export interface CollaborationConfig {
   roomId: string | null;
   metadata?: {
     title: Y.Map<string>;
-    summary: Y.Map<string>;
     tags: Y.Array<string>;
     coverImage: Y.Map<string | null>;
   };
@@ -139,7 +136,6 @@ interface TiptapEditorProps {
   editable?: boolean;
   content?: string;
   collaboration?: CollaborationConfig | undefined;
-  onLinkClick?: () => void;
   onMathClick?: (type: 'inline' | 'block') => void;
   onIframeClick?: () => void;
   onFootnoteClick?: () => void;
@@ -153,7 +149,6 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
   editable = true,
   content,
   collaboration,
-  onLinkClick,
   onMathClick,
   onIframeClick,
   onFootnoteClick
@@ -193,8 +188,6 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         'fontSize': { 'types': ['textStyle', 'heading'] },
         'lineHeight': { 'types': ['textStyle', 'heading', 'paragraph'] }
       }),
-      SubscriptTiptap,
-      SuperscriptTiptap,
       CustomCodeBlock.configure({
         lowlight,
         'enableTabIndentation': true,
@@ -234,9 +227,8 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
       IframeEmbed,
       CollapsibleNode,
       FootnoteExtension,
-      ...(editable && onLinkClick && onMathClick && onIframeClick && onFootnoteClick ? [
+      ...(editable && onMathClick && onIframeClick && onFootnoteClick ? [
         SlashCommand.configure({
-          onLinkClick,
           onMathClick,
           onIframeClick
         })
@@ -256,7 +248,7 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
         })
       ] : [])
     ];
-  }, [collaboration, editable, onTableOfContentsChange, onLinkClick, onMathClick, onIframeClick, onFootnoteClick]);
+  }, [collaboration, editable, onTableOfContentsChange, onMathClick, onIframeClick, onFootnoteClick]);
 
   const editor = useEditor({
     editable,

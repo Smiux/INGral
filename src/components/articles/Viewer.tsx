@@ -1,102 +1,24 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ArrowLeft, CalendarDays, Trash2, Edit3, Tag, Download,
-  Compass, CircleDot
+  ArrowLeft, CalendarDays, Trash2, Edit3, Tag, Download
 } from 'lucide-react';
 import {
   getArticleBySlug,
-  getArticleById,
   deleteArticle,
-  type ArticleWithContent
+  type Article
 } from '../../services/articleService';
 import { ConfirmDialog } from '../ui/generic/ConfirmDialog';
 import { TiptapEditor } from './core/TipTap';
 import { FootnotePanel } from './panels/Footnote';
 import { TocItem, TableOfContentsPanel } from './panels/TableOfContents';
 import { useTocUtils } from './utils/ToC';
-import { ArticleSelector, type ArticleSelectorSingleResult } from './ArticleSelector';
-import { JumpPathBar } from './JumpPathBar';
-import { type JumpEdge, dockBodyTransition } from './jumpTypes';
-import {
-  useJumpGraphStore,
-  addJump,
-  clearJumps,
-  setRecording as storeSetRecording,
-  setDockCollapsed as storeSetDockCollapsed
-} from './jumpGraphStore';
-import { ExplorationNavigator } from '@/components/articles/ExplorationNavigator';
-import { addArticleConnection, getArticleNeighbors, type ArticleNeighbors } from '@/services/articlesConnections';
 import type { Editor } from '@tiptap/react';
-
-export interface NeighborNode {
-  id: string;
-  articleTitle: string;
-}
-
-export interface NeighborEdge {
-  sourceId: string;
-  targetId: string;
-  relationship?: string | undefined;
-}
-
-const DOCK_LEAVE_COLLAPSE_MS = 300;
-
-function neighborsToGraphData (
-  currentArticleId: string,
-  currentArticleTitle: string,
-  neighbors: ArticleNeighbors
-): { nodes: NeighborNode[]; edges: NeighborEdge[]; currentNode: NeighborNode } {
-  const currentNode: NeighborNode = {
-    'id': currentArticleId,
-    'articleTitle': currentArticleTitle
-  };
-
-  const nodeMap = new Map<string, NeighborNode>();
-  nodeMap.set(currentArticleId, currentNode);
-
-  const edges: NeighborEdge[] = [];
-
-  for (const n of neighbors.incoming) {
-    if (!nodeMap.has(n.id)) {
-      nodeMap.set(n.id, {
-        'id': n.id,
-        'articleTitle': n.title
-      });
-    }
-    edges.push({
-      'sourceId': n.id,
-      'targetId': currentArticleId,
-      'relationship': n.relationship
-    });
-  }
-
-  for (const n of neighbors.outgoing) {
-    if (!nodeMap.has(n.id)) {
-      nodeMap.set(n.id, {
-        'id': n.id,
-        'articleTitle': n.title
-      });
-    }
-    edges.push({
-      'sourceId': currentArticleId,
-      'targetId': n.id,
-      'relationship': n.relationship
-    });
-  }
-
-  return {
-    'nodes': [...nodeMap.values()],
-    edges,
-    currentNode
-  };
-}
 
 export function ArticleViewer () {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [article, setArticle] = useState<ArticleWithContent | null>(null);
+  const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -105,18 +27,6 @@ export function ArticleViewer () {
   const contentRef = useRef<HTMLDivElement>(null);
   const [tableOfContentsItems, setTableOfContentsItems] = useState<TocItem[]>([]);
   const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
-
-  const store = useJumpGraphStore();
-  const { jumpGraph, recording, dockCollapsed } = store;
-  const recordingRef = useRef(recording);
-  useEffect(() => {
-    recordingRef.current = recording;
-  }, [recording]);
-
-  const [neighbors, setNeighbors] = useState<ArticleNeighbors>({ 'incoming': [], 'outgoing': [] });
-  const [showConnectionSelector, setShowConnectionSelector] = useState(false);
-  const [selectorDirection, setSelectorDirection] = useState<'incoming' | 'outgoing'>('outgoing');
-  const dockLeaveTimerRef = useRef<number | null>(null);
 
   const { toggleCollapsed, getChildIds, isItemCollapsed, shouldShowItem } = useTocUtils();
 
@@ -411,7 +321,6 @@ export function ArticleViewer () {
     <div>创建时间: ${exportCreatedDate}</div>
     <div>更新时间: ${exportUpdatedDate}</div>
   </div>
-  ${exportArticle.summary ? `<blockquote>${exportArticle.summary}</blockquote>` : ''}
   ${exportArticle.tags && exportArticle.tags.length > 0 ? `
   <div class="tags">
     ${exportArticle.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
@@ -433,125 +342,6 @@ export function ArticleViewer () {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
-
-  const handleNavigate = useCallback(async (targetArticleId: string, relationship?: string) => {
-    if (!article) {
-      return;
-    }
-    if (targetArticleId === article.id) {
-      return;
-    }
-    const targetArticle = await getArticleById(targetArticleId);
-    if (!targetArticle) {
-      return;
-    }
-    if (recordingRef.current) {
-      addJump({
-        'sourceArticleId': article.id,
-        targetArticleId,
-        'sourceArticleTitle': article.title,
-        'targetArticleTitle': targetArticle.title,
-        'connectionLabel': relationship
-      });
-    }
-    navigate(`/articles/${targetArticle.slug}`);
-  }, [article, navigate]);
-
-  useEffect(() => {
-    if (!article) {
-      return undefined;
-    }
-    let cancelled = false;
-    getArticleNeighbors(article.id).then(result => {
-      if (!cancelled) {
-        setNeighbors(result);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [article]);
-
-  const clearDockLeaveTimer = useCallback(() => {
-    if (dockLeaveTimerRef.current !== null) {
-      window.clearTimeout(dockLeaveTimerRef.current);
-      dockLeaveTimerRef.current = null;
-    }
-  }, []);
-
-  const handleDockTitlePointerEnter = useCallback(() => {
-    clearDockLeaveTimer();
-    storeSetDockCollapsed(false);
-  }, [clearDockLeaveTimer]);
-
-  const handleDockRegionPointerLeave = useCallback(() => {
-    clearDockLeaveTimer();
-    dockLeaveTimerRef.current = window.setTimeout(() => {
-      storeSetDockCollapsed(true);
-      dockLeaveTimerRef.current = null;
-    }, DOCK_LEAVE_COLLAPSE_MS);
-  }, [clearDockLeaveTimer]);
-
-  useEffect(() => {
-    return () => {
-      clearDockLeaveTimer();
-    };
-  }, [clearDockLeaveTimer]);
-
-  const handleDockEdgeClick = useCallback((edge: JumpEdge) => {
-    handleNavigate(edge.targetArticleId, edge.connectionLabel);
-  }, [handleNavigate]);
-
-  const handleToggleRecording = useCallback(() => {
-    storeSetRecording(!recording);
-  }, [recording]);
-
-  const handleAddConnectionClick = useCallback((direction: 'incoming' | 'outgoing') => {
-    setSelectorDirection(direction);
-    setShowConnectionSelector(true);
-  }, []);
-
-  const handleConnectionSelectorConfirm = useCallback(async (result: ArticleSelectorSingleResult) => {
-    if (!article) {
-      return;
-    }
-    const { 'article': selectedArticle, label } = result;
-    const sourceId = selectorDirection === 'incoming' ? selectedArticle.id : article.id;
-    const targetId = selectorDirection === 'incoming' ? article.id : selectedArticle.id;
-    const params: { sourceArticleId: string; targetArticleId: string; relationshipType?: string } = {
-      'sourceArticleId': sourceId,
-      'targetArticleId': targetId
-    };
-    if (label) {
-      params.relationshipType = label;
-    }
-    await addArticleConnection(params);
-    const updatedNeighbors = await getArticleNeighbors(article.id);
-    setNeighbors(updatedNeighbors);
-    setShowConnectionSelector(false);
-  }, [selectorDirection, article]);
-
-  const excludedConnectionIds = useMemo(() => {
-    if (!article) {
-      return new Set<string>();
-    }
-    const ids = new Set<string>();
-    ids.add(article.id);
-    for (const n of neighbors.incoming) {
-      ids.add(n.id);
-    }
-    for (const n of neighbors.outgoing) {
-      ids.add(n.id);
-    }
-    return ids;
-  }, [article, neighbors]);
-
-  const graphData = useMemo(() => {
-    if (!article) {
-      return null;
-    }
-    return neighborsToGraphData(article.id, article.title, neighbors);
-  }, [article, neighbors]);
 
   if (isLoading) {
     return (
@@ -664,14 +454,6 @@ export function ArticleViewer () {
               )}
             </div>
 
-            {article.summary && (
-              <blockquote className="mb-6 pl-4 border-l-4 border-sky-400 bg-sky-50 dark:bg-sky-900/20 py-3 pr-4 rounded-r-lg">
-                <p className="text-slate-700 dark:text-slate-300 italic m-0">
-                  {article.summary}
-                </p>
-              </blockquote>
-            )}
-
             <TableOfContentsPanel
               items={tableOfContentsItems}
               collapsedItems={collapsedItems}
@@ -706,80 +488,6 @@ export function ArticleViewer () {
             </div>
           </article>
         </div>
-      </div>
-
-      <div
-        className="fixed bottom-0 left-0 right-0 z-30 print:hidden"
-        onPointerLeave={handleDockRegionPointerLeave}
-      >
-        <div className="bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur-sm border-t border-slate-200/60 dark:border-slate-700/60">
-          <div
-            className="max-w-7xl mx-auto flex items-center justify-between gap-2 px-4 py-2"
-            onPointerEnter={handleDockTitlePointerEnter}
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              <Compass className="h-5 w-5 shrink-0 text-sky-500" />
-              <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-300">
-                探索
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleToggleRecording}
-                className={`flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium transition-colors ${
-                  recording
-                    ? 'border-sky-300 bg-sky-100/50 text-sky-600 dark:border-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
-                    : 'border-slate-200/70 bg-slate-100/50 text-slate-400 dark:border-slate-600/60 dark:bg-slate-800/50 dark:text-slate-500'
-                }`}
-              >
-                <CircleDot className="h-3.5 w-3.5" />
-                {recording ? '记录：开' : '记录：关'}
-              </button>
-            </div>
-          </div>
-
-          <AnimatePresence initial={false}>
-            {!dockCollapsed && (
-              <motion.div
-                key="dock-body"
-                initial={{ 'height': 0, 'opacity': 0 }}
-                animate={{ 'height': 'auto', 'opacity': 1 }}
-                exit={{ 'height': 0, 'opacity': 0 }}
-                transition={dockBodyTransition}
-                style={{ 'overflow': 'hidden' }}
-              >
-                <JumpPathBar
-                  graph={jumpGraph}
-                  currentArticleId={article.id}
-                  onNodeClick={handleNavigate}
-                  onEdgeClick={handleDockEdgeClick}
-                  onClear={clearJumps}
-                />
-
-                {graphData && (
-                  <ExplorationNavigator
-                    nodes={graphData.nodes}
-                    edges={graphData.edges}
-                    currentNode={graphData.currentNode}
-                    onNavigate={(targetId: string, relationship?: string) => handleNavigate(targetId, relationship)}
-                    onAddConnection={handleAddConnectionClick}
-                  />
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <ArticleSelector
-          isOpen={showConnectionSelector}
-          excludedIds={excludedConnectionIds}
-          title="选择关联文章"
-          direction={selectorDirection}
-          currentArticleTitle={article.title}
-          onConfirm={handleConnectionSelectorConfirm}
-          onClose={() => setShowConnectionSelector(false)}
-        />
       </div>
 
       <ConfirmDialog

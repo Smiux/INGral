@@ -1,25 +1,20 @@
 import { turso } from './tursoClient';
 
-export interface ArticleListItem {
+export interface Article {
   id: string;
   title: string;
   slug: string;
+  content: string;
   created_at: string;
   updated_at: string;
   cover_image: string | null;
-  summary: string | null;
   tags: string[] | null;
-}
-
-export interface ArticleWithContent extends ArticleListItem {
-  content: string;
 }
 
 export interface CreateArticleParams {
   title: string;
   content: string;
   coverImage?: string | null;
-  summary?: string | undefined;
   tags?: string[] | undefined;
 }
 
@@ -29,25 +24,19 @@ export interface UpdateArticleParams {
   content: string;
   coverImage?: string | null;
   coverImageModified?: boolean;
-  summary?: string | undefined;
   tags?: string[] | undefined;
 }
 
 const TABLE_NAME = 'articles';
 
 interface CachedArticle {
-  article: ArticleWithContent;
+  article: Article;
   updatedAt: string;
 }
 
 interface CachedList {
-  articles: ArticleListItem[];
+  articles: Article[];
   total: number;
-  updatedAt: string;
-}
-
-interface CachedContent {
-  content: string;
   updatedAt: string;
 }
 
@@ -58,7 +47,6 @@ interface CachedTotal {
 
 const articleCache = new Map<string, CachedArticle>();
 const listCache = new Map<string, CachedList>();
-const contentCache = new Map<string, CachedContent>();
 const totalCache: CachedTotal = { 'total': 0, 'updatedAt': '' };
 
 function generateSlug (): string {
@@ -68,30 +56,16 @@ function generateSlug (): string {
   return `article-${timestamp}`;
 }
 
-function parseArticleListItem (row: Record<string, unknown>): ArticleListItem {
+function parseArticle (row: Record<string, unknown>): Article {
   return {
     'id': row.id as string,
     'title': row.title as string,
     'slug': row.slug as string,
+    'content': (row.content as string) || '',
     'created_at': row.created_at as string,
     'updated_at': row.updated_at as string,
     'cover_image': row.cover_image as string | null,
-    'summary': row.summary as string | null,
     'tags': row.tags ? JSON.parse(row.tags as string) : null
-  };
-}
-
-function parseArticleWithContent (row: Record<string, unknown>): ArticleWithContent {
-  return {
-    'id': row.id as string,
-    'title': row.title as string,
-    'slug': row.slug as string,
-    'created_at': row.created_at as string,
-    'updated_at': row.updated_at as string,
-    'cover_image': row.cover_image as string | null,
-    'summary': row.summary as string | null,
-    'tags': row.tags ? JSON.parse(row.tags as string) : null,
-    'content': (row.content as string) || ''
   };
 }
 
@@ -99,19 +73,36 @@ function invalidateArticleCacheBySlug (slug: string): void {
   articleCache.delete(slug);
 }
 
-function invalidateContentCacheById (id: string): void {
-  contentCache.delete(id);
-}
-
 function invalidateListCache (): void {
   listCache.clear();
   totalCache.updatedAt = '';
 }
 
-export async function getArticleById (articleId: string): Promise<ArticleWithContent | null> {
+async function getMaxUpdatedAt (): Promise<string> {
+  const result = await turso.execute({
+    'sql': `SELECT MAX(updated_at) as max_updated_at FROM ${TABLE_NAME}`,
+    'args': []
+  });
+  return (result.rows[0]?.max_updated_at as string) || '';
+}
+
+function cacheArticle (article: Article): void {
+  articleCache.set(article.slug, { article, 'updatedAt': article.updated_at });
+}
+
+function cacheArticleList (articles: Article[]): void {
+  for (const article of articles) {
+    cacheArticle(article);
+  }
+}
+
+async function getArticleByField (
+  field: 'id' | 'slug',
+  value: string
+): Promise<Article | null> {
   const updatedAtResult = await turso.execute({
-    'sql': `SELECT slug, updated_at FROM ${TABLE_NAME} WHERE id = ?`,
-    'args': [articleId]
+    'sql': `SELECT slug, updated_at FROM ${TABLE_NAME} WHERE ${field} = ?`,
+    'args': [value]
   });
 
   if (updatedAtResult.rows.length === 0) {
@@ -127,63 +118,30 @@ export async function getArticleById (articleId: string): Promise<ArticleWithCon
   }
 
   const result = await turso.execute({
-    'sql': `SELECT * FROM ${TABLE_NAME} WHERE id = ?`,
-    'args': [articleId]
+    'sql': `SELECT * FROM ${TABLE_NAME} WHERE ${field} = ?`,
+    'args': [value]
   });
 
   if (result.rows.length === 0 || !result.rows[0]) {
     return null;
   }
 
-  const article = parseArticleWithContent(result.rows[0] as Record<string, unknown>);
-
+  const article = parseArticle(result.rows[0] as Record<string, unknown>);
   articleCache.set(slug, { article, 'updatedAt': currentUpdatedAt });
-  contentCache.set(article.id, { 'content': article.content, 'updatedAt': currentUpdatedAt });
 
   return article;
 }
 
-export async function getArticleBySlug (slug: string): Promise<ArticleWithContent | null> {
-  const updatedAtResult = await turso.execute({
-    'sql': `SELECT updated_at FROM ${TABLE_NAME} WHERE slug = ?`,
-    'args': [slug]
-  });
-
-  if (updatedAtResult.rows.length === 0) {
-    return null;
-  }
-
-  const currentUpdatedAt = updatedAtResult.rows[0]?.updated_at as string;
-  const cached = articleCache.get(slug);
-
-  if (cached && cached.updatedAt === currentUpdatedAt) {
-    return cached.article;
-  }
-
-  const result = await turso.execute({
-    'sql': `SELECT * FROM ${TABLE_NAME} WHERE slug = ?`,
-    'args': [slug]
-  });
-
-  if (result.rows.length === 0 || !result.rows[0]) {
-    return null;
-  }
-
-  const article = parseArticleWithContent(result.rows[0] as Record<string, unknown>);
-
-  articleCache.set(slug, { article, 'updatedAt': currentUpdatedAt });
-  contentCache.set(article.id, { 'content': article.content, 'updatedAt': currentUpdatedAt });
-
-  return article;
+export async function getArticleById (articleId: string): Promise<Article | null> {
+  return getArticleByField('id', articleId);
 }
 
-export async function getAllArticles (): Promise<ArticleListItem[]> {
-  const maxUpdatedAtResult = await turso.execute({
-    'sql': `SELECT MAX(updated_at) as max_updated_at FROM ${TABLE_NAME}`,
-    'args': []
-  });
+export async function getArticleBySlug (slug: string): Promise<Article | null> {
+  return getArticleByField('slug', slug);
+}
 
-  const currentMaxUpdatedAt = (maxUpdatedAtResult.rows[0]?.max_updated_at as string) || '';
+export async function getAllArticles (): Promise<Article[]> {
+  const currentMaxUpdatedAt = await getMaxUpdatedAt();
   const cached = listCache.get('all');
 
   if (cached && cached.updatedAt === currentMaxUpdatedAt) {
@@ -191,20 +149,21 @@ export async function getAllArticles (): Promise<ArticleListItem[]> {
   }
 
   const result = await turso.execute({
-    'sql': `SELECT id, title, slug, created_at, updated_at, cover_image, summary, tags
+    'sql': `SELECT id, title, slug, content, created_at, updated_at, cover_image, tags
             FROM ${TABLE_NAME}
             ORDER BY updated_at DESC`,
     'args': []
   });
 
-  const articles = result.rows.map(row => parseArticleListItem(row as Record<string, unknown>));
+  const articles = result.rows.map(row => parseArticle(row as Record<string, unknown>));
   listCache.set('all', { articles, 'total': articles.length, 'updatedAt': currentMaxUpdatedAt });
+  cacheArticleList(articles);
 
   return articles;
 }
 
 export interface PaginatedArticles {
-  articles: ArticleListItem[];
+  articles: Article[];
   total: number;
   page: number;
   pageSize: number;
@@ -215,12 +174,7 @@ export async function getArticlesPaginated (
   page: number = 1,
   pageSize: number = 20
 ): Promise<PaginatedArticles> {
-  const maxUpdatedAtResult = await turso.execute({
-    'sql': `SELECT MAX(updated_at) as max_updated_at FROM ${TABLE_NAME}`,
-    'args': []
-  });
-
-  const currentMaxUpdatedAt = (maxUpdatedAtResult.rows[0]?.max_updated_at as string) || '';
+  const currentMaxUpdatedAt = await getMaxUpdatedAt();
 
   const cacheKey = `page_${page}_${pageSize}`;
   const cached = listCache.get(cacheKey);
@@ -232,6 +186,21 @@ export async function getArticlesPaginated (
       page,
       pageSize,
       'totalPages': Math.ceil(cached.total / pageSize)
+    };
+  }
+
+  const cachedAll = listCache.get('all');
+  if (cachedAll && cachedAll.updatedAt === currentMaxUpdatedAt) {
+    const offset = (page - 1) * pageSize;
+    const articles = cachedAll.articles.slice(offset, offset + pageSize);
+    listCache.set(cacheKey, { articles, 'total': cachedAll.total, 'updatedAt': currentMaxUpdatedAt });
+
+    return {
+      articles,
+      'total': cachedAll.total,
+      page,
+      pageSize,
+      'totalPages': Math.ceil(cachedAll.total / pageSize)
     };
   }
 
@@ -249,7 +218,7 @@ export async function getArticlesPaginated (
   const offset = (page - 1) * pageSize;
 
   const result = await turso.execute({
-    'sql': `SELECT id, title, slug, created_at, updated_at, cover_image, summary, tags
+    'sql': `SELECT id, title, slug, content, created_at, updated_at, cover_image, tags
             FROM ${TABLE_NAME}
             ORDER BY updated_at DESC
             LIMIT ? OFFSET ?`,
@@ -266,9 +235,10 @@ export async function getArticlesPaginated (
     };
   }
 
-  const articles = result.rows.map(row => parseArticleListItem(row as Record<string, unknown>));
+  const articles = result.rows.map(row => parseArticle(row as Record<string, unknown>));
 
   listCache.set(cacheKey, { articles, total, 'updatedAt': currentMaxUpdatedAt });
+  cacheArticleList(articles);
 
   return {
     articles,
@@ -279,57 +249,26 @@ export async function getArticlesPaginated (
   };
 }
 
-export async function getArticlesContentBatch (articleIds: string[]): Promise<Map<string, string>> {
-  const contentMap = new Map<string, string>();
-
-  if (articleIds.length === 0) {
-    return contentMap;
-  }
-
-  const placeholders = articleIds.map(() => '?').join(',');
-  const result = await turso.execute({
-    'sql': `SELECT id, content, updated_at FROM ${TABLE_NAME} WHERE id IN (${placeholders})`,
-    'args': articleIds
-  });
-
-  result.rows.forEach(row => {
-    const id = row.id as string;
-    const content = (row.content as string) || '';
-    const updatedAt = row.updated_at as string;
-    const cached = contentCache.get(id);
-
-    if (cached && cached.updatedAt === updatedAt) {
-      contentMap.set(id, cached.content);
-    } else {
-      contentMap.set(id, content);
-      contentCache.set(id, { content, updatedAt });
-    }
-  });
-
-  return contentMap;
-}
-
 export async function createArticle ({
   title,
   content,
   coverImage,
-  summary,
   tags
-}: CreateArticleParams): Promise<ArticleWithContent | null> {
+}: CreateArticleParams): Promise<Article | null> {
   const id = crypto.randomUUID();
   const slug = generateSlug();
   const now = new Date().toISOString();
   const tagsJson = tags ? JSON.stringify(tags) : null;
 
   await turso.execute({
-    'sql': `INSERT INTO ${TABLE_NAME} (id, title, slug, content, cover_image, summary, tags, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    'args': [id, title, slug, content, coverImage || null, summary || null, tagsJson, now, now]
+    'sql': `INSERT INTO ${TABLE_NAME} (id, title, slug, content, cover_image, tags, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    'args': [id, title, slug, content, coverImage || null, tagsJson, now, now]
   });
 
   invalidateListCache();
 
-  return {
+  const article = {
     id,
     title,
     slug,
@@ -337,9 +276,11 @@ export async function createArticle ({
     'created_at': now,
     'updated_at': now,
     'cover_image': coverImage || null,
-    'summary': summary || null,
     'tags': tags || null
   };
+  cacheArticle(article);
+
+  return article;
 }
 
 export async function updateArticle ({
@@ -348,25 +289,24 @@ export async function updateArticle ({
   content,
   coverImage,
   coverImageModified,
-  summary,
   tags
-}: UpdateArticleParams): Promise<ArticleWithContent | null> {
+}: UpdateArticleParams): Promise<Article | null> {
   const now = new Date().toISOString();
   const tagsJson = tags ? JSON.stringify(tags) : null;
 
   if (coverImageModified) {
     await turso.execute({
       'sql': `UPDATE ${TABLE_NAME}
-              SET title = ?, content = ?, cover_image = ?, summary = ?, tags = ?, updated_at = ?
+              SET title = ?, content = ?, cover_image = ?, tags = ?, updated_at = ?
               WHERE id = ?`,
-      'args': [title, content, coverImage || null, summary || null, tagsJson, now, articleId]
+      'args': [title, content, coverImage || null, tagsJson, now, articleId]
     });
   } else {
     await turso.execute({
       'sql': `UPDATE ${TABLE_NAME}
-              SET title = ?, content = ?, summary = ?, tags = ?, updated_at = ?
+              SET title = ?, content = ?, tags = ?, updated_at = ?
               WHERE id = ?`,
-      'args': [title, content, summary || null, tagsJson, now, articleId]
+      'args': [title, content, tagsJson, now, articleId]
     });
   }
 
@@ -379,11 +319,11 @@ export async function updateArticle ({
     return null;
   }
 
-  const article = parseArticleWithContent(result.rows[0] as Record<string, unknown>);
+  const article = parseArticle(result.rows[0] as Record<string, unknown>);
 
   invalidateArticleCacheBySlug(article.slug);
-  invalidateContentCacheById(article.id);
   invalidateListCache();
+  cacheArticle(article);
 
   return article;
 }
@@ -398,21 +338,3 @@ export async function deleteArticle (articleId: string): Promise<boolean> {
 
   return result.rowsAffected > 0;
 }
-
-export async function searchArticlesByTitle (query: string): Promise<ArticleListItem[]> {
-  if (!query.trim()) {
-    return [];
-  }
-
-  const result = await turso.execute({
-    'sql': `SELECT id, title, slug, created_at, updated_at, cover_image, summary, tags
-            FROM ${TABLE_NAME}
-            WHERE title LIKE ?
-            ORDER BY updated_at DESC
-            LIMIT 50`,
-    'args': [`%${query}%`]
-  });
-
-  return result.rows.map(row => parseArticleListItem(row as Record<string, unknown>));
-}
-

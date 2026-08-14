@@ -2,31 +2,12 @@ import React, { useCallback, memo, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import {
   Bold, Italic, Code, List, Heading1,
-  Undo, Redo, Link as LinkIcon,
-  Strikethrough, Underline as UnderlineIcon, Highlighter,
+  Undo, Redo,
+  Strikethrough, Underline as UnderlineIcon,
   Quote, Minus, CodeSquare,
-  Plus, ChevronDown, FunctionSquare, Subscript, Superscript, Palette, AlignLeft, CodeXml, ChevronRightSquare,
+  Plus, ChevronDown, FunctionSquare, Palette, AlignLeft, CodeXml, ChevronRightSquare,
   BookOpen
 } from 'lucide-react';
-
-const FONTS: Record<string, string> = {
-  'Arial': 'Arial',
-  'Helvetica': 'Helvetica',
-  'Times New Roman': 'Times New Roman',
-  'Courier New': 'Courier New',
-  'Georgia': 'Georgia',
-  'Verdana': 'Verdana',
-  'Trebuchet MS': 'Trebuchet MS',
-  'Comic Sans MS': 'Comic Sans MS',
-  '微软雅黑': '"Microsoft YaHei", sans-serif',
-  '宋体': '"SimSun", serif',
-  '黑体': '"SimHei", sans-serif',
-  '楷体': '"KaiTi", serif',
-  '仿宋': '"FangSong", serif',
-  '华文黑体': '"STHeiti", "STHeiti Light", "Microsoft YaHei", sans-serif',
-  '思源黑体': '"Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif',
-  '思源宋体': '"Source Han Serif SC", "Noto Serif CJK SC", "SimSun", serif'
-};
 const FONT_SIZES = ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '19px', '20px', '22px', '24px', '26px', '28px', '30px', '32px', '36px', '40px', '44px', '48px', '54px', '60px', '68px', '76px', '84px', '96px'];
 const LINE_HEIGHTS = ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.8', '2.0', '2.2', '2.4', '2.6', '2.8', '3.0'];
 
@@ -126,7 +107,6 @@ interface EditorToolbarProps {
   setQuoteBgColor: (color: string) => void;
   quoteBorderColor: string;
   setQuoteBorderColor: (color: string) => void;
-  onLinkClick: () => void;
   onMathClick: (type: 'inline' | 'block') => void;
   onIframeClick: () => void;
   onFootnoteClick: () => void;
@@ -157,7 +137,6 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
   setQuoteBgColor,
   quoteBorderColor,
   setQuoteBorderColor,
-  onLinkClick,
   onMathClick,
   onIframeClick,
   onFootnoteClick
@@ -177,23 +156,6 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
       return;
     }
     command(editor.chain().focus());
-  }, [editor]);
-
-  const toggleHighlight = useCallback(() => {
-    if (!editor) {
-      return;
-    }
-    const hasHighlight = editor.getAttributes('textStyle').backgroundColor === '#ffff00';
-    if (hasHighlight) {
-      editor.chain().focus()
-        .unsetBackgroundColor()
-        .run();
-    } else {
-      editor.chain().focus()
-        .setBackgroundColor('#ffff00')
-        .run();
-    }
-    setKey(prev => prev + 1);
   }, [editor]);
 
   if (!editor) {
@@ -273,17 +235,6 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           }`}>下划线</span>
         </button>
         <button
-          onClick={toggleHighlight}
-          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
-            editor.getAttributes('textStyle').backgroundColor === '#ffff00' ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400' : 'hover:bg-slate-100/40 dark:hover:bg-slate-800/40'
-          }`}
-        >
-          <Highlighter size={16} className={editor.getAttributes('textStyle').backgroundColor === '#ffff00' ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-slate-500 dark:text-slate-400 mx-auto'} />
-          <span className={`text-xs mt-1 ${
-            editor.getAttributes('textStyle').backgroundColor === '#ffff00' ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
-          }`}>高亮</span>
-        </button>
-        <button
           onClick={() => runEditorCommand(c => c.toggleCode().run())}
           className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
             editor.isActive('code') ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400' : 'hover:bg-slate-100/40 dark:hover:bg-slate-800/40'
@@ -294,29 +245,6 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
             editor.isActive('code') ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
           }`}>行内代码</span>
         </button>
-        <button
-          onClick={() => runEditorCommand(c => c.toggleSubscript().run())}
-          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
-            editor.isActive('subscript') ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400' : 'hover:bg-slate-100/40 dark:hover:bg-slate-800/40'
-          }`}
-        >
-          <Subscript size={16} className={editor.isActive('subscript') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-slate-500 dark:text-slate-400 mx-auto'} />
-          <span className={`text-xs mt-1 ${
-            editor.isActive('subscript') ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
-          }`}>下标</span>
-        </button>
-        <button
-          onClick={() => runEditorCommand(c => c.toggleSuperscript().run())}
-          className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-200 w-16 ${
-            editor.isActive('superscript') ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400' : 'hover:bg-slate-100/40 dark:hover:bg-slate-800/40'
-          }`}
-        >
-          <Superscript size={16} className={editor.isActive('superscript') ? 'text-sky-600 dark:text-sky-400 mx-auto' : 'text-slate-500 dark:text-slate-400 mx-auto'} />
-          <span className={`text-xs mt-1 ${
-            editor.isActive('superscript') ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
-          }`}>上标</span>
-        </button>
-
         <div className="relative menu-container">
           <ToolbarButton
             icon={<AlignLeft size={16} className="text-slate-500 dark:text-slate-400" />}
@@ -376,26 +304,6 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
               }} className="flex-1 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40 rounded">清除背景</button>
             </div>
           </div>
-        </div>
-
-        <div className="relative menu-container">
-          <ToolbarButton
-            icon={<span className="text-sm text-slate-500 dark:text-slate-400">Aa</span>}
-            label="字体"
-            showMenu={activeMenu === 'font'}
-            onClick={() => setActiveMenu(activeMenu === 'font' ? null : 'font')}
-          />
-          <DropdownMenu isOpen={activeMenu === 'font'} width="w-48" maxHeight="max-h-48">
-            {Object.entries(FONTS).map(([label, family]) => (
-              <button key={label} onClick={() => {
-                runEditorCommand(c => c.setFontFamily(family).run()); setActiveMenu(null);
-              }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40" style={{ 'fontFamily': family }}>{label}</button>
-            ))}
-            <div className="border-t border-slate-200/60 dark:border-slate-700/60 my-1" />
-            <button onClick={() => {
-              runEditorCommand(c => c.unsetFontFamily().run()); setActiveMenu(null);
-            }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100/40 dark:hover:bg-slate-800/40">清除字体</button>
-          </DropdownMenu>
         </div>
 
         <div className="relative menu-container">
@@ -548,10 +456,6 @@ const EditorToolbarInner: React.FC<EditorToolbarProps> = ({
           <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">折叠</span>
         </button>
 
-        <button onClick={onLinkClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-all w-16">
-          <LinkIcon size={16} className="text-slate-500 dark:text-slate-400 mx-auto" />
-          <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">链接</span>
-        </button>
         <button onClick={onIframeClick} className="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-100/40 dark:hover:bg-slate-800/40 transition-all w-16">
           <CodeXml size={16} className="text-slate-500 dark:text-slate-400 mx-auto" />
           <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">嵌入</span>

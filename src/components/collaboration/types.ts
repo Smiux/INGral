@@ -16,7 +16,6 @@ export interface RecentRoom {
 
 export interface ArticleMetadataMaps {
   title: Y.Map<string>;
-  summary: Y.Map<string>;
   tags: Y.Array<string>;
   coverImage: Y.Map<string | null>;
 }

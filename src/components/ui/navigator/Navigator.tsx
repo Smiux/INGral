@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useAliveController } from 'react-activation';
 import {
   Network, Calculator, BookOpen, Home, X, GripVertical,
-  Clock, Compass, Users, Wifi, RefreshCw, Loader2, Palette, Check, Sigma
+  Clock, Compass, Users, Wifi, RefreshCw, Loader2, Palette, Check
 } from 'lucide-react';
 import { useCollaboration } from '../../collaboration';
 import {
@@ -35,9 +35,6 @@ function getTabInfo (pathname: string): { 'title': string; 'icon': string } {
   }
   if (pathname === '/articles') {
     return { 'title': '文章列表', 'icon': 'article' };
-  }
-  if (pathname === '/mathgallery') {
-    return { 'title': '数学地图', 'icon': 'math' };
   }
   if (pathname === '/graphs/create') {
     return { 'title': '图编辑器', 'icon': 'graph' };
@@ -70,7 +67,6 @@ function getTabIcon (icon: string, className?: string) {
     case 'home': return <Home className={cn} />;
     case 'graph': return <Network className={cn} />;
     case 'subject': return <Calculator className={cn} />;
-    case 'math': return <Sigma className={cn} />;
     case 'article': return <BookOpen className={cn} />;
     default: return <Compass className={cn} />;
   }
@@ -515,13 +511,6 @@ function NavigationSection () {
       'path': '/graphs/subject-visualization',
       'hoverBg': 'hover:bg-indigo-100/80 dark:hover:bg-indigo-900/30',
       'hoverText': 'hover:text-indigo-500 dark:hover:text-indigo-400'
-    },
-    {
-      'icon': <Sigma className="w-4 h-4 text-blue-400" />,
-      'label': '数学地图',
-      'path': '/mathgallery',
-      'hoverBg': 'hover:bg-blue-100/80 dark:hover:bg-blue-900/30',
-      'hoverText': 'hover:text-blue-500 dark:hover:text-blue-400'
     },
     {
       'icon': <BookOpen className="w-4 h-4 text-teal-400" />,

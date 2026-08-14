@@ -41,8 +41,6 @@
     "@tiptap/extension-invisible-characters": "^3.23.4",
     "@tiptap/extension-mathematics": "^3.23.4",
     "@tiptap/extension-node-range": "^3.23.4",
-    "@tiptap/extension-subscript": "^3.23.4",
-    "@tiptap/extension-superscript": "^3.23.4",
     "@tiptap/extension-table": "^3.23.4",
     "@tiptap/extension-table-of-contents": "^3.23.4",
     "@tiptap/extension-text-align": "^3.23.4",

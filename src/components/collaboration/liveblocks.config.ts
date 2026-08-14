@@ -71,7 +71,6 @@ export type Channel = {
 
 export type ArticleMetadata = {
   title: string;
-  summary: string;
   tags: string[];
   coverImage: string | null;
 };

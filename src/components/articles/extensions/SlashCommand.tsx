@@ -9,19 +9,17 @@ import {
 } from './SlashCommandMenu';
 import {
   Heading1, Heading2, Heading3, List, ListOrdered, Quote,
-  Minus, CodeSquare, Table, Link,
+  Minus, CodeSquare, Table,
   FunctionSquare, ChevronRightSquare, CodeXml
 } from 'lucide-react';
 
 export interface SlashCommandOptions {
   suggestion: Omit<SuggestionOptions<CommandItem>, 'editor' | 'render'>;
-  onLinkClick: () => void;
   onMathClick: (type: 'inline' | 'block') => void;
   onIframeClick: () => void;
 }
 
 const getCommandItems = (
-  onLinkClick: () => void,
   onMathClick: (type: 'inline' | 'block') => void,
   onIframeClick: () => void
 ): CommandItem[] => {
@@ -122,14 +120,6 @@ const getCommandItems = (
         .run()
     },
     {
-      'id': 'link',
-      'label': '链接',
-      'description': '插入链接',
-      'icon': <Link size={18} className="text-slate-600 dark:text-slate-400" />,
-      'category': 'insert',
-      'action': () => onLinkClick()
-    },
-    {
       'id': 'inlineMath',
       'label': '行内公式',
       'description': '行内数学公式',
@@ -176,14 +166,13 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
         'startOfLine': false,
         'allowSpaces': false
       },
-      'onLinkClick': () => {},
       'onMathClick': () => {},
       'onIframeClick': () => {}
     };
   },
 
   addProseMirrorPlugins () {
-    const { onLinkClick, onMathClick, onIframeClick } = this.options;
+    const { onMathClick, onIframeClick } = this.options;
 
     return [
       // eslint-disable-next-line new-cap
@@ -191,7 +180,7 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
         'editor': this.editor,
         ...this.options.suggestion,
         'items': ({ query }) => {
-          const items = getCommandItems(onLinkClick, onMathClick, onIframeClick);
+          const items = getCommandItems(onMathClick, onIframeClick);
           return items.filter((item) =>
             item.label.toLowerCase().includes(query.toLowerCase()) ||
             item.description.toLowerCase().includes(query.toLowerCase())
