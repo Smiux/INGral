@@ -6,8 +6,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAliveController } from 'react-activation';
 import {
-  Network, Calculator, BookOpen, Home, X, GripVertical,
-  Clock, Compass, Users, Wifi, RefreshCw, Loader2, Palette, Check
+  Network, BookOpen, Home, X, GripVertical,
+  Clock, Compass, Users, Wifi, RefreshCw, Loader2
 } from 'lucide-react';
 import { useCollaboration } from '../../collaboration';
 import {
@@ -18,7 +18,6 @@ import {
   type NavigatorAction
 } from './NavigatorContext';
 import { useNavigator } from './useNavigator';
-import { useGrayTheme, type GrayThemeName } from '../theme/useGrayTheme';
 import { getArticleBySlug } from '@/services/articleService';
 
 
@@ -39,16 +38,6 @@ function getTabInfo (pathname: string): { 'title': string; 'icon': string } {
   if (pathname === '/graphs/create') {
     return { 'title': '图编辑器', 'icon': 'graph' };
   }
-  if (pathname.startsWith('/graphs/subject-visualization')) {
-    const subjectMatch = pathname.match(/^\/graphs\/subject-visualization\/(.+)$/);
-    const subjectName = subjectMatch && subjectMatch[1]
-      ? decodeURIComponent(subjectMatch[1])
-      : '';
-    return {
-      'title': subjectName ? `分类 - ${subjectName}` : '分类可视化',
-      'icon': 'subject'
-    };
-  }
   if (pathname === '/articles/create') {
     return { 'title': '创建文章', 'icon': 'article' };
   }
@@ -63,7 +52,6 @@ function getTabIcon (icon: string, className?: string) {
   switch (icon) {
     case 'home': return <Home className={cn} />;
     case 'graph': return <Network className={cn} />;
-    case 'subject': return <Calculator className={cn} />;
     case 'article': return <BookOpen className={cn} />;
     default: return <Compass className={cn} />;
   }
@@ -493,13 +481,6 @@ function NavigationSection () {
       'hoverText': 'hover:text-sky-500 dark:hover:text-sky-400'
     },
     {
-      'icon': <Calculator className="w-4 h-4 text-indigo-400" />,
-      'label': '分类',
-      'path': '/graphs/subject-visualization',
-      'hoverBg': 'hover:bg-indigo-100/80 dark:hover:bg-indigo-900/30',
-      'hoverText': 'hover:text-indigo-500 dark:hover:text-indigo-400'
-    },
-    {
       'icon': <BookOpen className="w-4 h-4 text-teal-400" />,
       'label': '文章',
       'path': '/articles',
@@ -770,78 +751,6 @@ function TabsSection () {
   );
 }
 
-const GRAY_THEME_ORDER: GrayThemeName[] = [
-  'slate', 'neutral', 'gray', 'zinc', 'stone',
-  'mauve', 'olive', 'mist', 'taupe'
-];
-
-function GrayThemeSelector () {
-  const { theme, setTheme, labels } = useGrayTheme();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) {
-      return undefined;
-    }
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [open]);
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="p-1.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-colors"
-      >
-        <Palette className="w-4 h-4" />
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ 'opacity': 0, 'scale': 0.95, 'y': -4 }}
-            animate={{ 'opacity': 1, 'scale': 1, 'y': 0 }}
-            exit={{ 'opacity': 0, 'scale': 0.95, 'y': -4 }}
-            transition={{ 'duration': 0.15 }}
-            className="absolute right-0 top-full mt-1 w-52 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded z-[200] overflow-hidden"
-          >
-            <div className="p-1.5">
-              {GRAY_THEME_ORDER.map(name => (
-                <button
-                  key={name}
-                  onClick={() => {
-                    setTheme(name);
-                    setOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-sm transition-colors ${
-                    theme === name
-                      ? 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-700/60'
-                  }`}
-                >
-                  <span
-                    className="w-3.5 h-3.5 rounded-full border border-slate-300/50 dark:border-slate-600/50 shrink-0"
-                    style={{ 'backgroundColor': `var(--color-slate-${theme === name ? 500 : 400})` }}
-                  />
-                  <span className="flex-1 text-left">{labels[name]}</span>
-                  {theme === name && <Check className="w-3.5 h-3.5 shrink-0" />}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
 export function NavigatorSidebar () {
   const { isOpen, setIsOpen } = useNavigator();
   const [activeSection, setActiveSection] = useState<'nav' | 'history'>('nav');
@@ -870,7 +779,6 @@ export function NavigatorSidebar () {
                 IN Gral
               </span>
               <div className="flex items-center gap-1">
-                <GrayThemeSelector />
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-1.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-colors"

@@ -19,7 +19,6 @@
     }
   },
   "dependencies": {
-    "@cosmos.gl/graph": "^2.6.4",
     "@libsql/client": "^0.17.2",
     "@liveblocks/client": "^3.17.0",
     "@liveblocks/react": "^3.17.0",

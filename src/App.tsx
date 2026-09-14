@@ -4,7 +4,6 @@ import { AliveScope, KeepAlive } from 'react-activation';
 import { NavigatorProvider, NavigatorTrigger, NavigatorSidebar, NavigatorCacheManager, useNavigator } from './components/ui';
 import { HomePage } from './pages/HomePage';
 import { ArticlesPage } from './pages/ArticlesPage';
-import SubjectVisualization from './components/graph/SubjectVisualization';
 import { ArticleViewer } from './components/articles';
 import GraphVisualization from './components/graph/GraphVisualization';
 import { BrainstormPage } from './brainstorm/BrainstormPage';
@@ -176,17 +175,6 @@ function useMetaTags (): void {
       return;
     }
 
-    if (path.startsWith('/graphs/subject-visualization')) {
-      const subjectMatch = path.match(/^\/graphs\/subject-visualization\/(.+)$/);
-      const subject = subjectMatch ? subjectMatch[1] : '';
-      updateMetaTags({
-        'title': subject ? `分类可视化 - ${subject}` : '分类可视化',
-        'description': '探索分类体系，发现分类关联',
-        'type': 'website'
-      });
-      return;
-    }
-
     if (path.startsWith('/graphs/')) {
       updateMetaTags({
         'title': path.includes('/create') ? '创建图' : '图',
@@ -232,8 +220,6 @@ function AppContent () {
             <Route path="/articles/:slug" element={<CachedArticleViewer />} />
             <Route path="/articles/create" element={<CachedRoute cacheKey="/articles/create"><ArticleViewer /></CachedRoute>} />
             <Route path="/graphs/create" element={<CachedRoute cacheKey="/graphs/create"><GraphVisualization /></CachedRoute>} />
-            <Route path="/graphs/subject-visualization" element={<SubjectVisualization />} />
-            <Route path="/graphs/subject-visualization/:subject" element={<SubjectVisualization />} />
             <Route path="/brainstorm" element={<BrainstormPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
