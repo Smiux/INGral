@@ -49,7 +49,27 @@ const blockMathExt = {
   }
 };
 
-marked.use({ 'extensions': [blockMathExt, inlineMathExt] });
+const escapeHtml = (text: string): string => text
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;');
+
+marked.use({
+  'extensions': [blockMathExt, inlineMathExt],
+  'renderer': {
+    'codespan' ({ 'text': code }: { 'text': string }) {
+      if (!code.includes('\\')) {
+        return `<code>${escapeHtml(code)}</code>`;
+      }
+
+      try {
+        return katex.renderToString(code, { 'throwOnError': false, 'displayMode': false });
+      } catch {
+        return `<code>${escapeHtml(code)}</code>`;
+      }
+    }
+  }
+});
 
 const contentModules = import.meta.glob('./content/*.{html,md}', {
   'query': '?raw',

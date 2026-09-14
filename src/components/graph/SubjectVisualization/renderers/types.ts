@@ -1,6 +1,6 @@
 import type { SubjectNode, GraphData } from '../types';
 
-export type RendererType = 'force-graph-3d' | 'force-graph-2d' | 'cosmos-gl' | 'deck-gl';
+export type RendererType = 'force-graph-3d' | 'cosmos-gl';
 
 export interface RendererConfig {
   type: RendererType;
@@ -27,15 +27,5 @@ export const RENDERER_CONFIGS: RendererConfig[] = [
     'type': 'force-graph-3d',
     'label': 'Force Graph 3D',
     'description': '3D力导向图'
-  },
-  {
-    'type': 'force-graph-2d',
-    'label': 'Force Graph 2D',
-    'description': '2D力导向图'
-  },
-  {
-    'type': 'deck-gl',
-    'label': 'Deck.gl',
-    'description': 'Deck.gl图可视化'
   }
 ];

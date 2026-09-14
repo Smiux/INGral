@@ -267,20 +267,20 @@ const TiptapEditorInner: React.FC<TiptapEditorProps> = ({
           : 'prose prose-lg max-w-none mx-auto p-6 md:p-8'
       }
     }
-  });
+  }, [editable]);
 
   React.useImperativeHandle(editorRef, () => ({
     'getEditor': () => editor
   }), [editor]);
 
   React.useEffect(() => {
-    if (editor) {
+    if (editor && !editor.isDestroyed) {
       editor.setEditable(editable);
     }
   }, [editor, editable]);
 
   React.useEffect(() => {
-    if (editor && onEditorReady) {
+    if (editor && !editor.isDestroyed && onEditorReady) {
       onEditorReady(editor);
     }
   }, [editor, onEditorReady]);

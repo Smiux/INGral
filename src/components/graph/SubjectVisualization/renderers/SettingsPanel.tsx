@@ -1,484 +1,69 @@
-import { X, Settings } from 'lucide-react';
+import { Settings, X } from 'lucide-react';
 import type { RendererType } from './types';
 import {
   type ForceGraphSettings,
   type CosmosGLSettings,
-  type DeckGLSettings,
   type DagMode,
   DAG_MODE_OPTIONS,
   DEFAULT_FORCE_GRAPH_SETTINGS,
-  DEFAULT_COSMOS_GL_SETTINGS,
-  DEFAULT_DECK_GL_SETTINGS
+  DEFAULT_COSMOS_GL_SETTINGS
 } from './settingsTypes';
 
-interface RendererSettingsPanelProps {
+interface Props {
   isOpen: boolean;
   onClose: () => void;
   currentRenderer: RendererType;
   forceGraphSettings: ForceGraphSettings;
   cosmosGLSettings: CosmosGLSettings;
-  deckGLSettings: DeckGLSettings;
   onForceGraphSettingsChange: (settings: ForceGraphSettings) => void;
   onCosmosGLSettingsChange: (settings: CosmosGLSettings) => void;
-  onDeckGLSettingsChange: (settings: DeckGLSettings) => void;
 }
 
-interface SliderProps {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  onChange: (value: number) => void;
-  description?: string;
-  displayValue?: string;
-}
-
-const Slider = ({ label, value, min, max, step, onChange, description, displayValue }: SliderProps) => (
-  <div className="space-y-1">
-    <div className="flex justify-between items-center">
-      <label className="text-xs text-slate-700 dark:text-slate-300">{label}</label>
-      <span className="text-xs text-slate-500 dark:text-slate-500 font-mono">{displayValue ?? value.toFixed(step < 1 ? 2 : 0)}</span>
-    </div>
-    <input
-      type="range"
-      min={min}
-      max={max}
-      step={step}
-      value={value}
-      onChange={(e) => onChange(parseFloat(e.target.value))}
-      className="w-full h-1.5 bg-slate-200/60 dark:bg-slate-700/60 rounded appearance-none cursor-pointer accent-sky-500"
-    />
-    {description && <p className="text-[10px] text-slate-400 dark:text-slate-500">{description}</p>}
-  </div>
-);
-
-interface ToggleProps {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  description?: string;
-}
-
-const Toggle = ({ label, checked, onChange, description }: ToggleProps) => (
-  <div className="flex items-center justify-between">
-    <div>
-      <label className="text-xs text-slate-700 dark:text-slate-300">{label}</label>
-      {description && <p className="text-[10px] text-slate-400 dark:text-slate-500">{description}</p>}
-    </div>
-    <button
-      onClick={() => onChange(!checked)}
-      className={`relative w-10 h-5 rounded-full transition-colors ${
-        checked ? 'bg-sky-100/80 dark:bg-sky-500/15' : 'bg-slate-200/60 dark:bg-slate-700/60'
-      }`}
-    >
-      <span
-        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-slate-50 transition-transform ${
-          checked ? 'translate-x-5' : 'translate-x-0'
-        } ${checked ? '' : 'bg-slate-400'}`}
-        style={{ 'backgroundColor': checked ? '#38bdf8' : undefined }}
-      />
-    </button>
-  </div>
-);
-
-interface SelectProps {
-  label: string;
-  value: DagMode;
-  options: { value: DagMode; label: string; description: string }[];
-  onChange: (value: DagMode) => void;
-}
-
-const Select = ({ label, value, options, onChange }: SelectProps) => (
-  <div className="space-y-1">
-    <label className="text-xs text-slate-700 dark:text-slate-300">{label}</label>
-    <select
-      value={value === null ? 'null' : value}
-      onChange={(e) => onChange(e.target.value === 'null' ? null : e.target.value as DagMode)}
-      className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 rounded px-2 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-sky-400"
-    >
-      {options.map((option) => (
-        <option key={option.value === null ? 'null' : option.value} value={option.value === null ? 'null' : option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  </div>
-);
-
-const formatTime = (ms: number): string => {
-  if (ms >= 1000) {
-    return `${(ms / 1000).toFixed(1)}s`;
-  }
-  return `${ms}ms`;
-};
-
-const ForceGraphSettingsPanel = ({
-  settings,
-  onChange
-}: {
-  settings: ForceGraphSettings;
-  onChange: (settings: ForceGraphSettings) => void;
-}) => (
-  <div className="space-y-4">
-    <div className="space-y-3">
-      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
-        树形布局
-      </h4>
-      <Select
-        label="DAG 模式"
-        value={settings.dagMode}
-        options={DAG_MODE_OPTIONS}
-        onChange={(value) => onChange({ ...settings, 'dagMode': value })}
-      />
-      <Slider
-        label="层级距离"
-        value={settings.dagLevelDistance}
-        min={20}
-        max={2000}
-        step={10}
-        onChange={(value) => onChange({ ...settings, 'dagLevelDistance': value })}
-        description="相邻层级之间的距离"
-      />
-    </div>
-
-    <div className="space-y-3">
-      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
-        力导向模拟
-      </h4>
-      <Slider
-        label="衰减率"
-        value={settings.d3AlphaDecay}
-        min={0}
-        max={0.5}
-        step={0.001}
-        onChange={(value) => onChange({ ...settings, 'd3AlphaDecay': value })}
-        description="模拟衰减速度，值越大停止越快"
-      />
-      <Slider
-        label="速度衰减"
-        value={settings.d3VelocityDecay}
-        min={0}
-        max={0.99}
-        step={0.01}
-        onChange={(value) => onChange({ ...settings, 'd3VelocityDecay': value })}
-        description="节点移动速度衰减"
-      />
-      <Slider
-        label="冷却时间"
-        value={settings.cooldownTime}
-        min={0}
-        max={300000}
-        step={1000}
-        onChange={(value) => onChange({ ...settings, 'cooldownTime': value })}
-        displayValue={formatTime(settings.cooldownTime)}
-        description="模拟停止前的时间，0为立即停止"
-      />
-    </div>
-
-    <div className="space-y-3">
-      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
-        视觉效果
-      </h4>
-      <Slider
-        label="节点相对大小"
-        value={settings.nodeRelSize}
-        min={0.5}
-        max={50}
-        step={0.5}
-        onChange={(value) => onChange({ ...settings, 'nodeRelSize': value })}
-      />
-      <Slider
-        label="节点不透明度"
-        value={settings.nodeOpacity}
-        min={0}
-        max={1}
-        step={0.05}
-        onChange={(value) => onChange({ ...settings, 'nodeOpacity': value })}
-      />
-      <Slider
-        label="连接宽度"
-        value={settings.linkWidth}
-        min={0}
-        max={20}
-        step={0.5}
-        onChange={(value) => onChange({ ...settings, 'linkWidth': value })}
-      />
-      <Slider
-        label="连接不透明度"
-        value={settings.linkOpacity}
-        min={0}
-        max={1}
-        step={0.05}
-        onChange={(value) => onChange({ ...settings, 'linkOpacity': value })}
-      />
-    </div>
-  </div>
-);
-
-const CosmosGLSettingsPanel = ({
-  settings,
-  onChange
-}: {
-  settings: CosmosGLSettings;
-  onChange: (settings: CosmosGLSettings) => void;
-}) => (
-  <div className="space-y-4">
-    <div className="space-y-3">
-      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
-        力导向模拟
-      </h4>
-      <Toggle
-        label="模拟暂停"
-        checked={settings.simulationPaused}
-        onChange={(checked) => onChange({ ...settings, 'simulationPaused': checked })}
-        description="暂停/恢复力导向模拟"
-      />
-      <Slider
-        label="摩擦力"
-        value={settings.simulationFriction}
-        min={0}
-        max={1}
-        step={0.01}
-        onChange={(value) => onChange({ ...settings, 'simulationFriction': value })}
-        description="节点运动的摩擦系数，越大越慢"
-      />
-      <Slider
-        label="引力"
-        value={settings.simulationGravity}
-        min={0}
-        max={2}
-        step={0.01}
-        onChange={(value) => onChange({ ...settings, 'simulationGravity': value })}
-        description="将节点拉向中心的力"
-      />
-      <Slider
-        label="斥力"
-        value={settings.simulationRepulsion}
-        min={0}
-        max={10}
-        step={0.1}
-        onChange={(value) => onChange({ ...settings, 'simulationRepulsion': value })}
-        description="节点之间的排斥力"
-      />
-    </div>
-
-    <div className="space-y-3">
-      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
-        连接样式
-      </h4>
-      <Slider
-        label="连接宽度缩放"
-        value={settings.linkWidthScale}
-        min={0.1}
-        max={10}
-        step={0.1}
-        onChange={(value) => onChange({ ...settings, 'linkWidthScale': value })}
-      />
-      <Slider
-        label="连接不透明度"
-        value={settings.linkOpacity}
-        min={0}
-        max={1}
-        step={0.05}
-        onChange={(value) => onChange({ ...settings, 'linkOpacity': value })}
-      />
-    </div>
-
-    <div className="space-y-3">
-      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
-        节点样式
-      </h4>
-      <Slider
-        label="节点大小缩放"
-        value={settings.pointSizeScale}
-        min={0.1}
-        max={10}
-        step={0.1}
-        onChange={(value) => onChange({ ...settings, 'pointSizeScale': value })}
-      />
-      <Slider
-        label="节点不透明度"
-        value={settings.pointOpacity}
-        min={0}
-        max={1}
-        step={0.05}
-        onChange={(value) => onChange({ ...settings, 'pointOpacity': value })}
-      />
-    </div>
-  </div>
-);
-
-const DeckGLSettingsPanel = ({
-  settings,
-  onChange
-}: {
-  settings: DeckGLSettings;
-  onChange: (settings: DeckGLSettings) => void;
-}) => (
-  <div className="space-y-4">
-    <div className="space-y-3">
-      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
-        辐射布局
-      </h4>
-      <Slider
-        label="基础半径"
-        value={settings.baseRadius}
-        min={100}
-        max={2000}
-        step={50}
-        onChange={(value) => onChange({ ...settings, 'baseRadius': value })}
-        description="第一层节点的圆环半径"
-      />
-      <Slider
-        label="半径增量"
-        value={settings.radiusStep}
-        min={100}
-        max={1000}
-        step={50}
-        onChange={(value) => onChange({ ...settings, 'radiusStep': value })}
-        description="每层节点之间的半径增量"
-      />
-    </div>
-
-    <div className="space-y-3">
-      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
-        节点样式
-      </h4>
-      <Slider
-        label="节点大小"
-        value={settings.nodeSize}
-        min={1}
-        max={30}
-        step={1}
-        onChange={(value) => onChange({ ...settings, 'nodeSize': value })}
-      />
-      <Slider
-        label="节点不透明度"
-        value={settings.nodeOpacity}
-        min={0}
-        max={1}
-        step={0.05}
-        onChange={(value) => onChange({ ...settings, 'nodeOpacity': value })}
-      />
-      <Slider
-        label="节点边框宽度"
-        value={settings.nodeStrokeWidth}
-        min={0}
-        max={5}
-        step={0.5}
-        onChange={(value) => onChange({ ...settings, 'nodeStrokeWidth': value })}
-      />
-    </div>
-
-    <div className="space-y-3">
-      <h4 className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
-        连接样式
-      </h4>
-      <Slider
-        label="连接宽度"
-        value={settings.linkWidth}
-        min={0.5}
-        max={10}
-        step={0.5}
-        onChange={(value) => onChange({ ...settings, 'linkWidth': value })}
-      />
-      <Slider
-        label="连接不透明度"
-        value={settings.linkOpacity}
-        min={0}
-        max={1}
-        step={0.05}
-        onChange={(value) => onChange({ ...settings, 'linkOpacity': value })}
-      />
-    </div>
-  </div>
-);
-
-export default function RendererSettingsPanel ({
-  isOpen,
-  onClose,
-  currentRenderer,
-  forceGraphSettings,
-  cosmosGLSettings,
-  deckGLSettings,
-  onForceGraphSettingsChange,
-  onCosmosGLSettingsChange,
-  onDeckGLSettingsChange
-}: RendererSettingsPanelProps) {
-  if (!isOpen) {
-    return null;
-  }
-
-  const isForceGraph = currentRenderer === 'force-graph-3d' || currentRenderer === 'force-graph-2d';
-  const isCosmosGL = currentRenderer === 'cosmos-gl';
-  const isDeckGL = currentRenderer === 'deck-gl';
-
-  const handleReset = () => {
-    if (isForceGraph) {
-      onForceGraphSettingsChange(DEFAULT_FORCE_GRAPH_SETTINGS);
-    } else if (isCosmosGL) {
-      onCosmosGLSettingsChange(DEFAULT_COSMOS_GL_SETTINGS);
-    } else if (isDeckGL) {
-      onDeckGLSettingsChange(DEFAULT_DECK_GL_SETTINGS);
-    }
-  };
-
-  const hasSettings = isForceGraph || isCosmosGL || isDeckGL;
-
+function Slider ({ label, value, min, max, step, onChange }: { label: string; value: number; min: number; max: number; step: number; onChange: (value: number) => void }) {
   return (
-    <div className="fixed right-0 top-14 h-[calc(100vh-56px)] w-80 bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur-sm border-l border-slate-200/60 dark:border-slate-700/60 z-40 flex flex-col animate-slide-in-right">
-      <div className="flex items-center justify-between p-4 border-b border-slate-200/60 dark:border-slate-700/60">
-        <div className="flex items-center gap-2">
-          <Settings className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-          <h2 className="text-sm font-medium text-slate-600 dark:text-slate-300">渲染器设置</h2>
-        </div>
-        <button
-          onClick={onClose}
-          className="p-1 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 rounded transition-colors"
-        >
-          <X className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4">
-        {isForceGraph && (
-          <ForceGraphSettingsPanel
-            settings={forceGraphSettings}
-            onChange={onForceGraphSettingsChange}
-          />
-        )}
-        {isCosmosGL && (
-          <CosmosGLSettingsPanel
-            settings={cosmosGLSettings}
-            onChange={onCosmosGLSettingsChange}
-          />
-        )}
-        {isDeckGL && (
-          <DeckGLSettingsPanel
-            settings={deckGLSettings}
-            onChange={onDeckGLSettingsChange}
-          />
-        )}
-        {!hasSettings && (
-          <div className="text-center text-slate-400 dark:text-slate-500 text-sm py-8">
-            当前渲染器暂无可配置参数
-          </div>
-        )}
-      </div>
-
-      {hasSettings && (
-        <div className="p-4 border-t border-slate-200/60 dark:border-slate-700/60">
-          <button
-            onClick={handleReset}
-            className="w-full py-2 px-4 bg-slate-200/60 dark:bg-slate-700/60 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-600 dark:text-slate-300 rounded transition-colors text-sm font-medium"
-          >
-            重置为默认值
-          </button>
-        </div>
-      )}
-    </div>
+    <label className="block space-y-1">
+      <span className="flex justify-between text-xs text-slate-700 dark:text-slate-300"><span>{label}</span><span>{value}</span></span>
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} className="w-full accent-sky-500" />
+    </label>
   );
 }
 
-export type { ForceGraphSettings, CosmosGLSettings, DeckGLSettings };
+function ForceGraphSettings ({ settings, onChange }: { settings: ForceGraphSettings; onChange: (settings: ForceGraphSettings) => void }) {
+  return <div className="space-y-4">
+    <select value={settings.dagMode === null ? 'null' : settings.dagMode} onChange={(event) => onChange({ ...settings, 'dagMode': event.target.value === 'null' ? null : event.target.value as DagMode })} className="w-full rounded border border-slate-200/60 bg-slate-100/50 px-2 py-1.5 text-xs dark:border-slate-700/60 dark:bg-slate-800/50">
+      {DAG_MODE_OPTIONS.map((option) => <option key={option.value ?? 'null'} value={option.value ?? 'null'}>{option.label}</option>)}
+    </select>
+    <Slider label="层级距离" value={settings.dagLevelDistance} min={20} max={2000} step={10} onChange={(value) => onChange({ ...settings, 'dagLevelDistance': value })} />
+    <Slider label="节点大小" value={settings.nodeRelSize} min={0.5} max={50} step={0.5} onChange={(value) => onChange({ ...settings, 'nodeRelSize': value })} />
+    <Slider label="节点不透明度" value={settings.nodeOpacity} min={0} max={1} step={0.05} onChange={(value) => onChange({ ...settings, 'nodeOpacity': value })} />
+    <Slider label="连接宽度" value={settings.linkWidth} min={0} max={20} step={0.5} onChange={(value) => onChange({ ...settings, 'linkWidth': value })} />
+    <Slider label="连接不透明度" value={settings.linkOpacity} min={0} max={1} step={0.05} onChange={(value) => onChange({ ...settings, 'linkOpacity': value })} />
+  </div>;
+}
+
+function CosmosSettings ({ settings, onChange }: { settings: CosmosGLSettings; onChange: (settings: CosmosGLSettings) => void }) {
+  return <div className="space-y-4">
+    <label className="flex justify-between text-xs text-slate-700 dark:text-slate-300"><span>模拟暂停</span><input type="checkbox" checked={settings.simulationPaused} onChange={(event) => onChange({ ...settings, 'simulationPaused': event.target.checked })} /></label>
+    <Slider label="摩擦力" value={settings.simulationFriction} min={0} max={1} step={0.01} onChange={(value) => onChange({ ...settings, 'simulationFriction': value })} />
+    <Slider label="引力" value={settings.simulationGravity} min={0} max={2} step={0.01} onChange={(value) => onChange({ ...settings, 'simulationGravity': value })} />
+    <Slider label="斥力" value={settings.simulationRepulsion} min={0} max={10} step={0.1} onChange={(value) => onChange({ ...settings, 'simulationRepulsion': value })} />
+    <Slider label="节点大小缩放" value={settings.pointSizeScale} min={0.1} max={10} step={0.1} onChange={(value) => onChange({ ...settings, 'pointSizeScale': value })} />
+    <Slider label="节点不透明度" value={settings.pointOpacity} min={0} max={1} step={0.05} onChange={(value) => onChange({ ...settings, 'pointOpacity': value })} />
+    <Slider label="连接宽度缩放" value={settings.linkWidthScale} min={0.1} max={10} step={0.1} onChange={(value) => onChange({ ...settings, 'linkWidthScale': value })} />
+    <Slider label="连接不透明度" value={settings.linkOpacity} min={0} max={1} step={0.05} onChange={(value) => onChange({ ...settings, 'linkOpacity': value })} />
+  </div>;
+}
+
+export default function RendererSettingsPanel ({ isOpen, onClose, currentRenderer, forceGraphSettings, cosmosGLSettings, onForceGraphSettingsChange, onCosmosGLSettingsChange }: Props) {
+  if (!isOpen) {
+    return null;
+  }
+  const isForceGraph = currentRenderer === 'force-graph-3d';
+  return <div className="fixed right-0 top-14 z-40 flex h-[calc(100vh-56px)] w-80 flex-col border-l border-slate-200/60 bg-slate-100/90 backdrop-blur-sm dark:border-slate-700/60 dark:bg-slate-800/90">
+    <div className="flex items-center justify-between border-b border-slate-200/60 p-4 dark:border-slate-700/60"><div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"><Settings className="h-4 w-4" />渲染器设置</div><button onClick={onClose}><X className="h-4 w-4" /></button></div>
+    <div className="flex-1 overflow-y-auto p-4">{isForceGraph ? <ForceGraphSettings settings={forceGraphSettings} onChange={onForceGraphSettingsChange} /> : <CosmosSettings settings={cosmosGLSettings} onChange={onCosmosGLSettingsChange} />}</div>
+    <div className="border-t border-slate-200/60 p-4 dark:border-slate-700/60"><button onClick={() => isForceGraph ? onForceGraphSettingsChange(DEFAULT_FORCE_GRAPH_SETTINGS) : onCosmosGLSettingsChange(DEFAULT_COSMOS_GL_SETTINGS)} className="w-full rounded bg-slate-200/60 px-4 py-2 text-sm text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">重置为默认值</button></div>
+  </div>;
+}
+
+export type { ForceGraphSettings, CosmosGLSettings };

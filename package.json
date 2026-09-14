@@ -20,9 +20,6 @@
   },
   "dependencies": {
     "@cosmos.gl/graph": "^2.6.4",
-    "@deck.gl/core": "^9.3.0",
-    "@deck.gl/layers": "^9.3.0",
-    "@deck.gl/react": "^9.3.0",
     "@libsql/client": "^0.17.2",
     "@liveblocks/client": "^3.17.0",
     "@liveblocks/react": "^3.17.0",

@@ -23,16 +23,6 @@ export interface CosmosGLSettings {
   linkOpacity: number;
 }
 
-export interface DeckGLSettings {
-  baseRadius: number;
-  radiusStep: number;
-  nodeSize: number;
-  nodeOpacity: number;
-  linkWidth: number;
-  linkOpacity: number;
-  nodeStrokeWidth: number;
-}
-
 export const DEFAULT_FORCE_GRAPH_SETTINGS: ForceGraphSettings = {
   'dagMode': 'radialout',
   'dagLevelDistance': 300,
@@ -54,16 +44,6 @@ export const DEFAULT_COSMOS_GL_SETTINGS: CosmosGLSettings = {
   'linkWidthScale': 1,
   'pointOpacity': 1,
   'linkOpacity': 1
-};
-
-export const DEFAULT_DECK_GL_SETTINGS: DeckGLSettings = {
-  'baseRadius': 500,
-  'radiusStep': 400,
-  'nodeSize': 5,
-  'nodeOpacity': 0.9,
-  'linkWidth': 1.5,
-  'linkOpacity': 0.6,
-  'nodeStrokeWidth': 1
 };
 
 export const DAG_MODE_OPTIONS: { value: DagMode; label: string; description: string }[] = [

@@ -352,7 +352,7 @@ export function ArticleViewer () {
   }, [isEditing, article, syncMetadataFromArticle]);
 
   useEffect(() => {
-    if (isEditing && editor) {
+    if (isEditing && editor && !editor.isDestroyed) {
       editor.commands.focus('end', { 'scrollIntoView': false });
     }
   }, [isEditing, editor]);

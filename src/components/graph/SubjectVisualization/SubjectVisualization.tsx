@@ -24,25 +24,18 @@ import { getAvailableSubjects, getSubject } from './register';
 import type { SubjectNode, SelectedNode, SubjectUIConfig } from './types';
 import {
   ForceGraph3DRenderer,
-  ForceGraph2DRenderer,
   CosmosGLRenderer,
-  DeckGLRenderer,
   RendererSettingsPanel,
   RENDERER_CONFIGS,
   type RendererType,
   type ForceGraphSettings,
   type CosmosGLSettings,
-  type DeckGLSettings,
   DEFAULT_FORCE_GRAPH_SETTINGS,
-  DEFAULT_COSMOS_GL_SETTINGS,
-  DEFAULT_DECK_GL_SETTINGS
+  DEFAULT_COSMOS_GL_SETTINGS
 } from './renderers';
 import { SlidingCardSelector, type SlidingCardOption } from '@/components/ui/generic/SlidingCardSelector';
 import './msc2020';
 import './physh';
-import './mesh';
-import './chebi';
-import './ncbi';
 
 const iconMap: Record<string, LucideIcon> = {
   Hash,
@@ -86,8 +79,13 @@ export default function SubjectVisualization () {
   const [showSettings, setShowSettings] = useState(false);
   const [forceGraphSettings, setForceGraphSettings] = useState<ForceGraphSettings>(DEFAULT_FORCE_GRAPH_SETTINGS);
   const [cosmosGLSettings, setCosmosGLSettings] = useState<CosmosGLSettings>(DEFAULT_COSMOS_GL_SETTINGS);
-  const [deckGLSettings, setDeckGLSettings] = useState<DeckGLSettings>(DEFAULT_DECK_GL_SETTINGS);
   const [isDarkMode, setIsDarkMode] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  useEffect(() => {
+    if (subject === 'msc2020' || subject === 'physh') {
+      setCurrentSubject(subject);
+    }
+  }, [subject]);
 
   const availableSubjects = useMemo(() => getAvailableSubjects(), []);
 
@@ -234,12 +232,8 @@ export default function SubjectVisualization () {
     };
 
     switch (currentRenderer) {
-      case 'force-graph-2d':
-        return <ForceGraph2DRenderer {...props} settings={forceGraphSettings} />;
       case 'cosmos-gl':
         return <CosmosGLRenderer {...props} settings={cosmosGLSettings} />;
-      case 'deck-gl':
-        return <DeckGLRenderer {...props} settings={deckGLSettings} />;
       case 'force-graph-3d':
       default:
         return <ForceGraph3DRenderer {...props} settings={forceGraphSettings} />;
@@ -604,10 +598,8 @@ export default function SubjectVisualization () {
         currentRenderer={currentRenderer}
         forceGraphSettings={forceGraphSettings}
         cosmosGLSettings={cosmosGLSettings}
-        deckGLSettings={deckGLSettings}
         onForceGraphSettingsChange={setForceGraphSettings}
         onCosmosGLSettingsChange={setCosmosGLSettings}
-        onDeckGLSettingsChange={setDeckGLSettings}
       />
 
       {renderPanel()}

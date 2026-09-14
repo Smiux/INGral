@@ -85,10 +85,6 @@ export default defineConfig({
             return 'lucide';
           }
           
-          if (id.includes('node_modules/@supabase/')) {
-            return 'supabase';
-          }
-
           return undefined;
         }
       }
